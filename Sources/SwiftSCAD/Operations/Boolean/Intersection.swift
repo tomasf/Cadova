@@ -9,10 +9,6 @@ struct Intersection3D: Geometry3D {
 	}
 }
 
-public func Intersection(@SequenceBuilder _ content: () -> [Geometry3D]) -> Geometry3D {
-	Intersection3D(children: content())
-}
-
 public extension Geometry3D {
 	func intersection(@UnionBuilder with other: () -> Geometry3D) -> Geometry3D {
 		Intersection3D(children: [self, other()])
@@ -27,10 +23,6 @@ struct Intersection2D: Geometry2D {
 		SCADCall(name: "intersection", body: GeometrySequence(children: children))
 			.scadString(environment: environment)
 	}
-}
-
-public func Intersection(@SequenceBuilder _ content: () -> [Geometry2D]) -> Geometry2D {
-	Intersection2D(children: content())
 }
 
 public extension Geometry2D {

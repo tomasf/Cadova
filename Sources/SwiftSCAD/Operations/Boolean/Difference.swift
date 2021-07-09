@@ -15,10 +15,6 @@ struct Difference3D: Geometry3D {
 	}
 }
 
-public func Difference(@UnionBuilder _ positive: () -> Geometry3D, @UnionBuilder subtracting negative: () -> Geometry3D) -> Geometry3D {
-	Difference3D(positive: positive(), negative: negative())
-}
-
 public extension Geometry3D {
 	func subtracting(@UnionBuilder _ negative: () -> Geometry3D) -> Geometry3D {
 		Difference3D(positive: self, negative: negative())
@@ -39,10 +35,6 @@ struct Difference2D: Geometry2D {
 		SCADCall(name: "difference", body: GeometrySequence(children: [positive, negative]))
 			.scadString(environment: environment)
 	}
-}
-
-public func Difference(@UnionBuilder _ positive: () -> Geometry2D, @UnionBuilder subtracting negative: () -> Geometry2D) -> Geometry2D {
-	Difference2D(positive: positive(), negative: negative())
 }
 
 public extension Geometry2D {

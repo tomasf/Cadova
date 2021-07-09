@@ -1,6 +1,6 @@
 import Foundation
 
-func facetModification(_ facets: Environment.Facets, body: Geometry, environment: Environment) -> String {
+private func facetModification(_ facets: Environment.Facets, body: Geometry, environment: Environment) -> String {
 	let variables: [String: String]
 
 	switch facets {

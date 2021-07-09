@@ -16,9 +16,7 @@ struct CrossSection: Shape {
 		case .z: rotation = [0, positive ? -90 : 90, 0]
 		}
 
-		return Difference {
-			content
-		} subtracting: {
+		return content.subtracting {
 			Box([universeLength, universeLength, universeLength], center: [.y, .z])
 				.translate(x: positive ? offset : -offset)
 				.rotate(rotation)

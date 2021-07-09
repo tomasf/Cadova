@@ -19,19 +19,19 @@ public struct Teardrop: Shape2D {
 
 		let base = Union {
 			Circle(diameter: diameter)
-			Intersection {
-				Rectangle([diagonal, diagonal])
-					.rotate(-angle)
-					.translate(x: -x, y: y)
-				Rectangle([diagonal, diagonal])
-					.rotate(angle + 90)
-					.translate(x: x, y: y)
-			}
+
+			Rectangle([diagonal, diagonal])
+				.rotate(-angle)
+				.translate(x: -x, y: y)
+				.intersection {
+					Rectangle([diagonal, diagonal])
+						.rotate(angle + 90)
+						.translate(x: x, y: y)
+				}
 		}
 
 		if style == .bridged {
-			return Intersection {
-				base
+			return base.intersection {
 				Rectangle([diameter, diameter], center: .xy)
 			}
 		} else {
