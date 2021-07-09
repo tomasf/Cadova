@@ -10,7 +10,7 @@ public extension Geometry2D {
 	private func extruded(height: Double, topRadius radius: Double, layerHeight: Double) -> Geometry3D {
 		return ForEach(stride(from: 0.0, through: radius, by: layerHeight)) { z in
 			self
-				.offset(amount: (Angle.asin(z / radius).cos - 1) * radius, style: .round)
+				.offset(amount: (cos(asin(z / radius) as Angle) - 1) * radius, style: .round)
 				.extruded(height: height - radius + z)
 		}
 	}

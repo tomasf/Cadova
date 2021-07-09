@@ -17,25 +17,25 @@ extension Geometry3D {
 	}
 
 	public func repeated(around axis: Axis3D, in range: Range<Angle>, step: Angle) -> Geometry3D {
-		let strideBy = stride(from: range.lowerBound, to: range.upperBound, by: step)
+		let strideBy = stride(from: range.lowerBound.radians, to: range.upperBound.radians, by: step.radians)
 		return ForEach(strideBy) { value in
-			self.rotated(angle: value, axis: axis)
+			self.rotated(angle: Angle(radians: value), axis: axis)
 		}
 	}
 
 	public func repeated(around axis: Axis3D, in range: ClosedRange<Angle>, count: Int) -> Geometry3D {
 		let step = (range.upperBound - range.lowerBound) / Double(count - 1)
-		let strideBy = stride(from: range.lowerBound, through: range.upperBound, by: step)
+		let strideBy = stride(from: range.lowerBound.radians, through: range.upperBound.radians, by: step.radians)
 		return ForEach(strideBy) { value in
-			self.rotated(angle: value, axis: axis)
+			self.rotated(angle: Angle(radians: value), axis: axis)
 		}
 	}
 
 	public func repeated(around axis: Axis3D, in range: Range<Angle>, count: Int) -> Geometry3D {
 		let step = (range.upperBound - range.lowerBound) / Double(count)
-		let strideBy = stride(from: range.lowerBound, to: range.upperBound, by: step)
+		let strideBy = stride(from: range.lowerBound.radians, to: range.upperBound.radians, by: step.radians)
 		return ForEach(strideBy) { value in
-			self.rotated(angle: value, axis: axis)
+			self.rotated(angle: Angle(radians: value), axis: axis)
 		}
 	}
 
@@ -64,25 +64,25 @@ extension Geometry2D {
 	}
 
 	public func repeated(in range: Range<Angle>, step: Angle) -> Geometry2D {
-		let strideBy = stride(from: range.lowerBound, to: range.upperBound, by: step)
+		let strideBy = stride(from: range.lowerBound.radians, to: range.upperBound.radians, by: step.radians)
 		return ForEach(strideBy) { value in
-			self.rotated(value)
+			self.rotated(Angle(radians: value))
 		}
 	}
 
 	public func repeated(in range: ClosedRange<Angle>, count: Int) -> Geometry2D {
 		let step = (range.upperBound - range.lowerBound) / Double(count - 1)
-		let strideBy = stride(from: range.lowerBound, through: range.upperBound, by: step)
+		let strideBy = stride(from: range.lowerBound.radians, through: range.upperBound.radians, by: step.radians)
 		return ForEach(strideBy) { value in
-			self.rotated(value)
+			self.rotated(Angle(radians: value))
 		}
 	}
 
 	public func repeated(in range: Range<Angle>, count: Int) -> Geometry2D {
 		let step = (range.upperBound - range.lowerBound) / Double(count)
-		let strideBy = stride(from: range.lowerBound, to: range.upperBound, by: step)
+		let strideBy = stride(from: range.lowerBound.radians, to: range.upperBound.radians, by: step.radians)
 		return ForEach(strideBy) { value in
-			self.rotated(value)
+			self.rotated(Angle(radians: value))
 		}
 	}
 

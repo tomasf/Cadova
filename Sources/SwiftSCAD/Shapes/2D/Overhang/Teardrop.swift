@@ -13,9 +13,9 @@ public struct Teardrop: Shape2D {
 	}
 
 	public var body: Geometry2D {
-		let x = angle.cos * diameter/2
-		let y = angle.sin * diameter/2
-		let diagonal = diameter / angle.sin
+		let x = cos(angle) * diameter/2
+		let y = sin(angle) * diameter/2
+		let diagonal = diameter / sin(angle)
 
 		let base = Union {
 			Circle(diameter: diameter)

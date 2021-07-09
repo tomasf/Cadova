@@ -46,28 +46,28 @@ public struct AffineTransform {
 
 	private static func rotation(x: Angle) -> AffineTransform {
 		var transform = identity
-		transform[1, 1] = x.cos
-		transform[1, 2] = -x.sin
-		transform[2, 1] = x.sin
-		transform[2, 2] = x.cos
+		transform[1, 1] = cos(x)
+		transform[1, 2] = -sin(x)
+		transform[2, 1] = sin(x)
+		transform[2, 2] = cos(x)
 		return transform
 	}
 
 	private static func rotation(y: Angle) -> AffineTransform {
 		var transform = identity
-		transform[0, 0] = y.cos
-		transform[0, 2] = y.sin
-		transform[2, 0] = -y.sin
-		transform[2, 2] = y.cos
+		transform[0, 0] = cos(y)
+		transform[0, 2] = sin(y)
+		transform[2, 0] = -sin(y)
+		transform[2, 2] = cos(y)
 		return transform
 	}
 
 	private static func rotation(z: Angle) -> AffineTransform {
 		var transform = identity
-		transform[0, 0] = z.cos
-		transform[0, 1] = -z.sin
-		transform[1, 0] = z.sin
-		transform[1, 1] = z.cos
+		transform[0, 0] = cos(z)
+		transform[0, 1] = -sin(z)
+		transform[1, 0] = sin(z)
+		transform[1, 1] = cos(z)
 		return transform
 	}
 
