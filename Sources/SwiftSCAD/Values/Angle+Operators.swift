@@ -37,8 +37,16 @@ extension Angle: Comparable {
 		a.radians < b.radians
 	}
 
+	public static func <=(_ a: Angle, _ b: Angle) -> Bool {
+		a.radians <= b.radians
+	}
+
 	public static func >(_ a: Angle, _ b: Angle) -> Bool {
 		a.radians > b.radians
+	}
+
+	public static func >=(_ a: Angle, _ b: Angle) -> Bool {
+		a.radians >= b.radians
 	}
 
 	public static func ==(_ a: Angle, _ b: Angle) -> Bool {

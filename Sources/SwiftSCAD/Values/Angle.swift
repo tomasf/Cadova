@@ -28,21 +28,6 @@ extension Angle: CustomDebugStringConvertible {
 	}
 }
 
-/*
-extension Angle: ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral {
-	public typealias IntegerLiteralType = Int
-	public typealias FloatLiteralType = Double
-
-	public init(floatLiteral degrees: Double) {
-		self.init(degrees: degrees)
-	}
-
-	public init(integerLiteral degrees: Int) {
-		self.init(degrees: Double(degrees))
-	}
-}
-*/
-
 public func abs(_ angle: Angle) -> Angle {
 	Angle(radians: abs(angle.radians))
 }
