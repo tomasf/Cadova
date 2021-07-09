@@ -18,7 +18,7 @@ struct BezierCurve {
 		return workingPoints[0]
 	}
 
-	func points(in range: Range<Double>, maxSegmentLength: Double) -> [Vector2D] {
+	func points(in range: Range<Double>, minAngle: Angle, minSegmentLength: Double) -> [Vector2D] {
 		let startPoint = point(at: range.lowerBound)
 		let endPoint = point(at: range.upperBound)
 		let midFraction = (range.lowerBound + range.upperBound) / 2
@@ -26,23 +26,39 @@ struct BezierCurve {
 
 		let distance1 = startPoint.distance(to: midPoint)
 		let distance2 = midPoint.distance(to: endPoint)
-		guard distance1 > maxSegmentLength && distance2 > maxSegmentLength else {
+
+		let angle = abs(startPoint.angle(to: midPoint) - midPoint.angle(to: endPoint))
+
+		if distance1 + distance2 < minSegmentLength && angle < minAngle {
 			return []
 		}
 
-		return points(in: range.lowerBound..<midFraction, maxSegmentLength: maxSegmentLength)
+		return points(in: range.lowerBound..<midFraction, minAngle: minAngle, minSegmentLength: minSegmentLength)
 			+ [midPoint]
-			+ points(in: midFraction..<range.upperBound, maxSegmentLength: maxSegmentLength)
+			+ points(in: midFraction..<range.upperBound, minAngle: minAngle, minSegmentLength: minSegmentLength)
 	}
 
-	func points(maxSegmentLength: Double = 0.1) -> [Vector2D] {
-		return [point(at: 0)] + points(in: 0..<1, maxSegmentLength: maxSegmentLength) + [point(at: 1)]
+	func points(minAngle: Angle, minSegmentLength: Double) -> [Vector2D] {
+		return [point(at: 0)] + points(in: 0..<1, minAngle: minAngle, minSegmentLength: minSegmentLength) + [point(at: 1)]
 	}
 
 	func points(segmentCount: Int) -> [Vector2D] {
 		let segmentLength = 1.0 / Double(segmentCount)
 		return (0...segmentCount).map { f in
 			point(at: Double(f) * segmentLength)
+		}
+	}
+
+	func points(facets: Environment.Facets) -> [Vector2D] {
+		guard points.count > 2 else {
+			return points
+		}
+
+		switch facets {
+		case .fixed (let count):
+			return points(segmentCount: count)
+		case .dynamic(let minAngle, let minSize):
+			return points(minAngle: minAngle, minSegmentLength: minSize)
 		}
 	}
 }
@@ -69,39 +85,22 @@ public struct BezierPath: Geometry2D {
 		return BezierPath(startPoint: startPoint, curves: newCurves)
 	}
 
-	public func line(to point: Vector2D) -> BezierPath {
+	public func addingLine(to point: Vector2D) -> BezierPath {
 		adding(curve: BezierCurve(points: [endPoint, point]))
 	}
 
-	public func quadratic(controlPoint: Vector2D, end: Vector2D) -> BezierPath {
+	public func addingQuadraticCurve(controlPoint: Vector2D, end: Vector2D) -> BezierPath {
 		adding(curve: BezierCurve(points: [endPoint, controlPoint, end]))
 	}
 
-	public func cubic(controlPoint1: Vector2D, controlPoint2: Vector2D, end: Vector2D) -> BezierPath {
+	public func addingCubicCurve(controlPoint1: Vector2D, controlPoint2: Vector2D, end: Vector2D) -> BezierPath {
 		adding(curve: BezierCurve(points: [endPoint, controlPoint1, controlPoint2, end]))
 	}
 
-	func points(maxSegmentLength: Double = 0.1) -> [Vector2D] {
-		return [startPoint] + curves.map { curve in
-			Array(curve.points(maxSegmentLength: maxSegmentLength)[1...])
-		}.joined()
-	}
-
-	func points(segmentCount: Int) -> [Vector2D] {
-		let segmentPerCurve = Int(ceil(Double(segmentCount) / Double(curves.count)))
-
-		return [startPoint] + curves.map { curve in
-			Array(curve.points(segmentCount: segmentPerCurve)[1...])
-		}.joined()
-	}
-
 	public func points(facets: Environment.Facets) -> [Vector2D] {
-		switch facets {
-		case .fixed (let count):
-			return points(segmentCount: count)
-		case .dynamic(_, let minSize):
-			return points(maxSegmentLength: minSize)
-		}
+		return [startPoint] + curves.map { curve in
+			Array(curve.points(facets: facets)[1...])
+		}.joined()
 	}
 
 	public func scadString(environment: Environment) -> String {
