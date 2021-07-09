@@ -24,8 +24,8 @@ public struct Arc: Geometry2D {
 			circleFacets = Double(perRev)
 
 		case .dynamic (let minAngle, let minSize):
-			let facetsFromAngle = 360.0 / minAngle
-			let circumference = radius * 2 * .pi
+			let facetsFromAngle = 360° / minAngle
+			let circumference = radius * 2.0 * .pi
 			let facetsFromSize = circumference / minSize
 			circleFacets = min(facetsFromAngle, facetsFromSize)
 		}

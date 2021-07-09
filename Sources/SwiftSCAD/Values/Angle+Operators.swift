@@ -21,6 +21,10 @@ extension Angle: Comparable {
 		Angle(radians: a.radians * b)
 	}
 
+	public static func *(_ a: Double, _ b: Angle) -> Angle {
+		Angle(radians: a * b.radians)
+	}
+
 	public static func /(_ a: Angle, _ b: Double) -> Angle {
 		Angle(radians: a.radians / b)
 	}

@@ -22,7 +22,7 @@ public extension Geometry3D {
 		return Rotate3D(x: angles[0], y: angles[1], z: angles[2], body: self)
 	}
 
-	func rotated(x: Angle = 0, y: Angle = 0, z: Angle = 0) -> Geometry3D {
+	func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> Geometry3D {
 		rotated([x, y, z])
 	}
 

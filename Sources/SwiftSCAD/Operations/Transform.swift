@@ -71,7 +71,7 @@ public struct AffineTransform {
 		return transform
 	}
 
-	public static func rotation(x: Angle = 0, y: Angle = 0, z: Angle = 0) -> AffineTransform {
+	public static func rotation(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> AffineTransform {
 		return identity
 			.concatenated(with: rotation(x: x))
 			.concatenated(with: rotation(y: y))
@@ -127,7 +127,7 @@ public struct AffineTransform {
 		concatenated(with: .rotation(a))
 	}
 
-	public func rotated(x: Angle = 0, y: Angle = 0, z: Angle = 0) -> AffineTransform {
+	public func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> AffineTransform {
 		concatenated(with: .rotation(x: x, y: y, z: z))
 	}
 

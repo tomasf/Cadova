@@ -5,8 +5,8 @@ public struct Teardrop: Shape2D {
 	public let angle: Angle
 	public let diameter: Double
 
-	public init(diameter: Double, angle: Angle = 45, style: Style = .full) {
-		precondition(angle > 0 && angle < 90, "Angle must be between 0 and 90 degrees")
+	public init(diameter: Double, angle: Angle = 45°, style: Style = .full) {
+		precondition(angle > 0° && angle < 90°, "Angle must be between 0 and 90 degrees")
 		self.diameter = diameter
 		self.angle = angle
 		self.style = style
@@ -25,7 +25,7 @@ public struct Teardrop: Shape2D {
 				.translated(x: -x, y: y)
 				.intersection {
 					Rectangle([diagonal, diagonal])
-						.rotated(angle + 90)
+						.rotated(angle + 90°)
 						.translated(x: x, y: y)
 				}
 		}

@@ -13,7 +13,7 @@ In OpenSCAD, make sure to hide the editor view and enable "Automatic Reload and 
 
 ```swift
 Box([10, 20, 5], center: .y)
-    .rotated(y: -20, z: 45)
+    .rotated(y: -20°, z: 45°)
     .save(to: "~/Desktop/test.scad")
 ```
 
@@ -31,7 +31,7 @@ Circle(diameter: 10)
     .subtracting {
         Cylinder(bottomDiameter: 1, topDiameter: 5, height: 20)
             .translated(y: 2, z: -7)
-            .rotated(x: 20)
+            .rotated(x: 20°)
             .highlighted()
     }
     .save(to: "~/Desktop/test.scad")

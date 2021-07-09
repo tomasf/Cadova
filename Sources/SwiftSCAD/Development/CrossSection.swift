@@ -11,9 +11,9 @@ struct CrossSection: Shape {
 		let rotation: [Angle]
 
 		switch axis {
-		case .x: rotation = [0, 0, positive ? 0 : 180]
-		case .y: rotation = [0, 0, positive ? 90 : -90]
-		case .z: rotation = [0, positive ? -90 : 90, 0]
+		case .x: rotation = [0°, 0°, positive ? 0° : 180°]
+		case .y: rotation = [0°, 0°, positive ? 90° : -90°]
+		case .z: rotation = [0°, positive ? -90° : 90°, 0°]
 		}
 
 		return content.subtracting {
