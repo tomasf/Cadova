@@ -18,15 +18,15 @@ struct CrossSection: Shape {
 
 		return content.subtracting {
 			Box([universeLength, universeLength, universeLength], center: [.y, .z])
-				.translate(x: positive ? offset : -offset)
-				.rotate(rotation)
-				.color(named: .orangeRed)
+				.translated(x: positive ? offset : -offset)
+				.rotated(rotation)
+				.colored(.orangeRed)
 		}
 	}
 }
 
 public extension Geometry3D {
-	func crossSection(axis: Axis3D, offset: Double = 0, invert: Bool = false) -> Geometry3D {
+	func crossSectioned(axis: Axis3D, offset: Double = 0, invert: Bool = false) -> Geometry3D {
 		CrossSection(axis: axis, positive: invert, offset: offset, content: self)
 	}
 }

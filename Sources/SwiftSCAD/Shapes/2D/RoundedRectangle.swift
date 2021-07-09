@@ -27,16 +27,16 @@ public struct RoundedRectangle: Shape2D {
 
 	@UnionBuilder public var body: Geometry2D {
 		Corner(angleOffset: 90, radius: radii.topLeft)
-			.translate(x: radii.topLeft, y: size.y - radii.topLeft)
+			.translated(x: radii.topLeft, y: size.y - radii.topLeft)
 
 		Corner(angleOffset: 0, radius: radii.topRight)
-			.translate(x: size.x - radii.topRight, y: size.y - radii.topRight)
+			.translated(x: size.x - radii.topRight, y: size.y - radii.topRight)
 
 		Corner(angleOffset: 180, radius: radii.bottomLeft)
-			.translate(x: radii.bottomLeft, y: radii.bottomLeft)
+			.translated(x: radii.bottomLeft, y: radii.bottomLeft)
 
 		Corner(angleOffset: 270, radius: radii.bottomRight)
-			.translate(x: size.x - radii.bottomRight, y: radii.bottomRight)
+			.translated(x: size.x - radii.bottomRight, y: radii.bottomRight)
 
 		Polygon([
 			[radii.topLeft, size.y], [size.x - radii.topRight, size.y],
@@ -69,10 +69,10 @@ public struct RoundedRectangle: Shape2D {
 		var body: Geometry2D {
 			if radius > .ulpOfOne {
 				return Arc(range: 0..<90, radius: radius)
-					.rotate(angleOffset)
+					.rotated(angleOffset)
 			} else {
 				return Rectangle([0.001, 0.001])
-					.rotate(angleOffset + 180)
+					.rotated(angleOffset + 180)
 			}
 		}
 	}

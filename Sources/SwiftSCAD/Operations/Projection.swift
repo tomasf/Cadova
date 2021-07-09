@@ -17,7 +17,7 @@ struct Projection: Geometry2D {
 			return SCADCall(
 				name: "projection",
 				params: ["cut": true],
-				body: body.translate(z: -z)
+				body: body.translated(z: -z)
 			)
 			.scadString(environment: environment)
 		}

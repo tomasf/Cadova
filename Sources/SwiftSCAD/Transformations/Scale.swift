@@ -15,15 +15,15 @@ struct Scale3D: Geometry3D {
 }
 
 public extension Geometry3D {
-	func scale(_ scale: Vector3D) -> Geometry3D {
+	func scaled(_ scale: Vector3D) -> Geometry3D {
 		Scale3D(scale: scale, body: self)
 	}
 
-	func scale(_ factor: Double) -> Geometry3D {
+	func scaled(_ factor: Double) -> Geometry3D {
 		Scale3D(scale: [factor, factor, factor], body: self)
 	}
 
-	func scale(x: Double = 1, y: Double = 1, z: Double = 1) -> Geometry3D {
+	func scaled(x: Double = 1, y: Double = 1, z: Double = 1) -> Geometry3D {
 		Scale3D(scale: [x, y, z], body: self)
 	}
 }
@@ -44,15 +44,15 @@ struct Scale2D: Geometry2D {
 }
 
 public extension Geometry2D {
-	func scale(_ scale: Vector2D) -> Geometry2D {
+	func scaled(_ scale: Vector2D) -> Geometry2D {
 		Scale2D(scale: scale, body: self)
 	}
 
-	func scale(_ factor: Double) -> Geometry2D {
+	func scaled(_ factor: Double) -> Geometry2D {
 		Scale2D(scale: [factor, factor], body: self)
 	}
 
-	func scale(x: Double = 1, y: Double = 1) -> Geometry2D {
+	func scaled(x: Double = 1, y: Double = 1) -> Geometry2D {
 		Scale2D(scale: [x, y], body: self)
 	}
 }

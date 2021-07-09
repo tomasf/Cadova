@@ -21,12 +21,12 @@ public struct Teardrop: Shape2D {
 			Circle(diameter: diameter)
 
 			Rectangle([diagonal, diagonal])
-				.rotate(-angle)
-				.translate(x: -x, y: y)
+				.rotated(-angle)
+				.translated(x: -x, y: y)
 				.intersection {
 					Rectangle([diagonal, diagonal])
-						.rotate(angle + 90)
-						.translate(x: x, y: y)
+						.rotated(angle + 90)
+						.translated(x: x, y: y)
 				}
 		}
 

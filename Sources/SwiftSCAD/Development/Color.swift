@@ -171,11 +171,11 @@ struct Color3D: Geometry3D {
 }
 
 extension Geometry3D {
-	public func color(named name: Color.Name, alpha: Double = 1) -> Geometry3D {
+	public func colored(_ name: Color.Name, alpha: Double = 1) -> Geometry3D {
 		Color3D(color: .named(name, alpha: alpha), content: self)
 	}
 
-	public func color(red: Double, green: Double, blue: Double, alpha: Double = 1) -> Geometry3D {
+	public func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> Geometry3D {
 		Color3D(color: .components(red: red, green: green, blue: blue, alpha: alpha), content: self)
 	}
 }

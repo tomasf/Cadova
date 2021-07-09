@@ -15,11 +15,11 @@ struct Translate3D: Geometry3D {
 }
 
 public extension Geometry3D {
-	func translate(_ distance: Vector3D) -> Geometry3D {
+	func translated(_ distance: Vector3D) -> Geometry3D {
 		Translate3D(distance: distance, body: self)
 	}
 
-	func translate(x: Double = 0, y: Double = 0, z: Double = 0) -> Geometry3D {
+	func translated(x: Double = 0, y: Double = 0, z: Double = 0) -> Geometry3D {
 		Translate3D(distance: [x, y, z], body: self)
 	}
 }
@@ -40,11 +40,11 @@ struct Translate2D: Geometry2D {
 }
 
 public extension Geometry2D {
-	func translate(_ distance: Vector2D) -> Geometry2D {
+	func translated(_ distance: Vector2D) -> Geometry2D {
 		Translate2D(distance: distance, body: self)
 	}
 
-	func translate(x: Double = 0, y: Double = 0) -> Geometry2D {
+	func translated(x: Double = 0, y: Double = 0) -> Geometry2D {
 		Translate2D(distance: [x, y], body: self)
 	}
 }

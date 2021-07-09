@@ -13,7 +13,7 @@ In OpenSCAD, make sure to hide the editor view and enable "Automatic Reload and 
 
 ```swift
 Box([10, 20, 5], center: .y)
-    .rotate(y: -20, z: 45)
+    .rotated(y: -20, z: 45)
     .save(to: "~/Desktop/test.scad")
 ```
 
@@ -23,15 +23,15 @@ Box([10, 20, 5], center: .y)
 ```swift
 Circle(diameter: 10)
     .withFacets(count: 3)
-    .translate(x: 2)
-    .scale(x: 2)
-    .repeat(in: 0°..<360°, count: 5)
+    .translated(x: 2)
+    .scaled(x: 2)
+    .repeated(in: 0°..<360°, count: 5)
     .rounded(amount: 1)
-    .extrude(height: 5, twist: 20°, slices: 20)
+    .extruded(height: 5, twist: 20°, slices: 20)
     .subtracting {
         Cylinder(bottomDiameter: 1, topDiameter: 5, height: 20)
-            .translate(y: 2, z: -7)
-            .rotate(x: 20)
+            .translated(y: 2, z: -7)
+            .rotated(x: 20)
             .highlighted()
     }
     .save(to: "~/Desktop/test.scad")
@@ -52,10 +52,10 @@ struct Star: Shape2D {
             Union {
                 Circle(diameter: centerSize)
                 Circle(radius: max(pointRadius, 0.001))
-                    .translate(x: radius)
+                    .translated(x: radius)
             }
             .convexHull()
-            .rotate(360° / Double(pointCount) * Double(i))
+            .rotated(360° / Double(pointCount) * Double(i))
         }
     }
 }
@@ -63,7 +63,7 @@ struct Star: Shape2D {
 Union {
     Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
     Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
-        .translate(x: 20)
+        .translated(x: 20)
 }
 .save(to: "~/Desktop/test.scad")
 ```

@@ -17,19 +17,19 @@ struct Rotate3D: Geometry3D {
 }
 
 public extension Geometry3D {
-	func rotate(_ angles: [Angle]) -> Geometry3D {
+	func rotated(_ angles: [Angle]) -> Geometry3D {
 		precondition(angles.count == 3, "Rotate3D needs three angles")
 		return Rotate3D(x: angles[0], y: angles[1], z: angles[2], body: self)
 	}
 
-	func rotate(x: Angle = 0, y: Angle = 0, z: Angle = 0) -> Geometry3D {
-		rotate([x, y, z])
+	func rotated(x: Angle = 0, y: Angle = 0, z: Angle = 0) -> Geometry3D {
+		rotated([x, y, z])
 	}
 
-	func rotate(angle: Angle, axis: Axis3D) -> Geometry3D {
+	func rotated(angle: Angle, axis: Axis3D) -> Geometry3D {
 		var angles = [0°, 0°, 0°]
 		angles[axis.rawValue] = angle
-		return rotate(angles)
+		return rotated(angles)
 	}
 }
 
@@ -49,7 +49,7 @@ struct Rotate2D: Geometry2D {
 }
 
 public extension Geometry2D {
-	func rotate(_ angle: Angle) -> Geometry2D {
+	func rotated(_ angle: Angle) -> Geometry2D {
 		Rotate2D(angle: angle, body: self)
 	}
 }

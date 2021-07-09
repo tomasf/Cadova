@@ -42,11 +42,11 @@ struct RotateExtrude: Geometry3D {
 }
 
 public extension Geometry2D {
-	func extrude(height: Double, twist: Angle = 0, slices: Int? = nil, scale: Vector2D = [1, 1], convexity: Int = 2) -> Geometry3D {
+	func extruded(height: Double, twist: Angle = 0, slices: Int? = nil, scale: Vector2D = [1, 1], convexity: Int = 2) -> Geometry3D {
 		LinearExtrude(height: height, twist: twist, slices: slices, scale: scale, convexity: convexity, body: self)
 	}
 
-	func extrude(angle: Angle, convexity: Int = 2) -> Geometry3D {
+	func extruded(angle: Angle, convexity: Int = 2) -> Geometry3D {
 		RotateExtrude(angle: angle, convexity: convexity, body: self)
 	}
 }

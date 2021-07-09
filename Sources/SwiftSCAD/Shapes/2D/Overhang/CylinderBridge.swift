@@ -28,8 +28,8 @@ public struct CylinderBridge: Shape2D {
 				ForEach(0..<sideCount) { i in
 					let angle = (360° / Double(sideCount)) * Double(i)
 					Rectangle([bottomDiameter, bottomDiameter], center: .y)
-						.translate(x: topDiameter / 2)
-						.rotate(angle)
+						.translated(x: topDiameter / 2)
+						.rotated(angle)
 				}
 			}
 	}
