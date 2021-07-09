@@ -9,6 +9,10 @@ public extension Double {
 }
 
 extension Angle: Comparable {
+	public static prefix func -(_ a: Angle) -> Angle {
+		Angle(radians: -a.radians)
+	}
+
 	public static func +(_ a: Angle, _ b: Angle) -> Angle {
 		Angle(radians: a.radians + b.radians)
 	}
@@ -32,7 +36,9 @@ extension Angle: Comparable {
 	public static func /(_ a: Angle, _ b: Angle) -> Double {
 		a.radians / b.radians
 	}
+}
 
+extension Angle {
 	public static func <(_ a: Angle, _ b: Angle) -> Bool {
 		a.radians < b.radians
 	}
@@ -51,9 +57,5 @@ extension Angle: Comparable {
 
 	public static func ==(_ a: Angle, _ b: Angle) -> Bool {
 		a.radians == b.radians
-	}
-
-	public static prefix func -(_ a: Angle) -> Angle {
-		Angle(radians: -a.radians)
 	}
 }
