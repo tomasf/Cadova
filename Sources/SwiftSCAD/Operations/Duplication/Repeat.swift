@@ -44,6 +44,12 @@ extension Geometry3D {
 			self.translated(Vector3D(axis: axis, value: offset))
 		}
 	}
+
+	public func distributed(at angles: [Angle], around axis: Axis3D) -> Geometry3D {
+		ForEach(angles) { angle in
+			self.rotated(angle: angle, axis: axis)
+		}
+	}
 }
 
 
@@ -89,6 +95,12 @@ extension Geometry2D {
 	public func distributed(at offsets: [Double], along axis: Axis2D) -> Geometry2D {
 		ForEach(offsets) { offset in
 			self.translated(Vector2D(axis: axis, value: offset))
+		}
+	}
+
+	public func distributed(at angles: [Angle]) -> Geometry2D {
+		ForEach(angles) { angle in
+			self.rotated(angle)
 		}
 	}
 }
