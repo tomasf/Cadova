@@ -1,12 +1,14 @@
 import Foundation
 
 public struct RoundedRectangle: Shape2D {
-	public let radii: CornerRadii
-	public let size: Vector2D
+	let radii: CornerRadii
+	let size: Vector2D
+	let center: Axes2D
 
-	public init(_ size: Vector2D, cornerRadii: [Double]) {
+	public init(_ size: Vector2D, cornerRadii: [Double], center: Axes2D = []) {
 		self.size = size
 		self.radii = [cornerRadii[0], cornerRadii[1], cornerRadii[2], cornerRadii[3]]
+		self.center = center
 
 		precondition(
 			radii.bottomLeft + radii.bottomRight <= size.x
@@ -17,33 +19,38 @@ public struct RoundedRectangle: Shape2D {
 		)
 	}
 
-	public init(_ size: Vector2D, cornerRadius: Double) {
-		self.init(size, cornerRadii: [cornerRadius, cornerRadius, cornerRadius, cornerRadius])
+	public init(_ size: Vector2D, cornerRadius: Double, center: Axes2D = []) {
+		self.init(size, cornerRadii: [cornerRadius, cornerRadius, cornerRadius, cornerRadius], center: center)
 	}
 
-	public init(_ size: Vector2D, bottomLeft: Double, bottomRight: Double, topRight: Double, topLeft: Double) {
-		self.init(size, cornerRadii: [bottomLeft, bottomRight, topRight, topLeft])
+	public init(_ size: Vector2D, bottomLeft: Double, bottomRight: Double, topRight: Double, topLeft: Double, center: Axes2D = []) {
+		self.init(size, cornerRadii: [bottomLeft, bottomRight, topRight, topLeft], center: center)
 	}
 
 	@UnionBuilder public var body: Geometry2D {
-		Corner(angleOffset: 90°, radius: radii.topLeft)
-			.translated(x: radii.topLeft, y: size.y - radii.topLeft)
+		let centerTranslation = (size / -2).setting(axes: center.inverted, to: 0)
 
-		Corner(angleOffset: 0°, radius: radii.topRight)
-			.translated(x: size.x - radii.topRight, y: size.y - radii.topRight)
+		Union {
+			Corner(angleOffset: 90°, radius: radii.topLeft)
+				.translated(x: radii.topLeft, y: size.y - radii.topLeft)
 
-		Corner(angleOffset: 180°, radius: radii.bottomLeft)
-			.translated(x: radii.bottomLeft, y: radii.bottomLeft)
+			Corner(angleOffset: 0°, radius: radii.topRight)
+				.translated(x: size.x - radii.topRight, y: size.y - radii.topRight)
 
-		Corner(angleOffset: 270°, radius: radii.bottomRight)
-			.translated(x: size.x - radii.bottomRight, y: radii.bottomRight)
+			Corner(angleOffset: 180°, radius: radii.bottomLeft)
+				.translated(x: radii.bottomLeft, y: radii.bottomLeft)
 
-		Polygon([
-			[radii.topLeft, size.y], [size.x - radii.topRight, size.y],
-			[size.x, size.y - radii.topRight], [size.x, radii.bottomRight],
-			[size.x - radii.bottomRight, 0], [radii.bottomLeft, 0],
-			[0, radii.bottomLeft], [0, size.y - radii.topLeft]
-		])
+			Corner(angleOffset: 270°, radius: radii.bottomRight)
+				.translated(x: size.x - radii.bottomRight, y: radii.bottomRight)
+
+			Polygon([
+				[radii.topLeft, size.y], [size.x - radii.topRight, size.y],
+				[size.x, size.y - radii.topRight], [size.x, radii.bottomRight],
+				[size.x - radii.bottomRight, 0], [radii.bottomLeft, 0],
+				[0, radii.bottomLeft], [0, size.y - radii.topLeft]
+			])
+		}
+		.translated(centerTranslation)
 	}
 
 	public struct CornerRadii: ExpressibleByArrayLiteral {
