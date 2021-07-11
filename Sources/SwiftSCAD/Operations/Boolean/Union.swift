@@ -21,6 +21,11 @@ public func Union(children: [Geometry3D]) -> Geometry3D {
 	Union3D(children: children)
 }
 
+public extension Geometry3D {
+	func adding(@SequenceBuilder _ bodies: () -> [Geometry3D]) -> Geometry3D {
+		Union3D(children: [self] + bodies())
+	}
+}
 
 struct Union2D: Geometry2D {
 	let children: [Geometry2D]
@@ -41,4 +46,10 @@ public func Union(@UnionBuilder _ body: () -> Geometry2D) -> Geometry2D {
 
 public func Union(children: [Geometry2D]) -> Geometry2D {
 	Union2D(children: children)
+}
+
+public extension Geometry2D {
+	func adding(@SequenceBuilder _ bodies: () -> [Geometry2D]) -> Geometry2D {
+		Union2D(children: [self] + bodies())
+	}
 }
