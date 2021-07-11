@@ -22,4 +22,8 @@ public extension Geometry3D {
 	func sheared(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> Geometry3D {
 		transformed(.shearing(axis, along: otherAxis, factor: factor))
 	}
+
+	func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> Geometry3D {
+		transformed(.shearing(axis, along: otherAxis, angle: angle))
+	}
 }

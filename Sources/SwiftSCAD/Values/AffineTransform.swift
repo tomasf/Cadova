@@ -121,6 +121,12 @@ extension AffineTransform {
 		t[row, column] = factor
 		return t
 	}
+
+	public static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform {
+		assert(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
+		let factor = sin(angle) / sin(90° - angle)
+		return shearing(axis, along: otherAxis, factor: factor)
+	}
 }
 
 extension AffineTransform {
@@ -150,6 +156,10 @@ extension AffineTransform {
 
 	func sheared(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform {
 		concatenated(with: .shearing(axis, along: otherAxis, factor: factor))
+	}
+
+	func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform {
+		concatenated(with: .shearing(axis, along: otherAxis, angle: angle))
 	}
 }
 
