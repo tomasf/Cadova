@@ -48,15 +48,13 @@ struct Star: Shape2D {
     let centerSize: Double
 
     var body: Geometry2D {
-        ForEach(0..<pointCount) { i in
-            Union {
-                Circle(diameter: centerSize)
-                Circle(radius: max(pointRadius, 0.001))
-                    .translated(x: radius)
-            }
-            .convexHull()
-            .rotated(360° / Double(pointCount) * Double(i))
+        Union {
+            Circle(diameter: centerSize)
+            Circle(radius: max(pointRadius, 0.001))
+                .translated(x: radius)
         }
+        .convexHull()
+        .repeated(in: 0°..<360°, count: pointCount)
     }
 }
 
