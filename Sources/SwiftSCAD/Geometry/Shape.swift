@@ -1,7 +1,7 @@
 import Foundation
 
 public protocol Shape: Geometry3D {
-	var body: Geometry3D { get }
+	@UnionBuilder var body: Geometry3D { get }
 }
 
 public extension Shape {
@@ -12,7 +12,7 @@ public extension Shape {
 
 
 public protocol Shape2D: Geometry2D {
-	var body: Geometry2D { get }
+	@UnionBuilder var body: Geometry2D { get }
 }
 
 public extension Shape2D {

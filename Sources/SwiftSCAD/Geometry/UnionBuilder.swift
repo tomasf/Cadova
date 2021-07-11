@@ -1,6 +1,6 @@
 import Foundation
 
-@_functionBuilder public struct UnionBuilder {
+@resultBuilder public struct UnionBuilder {
 	public static func buildBlock(_ children: Geometry3D...) -> Geometry3D {
 		if children.count > 1 {
 			return Union3D(children: children)
@@ -9,12 +9,20 @@ import Foundation
 		}
 	}
 
-	public static func buildIf(_ children: Geometry3D?...) -> Geometry3D {
-		if children.count > 1 {
-			return Union3D(children: children.compactMap { $0 })
-		} else {
-			return children[0] ?? Empty()
-		}
+	public static func buildOptional(_ child: Geometry3D?) -> Geometry3D {
+		child ?? Empty()
+	}
+
+	public static func buildEither(first child: Geometry3D) -> Geometry3D {
+		child
+	}
+
+	public static func buildEither(second child: Geometry3D) -> Geometry3D {
+		child
+	}
+
+	public static func buildArray(_ children: [Geometry3D]) -> Geometry3D {
+		Union3D(children: children)
 	}
 
 
@@ -26,11 +34,19 @@ import Foundation
 		}
 	}
 
-	public static func buildIf(_ children: Geometry2D?...) -> Geometry2D {
-		if children.count > 1 {
-			return Union2D(children: children.compactMap { $0 })
-		} else {
-			return children[0] ?? Empty()
-		}
+	public static func buildOptional(_ child: Geometry2D?) -> Geometry2D {
+		child ?? Empty()
+	}
+
+	public static func buildEither(first child: Geometry2D) -> Geometry2D {
+		child
+	}
+
+	public static func buildEither(second child: Geometry2D) -> Geometry2D {
+		child
+	}
+
+	public static func buildArray(_ children: [Geometry2D]) -> Geometry2D {
+		Union2D(children: children)
 	}
 }
