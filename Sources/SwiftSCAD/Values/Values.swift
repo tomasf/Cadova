@@ -74,7 +74,14 @@ struct SCADCall: SCADFormattable {
 			.sorted(by: { a, b in a.key < b.key })
 			.map { key, value in "\(key)=\(value.scadString)"}.joined(separator: ", ")
 
-		return "\(name)(\(paramText)) \(body?.scadString(environment: environment) ?? ";")"
+		let bodyString: String
+		if let body = body {
+			bodyString = " " + body.scadString(environment: environment)
+		} else {
+			bodyString = ";"
+		}
+
+		return "\(name)(\(paramText))\(bodyString)"
 	}
 }
 
@@ -82,6 +89,6 @@ struct GeometrySequence: Geometry {
 	let children: [Geometry]
 
 	func scadString(environment: Environment) -> String {
-		"{" + children.map { $0.scadString(environment: environment) }.joined(separator: "\n") + "}"
+		"{ " + children.map { $0.scadString(environment: environment) }.joined(separator: " ") + " }"
 	}
 }
