@@ -146,6 +146,20 @@ public enum Color {
 		case darkSlateGray
 		case black
 	}
+
+	internal func call(child: Geometry) -> SCADCall {
+		let params: [String: SCADValue]
+
+		switch self {
+		case .components (let red, let green, let blue, let alpha):
+			params = ["c": [red, green, blue, alpha]]
+
+		case .named (let name, let alpha):
+			params = ["c": name.rawValue, "alpha": alpha]
+		}
+
+		return SCADCall(name: "color", params: params, body: child)
+	}
 }
 
 
@@ -154,17 +168,7 @@ struct Color3D: CoreGeometry3D {
 	let content: Geometry3D
 
 	func call(in environment: Environment) -> SCADCall {
-		let params: [String: SCADValue]
-
-		switch color {
-		case .components (let red, let green, let blue, let alpha):
-			params = ["c": [red, green, blue, alpha]]
-
-		case .named (let name, let alpha):
-			params = ["c": name.rawValue, "alpha": alpha]
-		}
-
-		return SCADCall(name: "color", params: params, body: content)
+		color.call(child: content)
 	}
 }
 
@@ -175,5 +179,25 @@ extension Geometry3D {
 
 	public func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> Geometry3D {
 		Color3D(color: .components(red: red, green: green, blue: blue, alpha: alpha), content: self)
+	}
+}
+
+
+struct Color2D: CoreGeometry2D {
+	let color: Color
+	let content: Geometry2D
+
+	func call(in environment: Environment) -> SCADCall {
+		color.call(child: content)
+	}
+}
+
+extension Geometry2D {
+	public func colored(_ name: Color.Name, alpha: Double = 1) -> Geometry2D {
+		Color2D(color: .named(name, alpha: alpha), content: self)
+	}
+
+	public func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> Geometry2D {
+		Color2D(color: .components(red: red, green: green, blue: blue, alpha: alpha), content: self)
 	}
 }
