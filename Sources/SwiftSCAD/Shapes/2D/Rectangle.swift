@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Rectangle: Geometry2D {
+public struct Rectangle: CoreGeometry2D {
 	public let size: Vector2D
 	public let center: Axes2D
 
@@ -9,14 +9,14 @@ public struct Rectangle: Geometry2D {
 		self.center = center
 	}
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		let square = SCADCall(
 			name: "square",
 			params: ["size": size]
 		)
 
 		guard !center.isEmpty else {
-			return square.scadString(environment: environment)
+			return square
 		}
 
 		return SCADCall(
@@ -24,6 +24,5 @@ public struct Rectangle: Geometry2D {
 			params: ["v": (size / -2).setting(axes: center.inverted, to: 0)],
 			body: square
 		)
-		.scadString(environment: environment)
 	}
 }

@@ -1,11 +1,10 @@
 import Foundation
 
-struct ConvexHull3D: Geometry3D {
+struct ConvexHull3D: CoreGeometry3D {
 	let body: Geometry3D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(name: "hull", body: body)
-			.scadString(environment: environment)
 	}
 }
 
@@ -16,12 +15,11 @@ public extension Geometry3D {
 }
 
 
-struct ConvexHull2D: Geometry2D {
+struct ConvexHull2D: CoreGeometry2D {
 	let body: Geometry2D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(name: "hull", body: body)
-			.scadString(environment: environment)
 	}
 }
 

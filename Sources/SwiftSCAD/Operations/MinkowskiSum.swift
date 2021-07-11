@@ -1,11 +1,10 @@
 import Foundation
 
-struct Minkowski3D: Geometry3D {
+struct Minkowski3D: CoreGeometry3D {
 	let children: [Geometry3D]
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(name: "minkowski", body: GeometrySequence(children: children))
-			.scadString(environment: environment)
 	}
 }
 
@@ -14,12 +13,11 @@ public func MinkowskiSum(@SequenceBuilder components: () -> [Geometry3D]) -> Geo
 }
 
 
-struct Minkowski2D: Geometry2D {
+struct Minkowski2D: CoreGeometry2D {
 	let children: [Geometry2D]
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(name: "minkowski", body: GeometrySequence(children: children))
-			.scadString(environment: environment)
 	}
 }
 

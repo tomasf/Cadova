@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Text: Geometry2D {
+public struct Text: CoreGeometry2D {
 	let text: String
 	let font: Font
 	let horizontalAlignment: HorizontalAlignment
@@ -14,18 +14,15 @@ public struct Text: Geometry2D {
 		self.characterSpacingFactor = spacingFactor
 	}
 
-	public func scadString(environment: Environment) -> String {
-		let params: [String: SCADValue] = [
+	func call(in environment: Environment) -> SCADCall {
+		return SCADCall(name: "text", params: [
 			"text": text,
 			"size": font.size,
 			"font": font.fontString,
 			"halign": horizontalAlignment.rawValue,
 			"valign": verticalAlignment.rawValue,
 			"spacing": characterSpacingFactor
-		]
-
-		return SCADCall(name: "text", params: params)
-			.scadString(environment: environment)
+		])
 	}
 
 	public struct Font {

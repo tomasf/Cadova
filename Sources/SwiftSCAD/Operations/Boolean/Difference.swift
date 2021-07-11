@@ -1,6 +1,6 @@
 import Foundation
 
-struct Difference3D: Geometry3D {
+struct Difference3D: CoreGeometry3D {
 	let positive: Geometry3D
 	let negative: Geometry3D
 
@@ -9,9 +9,8 @@ struct Difference3D: Geometry3D {
 		self.negative = negative
 	}
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(name: "difference", body: GeometrySequence(children: [positive, negative]))
-			.scadString(environment: environment)
 	}
 }
 
@@ -22,7 +21,7 @@ public extension Geometry3D {
 }
 
 
-struct Difference2D: Geometry2D {
+struct Difference2D: CoreGeometry2D {
 	let positive: Geometry2D
 	let negative: Geometry2D
 
@@ -31,9 +30,8 @@ struct Difference2D: Geometry2D {
 		self.negative = negative
 	}
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(name: "difference", body: GeometrySequence(children: [positive, negative]))
-			.scadString(environment: environment)
 	}
 }
 

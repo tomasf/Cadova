@@ -5,7 +5,7 @@ public enum ForEachOperation {
 	case intersection
 }
 
-struct ForEach3D: Geometry3D {
+struct ForEach3D: Shape {
 	let body: Geometry3D
 
 	init<C: Sequence>(_ sequence: C, operation: ForEachOperation, @UnionBuilder body: (C.Element) -> Geometry3D) {
@@ -16,10 +16,6 @@ struct ForEach3D: Geometry3D {
 			self.body = Intersection3D(children: sequence.map(body))
 		}
 	}
-
-	func scadString(environment: Environment) -> String {
-		body.scadString(environment: environment)
-	}
 }
 
 public func ForEach<C: Sequence>(_ sequence: C, operation: ForEachOperation = .union, @UnionBuilder body: (C.Element) -> Geometry3D) -> Geometry3D {
@@ -27,7 +23,7 @@ public func ForEach<C: Sequence>(_ sequence: C, operation: ForEachOperation = .u
 }
 
 
-struct ForEach2D: Geometry2D {
+struct ForEach2D: Shape2D {
 	let body: Geometry2D
 
 	init<C: Sequence>(_ sequence: C, operation: ForEachOperation, @UnionBuilder body: (C.Element) -> Geometry2D) {
@@ -37,10 +33,6 @@ struct ForEach2D: Geometry2D {
 		case .intersection:
 			self.body = Intersection2D(children: sequence.map(body))
 		}
-	}
-
-	func scadString(environment: Environment) -> String {
-		body.scadString(environment: environment)
 	}
 }
 

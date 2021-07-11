@@ -1,6 +1,6 @@
 import Foundation
 
-private func facetModification(_ facets: Environment.Facets, body: Geometry, environment: Environment) -> String {
+private func facetModification(_ facets: Environment.Facets, body: Geometry, environment: Environment) -> SCADCall {
 	let variables: [String: SCADValue]
 
 	switch facets {
@@ -13,15 +13,14 @@ private func facetModification(_ facets: Environment.Facets, body: Geometry, env
 	let newEnvironment = environment.withFacets(facets)
 
 	return SCADCall(name: "let", params: variables, body: body)
-		.scadString(environment: newEnvironment)
 }
 
 
-struct SetFacets3D: Geometry3D {
+struct SetFacets3D: CoreGeometry3D {
 	let facets: Environment.Facets
 	let body: Geometry3D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		facetModification(facets, body: body, environment: environment)
 	}
 }
@@ -41,11 +40,11 @@ public extension Geometry3D {
 }
 
 
-struct SetFacets2D: Geometry2D {
+struct SetFacets2D: CoreGeometry2D {
 	let facets: Environment.Facets
 	let body: Geometry2D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		facetModification(facets, body: body, environment: environment)
 	}
 }

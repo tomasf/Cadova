@@ -15,3 +15,22 @@ public struct Empty: Geometry3D, Geometry2D {
 	}
 }
 
+protocol CoreGeometry3D: Geometry3D {
+	func call(in environment: Environment) -> SCADCall
+}
+
+extension CoreGeometry3D {
+	public func scadString(environment: Environment) -> String {
+		call(in: environment).scadString(environment: environment)
+	}
+}
+
+protocol CoreGeometry2D: Geometry2D {
+	func call(in environment: Environment) -> SCADCall
+}
+
+extension CoreGeometry2D {
+	public func scadString(environment: Environment) -> String {
+		call(in: environment).scadString(environment: environment)
+	}
+}

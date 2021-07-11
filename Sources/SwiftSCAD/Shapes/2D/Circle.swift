@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Circle: Geometry2D {
+public struct Circle: CoreGeometry2D {
 	public let diameter: Double
 
 	public init(diameter: Double) {
@@ -11,11 +11,10 @@ public struct Circle: Geometry2D {
 		self.diameter = radius * 2
 	}
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(
 			name: "circle",
 			params: ["d": diameter]
 		)
-		.scadString(environment: environment)
 	}
 }

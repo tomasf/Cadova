@@ -1,15 +1,14 @@
 import Foundation
 
-struct Union3D: Geometry3D {
+struct Union3D: CoreGeometry3D {
 	let children: [Geometry3D]
 
 	init(children: [Geometry3D]) {
 		self.children = children
 	}
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(name: "union", body: GeometrySequence(children: children))
-			.scadString(environment: environment)
 	}
 }
 
@@ -27,16 +26,15 @@ public extension Geometry3D {
 	}
 }
 
-struct Union2D: Geometry2D {
+struct Union2D: CoreGeometry2D {
 	let children: [Geometry2D]
 
 	init(children: [Geometry2D]) {
 		self.children = children
 	}
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(name: "union", body: GeometrySequence(children: children))
-			.scadString(environment: environment)
 	}
 }
 

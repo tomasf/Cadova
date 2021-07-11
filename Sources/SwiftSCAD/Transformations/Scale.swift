@@ -1,16 +1,15 @@
 import Foundation
 
-struct Scale3D: Geometry3D {
+struct Scale3D: CoreGeometry3D {
 	let scale: Vector3D
 	let body: Geometry3D
 
-	func scadString(environment: Environment) -> String {
-		return SCADCall(
+	func call(in environment: Environment) -> SCADCall {
+		SCADCall(
 			name: "scale",
 			params: ["v": scale],
 			body: body
 		)
-		.scadString(environment: environment)
 	}
 }
 
@@ -29,17 +28,16 @@ public extension Geometry3D {
 }
 
 
-struct Scale2D: Geometry2D {
+struct Scale2D: CoreGeometry2D {
 	let scale: Vector2D
 	let body: Geometry2D
 
-	func scadString(environment: Environment) -> String {
-		return SCADCall(
+	func call(in environment: Environment) -> SCADCall {
+		SCADCall(
 			name: "scale",
 			params: ["v": scale],
 			body: body
 		)
-		.scadString(environment: environment)
 	}
 }
 

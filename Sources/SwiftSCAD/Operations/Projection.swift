@@ -1,17 +1,16 @@
 import Foundation
 
-struct Projection: Geometry2D {
+struct Projection: CoreGeometry2D {
 	let mode: Mode
 	let body: Geometry3D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		switch mode {
 		case .whole:
 			return SCADCall(
 				name: "projection",
 				body: body
 			)
-			.scadString(environment: environment)
 
 		case .slice (let z):
 			return SCADCall(
@@ -19,7 +18,6 @@ struct Projection: Geometry2D {
 				params: ["cut": true],
 				body: body.translated(z: -z)
 			)
-			.scadString(environment: environment)
 		}
 	}
 

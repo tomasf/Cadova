@@ -1,16 +1,15 @@
 import Foundation
 
-struct Translate3D: Geometry3D {
+struct Translate3D: CoreGeometry3D {
 	let distance: Vector3D
 	let body: Geometry3D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(
 			name: "translate",
 			params: ["v": distance],
 			body: body
 		)
-		.scadString(environment: environment)
 	}
 }
 
@@ -25,17 +24,16 @@ public extension Geometry3D {
 }
 
 
-struct Translate2D: Geometry2D {
+struct Translate2D: CoreGeometry2D {
 	let distance: Vector2D
 	let body: Geometry2D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(
 			name: "translate",
 			params: ["v": distance],
 			body: body
 		)
-		.scadString(environment: environment)
 	}
 }
 

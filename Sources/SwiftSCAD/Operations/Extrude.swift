@@ -1,6 +1,6 @@
 import Foundation
 
-struct LinearExtrude: Geometry3D {
+struct LinearExtrude: CoreGeometry3D {
 	let height: Double
 	let twist: Angle
 	let slices: Int?
@@ -9,7 +9,7 @@ struct LinearExtrude: Geometry3D {
 	let convexity: Int
 	let body: Geometry2D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		return SCADCall(
 			name: "linear_extrude",
 			params: [
@@ -20,16 +20,16 @@ struct LinearExtrude: Geometry3D {
 				"convexity": convexity
 			],
 			body: body
-		).scadString(environment: environment)
+		)
 	}
 }
 
-struct RotateExtrude: Geometry3D {
+struct RotateExtrude: CoreGeometry3D {
 	let angle: Angle
 	let convexity: Int
 	let body: Geometry2D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		return SCADCall(
 			name: "rotate_extrude",
 			params: [
@@ -37,7 +37,7 @@ struct RotateExtrude: Geometry3D {
 				"convexity": convexity
 			],
 			body: body
-		).scadString(environment: environment)
+		)
 	}
 }
 

@@ -1,18 +1,17 @@
 import Foundation
 
-struct Rotate3D: Geometry3D {
+struct Rotate3D: CoreGeometry3D {
 	let x: Angle
 	let y: Angle
 	let z: Angle
 	let body: Geometry3D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		return SCADCall(
 			name: "rotate",
 			params: ["a": [x, y, z]],
 			body: body
 		)
-		.scadString(environment: environment)
 	}
 }
 
@@ -34,17 +33,16 @@ public extension Geometry3D {
 }
 
 
-struct Rotate2D: Geometry2D {
+struct Rotate2D: CoreGeometry2D {
 	let angle: Angle
 	let body: Geometry2D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		return SCADCall(
 			name: "rotate",
 			params: ["a": angle],
 			body: body
 		)
-		.scadString(environment: environment)
 	}
 }
 

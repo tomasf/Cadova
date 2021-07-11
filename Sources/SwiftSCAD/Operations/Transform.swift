@@ -1,16 +1,15 @@
 import Foundation
 
-struct Transform: Geometry3D {
+struct Transform: CoreGeometry3D {
 	let transform: AffineTransform
 	let body: Geometry3D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(
 			name: "multmatrix",
 			params: ["m": transform],
 			body: body
 		)
-		.scadString(environment: environment)
 	}
 }
 

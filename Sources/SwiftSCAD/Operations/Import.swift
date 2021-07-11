@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Import3D: Geometry3D {
+public struct Import3D: CoreGeometry3D {
 	let path: String
 	let convexity: Int
 
@@ -9,7 +9,7 @@ public struct Import3D: Geometry3D {
 		self.convexity = convexity
 	}
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(
 			name: "import",
 			params: [
@@ -17,11 +17,10 @@ public struct Import3D: Geometry3D {
 				"convexity": convexity
 			]
 		)
-		.scadString(environment: environment)
 	}
 }
 
-public struct Import2D: Geometry2D {
+public struct Import2D: CoreGeometry2D {
 	let path: String
 	let layer: String?
 	let convexity: Int
@@ -32,7 +31,7 @@ public struct Import2D: Geometry2D {
 		self.convexity = convexity
 	}
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		let params: [String: SCADValue?] = [
 			"file": path,
 			"layer": layer,
@@ -42,6 +41,5 @@ public struct Import2D: Geometry2D {
 			name: "import",
 			params: params.compactMapValues { $0 }
 		)
-		.scadString(environment: environment)
 	}
 }

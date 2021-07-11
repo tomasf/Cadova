@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Arc: Geometry2D {
+public struct Arc: CoreGeometry2D {
 	public let range: Range<Angle>
 	public let radius: Double
 
@@ -13,7 +13,7 @@ public struct Arc: Geometry2D {
 		self.init(range: range, radius: diameter / 2)
 	}
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		let magnitude = range.upperBound - range.lowerBound
 		let fraction = magnitude / 360°
 
@@ -39,7 +39,6 @@ public struct Arc: Geometry2D {
 		}
 		let allPoints = [Vector2D.zero] + outerPoints + [Vector2D.zero]
 
-		return Polygon(allPoints)
-			.scadString(environment: environment)
+		return Polygon(allPoints).call(in: environment)
 	}
 }

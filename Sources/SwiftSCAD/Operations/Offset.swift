@@ -1,11 +1,11 @@
 import Foundation
 
-public struct Offset: Geometry2D {
+public struct Offset: CoreGeometry2D {
 	let amount: Double
 	let style: Style
 	let body: Geometry2D
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		let params: [String: SCADValue]
 
 		switch style {
@@ -18,7 +18,6 @@ public struct Offset: Geometry2D {
 		}
 
 		return SCADCall(name: "offset", params: params, body: body)
-			.scadString(environment: environment)
 	}
 
 	public enum Style {

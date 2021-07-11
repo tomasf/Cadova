@@ -63,7 +63,7 @@ struct BezierCurve {
 	}
 }
 
-public struct BezierPath: Geometry2D {
+public struct BezierPath: CoreGeometry2D {
 	let startPoint: Vector2D
 	let curves: [BezierCurve]
 
@@ -103,8 +103,8 @@ public struct BezierPath: Geometry2D {
 		}.joined()
 	}
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		return Polygon(points(facets: environment.facets))
-			.scadString(environment: environment)
+			.call(in: environment)
 	}
 }

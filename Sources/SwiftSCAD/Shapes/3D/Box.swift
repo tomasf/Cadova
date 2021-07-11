@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Box: Geometry3D {
+public struct Box: CoreGeometry3D {
 	public let size: Vector3D
 	public let center: Axes3D
 
@@ -9,7 +9,7 @@ public struct Box: Geometry3D {
 		self.center = center
 	}
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		let cube = SCADCall(
 			name: "cube",
 			params: ["size": size],
@@ -17,7 +17,7 @@ public struct Box: Geometry3D {
 		)
 
 		guard !center.isEmpty else {
-			return cube.scadString(environment: environment)
+			return cube
 		}
 
 		return SCADCall(
@@ -25,6 +25,5 @@ public struct Box: Geometry3D {
 			params: ["v": (size / -2).setting(axes: center.inverted, to: 0)],
 			body: cube
 		)
-		.scadString(environment: environment)
 	}
 }

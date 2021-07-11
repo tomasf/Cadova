@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Sphere: Geometry3D {
+public struct Sphere: CoreGeometry3D {
 	public let diameter: Double
 
 	public init(diameter: Double) {
@@ -11,8 +11,7 @@ public struct Sphere: Geometry3D {
 		self.diameter = radius * 2
 	}
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		return SCADCall(name: "sphere", params: ["d": diameter])
-			.scadString(environment: environment)
 	}
 }

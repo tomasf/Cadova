@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Cylinder: Geometry3D {
+public struct Cylinder: CoreGeometry3D {
 	public let height: Double
 	public let diameter: Double
 	public let topDiameter: Double?
@@ -23,7 +23,7 @@ public struct Cylinder: Geometry3D {
 		self.height = height
 	}
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		let params: [String: SCADValue]
 
 		if let topDiameter = topDiameter {
@@ -33,6 +33,5 @@ public struct Cylinder: Geometry3D {
 		}
 
 		return SCADCall(name: "cylinder", params: params)
-			.scadString(environment: environment)
 	}
 }

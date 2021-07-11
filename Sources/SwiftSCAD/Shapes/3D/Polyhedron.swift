@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Polyhedron: Geometry3D {
+public struct Polyhedron: CoreGeometry3D {
 	let points: [Vector3D]
 	let faces: [[Int]]
 	let convexity: Int
@@ -35,7 +35,7 @@ public struct Polyhedron: Geometry3D {
 	}
 
 
-	public func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		SCADCall(
 			name: "polyhedron",
 			params: [
@@ -44,6 +44,5 @@ public struct Polyhedron: Geometry3D {
 				"convexity": convexity
 			]
 		)
-		.scadString(environment: environment)
 	}
 }

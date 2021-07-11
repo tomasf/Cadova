@@ -149,11 +149,11 @@ public enum Color {
 }
 
 
-struct Color3D: Geometry3D {
+struct Color3D: CoreGeometry3D {
 	let color: Color
 	let content: Geometry3D
 
-	func scadString(environment: Environment) -> String {
+	func call(in environment: Environment) -> SCADCall {
 		let params: [String: SCADValue]
 
 		switch color {
@@ -165,8 +165,6 @@ struct Color3D: Geometry3D {
 		}
 
 		return SCADCall(name: "color", params: params, body: content)
-			.scadString(environment: environment)
-
 	}
 }
 
