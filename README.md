@@ -9,7 +9,7 @@ In OpenSCAD, make sure to hide the editor view and enable "Automatic Reload and 
 # Examples
 
 ## Rotated box
-![Example 1](http://tomasf.se/projects/swiftscad/examples/example1.png)
+![Example 1](https://tomasf.se/projects/swiftscad/examples/example1.png)
 
 ```swift
 Box([10, 20, 5], center: .y)
@@ -18,7 +18,7 @@ Box([10, 20, 5], center: .y)
 ```
 
 ## Extruded star with subtraction
-![Example 2](http://tomasf.se/projects/swiftscad/examples/example2.png)
+![Example 2](https://tomasf.se/projects/swiftscad/examples/example2.png)
 
 ```swift
 Circle(diameter: 10)
@@ -38,7 +38,7 @@ Circle(diameter: 10)
 ```
 
 ## Reusable star shape
-![Example 3](http://tomasf.se/projects/swiftscad/examples/example3.png)
+![Example 3](https://tomasf.se/projects/swiftscad/examples/example3.png)
 
 ```swift
 struct Star: Shape2D {
