@@ -1,21 +1,19 @@
 import Foundation
 
 private func facetModification(_ facets: Environment.Facets, body: Geometry, environment: Environment) -> String {
-	let variables: [String: String]
+	let variables: [String: SCADValue]
 
 	switch facets {
 	case .fixed (let count):
-		variables = ["fn": String(count)]
+		variables = ["$fn": count]
 	case .dynamic (let minAngle, let minSize):
-		variables = ["fa": minAngle.scadString, "fs": String(minSize), "fn": "0"]
+		variables = ["$fa": minAngle, "$fs": minSize, "$fn": 0]
 	}
 
-	let varString = variables.map { key, value in
-		"$\(key) = \(value); "
-	}.joined()
-
 	let newEnvironment = environment.withFacets(facets)
-	return "union() { \(varString) \(body.scadString(environment: newEnvironment)) }"
+
+	return SCADCall(name: "let", params: variables, body: body)
+		.scadString(environment: newEnvironment)
 }
 
 
