@@ -1,7 +1,7 @@
 import Foundation
 
 public protocol SCADFormattable {
-	func scadString(environment: Environment) -> String
+	func scadString(in environment: Environment) -> String
 }
 
 public protocol SCADValue: SCADFormattable {
@@ -9,7 +9,7 @@ public protocol SCADValue: SCADFormattable {
 }
 
 public extension SCADValue {
-	func scadString(environment: Environment) -> String {
+	func scadString(in environment: Environment) -> String {
 		scadString
 	}
 }
@@ -43,7 +43,7 @@ extension String: SCADValue {
 }
 
 extension Array: SCADFormattable where Element: SCADValue {
-	public func scadString(environment: Environment) -> String {
+	public func scadString(in environment: Environment) -> String {
 		scadString
 	}
 }
@@ -69,7 +69,7 @@ struct SCADCall: SCADFormattable {
 		self.body = body
 	}
 
-	func scadString(environment: Environment) -> String {
+	func scadString(in environment: Environment) -> String {
 		let paramText = params
 			.compactMapValues { $0 }
 			.sorted(by: { a, b in a.key < b.key })
@@ -77,7 +77,7 @@ struct SCADCall: SCADFormattable {
 
 		let bodyString: String
 		if let body = body {
-			bodyString = " " + body.scadString(environment: environment)
+			bodyString = " " + body.scadString(in: environment)
 		} else {
 			bodyString = ";"
 		}
@@ -89,7 +89,7 @@ struct SCADCall: SCADFormattable {
 struct GeometrySequence: Geometry {
 	let children: [Geometry]
 
-	func scadString(environment: Environment) -> String {
-		"{ " + children.map { $0.scadString(environment: environment) }.joined(separator: " ") + " }"
+	func scadString(in environment: Environment) -> String {
+		"{ " + children.map { $0.scadString(in: environment) }.joined(separator: " ") + " }"
 	}
 }

@@ -5,8 +5,8 @@ public protocol Shape: Geometry3D {
 }
 
 public extension Shape {
-	func scadString(environment: Environment) -> String {
-		body.scadString(environment: environment)
+	func scadString(in environment: Environment) -> String {
+		body.scadString(in: environment)
 	}
 }
 
@@ -16,7 +16,7 @@ public protocol Shape2D: Geometry2D {
 }
 
 public extension Shape2D {
-	func scadString(environment: Environment) -> String {
-		body.scadString(environment: environment)
+	func scadString(in environment: Environment) -> String {
+		body.scadString(in: environment)
 	}
 }
