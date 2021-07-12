@@ -7,18 +7,16 @@ public enum ExtrusionZSides {
 }
 
 public extension Geometry2D {
-	private func extruded(height: Double, topRadius radius: Double, layerHeight: Double) -> Geometry3D {
-		return ForEach(stride(from: 0.0, through: radius, by: layerHeight)) { z in
-			self
-				.offset(amount: (cos(asin(z / radius) as Angle) - 1) * radius, style: .round)
+	@UnionBuilder private func extruded(height: Double, topRadius radius: Double, layerHeight: Double) -> Geometry3D {
+		for z in stride(from: 0.0, through: radius, by: layerHeight) {
+			offset(amount: (cos(asin(z / radius) as Angle) - 1) * radius, style: .round)
 				.extruded(height: height - radius + z)
 		}
 	}
 
-	private func extruded(height: Double, topChamferSize chamferSize: Double, layerHeight: Double) -> Geometry3D {
-		return ForEach(stride(from: 0.0, through: chamferSize, by: layerHeight)) { z in
-			self
-				.offset(amount: -z, style: .round)
+	@UnionBuilder private func extruded(height: Double, topChamferSize chamferSize: Double, layerHeight: Double) -> Geometry3D {
+		for z in stride(from: 0.0, through: chamferSize, by: layerHeight) {
+			offset(amount: -z, style: .round)
 				.extruded(height: height - chamferSize + z)
 		}
 	}

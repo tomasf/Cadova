@@ -25,12 +25,9 @@ public struct CylinderBridge: Shape2D {
 	public var body: Geometry2D {
 		Circle(diameter: bottomDiameter)
 			.subtracting {
-				ForEach(0..<sideCount) { i in
-					let angle = (360° / Double(sideCount)) * Double(i)
-					Rectangle([bottomDiameter, bottomDiameter], center: .y)
-						.translated(x: topDiameter / 2)
-						.rotated(angle)
-				}
+				Rectangle([bottomDiameter, bottomDiameter], center: .y)
+					.translated(x: topDiameter / 2)
+					.repeated(in: 0°..<360°, count: sideCount)
 			}
 	}
 }
