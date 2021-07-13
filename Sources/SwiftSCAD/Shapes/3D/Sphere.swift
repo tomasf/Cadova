@@ -1,7 +1,11 @@
 import Foundation
 
+/// A sphere
+///
+/// The number of faces of a sphere (and its smoothness) is controlled by the facet configuration. See ``Geometry3D/usingFacets(minAngle:minSize:)`` and ``Geometry3D/usingFacets(count:)``.
+
 public struct Sphere: CoreGeometry3D {
-	public let diameter: Double
+	let diameter: Double
 
 	public init(diameter: Double) {
 		self.diameter = diameter

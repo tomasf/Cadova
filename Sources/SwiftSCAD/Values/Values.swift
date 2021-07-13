@@ -4,19 +4,19 @@ public protocol SCADFormattable {
 	func scadString(in environment: Environment) -> String
 }
 
-public protocol SCADValue: SCADFormattable {
+protocol SCADValue: SCADFormattable {
 	var scadString: String { get }
 }
 
-public extension SCADValue {
-	func scadString(in environment: Environment) -> String {
+extension SCADValue {
+	public func scadString(in environment: Environment) -> String {
 		scadString
 	}
 }
 
 
 extension Double: SCADValue {
-	public var scadString: String {
+	var scadString: String {
 		String(format: "%.06f", self)
 	}
 }
@@ -42,14 +42,14 @@ extension String: SCADValue {
 	}
 }
 
-extension Array: SCADFormattable where Element: SCADValue {
+extension Array: SCADFormattable where Element: SCADFormattable {
 	public func scadString(in environment: Environment) -> String {
-		scadString
+		"[" + map { $0.scadString(in: environment) }.joined(separator: ", ")  + "]"
 	}
 }
 
 extension Array: SCADValue where Element: SCADValue {
-	public var scadString: String {
+	var scadString: String {
 		"[" + map(\.scadString).joined(separator: ", ")  + "]"
 	}
 }

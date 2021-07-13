@@ -11,7 +11,9 @@ fileprivate func saveToFile(string: String, to path: String) {
 
 public extension Geometry3D {
 	@discardableResult func save(to path: String) -> Geometry3D {
-		let string = self.withDefaultFacets().scadString(in: Environment())
+		let string = self
+            .usingDefaultFacets()
+            .scadString(in: Environment())
 		saveToFile(string: string, to: path)
 		return self
 	}
@@ -19,7 +21,9 @@ public extension Geometry3D {
 
 public extension Geometry2D {
 	@discardableResult func save(to path: String) -> Geometry2D {
-		let string = self.withDefaultFacets().scadString(in: Environment())
+		let string = self
+            .usingDefaultFacets()
+            .scadString(in: Environment())
 		saveToFile(string: string, to: path)
 		return self
 	}

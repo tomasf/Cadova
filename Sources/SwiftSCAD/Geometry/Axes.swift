@@ -1,10 +1,15 @@
 import Foundation
 
+/// One of the axes in three dimensions
+
 public enum Axis3D: Int {
 	case x
 	case y
 	case z
 }
+
+
+/// A set of possible axes in three dimensions
 
 public struct Axes3D: OptionSet {
 	public let rawValue: Int
@@ -19,28 +24,28 @@ public struct Axes3D: OptionSet {
 		self.rawValue = rawValue
 	}
 
-	public init(axis: Axis3D) {
+	/// Create an axis set from a single Axis3D
+	/// - Parameter axis: The axis to represent
+
+    public init(axis: Axis3D) {
 		self.init(rawValue: 1 << axis.rawValue)
 	}
 
-	public var inverted: Axes3D {
+	/// The axes *not* contained in this set
+
+    public var inverted: Axes3D {
 		Axes3D(rawValue: (~rawValue) & 0x7)
 	}
 }
 
-extension Axes3D: ExpressibleByBooleanLiteral {
-	public typealias BooleanLiteralType = Bool
-
-	public init(booleanLiteral value: Bool) {
-		self = value ? .all : []
-	}
-}
-
+/// One of the axes in two dimensions
 
 public enum Axis2D: Int {
 	case x
 	case y
 }
+
+/// A set of possible axes in two dimensions
 
 public struct Axes2D: OptionSet {
 	public let rawValue: Int
@@ -54,19 +59,16 @@ public struct Axes2D: OptionSet {
 		self.rawValue = rawValue
 	}
 
-	public init(axis: Axis2D) {
+	/// Create an axis set from a single Axis2D
+	/// - Parameter axis: The axis to represent
+
+    public init(axis: Axis2D) {
 		self.init(rawValue: 1 << axis.rawValue)
 	}
 
-	public var inverted: Axes2D {
+	/// The axes *not* contained in this set
+
+    public var inverted: Axes2D {
 		Axes2D(rawValue: (~rawValue) & 0x3)
-	}
-}
-
-extension Axes2D: ExpressibleByBooleanLiteral {
-	public typealias BooleanLiteralType = Bool
-
-	public init(booleanLiteral value: Bool) {
-		self = value ? .all : []
 	}
 }

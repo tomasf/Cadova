@@ -15,7 +15,21 @@ struct Difference3D: CoreGeometry3D {
 }
 
 public extension Geometry3D {
-	func subtracting(@UnionBuilder _ negative: () -> Geometry3D) -> Geometry3D {
+	/// Subtract other geometry from this geometry
+	///
+    /// ## Example
+	/// ```swift
+    /// Box([10, 10, 5], center: .all)
+    ///     .subtracting {
+    ///        Cylinder(diameter: 4, height: 3)
+    ///     }
+	/// ```
+	///
+	/// - Parameters:
+	///   - negative: The negative geometry to subtract
+	/// - Returns: The new geometry
+
+    func subtracting(@UnionBuilder _ negative: () -> Geometry3D) -> Geometry3D {
 		Difference3D(positive: self, negative: negative())
 	}
 }
@@ -36,6 +50,20 @@ struct Difference2D: CoreGeometry2D {
 }
 
 public extension Geometry2D {
+    /// Subtract other geometry from this geometry
+    ///
+    /// ## Example
+    /// ```swift
+    /// Rectangle([10, 10], center: .all)
+    ///     .subtracting {
+    ///        Circle(diameter: 4)
+    ///     }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - negative: The negative geometry to subtract
+    /// - Returns: The new geometry
+
 	func subtracting(@UnionBuilder _ negative: () -> Geometry2D) -> Geometry2D {
 		Difference2D(positive: self, negative: negative())
 	}

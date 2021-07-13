@@ -27,15 +27,30 @@ struct SetFacets3D: Geometry3D {
 }
 
 public extension Geometry3D {
-	func withFacets(minAngle: Angle, minSize: Double) -> Geometry3D {
+    /// Set an adaptive facet configuration for this geometry
+    ///
+    /// This is equivalent to setting `$fa` and `$fs` in OpenSCAD.
+    /// - Parameters:
+    ///   - minAngle: The minimum angle of each facet
+    ///   - minSize: The minimum size of each facet
+
+    func usingFacets(minAngle: Angle, minSize: Double) -> Geometry3D {
 		SetFacets3D(facets: .dynamic(minAngle: minAngle, minSize: minSize), body: self)
 	}
 
-	func withFacets(count: Int) -> Geometry3D {
+    /// Set a fixed facet configuration for this geometry
+    ///
+    /// This is equivalent to setting `$fn` OpenSCAD.
+    /// - Parameters:
+    ///   - count: The number of facets to use per revolution.
+
+    func usingFacets(count: Int) -> Geometry3D {
 		SetFacets3D(facets: .fixed(count), body: self)
 	}
 
-	func withDefaultFacets() -> Geometry3D {
+    /// Set the default facet configuration for this geometry.
+
+    func usingDefaultFacets() -> Geometry3D {
 		SetFacets3D(facets: .defaults, body: self)
 	}
 }
@@ -51,15 +66,30 @@ struct SetFacets2D: Geometry2D {
 }
 
 public extension Geometry2D {
-	func withFacets(minAngle: Angle, minSize: Double) -> Geometry2D {
+    /// Set an adaptive facet configuration for this geometry
+    ///
+    /// This is equivalent to setting `$fa` and `$fs` in OpenSCAD.
+    /// - Parameters:
+    ///   - minAngle: The minimum angle of each facet
+    ///   - minSize: The minimum size of each facet
+
+    func usingFacets(minAngle: Angle, minSize: Double) -> Geometry2D {
 		SetFacets2D(facets: .dynamic(minAngle: minAngle, minSize: minSize), body: self)
 	}
 
-	func withFacets(count: Int) -> Geometry2D {
+    /// Set a fixed facet configuration for this geometry
+    ///
+    /// This is equivalent to setting `$fn` OpenSCAD.
+    /// - Parameters:
+    ///   - count: The number of facets to use per revolution.
+
+	func usingFacets(count: Int) -> Geometry2D {
 		SetFacets2D(facets: .fixed(count), body: self)
 	}
 
-	func withDefaultFacets() -> Geometry2D {
+    /// Set the default facet configuration for this geometry.
+
+	func usingDefaultFacets() -> Geometry2D {
 		SetFacets2D(facets: .defaults, body: self)
 	}
 }

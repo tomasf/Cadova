@@ -16,19 +16,31 @@ struct Rotate3D: CoreGeometry3D {
 }
 
 public extension Geometry3D {
-	func rotated(_ angles: [Angle]) -> Geometry3D {
-		precondition(angles.count == 3, "Rotate3D needs three angles")
-		return Rotate3D(x: angles[0], y: angles[1], z: angles[2], body: self)
-	}
-
+    /// Rotate geometry
+    ///
+    /// When using multiple axes, the geometry is rotated around the axes in order (first X, then Y, then Z).
+    ///
+    /// - Parameters:
+    ///   - x: The amount to rotate around the X axis
+    ///   - y: The amount to rotate around the Y axis
+    ///   - z: The amount to rotate around the Z axis
+    /// - Returns: A rotated geometry
 	func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> Geometry3D {
-		rotated([x, y, z])
+		Rotate3D(x: x, y: y, z: z, body: self)
 	}
 
+    /// Rotate around one axis
+    ///
+    /// - Parameters:
+    ///   - angle: The angle to rotate
+    ///   - axis: The axis to rotate around
+    /// - Returns: A rotated geometry
 	func rotated(angle: Angle, axis: Axis3D) -> Geometry3D {
-		var angles = [0°, 0°, 0°]
-		angles[axis.rawValue] = angle
-		return rotated(angles)
+        switch axis {
+        case .x: return rotated(x: angle)
+        case .y: return rotated(y: angle)
+        case .z: return rotated(z: angle)
+        }
 	}
 }
 
@@ -47,6 +59,11 @@ struct Rotate2D: CoreGeometry2D {
 }
 
 public extension Geometry2D {
+    /// Rotate geometry
+    ///
+    /// - Parameters:
+    ///   - angle: The amount to rotate
+    /// - Returns: A rotated geometry
 	func rotated(_ angle: Angle) -> Geometry2D {
 		Rotate2D(angle: angle, body: self)
 	}

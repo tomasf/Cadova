@@ -1,9 +1,15 @@
 import Foundation
 
+/// A rectangular cuboid shape
 public struct Box: CoreGeometry3D {
-	public let size: Vector3D
-	public let center: Axes3D
+	let size: Vector3D
+	let center: Axes3D
 
+    /// Create a Box
+    /// - Parameters:
+    ///   - size: The size of the box expressed as a vector
+    ///   - center: Which axes of the box to center on the origin
+    ///
 	public init(_ size: Vector3D, center: Axes3D = []) {
 		self.size = size
 		self.center = center

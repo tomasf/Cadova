@@ -1,8 +1,8 @@
 import Foundation
 
 public struct Arc: CoreGeometry2D {
-	public let range: Range<Angle>
-	public let radius: Double
+	let range: Range<Angle>
+	let radius: Double
 
 	public init(range: Range<Angle>, radius: Double) {
 		self.range = range

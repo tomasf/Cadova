@@ -3,6 +3,12 @@ import Foundation
 postfix operator °
 
 public extension Double {
+    /// Convenience postfix operator for creating an angle from a value in degrees
+    ///
+    /// ## Example
+    /// ```swift
+    /// let angle = 45°
+    /// ```
 	static postfix func °(_ a: Double) -> Angle {
 		Angle(degrees: a)
 	}

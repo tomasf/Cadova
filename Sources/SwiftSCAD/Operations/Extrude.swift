@@ -42,10 +42,21 @@ struct RotateExtrude: CoreGeometry3D {
 }
 
 public extension Geometry2D {
+    /// Extrude two-dimensional geometry in the Z axis, creating three-dimensional geometry
+    /// - Parameters:
+    ///   - height: The height of the resulting geometry, in the Z axis
+    ///   - twist: The rotation of the top surface, gradually rotating the geometry around the Z axis, resulting in a twisted shape.
+    ///   - slices: The number of intermediary layers along the Z axis.
+    ///   - scale: The final scale at the top of the extruded shape. The rest of the geometry is scaled linearly from 1.0 at the bottom.
+    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
 	func extruded(height: Double, twist: Angle = 0°, slices: Int? = nil, scale: Vector2D = [1, 1], convexity: Int = 2) -> Geometry3D {
 		LinearExtrude(height: height, twist: twist, slices: slices, scale: scale, convexity: convexity, body: self)
 	}
 
+    /// Extrude two-dimensional geometry around the Z axis, creating three-dimensional geometry
+    /// - Parameters:
+    ///   - angle: The amount to extrude. The resulting shape is formed around the Z axis from 0° to this angle
+    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
 	func extruded(angle: Angle, convexity: Int = 2) -> Geometry3D {
 		RotateExtrude(angle: angle, convexity: convexity, body: self)
 	}

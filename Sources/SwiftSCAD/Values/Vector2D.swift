@@ -1,5 +1,13 @@
 import Foundation
 
+/// A unitless vector representing distances, sizes or scales in two dimensions
+///
+/// ## Examples
+/// ```swift
+/// let v1 = Vector2D(x: 10, y: 15)
+/// let v2: Vector2D = [10, 15]
+/// ```
+///
 public struct Vector2D: ExpressibleByArrayLiteral, SCADValue {
 	public let x: Double
 	public let y: Double
@@ -26,11 +34,22 @@ public struct Vector2D: ExpressibleByArrayLiteral, SCADValue {
 }
 
 public extension Vector2D {
+    /// Create a vector where some axes are set to a given value and the others are zero
+    /// - Parameters:
+    ///   - axis: The axes to set
+    ///   - value: The value to use
+
 	init(axis: Axis2D, value: Double) {
 		let x = (axis == .x) ? value : 0
 		let y = (axis == .y) ? value : 0
 		self.init(x, y)
 	}
+
+    /// Make a new vector where some of the dimensions are set to a new value
+    /// - Parameters:
+    ///   - axes: The axes to set
+    ///   - value: The new value
+    /// - Returns: A modified vector
 
 	func setting(axes: Axes2D, to value: Double) -> Vector2D {
 		Vector2D(
@@ -100,14 +119,17 @@ public extension Vector2D {
 }
 
 public extension Vector2D {
+    /// Calculate the distance from this point to another point in 2D space
 	func distance(to other: Vector2D) -> Double {
 		sqrt(pow(x - other.x, 2) + pow(y - other.y, 2))
 	}
 
+    /// Calculate the angle of a straight line between this point and another point
 	func angle(to other: Vector2D) -> Angle {
 		Angle(radians: atan2(other.y - y, other.x - x))
 	}
 
+    /// Calculate a point at a given fraction along a straight line to another point
 	func point(alongLineTo other: Vector2D, at fraction: Double) -> Vector2D {
 		self + (other - self) * fraction
 	}

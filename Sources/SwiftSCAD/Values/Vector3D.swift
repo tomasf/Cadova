@@ -1,5 +1,12 @@
 import Foundation
 
+/// A unitless vector representing distances, sizes or scales in three dimensions
+///
+/// ## Examples
+/// ```swift
+/// let v1 = Vector3D(x: 10, y: 15, z: 5)
+/// let v2: Vector3D = [10, 15, 5]
+/// ```
 public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Equatable {
 	public let x: Double
 	public let y: Double
@@ -28,12 +35,30 @@ public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Equatable {
 }
 
 public extension Vector3D {
+    /// Create a vector where some axes are set to a given value and the others are zero
+    /// - Parameters:
+    ///   - axis: The axes to set
+    ///   - value: The value to use
+    ///
 	init(axis: Axis3D, value: Double) {
 		let x = (axis == .x) ? value : 0
 		let y = (axis == .y) ? value : 0
 		let z = (axis == .z) ? value : 0
 		self.init(x, y, z)
 	}
+
+    /// Make a new vector where some of the dimensions are set to a new value
+    /// - Parameters:
+    ///   - axes: The axes to set
+    ///   - value: The new value
+    /// - Returns: A modified vector
+    func setting(axes: Axes3D, to value: Double) -> Vector3D {
+        Vector3D(
+            x: axes.contains(.x) ? value : x,
+            y: axes.contains(.y) ? value : y,
+            z: axes.contains(.z) ? value : z
+        )
+    }
 }
 
 public extension Vector3D {
@@ -93,14 +118,6 @@ public extension Vector3D {
 		)
 	}
 
-	func setting(axes: Axes3D, to value: Double) -> Vector3D {
-		Vector3D(
-			x: axes.contains(.x) ? value : x,
-			y: axes.contains(.y) ? value : y,
-			z: axes.contains(.z) ? value : z
-		)
-	}
-
 	var xy: Vector2D {
 		Vector2D(x:x, y:y)
 	}
@@ -108,10 +125,12 @@ public extension Vector3D {
 
 
 public extension Vector3D {
+    /// Calculate the distance from this point to another point in 3D space
 	func distance(to other: Vector3D) -> Double {
-		sqrt(pow(x - other.x, 2) + pow(y - other.y, 2))
+		sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2))
 	}
 
+    /// Calculate a point at a given fraction along a straight line to another point
 	func point(alongLineTo other: Vector3D, at fraction: Double) -> Vector3D {
 		self + (other - self) * fraction
 	}
