@@ -43,8 +43,8 @@ struct ExtrudeAlong: CoreGeometry3D {
                 let offset = angle < nextAngle ? radius : -radius
 
                 corner = body
-                    .translated(x: -offset)
-                    .extruded(angles: Range(90°, nextAngle - angle + 90°))
+                    .translated(x: offset)
+                    .extruded(angles: Range(-90°, nextAngle - angle - 90°))
                     .translated(x: length - endInset, y: offset)
                     .rotated(z: angle)
                     .translated(Vector3D(fromPoint))
@@ -54,8 +54,9 @@ struct ExtrudeAlong: CoreGeometry3D {
             }
 
             return body.extruded(height: length - startInset - endInset)
-                .translated(z: startInset)
-                .rotated(x: 90°, z: 90° + angle)
+                .translated(z: endInset)
+                .translated(z: -length)
+                .rotated(x: 90°, z: angle - 90°)
                 .translated(Vector3D(fromPoint))
                 .adding(corner)
         }
