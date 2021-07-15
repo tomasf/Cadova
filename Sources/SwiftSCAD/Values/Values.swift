@@ -36,8 +36,8 @@ extension Bool: SCADValue {
 extension String: SCADValue {
 	public var scadString: String {
 		"\"" +
-			self.replacingOccurrences(of: "\\", with: "\\\\") +
-			self.replacingOccurrences(of: "\"", with: "\\\"") +
+        self.replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"") +
 		"\""
 	}
 }
