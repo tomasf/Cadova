@@ -31,14 +31,17 @@ struct ExtrudeAlong: CoreGeometry3D {
 
             if index > 0 {
                 let (prevFromPoint, prevToPoint) = pairs[index-1]
-                startInset = inset(angle, prevFromPoint.angle(to: prevToPoint))
+                let prevAngle = prevFromPoint.angle(to: prevToPoint)
+                startInset = inset(angle > prevAngle + 180° ? angle - 360° : angle, prevAngle)
             } else {
                 startInset = 0
             }
 
             if index < pairs.count - 1 {
                 let (nextP1, nextP2) = pairs[index+1]
-                let nextAngle = nextP1.angle(to: nextP2)
+                let nextFullAngle = nextP1.angle(to: nextP2)
+                let nextAngle = nextFullAngle > angle + 180° ? nextFullAngle - 360° : nextFullAngle
+
                 endInset = inset(angle, nextAngle)
                 let offset = angle < nextAngle ? radius : -radius
 

@@ -37,6 +37,7 @@ extension String: SCADValue {
 	public var scadString: String {
 		"\"" +
         self.replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\n", with: "\\n")
             .replacingOccurrences(of: "\"", with: "\\\"") +
 		"\""
 	}
