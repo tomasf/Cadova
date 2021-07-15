@@ -24,6 +24,10 @@ public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Equatable {
 		self.init(x: x, y: y, z: z)
 	}
 
+    public init(_ xy: Vector2D, z: Double = 0) {
+        self.init(x: xy.x, y: xy.y, z: z)
+    }
+
 	public init(arrayLiteral: Double...) {
 		precondition(arrayLiteral.count == 3, "Vector3D requires exactly three elements")
 		self.init(x: arrayLiteral[0], y: arrayLiteral[1], z: arrayLiteral[2])
