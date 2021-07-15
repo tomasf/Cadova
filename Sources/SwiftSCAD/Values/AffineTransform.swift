@@ -71,39 +71,19 @@ extension AffineTransform {
 		scaling(x: v.x, y: v.y, z: v.z)
 	}
 
-	private static func rotation(x: Angle) -> AffineTransform {
-		var transform = identity
-		transform[1, 1] = cos(x)
-		transform[1, 2] = -sin(x)
-		transform[2, 1] = sin(x)
-		transform[2, 2] = cos(x)
-		return transform
-	}
-
-	private static func rotation(y: Angle) -> AffineTransform {
-		var transform = identity
-		transform[0, 0] = cos(y)
-		transform[0, 2] = sin(y)
-		transform[2, 0] = -sin(y)
-		transform[2, 2] = cos(y)
-		return transform
-	}
-
-	private static func rotation(z: Angle) -> AffineTransform {
-		var transform = identity
-		transform[0, 0] = cos(z)
-		transform[0, 1] = -sin(z)
-		transform[1, 0] = sin(z)
-		transform[1, 1] = cos(z)
-		return transform
-	}
-
-	public static func rotation(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> AffineTransform {
-		return identity
-			.concatenated(with: rotation(x: x))
-			.concatenated(with: rotation(y: y))
-			.concatenated(with: rotation(z: z))
-	}
+    public static func rotation(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> AffineTransform {
+        var transform = identity
+        transform[0, 0] = cos(y) * cos(z)
+        transform[0, 1] = sin(x) * sin(y) * cos(z) - cos(x) * sin(z)
+        transform[0, 2] = cos(x) * sin(y) * cos(z) + sin(z) * sin(x)
+        transform[1, 0] = cos(y) * sin(z)
+        transform[1, 1] = sin(x) * sin(y) * sin(z) + cos(x) * cos(z)
+        transform[1, 2] = cos(x) * sin(y) * sin(z) - sin(x) * cos(z)
+        transform[2, 0] = -sin(y)
+        transform[2, 1] = sin(x) * cos(y)
+        transform[2, 2] = cos(x) * cos(y)
+        return transform
+    }
 
 	public static func rotation(_ a: [Angle]) -> AffineTransform {
 		assert(a.count == 3, "Rotate expects three angles")
@@ -161,6 +141,16 @@ extension AffineTransform {
 	func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform {
 		concatenated(with: .shearing(axis, along: otherAxis, angle: angle))
 	}
+}
+
+extension AffineTransform {
+    var translation: Vector3D {
+        Vector3D(
+            x: self[0, 3],
+            y: self[1, 3],
+            z: self[2, 3]
+        )
+    }
 }
 
 extension AffineTransform: SCADValue {
