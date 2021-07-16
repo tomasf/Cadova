@@ -111,3 +111,13 @@ public extension Geometry2D {
         return Union2D(children: [self, body])
     }
 }
+
+public extension Sequence {
+    func mapUnion(@UnionBuilder _ transform: (Element) throws -> Geometry3D) rethrows -> Geometry3D {
+        Union3D(children: try map(transform))
+    }
+
+    func mapUnion(@UnionBuilder _ transform: (Element) throws -> Geometry2D) rethrows -> Geometry2D {
+        Union2D(children: try map(transform))
+    }
+}
