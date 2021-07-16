@@ -61,6 +61,12 @@ struct BezierCurve {
 			return points(minAngle: minAngle, minSegmentLength: minSize)
 		}
 	}
+
+    func transform(using transform: AffineTransform2D) -> BezierCurve {
+        BezierCurve(points: points.map { point in
+            transform.apply(to: point)
+        })
+    }
 }
 
 public struct BezierPath {
@@ -102,4 +108,11 @@ public struct BezierPath {
 			Array(curve.points(facets: facets)[1...])
 		}.joined()
 	}
+
+    public func transform(using transform: AffineTransform2D) -> BezierPath {
+        BezierPath(
+            startPoint: transform.apply(to: startPoint),
+            curves: curves.map { $0.transform(using: transform) }
+        )
+    }
 }

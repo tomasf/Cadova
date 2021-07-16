@@ -144,12 +144,30 @@ extension AffineTransform {
 }
 
 extension AffineTransform {
-    var translation: Vector3D {
+    public init(_ transform2d: AffineTransform2D) {
+        var transform = AffineTransform.identity
+
+        transform[0, 0] = transform2d[0, 0]
+        transform[0, 1] = transform2d[1, 0]
+        transform[1, 0] = transform2d[0, 1]
+        transform[1, 1] = transform2d[1, 1]
+
+        transform[0, 3] = transform2d[2, 0]
+        transform[1, 3] = transform2d[2, 1]
+
+        self = transform
+    }
+
+    public var translation: Vector3D {
         Vector3D(
             x: self[0, 3],
             y: self[1, 3],
             z: self[2, 3]
         )
+    }
+
+    public func apply(to point: Vector3D) -> Vector3D {
+        concatenated(with: .translation(point)).translation
     }
 }
 
