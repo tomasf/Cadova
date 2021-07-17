@@ -15,3 +15,15 @@ public extension Geometry3D {
 	}
 }
 
+public extension Geometry2D {
+    /// Repeat this geometry mirrored across the provided axes
+    /// - Parameter axes: The axes to use
+
+    @UnionBuilder func symmetry(over axes: Axes2D) -> Geometry2D {
+        for xs in axes.contains(.x) ? [1.0, -1.0] : [1.0] {
+            for ys in axes.contains(.y) ? [1.0, -1.0] : [1.0] {
+                scaled(x: xs, y: ys)
+            }
+        }
+    }
+}
