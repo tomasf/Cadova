@@ -134,11 +134,11 @@ extension AffineTransform {
 		concatenated(with: .rotation(x: x, y: y, z: z))
 	}
 
-	func sheared(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform {
+	public func sheared(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform {
 		concatenated(with: .shearing(axis, along: otherAxis, factor: factor))
 	}
 
-	func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform {
+    public func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform {
 		concatenated(with: .shearing(axis, along: otherAxis, angle: angle))
 	}
 }
