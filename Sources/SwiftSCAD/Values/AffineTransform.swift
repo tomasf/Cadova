@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AffineTransform {
+public struct AffineTransform: Equatable {
 	var values: [[Double]]
 	
 	public init(_ values: [[Double]]) {
