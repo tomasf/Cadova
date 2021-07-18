@@ -25,7 +25,7 @@ public struct AffineTransform2D {
 	}
 
 	public static var identity: AffineTransform2D {
-        AffineTransform2D([
+		AffineTransform2D([
 			[1, 0, 0],
 			[0, 1, 0],
 			[0, 0, 1]
@@ -33,7 +33,7 @@ public struct AffineTransform2D {
 	}
 
 	public func concatenated(with other: AffineTransform2D) -> AffineTransform2D {
-        AffineTransform2D(
+		AffineTransform2D(
 			(0..<3).map { row in
 				(0..<3).map { column in
 					(0..<3).map { i in
@@ -48,8 +48,8 @@ public struct AffineTransform2D {
 extension AffineTransform2D {
 	public static func translation(x: Double = 0, y: Double = 0) -> AffineTransform2D {
 		var transform = identity
-		transform[2, 0] = x
-		transform[2, 1] = y
+		transform[0, 2] = x
+		transform[1, 2] = y
 		return transform
 	}
 
@@ -68,24 +68,24 @@ extension AffineTransform2D {
 		scaling(x: v.x, y: v.y)
 	}
 
-    public static func rotation(_ angle: Angle) -> AffineTransform2D {
-        var transform = identity
-        transform[0, 0] = cos(angle)
-        transform[0, 1] = sin(angle)
-        transform[1, 0] = -sin(angle)
-        transform[1, 1] = cos(angle)
-        return transform
-    }
+	public static func rotation(_ angle: Angle) -> AffineTransform2D {
+		var transform = identity
+		transform[0, 0] = cos(angle)
+		transform[0, 1] = -sin(angle)
+		transform[1, 0] = sin(angle)
+		transform[1, 1] = cos(angle)
+		return transform
+	}
 
 	public static func shearing(_ axis: Axis2D, along otherAxis: Axis2D, factor: Double) -> AffineTransform2D {
-        var t = AffineTransform2D.identity
-        if axis == .x && otherAxis == .y {
-            t[1, 0] = factor
-        } else if axis == .y && otherAxis == .x {
-            t[0, 1] = factor
-        } else {
-            preconditionFailure("Shearing requires two distinct axes")
-        }
+		var t = AffineTransform2D.identity
+		if axis == .x && otherAxis == .y {
+			t[1, 0] = factor
+		} else if axis == .y && otherAxis == .x {
+			t[0, 1] = factor
+		} else {
+			preconditionFailure("Shearing requires two distinct axes")
+		}
 		return t
 	}
 
@@ -113,29 +113,29 @@ extension AffineTransform2D {
 		concatenated(with: .scaling(x: x, y: y))
 	}
 
-    public func rotated(_ angle: Angle) -> AffineTransform2D {
+	public func rotated(_ angle: Angle) -> AffineTransform2D {
 		concatenated(with: .rotation(angle))
 	}
 
-    public func sheared(_ axis: Axis2D, along otherAxis: Axis2D, factor: Double) -> AffineTransform2D {
+	public func sheared(_ axis: Axis2D, along otherAxis: Axis2D, factor: Double) -> AffineTransform2D {
 		concatenated(with: .shearing(axis, along: otherAxis, factor: factor))
 	}
 
-    public func sheared(_ axis: Axis2D, along otherAxis: Axis2D, angle: Angle) -> AffineTransform2D {
+	public func sheared(_ axis: Axis2D, along otherAxis: Axis2D, angle: Angle) -> AffineTransform2D {
 		concatenated(with: .shearing(axis, along: otherAxis, angle: angle))
 	}
 }
 
 extension AffineTransform2D {
-    public var translation: Vector2D {
-        Vector2D(
-            x: self[2, 0],
-            y: self[2, 1]
-        )
-    }
+	public var translation: Vector2D {
+		Vector2D(
+			x: self[0, 2],
+			y: self[1, 2]
+		)
+	}
 
-    public func apply(to point: Vector2D) -> Vector2D {
-        concatenated(with: .translation(point)).translation
-    }
+	public func apply(to point: Vector2D) -> Vector2D {
+		concatenated(with: .translation(point)).translation
+	}
 }
 
