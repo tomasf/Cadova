@@ -127,7 +127,6 @@ public extension Vector3D {
 	}
 }
 
-
 public extension Vector3D {
     /// Calculate the distance from this point to another point in 3D space
 	func distance(to other: Vector3D) -> Double {

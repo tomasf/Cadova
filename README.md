@@ -14,7 +14,7 @@ In OpenSCAD, make sure to hide the editor view and enable "Automatic Reload and 
 ```swift
 Box([10, 20, 5], center: .y)
     .rotated(y: -20°, z: 45°)
-    .save(to: "~/Desktop/test.scad")
+    .save(to: "~/Desktop/examples/example1.scad")
 ```
 
 ## Extruded star with subtraction
@@ -34,7 +34,7 @@ Circle(diameter: 10)
             .rotated(x: 20°)
             .highlighted()
     }
-    .save(to: "~/Desktop/test.scad")
+    .save(to: "~/Desktop/examples/example2.scad")
 ```
 
 ## Reusable star shape
@@ -63,5 +63,19 @@ Union {
     Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
         .translated(x: 20)
 }
-.save(to: "~/Desktop/test.scad")
+.save(to: "~/Desktop/examples/example3.scad")
+```
+
+## Extruding along a Bezier path
+![Example 4](https://tomasf.se/projects/swiftscad/examples/example4.png)
+
+```swift
+let path = BezierPath(startPoint: .zero)
+    .addingCubicCurve(controlPoint1: [10, 65], controlPoint2: [55, -20], end: [60, 40])
+
+Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
+    .usingDefaultFacets()
+    .extrude(along: path, radius: 11)
+    .usingFacets(minAngle: 5°, minSize: 1)
+    .save(to: "~/Desktop/examples/example4.scad")
 ```
