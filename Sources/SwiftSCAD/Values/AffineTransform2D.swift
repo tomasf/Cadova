@@ -1,48 +1,41 @@
 import Foundation
+import simd
 
 public struct AffineTransform2D: Equatable {
-	var values: [[Double]]
+    var matrix: simd_double3x3
+
+    init(_ matrix: simd_double3x3) {
+        self.matrix = matrix
+    }
 
 	public init(_ values: [[Double]]) {
 		precondition(
 			values.count == 3 && values.allSatisfy { $0.count == 3},
 			"AffineTransform2D requires 9 (3 x 3) elements"
 		)
-		self.values = values
-	}
+        self.matrix = .init(rows: values.map(SIMD3.init))
+    }
 
 	public subscript(_ row: Int, _ column: Int) -> Double {
 		get {
 			assert((0...2).contains(row), "Row index out of range")
 			assert((0...2).contains(column), "Column index out of range")
-			return values[row][column]
+			return matrix[row, column]
 		}
 		set {
 			assert((0...2).contains(row), "Row index out of range")
 			assert((0...2).contains(column), "Column index out of range")
-			values[row][column] = newValue
+			matrix[row, column] = newValue
 		}
 	}
 
 	public static var identity: AffineTransform2D {
-		AffineTransform2D([
-			[1, 0, 0],
-			[0, 1, 0],
-			[0, 0, 1]
-		])
+        AffineTransform2D(simd_double3x3(1.0))
 	}
 
 	public func concatenated(with other: AffineTransform2D) -> AffineTransform2D {
-		AffineTransform2D(
-			(0..<3).map { row in
-				(0..<3).map { column in
-					(0..<3).map { i in
-						other[row, i] * self[i, column]
-					}.reduce(0, +)
-				}
-			}
-		)
-	}
+        AffineTransform2D(matrix * other.matrix)
+    }
 }
 
 extension AffineTransform2D {
@@ -127,23 +120,8 @@ extension AffineTransform2D {
 }
 
 extension AffineTransform2D {
-	public var translation: Vector2D {
-		Vector2D(
-			x: self[0, 2],
-			y: self[1, 2]
-		)
-	}
-
 	public func apply(to point: Vector2D) -> Vector2D {
-        let vector = [point.x, point.y, 1.0]
-
-        let newVector = (0...2).map { index -> Double in
-            values[index].enumerated().map { column, value in
-                value * vector[column]
-            }.reduce(0, +)
-        }
-
-		return Vector2D(newVector[0], newVector[1])
+        return Vector2D(simd3: point.simd3 * matrix)
 	}
 }
 

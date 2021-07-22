@@ -1,48 +1,48 @@
 import Foundation
+import simd
 
 public struct AffineTransform: Equatable {
-	var values: [[Double]]
-	
+    var matrix: simd_double4x4
+
+    private init(_ matrix: simd_double4x4) {
+        self.matrix = matrix
+    }
+
 	public init(_ values: [[Double]]) {
 		precondition(
 			values.count == 4 && values.allSatisfy { $0.count == 4},
 			"AffineTransform requires 16 (4 x 4) elements"
 		)
-		self.values = values
+        self.init(simd_double4x4(rows: values.map(SIMD4.init)))
 	}
 	
 	public subscript(_ row: Int, _ column: Int) -> Double {
 		get {
 			assert((0...3).contains(row), "Row index out of range")
 			assert((0...3).contains(column), "Column index out of range")
-			return values[row][column]
+			return matrix[row, column]
 		}
 		set {
 			assert((0...3).contains(row), "Row index out of range")
 			assert((0...3).contains(column), "Column index out of range")
-			values[row][column] = newValue
+			matrix[row, column] = newValue
 		}
 	}
+
+    public var values: [[Double]] {
+        (0...3).map { row in
+            (0...3).map { column in
+                self[row, column]
+            }
+        }
+    }
 	
 	public static var identity: AffineTransform {
-		AffineTransform([
-			[1, 0, 0, 0],
-			[0, 1, 0, 0],
-			[0, 0, 1, 0],
-			[0, 0, 0, 1]
-		])
+        AffineTransform(simd_double4x4(1))
 	}
 	
 	public func concatenated(with other: AffineTransform) -> AffineTransform {
-		AffineTransform(
-			(0..<4).map { row in
-				(0..<4).map { column in
-					(0..<4).map { i in
-						other[row, i] * self[i, column]
-					}.reduce(0, +)
-				}
-			}
-		)
+        AffineTransform(matrix * other.matrix)
 	}
 }
 
@@ -157,30 +157,14 @@ extension AffineTransform {
 		
 		self = transform
 	}
-	
-	public var translation: Vector3D {
-		Vector3D(
-			x: self[0, 3],
-			y: self[1, 3],
-			z: self[2, 3]
-		)
-	}
 
     public func apply(to point: Vector3D) -> Vector3D {
-        let vector = [point.x, point.y, point.z, 1.0]
-
-        let newVector = (0...3).map { index -> Double in
-            values[index].enumerated().map { column, value in
-                value * vector[column]
-            }.reduce(0, +)
-        }
-
-        return Vector3D(newVector[0], newVector[1], newVector[2])
+        return Vector3D(simd4: point.simd4 * matrix)
     }
 }
 
 extension AffineTransform: SCADValue {
 	public var scadString: String {
-		values.scadString
+        values.scadString
 	}
 }
