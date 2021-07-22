@@ -165,10 +165,18 @@ extension AffineTransform {
 			z: self[2, 3]
 		)
 	}
-	
-	public func apply(to point: Vector3D) -> Vector3D {
-		concatenated(with: .translation(point)).translation
-	}
+
+    public func apply(to point: Vector3D) -> Vector3D {
+        let vector = [point.x, point.y, point.z, 1.0]
+
+        let newVector = (0...3).map { index -> Double in
+            values[index].enumerated().map { column, value in
+                value * vector[column]
+            }.reduce(0, +)
+        }
+
+        return Vector3D(newVector[0], newVector[1], newVector[2])
+    }
 }
 
 extension AffineTransform: SCADValue {

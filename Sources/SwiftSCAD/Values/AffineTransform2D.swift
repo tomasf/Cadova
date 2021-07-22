@@ -135,7 +135,15 @@ extension AffineTransform2D {
 	}
 
 	public func apply(to point: Vector2D) -> Vector2D {
-		concatenated(with: .translation(point)).translation
+        let vector = [point.x, point.y, 1.0]
+
+        let newVector = (0...2).map { index -> Double in
+            values[index].enumerated().map { column, value in
+                value * vector[column]
+            }.reduce(0, +)
+        }
+
+		return Vector2D(newVector[0], newVector[1])
 	}
 }
 
