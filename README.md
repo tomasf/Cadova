@@ -1,10 +1,17 @@
 # SwiftSCAD
-SwiftSCAD is a library that allows you to create 3D/2D CAD models in Swift. SwiftSCAD is a preprocessor for OpenSCAD – it generates .scad files that you can preview and render using the OpenSCAD application. This frees you from the limitations of the OpenSCAD language and provides a more convenient API.
+SwiftSCAD is a library that allows you to create 3D/2D CAD models in Swift. SwiftSCAD is a preprocessor for [OpenSCAD][openscad] – it generates .scad files that you can preview and render using the OpenSCAD application. This frees you from the limitations of the OpenSCAD language and provides a more convenient API.
 
 # Usage
-Add the SPM package https://github.com/tomasf/SwiftSCAD
+SwiftSCAD is distributed as a Swift Package. The following steps will guide you through using it in a new Swift project.
 
-In OpenSCAD, make sure to hide the editor view and enable "Automatic Reload and Preview".
+1. **Download and install the [OpenSCAD][openscad] application**. This will be used as the viewer and renderer.
+2. **Create a new Swift project** using either the `swift package` CLI or Xcode. It's up to you to decide if you want to have a single project for all of your different CAD models, or one project per model. Having a single project might mean less overhead if you tend to make lots of small models, but might get unwieldy if you tend to build larger, more complex models.
+3. **Add `https://github.com/tomasf/SwiftSCAD` as a dependency** by adding it to your `Package.swift` file or by using Xcode's GUI.
+4. **`import SwiftSCAD`** in the file(s) where you want to use SwiftSCAD. Adding it to `main.swift` can be a good place to start.
+5. **Use the SwiftSCAD API** to create a model. Refer to the _Examples_ section for more details.
+6. **Generate a .scad file** for the model by adding the `Geometry2D/save(to:)` or `Geometry3D/save(to:)` method to the end of the model declaration and then Building and Running the project. Make sure any intermediate directories already exist.
+7. **Open the .scad file in OpenSCAD** to preview your model. For the best experience, make sure you hide the editor view by going to `View > Hide Editor` and enable automatic reload by going to `Design > Automatic Reload and Preview`. With this in place, OpenSCAD will reload automatically every time you Build and Run your project after making changes to the model.
+8. **Render and export the model** from OpenSCAD using `Design > Render` followed by `File > Export`.
 
 # Examples
 
@@ -79,3 +86,5 @@ Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
     .usingFacets(minAngle: 5°, minSize: 1)
     .save(to: "~/Desktop/examples/example4.scad")
 ```
+
+[openscad]: https://openscad.org
