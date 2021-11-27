@@ -3,8 +3,8 @@ import XCTest
 
 fileprivate func assertEqualGeometry(_ geometry: Geometry, toFile fileName: String) {
     let url = Bundle.module.url(forResource: fileName, withExtension: "scad", subdirectory: "SCAD")!
-    let correctString = try! String(contentsOf: url, encoding: .utf8)
-    let generatedString = geometry.scadString(in: Environment())
+    let correctString = try! String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+    let generatedString = geometry.scadString(in: Environment()).trimmingCharacters(in: .whitespacesAndNewlines)
     XCTAssertEqual(generatedString, correctString)
 }
 

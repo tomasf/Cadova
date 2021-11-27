@@ -13,5 +13,10 @@ final class Geometry3DTests: XCTestCase {
                     .distributed(at: [0°, 90°], around: .z)
             }
         .assertEqual(toFile: "3dbasics")
+
+		Box([10, 20, 30])
+			.subtracting {}
+			.adding {}
+			.assertEqual(toFile: "empty3d")
     }
 }

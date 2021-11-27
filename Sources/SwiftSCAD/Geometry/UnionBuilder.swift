@@ -2,7 +2,9 @@ import Foundation
 
 @resultBuilder public struct UnionBuilder {
 	public static func buildBlock(_ children: Geometry3D...) -> Geometry3D {
-		if children.count > 1 {
+		if children.isEmpty {
+			return Empty()
+		} else if children.count > 1 {
 			return Union3D(children: children)
 		} else {
 			return children[0]
@@ -27,7 +29,9 @@ import Foundation
 
 
 	public static func buildBlock(_ children: Geometry2D...) -> Geometry2D {
-		if children.count > 1 {
+		if children.isEmpty {
+			return Empty()
+		} else if children.count > 1 {
 			return Union2D(children: children)
 		} else {
 			return children[0]
