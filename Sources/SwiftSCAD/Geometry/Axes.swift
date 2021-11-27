@@ -18,6 +18,8 @@ public struct Axes3D: OptionSet {
 	public static let z = Axes3D(rawValue: 1 << 2)
 
 	public static let xy: Axes3D = [.x, .y]
+	public static let xz: Axes3D = [.x, .z]
+	public static let yz: Axes3D = [.y, .z]
 	public static let all: Axes3D = [.x, .y, .z]
 
 	public init(rawValue: Int) {
