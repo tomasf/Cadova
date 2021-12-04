@@ -23,7 +23,7 @@ public struct RoundedRectangle: Shape2D {
 		self.init(size, cornerRadii: [cornerRadius, cornerRadius, cornerRadius, cornerRadius], center: center)
 	}
 
-	public init(_ size: Vector2D, bottomLeft: Double, bottomRight: Double, topRight: Double, topLeft: Double, center: Axes2D = []) {
+	public init(_ size: Vector2D, bottomLeft: Double = 0, bottomRight: Double = 0, topRight: Double = 0, topLeft: Double = 0, center: Axes2D = []) {
 		self.init(size, cornerRadii: [bottomLeft, bottomRight, topRight, topLeft], center: center)
 	}
 
