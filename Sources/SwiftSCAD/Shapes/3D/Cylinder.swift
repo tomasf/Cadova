@@ -12,27 +12,32 @@ public struct Cylinder: CoreGeometry3D {
 	let height: Double
 	let diameter: Double
 	let topDiameter: Double?
+	let centerZ: Bool
 
     /// Create a right circular cylinder
     /// - Parameters:
     ///   - diameter: The diameter of the cylinder
     ///   - height: The height of the cylinder
+    ///   - centerZ: If true, center the cylinder along the Z axis
 
-    public init(diameter: Double, height: Double) {
+    public init(diameter: Double, height: Double, centerZ: Bool = false) {
 		self.diameter = diameter
 		self.topDiameter = nil
 		self.height = height
+		self.centerZ = centerZ
 	}
 
     /// Create a right circular cylinder
     /// - Parameters:
     ///   - radius: The radius (half diameter) of the cylinder
     ///   - height: The height of the cylinder
+    ///   - centerZ: If true, center the cylinder along the Z axis
 
-    public init(radius: Double, height: Double) {
+    public init(radius: Double, height: Double, centerZ: Bool = false) {
 		self.diameter = radius * 2
 		self.topDiameter = nil
 		self.height = height
+		self.centerZ = centerZ
 	}
 
     /// Create a truncated right circular cone (a cylinder with different top and bottom diameters)
@@ -40,22 +45,29 @@ public struct Cylinder: CoreGeometry3D {
     ///   - bottomDiameter: The diameter at the bottom
     ///   - topDiameter: The diameter at the top
     ///   - height: The height between the top and the bottom
+    ///   - centerZ: If true, center the cylinder along the Z axis
 
-	public init(bottomDiameter: Double, topDiameter: Double, height: Double) {
+	public init(bottomDiameter: Double, topDiameter: Double, height: Double, centerZ: Bool = false) {
 		self.diameter = bottomDiameter
 		self.topDiameter = topDiameter
 		self.height = height
+		self.centerZ = centerZ
 	}
 
 	func call(in environment: Environment) -> SCADCall {
-		let params: [String: SCADValue]
-
-		if let topDiameter = topDiameter {
-			params = ["d1": diameter, "d2": topDiameter, "h": height]
-		} else {
-			params = ["d": diameter, "h": height]
+		var params: [String: SCADValue] = ["h": height]
+		
+		if centerZ {
+			params["center"] = centerZ
 		}
-
+		
+		if let topDiameter = topDiameter {
+			params["d1"] = diameter
+			params["d2"] = topDiameter
+		} else {
+			params["d"] = diameter
+		}
+		
 		return SCADCall(name: "cylinder", params: params)
 	}
 }
