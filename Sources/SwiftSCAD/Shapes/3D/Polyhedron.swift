@@ -1,4 +1,5 @@
 import Foundation
+import Collections
 
 /// An arbitrary three-dimensional shape made up of flat faces.
 ///
@@ -25,7 +26,7 @@ public struct Polyhedron: CoreGeometry3D {
 		self.convexity = convexity
 	}
 
-    /// Create a polyhedron from a list of points and faces made up of indexes in that list of points.
+    /// Create a polyhedron from a list of faces
     /// - Parameters:
     ///   - faces: A list of faces that must cover the entire shape without any holes, where each face consists of vertex vectors.
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
@@ -49,6 +50,44 @@ public struct Polyhedron: CoreGeometry3D {
 		self.init(points: points, faces: faces, convexity: convexity)
 	}
 
+    /// Create a polyhedron from a table of keys and faces made up of such keys
+    /// - Parameters:
+    ///   - points: A lookup table of keys to the points they represent.
+    ///   - faces: A list of faces using keys from the `points` parameter. Faces must cover the entire shape without any holes.
+    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
+
+    public init<Key: Hashable>(points: [Key: Vector3D], faces: [OrderedSet<Key>], convexity: Int = 2) {
+        var pointValues: [Vector3D] = []
+        let indexMapping = points.mapValues { vector -> Int in
+            pointValues.append(vector)
+            return pointValues.endIndex - 1
+        }
+
+        let facesWithIndexes = faces.map {
+            $0.map { key -> Int in
+                guard let index = indexMapping[key] else {
+                    preconditionFailure("Undefined point key: \(key)")
+                }
+                return index
+            }
+        }
+
+        self.init(points: pointValues, faces: facesWithIndexes, convexity: convexity)
+    }
+
+    /// Create a polyhedron from faces
+    /// - Parameters:
+    ///   - faces: A list of faces made up of hashable items representing points. Faces must cover the entire shape without any holes.
+    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
+
+
+    public init<Vertex: PolyhedronVertex>(faces: [OrderedSet<Vertex>], convexity: Int = 2) {
+        let table: [Vertex: Vector3D] = faces.joined().reduce(into: [:]) { table, vertex in
+            table[vertex] = vertex.point
+        }
+
+        self.init(points: table, faces: faces, convexity: convexity)
+    }
 
 	func call(in environment: Environment) -> SCADCall {
 		SCADCall(
@@ -60,4 +99,8 @@ public struct Polyhedron: CoreGeometry3D {
 			]
 		)
 	}
+}
+
+public protocol PolyhedronVertex: Hashable {
+    var point: Vector3D { get }
 }
