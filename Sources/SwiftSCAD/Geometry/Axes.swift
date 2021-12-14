@@ -11,7 +11,7 @@ public enum Axis3D: Int {
 
 /// A set of possible axes in three dimensions
 
-public struct Axes3D: OptionSet {
+public struct Axes3D: OptionSet, Hashable {
 	public let rawValue: Int
 	public static let x = Axes3D(rawValue: 1 << 0)
 	public static let y = Axes3D(rawValue: 1 << 1)
@@ -49,7 +49,7 @@ public enum Axis2D: Int {
 
 /// A set of possible axes in two dimensions
 
-public struct Axes2D: OptionSet {
+public struct Axes2D: OptionSet, Hashable {
 	public let rawValue: Int
 	public static let x = Axes2D(rawValue: 1 << 0)
 	public static let y = Axes2D(rawValue: 1 << 1)
