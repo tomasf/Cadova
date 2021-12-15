@@ -82,19 +82,26 @@ public extension Vector2D {
 		)
 	}
 
-	static func +(_ v1: Vector2D, _ v2: Vector2D) -> Vector2D {
-		return Vector2D(
-			x: v1.x + v2.x,
-			y: v1.y + v2.y
-		)
-	}
+    static func /(_ v1: Vector2D, _ v2: Vector2D) -> Vector2D {
+        return Vector2D(
+            x: v1.x / v2.x,
+            y: v1.y / v2.y
+        )
+    }
 
-	static func -(_ v1: Vector2D, _ v2: Vector2D) -> Vector2D {
-		return Vector2D(
-			x: v1.x - v2.x,
-			y: v1.y - v2.y
-		)
-	}
+    static func +(_ v1: Vector2D, _ v2: Vector2D) -> Vector2D {
+        return Vector2D(
+            x: v1.x + v2.x,
+            y: v1.y + v2.y
+        )
+    }
+
+    static func -(_ v1: Vector2D, _ v2: Vector2D) -> Vector2D {
+        return Vector2D(
+            x: v1.x - v2.x,
+            y: v1.y - v2.y
+        )
+    }
 
 	static prefix func -(_ v: Vector2D) -> Vector2D {
 		return Vector2D(
