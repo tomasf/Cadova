@@ -18,6 +18,10 @@ public extension Geometry3D {
 		Translate3D(distance: distance, body: self)
 	}
 
+	func translated(_ distance: Vector2D) -> Geometry3D {
+		Translate3D(distance: Vector3D(distance), body: self)
+	}
+
 	func translated(x: Double = 0, y: Double = 0, z: Double = 0) -> Geometry3D {
 		Translate3D(distance: [x, y, z], body: self)
 	}
