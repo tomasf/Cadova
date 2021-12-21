@@ -57,7 +57,7 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - angles: The angle range in which to extrude. The resulting shape is formed around the Z axis in this range.
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
-	func extruded(angles: Range<Angle>, convexity: Int = 2) -> Geometry3D {
+	func extruded(angles: Range<Angle> = 0°..<360°, convexity: Int = 2) -> Geometry3D {
         RotateExtrude(angle: angles.upperBound - angles.lowerBound, convexity: convexity, body: self)
             .rotated(z: angles.lowerBound)
 	}
