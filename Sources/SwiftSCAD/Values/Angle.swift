@@ -7,12 +7,13 @@ public struct Angle {
 
     /// Create an angle from radians
 	public init(radians: Double) {
+		assert(!radians.isNaN, "Angles can't be NaN")
 		self.radians = radians
 	}
 
     /// Create an angle from degrees
 	public init(degrees: Double) {
-		self.radians = degrees * .pi / 180.0
+		self.init(radians: degrees * .pi / 180.0)
 	}
 
     /// The angle expressed in degrees

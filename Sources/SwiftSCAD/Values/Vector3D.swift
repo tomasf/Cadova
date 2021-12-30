@@ -8,7 +8,7 @@ import simd
 /// let v1 = Vector3D(x: 10, y: 15, z: 5)
 /// let v2: Vector3D = [10, 15, 5]
 /// ```
-public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Equatable {
+public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable {
 	public let x: Double
 	public let y: Double
 	public let z: Double
@@ -64,6 +64,14 @@ public extension Vector3D {
             z: axes.contains(.z) ? value : z
         )
     }
+
+	subscript(_ axis: Axis3D) -> Double {
+		switch axis {
+		case .x: return x
+		case .y: return y
+		case .z: return z
+		}
+	}
 }
 
 public extension Vector3D {
