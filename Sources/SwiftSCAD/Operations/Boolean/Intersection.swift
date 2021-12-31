@@ -56,3 +56,13 @@ public extension Geometry2D {
 		Intersection2D(children: [self, other()])
 	}
 }
+
+public extension Sequence {
+	func mapIntersection(@UnionBuilder _ transform: (Element) throws -> Geometry3D) rethrows -> Geometry3D {
+		Intersection3D(children: try map(transform))
+	}
+	
+	func mapIntersection(@UnionBuilder _ transform: (Element) throws -> Geometry2D) rethrows -> Geometry2D {
+		Intersection2D(children: try map(transform))
+	}
+}
