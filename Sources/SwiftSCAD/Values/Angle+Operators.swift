@@ -14,7 +14,11 @@ public extension Double {
 	}
 }
 
-extension Angle: Comparable {
+extension Angle: Comparable, AdditiveArithmetic {
+	public static var zero: Angle {
+		0°
+	}
+	
 	public static prefix func -(_ a: Angle) -> Angle {
 		Angle(radians: -a.radians)
 	}
