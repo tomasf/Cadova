@@ -102,21 +102,22 @@ public struct RoundedRectangle: Shape2D {
 		}
 	}
 
-	private struct SquircleCorner: Geometry2D {
+	private struct SquircleCorner: Shape2D {
 		let radius: Double
 
-		func scadString(in environment: Environment) -> String {
-			let facets = environment.facets.facetCount(circleRadius: radius)
-			let radius4th = pow(radius, 4.0)
+		var body: Geometry2D {
+			EnvironmentReader { environment in
+				let facets = environment.facets.facetCount(circleRadius: radius)
+				let radius4th = pow(radius, 4.0)
 
-			let points = [.zero] + (0...facets).map { facet -> Vector2D in
-				let x = cos(.pi / 2.0 / Double(facets) * Double(facet)) * radius
-				let y = pow(radius4th - pow(x, 4.0), 0.25)
-				return Vector2D(x, y)
-			} + [.zero]
+				let points = [.zero] + (0...facets).map { facet -> Vector2D in
+					let x = cos(.pi / 2.0 / Double(facets) * Double(facet)) * radius
+					let y = pow(radius4th - pow(x, 4.0), 0.25)
+					return Vector2D(x, y)
+				} + [.zero]
 
-			return Polygon(points)
-				.scadString(in: environment)
+				return Polygon(points)
+			}
 		}
 	}
 }
