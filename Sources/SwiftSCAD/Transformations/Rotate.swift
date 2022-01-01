@@ -13,6 +13,10 @@ struct Rotate3D: CoreGeometry3D {
 			body: body
 		)
 	}
+
+	var bodyTransform: AffineTransform {
+		.rotation(x: x, y: y, z: z)
+	}
 }
 
 public extension Geometry3D {
@@ -55,6 +59,10 @@ struct Rotate2D: CoreGeometry2D {
 			params: ["a": angle],
 			body: body
 		)
+	}
+
+	var bodyTransform: AffineTransform {
+		.rotation(z: angle)
 	}
 }
 

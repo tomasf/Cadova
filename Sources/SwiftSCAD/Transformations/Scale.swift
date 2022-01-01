@@ -11,6 +11,10 @@ struct Scale3D: CoreGeometry3D {
 			body: body
 		)
 	}
+
+	var bodyTransform: AffineTransform {
+		.scaling(scale)
+	}
 }
 
 public extension Geometry3D {
@@ -38,6 +42,10 @@ struct Scale2D: CoreGeometry2D {
 			params: ["v": scale],
 			body: body
 		)
+	}
+
+	var bodyTransform: AffineTransform {
+		.scaling(x: scale.x, y: scale.y, z: 1)
 	}
 }
 

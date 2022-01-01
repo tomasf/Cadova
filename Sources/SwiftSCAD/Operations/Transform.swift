@@ -11,6 +11,10 @@ struct Transform3D: CoreGeometry3D {
 			body: body
 		)
 	}
+
+	var bodyTransform: AffineTransform {
+		transform
+	}
 }
 
 public extension Geometry3D {
@@ -39,6 +43,10 @@ struct Transform2D: CoreGeometry2D {
             body: body
         )
     }
+
+	var bodyTransform: AffineTransform {
+		AffineTransform(transform)
+	}
 }
 
 public extension Geometry2D {

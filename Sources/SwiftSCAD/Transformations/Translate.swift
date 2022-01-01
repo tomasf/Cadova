@@ -11,6 +11,10 @@ struct Translate3D: CoreGeometry3D {
 			body: body
 		)
 	}
+
+	var bodyTransform: AffineTransform {
+		.translation(distance)
+	}
 }
 
 public extension Geometry3D {
@@ -38,6 +42,10 @@ struct Translate2D: CoreGeometry2D {
 			params: ["v": distance],
 			body: body
 		)
+	}
+
+	var bodyTransform: AffineTransform {
+		.translation(Vector3D(distance))
 	}
 }
 

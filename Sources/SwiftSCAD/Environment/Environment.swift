@@ -2,13 +2,22 @@ import Foundation
 
 public struct Environment {
 	public let facets: Facets
+	public let transform: AffineTransform
 
-	public init(facets: Facets = .defaults) {
+	public init(facets: Facets = .defaults, transform: AffineTransform = .identity) {
 		self.facets = facets
+		self.transform = transform
 	}
 
 	public func withFacets(_ facets: Facets) -> Environment {
-		return Environment(facets: facets)
+		return Environment(facets: facets, transform: transform)
+	}
+
+	public func applyingTransform(_ newTransform: AffineTransform) -> Environment {
+		return Environment(
+			facets: facets,
+			transform: newTransform.concatenated(with: transform)
+		)
 	}
 
 	public enum Facets {
