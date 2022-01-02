@@ -125,3 +125,17 @@ extension AffineTransform2D {
 	}
 }
 
+extension AffineTransform2D {
+    public init(_ transform3d: AffineTransform) {
+        self = .identity
+
+        self[0, 0] = transform3d[0, 0]
+        self[0, 1] = transform3d[0, 1]
+        self[1, 0] = transform3d[1, 0]
+        self[1, 1] = transform3d[1, 1]
+
+        self[0, 2] = transform3d[0, 3]
+        self[1, 2] = transform3d[1, 3]
+    }
+}
+
