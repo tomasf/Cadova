@@ -1,20 +1,56 @@
 import Foundation
 
 @resultBuilder public struct SequenceBuilder {
-	public static func buildBlock(_ children: Geometry3D...) -> [Geometry3D] {
-		return children
+}
+
+extension SequenceBuilder {
+	public static func buildExpression(_ expression: Geometry3D) -> [Geometry3D] {
+		[expression]
 	}
 
-	public static func buildIf(_ children: Geometry3D?...) -> [Geometry3D] {
-		return children.compactMap { $0 }
+	public static func buildBlock(_ children: [Geometry3D]...) -> [Geometry3D] {
+		children.flatMap { $0 }
 	}
 
-
-	public static func buildBlock(_ children: Geometry2D...) -> [Geometry2D] {
-		return children
+	public static func buildOptional(_ children: [Geometry3D]?) -> [Geometry3D] {
+		children ?? []
 	}
 
-	public static func buildIf(_ children: Geometry2D?...) -> [Geometry2D] {
-		return children.compactMap { $0 }
+	public static func buildEither(first child: [Geometry3D]) -> [Geometry3D] {
+		child
+	}
+
+	public static func buildEither(second child: [Geometry3D]) -> [Geometry3D] {
+		child
+	}
+
+	public static func buildArray(_ children: [[Geometry3D]]) -> [Geometry3D] {
+		children.flatMap { $0 }
+	}
+}
+
+extension SequenceBuilder {
+	public static func buildExpression(_ expression: Geometry2D) -> [Geometry2D] {
+		[expression]
+	}
+
+	public static func buildBlock(_ children: [Geometry2D]...) -> [Geometry2D] {
+		children.flatMap { $0 }
+	}
+
+	public static func buildOptional(_ children: [Geometry2D]?) -> [Geometry2D] {
+		children ?? []
+	}
+
+	public static func buildEither(first child: Geometry2D) -> [Geometry2D] {
+		[child]
+	}
+
+	public static func buildEither(second child: Geometry2D) -> [Geometry2D] {
+		[child]
+	}
+
+	public static func buildArray(_ children: [[Geometry2D]]) -> [Geometry2D] {
+		children.flatMap { $0 }
 	}
 }

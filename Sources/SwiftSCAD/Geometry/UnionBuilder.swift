@@ -1,6 +1,9 @@
 import Foundation
 
 @resultBuilder public struct UnionBuilder {
+}
+
+extension UnionBuilder {
 	public static func buildBlock(_ children: Geometry3D...) -> Geometry3D {
 		if children.isEmpty {
 			return Empty()
@@ -26,8 +29,9 @@ import Foundation
 	public static func buildArray(_ children: [Geometry3D]) -> Geometry3D {
 		Union3D(children: children)
 	}
+}
 
-
+extension UnionBuilder {
 	public static func buildBlock(_ children: Geometry2D...) -> Geometry2D {
 		if children.isEmpty {
 			return Empty()
