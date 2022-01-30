@@ -12,6 +12,10 @@ extension UnionBuilder {
 		Array(geometry)
 	}
 
+	public static func buildExpression(_ void: Void) -> [Geometry2D] {
+		[]
+	}
+
 	public static func buildBlock(_ children: [Geometry2D]...) -> [Geometry2D] {
 		children.flatMap { $0 }
 	}
@@ -50,6 +54,10 @@ extension UnionBuilder {
 
 	public static func buildExpression<S>(_ geometry: S) -> [Geometry3D] where S: Sequence, S.Element: Geometry3D {
 		Array(geometry)
+	}
+
+	public static func buildExpression(_ void: Void) -> [Geometry3D] {
+		[]
 	}
 
 	public static func buildBlock(_ children: [Geometry3D]...) -> [Geometry3D] {

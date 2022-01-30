@@ -12,6 +12,10 @@ extension SequenceBuilder {
 		Array(geometry)
 	}
 
+	public static func buildExpression(_ void: Void) -> [Geometry3D] {
+		[]
+	}
+
 	public static func buildBlock(_ children: [Geometry3D]...) -> [Geometry3D] {
 		children.flatMap { $0 }
 	}
@@ -40,6 +44,10 @@ extension SequenceBuilder {
 
 	public static func buildExpression<S>(_ geometry: S) -> [Geometry2D] where S: Sequence, S.Element: Geometry2D {
 		Array(geometry)
+	}
+
+	public static func buildExpression(_ void: Void) -> [Geometry2D] {
+		[]
 	}
 
 	public static func buildBlock(_ children: [Geometry2D]...) -> [Geometry2D] {
