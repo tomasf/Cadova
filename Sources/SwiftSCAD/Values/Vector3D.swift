@@ -16,6 +16,9 @@ public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable {
 	public static let zero = Vector3D(x: 0, y: 0, z: 0)
 
 	public init(x: Double, y: Double, z: Double) {
+		precondition(x.isFinite, "Vector elements can't be NaN or infinite")
+		precondition(y.isFinite, "Vector elements can't be NaN or infinite")
+		precondition(z.isFinite, "Vector elements can't be NaN or infinite")
 		self.x = x
 		self.y = y
 		self.z = z

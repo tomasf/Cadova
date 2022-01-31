@@ -16,6 +16,8 @@ public struct Vector2D: ExpressibleByArrayLiteral, SCADValue, Hashable {
 	public static let zero = Vector2D(x: 0, y: 0)
 
 	public init(x: Double, y: Double) {
+		precondition(x.isFinite, "Vector elements can't be NaN or infinite")
+		precondition(y.isFinite, "Vector elements can't be NaN or infinite")
 		self.x = x
 		self.y = y
 	}

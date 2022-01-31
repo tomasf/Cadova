@@ -7,7 +7,7 @@ public struct Angle {
 
     /// Create an angle from radians
 	public init(radians: Double) {
-		assert(!radians.isNaN, "Angles can't be NaN")
+		precondition(radians.isFinite, "Angles can't be NaN or infinite")
 		self.radians = radians
 	}
 
