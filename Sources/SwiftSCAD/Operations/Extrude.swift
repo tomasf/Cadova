@@ -62,3 +62,14 @@ public extension Geometry2D {
             .rotated(z: angles.lowerBound)
 	}
 }
+
+public enum ExtrusionZSides {
+    case top
+    case bottom
+    case both
+}
+
+public enum ExtrusionMethod {
+    case layered (height: Double)
+    case convexHull
+}
