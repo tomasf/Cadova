@@ -57,7 +57,7 @@ final class ExampleTests: XCTestCase {
 
         Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
             .usingDefaultFacets()
-            .extrude(along: path, radius: 11)
+            .extruded(along: path, radius: 11)
             .usingFacets(minAngle: 5°, minSize: 1)
             .assertEqual(toFile: "example4")
     }
