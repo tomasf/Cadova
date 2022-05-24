@@ -14,7 +14,7 @@ public extension Geometry2D {
 
     @UnionBuilder private func extrudedConvex(height: Double, topChamferSize chamferSize: Double) -> Geometry3D {
         self
-            .extruded(height: height - chamferSize)
+            .extruded(height: max(height - chamferSize, 0.001))
             .adding {
                 self
                     .offset(amount: -chamferSize, style: .round)
