@@ -47,11 +47,11 @@ public extension Vector3D {
     /// - Parameters:
     ///   - axis: The axes to set
     ///   - value: The value to use
-    ///
-	init(axis: Axis3D, value: Double) {
-		let x = (axis == .x) ? value : 0
-		let y = (axis == .y) ? value : 0
-		let z = (axis == .z) ? value : 0
+    ///   - default: The value to use for the other axes
+	init(axis: Axis3D, value: Double, default defaultValue: Double = 0) {
+		let x = (axis == .x) ? value : defaultValue
+		let y = (axis == .y) ? value : defaultValue
+		let z = (axis == .z) ? value : defaultValue
 		self.init(x, y, z)
 	}
 

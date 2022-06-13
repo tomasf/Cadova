@@ -29,6 +29,10 @@ public extension Geometry3D {
 	func scaled(x: Double = 1, y: Double = 1, z: Double = 1) -> Geometry3D {
 		Scale3D(scale: [x, y, z], body: self)
 	}
+    
+    func flipped(along axis: Axis3D) -> Geometry3D {
+        Scale3D(scale: Vector3D(axis: axis, value: -1, default: 1), body: self)
+    }
 }
 
 
@@ -61,4 +65,8 @@ public extension Geometry2D {
 	func scaled(x: Double = 1, y: Double = 1) -> Geometry2D {
 		Scale2D(scale: [x, y], body: self)
 	}
+    
+    func flipped(along axis: Axis2D) -> Geometry2D {
+        Scale2D(scale: Vector2D(axis: axis, value: -1, default: 1), body: self)
+    }
 }

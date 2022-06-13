@@ -41,10 +41,11 @@ public extension Vector2D {
     /// - Parameters:
     ///   - axis: The axes to set
     ///   - value: The value to use
+    ///   - default: The value to use for the other axes
 
-	init(axis: Axis2D, value: Double) {
-		let x = (axis == .x) ? value : 0
-		let y = (axis == .y) ? value : 0
+	init(axis: Axis2D, value: Double, default defaultValue: Double = 0) {
+		let x = (axis == .x) ? value : defaultValue
+		let y = (axis == .y) ? value : defaultValue
 		self.init(x, y)
 	}
 
