@@ -24,18 +24,21 @@ public struct Import2D: CoreGeometry2D {
 	let path: String
 	let layer: String?
 	let convexity: Int
-
-	public init(path: String, dxfLayer: String? = nil, convexity: Int = 2) {
+    let center: Bool
+    
+    public init(path: String, dxfLayer: String? = nil, center: Bool = false, convexity: Int = 2) {
 		self.path = path
 		self.layer = dxfLayer
 		self.convexity = convexity
+        self.center = center
 	}
 
 	func call(in environment: Environment) -> SCADCall {
 		let params: [String: SCADValue?] = [
 			"file": path,
 			"layer": layer,
-			"convexity": convexity
+			"convexity": convexity,
+            "center": center
 		]
 		return SCADCall(
 			name: "import",
