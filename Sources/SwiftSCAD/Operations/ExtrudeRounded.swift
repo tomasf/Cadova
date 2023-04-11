@@ -13,7 +13,7 @@ public extension Geometry2D {
     }
 
     @UnionBuilder private func extrudedConvex(height: Double, topRadius radius: Double) -> Geometry3D {
-        EnvironmentReader { environment in
+        EnvironmentReader3D { environment in
             let facetCount = environment.facets.facetCount(circleRadius: radius)
 
             let slices = (0...facetCount).mapUnion { f in

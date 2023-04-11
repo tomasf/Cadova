@@ -7,7 +7,7 @@ extension RoundedBox {
 		let cornerRadius: Double
 
 		var body: Geometry3D {
-			EnvironmentReader { environment in
+			EnvironmentReader3D { environment in
 				let facets = environment.facets.facetCount(circleRadius: cornerRadius) / 4
 				guard facets > 1 else {
 					return Box(size, center: .all)

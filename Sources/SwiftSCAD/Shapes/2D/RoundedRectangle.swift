@@ -106,7 +106,7 @@ public struct RoundedRectangle: Shape2D {
 		let radius: Double
 
 		var body: Geometry2D {
-			EnvironmentReader { environment in
+			EnvironmentReader2D { environment in
 				let facets = environment.facets.facetCount(circleRadius: radius)
 				let radius4th = pow(radius, 4.0)
 

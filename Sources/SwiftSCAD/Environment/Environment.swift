@@ -41,16 +41,16 @@ public struct Environment {
 	}
 }
 
-private struct EnvironmentReader2D: Geometry2D {
-	@UnionBuilder let body: (Environment) -> Geometry2D
+internal struct EnvironmentReader2D: Geometry2D {
+	let body: (Environment) -> Geometry2D
 
 	func scadString(in environment: Environment) -> String {
 		body(environment).scadString(in: environment)
 	}
 }
 
-private struct EnvironmentReader3D: Geometry3D {
-	@UnionBuilder let body: (Environment) -> Geometry3D
+internal struct EnvironmentReader3D: Geometry3D {
+	let body: (Environment) -> Geometry3D
 
 	func scadString(in environment: Environment) -> String {
 		body(environment).scadString(in: environment)
@@ -58,9 +58,9 @@ private struct EnvironmentReader3D: Geometry3D {
 }
 
 public func EnvironmentReader(@UnionBuilder body: @escaping (Environment) -> Geometry2D) -> Geometry2D {
-	EnvironmentReader2D(body: body)
+    EnvironmentReader2D(body: body)
 }
 
 public func EnvironmentReader(@UnionBuilder body: @escaping (Environment) -> Geometry3D) -> Geometry3D {
-	EnvironmentReader3D(body: body)
+    EnvironmentReader3D(body: body)
 }
