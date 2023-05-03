@@ -18,7 +18,7 @@ public extension Geometry2D {
 
             let slices = (0...facetCount).mapUnion { f in
                 let angle = (Double(f) / Double(facetCount)) * 90°
-                let inset = cos(angle) * radius
+                let inset = cos(angle) * radius - radius
                 let zOffset = sin(angle) * radius
                 offset(amount: inset, style: .round)
                     .extruded(height: height - radius + zOffset)
