@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Arc: CoreGeometry2D {
+public struct Arc: ContainerGeometry2D {
 	let range: Range<Angle>
 	let radius: Double
 
@@ -13,32 +13,32 @@ public struct Arc: CoreGeometry2D {
 		self.init(range: range, radius: diameter / 2)
 	}
 
-	func call(in environment: Environment) -> SCADCall {
-		let magnitude = range.upperBound - range.lowerBound
-		let fraction = magnitude / 360°
+    func geometry(in environment: Environment) -> Geometry2D {
+        let magnitude = range.upperBound - range.lowerBound
+        let fraction = magnitude / 360°
 
-		let circleFacets: Double
+        let circleFacets: Double
 
-		switch environment.facets {
-		case .fixed (let perRev):
-			circleFacets = Double(perRev)
+        switch environment.facets {
+        case .fixed (let perRev):
+            circleFacets = Double(perRev)
 
-		case .dynamic (let minAngle, let minSize):
-			let facetsFromAngle = 360° / minAngle
-			let circumference = radius * 2.0 * .pi
-			let facetsFromSize = circumference / minSize
-			circleFacets = min(facetsFromAngle, facetsFromSize)
-		}
+        case .dynamic (let minAngle, let minSize):
+            let facetsFromAngle = 360° / minAngle
+            let circumference = radius * 2.0 * .pi
+            let facetsFromSize = circumference / minSize
+            circleFacets = min(facetsFromAngle, facetsFromSize)
+        }
 
-		let facetCount = max(Int(ceil(circleFacets * fraction)), 2)
-		let facetAngle = magnitude / Double(facetCount)
+        let facetCount = max(Int(ceil(circleFacets * fraction)), 2)
+        let facetAngle = magnitude / Double(facetCount)
 
-		let outerPoints = (0...facetCount).map { i -> Vector2D in
-			let angle = range.lowerBound + facetAngle * Double(i)
-			return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
-		}
-		let allPoints = [Vector2D.zero] + outerPoints + [Vector2D.zero]
+        let outerPoints = (0...facetCount).map { i -> Vector2D in
+            let angle = range.lowerBound + facetAngle * Double(i)
+            return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
+        }
+        let allPoints = [Vector2D.zero] + outerPoints + [Vector2D.zero]
 
-		return Polygon(allPoints).call(in: environment)
-	}
+        return Polygon(allPoints)
+    }
 }

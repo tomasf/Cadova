@@ -36,6 +36,16 @@ extension CoreGeometry3D {
 	var bodyTransform: AffineTransform { .identity }
 }
 
+protocol ContainerGeometry3D: Geometry3D {
+    func geometry(in environment: Environment) -> Geometry3D
+}
+
+extension ContainerGeometry3D {
+    public func scadString(in environment: Environment) -> String {
+        geometry(in: environment).scadString(in: environment)
+    }
+}
+
 protocol CoreGeometry2D: Geometry2D {
 	func call(in environment: Environment) -> SCADCall
 	var bodyTransform: AffineTransform { get }
@@ -49,4 +59,14 @@ extension CoreGeometry2D {
 	}
 
 	var bodyTransform: AffineTransform { .identity }
+}
+
+protocol ContainerGeometry2D: Geometry2D {
+    func geometry(in environment: Environment) -> Geometry2D
+}
+
+extension ContainerGeometry2D {
+    public func scadString(in environment: Environment) -> String {
+        geometry(in: environment).scadString(in: environment)
+    }
 }

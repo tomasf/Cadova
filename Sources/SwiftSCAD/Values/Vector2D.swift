@@ -10,8 +10,8 @@ import simd
 /// ```
 ///
 public struct Vector2D: ExpressibleByArrayLiteral, SCADValue, Hashable {
-	public let x: Double
-	public let y: Double
+	public var x: Double
+	public var y: Double
 
 	public static let zero = Vector2D(x: 0, y: 0)
 
