@@ -9,37 +9,37 @@ import simd
 /// let v2: Vector3D = [10, 15, 5]
 /// ```
 public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable {
-	public var x: Double
-	public var y: Double
-	public var z: Double
+    public var x: Double
+    public var y: Double
+    public var z: Double
 
-	public static let zero = Vector3D(x: 0, y: 0, z: 0)
+    public static let zero = Vector3D(x: 0, y: 0, z: 0)
 
-	public init(x: Double, y: Double, z: Double) {
-		precondition(x.isFinite, "Vector elements can't be NaN or infinite")
-		precondition(y.isFinite, "Vector elements can't be NaN or infinite")
-		precondition(z.isFinite, "Vector elements can't be NaN or infinite")
-		self.x = x
-		self.y = y
-		self.z = z
-	}
+    public init(x: Double, y: Double, z: Double) {
+        precondition(x.isFinite, "Vector elements can't be NaN or infinite")
+        precondition(y.isFinite, "Vector elements can't be NaN or infinite")
+        precondition(z.isFinite, "Vector elements can't be NaN or infinite")
+        self.x = x
+        self.y = y
+        self.z = z
+    }
 
-	public init(_ x: Double, _ y: Double, _ z: Double) {
-		self.init(x: x, y: y, z: z)
-	}
+    public init(_ x: Double, _ y: Double, _ z: Double) {
+        self.init(x: x, y: y, z: z)
+    }
 
     public init(_ xy: Vector2D, z: Double = 0) {
         self.init(x: xy.x, y: xy.y, z: z)
     }
 
-	public init(arrayLiteral: Double...) {
-		precondition(arrayLiteral.count == 3, "Vector3D requires exactly three elements")
-		self.init(x: arrayLiteral[0], y: arrayLiteral[1], z: arrayLiteral[2])
-	}
+    public init(arrayLiteral: Double...) {
+        precondition(arrayLiteral.count == 3, "Vector3D requires exactly three elements")
+        self.init(x: arrayLiteral[0], y: arrayLiteral[1], z: arrayLiteral[2])
+    }
 
-	public var scadString: String {
-		[x, y, z].scadString
-	}
+    public var scadString: String {
+        [x, y, z].scadString
+    }
 }
 
 public extension Vector3D {
@@ -48,12 +48,12 @@ public extension Vector3D {
     ///   - axis: The axes to set
     ///   - value: The value to use
     ///   - default: The value to use for the other axes
-	init(axis: Axis3D, value: Double, default defaultValue: Double = 0) {
-		let x = (axis == .x) ? value : defaultValue
-		let y = (axis == .y) ? value : defaultValue
-		let z = (axis == .z) ? value : defaultValue
-		self.init(x, y, z)
-	}
+    init(axis: Axis3D, value: Double, default defaultValue: Double = 0) {
+        let x = (axis == .x) ? value : defaultValue
+        let y = (axis == .y) ? value : defaultValue
+        let z = (axis == .z) ? value : defaultValue
+        self.init(x, y, z)
+    }
 
     /// Make a new vector where some of the dimensions are set to a new value
     /// - Parameters:
@@ -68,55 +68,55 @@ public extension Vector3D {
         )
     }
 
-	subscript(_ axis: Axis3D) -> Double {
-		switch axis {
-		case .x: return x
-		case .y: return y
-		case .z: return z
-		}
-	}
+    subscript(_ axis: Axis3D) -> Double {
+        switch axis {
+        case .x: return x
+        case .y: return y
+        case .z: return z
+        }
+    }
 }
 
 public extension Vector3D {
-	static func /(_ v: Vector3D, _ d: Double) -> Vector3D {
-		return Vector3D(
-			x: v.x / d,
-			y: v.y / d,
-			z: v.z / d
-		)
-	}
+    static func /(_ v: Vector3D, _ d: Double) -> Vector3D {
+        return Vector3D(
+            x: v.x / d,
+            y: v.y / d,
+            z: v.z / d
+        )
+    }
 
-	static func *(_ v: Vector3D, _ d: Double) -> Vector3D {
-		return Vector3D(
-			x: v.x * d,
-			y: v.y * d,
-			z: v.z * d
-		)
-	}
+    static func *(_ v: Vector3D, _ d: Double) -> Vector3D {
+        return Vector3D(
+            x: v.x * d,
+            y: v.y * d,
+            z: v.z * d
+        )
+    }
 
-	static prefix func -(_ v: Vector3D) -> Vector3D {
-		return Vector3D(
-			x: -v.x,
-			y: -v.y,
-			z: -v.z
-		)
-	}
+    static prefix func -(_ v: Vector3D) -> Vector3D {
+        return Vector3D(
+            x: -v.x,
+            y: -v.y,
+            z: -v.z
+        )
+    }
 
-	static func +(_ v1: Vector3D, _ v2: Vector3D) -> Vector3D {
-		return Vector3D(
-			x: v1.x + v2.x,
-			y: v1.y + v2.y,
-			z: v1.z + v2.z
-		)
-	}
+    static func +(_ v1: Vector3D, _ v2: Vector3D) -> Vector3D {
+        return Vector3D(
+            x: v1.x + v2.x,
+            y: v1.y + v2.y,
+            z: v1.z + v2.z
+        )
+    }
 
-	static func -(_ v1: Vector3D, _ v2: Vector3D) -> Vector3D {
-		return Vector3D(
-			x: v1.x - v2.x,
-			y: v1.y - v2.y,
-			z: v1.z - v2.z
-		)
-	}
+    static func -(_ v1: Vector3D, _ v2: Vector3D) -> Vector3D {
+        return Vector3D(
+            x: v1.x - v2.x,
+            y: v1.y - v2.y,
+            z: v1.z - v2.z
+        )
+    }
 
     static func *(_ v1: Vector3D, _ v2: Vector3D) -> Vector3D {
         return Vector3D(
@@ -134,37 +134,37 @@ public extension Vector3D {
         )
     }
 
-	static func +(_ v: Vector3D, _ s: Double) -> Vector3D {
-		return Vector3D(
-			x: v.x + s,
-			y: v.y + s,
-			z: v.z + s
-		)
-	}
+    static func +(_ v: Vector3D, _ s: Double) -> Vector3D {
+        return Vector3D(
+            x: v.x + s,
+            y: v.y + s,
+            z: v.z + s
+        )
+    }
 
-	static func -(_ v: Vector3D, _ s: Double) -> Vector3D {
-		return Vector3D(
-			x: v.x - s,
-			y: v.y - s,
-			z: v.z - s
-		)
-	}
+    static func -(_ v: Vector3D, _ s: Double) -> Vector3D {
+        return Vector3D(
+            x: v.x - s,
+            y: v.y - s,
+            z: v.z - s
+        )
+    }
 
-	var xy: Vector2D {
-		Vector2D(x:x, y:y)
-	}
+    var xy: Vector2D {
+        Vector2D(x:x, y:y)
+    }
 }
 
 public extension Vector3D {
     /// Calculate the distance from this point to another point in 3D space
-	func distance(to other: Vector3D) -> Double {
-		sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2))
-	}
+    func distance(to other: Vector3D) -> Double {
+        sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2))
+    }
 
     /// Calculate a point at a given fraction along a straight line to another point
-	func point(alongLineTo other: Vector3D, at fraction: Double) -> Vector3D {
-		self + (other - self) * fraction
-	}
+    func point(alongLineTo other: Vector3D, at fraction: Double) -> Vector3D {
+        self + (other - self) * fraction
+    }
 }
 
 internal extension Vector3D {

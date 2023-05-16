@@ -1,17 +1,17 @@
 import Foundation
 
 public struct Arc: ContainerGeometry2D {
-	let range: Range<Angle>
-	let radius: Double
+    let range: Range<Angle>
+    let radius: Double
 
-	public init(range: Range<Angle>, radius: Double) {
-		self.range = range
-		self.radius = radius
-	}
+    public init(range: Range<Angle>, radius: Double) {
+        self.range = range
+        self.radius = radius
+    }
 
-	public init(range: Range<Angle>, diameter: Double) {
-		self.init(range: range, radius: diameter / 2)
-	}
+    public init(range: Range<Angle>, diameter: Double) {
+        self.init(range: range, radius: diameter / 2)
+    }
 
     func geometry(in environment: Environment) -> Geometry2D {
         let magnitude = range.upperBound - range.lowerBound

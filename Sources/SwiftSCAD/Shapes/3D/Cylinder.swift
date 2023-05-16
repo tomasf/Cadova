@@ -9,10 +9,10 @@ import Foundation
 /// ```
 
 public struct Cylinder: CoreGeometry3D {
-	let height: Double
-	let diameter: Double
-	let topDiameter: Double?
-	let centerZ: Bool
+    let height: Double
+    let diameter: Double
+    let topDiameter: Double?
+    let centerZ: Bool
 
     /// Create a right circular cylinder
     /// - Parameters:
@@ -21,11 +21,11 @@ public struct Cylinder: CoreGeometry3D {
     ///   - centerZ: If true, center the cylinder along the Z axis
 
     public init(diameter: Double, height: Double, centerZ: Bool = false) {
-		self.diameter = diameter
-		self.topDiameter = nil
-		self.height = height
-		self.centerZ = centerZ
-	}
+        self.diameter = diameter
+        self.topDiameter = nil
+        self.height = height
+        self.centerZ = centerZ
+    }
 
     /// Create a right circular cylinder
     /// - Parameters:
@@ -34,11 +34,11 @@ public struct Cylinder: CoreGeometry3D {
     ///   - centerZ: If true, center the cylinder along the Z axis
 
     public init(radius: Double, height: Double, centerZ: Bool = false) {
-		self.diameter = radius * 2
-		self.topDiameter = nil
-		self.height = height
-		self.centerZ = centerZ
-	}
+        self.diameter = radius * 2
+        self.topDiameter = nil
+        self.height = height
+        self.centerZ = centerZ
+    }
 
     /// Create a truncated right circular cone (a cylinder with different top and bottom diameters)
     /// - Parameters:
@@ -47,27 +47,27 @@ public struct Cylinder: CoreGeometry3D {
     ///   - height: The height between the top and the bottom
     ///   - centerZ: If true, center the cylinder along the Z axis
 
-	public init(bottomDiameter: Double, topDiameter: Double, height: Double, centerZ: Bool = false) {
-		self.diameter = bottomDiameter
-		self.topDiameter = topDiameter
-		self.height = height
-		self.centerZ = centerZ
-	}
+    public init(bottomDiameter: Double, topDiameter: Double, height: Double, centerZ: Bool = false) {
+        self.diameter = bottomDiameter
+        self.topDiameter = topDiameter
+        self.height = height
+        self.centerZ = centerZ
+    }
 
-	func call(in environment: Environment) -> SCADCall {
-		var params: [String: SCADValue] = ["h": height]
-		
-		if centerZ {
-			params["center"] = centerZ
-		}
-		
-		if let topDiameter = topDiameter {
-			params["d1"] = diameter
-			params["d2"] = topDiameter
-		} else {
-			params["d"] = diameter
-		}
-		
-		return SCADCall(name: "cylinder", params: params)
-	}
+    func call(in environment: Environment) -> SCADCall {
+        var params: [String: SCADValue] = ["h": height]
+        
+        if centerZ {
+            params["center"] = centerZ
+        }
+        
+        if let topDiameter = topDiameter {
+            params["d1"] = diameter
+            params["d2"] = topDiameter
+        } else {
+            params["d"] = diameter
+        }
+        
+        return SCADCall(name: "cylinder", params: params)
+    }
 }
