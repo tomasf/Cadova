@@ -56,7 +56,7 @@ extension CGPath {
     }
 }
 
-public extension Vector2D {
+extension Vector2D {
     init(_ cgPoint: CGPoint) {
         self.init(cgPoint.x, cgPoint.y)
     }

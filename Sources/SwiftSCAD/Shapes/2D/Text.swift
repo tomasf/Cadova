@@ -125,10 +125,7 @@ fileprivate extension Text {
         let lastGlyphIndex = layoutManager.glyphIndexForCharacter(at: textStorage.length - 1)
         let baselineOffset = layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: lastGlyphIndex)
 
-        let offset = textOffset(
-            contentHeight: contentHeight,
-            lastBaselineOffset: baselineOffset
-        )
+        let offset = textOffset(contentHeight: contentHeight, lastBaselineOffset: baselineOffset)
 
         return Union {
             for fragment in fragments {
@@ -139,9 +136,9 @@ fileprivate extension Text {
                     let font = textStorage.attribute(.font, at: characterIndex, effectiveRange: nil) as? NSFont
                     let color = textStorage.attribute(.foregroundColor, at: characterIndex, effectiveRange: nil) as? NSColor
 
-                    if let font, let path: Geometry2D = CTFontCreatePathForGlyph(font, glyph, &verticalFlip) {
-
-                        let geometry =                         path.translated(Vector2D(layoutManager.location(forGlyphAt: glyphIndex)))
+                    if let font, let path = CTFontCreatePathForGlyph(font, glyph, &verticalFlip) {
+                        let geometry = path
+                            .translated(.init(layoutManager.location(forGlyphAt: glyphIndex)))
                             .translated(.init(fragment.rect.origin))
 
                         if let color, let scadColor = Color(color) {
