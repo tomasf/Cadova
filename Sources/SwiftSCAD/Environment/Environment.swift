@@ -52,11 +52,11 @@ internal struct EnvironmentReader3D: Geometry3D {
 	}
 }
 
-internal func EnvironmentReader(@UnionBuilder body: @escaping (Environment) -> Geometry2D) -> Geometry2D {
+internal func EnvironmentReader(@UnionBuilder2D body: @escaping (Environment) -> Geometry2D) -> Geometry2D {
     EnvironmentReader2D(body: body)
 }
 
-internal func EnvironmentReader(@UnionBuilder body: @escaping (Environment) -> Geometry3D) -> Geometry3D {
+internal func EnvironmentReader(@UnionBuilder3D body: @escaping (Environment) -> Geometry3D) -> Geometry3D {
     EnvironmentReader3D(body: body)
 }
 
@@ -83,7 +83,7 @@ public extension Geometry2D {
         EnvironmentModifier2D(body: self, modification: modifier)
     }
 
-    func readingEnvironment(@UnionBuilder _ body: @escaping (Environment) -> Geometry2D) -> Geometry2D {
+    func readingEnvironment(@UnionBuilder2D _ body: @escaping (Environment) -> Geometry2D) -> Geometry2D {
         EnvironmentReader2D(body: body)
     }
 }
@@ -93,7 +93,7 @@ public extension Geometry3D {
         EnvironmentModifier3D(body: self, modification: modifier)
     }
 
-    func readingEnvironment(@UnionBuilder _ body: @escaping (Environment) -> Geometry3D) -> Geometry3D {
+    func readingEnvironment(@UnionBuilder3D _ body: @escaping (Environment) -> Geometry3D) -> Geometry3D {
         EnvironmentReader3D(body: body)
     }
 }

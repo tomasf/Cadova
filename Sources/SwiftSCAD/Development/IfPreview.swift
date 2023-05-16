@@ -25,19 +25,19 @@ struct IfPreview3D: Geometry3D {
 	}
 }
 
-public func IfPreview(@UnionBuilder _ preview: () -> Geometry3D, @UnionBuilder else render: () -> Geometry3D) -> Geometry3D {
+public func IfPreview(@UnionBuilder3D _ preview: () -> Geometry3D, @UnionBuilder3D else render: () -> Geometry3D) -> Geometry3D {
     IfPreview3D(ifPreview: preview(), ifRender: render())
 }
 
-public func IfPreview(@UnionBuilder _ preview: () -> Geometry3D) -> Geometry3D {
+public func IfPreview(@UnionBuilder3D _ preview: () -> Geometry3D) -> Geometry3D {
     IfPreview3D(ifPreview: preview())
 }
 
-public func IfRender(@UnionBuilder _ render: () -> Geometry3D, @UnionBuilder else preview: () -> Geometry3D) -> Geometry3D {
+public func IfRender(@UnionBuilder3D _ render: () -> Geometry3D, @UnionBuilder3D else preview: () -> Geometry3D) -> Geometry3D {
     IfPreview3D(ifPreview: preview(), ifRender: render())
 }
 
-public func IfRender(@UnionBuilder _ render: () -> Geometry3D) -> Geometry3D {
+public func IfRender(@UnionBuilder3D _ render: () -> Geometry3D) -> Geometry3D {
     IfPreview3D(ifRender: render())
 }
 
@@ -67,19 +67,19 @@ struct IfPreview2D: Geometry2D {
     }
 }
 
-public func IfPreview(@UnionBuilder _ preview: () -> Geometry2D, @UnionBuilder else render: () -> Geometry2D) -> Geometry2D {
+public func IfPreview(@UnionBuilder2D _ preview: () -> Geometry2D, @UnionBuilder2D else render: () -> Geometry2D) -> Geometry2D {
     IfPreview2D(ifPreview: preview(), ifRender: render())
 }
 
-public func IfPreview(@UnionBuilder _ preview: () -> Geometry2D) -> Geometry2D {
+public func IfPreview(@UnionBuilder2D _ preview: () -> Geometry2D) -> Geometry2D {
     IfPreview2D(ifPreview: preview())
 }
 
-public func IfRender(@UnionBuilder _ render: () -> Geometry2D, @UnionBuilder else preview: () -> Geometry2D) -> Geometry2D {
+public func IfRender(@UnionBuilder2D _ render: () -> Geometry2D, @UnionBuilder2D else preview: () -> Geometry2D) -> Geometry2D {
     IfPreview2D(ifPreview: preview(), ifRender: render())
 }
 
-public func IfRender(@UnionBuilder _ render: () -> Geometry2D) -> Geometry2D {
+public func IfRender(@UnionBuilder2D _ render: () -> Geometry2D) -> Geometry2D {
     IfPreview2D(ifRender: render())
 }
 

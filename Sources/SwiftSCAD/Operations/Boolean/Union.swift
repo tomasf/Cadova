@@ -22,7 +22,7 @@ struct Union3D: CoreGeometry3D {
 /// }
 /// .translate(x: 10)
 /// ```
-public func Union(@UnionBuilder _ body: () -> Geometry3D) -> Geometry3D {
+public func Union(@UnionBuilder3D _ body: () -> Geometry3D) -> Geometry3D {
 	body()
 }
 
@@ -44,7 +44,7 @@ public extension Geometry3D {
     ///
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
-	func adding(@SequenceBuilder _ bodies: () -> [Geometry3D]) -> Geometry3D {
+	func adding(@SequenceBuilder3D _ bodies: () -> [Geometry3D]) -> Geometry3D {
 		Union3D(children: [self] + bodies())
 	}
 
@@ -78,7 +78,7 @@ struct Union2D: CoreGeometry2D {
 /// }
 /// .translate(x: 10)
 /// ```
-public func Union(@UnionBuilder _ body: () -> Geometry2D) -> Geometry2D {
+public func Union(@UnionBuilder2D _ body: () -> Geometry2D) -> Geometry2D {
 	body()
 }
 
@@ -100,7 +100,7 @@ public extension Geometry2D {
     ///
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
-	func adding(@SequenceBuilder _ bodies: () -> [Geometry2D]) -> Geometry2D {
+	func adding(@SequenceBuilder2D _ bodies: () -> [Geometry2D]) -> Geometry2D {
 		Union2D(children: [self] + bodies())
 	}
 
@@ -113,11 +113,11 @@ public extension Geometry2D {
 }
 
 public extension Sequence {
-    func mapUnion(@UnionBuilder _ transform: (Element) throws -> Geometry3D) rethrows -> Geometry3D {
+    func mapUnion(@UnionBuilder3D _ transform: (Element) throws -> Geometry3D) rethrows -> Geometry3D {
         Union3D(children: try map(transform))
     }
 
-    func mapUnion(@UnionBuilder _ transform: (Element) throws -> Geometry2D) rethrows -> Geometry2D {
+    func mapUnion(@UnionBuilder2D _ transform: (Element) throws -> Geometry2D) rethrows -> Geometry2D {
         Union2D(children: try map(transform))
     }
 }

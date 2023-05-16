@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Geometry2D {
-    @UnionBuilder private func extrudedLayered(height: Double, topRadius radius: Double, layerHeight: Double) -> Geometry3D {
+    @UnionBuilder3D private func extrudedLayered(height: Double, topRadius radius: Double, layerHeight: Double) -> Geometry3D {
         let layerCount = Int(ceil(radius / layerHeight))
         let effectiveRadius = Double(layerCount) * layerHeight
 
@@ -12,7 +12,7 @@ public extension Geometry2D {
         }
     }
 
-    @UnionBuilder private func extrudedConvex(height: Double, topRadius radius: Double) -> Geometry3D {
+    @UnionBuilder3D private func extrudedConvex(height: Double, topRadius radius: Double) -> Geometry3D {
         EnvironmentReader3D { environment in
             let facetCount = environment.facets.facetCount(circleRadius: radius)
 
@@ -28,7 +28,7 @@ public extension Geometry2D {
         }
     }
 
-    @UnionBuilder private func extruded(height: Double, topRadius radius: Double, method: ExtrusionMethod) -> Geometry3D {
+    @UnionBuilder3D private func extruded(height: Double, topRadius radius: Double, method: ExtrusionMethod) -> Geometry3D {
         switch method {
         case .layered (let layerHeight):
             extrudedLayered(height: height, topRadius: radius, layerHeight: layerHeight)

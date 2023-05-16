@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Geometry2D {
-    @UnionBuilder private func extrudedLayered(height: Double, topChamferSize chamferSize: Double, layerHeight: Double) -> Geometry3D {
+    @UnionBuilder3D private func extrudedLayered(height: Double, topChamferSize chamferSize: Double, layerHeight: Double) -> Geometry3D {
         let layerCount = Int(ceil(chamferSize / layerHeight))
         let effectiveChamferSize = Double(layerCount) * layerHeight
 
@@ -12,7 +12,7 @@ public extension Geometry2D {
         }
     }
 
-    @UnionBuilder private func extrudedConvex(height: Double, topChamferSize chamferSize: Double) -> Geometry3D {
+    @UnionBuilder3D private func extrudedConvex(height: Double, topChamferSize chamferSize: Double) -> Geometry3D {
         self
             .extruded(height: max(height - chamferSize, 0.001))
             .adding {
@@ -24,7 +24,7 @@ public extension Geometry2D {
             .convexHull()
     }
 
-    @UnionBuilder private func extruded(height: Double, topChamferSize chamferSize: Double, method: ExtrusionMethod) -> Geometry3D {
+    @UnionBuilder3D private func extruded(height: Double, topChamferSize chamferSize: Double, method: ExtrusionMethod) -> Geometry3D {
         switch method {
         case .layered (let layerHeight):
             extrudedLayered(height: height, topChamferSize: chamferSize, layerHeight: layerHeight)
