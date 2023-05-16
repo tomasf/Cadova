@@ -26,10 +26,11 @@ struct BezierCurve {
 
 		let distance1 = startPoint.distance(to: midPoint)
 		let distance2 = midPoint.distance(to: endPoint)
+		let distance = distance1 + distance2
 
 		let angle = abs(startPoint.angle(to: midPoint) - midPoint.angle(to: endPoint))
 
-		if distance1 + distance2 < minSegmentLength && angle < minAngle {
+		if (distance < minSegmentLength && angle < minAngle) || distance < 0.001 {
 			return []
 		}
 
