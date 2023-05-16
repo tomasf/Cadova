@@ -29,10 +29,10 @@ public extension Geometry3D {
 }
 
 public extension Geometry2D {
-	@discardableResult func save(to path: String) -> Geometry2D {
+    @discardableResult func save(to path: String) -> Geometry2D {
         self.usingDefaultFacets().save(to: path, using: Environment())
-		return self
-	}
+        return self
+    }
 
     @discardableResult func save(to url: URL) -> Geometry2D {
         self.usingDefaultFacets().save(to: url, using: Environment())

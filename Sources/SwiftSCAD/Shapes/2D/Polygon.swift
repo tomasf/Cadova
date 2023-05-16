@@ -1,22 +1,22 @@
 import Foundation
 
 public struct Polygon: CoreGeometry2D {
-	let source: PolygonSource
+    let source: PolygonSource
 
-	public init(_ points: [Vector2D]) {
-		source = Points(points: points)
-	}
+    public init(_ points: [Vector2D]) {
+        source = Points(points: points)
+    }
 
     public init(_ bezierPath: BezierPath) {
         source = bezierPath
     }
 
-	func call(in environment: Environment) -> SCADCall {
-		return SCADCall(
-			name: "polygon",
+    func call(in environment: Environment) -> SCADCall {
+        return SCADCall(
+            name: "polygon",
             params: ["points": source.points(in: environment)]
-		)
-	}
+        )
+    }
 }
 
 protocol PolygonSource {

@@ -1,15 +1,15 @@
 import Foundation
 
 struct Union3D: CoreGeometry3D {
-	let children: [Geometry3D]
+    let children: [Geometry3D]
 
-	init(children: [Geometry3D]) {
-		self.children = children
-	}
+    init(children: [Geometry3D]) {
+        self.children = children
+    }
 
-	func call(in environment: Environment) -> SCADCall {
-		SCADCall(name: "union", body: GeometrySequence(children: children))
-	}
+    func call(in environment: Environment) -> SCADCall {
+        SCADCall(name: "union", body: GeometrySequence(children: children))
+    }
 }
 
 /// Form a union to group multiple pieces of geometry together and treat them as one
@@ -23,11 +23,11 @@ struct Union3D: CoreGeometry3D {
 /// .translate(x: 10)
 /// ```
 public func Union(@UnionBuilder3D _ body: () -> Geometry3D) -> Geometry3D {
-	body()
+    body()
 }
 
 public func Union(children: [Geometry3D]) -> Geometry3D {
-	Union3D(children: children)
+    Union3D(children: children)
 }
 
 public extension Geometry3D {
@@ -44,9 +44,9 @@ public extension Geometry3D {
     ///
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
-	func adding(@SequenceBuilder3D _ bodies: () -> [Geometry3D]) -> Geometry3D {
-		Union3D(children: [self] + bodies())
-	}
+    func adding(@SequenceBuilder3D _ bodies: () -> [Geometry3D]) -> Geometry3D {
+        Union3D(children: [self] + bodies())
+    }
 
     func adding(_ body: Geometry3D?) -> Geometry3D {
         guard let body = body else {
@@ -57,15 +57,15 @@ public extension Geometry3D {
 }
 
 struct Union2D: CoreGeometry2D {
-	let children: [Geometry2D]
+    let children: [Geometry2D]
 
-	init(children: [Geometry2D]) {
-		self.children = children
-	}
+    init(children: [Geometry2D]) {
+        self.children = children
+    }
 
-	func call(in environment: Environment) -> SCADCall {
-		SCADCall(name: "union", body: GeometrySequence(children: children))
-	}
+    func call(in environment: Environment) -> SCADCall {
+        SCADCall(name: "union", body: GeometrySequence(children: children))
+    }
 }
 
 /// Form a union to group multiple pieces of geometry together and treat them as one
@@ -79,11 +79,11 @@ struct Union2D: CoreGeometry2D {
 /// .translate(x: 10)
 /// ```
 public func Union(@UnionBuilder2D _ body: () -> Geometry2D) -> Geometry2D {
-	body()
+    body()
 }
 
 public func Union(children: [Geometry2D]) -> Geometry2D {
-	Union2D(children: children)
+    Union2D(children: children)
 }
 
 public extension Geometry2D {
@@ -100,9 +100,9 @@ public extension Geometry2D {
     ///
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
-	func adding(@SequenceBuilder2D _ bodies: () -> [Geometry2D]) -> Geometry2D {
-		Union2D(children: [self] + bodies())
-	}
+    func adding(@SequenceBuilder2D _ bodies: () -> [Geometry2D]) -> Geometry2D {
+        Union2D(children: [self] + bodies())
+    }
 
     func adding(_ body: Geometry2D?) -> Geometry2D {
         guard let body = body else {

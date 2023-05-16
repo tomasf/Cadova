@@ -1,26 +1,26 @@
 import Foundation
 
 public func sin(_ angle: Angle) -> Double {
-	sin(angle.radians)
+    sin(angle.radians)
 }
 
 public func cos(_ angle: Angle) -> Double {
-	cos(angle.radians)
+    cos(angle.radians)
 }
 
 public func tan(_ angle: Angle) -> Double {
-	tan(angle.radians)
+    tan(angle.radians)
 }
 
 
 public func asin(_ value: Double) -> Angle {
-	Angle(radians: asin(value))
+    Angle(radians: asin(value))
 }
 
 public func acos(_ value: Double) -> Angle {
-	Angle(radians: acos(value))
+    Angle(radians: acos(value))
 }
 
 public func atan(_ value: Double) -> Angle {
-	Angle(radians: atan(value))
+    Angle(radians: atan(value))
 }

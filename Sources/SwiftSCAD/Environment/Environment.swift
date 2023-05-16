@@ -9,7 +9,7 @@ public struct Environment {
 
     init(values: [ValueKey: Any]) {
         self.values = values
-	}
+    }
 
     public func setting(_ newValues: [ValueKey: Any]) -> Environment {
         Environment(values: values.merging(newValues, uniquingKeysWith: { $1 }))
@@ -37,19 +37,19 @@ public extension Environment {
 }
 
 internal struct EnvironmentReader2D: Geometry2D {
-	let body: (Environment) -> Geometry2D
+    let body: (Environment) -> Geometry2D
 
-	func scadString(in environment: Environment) -> String {
-		body(environment).scadString(in: environment)
-	}
+    func scadString(in environment: Environment) -> String {
+        body(environment).scadString(in: environment)
+    }
 }
 
 internal struct EnvironmentReader3D: Geometry3D {
-	let body: (Environment) -> Geometry3D
+    let body: (Environment) -> Geometry3D
 
-	func scadString(in environment: Environment) -> String {
-		body(environment).scadString(in: environment)
-	}
+    func scadString(in environment: Environment) -> String {
+        body(environment).scadString(in: environment)
+    }
 }
 
 internal func EnvironmentReader(@UnionBuilder2D body: @escaping (Environment) -> Geometry2D) -> Geometry2D {
