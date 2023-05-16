@@ -9,9 +9,9 @@ import simd
 /// let v2: Vector3D = [10, 15, 5]
 /// ```
 public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable {
-	public let x: Double
-	public let y: Double
-	public let z: Double
+	public var x: Double
+	public var y: Double
+	public var z: Double
 
 	public static let zero = Vector3D(x: 0, y: 0, z: 0)
 

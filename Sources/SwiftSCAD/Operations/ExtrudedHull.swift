@@ -13,7 +13,7 @@ public extension Geometry2D {
             .convexHull()
     }
 
-    func extrudedHull(height: Double, @UnionBuilder to topShape: () -> Geometry2D) -> Geometry3D {
+    func extrudedHull(height: Double, @UnionBuilder2D to topShape: () -> Geometry2D) -> Geometry3D {
         extrudedHull(height: height, to: topShape())
     }
 }

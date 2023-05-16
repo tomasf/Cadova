@@ -1,60 +1,303 @@
 import Foundation
+import AppKit
 
-public struct Text: CoreGeometry2D {
-	let text: String
-	let font: Font
-	let horizontalAlignment: HorizontalAlignment
-	let verticalAlignment: VerticalAlignment
-	let characterSpacingFactor: Double
+public struct Text: Shape2D {
+    private let text: AttributedString
+    private let layout: Layout
+    private let attributes: Attributes
 
-	public init(_ text: String, font: Font, alignment: (HorizontalAlignment, VerticalAlignment) = (.left, .baseline), spacingFactor: Double = 1) {
-		self.text = text
-		self.font = font
-		(self.horizontalAlignment, self.verticalAlignment) = alignment
-		self.characterSpacingFactor = spacingFactor
-	}
+    private init(
+        text: AttributedString,
+        layout: Layout,
+        font: Font?,
+        horizontalAlignment: NSTextAlignment,
+        verticalAlignment: Text.VerticalAlignment?,
+        customAttributes: AttributeContainer?
+    ) {
+        self.text = text
+        self.layout = layout
+        let verticalAlignment: Text.VerticalAlignment = layout == .free ? .baseline : .top
+        self.attributes = .init(font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: customAttributes)
+    }
 
-	func call(in environment: Environment) -> SCADCall {
-		return SCADCall(name: "text", params: [
-			"text": text,
-			"size": font.size,
-			"font": font.fontString,
-			"halign": horizontalAlignment.rawValue,
-			"valign": verticalAlignment.rawValue,
-			"spacing": characterSpacingFactor
-		])
-	}
+    public init(
+        _ text: AttributedString,
+        layout: Layout = .free,
+        font: Font? = nil,
+        horizontalAlignment: NSTextAlignment = .left,
+        verticalAlignment: Text.VerticalAlignment? = nil
+    ) {
+        self.init(text: text, layout: layout, font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: nil)
+    }
 
-	public struct Font {
-		public let name: String
-		public let size: Double
-		public let style: String?
+    public init(
+        markdown markdownString: String,
+        options: AttributedString.MarkdownParsingOptions = .init(),
+        layout: Layout = .free,
+        font: Font? = nil,
+        horizontalAlignment: NSTextAlignment = .left,
+        verticalAlignment: Text.VerticalAlignment? = nil,
+        attributes: AttributeContainer? = nil
+    ) throws {
+        try self.init(text: .init(markdown: markdownString, options: options), layout: layout, font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: attributes)
+    }
 
-		public init(name: String, size: Double, style: String? = nil) {
-			self.name = name
-			self.size = size
-			self.style = style
-		}
+    public init(
+        _ string: String,
+        layout: Layout = .free,
+        font: Font? = nil,
+        horizontalAlignment: NSTextAlignment = .left,
+        verticalAlignment: Text.VerticalAlignment? = nil,
+        attributes: AttributeContainer? = nil
+    ) {
+        self.init(text: .init(string), layout: layout, font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: attributes)
+    }
 
-		fileprivate var fontString: String {
-			if let style = style {
-				return name + ":style=" + style
-			} else {
-				return name
-			}
-		}
-	}
+    public var body: Geometry2D {
+        content()
+    }
+}
 
-	public enum HorizontalAlignment: String {
-		case left
-		case center
-		case right
-	}
+fileprivate extension Text {
+    var textContainerSize: CGSize {
+        switch layout {
+        case .constrained(let width, let height):
+            return .init(width: width, height: height ?? .infinity)
+        case .free:
+            return .init(width: 100000, height: CGFloat.infinity)
+        }
+    }
 
-	public enum VerticalAlignment: String {
-		case top
-		case center
-		case baseline
-		case bottom
-	}
+    var containerHeight: Double? {
+        if case .constrained(_, let height) = layout {
+            return height
+        } else {
+            return 0
+        }
+    }
+
+    func textOffset(contentHeight: CGFloat, lastBaselineOffset: CGFloat) -> Vector2D {
+        var offset = Vector2D.zero
+        let boxHeight = containerHeight ?? contentHeight
+
+        switch attributes.verticalAlignment {
+        case .bottom:
+            offset.y = contentHeight
+        case .middle:
+            offset.y = (boxHeight + contentHeight) / 2.0
+        case .baseline:
+            offset.y = contentHeight - lastBaselineOffset
+        default:
+            offset.y = boxHeight
+        }
+
+        if case .free = layout {
+            switch attributes.horizontalAlignment {
+            case .center:
+                offset.x = -textContainerSize.width / 2
+            case .right:
+                offset.x = -textContainerSize.width
+            default:
+                break
+            }
+        }
+
+        return offset
+    }
+
+    func content() -> Geometry2D {
+        guard !text.characters.isEmpty else {
+            return Empty()
+        }
+
+        let textStorage = NSTextStorage(attributedString: .init(effectiveAttributedString))
+
+        let layoutManager = NSLayoutManager()
+        let textContainer = NSTextContainer(size: textContainerSize)
+        textContainer.lineFragmentPadding = 0
+        layoutManager.addTextContainer(textContainer)
+        layoutManager.textStorage = textStorage
+
+        var verticalFlip = CGAffineTransform(scaleX: 1, y: -1)
+        let fragments = layoutManager.lineFragments(for: textContainer)
+
+        let contentHeight = fragments.last?.rect.maxY ?? 0
+        let lastGlyphIndex = layoutManager.glyphIndexForCharacter(at: textStorage.length - 1)
+        let baselineOffset = layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: lastGlyphIndex)
+
+        let offset = textOffset(contentHeight: contentHeight, lastBaselineOffset: baselineOffset)
+
+        return Union {
+            for fragment in fragments {
+                for glyphIndex in fragment.glyphs {
+                    let glyph = layoutManager.cgGlyph(at: glyphIndex)
+                    let characterIndex = layoutManager.characterIndexForGlyph(at: glyphIndex)
+
+                    let font = textStorage.attribute(.font, at: characterIndex, effectiveRange: nil) as? NSFont
+                    let color = textStorage.attribute(.foregroundColor, at: characterIndex, effectiveRange: nil) as? NSColor
+
+                    if let font, let path = CTFontCreatePathForGlyph(font, glyph, &verticalFlip) {
+                        let geometry = path
+                            .translated(.init(layoutManager.location(forGlyphAt: glyphIndex)))
+                            .translated(.init(fragment.rect.origin))
+
+                        if let color, let scadColor = Color(color) {
+                            Color2D(color: scadColor, content: geometry)
+                        } else {
+                            geometry
+                        }
+                    }
+                }
+            }
+        }
+        .scaled(y: -1)
+        .translated(offset)
+        .usingCGPathFillRule(.evenOdd)
+    }
+
+    var effectiveAttributedString: AttributedString {
+        text.mergingAttributes(attributes.stringAttributes, mergePolicy: .keepCurrent)
+    }
+}
+
+public extension Text {
+    enum Layout: Equatable {
+        case free
+        case constrained (width: Double, height: Double? = nil)
+    }
+}
+
+fileprivate extension NSLayoutManager {
+    struct LineFragment {
+        let glyphs: Range<Int>
+        let rect: CGRect
+        let usedRect: CGRect
+    }
+
+    func lineFragments(for textContainer: NSTextContainer) -> [LineFragment] {
+        var fragments: [LineFragment] = []
+        enumerateLineFragments(forGlyphRange: glyphRange(for: textContainer)) { rect, usedRect, textContainer, glyphRange, _ in
+            guard let range = Range(glyphRange) else {
+                assertionFailure("Invalid glyph range")
+                return
+            }
+            fragments.append(LineFragment(glyphs: range, rect: rect, usedRect: usedRect))
+        }
+        return fragments
+    }
+}
+
+fileprivate extension Color {
+    init?(_ nsColor: NSColor) {
+        guard let rgb = nsColor.usingColorSpace(.deviceRGB) else {
+            return nil
+        }
+        self = .components(red: rgb.redComponent, green: rgb.greenComponent, blue: rgb.blueComponent, alpha: rgb.alphaComponent)
+    }
+}
+
+fileprivate extension Text.Attributes {
+    var stringAttributes: AttributeContainer {
+        var attributes = AttributeContainer()
+        attributes.font = (font ?? .default).nsFont
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = horizontalAlignment
+        attributes.paragraphStyle = paragraphStyle
+
+        if let customAttributes {
+            attributes.merge(customAttributes, mergePolicy: .keepNew)
+        }
+
+        return attributes
+    }
+}
+
+
+extension Text {
+    fileprivate struct Attributes {
+        var font: Text.Font?
+
+        var horizontalAlignment: NSTextAlignment
+        var verticalAlignment: VerticalAlignment
+
+        var customAttributes: AttributeContainer?
+    }
+
+    public enum VerticalAlignment: Equatable {
+        case top
+        case middle
+        case bottom
+        case baseline
+    }
+
+    public struct Font {
+        fileprivate let nsFont: NSFont
+
+        fileprivate static var `default`: Font {
+            Font(nsFont: NSFont(name: "Helvetica", size: 12) ?? .systemFont(ofSize: 12))
+        }
+
+        public static func named(_ name: String, size: CGFloat) -> Font? {
+            guard let font = NSFont(name: name, size: size) else {
+                assertionFailure("Could not find font named \(name)")
+                return nil
+            }
+            return .init(nsFont: font)
+        }
+
+        public static func inFamily(_ family: String, style: String, size: CGFloat) -> Font? {
+            let descriptor = NSFontDescriptor()
+                .withFamily(family)
+                .withFace(style)
+            guard let font = NSFont(descriptor: descriptor, size: size) else {
+                assertionFailure("Could not find font with family \(family) and style \(style)")
+                return nil
+            }
+            return .init(nsFont: font)
+        }
+
+        public static func inFamily(_ family: String, weight: NSFont.Weight, size: CGFloat) -> Font? {
+            guard let font = NSFont.font(family: family, weight: weight, size: size) else {
+                assertionFailure("Could not find font with family \(family) and weight \(weight)")
+                return nil
+            }
+            return .init(nsFont: font)
+        }
+    }
+}
+
+
+fileprivate extension NSFont {
+    static func font(family: String, weight targetWeight: NSFont.Weight, size: CGFloat) -> NSFont? {
+        fontsInFamily(family, size: size)?
+            .compactMap { (font: NSFont) -> (font: NSFont, distance: CGFloat)? in
+                guard let weight = font.weight, !font.fontDescriptor.symbolicTraits.contains(.italic) else {
+                    return nil
+                }
+                return (font, abs(targetWeight - weight))
+            }
+            .sorted(by: { $0.distance < $1.distance })
+            .first?.font
+    }
+
+    var weight: NSFont.Weight? {
+        guard let traits = fontDescriptor.object(forKey: .traits) as? [NSFontDescriptor.TraitKey: Any] else {
+            return nil
+        }
+        guard let weight = traits[.weight] as? CGFloat else {
+            return nil
+        }
+        return .init(weight)
+
+    }
+
+    static func fontsInFamily(_ family: String, size: CGFloat) -> [NSFont]? {
+        let names = NSFontManager.shared.availableMembers(ofFontFamily: family)?.compactMap { $0[0] as? String }
+        guard let names else {
+            return nil
+        }
+
+        return names.compactMap { NSFont(name: $0, size: size) }
+    }
 }

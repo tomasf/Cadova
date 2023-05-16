@@ -105,7 +105,7 @@ public struct Product: ProjectContent {
     ///   - name: The file name. "`.scad`" is appended to this.
     ///   - environment: The environment to use. If `nil`, the environment of the closest ``Group`` or the ``Project`` is used.
     ///   - body: The geometry to save
-    public init(_ name: String, environment: Environment? = nil, @UnionBuilder body: () -> Geometry3D) {
+    public init(_ name: String, environment: Environment? = nil, @UnionBuilder3D body: () -> Geometry3D) {
         self.init(name, environment: environment, body: body())
     }
 

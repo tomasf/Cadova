@@ -23,7 +23,7 @@ public extension Geometry3D {
     ///   - with: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
-	func intersection(@UnionBuilder with other: () -> Geometry3D) -> Geometry3D {
+	func intersection(@UnionBuilder3D with other: () -> Geometry3D) -> Geometry3D {
 		Intersection3D(children: [self, other()])
 	}
 }
@@ -52,17 +52,17 @@ public extension Geometry2D {
     ///   - with: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
-	func intersection(@UnionBuilder with other: () -> Geometry2D) -> Geometry2D {
+	func intersection(@UnionBuilder2D with other: () -> Geometry2D) -> Geometry2D {
 		Intersection2D(children: [self, other()])
 	}
 }
 
 public extension Sequence {
-	func mapIntersection(@UnionBuilder _ transform: (Element) throws -> Geometry3D) rethrows -> Geometry3D {
+	func mapIntersection(@UnionBuilder3D _ transform: (Element) throws -> Geometry3D) rethrows -> Geometry3D {
 		Intersection3D(children: try map(transform))
 	}
 	
-	func mapIntersection(@UnionBuilder _ transform: (Element) throws -> Geometry2D) rethrows -> Geometry2D {
+	func mapIntersection(@UnionBuilder2D _ transform: (Element) throws -> Geometry2D) rethrows -> Geometry2D {
 		Intersection2D(children: try map(transform))
 	}
 }

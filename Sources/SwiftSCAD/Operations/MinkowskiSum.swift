@@ -8,7 +8,7 @@ struct Minkowski3D: CoreGeometry3D {
 	}
 }
 
-public func MinkowskiSum(@SequenceBuilder components: () -> [Geometry3D]) -> Geometry3D {
+public func MinkowskiSum(@SequenceBuilder3D components: () -> [Geometry3D]) -> Geometry3D {
 	Minkowski3D(children: components())
 }
 
@@ -21,6 +21,6 @@ struct Minkowski2D: CoreGeometry2D {
 	}
 }
 
-public func MinkowskiSum(@SequenceBuilder components: () -> [Geometry2D]) -> Geometry2D {
+public func MinkowskiSum(@SequenceBuilder2D components: () -> [Geometry2D]) -> Geometry2D {
 	Minkowski2D(children: components())
 }

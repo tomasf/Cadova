@@ -1,34 +1,77 @@
 import Foundation
 
-private func facetModification(_ facets: Environment.Facets, body: Geometry, environment: Environment) -> String {
-    let variables: [String: SCADValue]
+public extension Environment {
+    enum Facets {
+        case fixed (Int)
+        case dynamic (minAngle: Angle, minSize: Double)
 
-    switch facets {
-    case .fixed (let count):
-        variables = ["$fn": count]
-    case .dynamic (let minAngle, let minSize):
-        variables = ["$fa": minAngle, "$fs": minSize, "$fn": 0]
+        public static let openSCADDefaults = Facets.dynamic(minAngle: 12°, minSize: 2)
+        public static let defaults = Facets.dynamic(minAngle: 2°, minSize: 0.15)
+
+        public func facetCount(circleRadius r: Double) -> Int {
+            switch self {
+            case .fixed (let count):
+                return max(count, 3)
+
+            case .dynamic(let minAngle, let minSize):
+                let angleFacets = 360° / minAngle
+                let sizeFacets = r * 2 * .pi / minSize
+                return Int(max(min(angleFacets, sizeFacets), 5))
+            }
+        }
+
+        static internal var environmentKey: Environment.ValueKey = .init(rawValue: "SwiftSCAD.Facets")
     }
 
-    let newEnvironment = environment.withFacets(facets)
+    var facets: Facets {
+        self[Facets.environmentKey] as? Facets ?? .defaults
+    }
 
-    return SCADCall(name: "let", params: variables, body: body)
-        .scadString(in: newEnvironment)
+    func withFacets(_ facets: Facets) -> Environment {
+        setting(key: Facets.environmentKey, value: facets)
+    }
 }
 
+fileprivate extension Environment.Facets {
+    func modification(body: Geometry, environment: Environment) -> String {
+        let variables: [String: SCADValue]
+
+        switch self {
+        case .fixed (let count):
+            variables = ["$fn": count]
+        case .dynamic (let minAngle, let minSize):
+            variables = ["$fa": minAngle, "$fs": minSize, "$fn": 0]
+        }
+
+        let newEnvironment = environment.withFacets(self)
+        return SCADCall(name: "let", params: variables, body: body)
+            .scadString(in: newEnvironment)
+    }
+}
 
 struct SetFacets3D: Geometry3D {
     let facets: Environment.Facets
     let body: Geometry3D
 
     func scadString(in environment: Environment) -> String {
-        facetModification(facets, body: body, environment: environment)
+        facets.modification(body: body, environment: environment)
+    }
+}
+
+struct SetFacets2D: Geometry2D {
+    let facets: Environment.Facets
+    let body: Geometry2D
+
+    func scadString(in environment: Environment) -> String {
+        facets.modification(body: body, environment: environment)
     }
 }
 
 public extension Geometry3D {
     internal func usingFacets(_ facets: Environment.Facets) -> Geometry3D {
-        SetFacets3D(facets: facets, body: self)
+        SetFacets3D(facets: facets, body: withEnvironment { environment in
+            environment.setting(key: Environment.Facets.environmentKey, value: facets)
+        })
     }
 
     /// Set an adaptive facet configuration for this geometry
@@ -59,19 +102,11 @@ public extension Geometry3D {
     }
 }
 
-
-struct SetFacets2D: Geometry2D {
-    let facets: Environment.Facets
-    let body: Geometry2D
-
-    func scadString(in environment: Environment) -> String {
-        facetModification(facets, body: body, environment: environment)
-    }
-}
-
 public extension Geometry2D {
     internal func usingFacets(_ facets: Environment.Facets) -> Geometry2D {
-        SetFacets2D(facets: facets, body: self)
+        SetFacets2D(facets: facets, body: withEnvironment { environment in
+            environment.setting(key: Environment.Facets.environmentKey, value: facets)
+        })
     }
 
     /// Set an adaptive facet configuration for this geometry

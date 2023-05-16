@@ -33,7 +33,7 @@ public struct RoundedRectangle: Shape2D {
 		self.init(size, style: style, cornerRadii: [bottomLeft, bottomRight, topRight, topLeft], center: center)
 	}
 
-	@UnionBuilder public var body: Geometry2D {
+	@UnionBuilder2D public var body: Geometry2D {
 		let centerTranslation = (size / -2).setting(axes: center.inverted, to: 0)
 
 		Union {

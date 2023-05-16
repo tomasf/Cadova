@@ -36,7 +36,7 @@ final class Geometry2DTests: XCTestCase {
                     .rotated(45°)
                     .translated(x: -3)
 
-                Text("SwiftSCAD", font: .init(name: "Helvetica Neue", size: 10, style: "Bold"), alignment: (.left, .bottom), spacingFactor: 1.0)
+                Text("SwiftSCAD", font: .inFamily("Helvetica Neue", style: "Bold", size: 10), horizontalAlignment: .left, verticalAlignment: .bottom)
                     .offset(amount: 0.4, style: .miter)
                     .translated(y: 5)
                     .sheared(.y, along: .x, angle: 20°)
@@ -47,5 +47,18 @@ final class Geometry2DTests: XCTestCase {
                     .translated(x: 50, y: -10)
             }
             .assertEqual(toFile: "2dmisc")
+    }
+
+    func testCGPath() {
+        let path = CGMutablePath(rect: CGRect(x: 0, y: 2, width: 10, height: 20), transform: nil)
+        path.addRect(CGRect(x: 2, y: 4, width: 5, height: 10))
+
+        path
+            .usingCGPathFillRule(.evenOdd)
+            .assertEqual(toFile: "cgPath-rects-evenOdd")
+
+        path
+            .usingCGPathFillRule(.winding)
+            .assertEqual(toFile: "cgPath-rects-winding")
     }
 }
