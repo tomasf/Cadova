@@ -163,10 +163,6 @@ fileprivate extension Text {
     }
 
     func layoutData() -> (NSLayoutManager, NSTextStorage, [NSLayoutManager.LineFragment], AffineTransform2D)? {
-        guard !text.characters.isEmpty else {
-            return nil
-        }
-
         let textStorage = NSTextStorage(attributedString: .init(effectiveAttributedString))
 
         let layoutManager = NSLayoutManager()
@@ -183,8 +179,7 @@ fileprivate extension Text {
         let fragments = layoutManager.lineFragments(for: textContainer)
 
         let contentHeight = fragments.last?.rect.maxY ?? 0
-        let lastGlyphIndex = layoutManager.glyphIndexForCharacter(at: textStorage.length - 1)
-        let lastBaselineOffset = layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: lastGlyphIndex)
+        let lastBaselineOffset = layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: NSMaxRange(glyphRange)-1)
 
         let firstFragmentRect = layoutManager.lineFragmentRect(forGlyphAt: 0, effectiveRange: nil)
         let firstBaselineOffset = firstFragmentRect.maxY - layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: 0)
