@@ -35,3 +35,8 @@ extension Text {
         }
     }
 }
+
+public extension Text.VerticalAlignment {
+    @available(*, deprecated, message: "Use .firstBaseline or .lastBaseline instead")
+    static var baseline: Self { lastBaseline }
+}

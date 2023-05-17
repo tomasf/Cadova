@@ -16,7 +16,7 @@ public struct Text: Shape2D {
     ) {
         self.text = text
         self.layout = layout
-        let defaultVerticalAlignment: Text.VerticalAlignment = layout == .free ? .baseline : .top
+        let defaultVerticalAlignment: Text.VerticalAlignment = layout == .free ? .lastBaseline : .top
 
         self.attributes = .init(
             font: font,
@@ -131,7 +131,7 @@ fileprivate extension Text {
         }
     }
 
-    func textOffset(contentHeight: CGFloat, lastBaselineOffset: CGFloat) -> Vector2D {
+    func textOffset(contentHeight: CGFloat, firstBaselineOffset: CGFloat, lastBaselineOffset: CGFloat) -> Vector2D {
         var offset = Vector2D.zero
         let boxHeight = containerHeight ?? contentHeight
 
@@ -140,7 +140,9 @@ fileprivate extension Text {
             offset.y = contentHeight
         case .middle:
             offset.y = (boxHeight + contentHeight) / 2.0
-        case .baseline:
+        case .firstBaseline:
+            offset.y = firstBaselineOffset
+        case .lastBaseline:
             offset.y = contentHeight - lastBaselineOffset
         default:
             offset.y = boxHeight
@@ -173,13 +175,21 @@ fileprivate extension Text {
         layoutManager.addTextContainer(textContainer)
         layoutManager.textStorage = textStorage
 
+        let glyphRange = layoutManager.glyphRange(for: textContainer)
+        guard glyphRange.length > 0 else {
+            return nil
+        }
+
         let fragments = layoutManager.lineFragments(for: textContainer)
 
         let contentHeight = fragments.last?.rect.maxY ?? 0
         let lastGlyphIndex = layoutManager.glyphIndexForCharacter(at: textStorage.length - 1)
-        let baselineOffset = layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: lastGlyphIndex)
+        let lastBaselineOffset = layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: lastGlyphIndex)
 
-        let offset = textOffset(contentHeight: contentHeight, lastBaselineOffset: baselineOffset)
+        let firstFragmentRect = layoutManager.lineFragmentRect(forGlyphAt: 0, effectiveRange: nil)
+        let firstBaselineOffset = firstFragmentRect.maxY - layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: 0)
+
+        let offset = textOffset(contentHeight: contentHeight, firstBaselineOffset: firstBaselineOffset, lastBaselineOffset: lastBaselineOffset)
         let transform = AffineTransform2D.scaling(y: -1).translated(offset)
 
         return (layoutManager, textStorage, fragments, transform)
@@ -292,7 +302,9 @@ extension Text {
         case top
         case middle
         case bottom
-        case baseline
+
+        case firstBaseline
+        case lastBaseline
     }
 
     public struct Font {
