@@ -16,8 +16,14 @@ public struct Text: Shape2D {
     ) {
         self.text = text
         self.layout = layout
-        let verticalAlignment: Text.VerticalAlignment = layout == .free ? .baseline : .top
-        self.attributes = .init(font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: customAttributes)
+        let defaultVerticalAlignment: Text.VerticalAlignment = layout == .free ? .lastBaseline : .top
+
+        self.attributes = .init(
+            font: font,
+            horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment ?? defaultVerticalAlignment,
+            customAttributes: customAttributes
+        )
     }
 
     public init(
@@ -27,7 +33,14 @@ public struct Text: Shape2D {
         horizontalAlignment: NSTextAlignment = .left,
         verticalAlignment: Text.VerticalAlignment? = nil
     ) {
-        self.init(text: text, layout: layout, font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: nil)
+        self.init(
+            text: text,
+            layout: layout,
+            font: font,
+            horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment,
+            customAttributes: nil
+        )
     }
 
     public init(
@@ -39,7 +52,13 @@ public struct Text: Shape2D {
         verticalAlignment: Text.VerticalAlignment? = nil,
         attributes: AttributeContainer? = nil
     ) throws {
-        try self.init(text: .init(markdown: markdownString, options: options), layout: layout, font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: attributes)
+        try self.init(
+            text: .init(markdown: markdownString, options: options),
+            layout: layout,
+            font: font, horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment,
+            customAttributes: attributes
+        )
     }
 
     public init(
@@ -50,11 +69,47 @@ public struct Text: Shape2D {
         verticalAlignment: Text.VerticalAlignment? = nil,
         attributes: AttributeContainer? = nil
     ) {
-        self.init(text: .init(string), layout: layout, font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: attributes)
+        self.init(
+            text: .init(string),
+            layout: layout,
+            font: font,
+            horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment,
+            customAttributes: attributes
+        )
     }
 
     public var body: Geometry2D {
         content()
+    }
+}
+
+public extension Text {
+    var _debugLineFragments: Geometry2D {
+        guard let (_, _, fragments, transform) = layoutData() else {
+            return Empty()
+        }
+
+        let colors: [Color.Name] = [.red, .green, .blue]
+
+        return Union {
+            for (index, fragment) in fragments.enumerated() {
+                let rectangle = Rectangle(.init(fragment.rect.width, fragment.rect.height))
+                rectangle.subtracting {
+                    rectangle.offset(amount: -0.01, style: .miter)
+                }
+                .translated(.init(fragment.rect.origin))
+                .colored(colors[index % colors.count])
+
+                let usedRectangle = Rectangle(.init(fragment.usedRect.width, fragment.usedRect.height))
+                usedRectangle.subtracting {
+                    usedRectangle.offset(amount: -0.005, style: .miter)
+                }
+                .translated(.init(fragment.usedRect.origin))
+                .colored(.black)
+            }
+        }
+        .transformed(transform)
     }
 }
 
@@ -76,7 +131,7 @@ fileprivate extension Text {
         }
     }
 
-    func textOffset(contentHeight: CGFloat, lastBaselineOffset: CGFloat) -> Vector2D {
+    func textOffset(contentHeight: CGFloat, firstBaselineOffset: CGFloat, lastBaselineOffset: CGFloat) -> Vector2D {
         var offset = Vector2D.zero
         let boxHeight = containerHeight ?? contentHeight
 
@@ -85,7 +140,9 @@ fileprivate extension Text {
             offset.y = contentHeight
         case .middle:
             offset.y = (boxHeight + contentHeight) / 2.0
-        case .baseline:
+        case .firstBaseline:
+            offset.y = firstBaselineOffset
+        case .lastBaseline:
             offset.y = contentHeight - lastBaselineOffset
         default:
             offset.y = boxHeight
@@ -105,11 +162,7 @@ fileprivate extension Text {
         return offset
     }
 
-    func content() -> Geometry2D {
-        guard !text.characters.isEmpty else {
-            return Empty()
-        }
-
+    func layoutData() -> (NSLayoutManager, NSTextStorage, [NSLayoutManager.LineFragment], AffineTransform2D)? {
         let textStorage = NSTextStorage(attributedString: .init(effectiveAttributedString))
 
         let layoutManager = NSLayoutManager()
@@ -118,14 +171,31 @@ fileprivate extension Text {
         layoutManager.addTextContainer(textContainer)
         layoutManager.textStorage = textStorage
 
-        var verticalFlip = CGAffineTransform(scaleX: 1, y: -1)
+        let glyphRange = layoutManager.glyphRange(for: textContainer)
+        guard glyphRange.length > 0 else {
+            return nil
+        }
+
         let fragments = layoutManager.lineFragments(for: textContainer)
 
         let contentHeight = fragments.last?.rect.maxY ?? 0
-        let lastGlyphIndex = layoutManager.glyphIndexForCharacter(at: textStorage.length - 1)
-        let baselineOffset = layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: lastGlyphIndex)
+        let lastBaselineOffset = layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: NSMaxRange(glyphRange)-1)
 
-        let offset = textOffset(contentHeight: contentHeight, lastBaselineOffset: baselineOffset)
+        let firstFragmentRect = layoutManager.lineFragmentRect(forGlyphAt: 0, effectiveRange: nil)
+        let firstBaselineOffset = firstFragmentRect.maxY - layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: 0)
+
+        let offset = textOffset(contentHeight: contentHeight, firstBaselineOffset: firstBaselineOffset, lastBaselineOffset: lastBaselineOffset)
+        let transform = AffineTransform2D.scaling(y: -1).translated(offset)
+
+        return (layoutManager, textStorage, fragments, transform)
+    }
+
+    func content() -> Geometry2D {
+        guard let (layoutManager, textStorage, fragments, transform) = layoutData() else {
+            return Empty()
+        }
+
+        var verticalFlip = CGAffineTransform(scaleX: 1, y: -1)
 
         return Union {
             for fragment in fragments {
@@ -150,8 +220,7 @@ fileprivate extension Text {
                 }
             }
         }
-        .scaled(y: -1)
-        .translated(offset)
+        .transformed(transform)
         .usingCGPathFillRule(.evenOdd)
     }
 
@@ -228,7 +297,9 @@ extension Text {
         case top
         case middle
         case bottom
-        case baseline
+
+        case firstBaseline
+        case lastBaseline
     }
 
     public struct Font {
