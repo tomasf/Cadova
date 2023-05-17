@@ -16,8 +16,14 @@ public struct Text: Shape2D {
     ) {
         self.text = text
         self.layout = layout
-        let verticalAlignment: Text.VerticalAlignment = layout == .free ? .baseline : .top
-        self.attributes = .init(font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: customAttributes)
+        let defaultVerticalAlignment: Text.VerticalAlignment = layout == .free ? .baseline : .top
+
+        self.attributes = .init(
+            font: font,
+            horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment ?? defaultVerticalAlignment,
+            customAttributes: customAttributes
+        )
     }
 
     public init(
@@ -27,7 +33,14 @@ public struct Text: Shape2D {
         horizontalAlignment: NSTextAlignment = .left,
         verticalAlignment: Text.VerticalAlignment? = nil
     ) {
-        self.init(text: text, layout: layout, font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: nil)
+        self.init(
+            text: text,
+            layout: layout,
+            font: font,
+            horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment,
+            customAttributes: nil
+        )
     }
 
     public init(
@@ -39,7 +52,13 @@ public struct Text: Shape2D {
         verticalAlignment: Text.VerticalAlignment? = nil,
         attributes: AttributeContainer? = nil
     ) throws {
-        try self.init(text: .init(markdown: markdownString, options: options), layout: layout, font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: attributes)
+        try self.init(
+            text: .init(markdown: markdownString, options: options),
+            layout: layout,
+            font: font, horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment,
+            customAttributes: attributes
+        )
     }
 
     public init(
@@ -50,7 +69,14 @@ public struct Text: Shape2D {
         verticalAlignment: Text.VerticalAlignment? = nil,
         attributes: AttributeContainer? = nil
     ) {
-        self.init(text: .init(string), layout: layout, font: font, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment, customAttributes: attributes)
+        self.init(
+            text: .init(string),
+            layout: layout,
+            font: font,
+            horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment,
+            customAttributes: attributes
+        )
     }
 
     public var body: Geometry2D {
