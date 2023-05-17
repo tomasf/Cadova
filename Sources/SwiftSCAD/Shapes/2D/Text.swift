@@ -58,6 +58,35 @@ public struct Text: Shape2D {
     }
 }
 
+public extension Text {
+    var _debugLineFragments: Geometry2D {
+        guard let (_, _, fragments, transform) = layoutData() else {
+            return Empty()
+        }
+
+        let colors: [Color.Name] = [.red, .green, .blue]
+
+        return Union {
+            for (index, fragment) in fragments.enumerated() {
+                let rectangle = Rectangle(.init(fragment.rect.width, fragment.rect.height))
+                rectangle.subtracting {
+                    rectangle.offset(amount: -0.01, style: .miter)
+                }
+                .translated(.init(fragment.rect.origin))
+                .colored(colors[index % colors.count])
+
+                let usedRectangle = Rectangle(.init(fragment.usedRect.width, fragment.usedRect.height))
+                usedRectangle.subtracting {
+                    usedRectangle.offset(amount: -0.005, style: .miter)
+                }
+                .translated(.init(fragment.usedRect.origin))
+                .colored(.black)
+            }
+        }
+        .transformed(transform)
+    }
+}
+
 fileprivate extension Text {
     var textContainerSize: CGSize {
         switch layout {
@@ -105,9 +134,9 @@ fileprivate extension Text {
         return offset
     }
 
-    func content() -> Geometry2D {
+    func layoutData() -> (NSLayoutManager, NSTextStorage, [NSLayoutManager.LineFragment], AffineTransform2D)? {
         guard !text.characters.isEmpty else {
-            return Empty()
+            return nil
         }
 
         let textStorage = NSTextStorage(attributedString: .init(effectiveAttributedString))
@@ -118,7 +147,6 @@ fileprivate extension Text {
         layoutManager.addTextContainer(textContainer)
         layoutManager.textStorage = textStorage
 
-        var verticalFlip = CGAffineTransform(scaleX: 1, y: -1)
         let fragments = layoutManager.lineFragments(for: textContainer)
 
         let contentHeight = fragments.last?.rect.maxY ?? 0
@@ -126,6 +154,17 @@ fileprivate extension Text {
         let baselineOffset = layoutManager.typesetter.baselineOffset(in: layoutManager, glyphIndex: lastGlyphIndex)
 
         let offset = textOffset(contentHeight: contentHeight, lastBaselineOffset: baselineOffset)
+        let transform = AffineTransform2D.scaling(y: -1).translated(offset)
+
+        return (layoutManager, textStorage, fragments, transform)
+    }
+
+    func content() -> Geometry2D {
+        guard let (layoutManager, textStorage, fragments, transform) = layoutData() else {
+            return Empty()
+        }
+
+        var verticalFlip = CGAffineTransform(scaleX: 1, y: -1)
 
         return Union {
             for fragment in fragments {
@@ -150,8 +189,7 @@ fileprivate extension Text {
                 }
             }
         }
-        .scaled(y: -1)
-        .translated(offset)
+        .transformed(transform)
         .usingCGPathFillRule(.evenOdd)
     }
 
