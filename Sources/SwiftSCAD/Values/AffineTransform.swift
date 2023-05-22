@@ -92,13 +92,8 @@ extension AffineTransform {
     
     public static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform {
         precondition(axis != otherAxis, "Shearing requires two distinct axes")
-        
-        let order: [Axis3D] = [.x, .y, .z]
-        let row = order.firstIndex(of: axis)!
-        let column = order.firstIndex(of: otherAxis)!
-        
         var t = AffineTransform.identity
-        t[row, column] = factor
+        t[axis.index, otherAxis.index] = factor
         return t
     }
     
@@ -166,5 +161,15 @@ extension AffineTransform {
 extension AffineTransform: SCADValue {
     public var scadString: String {
         values.scadString
+    }
+}
+
+fileprivate extension Axis3D {
+    var index: Int {
+        switch self {
+        case .x: return 0
+        case .y: return 1
+        case .z: return 2
+        }
     }
 }

@@ -36,6 +36,12 @@ public struct AffineTransform2D: Equatable {
     public func concatenated(with other: AffineTransform2D) -> AffineTransform2D {
         AffineTransform2D(matrix * other.matrix)
     }
+
+    public func setting(row: Int, column: Int, to value: Double) -> Self {
+        var transform = self
+        transform[row, column] = value
+        return transform
+    }
 }
 
 extension AffineTransform2D {
@@ -71,15 +77,15 @@ extension AffineTransform2D {
     }
 
     public static func shearing(_ axis: Axis2D, along otherAxis: Axis2D, factor: Double) -> AffineTransform2D {
-        var t = AffineTransform2D.identity
-        if axis == .x && otherAxis == .y {
-            t[1, 0] = factor
-        } else if axis == .y && otherAxis == .x {
-            t[0, 1] = factor
+        precondition(axis != otherAxis, "Shearing requires two distinct axes")
+
+        var transform = AffineTransform2D.identity
+        if axis == .x {
+            transform[1, 0] = factor
         } else {
-            preconditionFailure("Shearing requires two distinct axes")
+            transform[0, 1] = factor
         }
-        return t
+        return transform
     }
 
     public static func shearing(_ axis: Axis2D, along otherAxis: Axis2D, angle: Angle) -> AffineTransform2D {
@@ -138,4 +144,3 @@ extension AffineTransform2D {
         self[1, 2] = transform3d[1, 3]
     }
 }
-
