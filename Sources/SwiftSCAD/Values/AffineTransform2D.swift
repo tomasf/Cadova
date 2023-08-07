@@ -1,6 +1,7 @@
 import Foundation
 import simd
 
+/// An `AffineTransform2D` represents a 2D affine transformation using a 3x3 matrix.
 public struct AffineTransform2D: Equatable {
     var matrix: simd_double3x3
 
@@ -8,6 +9,9 @@ public struct AffineTransform2D: Equatable {
         self.matrix = matrix
     }
 
+    /// Creates an `AffineTransform2D` with the specified 3x3 matrix.
+    ///
+    /// - Parameter values: A 2D array of `Double` with 3x3 elements in row-major order.
     public init(_ values: [[Double]]) {
         precondition(
             values.count == 3 && values.allSatisfy { $0.count == 3},
@@ -16,6 +20,11 @@ public struct AffineTransform2D: Equatable {
         self.matrix = .init(rows: values.map(SIMD3.init))
     }
 
+    /// Retrieves or sets the value at the given row and column indices in the 2D affine transformation matrix.
+    ///
+    /// - Parameters:
+    ///   - row: The row index (0 to 2).
+    ///   - column: The column index (0 to 2).
     public subscript(_ row: Int, _ column: Int) -> Double {
         get {
             assert((0...2).contains(row), "Row index out of range")
@@ -29,14 +38,25 @@ public struct AffineTransform2D: Equatable {
         }
     }
 
+    /// The identity `AffineTransform2D`, representing no transformation.
     public static var identity: AffineTransform2D {
         AffineTransform2D(simd_double3x3(1.0))
     }
 
+    /// Concatenates this `AffineTransform2D` with another, creating a new combined 2D transformation.
+    ///
+    /// - Parameter other: The `AffineTransform2D` to concatenate with.
     public func concatenated(with other: AffineTransform2D) -> AffineTransform2D {
         AffineTransform2D(matrix * other.matrix)
     }
 
+    /// Creates a new `AffineTransform2D` by setting a value at the given row and column indices.
+    ///
+    /// - Parameters:
+    ///   - row: The row index (0 to 2).
+    ///   - column: The column index (0 to 2).
+    ///   - value: The value to set at the specified row and column.
+    /// - Returns: A new `AffineTransform2D` with the specified value set.
     public func setting(row: Int, column: Int, to value: Double) -> Self {
         var transform = self
         transform[row, column] = value
@@ -45,6 +65,11 @@ public struct AffineTransform2D: Equatable {
 }
 
 extension AffineTransform2D {
+    /// Creates a translation `AffineTransform2D` using the given x and y offsets.
+    ///
+    /// - Parameters:
+    ///   - x: The x-axis translation offset.
+    ///   - y: The y-axis translation offset.
     public static func translation(x: Double = 0, y: Double = 0) -> AffineTransform2D {
         var transform = identity
         transform[0, 2] = x
@@ -52,10 +77,18 @@ extension AffineTransform2D {
         return transform
     }
 
+    /// Creates a translation `AffineTransform2D` using the given 2D vector.
+    ///
+    /// - Parameter v: The 2D vector representing the translation along x and y axes.
     public static func translation(_ v: Vector2D) -> AffineTransform2D {
         translation(x: v.x, y: v.y)
     }
 
+    /// Creates a scaling `AffineTransform2D` using the given x and y scaling factors.
+    ///
+    /// - Parameters:
+    ///   - x: The scaling factor along the x-axis.
+    ///   - y: The scaling factor along the y-axis.
     public static func scaling(x: Double = 1, y: Double = 1) -> AffineTransform2D {
         var transform = identity
         transform[0, 0] = x
@@ -63,10 +96,16 @@ extension AffineTransform2D {
         return transform
     }
 
+    /// Creates a scaling `AffineTransform2D` using the given 2D vector.
+    ///
+    /// - Parameter v: The 2D vector representing the scaling along x and y axes.
     public static func scaling(_ v: Vector2D) -> AffineTransform2D {
         scaling(x: v.x, y: v.y)
     }
 
+    /// Creates a rotation `AffineTransform2D` using the given angle for rotation.
+    ///
+    /// - Parameter angle: The rotation angle.
     public static func rotation(_ angle: Angle) -> AffineTransform2D {
         var transform = identity
         transform[0, 0] = cos(angle)
@@ -76,6 +115,12 @@ extension AffineTransform2D {
         return transform
     }
 
+    /// Creates a shearing `AffineTransform2D` that skews along one axis with respect to another axis.
+    ///
+    /// - Parameters:
+    ///   - axis: The axis to shear along.
+    ///   - otherAxis: The axis to shear with respect to.
+    ///   - factor: The shearing factor.
     public static func shearing(_ axis: Axis2D, along otherAxis: Axis2D, factor: Double) -> AffineTransform2D {
         precondition(axis != otherAxis, "Shearing requires two distinct axes")
 
@@ -88,6 +133,12 @@ extension AffineTransform2D {
         return transform
     }
 
+    /// Creates a shearing `AffineTransform2D` that skews along one axis with respect to another axis at the given angle.
+    ///
+    /// - Parameters:
+    ///   - axis: The axis to shear along.
+    ///   - otherAxis: The axis to shear with respect to.
+    ///   - angle: The angle of shearing.
     public static func shearing(_ axis: Axis2D, along otherAxis: Axis2D, angle: Angle) -> AffineTransform2D {
         assert(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
         let factor = sin(angle) / sin(90° - angle)
@@ -96,42 +147,80 @@ extension AffineTransform2D {
 }
 
 extension AffineTransform2D {
+    /// Creates a new `AffineTransform2D` by concatenating a translation with this transformation.
+    ///
+    /// - Parameters:
+    ///   - x: The x-axis translation offset.
+    ///   - y: The y-axis translation offset.
     public func translated(x: Double = 0, y: Double = 0) -> AffineTransform2D {
         concatenated(with: .translation(x: x, y: y))
     }
 
+    /// Creates a new `AffineTransform2D` by concatenating a translation with this transformation using the given 2D vector.
+    ///
+    /// - Parameter v: The 2D vector representing the translation along x and y axes.
     public func translated(_ v: Vector2D) -> AffineTransform2D {
         concatenated(with: .translation(v))
     }
 
+    /// Creates a new `AffineTransform2D` by concatenating a scaling transformation with this transformation using the given 2D vector.
+    ///
+    /// - Parameter v: The 2D vector representing the scaling along x and y axes.
     public func scaled(_ v: Vector2D) -> AffineTransform2D {
         concatenated(with: .scaling(v))
     }
 
+    /// Creates a new `AffineTransform2D` by concatenating a scaling transformation with this transformation.
+    ///
+    /// - Parameters:
+    ///   - x: The scaling factor along the x-axis.
+    ///   - y: The scaling factor along the y-axis.
     public func scaled(x: Double = 1, y: Double = 1) -> AffineTransform2D {
         concatenated(with: .scaling(x: x, y: y))
     }
 
+    /// Creates a new `AffineTransform2D` by concatenating a rotation transformation with this transformation.
+    ///
+    /// - Parameter angle: The rotation angle.
     public func rotated(_ angle: Angle) -> AffineTransform2D {
         concatenated(with: .rotation(angle))
     }
 
+    /// Creates a new `AffineTransform2D` by concatenating a shearing transformation with this transformation.
+    ///
+    /// - Parameters:
+    ///   - axis: The axis to shear along.
+    ///   - otherAxis: The axis to shear with respect to.
+    ///   - factor: The shearing factor.
     public func sheared(_ axis: Axis2D, along otherAxis: Axis2D, factor: Double) -> AffineTransform2D {
         concatenated(with: .shearing(axis, along: otherAxis, factor: factor))
     }
 
+    /// Creates a new `AffineTransform2D` by concatenating a shearing transformation with this transformation at the given angle.
+    ///
+    /// - Parameters:
+    ///   - axis: The axis to shear along.
+    ///   - otherAxis: The axis to shear with respect to.
+    ///   - angle: The angle of shearing.
     public func sheared(_ axis: Axis2D, along otherAxis: Axis2D, angle: Angle) -> AffineTransform2D {
         concatenated(with: .shearing(axis, along: otherAxis, angle: angle))
     }
 }
 
 extension AffineTransform2D {
+    /// Applies the affine transformation to a 2D point, returning the transformed point.
+    ///
+    /// - Parameter point: The 2D point to transform.
+    /// - Returns: The transformed 2D point.
     public func apply(to point: Vector2D) -> Vector2D {
         return Vector2D(simd3: point.simd3 * matrix)
     }
 }
 
 extension AffineTransform2D {
+    /// Creates a new `AffineTransform2D` by converting a 3D affine transformation to 2D, discarding Z components.
+    ///
+    /// - Parameter transform3d: The 3D affine transformation to convert.
     public init(_ transform3d: AffineTransform) {
         self = .identity
 

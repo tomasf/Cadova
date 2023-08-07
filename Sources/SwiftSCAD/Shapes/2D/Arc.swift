@@ -1,14 +1,30 @@
 import Foundation
 
+/// An `Arc` represents a segment of a circle in two-dimensional space.
+/// It can be defined by a range of angles and either a radius or a diameter.
+///
+/// # Example
+/// ```swift
+/// let arcWithRadius = Arc(range: 0°..<90°, radius: 5)
+/// let arcWithDiameter = Arc(range: 0°..<90°, diameter: 10)
+/// ```
 public struct Arc: ContainerGeometry2D {
     let range: Range<Angle>
     let radius: Double
 
+    /// Creates a new `Arc` instance with the specified range of angles and radius.
+    ///
+    /// - Parameter range: The range of angles to include in the arc.
+    /// - Parameter radius: The radius of the arc.
     public init(range: Range<Angle>, radius: Double) {
         self.range = range
         self.radius = radius
     }
 
+    /// Creates a new `Arc` instance with the specified range of angles and diameter.
+    ///
+    /// - Parameter range: The range of angles to include in the arc.
+    /// - Parameter diameter: The diameter of the arc.
     public init(range: Range<Angle>, diameter: Double) {
         self.init(range: range, radius: diameter / 2)
     }

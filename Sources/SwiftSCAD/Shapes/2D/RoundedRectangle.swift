@@ -1,5 +1,15 @@
 import Foundation
 
+/// A 2D shape that represents a rectangle with rounded corners.
+///
+/// You can create a `RoundedRectangle` with either a circular or squircular corner style.
+/// A squircular corner forms a more natural and continuous curve than a circular corner.
+/// Use this struct to draw rectangles with rounded corners as part of your SwiftSCAD design.
+///
+/// # Example
+/// ```swift
+/// RoundedRectangle([100, 50], style: .circular, cornerRadius: 10)
+/// ```
 public struct RoundedRectangle: Shape2D {
     private let radii: CornerRadii
     let size: Vector2D
@@ -21,14 +31,38 @@ public struct RoundedRectangle: Shape2D {
         )
     }
 
+    /// Creates a rounded rectangle with a specific corner style and radii.
+    ///
+    /// - Parameters:
+    ///   - size: The size of the rectangle.
+    ///   - style: The style of the corners, either circular or squircular.
+    ///   - cornerRadii: An array containing the radii of the four corners.
+    ///   - center: Defines which axes should be centered.
     public init(_ size: Vector2D, style: CornerStyle = .circular, cornerRadii: [Double], center: Axes2D = []) {
         self.init(size, cornerStyle: style, radii: [cornerRadii[0], cornerRadii[1], cornerRadii[2], cornerRadii[3]], center: center)
     }
 
+    /// Creates a rounded rectangle with a specific corner style and uniform radius for all corners.
+    ///
+    /// - Parameters:
+    ///   - size: The size of the rectangle.
+    ///   - style: The style of the corners, either circular or squircular.
+    ///   - cornerRadius: The radius of the corners.
+    ///   - center: Defines which axes should be centered.
     public init(_ size: Vector2D, style: CornerStyle = .circular, cornerRadius: Double, center: Axes2D = []) {
         self.init(size, style: style, cornerRadii: [cornerRadius, cornerRadius, cornerRadius, cornerRadius], center: center)
     }
 
+    /// Creates a rounded rectangle with a specific corner style and individual radii for each corner.
+    ///
+    /// - Parameters:
+    ///   - size: The size of the rectangle.
+    ///   - style: The style of the corners, either circular or squircular.
+    ///   - bottomLeft: The radius of the bottom-left corner.
+    ///   - bottomRight: The radius of the bottom-right corner.
+    ///   - topRight: The radius of the top-right corner.
+    ///   - topLeft: The radius of the top-left corner.
+    ///   - center: Defines which axes should be centered.
     public init(_ size: Vector2D, style: CornerStyle = .circular, bottomLeft: Double = 0, bottomRight: Double = 0, topRight: Double = 0, topLeft: Double = 0, center: Axes2D = []) {
         self.init(size, style: style, cornerRadii: [bottomLeft, bottomRight, topRight, topLeft], center: center)
     }
@@ -59,6 +93,10 @@ public struct RoundedRectangle: Shape2D {
         .translated(centerTranslation)
     }
 
+    /// Represents the style of the corners.
+    ///
+    /// - `circular`: A regular circular corner.
+    /// - `squircular`: A squircular corner, forming a more natural and continuous curve.
     public enum CornerStyle {
         case circular
         case squircular
