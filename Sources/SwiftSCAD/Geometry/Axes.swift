@@ -17,6 +17,7 @@ public struct Axes3D: OptionSet, Hashable {
     public static let y = Axes3D(rawValue: 1 << 1)
     public static let z = Axes3D(rawValue: 1 << 2)
 
+    public static let none: Axes3D = []
     public static let xy: Axes3D = [.x, .y]
     public static let xz: Axes3D = [.x, .z]
     public static let yz: Axes3D = [.y, .z]
@@ -54,6 +55,7 @@ public struct Axes2D: OptionSet, Hashable {
     public static let x = Axes2D(rawValue: 1 << 0)
     public static let y = Axes2D(rawValue: 1 << 1)
 
+    public static let none: Axes2D = []
     public static let xy: Axes2D = [.x, .y]
     public static let all: Axes2D = [.x, .y]
 
