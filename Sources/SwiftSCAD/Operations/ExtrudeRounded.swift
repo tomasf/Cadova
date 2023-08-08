@@ -37,6 +37,21 @@ public extension Geometry2D {
         }
     }
 
+    /// Extrudes a 2D geometry into a 3D shape with a specified top radius.
+    ///
+    /// This method allows you to create a 3D shape by extruding the 2D geometry.
+    /// The top radius parameter enables a smooth transition to the top surface.
+    /// The method of extrusion can be selected based on the desired characteristics
+    /// of the resulting shape.
+    ///
+    /// - Parameters:
+    ///   - height: The height of the extrusion.
+    ///   - radius: The top radius of the extrusion.
+    ///   - method: The method of extrusion, either `.layered(thickness:)` or `.convexHull`.
+    ///     - `.layered`: This method divides the extrusion into distinct layers with a given thickness. While less elegant and more expensive to render, it is suitable for non-convex shapes. Layers work well for 3D printing, as the printing process inherently occurs in layers.
+    ///     - `.convexHull`: This method creates a smooth, non-layered shape. It is computationally less intensive and results in a more aesthetically pleasing form but is only applicable for convex shapes.
+    ///   - sides: Specifies which sides to chamfer (top, bottom, or both).
+    /// - Returns: The extruded 3D geometry.
     func extruded(height: Double, radius: Double, method: ExtrusionMethod, sides: ExtrusionZSides = .top) -> Geometry3D {
         switch sides {
         case .top:

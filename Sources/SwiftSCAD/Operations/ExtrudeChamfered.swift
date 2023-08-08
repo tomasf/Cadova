@@ -33,6 +33,13 @@ public extension Geometry2D {
         }
     }
 
+    /// Extrudes a 2D geometry based on the given parameters.
+    /// - Parameters:
+    ///   - height: The height of the extrusion.
+    ///   - chamferSize: The size of the chamfer.
+    ///   - method: The extrusion method.
+    ///   - sides: Specifies which sides to chamfer in the extrusion.
+    /// - Returns: The extruded 3D geometry.
     func extruded(height: Double, chamferSize: Double, method: ExtrusionMethod, sides: ExtrusionZSides = .top) -> Geometry3D {
         switch sides {
         case .top:
