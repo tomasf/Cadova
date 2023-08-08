@@ -15,43 +15,41 @@ import Foundation
 /// let polygonFromBezierPath = Polygon(bezierPath)
 /// ```
 public struct Polygon: CoreGeometry2D {
-    let source: PolygonSource
+    let pointsProvider: PolygonPointsProvider
 
     /// Creates a new `Polygon` instance with the specified points.
     ///
     /// - Parameter points: An array of `Vector2D` that defines the vertices of the polygon.
     public init(_ points: [Vector2D]) {
-        source = Points(points: points)
+        pointsProvider = points
     }
 
     /// Creates a new `Polygon` instance with the specified Bezier path.
     ///
     /// - Parameter bezierPath: A `BezierPath` that defines the shape of the polygon.
     public init(_ bezierPath: BezierPath) {
-        source = bezierPath
+        pointsProvider = bezierPath
     }
 
     func call(in environment: Environment) -> SCADCall {
         return SCADCall(
             name: "polygon",
-            params: ["points": source.points(in: environment)]
+            params: ["points": pointsProvider.points(in: environment)]
         )
     }
 }
 
-protocol PolygonSource {
+protocol PolygonPointsProvider {
     func points(in environment: Environment) -> [Vector2D]
 }
 
-struct Points: PolygonSource {
-    let points: [Vector2D]
-
+extension [Vector2D]: PolygonPointsProvider {
     func points(in environment: Environment) -> [Vector2D] {
-        self.points
+        self
     }
 }
 
-extension BezierPath: PolygonSource {
+extension BezierPath: PolygonPointsProvider {
     func points(in environment: Environment) -> [Vector2D] {
         points(facets: environment.facets)
     }
