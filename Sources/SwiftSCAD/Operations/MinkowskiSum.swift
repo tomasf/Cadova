@@ -18,7 +18,6 @@ public extension Geometry3D {
     }
 }
 
-
 struct Minkowski2D: CoreGeometry2D {
     let children: [Geometry2D]
 
