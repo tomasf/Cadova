@@ -118,12 +118,9 @@ extension AffineTransform2D {
     /// Creates a shearing `AffineTransform2D` that skews along one axis with respect to another axis.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear along.
-    ///   - otherAxis: The axis to shear with respect to.
+    ///   - axis: The axis to shear.
     ///   - factor: The shearing factor.
-    public static func shearing(_ axis: Axis2D, along otherAxis: Axis2D, factor: Double) -> AffineTransform2D {
-        precondition(axis != otherAxis, "Shearing requires two distinct axes")
-
+    public static func shearing(_ axis: Axis2D, factor: Double) -> AffineTransform2D {
         var transform = AffineTransform2D.identity
         if axis == .x {
             transform[1, 0] = factor
@@ -136,13 +133,12 @@ extension AffineTransform2D {
     /// Creates a shearing `AffineTransform2D` that skews along one axis with respect to another axis at the given angle.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear along.
-    ///   - otherAxis: The axis to shear with respect to.
+    ///   - axis: The axis to shear.
     ///   - angle: The angle of shearing.
-    public static func shearing(_ axis: Axis2D, along otherAxis: Axis2D, angle: Angle) -> AffineTransform2D {
+    public static func shearing(_ axis: Axis2D, angle: Angle) -> AffineTransform2D {
         assert(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
         let factor = sin(angle) / sin(90° - angle)
-        return shearing(axis, along: otherAxis, factor: factor)
+        return shearing(axis, factor: factor)
     }
 }
 
@@ -189,21 +185,19 @@ extension AffineTransform2D {
     /// Creates a new `AffineTransform2D` by concatenating a shearing transformation with this transformation.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear along.
-    ///   - otherAxis: The axis to shear with respect to.
+    ///   - axis: The axis to shear.
     ///   - factor: The shearing factor.
-    public func sheared(_ axis: Axis2D, along otherAxis: Axis2D, factor: Double) -> AffineTransform2D {
-        concatenated(with: .shearing(axis, along: otherAxis, factor: factor))
+    public func sheared(_ axis: Axis2D, factor: Double) -> AffineTransform2D {
+        concatenated(with: .shearing(axis, factor: factor))
     }
 
     /// Creates a new `AffineTransform2D` by concatenating a shearing transformation with this transformation at the given angle.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear along.
-    ///   - otherAxis: The axis to shear with respect to.
+    ///   - axis: The axis to shear.
     ///   - angle: The angle of shearing.
-    public func sheared(_ axis: Axis2D, along otherAxis: Axis2D, angle: Angle) -> AffineTransform2D {
-        concatenated(with: .shearing(axis, along: otherAxis, angle: angle))
+    public func sheared(_ axis: Axis2D, angle: Angle) -> AffineTransform2D {
+        concatenated(with: .shearing(axis, angle: angle))
     }
 }
 

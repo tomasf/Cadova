@@ -75,20 +75,18 @@ public extension Geometry2D {
     /// Applies a shearing transformation to the 2D geometry.
     /// - Parameters:
     ///   - axis: The primary axis that will be affected by the shear.
-    ///   - otherAxis: The secondary axis that controls the direction of the shear.
     ///   - factor: The magnitude of the shear.
     /// - Returns: A sheared `Geometry2D`.
-    func sheared(_ axis: Axis2D, along otherAxis: Axis2D, factor: Double) -> Geometry2D {
-        transformed(.shearing(axis, along: otherAxis, factor: factor))
+    func sheared(_ axis: Axis2D, factor: Double) -> Geometry2D {
+        transformed(.shearing(axis, factor: factor))
     }
 
     /// Applies a shearing transformation to the 2D geometry using an angle.
     /// - Parameters:
     ///   - axis: The primary axis that will be affected by the shear.
-    ///   - otherAxis: The secondary axis that controls the direction of the shear.
     ///   - angle: The angle defining the magnitude of the shear.
     /// - Returns: A sheared `Geometry2D`.
-    func sheared(_ axis: Axis2D, along otherAxis: Axis2D, angle: Angle) -> Geometry2D {
-        transformed(.shearing(axis, along: otherAxis, angle: angle))
+    func sheared(_ axis: Axis2D, angle: Angle) -> Geometry2D {
+        transformed(.shearing(axis, angle: angle))
     }
 }

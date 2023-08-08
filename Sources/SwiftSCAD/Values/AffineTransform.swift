@@ -134,7 +134,7 @@ extension AffineTransform {
     /// Creates a shearing `AffineTransform` that skews along one axis with respect to another axis.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear along.
+    ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - factor: The shearing factor.
     public static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform {
@@ -147,7 +147,7 @@ extension AffineTransform {
     /// Creates a shearing `AffineTransform` that skews along one axis with respect to another axis at the given angle.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear along.
+    ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - angle: The angle of shearing.
     public static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform {
@@ -212,7 +212,7 @@ extension AffineTransform {
     /// Creates a new `AffineTransform` by concatenating a shearing transformation with this transformation.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear along.
+    ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - factor: The shearing factor.
     public func sheared(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform {
@@ -222,7 +222,7 @@ extension AffineTransform {
     /// Creates a new `AffineTransform` by concatenating a shearing transformation with this transformation at the given angle.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear along.
+    ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - angle: The angle of shearing.
     public func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform {
