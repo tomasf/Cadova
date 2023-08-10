@@ -4,6 +4,7 @@ struct LinearExtrude: CoreGeometry3D {
     let height: Double
     let twist: Angle
     let slices: Int?
+    let segments: Int?
     let scale: Vector2D
 
     let convexity: Int
@@ -16,6 +17,7 @@ struct LinearExtrude: CoreGeometry3D {
                 "height": height,
                 "twist": twist,
                 "slices": slices,
+                "segments": segments,
                 "scale": scale,
                 "convexity": convexity
             ],
@@ -47,10 +49,11 @@ public extension Geometry2D {
     ///   - height: The height of the resulting geometry, in the Z axis
     ///   - twist: The rotation of the top surface, gradually rotating the geometry around the Z axis, resulting in a twisted shape.
     ///   - slices: The number of intermediary layers along the Z axis.
+    ///   - segements: The number of segments to use for the source shape
     ///   - scale: The final scale at the top of the extruded shape. The rest of the geometry is scaled linearly from 1.0 at the bottom.
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
-    func extruded(height: Double, twist: Angle = 0°, slices: Int? = nil, scale: Vector2D = [1, 1], convexity: Int = 2) -> Geometry3D {
-        LinearExtrude(height: height, twist: twist, slices: slices, scale: scale, convexity: convexity, body: self)
+    func extruded(height: Double, twist: Angle = 0°, slices: Int? = nil, segments: Int? = nil, scale: Vector2D = [1, 1], convexity: Int = 2) -> Geometry3D {
+        LinearExtrude(height: height, twist: twist, slices: slices, segments: segments, scale: scale, convexity: convexity, body: self)
     }
 
     /// Extrude two-dimensional geometry around the Z axis, creating three-dimensional geometry
