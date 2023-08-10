@@ -73,16 +73,11 @@ struct SCADCall: SCADFormattable {
     func scadString(in environment: Environment) -> String {
         let paramText = params
             .compactMapValues { $0 }
-            .sorted(by: { a, b in a.key < b.key })
-            .map { key, value in "\(key)=\(value.scadString)"}.joined(separator: ", ")
+            .sorted { $0.key < $1.key }
+            .map { key, value in "\(key) = \(value.scadString)"}
+            .joined(separator: ", ")
 
-        let bodyString: String
-        if let body = body {
-            bodyString = " " + body.scadString(in: environment)
-        } else {
-            bodyString = ";"
-        }
-
+        let bodyString = body.map { " " + $0.scadString(in: environment) } ?? ";"
         return "\(name)(\(paramText))\(bodyString)"
     }
 }
