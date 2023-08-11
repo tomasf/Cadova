@@ -1,11 +1,14 @@
 # SwiftSCAD
-SwiftSCAD is a library that allows you to create 3D/2D CAD models in Swift. SwiftSCAD is a preprocessor for [OpenSCAD][openscad] – it generates .scad files that you can preview and render using the OpenSCAD application. This frees you from the limitations of the OpenSCAD language and provides a more convenient API.
+SwiftSCAD is a library that allows you to create 3D and 2D CAD models in Swift. It acts as a preprocessor for [OpenSCAD][openscad], generating .scad files that can be previewed and rendered using the OpenSCAD application. This offers a more convenient API, breaking away from the limitations of the OpenSCAD language.
 
 # Usage
 SwiftSCAD is distributed as a Swift Package. The following steps will guide you through using it in a new Swift project.
 
 1. **Download and install the [OpenSCAD][openscad] application**. This will be used as the viewer and renderer.
 2. **Create a new Swift project** using either the `swift package` CLI or Xcode. It's up to you to decide if you want to have a single project for all of your different CAD models, or one project per model. Having a single project might mean less overhead if you tend to make lots of small models, but might get unwieldy if you tend to build larger, more complex models.
+
+    Using an Xcode project instead of a Swift package offers the benefit of customizing the working directory for running the scheme. By setting the custom working directory to `$(PROJECT_DIR)`, you can make the `save(to:)` method output files relative to the project directory.
+
 3. **Add `https://github.com/tomasf/SwiftSCAD` as a dependency** by adding it to your `Package.swift` file or by using Xcode's GUI.
 4. **`import SwiftSCAD`** in the file(s) where you want to use SwiftSCAD. Adding it to `main.swift` can be a good place to start.
 5. **Use the SwiftSCAD API** to create a model. Refer to the _Examples_ section for more details.
@@ -41,7 +44,7 @@ Circle(diameter: 10)
             .rotated(x: 20°)
             .highlighted()
     }
-    .save(to: "~/Desktop/examples/example2.scad")
+    .save(to: "example2.scad")
 ```
 
 ## Reusable star shape
@@ -70,7 +73,7 @@ Union {
     Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
         .translated(x: 20)
 }
-.save(to: "~/Desktop/examples/example3.scad")
+.save(to: "example3.scad")
 ```
 
 ## Extruding along a Bezier path
@@ -82,9 +85,9 @@ let path = BezierPath(startPoint: .zero)
 
 Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
     .usingDefaultFacets()
-    .extrude(along: path, radius: 11)
+    .extruded(along: path, radius: 11)
     .usingFacets(minAngle: 5°, minSize: 1)
-    .save(to: "~/Desktop/examples/example4.scad")
+    .save(to: "example4.scad")
 ```
 
 [openscad]: https://openscad.org
