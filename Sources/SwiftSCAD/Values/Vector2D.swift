@@ -61,6 +61,13 @@ public extension Vector2D {
             y: axes.contains(.y) ? value : y
         )
     }
+
+    subscript(_ axis: Axis2D) -> Double {
+        switch axis {
+        case .x: return x
+        case .y: return y
+        }
+    }
 }
 
 public extension Vector2D {
