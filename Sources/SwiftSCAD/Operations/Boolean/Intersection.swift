@@ -26,6 +26,10 @@ public extension Geometry3D {
     func intersection(@UnionBuilder3D with other: () -> Geometry3D) -> Geometry3D {
         Intersection3D(children: [self, other()])
     }
+
+    func intersection(_ other: Geometry3D) -> Geometry3D {
+        Intersection3D(children: [self, other])
+    }
 }
 
 
@@ -54,6 +58,10 @@ public extension Geometry2D {
 
     func intersection(@UnionBuilder2D with other: () -> Geometry2D) -> Geometry2D {
         Intersection2D(children: [self, other()])
+    }
+
+    func intersection(_ other: Geometry2D) -> Geometry2D {
+        Intersection2D(children: [self, other])
     }
 }
 

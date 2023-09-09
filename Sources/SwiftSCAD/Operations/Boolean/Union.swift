@@ -48,11 +48,8 @@ public extension Geometry3D {
         Union3D(children: [self] + bodies())
     }
 
-    func adding(_ body: Geometry3D?) -> Geometry3D {
-        guard let body = body else {
-            return self
-        }
-        return Union3D(children: [self, body])
+    func adding(_ bodies: Geometry3D?...) -> Geometry3D {
+        Union3D(children: [self] + bodies.compactMap { $0 })
     }
 }
 
@@ -104,11 +101,8 @@ public extension Geometry2D {
         Union2D(children: [self] + bodies())
     }
 
-    func adding(_ body: Geometry2D?) -> Geometry2D {
-        guard let body = body else {
-            return self
-        }
-        return Union2D(children: [self, body])
+    func adding(_ bodies: Geometry2D?...) -> Geometry2D {
+        Union2D(children: [self] + bodies.compactMap { $0 })
     }
 }
 
