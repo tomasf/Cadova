@@ -21,7 +21,7 @@ struct CrossSection: Shape3D {
             Box([universeLength, universeLength, universeLength], center: [.y, .z])
                 .translated(x: positive ? offset : -offset)
                 .rotated(y: y, z: z)
-                .colored(.orangeRed)
+                .colored(.blue)
         }
     }
 }
@@ -35,8 +35,17 @@ public extension Geometry3D {
     ///   - axis: The axis along which to cut
     ///   - offset: The offset from zero at which to cut
     ///   - invert: Normally, the cut is made so
+    ///   - rendered: Enable cross-section in render mode
     /// - Returns: A cross-sectioned geometry
-    func crossSectioned(axis: Axis3D, offset: Double = 0, invert: Bool = false) -> Geometry3D {
-        CrossSection(axis: axis, positive: invert, offset: offset, content: self)
+    func crossSectioned(axis: Axis3D, offset: Double = 0, invert: Bool = false, rendered: Bool = false) -> Geometry3D {
+        IfPreview {
+            CrossSection(axis: axis, positive: invert, offset: offset, content: self)
+        } else: {
+            if rendered {
+                CrossSection(axis: axis, positive: invert, offset: offset, content: self)
+            } else {
+                self
+            }
+        }
     }
 }
