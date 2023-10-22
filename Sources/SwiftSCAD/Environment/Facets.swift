@@ -68,7 +68,7 @@ struct SetFacets2D: Geometry2D {
 }
 
 public extension Geometry3D {
-    internal func usingFacets(_ facets: Environment.Facets) -> Geometry3D {
+    func usingFacets(_ facets: Environment.Facets) -> Geometry3D {
         SetFacets3D(facets: facets, body: withEnvironment { environment in
             environment.setting(key: Environment.Facets.environmentKey, value: facets)
         })
