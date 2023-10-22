@@ -56,8 +56,8 @@ struct ExtrudeAlong: CoreGeometry3D {
                 corner = nil
             }
 
-            return body.extruded(height: length - startInset - endInset)
-                .translated(z: endInset)
+            return body.extruded(height: length - startInset - endInset + 0.0002)
+                .translated(z: endInset - 0.0001)
                 .translated(z: -length)
                 .rotated(x: 90°, z: angle - 90°)
                 .translated(Vector3D(fromPoint))
