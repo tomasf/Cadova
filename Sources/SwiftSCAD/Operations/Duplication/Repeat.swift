@@ -78,6 +78,26 @@ extension Geometry3D {
             rotated(angle: angle, axis: axis)
         }
     }
+
+    /// Repeat this geometry at specified offsets
+    /// - Parameters:
+    ///   - offsets: The translation offsets to use
+    /// - Returns: A new geometry with this geometry repeated
+
+    @UnionBuilder3D public func distributed(at points: [Vector3D]) -> Geometry3D {
+        for offset in points {
+            translated(offset)
+        }
+    }
+
+    /// Repeat this geometry at specified offsets
+    /// - Parameters:
+    ///   - offsets: The translation offsets to use
+    /// - Returns: A new geometry with this geometry repeated
+
+    @UnionBuilder3D public func distributed(at points: Vector3D...) -> Geometry3D {
+        distributed(at: points)
+    }
 }
 
 
@@ -155,6 +175,26 @@ extension Geometry2D {
         for angle in angles {
             rotated(angle)
         }
+    }
+
+    /// Repeat this geometry at specified offsets
+    /// - Parameters:
+    ///   - offsets: The translation offsets to use
+    /// - Returns: A new geometry with this geometry repeated
+
+    @UnionBuilder2D public func distributed(at offsets: [Vector2D]) -> Geometry2D {
+        for offset in offsets {
+            translated(offset)
+        }
+    }
+
+    /// Repeat this geometry at specified offsets
+    /// - Parameters:
+    ///   - offsets: The translation offsets to use
+    /// - Returns: A new geometry with this geometry repeated
+
+    @UnionBuilder2D public func distributed(at offsets: Vector2D...) -> Geometry2D {
+        distributed(at: offsets)
     }
 }
 
