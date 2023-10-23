@@ -45,9 +45,14 @@ struct ExtrudeAlong: CoreGeometry3D {
                 endInset = inset(angle, nextAngle)
                 let offset = angle < nextAngle ? radius : -radius
 
+                var endAngle = nextAngle - angle - 90°
+                if endAngle < -360° {
+                    endAngle += 360°
+                }
+
                 corner = body
                     .translated(x: offset)
-                    .extruded(angles: Range(-90°, nextAngle - angle - 90°))
+                    .extruded(angles: Range(-90°, endAngle))
                     .translated(x: length - endInset, y: offset)
                     .rotated(z: angle)
                     .translated(Vector3D(fromPoint))
