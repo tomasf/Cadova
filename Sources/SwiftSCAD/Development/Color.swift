@@ -173,6 +173,10 @@ struct Color3D: CoreGeometry3D {
 }
 
 extension Geometry3D {
+    func colored(_ color: Color) -> Geometry3D {
+        Color3D(color: color, content: self)
+    }
+
     /// Apply a color to the geometry
     /// - Parameters:
     ///   - name: One of the standard colors. See [the OpenSCAD docs](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Transformations#color) for more info.
@@ -205,6 +209,10 @@ struct Color2D: CoreGeometry2D {
 }
 
 extension Geometry2D {
+    func colored(_ color: Color) -> Geometry2D {
+        Color2D(color: color, content: self)
+    }
+
     /// Apply a color to the geometry
     /// - Parameters:
     ///   - name: One of the standard colors. See [the OpenSCAD docs](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Transformations#color) for more info.
