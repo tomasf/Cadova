@@ -221,7 +221,7 @@ fileprivate extension Text {
             }
         }
         .transformed(transform)
-        .usingCGPathFillRule(.evenOdd)
+        .usingCGPathFillRule(.winding)
     }
 
     var effectiveAttributedString: AttributedString {
