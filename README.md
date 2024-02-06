@@ -1,20 +1,47 @@
 # SwiftSCAD
 SwiftSCAD is a library that allows you to create 3D and 2D CAD models in Swift. It acts as a preprocessor for [OpenSCAD][openscad], generating .scad files that can be previewed and rendered using the OpenSCAD application. This offers a more convenient API, breaking away from the limitations of the OpenSCAD language.
 
+SwiftSCAD runs on macOS, Windows and Linux.
+
+[![Swift](https://github.com/tomasf/SwiftSCAD/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/SwiftSCAD/actions/workflows/swift.yml)
+
 # Usage
-SwiftSCAD is distributed as a Swift Package. The following steps will guide you through using it in a new Swift project.
+Create a new Swift executable package:
 
-1. **Download and install the [OpenSCAD][openscad] application**. This will be used as the viewer and renderer.
-2. **Create a new Swift project** using either the `swift package` CLI or Xcode. It's up to you to decide if you want to have a single project for all of your different CAD models, or one project per model. Having a single project might mean less overhead if you tend to make lots of small models, but might get unwieldy if you tend to build larger, more complex models.
+```
+$ mkdir My3DGadget
+$ cd My3DGadget
+$ swift package init --type executable
+```
 
-    Using an Xcode project instead of a Swift package offers the benefit of customizing the working directory for running the scheme. By setting the custom working directory to `$(PROJECT_DIR)`, you can make the `save(to:)` method output files relative to the project directory.
+Add SwiftSCAD as a dependency for your package in Package.swift:
 
-3. **Add `https://github.com/tomasf/SwiftSCAD` as a dependency** by adding it to your `Package.swift` file or by using Xcode's GUI.
-4. **`import SwiftSCAD`** in the file(s) where you want to use SwiftSCAD. Adding it to `main.swift` can be a good place to start.
-5. **Use the SwiftSCAD API** to create a model. Refer to the _Examples_ section for more details.
-6. **Generate a .scad file** for the model by adding the `Geometry2D/save(to:)` or `Geometry3D/save(to:)` method to the end of the model declaration and then Building and Running the project. Make sure any intermediate directories already exist.
-7. **Open the .scad file in OpenSCAD** to preview your model. For the best experience, make sure you hide the editor view by going to `View > Hide Editor` and enable automatic reload by going to `Design > Automatic Reload and Preview`. With this in place, OpenSCAD will reload automatically every time you Build and Run your project after making changes to the model.
-8. **Render and export the model** from OpenSCAD using `Design > Render` followed by `File > Export`.
+<pre>
+let package = Package(
+    name: "My3DGadget",
+    dependencies: [
+        <b><i>.package(url: "https://github.com/tomasf/SwiftSCAD.git", branch: "main"),</i></b>
+    ],
+    targets: [
+        .executableTarget(name: "My3DGadget", dependencies: [<b><i>"SwiftSCAD"</i></b>])
+    ]
+)
+</pre>
+
+In your code, import SwiftSCAD, create geometry and save it:
+
+```swift
+import SwiftSCAD
+
+Box([10, 10, 5])
+    .subtracting {
+        Sphere(diameter: 10)
+            .translated(z: 5)
+    }
+    .save(to: "gadget.scad")
+```
+
+Run your code using `swift run` to generate the .scad file. Open it in OpenSCAD to preview your model. For the best experience, hide the editor view using *View > Hide Editor* and enable *Design > Automatic Reload and Preview*. With this in place, OpenSCAD will reload automatically every time you run your code after making changes to the model.
 
 # Examples
 
@@ -58,8 +85,8 @@ struct Star: Shape2D {
     let centerSize: Double
 
     var body: Geometry2D {
-        Union {
-            Circle(diameter: centerSize)
+        Circle(diameter: centerSize)
+        .adding {
             Circle(radius: max(pointRadius, 0.001))
                 .translated(x: radius)
         }
