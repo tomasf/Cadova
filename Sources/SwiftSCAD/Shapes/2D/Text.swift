@@ -1,4 +1,6 @@
 import Foundation
+
+#if canImport(AppKit)
 import AppKit
 
 public struct Text: Shape2D {
@@ -372,3 +374,5 @@ fileprivate extension NSFont {
         return names.compactMap { NSFont(name: $0, size: size) }
     }
 }
+
+#endif

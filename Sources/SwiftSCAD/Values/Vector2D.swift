@@ -1,5 +1,4 @@
 import Foundation
-import simd
 
 /// A unitless vector representing distances, sizes or scales in two dimensions
 ///
@@ -150,15 +149,5 @@ public extension Vector2D {
     /// Calculate a point at a given fraction along a straight line to another point
     func point(alongLineTo other: Vector2D, at fraction: Double) -> Vector2D {
         self + (other - self) * fraction
-    }
-}
-
-internal extension Vector2D {
-    var simd3: SIMD3<Double> {
-        SIMD3(x, y, 1.0)
-    }
-
-    init(simd3 v: SIMD3<Double>) {
-        self.init(x: v[0], y: v[1])
     }
 }

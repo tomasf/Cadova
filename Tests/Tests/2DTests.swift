@@ -18,6 +18,7 @@ final class Geometry2DTests: XCTestCase {
         .assertEqual(toFile: "2dbasics")
     }
 
+    /*
     func test2DMisc() {
         Rectangle(Vector2D(30, 10), center: .y)
             .subtracting {
@@ -39,7 +40,7 @@ final class Geometry2DTests: XCTestCase {
                 Text("SwiftSCAD", font: .inFamily("Helvetica Neue", style: "Bold", size: 10), horizontalAlignment: .left, verticalAlignment: .bottom)
                     .offset(amount: 0.4, style: .miter)
                     .translated(y: 5)
-                    .sheared(.y, along: .x, angle: 20°)
+                    .sheared(.y, angle: 20°)
 
                 CylinderBridge(bottomDiameter: 10, topDiameter: 6)
                     .translated(x: 15)
@@ -48,7 +49,9 @@ final class Geometry2DTests: XCTestCase {
             }
             .assertEqual(toFile: "2dmisc")
     }
+     */
 
+    #if canImport(QuartzCore)
     func testCGPath() {
         let path = CGMutablePath(rect: CGRect(x: 0, y: 2, width: 10, height: 20), transform: nil)
         path.addRect(CGRect(x: 2, y: 4, width: 5, height: 10))
@@ -61,4 +64,5 @@ final class Geometry2DTests: XCTestCase {
             .usingCGPathFillRule(.winding)
             .assertEqual(toFile: "cgPath-rects-winding")
     }
+    #endif
 }

@@ -1,11 +1,15 @@
 import Foundation
+#if canImport(simd)
 import simd
+#endif
 
-/// An `AffineTransform` represents a 3D affine transformation using a 4x4 matrix.
-public struct AffineTransform: Equatable {
-    var matrix: simd_double4x4
+public typealias AffineTransform = AffineTransform3D
 
-    private init(_ matrix: simd_double4x4) {
+/// An `AffineTransform3D` represents a 3D affine transformation using a 4x4 matrix.
+public struct AffineTransform3D: Equatable {
+    private var matrix: Matrix4x4
+
+    private init(_ matrix: Matrix4x4) {
         self.matrix = matrix
     }
 
@@ -17,7 +21,7 @@ public struct AffineTransform: Equatable {
             values.count == 4 && values.allSatisfy { $0.count == 4},
             "AffineTransform requires 16 (4 x 4) elements"
         )
-        self.init(simd_double4x4(rows: values.map(SIMD4.init)))
+        self.init(Matrix4x4(rows: values.map(Matrix4x4.Row.init)))
     }
 
     /// Retrieves or sets the value at the given row and column indices in the affine transformation matrix.
@@ -49,7 +53,7 @@ public struct AffineTransform: Equatable {
 
     /// The identity `AffineTransform`, representing no transformation.
     public static var identity: AffineTransform {
-        AffineTransform(simd_double4x4(1))
+        AffineTransform(Matrix4x4.identity)
     }
 
     /// Concatenates this `AffineTransform` with another, creating a new combined transformation.
@@ -253,7 +257,7 @@ extension AffineTransform {
     /// - Parameter point: The 3D point to transform.
     /// - Returns: The transformed 3D point.
     public func apply(to point: Vector3D) -> Vector3D {
-        return Vector3D(simd4: point.simd4 * matrix)
+        return Vector3D(matrixColumn: point.matrixColumn * matrix)
     }
 }
 
@@ -270,5 +274,15 @@ fileprivate extension Axis3D {
         case .y: return 1
         case .z: return 2
         }
+    }
+}
+
+internal extension Vector3D {
+    var matrixColumn: Matrix4x4.Column {
+        .init(x, y, z, 1.0)
+    }
+
+    init(matrixColumn v: Matrix4x4.Column) {
+        self.init(v[0], v[1], v[2])
     }
 }

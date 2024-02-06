@@ -1,11 +1,13 @@
 import Foundation
+#if canImport(simd)
 import simd
+#endif
 
 /// An `AffineTransform2D` represents a 2D affine transformation using a 3x3 matrix.
 public struct AffineTransform2D: Equatable {
-    var matrix: simd_double3x3
+    private var matrix: Matrix3x3
 
-    init(_ matrix: simd_double3x3) {
+    internal init(_ matrix: Matrix3x3) {
         self.matrix = matrix
     }
 
@@ -17,7 +19,7 @@ public struct AffineTransform2D: Equatable {
             values.count == 3 && values.allSatisfy { $0.count == 3},
             "AffineTransform2D requires 9 (3 x 3) elements"
         )
-        self.matrix = .init(rows: values.map(SIMD3.init))
+        self.matrix = .init(rows: values.map(Matrix3x3.Row.init))
     }
 
     /// Retrieves or sets the value at the given row and column indices in the 2D affine transformation matrix.
@@ -40,7 +42,7 @@ public struct AffineTransform2D: Equatable {
 
     /// The identity `AffineTransform2D`, representing no transformation.
     public static var identity: AffineTransform2D {
-        AffineTransform2D(simd_double3x3(1.0))
+        AffineTransform2D(Matrix3x3.identity)
     }
 
     /// Concatenates this `AffineTransform2D` with another, creating a new combined 2D transformation.
@@ -207,7 +209,7 @@ extension AffineTransform2D {
     /// - Parameter point: The 2D point to transform.
     /// - Returns: The transformed 2D point.
     public func apply(to point: Vector2D) -> Vector2D {
-        return Vector2D(simd3: point.simd3 * matrix)
+        return Vector2D(matrixColumn: point.matrixColumn * matrix)
     }
 }
 
@@ -225,5 +227,15 @@ extension AffineTransform2D {
 
         self[0, 2] = transform3d[0, 3]
         self[1, 2] = transform3d[1, 3]
+    }
+}
+
+internal extension Vector2D {
+    var matrixColumn: Matrix3x3.Column {
+        .init(x, y, 1.0)
+    }
+
+    init(matrixColumn v: Matrix3x3.Column) {
+        self.init(x: v[0], y: v[1])
     }
 }

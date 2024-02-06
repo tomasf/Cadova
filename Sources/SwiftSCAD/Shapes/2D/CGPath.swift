@@ -1,4 +1,6 @@
 import Foundation
+
+#if canImport(QuartzCore)
 import QuartzCore
 
 extension CGPath {
@@ -101,3 +103,5 @@ public extension Geometry3D {
         }
     }
 }
+
+#endif

@@ -74,7 +74,7 @@ struct SCADCall: SCADFormattable {
         let paramText = params
             .compactMapValues { $0 }
             .sorted { $0.key < $1.key }
-            .map { key, value in "\(key) = \(value.scadString)"}
+            .map { key, value in "\(key)=\(value.scadString)"}
             .joined(separator: ", ")
 
         let bodyString = body.map { " " + $0.scadString(in: environment) } ?? ";"
