@@ -18,7 +18,6 @@ final class Geometry2DTests: XCTestCase {
         .assertEqual(toFile: "2dbasics")
     }
 
-    /*
     func test2DMisc() {
         Rectangle(Vector2D(30, 10), center: .y)
             .subtracting {
@@ -37,7 +36,7 @@ final class Geometry2DTests: XCTestCase {
                     .rotated(45°)
                     .translated(x: -3)
 
-                Text("SwiftSCAD", font: .inFamily("Helvetica Neue", style: "Bold", size: 10), horizontalAlignment: .left, verticalAlignment: .bottom)
+                BasicText("SwiftSCAD", font: .init(name: "Helvetica", size: 10), horizontalAlignment: .left, verticalAlignment: .bottom)
                     .offset(amount: 0.4, style: .miter)
                     .translated(y: 5)
                     .sheared(.y, angle: 20°)
@@ -49,7 +48,6 @@ final class Geometry2DTests: XCTestCase {
             }
             .assertEqual(toFile: "2dmisc")
     }
-     */
 
     #if canImport(QuartzCore)
     func testCGPath() {
