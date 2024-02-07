@@ -5,6 +5,7 @@ fileprivate extension Geometry {
         do {
             let string = self.scadString(in: environment)
             try string.write(to: fileURL, atomically: true, encoding: .utf8)
+            print("Wrote output to \(fileURL.path)")
         } catch {
             preconditionFailure("Failed to write to file \(fileURL)")
         }
