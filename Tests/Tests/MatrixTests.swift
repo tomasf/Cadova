@@ -29,6 +29,11 @@ final class MatrixTests: XCTestCase {
         let simdApplied = simdVector1 * simdMultiplied
         let basicApplied = basicVector1 * basicMultiplied
         assertEqualEnough([simdApplied.x, simdApplied.y, simdApplied.z], basicApplied)
+
+        let simdInverse = simdMatrix1.inverse
+        let basicInverse = basicMatrix1.inverse
+        assertEqualEnoughMatrix(simdInverse.values, basicInverse.values)
+        assertEqualEnoughMatrix(basicMatrix1.values, basicInverse.inverse.values)
     }
 
     func testEqualImplementations4x4() {
@@ -57,6 +62,11 @@ final class MatrixTests: XCTestCase {
         let simdApplied = simdVector1 * simdMultiplied
         let basicApplied = basicVector1 * basicMultiplied
         assertEqualEnough([simdApplied.x, simdApplied.y, simdApplied.z, simdApplied.w], basicApplied)
+
+        let simdInverse = simdMatrix1.inverse
+        let basicInverse = basicMatrix1.inverse
+        assertEqualEnoughMatrix(simdInverse.values, basicInverse.values)
+        assertEqualEnoughMatrix(basicMatrix1.values, basicInverse.inverse.values)
     }
 
     func assertEqualEnough(_ a: [Double], _ b: [Double]) {
