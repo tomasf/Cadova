@@ -64,6 +64,10 @@ public struct AffineTransform2D: Equatable {
         transform[row, column] = value
         return transform
     }
+
+    public var inverse: AffineTransform2D {
+        .init(matrix.inverse)
+    }
 }
 
 extension AffineTransform2D {

@@ -62,6 +62,10 @@ public struct AffineTransform3D: Equatable {
     public func concatenated(with other: AffineTransform) -> AffineTransform {
         AffineTransform(matrix * other.matrix)
     }
+
+    public var inverse: AffineTransform3D {
+        .init(matrix.inverse)
+    }
 }
 
 extension AffineTransform {

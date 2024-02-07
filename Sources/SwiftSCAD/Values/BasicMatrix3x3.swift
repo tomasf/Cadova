@@ -1,24 +1,5 @@
 import Foundation
 
-// If Accelerate is available, we use SIMD types for our matrices.
-// Otherwise, we implement the basic operations we need ourselves
-
-#if canImport(simd)
-
-import simd
-internal typealias Matrix3x3 = simd_double3x3
-
-internal extension simd_double3x3 {
-    typealias Row = SIMD3<Double>
-    typealias Column = SIMD3<Double>
-    static let identity = matrix_identity_double3x3
-}
-
-#else
-internal typealias Matrix3x3 = BasicMatrix3x3
-#endif
-
-
 internal struct BasicMatrix3x3: Equatable {
     typealias Row = [Double]
     typealias Column = [Double]
@@ -58,6 +39,10 @@ internal struct BasicMatrix3x3: Equatable {
                 value * lhs[column]
             }.reduce(0, +)
         }
+    }
+
+    var inverse: BasicMatrix3x3 {
+        .init(rows: invertMatrix(matrix: values))
     }
 }
 
