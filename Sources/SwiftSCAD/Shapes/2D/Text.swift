@@ -269,17 +269,17 @@ fileprivate extension Color {
 
 fileprivate extension Text.Attributes {
     var stringAttributes: AttributeContainer {
-        var attributes = AttributeContainer()
-        attributes.font = (font ?? .default).nsFont
-
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = horizontalAlignment
-        attributes.paragraphStyle = paragraphStyle
+
+        var attributes = AttributeContainer([
+            .font: (font ?? .default).nsFont,
+            .paragraphStyle: paragraphStyle
+        ])
 
         if let customAttributes {
             attributes.merge(customAttributes, mergePolicy: .keepNew)
         }
-
         return attributes
     }
 }
