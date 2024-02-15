@@ -15,10 +15,8 @@ let package = Package(
             targets: ["SwiftSCAD"]),
     ],
     dependencies: [
-        .package(
-            url: "https://github.com/apple/swift-collections.git",
-            .upToNextMajor(from: "1.0.0")
-        )
+        .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -26,7 +24,8 @@ let package = Package(
         .target(
             name: "SwiftSCAD",
             dependencies: [
-                .product(name: "Collections", package: "swift-collections")
+                .product(name: "Collections", package: "swift-collections"),
+                .product(name: "Logging", package: "swift-log"),
             ]),
 
         .testTarget(

@@ -22,7 +22,7 @@ public struct CylinderBridge: Shape2D {
     public init(bottomDiameter: Double, topDiameter: Double) {
         assert(bottomDiameter > topDiameter, "The bottom diameter should be larger than the top diameter")
         if topDiameter < bottomDiameter / 2.0 {
-            print("Warning: Bridging where the top diameter is less than half the bottom diameter may not work optimally.")
+            logger.warning("Bridging where the top diameter is less than half the bottom diameter may not work optimally.")
         }
         self.bottomDiameter = bottomDiameter
         self.topDiameter = topDiameter
