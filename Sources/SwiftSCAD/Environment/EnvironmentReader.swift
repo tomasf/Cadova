@@ -16,11 +16,11 @@ internal struct EnvironmentReader3D: Geometry3D {
     }
 }
 
-internal func EnvironmentReader(@UnionBuilder2D body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
+public func EnvironmentReader(@UnionBuilder2D body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
     EnvironmentReader2D(body: body)
 }
 
-internal func EnvironmentReader(@UnionBuilder3D body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
+public func EnvironmentReader(@UnionBuilder3D body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
     EnvironmentReader3D(body: body)
 }
 
