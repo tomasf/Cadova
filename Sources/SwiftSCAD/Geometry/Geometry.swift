@@ -37,7 +37,7 @@ extension CoreGeometry3D {
 }
 
 protocol ContainerGeometry3D: Geometry3D {
-    func geometry(in environment: Environment) -> Geometry3D
+    func geometry(in environment: Environment) -> any Geometry3D
 }
 
 extension ContainerGeometry3D {
@@ -62,7 +62,7 @@ extension CoreGeometry2D {
 }
 
 protocol ContainerGeometry2D: Geometry2D {
-    func geometry(in environment: Environment) -> Geometry2D
+    func geometry(in environment: Environment) -> any Geometry2D
 }
 
 extension ContainerGeometry2D {

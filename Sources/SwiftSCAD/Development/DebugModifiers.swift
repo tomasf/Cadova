@@ -2,7 +2,7 @@ import Foundation
 
 struct Prefix3D: Geometry3D {
     let prefix: String
-    let body: Geometry3D
+    let body: any Geometry3D
 
     func scadString(in environment: Environment) -> String {
         return prefix + body.scadString(in: environment)
@@ -11,7 +11,7 @@ struct Prefix3D: Geometry3D {
 
 struct Prefix2D: Geometry2D {
     let prefix: String
-    let body: Geometry2D
+    let body: any Geometry2D
 
     func scadString(in environment: Environment) -> String {
         return prefix + body.scadString(in: environment)
@@ -23,7 +23,7 @@ public extension Geometry2D {
     ///
     /// Highlighting is for debugging and is not visible in final renderings. This is equivalent to the `#` modifier in OpenSCAD.
 
-    func highlighted() -> Geometry2D {
+    func highlighted() -> any Geometry2D {
         Prefix2D(prefix: "#", body: self)
     }
 
@@ -31,7 +31,7 @@ public extension Geometry2D {
     ///
     /// Use this geometry as the root, ignoring anything outside it. This is equivalent to the `!` modifier in OpenSCAD.
 
-    func exclusive() -> Geometry2D {
+    func exclusive() -> any Geometry2D {
         Prefix2D(prefix: "!", body: self)
     }
 
@@ -39,7 +39,7 @@ public extension Geometry2D {
     ///
     /// Background is drawn transparently, isn't part of the actual geometry, and is ignored in final renderings. This is equivalent to the `%` modifier in OpenSCAD.
 
-    func background() -> Geometry2D {
+    func background() -> any Geometry2D {
         Prefix2D(prefix: "%", body: self)
     }
 
@@ -47,7 +47,7 @@ public extension Geometry2D {
     ///
     /// Ignore this geometry as if it didn't exist. This is equivalent to the `*` modifier in OpenSCAD.
 
-    func disabled() -> Geometry2D {
+    func disabled() -> any Geometry2D {
         Prefix2D(prefix: "*", body: self)
     }
 }
@@ -57,7 +57,7 @@ public extension Geometry3D {
     ///
     /// Highlighting is for debugging and is not visible in final renderings. This is equivalent to the `#` modifier in OpenSCAD.
 
-    func highlighted() -> Geometry3D {
+    func highlighted() -> any Geometry3D {
         Prefix3D(prefix: "#", body: self)
     }
 
@@ -65,7 +65,7 @@ public extension Geometry3D {
     ///
     /// Use this geometry as the root, ignoring anything outside it. This is equivalent to the `!` modifier in OpenSCAD.
 
-    func only() -> Geometry3D {
+    func only() -> any Geometry3D {
         Prefix3D(prefix: "!", body: self)
     }
 
@@ -73,7 +73,7 @@ public extension Geometry3D {
     ///
     /// Background is drawn transparently, isn't part of the actual geometry, and is ignored in final renderings. This is equivalent to the `%` modifier in OpenSCAD.
 
-    func background() -> Geometry3D {
+    func background() -> any Geometry3D {
         Prefix3D(prefix: "%", body: self)
     }
 
@@ -81,7 +81,7 @@ public extension Geometry3D {
     ///
     /// Ignore this geometry as if it didn't exist. This is equivalent to the `*` modifier in OpenSCAD.
 
-    func disabled() -> Geometry3D {
+    func disabled() -> any Geometry3D {
         Prefix3D(prefix: "*", body: self)
     }
 }

@@ -67,7 +67,7 @@ public struct RoundedRectangle: Shape2D {
         self.init(size, style: style, cornerRadii: [bottomLeft, bottomRight, topRight, topLeft], center: center)
     }
 
-    @UnionBuilder2D public var body: Geometry2D {
+    @UnionBuilder2D public var body: any Geometry2D {
         let centerTranslation = (size / -2).setting(axes: center.inverted, to: 0)
 
         Union {
@@ -127,7 +127,7 @@ public struct RoundedRectangle: Shape2D {
         let radius: Double
         let style: CornerStyle
 
-        var body: Geometry2D {
+        var body: any Geometry2D {
             if radius > .ulpOfOne {
                 if style == .circular {
                     Arc(range: 0°..<90°, radius: radius)
@@ -143,7 +143,7 @@ public struct RoundedRectangle: Shape2D {
     private struct SquircleCorner: Shape2D {
         let radius: Double
 
-        var body: Geometry2D {
+        var body: any Geometry2D {
             EnvironmentReader2D { environment in
                 let facets = environment.facets.facetCount(circleRadius: radius)
                 let radius4th = pow(radius, 4.0)

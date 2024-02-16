@@ -33,8 +33,8 @@ public extension Environment {
 }
 
 fileprivate extension Environment.Facets {
-    func modification(body: Geometry, environment: Environment) -> String {
-        let variables: [String: SCADValue]
+    func modification(body: any Geometry, environment: Environment) -> String {
+        let variables: [String: any SCADValue]
 
         switch self {
         case .fixed (let count):
@@ -51,7 +51,7 @@ fileprivate extension Environment.Facets {
 
 struct SetFacets3D: Geometry3D {
     let facets: Environment.Facets
-    let body: Geometry3D
+    let body: any Geometry3D
 
     func scadString(in environment: Environment) -> String {
         facets.modification(body: body, environment: environment)
@@ -60,7 +60,7 @@ struct SetFacets3D: Geometry3D {
 
 struct SetFacets2D: Geometry2D {
     let facets: Environment.Facets
-    let body: Geometry2D
+    let body: any Geometry2D
 
     func scadString(in environment: Environment) -> String {
         facets.modification(body: body, environment: environment)
@@ -68,7 +68,7 @@ struct SetFacets2D: Geometry2D {
 }
 
 public extension Geometry3D {
-    func usingFacets(_ facets: Environment.Facets) -> Geometry3D {
+    func usingFacets(_ facets: Environment.Facets) -> any Geometry3D {
         SetFacets3D(facets: facets, body: withEnvironment { environment in
             environment.setting(key: Environment.Facets.environmentKey, value: facets)
         })
@@ -81,7 +81,7 @@ public extension Geometry3D {
     ///   - minAngle: The minimum angle of each facet
     ///   - minSize: The minimum size of each facet
 
-    func usingFacets(minAngle: Angle, minSize: Double) -> Geometry3D {
+    func usingFacets(minAngle: Angle, minSize: Double) -> any Geometry3D {
         usingFacets(.dynamic(minAngle: minAngle, minSize: minSize))
     }
 
@@ -91,19 +91,19 @@ public extension Geometry3D {
     /// - Parameters:
     ///   - count: The number of facets to use per revolution.
 
-    func usingFacets(count: Int) -> Geometry3D {
+    func usingFacets(count: Int) -> any Geometry3D {
         usingFacets(.fixed(count))
     }
 
     /// Set the default facet configuration for this geometry.
 
-    func usingDefaultFacets() -> Geometry3D {
+    func usingDefaultFacets() -> any Geometry3D {
         usingFacets(.defaults)
     }
 }
 
 public extension Geometry2D {
-    internal func usingFacets(_ facets: Environment.Facets) -> Geometry2D {
+    internal func usingFacets(_ facets: Environment.Facets) -> any Geometry2D {
         SetFacets2D(facets: facets, body: withEnvironment { environment in
             environment.setting(key: Environment.Facets.environmentKey, value: facets)
         })
@@ -116,7 +116,7 @@ public extension Geometry2D {
     ///   - minAngle: The minimum angle of each facet
     ///   - minSize: The minimum size of each facet
 
-    func usingFacets(minAngle: Angle, minSize: Double) -> Geometry2D {
+    func usingFacets(minAngle: Angle, minSize: Double) -> any Geometry2D {
         usingFacets(.dynamic(minAngle: minAngle, minSize: minSize))
     }
 
@@ -126,13 +126,13 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - count: The number of facets to use per revolution.
 
-    func usingFacets(count: Int) -> Geometry2D {
+    func usingFacets(count: Int) -> any Geometry2D {
         usingFacets(.fixed(count))
     }
 
     /// Set the default facet configuration for this geometry.
 
-    func usingDefaultFacets() -> Geometry2D {
+    func usingDefaultFacets() -> any Geometry2D {
         usingFacets(.defaults)
     }
 }

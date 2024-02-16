@@ -55,7 +55,7 @@ public struct Cylinder: CoreGeometry3D {
     }
 
     func call(in environment: Environment) -> SCADCall {
-        var params: [String: SCADValue] = ["h": height]
+        var params: [String: any SCADValue] = ["h": height]
         
         if centerZ {
             params["center"] = centerZ

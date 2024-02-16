@@ -3,10 +3,10 @@ import Foundation
 public struct Offset: CoreGeometry2D {
     let amount: Double
     let style: Style
-    let body: Geometry2D
+    let body: any Geometry2D
 
     func call(in environment: Environment) -> SCADCall {
-        let params: [String: SCADValue]
+        let params: [String: any SCADValue]
 
         switch style {
         case .round:
@@ -34,12 +34,12 @@ public struct Offset: CoreGeometry2D {
 }
 
 public extension Geometry2D {
-    func offset(amount: Double, style: Offset.Style) -> Geometry2D {
+    func offset(amount: Double, style: Offset.Style) -> any Geometry2D {
         Offset(amount: amount, style: style, body: self)
     }
 
-    func rounded(amount: Double, side: Offset.Side = .both) -> Geometry2D {
-        var body: Geometry2D = self
+    func rounded(amount: Double, side: Offset.Side = .both) -> any Geometry2D {
+        var body: any Geometry2D = self
         if side != .inside {
             body = body
                 .offset(amount: -amount, style: .miter)

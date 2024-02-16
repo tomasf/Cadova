@@ -29,7 +29,7 @@ public struct Arc: ContainerGeometry2D {
         self.init(range: range, radius: diameter / 2)
     }
 
-    func geometry(in environment: Environment) -> Geometry2D {
+    func geometry(in environment: Environment) -> any Geometry2D {
         let magnitude = range.upperBound - range.lowerBound
         let fraction = magnitude / 360°
 

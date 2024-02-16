@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Geometry2D {
-    @UnionBuilder3D private func extrudedLayered(height: Double, topRadius radius: Double, layerHeight: Double) -> Geometry3D {
+    @UnionBuilder3D private func extrudedLayered(height: Double, topRadius radius: Double, layerHeight: Double) -> any Geometry3D {
         let layerCount = Int(ceil(radius / layerHeight))
         let effectiveRadius = Double(layerCount) * layerHeight
 
@@ -12,7 +12,7 @@ public extension Geometry2D {
         }
     }
 
-    @UnionBuilder3D private func extrudedConvex(height: Double, topRadius radius: Double) -> Geometry3D {
+    @UnionBuilder3D private func extrudedConvex(height: Double, topRadius radius: Double) -> any Geometry3D {
         EnvironmentReader3D { environment in
             let facetCount = environment.facets.facetCount(circleRadius: radius)
 
@@ -28,7 +28,7 @@ public extension Geometry2D {
         }
     }
 
-    @UnionBuilder3D private func extruded(height: Double, topRadius radius: Double, method: ExtrusionMethod) -> Geometry3D {
+    @UnionBuilder3D private func extruded(height: Double, topRadius radius: Double, method: ExtrusionMethod) -> any Geometry3D {
         switch method {
         case .layered (let layerHeight):
             extrudedLayered(height: height, topRadius: radius, layerHeight: layerHeight)
@@ -52,7 +52,7 @@ public extension Geometry2D {
     ///     - `.convexHull`: This method creates a smooth, non-layered shape. It is computationally less intensive and results in a more aesthetically pleasing form but is only applicable for convex shapes.
     ///   - sides: Specifies which sides to chamfer (top, bottom, or both).
     /// - Returns: The extruded 3D geometry.
-    func extruded(height: Double, radius: Double, method: ExtrusionMethod, sides: ExtrusionZSides = .top) -> Geometry3D {
+    func extruded(height: Double, radius: Double, method: ExtrusionMethod, sides: ExtrusionZSides = .top) -> any Geometry3D {
         switch sides {
         case .top:
             return extruded(height: height, topRadius: radius, method: method)
@@ -72,7 +72,7 @@ public extension Geometry2D {
 
 public extension Geometry2D {
     @available(*, deprecated, message: "Use extruded(height:radius:method:sides:) with .layered method instead")
-    func extruded(height: Double, radius: Double, layerHeight: Double, sides: ExtrusionZSides = .top) -> Geometry3D {
+    func extruded(height: Double, radius: Double, layerHeight: Double, sides: ExtrusionZSides = .top) -> any Geometry3D {
         extruded(height: height, radius: radius, method: .layered(height: layerHeight), sides: sides)
     }
 }

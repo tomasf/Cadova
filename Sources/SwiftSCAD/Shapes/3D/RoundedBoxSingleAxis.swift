@@ -7,7 +7,7 @@ extension RoundedBox {
         let axis: Axis3D
         let radii: CornerRadii
 
-        var body: Geometry3D {
+        var body: any Geometry3D {
             let localSize: Vector3D
             let rotation: Angle
             let rotationAxis: Axis3D

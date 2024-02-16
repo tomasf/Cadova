@@ -2,7 +2,7 @@ import Foundation
 
 struct Translate3D: CoreGeometry3D {
     let distance: Vector3D
-    let body: Geometry3D
+    let body: any Geometry3D
 
     func call(in environment: Environment) -> SCADCall {
         SCADCall(
@@ -18,15 +18,15 @@ struct Translate3D: CoreGeometry3D {
 }
 
 public extension Geometry3D {
-    func translated(_ distance: Vector3D) -> Geometry3D {
+    func translated(_ distance: Vector3D) -> any Geometry3D {
         Translate3D(distance: distance, body: self)
     }
 
-    func translated(_ distance: Vector2D) -> Geometry3D {
+    func translated(_ distance: Vector2D) -> any Geometry3D {
         Translate3D(distance: Vector3D(distance), body: self)
     }
 
-    func translated(x: Double = 0, y: Double = 0, z: Double = 0) -> Geometry3D {
+    func translated(x: Double = 0, y: Double = 0, z: Double = 0) -> any Geometry3D {
         Translate3D(distance: [x, y, z], body: self)
     }
 }
@@ -34,7 +34,7 @@ public extension Geometry3D {
 
 struct Translate2D: CoreGeometry2D {
     let distance: Vector2D
-    let body: Geometry2D
+    let body: any Geometry2D
 
     func call(in environment: Environment) -> SCADCall {
         SCADCall(
@@ -50,11 +50,11 @@ struct Translate2D: CoreGeometry2D {
 }
 
 public extension Geometry2D {
-    func translated(_ distance: Vector2D) -> Geometry2D {
+    func translated(_ distance: Vector2D) -> any Geometry2D {
         Translate2D(distance: distance, body: self)
     }
 
-    func translated(x: Double = 0, y: Double = 0) -> Geometry2D {
+    func translated(x: Double = 0, y: Double = 0) -> any Geometry2D {
         Translate2D(distance: [x, y], body: self)
     }
 }

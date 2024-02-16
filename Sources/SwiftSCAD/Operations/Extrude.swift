@@ -8,7 +8,7 @@ struct LinearExtrude: CoreGeometry3D {
     let scale: Vector2D
 
     let convexity: Int
-    let body: Geometry2D
+    let body: any Geometry2D
 
     func call(in environment: Environment) -> SCADCall {
         return SCADCall(
@@ -29,7 +29,7 @@ struct LinearExtrude: CoreGeometry3D {
 struct RotateExtrude: CoreGeometry3D {
     let angle: Angle
     let convexity: Int
-    let body: Geometry2D
+    let body: any Geometry2D
 
     func call(in environment: Environment) -> SCADCall {
         return SCADCall(
@@ -52,7 +52,7 @@ public extension Geometry2D {
     ///   - segements: The number of segments to use for the source shape
     ///   - scale: The final scale at the top of the extruded shape. The rest of the geometry is scaled linearly from 1.0 at the bottom.
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
-    func extruded(height: Double, twist: Angle = 0°, slices: Int? = nil, segments: Int? = nil, scale: Vector2D = [1, 1], convexity: Int = 2) -> Geometry3D {
+    func extruded(height: Double, twist: Angle = 0°, slices: Int? = nil, segments: Int? = nil, scale: Vector2D = [1, 1], convexity: Int = 2) -> any Geometry3D {
         LinearExtrude(height: height, twist: twist, slices: slices, segments: segments, scale: scale, convexity: convexity, body: self)
     }
 
@@ -60,7 +60,7 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - angles: The angle range in which to extrude. The resulting shape is formed around the Z axis in this range.
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
-    func extruded(angles: Range<Angle> = 0°..<360°, convexity: Int = 2) -> Geometry3D {
+    func extruded(angles: Range<Angle> = 0°..<360°, convexity: Int = 2) -> any Geometry3D {
         RotateExtrude(angle: angles.upperBound - angles.lowerBound, convexity: convexity, body: self)
             .rotated(z: angles.lowerBound)
     }

@@ -147,8 +147,8 @@ public enum Color {
         case black
     }
 
-    internal func call(child: Geometry) -> SCADCall {
-        let params: [String: SCADValue]
+    internal func call(child: any Geometry) -> SCADCall {
+        let params: [String: any SCADValue]
 
         switch self {
         case .components (let red, let green, let blue, let alpha):
@@ -165,7 +165,7 @@ public enum Color {
 
 struct Color3D: CoreGeometry3D {
     let color: Color
-    let content: Geometry3D
+    let content: any Geometry3D
 
     func call(in environment: Environment) -> SCADCall {
         color.call(child: content)
@@ -173,7 +173,7 @@ struct Color3D: CoreGeometry3D {
 }
 
 extension Geometry3D {
-    func colored(_ color: Color) -> Geometry3D {
+    func colored(_ color: Color) -> any Geometry3D {
         Color3D(color: color, content: self)
     }
 
@@ -182,7 +182,7 @@ extension Geometry3D {
     ///   - name: One of the standard colors. See [the OpenSCAD docs](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Transformations#color) for more info.
     ///   - alpha: The alpha value of the color, in the range 0.0 to 1.0.
     /// - Returns: A colored geometry
-    public func colored(_ name: Color.Name, alpha: Double = 1) -> Geometry3D {
+    public func colored(_ name: Color.Name, alpha: Double = 1) -> any Geometry3D {
         Color3D(color: .named(name, alpha: alpha), content: self)
     }
 
@@ -193,7 +193,7 @@ extension Geometry3D {
     ///   - blue: The blue component, in the range 0.0 to 1.0.
     ///   - alpha: The alpha component, in the range 0.0 to 1.0.
     /// - Returns: A colored geometry
-    public func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> Geometry3D {
+    public func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> any Geometry3D {
         Color3D(color: .components(red: red, green: green, blue: blue, alpha: alpha), content: self)
     }
 }
@@ -201,7 +201,7 @@ extension Geometry3D {
 
 struct Color2D: CoreGeometry2D {
     let color: Color
-    let content: Geometry2D
+    let content: any Geometry2D
 
     func call(in environment: Environment) -> SCADCall {
         color.call(child: content)
@@ -209,7 +209,7 @@ struct Color2D: CoreGeometry2D {
 }
 
 extension Geometry2D {
-    func colored(_ color: Color) -> Geometry2D {
+    func colored(_ color: Color) -> any Geometry2D {
         Color2D(color: color, content: self)
     }
 
@@ -218,7 +218,7 @@ extension Geometry2D {
     ///   - name: One of the standard colors. See [the OpenSCAD docs](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Transformations#color) for more info.
     ///   - alpha: The alpha value of the color, in the range 0.0 to 1.0.
     /// - Returns: A colored geometry
-    public func colored(_ name: Color.Name, alpha: Double = 1) -> Geometry2D {
+    public func colored(_ name: Color.Name, alpha: Double = 1) -> any Geometry2D {
         Color2D(color: .named(name, alpha: alpha), content: self)
     }
 
@@ -229,7 +229,7 @@ extension Geometry2D {
     ///   - blue: The blue component, in the range 0.0 to 1.0.
     ///   - alpha: The alpha component, in the range 0.0 to 1.0.
     /// - Returns: A colored geometry
-    public func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> Geometry2D {
+    public func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> any Geometry2D {
         Color2D(color: .components(red: red, green: green, blue: blue, alpha: alpha), content: self)
     }
 }

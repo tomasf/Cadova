@@ -10,7 +10,7 @@ import Foundation
 struct ExtrudeAlong: CoreGeometry3D {
     let path: BezierPath
     let radius: Double
-    let body: Geometry2D
+    let body: any Geometry2D
 
     private func inset(_ angle1: Angle, _ angle2: Angle) -> Double {
         let half = abs(angle1 - angle2) / Double(2.0)
@@ -20,14 +20,14 @@ struct ExtrudeAlong: CoreGeometry3D {
     func call(in environment: Environment) -> SCADCall {
         let pairs = path.points(facets: environment.facets).paired()
 
-        let geometry = pairs.enumerated().map { index, points -> Geometry3D in
+        let geometry = pairs.enumerated().map { index, points -> (any Geometry3D) in
             let (fromPoint, toPoint) = points
             let length = fromPoint.distance(to: toPoint)
             let angle = fromPoint.angle(to: toPoint)
 
             let startInset: Double
             let endInset: Double
-            let corner: Geometry3D?
+            let corner: (any Geometry3D)?
 
             if index > 0 {
                 let (prevFromPoint, prevToPoint) = pairs[index-1]
@@ -80,7 +80,7 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - path: The bezier path to use as a guide in the X-Y plane.
     ///   - radius: The corner radius of the extruded geometry. This should be greater than or equal to the distance between the origin and the furthest point along the X axis of the 2D shape. For example, extruding `Rectangle([14, 3], center: .all)` requires at least 7 as the radius.
-    func extruded(along path: BezierPath, radius: Double) -> Geometry3D {
+    func extruded(along path: BezierPath, radius: Double) -> any Geometry3D {
         ExtrudeAlong(path: path, radius: radius, body: self)
     }
 }

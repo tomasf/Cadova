@@ -65,7 +65,7 @@ extension Vector2D {
 }
 
 extension CGPath: ContainerGeometry2D {
-    func geometry(in environment: Environment) -> Geometry2D {
+    func geometry(in environment: Environment) -> any Geometry2D {
         Union(children: componentsSeparated(using: environment.cgPathFillRule).map { component in
             let (positive, negatives) = component.normalizedPolygons(using: environment.cgPathFillRule)
             return positive
@@ -89,7 +89,7 @@ public extension Environment {
 }
 
 public extension Geometry2D {
-    func usingCGPathFillRule(_ fillRule: CGPathFillRule) -> Geometry2D {
+    func usingCGPathFillRule(_ fillRule: CGPathFillRule) -> any Geometry2D {
         withEnvironment { environment in
             environment.usingCGPathFillRule(fillRule)
         }
@@ -97,7 +97,7 @@ public extension Geometry2D {
 }
 
 public extension Geometry3D {
-    func usingCGPathFillRule(_ fillRule: CGPathFillRule) -> Geometry3D {
+    func usingCGPathFillRule(_ fillRule: CGPathFillRule) -> any Geometry3D {
         withEnvironment { environment in
             environment.usingCGPathFillRule(fillRule)
         }

@@ -1,9 +1,9 @@
 import Foundation
 
 struct Union3D: CoreGeometry3D {
-    let children: [Geometry3D]
+    let children: [any Geometry3D]
 
-    init(children: [Geometry3D]) {
+    init(children: [any Geometry3D]) {
         self.children = children
     }
 
@@ -22,11 +22,11 @@ struct Union3D: CoreGeometry3D {
 /// }
 /// .translate(x: 10)
 /// ```
-public func Union(@UnionBuilder3D _ body: () -> Geometry3D) -> Geometry3D {
+public func Union(@UnionBuilder3D _ body: () -> any Geometry3D) -> any Geometry3D {
     body()
 }
 
-public func Union(children: [Geometry3D]) -> Geometry3D {
+public func Union(children: [any Geometry3D]) -> any Geometry3D {
     Union3D(children: children)
 }
 
@@ -44,19 +44,19 @@ public extension Geometry3D {
     ///
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
-    func adding(@SequenceBuilder3D _ bodies: () -> [Geometry3D]) -> Geometry3D {
+    func adding(@SequenceBuilder3D _ bodies: () -> [any Geometry3D]) -> any Geometry3D {
         Union3D(children: [self] + bodies())
     }
 
-    func adding(_ bodies: Geometry3D?...) -> Geometry3D {
+    func adding(_ bodies: (any Geometry3D)?...) -> any Geometry3D {
         Union3D(children: [self] + bodies.compactMap { $0 })
     }
 }
 
 struct Union2D: CoreGeometry2D {
-    let children: [Geometry2D]
+    let children: [any Geometry2D]
 
-    init(children: [Geometry2D]) {
+    init(children: [any Geometry2D]) {
         self.children = children
     }
 
@@ -75,11 +75,11 @@ struct Union2D: CoreGeometry2D {
 /// }
 /// .translate(x: 10)
 /// ```
-public func Union(@UnionBuilder2D _ body: () -> Geometry2D) -> Geometry2D {
+public func Union(@UnionBuilder2D _ body: () -> any Geometry2D) -> any Geometry2D {
     body()
 }
 
-public func Union(children: [Geometry2D]) -> Geometry2D {
+public func Union(children: [any Geometry2D]) -> any Geometry2D {
     Union2D(children: children)
 }
 
@@ -97,21 +97,21 @@ public extension Geometry2D {
     ///
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
-    func adding(@SequenceBuilder2D _ bodies: () -> [Geometry2D]) -> Geometry2D {
+    func adding(@SequenceBuilder2D _ bodies: () -> [any Geometry2D]) -> any Geometry2D {
         Union2D(children: [self] + bodies())
     }
 
-    func adding(_ bodies: Geometry2D?...) -> Geometry2D {
+    func adding(_ bodies: (any Geometry2D)?...) -> any Geometry2D {
         Union2D(children: [self] + bodies.compactMap { $0 })
     }
 }
 
 public extension Sequence {
-    func mapUnion(@UnionBuilder3D _ transform: (Element) throws -> Geometry3D) rethrows -> Geometry3D {
+    func mapUnion(@UnionBuilder3D _ transform: (Element) throws -> any Geometry3D) rethrows -> any Geometry3D {
         Union3D(children: try map(transform))
     }
 
-    func mapUnion(@UnionBuilder2D _ transform: (Element) throws -> Geometry2D) rethrows -> Geometry2D {
+    func mapUnion(@UnionBuilder2D _ transform: (Element) throws -> any Geometry2D) rethrows -> any Geometry2D {
         Union2D(children: try map(transform))
     }
 }

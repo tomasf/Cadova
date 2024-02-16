@@ -15,7 +15,7 @@ import Foundation
 /// let polygonFromBezierPath = Polygon(bezierPath)
 /// ```
 public struct Polygon: CoreGeometry2D {
-    let pointsProvider: PolygonPointsProvider
+    let pointsProvider: any PolygonPointsProvider
 
     /// Creates a new `Polygon` instance with the specified points.
     ///

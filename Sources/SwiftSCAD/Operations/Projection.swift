@@ -2,7 +2,7 @@ import Foundation
 
 struct Projection: CoreGeometry2D {
     let mode: Mode
-    let body: Geometry3D
+    let body: any Geometry3D
 
     func call(in environment: Environment) -> SCADCall {
         switch mode {
@@ -35,7 +35,7 @@ public extension Geometry3D {
     ///   let sphere = Sphere(radius: 10)
     ///   let projectedSphere = sphere.projection()
     ///   ```
-    func projection() -> Geometry2D {
+    func projection() -> any Geometry2D {
         Projection(mode: .whole, body: self)
     }
 
@@ -49,7 +49,7 @@ public extension Geometry3D {
     ///   let slicedProjection = truncatedCone.projection(slicingAtZ: 5)
     ///   // The result will be a circle with a diameter that represents the cross-section of the truncated cone at Z = 5.
     ///   ```
-    func projection(slicingAtZ z: Double) -> Geometry2D {
+    func projection(slicingAtZ z: Double) -> any Geometry2D {
         Projection(mode: .slice(z: z), body: self)
     }
 }
