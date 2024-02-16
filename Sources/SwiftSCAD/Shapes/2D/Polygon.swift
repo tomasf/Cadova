@@ -31,10 +31,14 @@ public struct Polygon: CoreGeometry2D {
         pointsProvider = bezierPath
     }
 
+    public func points(in environment: Environment) -> [Vector2D] {
+        pointsProvider.points(in: environment)
+    }
+
     func call(in environment: Environment) -> SCADCall {
         return SCADCall(
             name: "polygon",
-            params: ["points": pointsProvider.points(in: environment)]
+            params: ["points": points(in: environment)]
         )
     }
 }
