@@ -20,7 +20,7 @@ import Foundation
 public struct RoundedBox: Shape3D {
     internal typealias CornerRadii = RoundedRectangle.CornerRadii
     public typealias CornerStyle = RoundedRectangle.CornerStyle
-    private let implementation: Geometry3D
+    private let implementation: any Geometry3D
     
     // MARK: - Single axis
     private init(_ size: Vector3D, center: Axes3D, axis: Axis3D, style: CornerStyle, cornerRadii radii: CornerRadii) {
@@ -66,7 +66,7 @@ public struct RoundedBox: Shape3D {
             .translated((size / 2).setting(axes: center, to: 0))
     }
     
-    public var body: Geometry3D {
+    public var body: any Geometry3D {
         implementation
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Geometry2D {
-    @UnionBuilder3D private func extrudedLayeredTopChamfer(height: Double, chamferHeight: Double, chamferDepth: Double, layerHeight: Double) -> Geometry3D {
+    @UnionBuilder3D private func extrudedLayeredTopChamfer(height: Double, chamferHeight: Double, chamferDepth: Double, layerHeight: Double) -> any Geometry3D {
         let layerCount = Int(ceil(chamferHeight / layerHeight))
         let effectiveChamferHeight = Double(layerCount) * layerHeight
 
@@ -13,7 +13,7 @@ public extension Geometry2D {
         }
     }
 
-    @UnionBuilder3D private func extrudedConvexTopChamfer(height: Double, chamferHeight: Double, chamferDepth: Double) -> Geometry3D {
+    @UnionBuilder3D private func extrudedConvexTopChamfer(height: Double, chamferHeight: Double, chamferDepth: Double) -> any Geometry3D {
         self
             .extruded(height: max(height - chamferHeight, 0.001))
             .adding {
@@ -25,7 +25,7 @@ public extension Geometry2D {
             .convexHull()
     }
 
-    @UnionBuilder3D private func extrudedTopChamfer(height: Double, chamferHeight: Double, chamferDepth: Double, method: ExtrusionMethod) -> Geometry3D {
+    @UnionBuilder3D private func extrudedTopChamfer(height: Double, chamferHeight: Double, chamferDepth: Double, method: ExtrusionMethod) -> any Geometry3D {
         switch method {
         case .layered (let layerHeight):
             extrudedLayeredTopChamfer(height: height, chamferHeight: chamferHeight, chamferDepth: chamferDepth, layerHeight: layerHeight)
@@ -42,7 +42,7 @@ public extension Geometry2D {
     ///   - method: The extrusion method.
     ///   - sides: Specifies which sides to chamfer in the extrusion.
     /// - Returns: The extruded 3D geometry.
-    func extruded(height: Double, chamferHeight: Double, chamferDepth: Double, method: ExtrusionMethod, sides: ExtrusionZSides = .top) -> Geometry3D {
+    func extruded(height: Double, chamferHeight: Double, chamferDepth: Double, method: ExtrusionMethod, sides: ExtrusionZSides = .top) -> any Geometry3D {
         switch sides {
         case .top:
             return extrudedTopChamfer(height: height, chamferHeight: chamferHeight, chamferDepth: chamferDepth, method: method)
@@ -66,7 +66,7 @@ public extension Geometry2D {
     ///   - method: The extrusion method.
     ///   - sides: Specifies which sides to chamfer in the extrusion.
     /// - Returns: The extruded 3D geometry.
-    func extruded(height: Double, chamferSize: Double, method: ExtrusionMethod, sides: ExtrusionZSides = .top) -> Geometry3D {
+    func extruded(height: Double, chamferSize: Double, method: ExtrusionMethod, sides: ExtrusionZSides = .top) -> any Geometry3D {
         extruded(height: height, chamferHeight: chamferSize, chamferDepth: chamferSize, method: method, sides: sides)
     }
 }

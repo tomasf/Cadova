@@ -1,10 +1,10 @@
 import Foundation
 
 struct Difference3D: CoreGeometry3D {
-    let positive: Geometry3D
-    let negative: Geometry3D
+    let positive: any Geometry3D
+    let negative: any Geometry3D
 
-    init(positive: Geometry3D, negative: Geometry3D) {
+    init(positive: any Geometry3D, negative: any Geometry3D) {
         self.positive = positive
         self.negative = negative
     }
@@ -29,21 +29,21 @@ public extension Geometry3D {
     ///   - negative: The negative geometry to subtract
     /// - Returns: The new geometry
 
-    func subtracting(@UnionBuilder3D _ negative: () -> Geometry3D) -> Geometry3D {
+    func subtracting(@UnionBuilder3D _ negative: () -> any Geometry3D) -> any Geometry3D {
         Difference3D(positive: self, negative: negative())
     }
 
-    func subtracting(_ negative: Geometry3D?...) -> Geometry3D {
+    func subtracting(_ negative: (any Geometry3D)?...) -> any Geometry3D {
         Difference3D(positive: self, negative: Union3D(children: negative.compactMap { $0 }))
     }
 }
 
 
 struct Difference2D: CoreGeometry2D {
-    let positive: Geometry2D
-    let negative: Geometry2D
+    let positive: any Geometry2D
+    let negative: any Geometry2D
 
-    init(positive: Geometry2D, negative: Geometry2D) {
+    init(positive: any Geometry2D, negative: any Geometry2D) {
         self.positive = positive
         self.negative = negative
     }
@@ -68,11 +68,11 @@ public extension Geometry2D {
     ///   - negative: The negative geometry to subtract
     /// - Returns: The new geometry
 
-    func subtracting(@UnionBuilder2D _ negative: () -> Geometry2D) -> Geometry2D {
+    func subtracting(@UnionBuilder2D _ negative: () -> any Geometry2D) -> any Geometry2D {
         Difference2D(positive: self, negative: negative())
     }
 
-    func subtracting(_ negative: Geometry2D?...) -> Geometry2D {
+    func subtracting(_ negative: (any Geometry2D)?...) -> any Geometry2D {
         Difference2D(positive: self, negative: Union2D(children: negative.compactMap { $0 }))
     }
 }

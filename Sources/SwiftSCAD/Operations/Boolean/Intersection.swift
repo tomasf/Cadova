@@ -1,7 +1,7 @@
 import Foundation
 
 struct Intersection3D: CoreGeometry3D {
-    let children: [Geometry3D]
+    let children: [any Geometry3D]
 
     func call(in environment: Environment) -> SCADCall {
         SCADCall(name: "intersection", body: GeometrySequence(children: children))
@@ -23,18 +23,18 @@ public extension Geometry3D {
     ///   - with: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
-    func intersection(@UnionBuilder3D with other: () -> Geometry3D) -> Geometry3D {
+    func intersection(@UnionBuilder3D with other: () -> any Geometry3D) -> any Geometry3D {
         Intersection3D(children: [self, other()])
     }
 
-    func intersection(_ other: Geometry3D) -> Geometry3D {
+    func intersection(_ other: any Geometry3D) -> any Geometry3D {
         Intersection3D(children: [self, other])
     }
 }
 
 
 struct Intersection2D: CoreGeometry2D {
-    let children: [Geometry2D]
+    let children: [any Geometry2D]
 
     func call(in environment: Environment) -> SCADCall {
         SCADCall(name: "intersection", body: GeometrySequence(children: children))
@@ -56,21 +56,21 @@ public extension Geometry2D {
     ///   - with: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
-    func intersection(@UnionBuilder2D with other: () -> Geometry2D) -> Geometry2D {
+    func intersection(@UnionBuilder2D with other: () -> any Geometry2D) -> any Geometry2D {
         Intersection2D(children: [self, other()])
     }
 
-    func intersection(_ other: Geometry2D) -> Geometry2D {
+    func intersection(_ other: any Geometry2D) -> any Geometry2D {
         Intersection2D(children: [self, other])
     }
 }
 
 public extension Sequence {
-    func mapIntersection(@UnionBuilder3D _ transform: (Element) throws -> Geometry3D) rethrows -> Geometry3D {
+    func mapIntersection(@UnionBuilder3D _ transform: (Element) throws -> any Geometry3D) rethrows -> any Geometry3D {
         Intersection3D(children: try map(transform))
     }
     
-    func mapIntersection(@UnionBuilder2D _ transform: (Element) throws -> Geometry2D) rethrows -> Geometry2D {
+    func mapIntersection(@UnionBuilder2D _ transform: (Element) throws -> any Geometry2D) rethrows -> any Geometry2D {
         Intersection2D(children: try map(transform))
     }
 }

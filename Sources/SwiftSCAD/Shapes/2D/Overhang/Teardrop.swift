@@ -29,7 +29,7 @@ public struct Teardrop: Shape2D {
         self.style = style
     }
 
-    public var body: Geometry2D {
+    public var body: any Geometry2D {
         let x = cos(angle) * diameter/2
         let y = sin(angle) * diameter/2
         let diagonal = diameter / sin(angle)

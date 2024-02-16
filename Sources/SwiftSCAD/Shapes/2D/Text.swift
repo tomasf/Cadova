@@ -81,13 +81,13 @@ public struct Text: Shape2D {
         )
     }
 
-    public var body: Geometry2D {
+    public var body: any Geometry2D {
         content()
     }
 }
 
 public extension Text {
-    var _debugLineFragments: Geometry2D {
+    var _debugLineFragments: any Geometry2D {
         guard let (_, _, fragments, transform) = layoutData() else {
             return Empty()
         }
@@ -192,7 +192,7 @@ fileprivate extension Text {
         return (layoutManager, textStorage, fragments, transform)
     }
 
-    func content() -> Geometry2D {
+    func content() -> any Geometry2D {
         guard let (layoutManager, textStorage, fragments, transform) = layoutData() else {
             return Empty()
         }

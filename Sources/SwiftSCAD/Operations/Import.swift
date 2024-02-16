@@ -34,7 +34,7 @@ public struct Import2D: CoreGeometry2D {
     }
 
     func call(in environment: Environment) -> SCADCall {
-        let params: [String: SCADValue?] = [
+        let params: [String: (any SCADValue)?] = [
             "file": path,
             "layer": layer,
             "convexity": convexity,

@@ -40,14 +40,14 @@ import Foundation
 public struct Project {
     let root: URL
     let environment: Environment
-    let content: [ProjectContent]
+    let content: [any ProjectContent]
 
     /// Create a project
     /// - Parameters:
     ///   - rootPath: The root directory for the products in this project. The tilde character (`~`) is expanded to your home directory.
     ///   - environment: The default environment to use for geometry
     ///   - content: A result builder generating ``Group``s and ``Product``s
-    public init(root rootPath: String, environment: Environment = Environment(), @ProjectContentBuilder content: () -> [ProjectContent]) {
+    public init(root rootPath: String, environment: Environment = Environment(), @ProjectContentBuilder content: () -> [any ProjectContent]) {
         self.root = URL(fileURLWithPath: (rootPath as NSString).expandingTildeInPath)
         self.environment = environment
         self.content = content()
@@ -72,9 +72,9 @@ public struct Project {
 public struct Group: ProjectContent {
     let name: String
     let environment: Environment?
-    let content: [ProjectContent]
+    let content: [any ProjectContent]
 
-    public init(_ name: String, environment: Environment? = nil, @ProjectContentBuilder content: () -> [ProjectContent]) {
+    public init(_ name: String, environment: Environment? = nil, @ProjectContentBuilder content: () -> [any ProjectContent]) {
         self.name = name
         self.environment = environment
         self.content = content()
@@ -98,18 +98,18 @@ public struct Group: ProjectContent {
 public struct Product: ProjectContent {
     let name: String
     let environment: Environment?
-    let body: Geometry
+    let body: any Geometry
 
     /// Create a product
     /// - Parameters:
     ///   - name: The file name. "`.scad`" is appended to this.
     ///   - environment: The environment to use. If `nil`, the environment of the closest ``Group`` or the ``Project`` is used.
     ///   - body: The geometry to save
-    public init(_ name: String, environment: Environment? = nil, @UnionBuilder3D body: () -> Geometry3D) {
+    public init(_ name: String, environment: Environment? = nil, @UnionBuilder3D body: () -> any Geometry3D) {
         self.init(name, environment: environment, body: body())
     }
 
-    public init(_ name: String, environment: Environment? = nil, body: Geometry3D) {
+    public init(_ name: String, environment: Environment? = nil, body: any Geometry3D) {
         self.name = name
         self.environment = environment
         self.body = body
@@ -118,10 +118,10 @@ public struct Product: ProjectContent {
     public func process(using parameters: ProjectParameters) throws {
         let environment = self.environment ?? parameters.environment
 
-        let outputGeometry: Geometry
-        if let body = body as? Geometry3D {
+        let outputGeometry: any Geometry
+        if let body = body as? (any Geometry3D) {
             outputGeometry = body.usingFacets(environment.facets)
-        } else if let body = body as? Geometry2D {
+        } else if let body = body as? (any Geometry2D) {
             outputGeometry = body.usingFacets(environment.facets)
         } else {
             outputGeometry = body
@@ -137,7 +137,7 @@ public struct Product: ProjectContent {
 }
 
 @resultBuilder public struct ProjectContentBuilder {
-    public static func buildBlock(_ components: ProjectContent...) -> [ProjectContent] {
+    public static func buildBlock(_ components: any ProjectContent...) -> [any ProjectContent] {
         components
     }
 }

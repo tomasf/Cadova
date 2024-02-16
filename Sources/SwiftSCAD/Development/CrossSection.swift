@@ -4,9 +4,9 @@ struct CrossSection: Shape3D {
     let axis: Axis3D
     let positive: Bool
     let offset: Double
-    let content: Geometry3D
+    let content: any Geometry3D
 
-    var body: Geometry3D {
+    var body: any Geometry3D {
         let universeLength = 1000.0
         var y: Angle = 0°
         var z: Angle = 0°
@@ -37,7 +37,7 @@ public extension Geometry3D {
     ///   - invert: Normally, the cut is made so
     ///   - rendered: Enable cross-section in render mode
     /// - Returns: A cross-sectioned geometry
-    func crossSectioned(axis: Axis3D, offset: Double = 0, invert: Bool = false, rendered: Bool = false) -> Geometry3D {
+    func crossSectioned(axis: Axis3D, offset: Double = 0, invert: Bool = false, rendered: Bool = false) -> any Geometry3D {
         IfPreview {
             CrossSection(axis: axis, positive: invert, offset: offset, content: self)
         } else: {

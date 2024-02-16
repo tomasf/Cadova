@@ -11,7 +11,7 @@ public extension Geometry2D {
     ///   - height: The height of the extrusion.
     ///   - topShape: The 2D geometry to use as the top shape.
     /// - Returns: A 3D convex hull connecting the base and top geometries.
-    func extrudedHull(height: Double, to topShape: Geometry2D) -> Geometry3D {
+    func extrudedHull(height: Double, to topShape: any Geometry2D) -> any Geometry3D {
         let sliceHeight = 0.001
 
         return extruded(height: sliceHeight)
@@ -33,7 +33,7 @@ public extension Geometry2D {
     ///   - height: The height of the extrusion.
     ///   - topShape: The 2D geometry to use as the top shape.
     /// - Returns: A 3D convex hull connecting the base and top geometries.
-    func extrudedHull(height: Double, @UnionBuilder2D to topShape: () -> Geometry2D) -> Geometry3D {
+    func extrudedHull(height: Double, @UnionBuilder2D to topShape: () -> any Geometry2D) -> any Geometry3D {
         extrudedHull(height: height, to: topShape())
     }
 }

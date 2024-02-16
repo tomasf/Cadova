@@ -37,7 +37,7 @@ public struct CylinderBridge: Shape2D {
         return max(Int(floor(target)), 3)
     }
 
-    public var body: Geometry2D {
+    public var body: any Geometry2D {
         Circle(diameter: bottomDiameter)
             .subtracting {
                 Rectangle([bottomDiameter, bottomDiameter], center: .y)

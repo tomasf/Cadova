@@ -61,10 +61,10 @@ extension Array: SCADValue where Element: SCADValue {
 
 struct SCADCall: SCADFormattable {
     let name: String
-    let params: [String: SCADValue?]
-    let body: SCADFormattable?
+    let params: [String: (any SCADValue)?]
+    let body: (any SCADFormattable)?
 
-    init(name: String, params: [String: SCADValue?] = [:], body: SCADFormattable? = nil) {
+    init(name: String, params: [String: (any SCADValue)?] = [:], body: (any SCADFormattable)? = nil) {
         self.name = name
         self.params = params
         self.body = body
@@ -83,7 +83,7 @@ struct SCADCall: SCADFormattable {
 }
 
 struct GeometrySequence: Geometry {
-    let children: [Geometry]
+    let children: [any Geometry]
 
     func scadString(in environment: Environment) -> String {
         "{ " + children.map { $0.scadString(in: environment) }.joined(separator: " ") + " }"

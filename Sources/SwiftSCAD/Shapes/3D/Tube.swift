@@ -38,7 +38,7 @@ public struct Tube: Shape3D {
         self.init(innerDiameter: innerRadius * 2.0, thickness: thickness, height: height)
     }
 
-    public var body: Geometry3D {
+    public var body: any Geometry3D {
         Ring(outerDiameter: outerDiameter, innerDiameter: innerDiameter)
             .extruded(height: height)
     }

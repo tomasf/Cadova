@@ -75,7 +75,7 @@ public struct Ring: Shape2D {
     }
 
     /// The geometry representation of the ring.
-    public var body: Geometry2D {
+    public var body: any Geometry2D {
         Circle(diameter: outerDiameter)
             .subtracting {
                 Circle(diameter: innerDiameter)

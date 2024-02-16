@@ -38,7 +38,7 @@ public struct Torus: Shape3D {
         self.init(minorRadius: tubeDiameter / 2.0, majorRadius: outerDiameter / 2.0 - tubeDiameter / 2.0)
     }
 
-    public var body: Geometry3D {
+    public var body: any Geometry3D {
         Circle(radius: minorRadius)
             .translated(x: majorRadius, y: minorRadius)
             .extruded(angles: 0°..<360°)
