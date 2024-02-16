@@ -84,7 +84,7 @@ struct Star: Shape2D {
     let pointRadius: Double
     let centerSize: Double
 
-    var body: Geometry2D {
+    var body: any Geometry2D {
         Circle(diameter: centerSize)
         .adding {
             Circle(radius: max(pointRadius, 0.001))

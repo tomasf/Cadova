@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftSCAD
 
-fileprivate func assertEqualGeometry(_ geometry: Geometry, toFile fileName: String) {
+fileprivate func assertEqualGeometry(_ geometry: any Geometry, toFile fileName: String) {
     let url = Bundle.module.url(forResource: fileName, withExtension: "scad", subdirectory: "SCAD")!
     let correctString = try! String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
     let generatedString = geometry.scadString(in: Environment()).trimmingCharacters(in: .whitespacesAndNewlines)

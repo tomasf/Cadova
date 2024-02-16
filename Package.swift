@@ -32,7 +32,8 @@ let package = Package(
         .testTarget(
             name: "Tests",
             dependencies: ["SwiftSCAD"],
-            resources: [.copy("SCAD")]
+            resources: [.copy("SCAD")],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         )
     ]
 )

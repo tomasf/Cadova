@@ -31,7 +31,7 @@ final class ExampleTests: XCTestCase {
         let pointRadius: Double
         let centerSize: Double
 
-        var body: Geometry2D {
+        var body: any Geometry2D {
             Union {
                 Circle(diameter: centerSize)
                 Circle(radius: max(pointRadius, 0.001))
