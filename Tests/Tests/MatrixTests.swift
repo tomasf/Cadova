@@ -6,21 +6,24 @@ import simd
 
 final class MatrixTests: XCTestCase {
     func testEqualImplementations3x3() {
-        let simdMatrix1 = simd_double3x3(
+        let simdMatrix1 = simd_double3x3(rows: [
             .init(45.3, 4565, -94.245),
             .init(12.4, 0, -15),
             .init(3.77, 1, 1655.33)
-        )
-        let simdMatrix2 = simd_double3x3(
+        ])
+        let simdMatrix2 = simd_double3x3(rows: [
             .init(2, -2333.2, .pi),
             .init(100, 1, 18.1),
             .init(-1, 12, 6785.9)
-        )
+        ])
         let simdVector1 = SIMD3<Double>(1255.3, -6776.2, 8)
 
         let basicMatrix1 = BasicMatrix3x3(rows: simdMatrix1.values)
         let basicMatrix2 = BasicMatrix3x3(rows: simdMatrix2.values)
         let basicVector1 = BasicMatrix3x3.Column(simdVector1[0], simdVector1[1], simdVector1[2])
+
+        assertEqualEnoughMatrix(simdMatrix1.values, basicMatrix1.values)
+        assertEqualEnoughMatrix(simdMatrix2.values, basicMatrix2.values)
 
         let simdMultiplied = simdMatrix1 * simdMatrix2
         let basicMultiplied = basicMatrix1 * basicMatrix2
@@ -37,18 +40,18 @@ final class MatrixTests: XCTestCase {
     }
 
     func testEqualImplementations4x4() {
-        let simdMatrix1 = simd_double4x4(
+        let simdMatrix1 = simd_double4x4(rows: [
             .init(45.3, 67.2, 4565, -94.245),
             .init(12.4, 0, 45.1, -15),
             .init(1222, 3.77, 11, 566562),
             .init(55, 3.77, 1, 1655.33)
-        )
-        let simdMatrix2 = simd_double4x4(
+        ])
+        let simdMatrix2 = simd_double4x4(rows: [
             .init(2, -2333.2, .pi, 1),
             .init(100, 1, 18.1, -1),
             .init(-1, 23, 12, 6785.9),
             .init(6776, 3424, 565, 32)
-        )
+        ])
         let simdVector1 = SIMD4<Double>(1255.3, -6776.2, 8, -233.5)
 
         let basicMatrix1 = BasicMatrix4x4(rows: simdMatrix1.values)
@@ -86,13 +89,13 @@ final class MatrixTests: XCTestCase {
 
 extension simd_double3x3 {
     var values: [[Double]] {
-        (0..<3).map { [self[$0][0], self[$0][1], self[$0][2]] }
+        (0..<3).map { [self[0][$0], self[1][$0], self[2][$0]] }
     }
 }
 
 extension simd_double4x4 {
     var values: [[Double]] {
-        (0..<4).map { [self[$0][0], self[$0][1], self[$0][2], self[$0][3]] }
+        (0..<4).map { [self[0][$0], self[1][$0], self[2][$0], self[3][$0]] }
     }
 }
 

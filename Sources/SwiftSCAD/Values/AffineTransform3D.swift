@@ -33,12 +33,12 @@ public struct AffineTransform3D: Equatable {
         get {
             assert((0...3).contains(row), "Row index out of range")
             assert((0...3).contains(column), "Column index out of range")
-            return matrix[row, column]
+            return matrix[column, row]
         }
         set {
             assert((0...3).contains(row), "Row index out of range")
             assert((0...3).contains(column), "Column index out of range")
-            matrix[row, column] = newValue
+            matrix[column, row] = newValue
         }
     }
 
@@ -60,7 +60,7 @@ public struct AffineTransform3D: Equatable {
     ///
     /// - Parameter other: The `AffineTransform` to concatenate with.
     public func concatenated(with other: AffineTransform) -> AffineTransform {
-        AffineTransform(matrix * other.matrix)
+        AffineTransform(other.matrix * matrix)
     }
 
     public var inverse: AffineTransform3D {
@@ -84,8 +84,8 @@ public struct AffineTransform3D: Equatable {
     }
 }
 
-extension AffineTransform {
-    /// Creates a translation `AffineTransform` using the given x, y, and z offsets.
+extension AffineTransform3D {
+    /// Creates a translation `AffineTransform3D` using the given x, y, and z offsets.
     ///
     /// - Parameters:
     ///   - x: The x-axis translation offset.

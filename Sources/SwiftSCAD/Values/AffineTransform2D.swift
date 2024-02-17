@@ -31,12 +31,12 @@ public struct AffineTransform2D: Equatable {
         get {
             assert((0...2).contains(row), "Row index out of range")
             assert((0...2).contains(column), "Column index out of range")
-            return matrix[row, column]
+            return matrix[column, row]
         }
         set {
             assert((0...2).contains(row), "Row index out of range")
             assert((0...2).contains(column), "Column index out of range")
-            matrix[row, column] = newValue
+            matrix[column, row] = newValue
         }
     }
 
@@ -49,7 +49,7 @@ public struct AffineTransform2D: Equatable {
     ///
     /// - Parameter other: The `AffineTransform2D` to concatenate with.
     public func concatenated(with other: AffineTransform2D) -> AffineTransform2D {
-        AffineTransform2D(matrix * other.matrix)
+        AffineTransform2D(other.matrix * matrix)
     }
 
     /// Creates a new `AffineTransform2D` by setting a value at the given row and column indices.

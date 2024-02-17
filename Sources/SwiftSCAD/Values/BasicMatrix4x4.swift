@@ -10,7 +10,7 @@ internal struct BasicMatrix4x4: Equatable {
         values = rows
     }
 
-    subscript(_ row: Int, _ column: Int) -> Double {
+    subscript(_ column: Int, _ row: Int) -> Double {
         get { values[row][column] }
         set { values[row][column] = newValue }
     }
@@ -27,7 +27,7 @@ internal struct BasicMatrix4x4: Equatable {
             (0..<4).map { row in
                 (0..<4).map { column in
                     (0..<4).map { i in
-                        rhs[row, i] * lhs[i, column]
+                        lhs[i, row] * rhs[column, i]
                     }.reduce(0, +)
                 }
             }
@@ -35,9 +35,9 @@ internal struct BasicMatrix4x4: Equatable {
     }
 
     static func *(_ lhs: Column, _ rhs: BasicMatrix4x4) -> Row {
-        (0..<4).map { index in
-            rhs.values[index].enumerated().map { column, value in
-                value * lhs[column]
+        (0..<4).map { column in
+            (0..<4).map { row in
+                rhs[column, row] * lhs[row]
             }.reduce(0, +)
         }
     }
