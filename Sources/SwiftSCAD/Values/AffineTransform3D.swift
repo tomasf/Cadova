@@ -66,6 +66,22 @@ public struct AffineTransform3D: Equatable {
     public var inverse: AffineTransform3D {
         .init(matrix.inverse)
     }
+
+    public func applying(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> AffineTransform3D {
+        .init(
+            (0..<4).map { row in
+                (0..<4).map { column in
+                    function(row, column, self[row, column])
+                }
+            }
+        )
+    }
+
+    public static func linearInterpolation(_ from: AffineTransform3D, _ to: AffineTransform3D, factor: Double) -> AffineTransform3D {
+        from.applying { row, column, value in
+            value + (to[row, column] - value) * factor
+        }
+    }
 }
 
 extension AffineTransform {
