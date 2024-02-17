@@ -42,6 +42,14 @@ internal struct BasicMatrix4x4: Equatable {
         }
     }
 
+    static func *(_ lhs: BasicMatrix4x4, _ rhs: Column) -> Row {
+        (0..<4).map { row in
+            (0..<4).map { column in
+                lhs[column, row] * rhs[column]
+            }.reduce(0, +)
+        }
+    }
+
     var inverse: BasicMatrix4x4 {
         .init(rows: invertMatrix(matrix: values))
     }

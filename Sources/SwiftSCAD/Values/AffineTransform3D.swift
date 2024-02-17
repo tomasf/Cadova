@@ -277,7 +277,7 @@ extension AffineTransform {
     /// - Parameter point: The 3D point to transform.
     /// - Returns: The transformed 3D point.
     public func apply(to point: Vector3D) -> Vector3D {
-        return Vector3D(matrixColumn: point.matrixColumn * matrix)
+        return Vector3D(matrixColumn: matrix * point.matrixColumn)
     }
 }
 

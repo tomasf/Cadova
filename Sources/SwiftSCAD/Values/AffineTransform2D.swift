@@ -229,7 +229,7 @@ extension AffineTransform2D {
     /// - Parameter point: The 2D point to transform.
     /// - Returns: The transformed 2D point.
     public func apply(to point: Vector2D) -> Vector2D {
-        return Vector2D(matrixColumn: point.matrixColumn * matrix)
+        return Vector2D(matrixColumn: matrix * point.matrixColumn)
     }
 }
 

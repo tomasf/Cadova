@@ -13,6 +13,8 @@ final class TransformTests: XCTestCase {
                     .rotated(x: 90°)
             )
         .assertEqual(toFile: "transform3d")
+
+        XCTAssertEqual(AffineTransform3D.translation(z: 3).apply(to: .zero).z, 3.0, accuracy: 0.0001)
     }
 
     func testTransform2DTo3D() {

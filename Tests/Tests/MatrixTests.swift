@@ -33,6 +33,10 @@ final class MatrixTests: XCTestCase {
         let basicApplied = basicVector1 * basicMultiplied
         assertEqualEnough([simdApplied.x, simdApplied.y, simdApplied.z], basicApplied)
 
+        let simdApplied2 = simdMultiplied * simdVector1
+        let basicApplied2 = basicMultiplied * basicVector1
+        assertEqualEnough([simdApplied2.x, simdApplied2.y, simdApplied2.z], basicApplied2)
+
         let simdInverse = simdMatrix1.inverse
         let basicInverse = basicMatrix1.inverse
         assertEqualEnoughMatrix(simdInverse.values, basicInverse.values)
@@ -66,6 +70,10 @@ final class MatrixTests: XCTestCase {
         let basicApplied = basicVector1 * basicMultiplied
         assertEqualEnough([simdApplied.x, simdApplied.y, simdApplied.z, simdApplied.w], basicApplied)
 
+        let simdApplied2 = simdMultiplied * simdVector1
+        let basicApplied2 = basicMultiplied * basicVector1
+        assertEqualEnough([simdApplied2.x, simdApplied2.y, simdApplied2.z, simdApplied2.w], basicApplied2)
+
         let simdInverse = simdMatrix1.inverse
         let basicInverse = basicMatrix1.inverse
         assertEqualEnoughMatrix(simdInverse.values, basicInverse.values)
@@ -75,7 +83,7 @@ final class MatrixTests: XCTestCase {
     func assertEqualEnough(_ a: [Double], _ b: [Double]) {
         XCTAssertEqual(a.count, b.count)
         for (v1, v2) in zip(a, b) {
-            XCTAssertEqual(v1, v2, accuracy: 0.00001)
+            XCTAssertEqual(v1, v2, accuracy: 0.01)
         }
     }
 

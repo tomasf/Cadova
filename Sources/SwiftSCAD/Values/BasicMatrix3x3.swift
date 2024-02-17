@@ -41,6 +41,14 @@ internal struct BasicMatrix3x3: Equatable {
         }
     }
 
+    static func *(_ lhs: BasicMatrix3x3, _ rhs: Column) -> Row {
+        (0..<3).map { index in
+            lhs.values[index].enumerated().map { column, value in
+                value * rhs[column]
+            }.reduce(0, +)
+        }
+    }
+
     var inverse: BasicMatrix3x3 {
         .init(rows: invertMatrix(matrix: values))
     }
