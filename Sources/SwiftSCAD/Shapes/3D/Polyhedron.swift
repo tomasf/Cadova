@@ -89,6 +89,13 @@ public struct Polyhedron: CoreGeometry3D {
         self.init(points: table, faces: faces, convexity: convexity)
     }
 
+    public init<Vertex: Hashable>(faces: [OrderedSet<Vertex>], convexity: Int = 2, resolver: (Vertex) -> Vector3D) {
+        let table: [Vertex: Vector3D] = faces.joined().reduce(into: [:]) { table, vertex in
+            table[vertex] = resolver(vertex)
+        }
+        self.init(points: table, faces: faces, convexity: convexity)
+    }
+
     func call(in environment: Environment) -> SCADCall {
         SCADCall(
             name: "polyhedron",
