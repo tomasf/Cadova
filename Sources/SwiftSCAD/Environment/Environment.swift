@@ -21,7 +21,7 @@ public struct Environment {
         return Environment(values: values)
     }
 
-    subscript(key: ValueKey) -> Any? {
+    public subscript(key: ValueKey) -> Any? {
         values[key]
     }
 }
