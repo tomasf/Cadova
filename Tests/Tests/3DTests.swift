@@ -19,4 +19,31 @@ final class Geometry3DTests: XCTestCase {
             .adding {}
             .assertEqual(toFile: "empty3d")
     }
+
+    func testOperations() {
+        let testGeometry = Box([1,2,3])
+            .assertOperation(.addition)
+            .subtracting {
+                Sphere(diameter: 3)
+                    .assertOperation(.subtraction)
+                    .subtracting {
+                        Box([1,2,3])
+                            .assertOperation(.addition)
+                    }
+                    .assertOperation(.subtraction)
+            }
+            .assertOperation(.addition)
+
+        _ = testGeometry
+            .scadString(in: .defaultEnvironment)
+    }
+}
+
+extension Geometry3D {
+    func assertOperation(_ expectedOperation: Environment.Operation) -> any Geometry3D {
+        readingEnvironment { geo, environment in
+            XCTAssertEqual(environment.operation, expectedOperation)
+            geo
+        }
+    }
 }

@@ -25,13 +25,17 @@ public func EnvironmentReader(@UnionBuilder3D body: @escaping (Environment) -> a
 }
 
 public extension Geometry2D {
-    func readingEnvironment(@UnionBuilder2D _ body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
-        EnvironmentReader2D(body: body)
+    func readingEnvironment(@UnionBuilder2D _ body: @escaping (any Geometry2D, Environment) -> any Geometry2D) -> any Geometry2D {
+        EnvironmentReader2D { environment in
+            body(self, environment)
+        }
     }
 }
 
 public extension Geometry3D {
-    func readingEnvironment(@UnionBuilder3D _ body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
-        EnvironmentReader3D(body: body)
+    func readingEnvironment(@UnionBuilder3D _ body: @escaping (any Geometry3D, Environment) -> any Geometry3D) -> any Geometry3D {
+        EnvironmentReader3D { environment in
+            body(self, environment)
+        }
     }
 }

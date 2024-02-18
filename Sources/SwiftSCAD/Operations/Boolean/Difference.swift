@@ -7,6 +7,7 @@ struct Difference3D: CoreGeometry3D {
     init(positive: any Geometry3D, negative: any Geometry3D) {
         self.positive = positive
         self.negative = negative
+            .invertingOperation()
     }
 
     func call(in environment: Environment) -> SCADCall {
@@ -46,6 +47,7 @@ struct Difference2D: CoreGeometry2D {
     init(positive: any Geometry2D, negative: any Geometry2D) {
         self.positive = positive
         self.negative = negative
+            .invertingOperation()
     }
 
     func call(in environment: Environment) -> SCADCall {
