@@ -30,7 +30,7 @@ final class TransformTests: XCTestCase {
                 .rotated(15°)
         ]
 
-        let transforms3D: [SwiftSCAD.AffineTransform] = [
+        let transforms3D: [SwiftSCAD.AffineTransform3D] = [
             .translation(x: 10, y: 3),
             .scaling(x: 3, y: 9),
             .rotation(z: 30°),
@@ -48,7 +48,7 @@ final class TransformTests: XCTestCase {
         ]
         for (index, transform2D) in transforms2D.enumerated() {
             let transform3D = transforms3D[index]
-            let converted3D = AffineTransform(transform2D)
+            let converted3D = AffineTransform3D(transform2D)
 
             XCTAssertEqual(transform3D.values, converted3D.values)
 

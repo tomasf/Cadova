@@ -3,8 +3,6 @@ import Foundation
 import simd
 #endif
 
-public typealias AffineTransform = AffineTransform3D
-
 /// An `AffineTransform3D` represents a 3D affine transformation using a 4x4 matrix.
 public struct AffineTransform3D: Equatable {
     private var matrix: Matrix4x4
@@ -13,13 +11,13 @@ public struct AffineTransform3D: Equatable {
         self.matrix = matrix
     }
 
-    /// Creates an `AffineTransform` with the specified 4x4 matrix.
+    /// Creates an `AffineTransform3D` with the specified 4x4 matrix.
     ///
     /// - Parameter values: A 2D array of `Double` with 4x4 elements in row-major order.
     public init(_ values: [[Double]]) {
         precondition(
             values.count == 4 && values.allSatisfy { $0.count == 4},
-            "AffineTransform requires 16 (4 x 4) elements"
+            "AffineTransform3D requires 16 (4 x 4) elements"
         )
         self.init(Matrix4x4(rows: values.map(Matrix4x4.Row.init)))
     }
@@ -51,16 +49,16 @@ public struct AffineTransform3D: Equatable {
         }
     }
 
-    /// The identity `AffineTransform`, representing no transformation.
-    public static var identity: AffineTransform {
-        AffineTransform(Matrix4x4.identity)
+    /// The identity `AffineTransform3D`, representing no transformation.
+    public static var identity: AffineTransform3D {
+        AffineTransform3D(Matrix4x4.identity)
     }
 
-    /// Concatenates this `AffineTransform` with another, creating a new combined transformation.
+    /// Concatenates this `AffineTransform3D` with another, creating a new combined transformation.
     ///
-    /// - Parameter other: The `AffineTransform` to concatenate with.
-    public func concatenated(with other: AffineTransform) -> AffineTransform {
-        AffineTransform(other.matrix * matrix)
+    /// - Parameter other: The `AffineTransform3D` to concatenate with.
+    public func concatenated(with other: AffineTransform3D) -> AffineTransform3D {
+        AffineTransform3D(other.matrix * matrix)
     }
 
     public var inverse: AffineTransform3D {
@@ -91,7 +89,7 @@ extension AffineTransform3D {
     ///   - x: The x-axis translation offset.
     ///   - y: The y-axis translation offset.
     ///   - z: The z-axis translation offset.
-    public static func translation(x: Double = 0, y: Double = 0, z: Double = 0) -> AffineTransform {
+    public static func translation(x: Double = 0, y: Double = 0, z: Double = 0) -> AffineTransform3D {
         var transform = identity
         transform[0, 3] = x
         transform[1, 3] = y
@@ -99,20 +97,20 @@ extension AffineTransform3D {
         return transform
     }
 
-    /// Creates a translation `AffineTransform` using the given 3D vector.
+    /// Creates a translation `AffineTransform3D` using the given 3D vector.
     ///
     /// - Parameter v: The 3D vector representing the translation along each axis.
-    public static func translation(_ v: Vector3D) -> AffineTransform {
+    public static func translation(_ v: Vector3D) -> AffineTransform3D {
         translation(x: v.x, y: v.y, z: v.z)
     }
 
-    /// Creates a scaling `AffineTransform` using the given x, y, and z scaling factors.
+    /// Creates a scaling `AffineTransform3D` using the given x, y, and z scaling factors.
     ///
     /// - Parameters:
     ///   - x: The scaling factor along the x-axis.
     ///   - y: The scaling factor along the y-axis.
     ///   - z: The scaling factor along the z-axis.
-    public static func scaling(x: Double = 1, y: Double = 1, z: Double = 1) -> AffineTransform {
+    public static func scaling(x: Double = 1, y: Double = 1, z: Double = 1) -> AffineTransform3D {
         var transform = identity
         transform[0, 0] = x
         transform[1, 1] = y
@@ -120,20 +118,20 @@ extension AffineTransform3D {
         return transform
     }
 
-    /// Creates a scaling `AffineTransform` using the given 3D vector.
+    /// Creates a scaling `AffineTransform3D` using the given 3D vector.
     ///
     /// - Parameter v: The 3D vector representing the scaling along each axis.
-    public static func scaling(_ v: Vector3D) -> AffineTransform {
+    public static func scaling(_ v: Vector3D) -> AffineTransform3D {
         scaling(x: v.x, y: v.y, z: v.z)
     }
 
-    /// Creates a rotation `AffineTransform` using the given angles for rotation along the x, y, and z axes.
+    /// Creates a rotation `AffineTransform3D` using the given angles for rotation along the x, y, and z axes.
     ///
     /// - Parameters:
     ///   - x: The rotation angle around the x-axis.
     ///   - y: The rotation angle around the y-axis.
     ///   - z: The rotation angle around the z-axis.
-    public static func rotation(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> AffineTransform {
+    public static func rotation(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> AffineTransform3D {
         var transform = identity
         transform[0, 0] = cos(y) * cos(z)
         transform[0, 1] = sin(x) * sin(y) * cos(z) - cos(x) * sin(z)
@@ -147,120 +145,120 @@ extension AffineTransform3D {
         return transform
     }
 
-    /// Creates a rotation `AffineTransform` using the given array of angles for rotation along the x, y, and z axes.
+    /// Creates a rotation `AffineTransform3D` using the given array of angles for rotation along the x, y, and z axes.
     ///
     /// - Parameter a: An array containing the rotation angles for x, y, and z axes, respectively.
-    public static func rotation(_ a: [Angle]) -> AffineTransform {
+    public static func rotation(_ a: [Angle]) -> AffineTransform3D {
         assert(a.count == 3, "Rotate expects three angles")
         return rotation(x: a[0], y: a[1], z: a[2])
     }
 
-    /// Creates a shearing `AffineTransform` that skews along one axis with respect to another axis.
+    /// Creates a shearing `AffineTransform3D` that skews along one axis with respect to another axis.
     ///
     /// - Parameters:
     ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - factor: The shearing factor.
-    public static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform {
+    public static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform3D {
         precondition(axis != otherAxis, "Shearing requires two distinct axes")
-        var t = AffineTransform.identity
+        var t = AffineTransform3D.identity
         t[axis.index, otherAxis.index] = factor
         return t
     }
 
-    /// Creates a shearing `AffineTransform` that skews along one axis with respect to another axis at the given angle.
+    /// Creates a shearing `AffineTransform3D` that skews along one axis with respect to another axis at the given angle.
     ///
     /// - Parameters:
     ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - angle: The angle of shearing.
-    public static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform {
+    public static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform3D {
         assert(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
         let factor = sin(angle) / sin(90° - angle)
         return shearing(axis, along: otherAxis, factor: factor)
     }
 }
 
-extension AffineTransform {
-    /// Creates a new `AffineTransform` by concatenating a translation with this transformation.
+extension AffineTransform3D {
+    /// Creates a new `AffineTransform3D` by concatenating a translation with this transformation.
     ///
     /// - Parameters:
     ///   - x: The x-axis translation offset.
     ///   - y: The y-axis translation offset.
     ///   - z: The z-axis translation offset.
-    public func translated(x: Double = 0, y: Double = 0, z: Double = 0) -> AffineTransform {
+    public func translated(x: Double = 0, y: Double = 0, z: Double = 0) -> AffineTransform3D {
         concatenated(with: .translation(x: x, y: y, z: z))
     }
 
-    /// Creates a new `AffineTransform` by concatenating a translation with this transformation using the given 3D vector.
+    /// Creates a new `AffineTransform3D` by concatenating a translation with this transformation using the given 3D vector.
     ///
     /// - Parameter v: The 3D vector representing the translation along each axis.
-    public func translated(_ v: Vector3D) -> AffineTransform {
+    public func translated(_ v: Vector3D) -> AffineTransform3D {
         concatenated(with: .translation(v))
     }
 
-    /// Creates a new `AffineTransform` by concatenating a scaling transformation with this transformation using the given 3D vector.
+    /// Creates a new `AffineTransform3D` by concatenating a scaling transformation with this transformation using the given 3D vector.
     ///
     /// - Parameter v: The 3D vector representing the scaling along each axis.
-    public func scaled(_ v: Vector3D) -> AffineTransform {
+    public func scaled(_ v: Vector3D) -> AffineTransform3D {
         concatenated(with: .scaling(v))
     }
 
-    /// Creates a new `AffineTransform` by concatenating a scaling transformation with this transformation.
+    /// Creates a new `AffineTransform3D` by concatenating a scaling transformation with this transformation.
     ///
     /// - Parameters:
     ///   - x: The scaling factor along the x-axis.
     ///   - y: The scaling factor along the y-axis.
     ///   - z: The scaling factor along the z-axis.
-    public func scaled(x: Double = 1, y: Double = 1, z: Double = 1) -> AffineTransform {
+    public func scaled(x: Double = 1, y: Double = 1, z: Double = 1) -> AffineTransform3D {
         concatenated(with: .scaling(x: x, y: y, z: z))
     }
 
-    /// Creates a new `AffineTransform` by concatenating a rotation transformation with this transformation using the given array of angles.
+    /// Creates a new `AffineTransform3D` by concatenating a rotation transformation with this transformation using the given array of angles.
     ///
     /// - Parameter a: An array containing the rotation angles for x, y, and z axes, respectively.
-    public func rotated(_ a: [Angle]) -> AffineTransform {
+    public func rotated(_ a: [Angle]) -> AffineTransform3D {
         concatenated(with: .rotation(a))
     }
 
-    /// Creates a new `AffineTransform` by concatenating a rotation transformation with this transformation using the given angles for rotation.
+    /// Creates a new `AffineTransform3D` by concatenating a rotation transformation with this transformation using the given angles for rotation.
     ///
     /// - Parameters:
     ///   - x: The rotation angle around the x-axis.
     ///   - y: The rotation angle around the y-axis.
     ///   - z: The rotation angle around the z-axis.
-    public func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> AffineTransform {
+    public func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> AffineTransform3D {
         concatenated(with: .rotation(x: x, y: y, z: z))
     }
 
-    /// Creates a new `AffineTransform` by concatenating a shearing transformation with this transformation.
+    /// Creates a new `AffineTransform3D` by concatenating a shearing transformation with this transformation.
     ///
     /// - Parameters:
     ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - factor: The shearing factor.
-    public func sheared(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform {
+    public func sheared(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform3D {
         concatenated(with: .shearing(axis, along: otherAxis, factor: factor))
     }
 
-    /// Creates a new `AffineTransform` by concatenating a shearing transformation with this transformation at the given angle.
+    /// Creates a new `AffineTransform3D` by concatenating a shearing transformation with this transformation at the given angle.
     ///
     /// - Parameters:
     ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - angle: The angle of shearing.
-    public func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform {
+    public func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform3D {
         concatenated(with: .shearing(axis, along: otherAxis, angle: angle))
     }
 }
 
-extension AffineTransform {
-    /// Creates a new `AffineTransform` from a 2D affine transformation.
+extension AffineTransform3D {
+    /// Creates a new `AffineTransform3D` from a 2D affine transformation.
     ///
     /// - Parameter transform2d: The 2D affine transformation to convert.
     public init(_ transform2d: AffineTransform2D) {
-        var transform = AffineTransform.identity
-        
+        var transform = AffineTransform3D.identity
+
         transform[0, 0] = transform2d[0, 0]
         transform[0, 1] = transform2d[0, 1]
         transform[1, 0] = transform2d[1, 0]
@@ -281,7 +279,7 @@ extension AffineTransform {
     }
 }
 
-extension AffineTransform: SCADValue {
+extension AffineTransform3D: SCADValue {
     public var scadString: String {
         values.scadString
     }

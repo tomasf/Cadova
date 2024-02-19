@@ -237,7 +237,7 @@ extension AffineTransform2D {
     /// Creates a new `AffineTransform2D` by converting a 3D affine transformation to 2D, discarding Z components.
     ///
     /// - Parameter transform3d: The 3D affine transformation to convert.
-    public init(_ transform3d: AffineTransform) {
+    public init(_ transform3d: AffineTransform3D) {
         self = .identity
 
         self[0, 0] = transform3d[0, 0]

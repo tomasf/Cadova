@@ -12,7 +12,7 @@ struct Translate3D: CoreGeometry3D {
         )
     }
 
-    var bodyTransform: AffineTransform {
+    var bodyTransform: AffineTransform3D {
         .translation(distance)
     }
 }
@@ -44,7 +44,7 @@ struct Translate2D: CoreGeometry2D {
         )
     }
 
-    var bodyTransform: AffineTransform {
+    var bodyTransform: AffineTransform3D {
         .translation(Vector3D(distance))
     }
 }

@@ -52,7 +52,7 @@ extension RoundedBox {
                         let ones = Vector3D(x: 1, y: 1, z: 1)
                         let offset = (box.size / 2 - box.radius) * (ones.setting(axes: mirrorAxes, to: -1))
 
-                        return AffineTransform.translation(x: box.radius)
+                        return AffineTransform3D.translation(x: box.radius)
                             .rotated(y: levelAngle)
                             .rotated(z: sectorAngle)
                             .translated(offset)

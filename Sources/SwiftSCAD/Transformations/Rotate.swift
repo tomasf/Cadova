@@ -14,7 +14,7 @@ struct Rotate3D: CoreGeometry3D {
         )
     }
 
-    var bodyTransform: AffineTransform {
+    var bodyTransform: AffineTransform3D {
         .rotation(x: x, y: y, z: z)
     }
 }
@@ -61,7 +61,7 @@ struct Rotate2D: CoreGeometry2D {
         )
     }
 
-    var bodyTransform: AffineTransform {
+    var bodyTransform: AffineTransform3D {
         .rotation(z: angle)
     }
 }

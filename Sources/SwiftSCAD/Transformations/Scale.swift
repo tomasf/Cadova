@@ -12,7 +12,7 @@ struct Scale3D: CoreGeometry3D {
         )
     }
 
-    var bodyTransform: AffineTransform {
+    var bodyTransform: AffineTransform3D {
         .scaling(scale)
     }
 }
@@ -48,7 +48,7 @@ struct Scale2D: CoreGeometry2D {
         )
     }
 
-    var bodyTransform: AffineTransform {
+    var bodyTransform: AffineTransform3D {
         .scaling(x: scale.x, y: scale.y, z: 1)
     }
 }

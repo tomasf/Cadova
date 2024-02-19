@@ -23,7 +23,7 @@ internal struct Empty: Geometry3D, Geometry2D {
 
 protocol CoreGeometry3D: Geometry3D {
     func call(in environment: Environment) -> SCADCall
-    var bodyTransform: AffineTransform { get }
+    var bodyTransform: AffineTransform3D { get }
 }
 
 extension CoreGeometry3D {
@@ -33,7 +33,7 @@ extension CoreGeometry3D {
             .scadString(in: newEnvironment)
     }
 
-    var bodyTransform: AffineTransform { .identity }
+    var bodyTransform: AffineTransform3D { .identity }
 }
 
 protocol ContainerGeometry3D: Geometry3D {
@@ -48,7 +48,7 @@ extension ContainerGeometry3D {
 
 protocol CoreGeometry2D: Geometry2D {
     func call(in environment: Environment) -> SCADCall
-    var bodyTransform: AffineTransform { get }
+    var bodyTransform: AffineTransform3D { get }
 }
 
 extension CoreGeometry2D {
@@ -58,7 +58,7 @@ extension CoreGeometry2D {
             .scadString(in: newEnvironment)
     }
 
-    var bodyTransform: AffineTransform { .identity }
+    var bodyTransform: AffineTransform3D { .identity }
 }
 
 protocol ContainerGeometry2D: Geometry2D {

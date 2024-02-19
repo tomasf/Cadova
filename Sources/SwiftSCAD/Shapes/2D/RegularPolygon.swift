@@ -33,7 +33,7 @@ public struct RegularPolygon: Shape2D {
     ///
     /// - Parameters:
     ///   - sideCount: The number of sides in the polygon.
-    ///   - apothem: The distance from the center of the polygon to a side.
+    ///   - apothem: The distance from the center of the polygon to a side; its inradius.
     public init(sideCount: Int, apothem: Double) {
         self.init(sideCount: sideCount, circumradius: apothem / cos(.pi / Double(sideCount)))
     }
