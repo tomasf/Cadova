@@ -1,10 +1,3 @@
-//
-//  ExtrudeAlong.swift
-//  GeoTest
-//
-//  Created by Tomas Franzén on 2021-07-07.
-//
-
 import Foundation
 
 struct ExtrudeAlong: CoreGeometry3D {
