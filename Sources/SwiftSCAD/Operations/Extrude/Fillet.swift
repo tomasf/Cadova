@@ -29,7 +29,7 @@ public extension Geometry2D {
         }
     }
 
-    @UnionBuilder3D internal func filletEdgeMask(height: Double, topRadius radius: Double, method: EdgeShape.Method) -> any Geometry3D {
+    @UnionBuilder3D internal func filletEdgeMask(height: Double, topRadius radius: Double, method: EdgeProfile.Method) -> any Geometry3D {
         switch method {
         case .layered (let layerHeight):
             extrudedLayered(height: height, topRadius: radius, layerHeight: layerHeight)

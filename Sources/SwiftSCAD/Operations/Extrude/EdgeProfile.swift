@@ -1,7 +1,7 @@
 import Foundation
 
-/// The style of the edge of an extruded shape
-public enum EdgeShape: Equatable {
+/// The shape of the edge of an extruded shape
+public enum EdgeProfile: Equatable {
     /// A sharp edge without modification
     case sharp
     /// A rounded edge
@@ -21,9 +21,9 @@ public enum EdgeShape: Equatable {
     }
 }
 
-public extension EdgeShape {
+public extension EdgeProfile {
     /// A 45° chamfered edge
-    static func chamfer(size: Double) -> EdgeShape {
+    static func chamfer(size: Double) -> EdgeProfile {
         .chamfer(width: size, height: size)
     }
 
@@ -31,7 +31,7 @@ public extension EdgeShape {
     /// - Parameters:
     ///   - width: The depth of the chamfer in the X/Y axes
     ///   - angle: An angle between 0° and 90°, measured from the top of the extrusion
-    static func chamfer(width: Double, angle: Angle) -> EdgeShape {
+    static func chamfer(width: Double, angle: Angle) -> EdgeProfile {
         assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
         return .chamfer(width: width, height: width * tan(angle))
     }
@@ -40,7 +40,7 @@ public extension EdgeShape {
     /// - Parameters:
     ///   - height: The depth of the chamfer in the Z axis
     ///   - angle: An angle between 0° and 90°, measured from the top of the extrusion
-    static func chamfer(height: Double, angle: Angle) -> EdgeShape {
+    static func chamfer(height: Double, angle: Angle) -> EdgeProfile {
         assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
         return .chamfer(width: height / tan(angle), height: height)
     }
@@ -56,23 +56,23 @@ public extension Geometry2D {
     ///
     /// - Parameters:
     ///   - height: The height of the extrusion.
-    ///   - topEdge: The shape of the top edge.
-    ///   - bottomEdge: The shape of the bottom edge.
+    ///   - topEdge: The profile of the top edge.
+    ///   - bottomEdge: The profile of the bottom edge.
     ///   - method: The method of extrusion, either `.layered(thickness:)` or `.convexHull`.
     ///     - `.layered`: This method divides the extrusion into distinct layers with a given thickness. While less elegant and more expensive to render, it is suitable for non-convex shapes. Layers work well for 3D printing, as the printing process inherently occurs in layers.
     ///     - `.convexHull`: This method creates a smooth, non-layered shape. It is often computationally less intensive and results in a more aesthetically pleasing form but only works as expected for convex shapes.
     /// - Returns: The extruded 3D geometry.
 
-    func extruded(height: Double, topEdge: EdgeShape = .sharp, bottomEdge: EdgeShape = .sharp, method: EdgeShape.Method) -> any Geometry3D {
+    func extruded(height: Double, topEdge: EdgeProfile = .sharp, bottomEdge: EdgeProfile = .sharp, method: EdgeProfile.Method) -> any Geometry3D {
         extruded(height: height)
             .intersection {
                 if topEdge != .sharp {
-                    edgeMask(height: height, edgeShape: topEdge, method: method)
+                    edgeMask(height: height, edgeProfile: topEdge, method: method)
                 }
             }
             .intersection {
                 if bottomEdge != .sharp {
-                    edgeMask(height: height, edgeShape: bottomEdge, method: method)
+                    edgeMask(height: height, edgeProfile: bottomEdge, method: method)
                         .scaled(z: -1)
                         .translated(z: height)
                 }
@@ -81,8 +81,8 @@ public extension Geometry2D {
 }
 
 private extension Geometry2D {
-    func edgeMask(height: Double, edgeShape: EdgeShape, method: EdgeShape.Method) -> any Geometry3D {
-        switch edgeShape {
+    func edgeMask(height: Double, edgeProfile: EdgeProfile, method: EdgeProfile.Method) -> any Geometry3D {
+        switch edgeProfile {
         case .sharp:
             extruded(height: height)
         case .fillet (let radius):

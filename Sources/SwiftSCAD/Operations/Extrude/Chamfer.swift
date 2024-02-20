@@ -25,7 +25,7 @@ public extension Geometry2D {
             .convexHull()
     }
 
-    @UnionBuilder3D internal func chamferEdgeMask(height: Double, chamferWidth: Double, chamferHeight: Double, method: EdgeShape.Method) -> any Geometry3D {
+    @UnionBuilder3D internal func chamferEdgeMask(height: Double, chamferWidth: Double, chamferHeight: Double, method: EdgeProfile.Method) -> any Geometry3D {
         switch method {
         case .layered (let layerHeight):
             extrudedLayered(height: height, chamferHeight: chamferHeight, chamferDepth: chamferWidth, layerHeight: layerHeight)
