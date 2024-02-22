@@ -73,7 +73,7 @@ public extension Geometry2D {
             .intersection {
                 if bottomEdge != .sharp {
                     edgeMask(height: height, edgeProfile: bottomEdge, method: method)
-                        .scaled(z: -1)
+                        .flipped(along: .z)
                         .translated(z: height)
                 }
             }
