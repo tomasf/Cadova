@@ -3,7 +3,7 @@ import Collections
 
 private extension Polyhedron {
     init(extruding shape: Polygon, along path: [AffineTransform3D], convexity: Int, environment: Environment) {
-        struct PointReference: Hashable {
+        struct Vertex: Hashable {
             let transform: Int
             let point: Int
         }
@@ -14,16 +14,16 @@ private extension Polyhedron {
             (0..<pointCount).map { pointIndex in
                 let nextPointIndex = (pointIndex + 1) % pointCount
                 return OrderedSet([
-                    PointReference(transform: fromPolygonIndex, point: pointIndex),
-                    PointReference(transform: toPolygonIndex, point: pointIndex),
-                    PointReference(transform: toPolygonIndex, point: nextPointIndex),
-                    PointReference(transform: fromPolygonIndex, point: nextPointIndex)
+                    Vertex(transform: fromPolygonIndex, point: pointIndex),
+                    Vertex(transform: toPolygonIndex, point: pointIndex),
+                    Vertex(transform: toPolygonIndex, point: nextPointIndex),
+                    Vertex(transform: fromPolygonIndex, point: nextPointIndex)
                 ])
             }
         }
 
-        let startFace = OrderedSet((0..<pointCount).map { PointReference(transform: 0, point: $0) })
-        let endFace = OrderedSet((0..<pointCount).map { PointReference(transform: path.count - 1, point: $0) }.reversed())
+        let startFace = OrderedSet((0..<pointCount).map { Vertex(transform: 0, point: $0) })
+        let endFace = OrderedSet((0..<pointCount).map { Vertex(transform: path.count - 1, point: $0) }.reversed())
 
         self.init(faces: sideFaces + [startFace, endFace], convexity: convexity) { ref in
             path[ref.transform].apply(to: flatPoints[ref.point])
