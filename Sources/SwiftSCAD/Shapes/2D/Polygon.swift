@@ -15,20 +15,24 @@ import Foundation
 /// let polygonFromBezierPath = Polygon(bezierPath)
 /// ```
 public struct Polygon: CoreGeometry2D {
-    let pointsProvider: any PolygonPointsProvider
+    private let pointsProvider: any PolygonPointsProvider
+
+    internal init(provider: any PolygonPointsProvider) {
+        pointsProvider = provider
+    }
 
     /// Creates a new `Polygon` instance with the specified points.
     ///
     /// - Parameter points: An array of `Vector2D` that defines the vertices of the polygon.
     public init(_ points: [Vector2D]) {
-        pointsProvider = points
+        self.init(provider: points)
     }
 
     /// Creates a new `Polygon` instance with the specified Bezier path.
     ///
     /// - Parameter bezierPath: A `BezierPath` that defines the shape of the polygon.
     public init(_ bezierPath: BezierPath) {
-        pointsProvider = bezierPath
+        self.init(provider: bezierPath)
     }
 
     public func points(in environment: Environment) -> [Vector2D] {
@@ -43,18 +47,16 @@ public struct Polygon: CoreGeometry2D {
     }
 }
 
-protocol PolygonPointsProvider {
-    func points(in environment: Environment) -> [Vector2D]
-}
-
-extension [Vector2D]: PolygonPointsProvider {
-    func points(in environment: Environment) -> [Vector2D] {
-        self
+public extension Polygon {
+    func applying(_ transformation: @escaping (Vector2D) -> Vector2D) -> Polygon {
+        Polygon(provider: TransformedPolygonPoints(innerProvider: pointsProvider, transformation: transformation))
     }
-}
 
-extension BezierPath: PolygonPointsProvider {
-    func points(in environment: Environment) -> [Vector2D] {
-        points(facets: environment.facets)
+    func transformed(_ transform: AffineTransform2D) -> Polygon {
+        applying { transform.apply(to: $0) }
+    }
+
+    func boundingRect(in environment: Environment) -> BoundingRect {
+        .init(points(in: environment))
     }
 }
