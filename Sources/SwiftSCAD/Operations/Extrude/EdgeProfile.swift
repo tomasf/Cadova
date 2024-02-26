@@ -1,15 +1,16 @@
 import Foundation
 
-/// The shape of the edge of an extruded shape
+/// The profile of an edge
 public enum EdgeProfile: Equatable {
-    /// A sharp edge without modification
+    /// Represents an edge that remains unmodified, maintaining its original sharpness.
     case sharp
-    /// A rounded edge
+    /// Represents an edge modified to be rounded.
+    /// - Parameter radius: The radius of the curvature applied to the edge, determining the degree of roundness.
     case fillet (radius: Double)
-    /// A flat chamfered edge
+    /// Represents an edge that is chamfered, creating a beveled effect by cutting off the edge at a flat angle.
     /// - Parameters:
-    ///   - width: The depth of the chamfer in the X/Y axes
-    ///   - topEdge: The depth of the chamfer in the Z axis
+    ///   - width: The horizontal distance from the original edge to the chamfer's farthest point, determining the chamfer's depth.
+    ///   - height: The vertical height from the base of the edge to the top of the chamfer.
     case chamfer (width: Double, height: Double)
 
     /// Methods for building an extruded shape with modified edges
@@ -77,6 +78,42 @@ public extension Geometry2D {
                         .translated(z: height)
                 }
             }
+    }
+}
+
+public extension EdgeProfile {
+    /// Generates a shape for edge modification, suitable for extrusion along an edge to customize its profile.
+    ///
+    /// This method creates a 2D shape, designed for altering edges by extruding this shape along the edge's path. The extruded shape can be utilized to modify a 3D object’s edges by either adding to or subtracting from it:
+    /// - For exterior edges, subtract the extruded shape to mitigate sharpness or create a beveled effect.
+    /// - For interior edges, add the extruded shape to expand it.
+    ///
+    /// - Parameter angle: specifies the edge's angle. This makes the shape align with the geometry of the edge being modified.
+    func shape(angle: Angle = 90°) -> any Geometry2D {
+        switch self {
+        case .sharp:
+            return Rectangle(.zero)
+
+        case .fillet(let radius):
+            let inset = radius / tan(angle / 2)
+            return Polygon([
+                [0,0],
+                [inset, 0],
+                [cos(angle) * inset, sin(angle) * inset]
+            ])
+            .subtracting {
+                Circle(radius: radius)
+                    .translated(x: inset, y: radius)
+            }
+
+        case .chamfer(let width, let height):
+            let length = height / sin(angle)
+            return Polygon([
+                [0, 0],
+                [width, 0],
+                [cos(angle) * length, sin(angle) * length],
+            ])
+        }
     }
 }
 
