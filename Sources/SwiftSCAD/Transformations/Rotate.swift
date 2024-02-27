@@ -1,21 +1,19 @@
 import Foundation
 
 struct Rotate3D: CoreGeometry3D {
-    let x: Angle
-    let y: Angle
-    let z: Angle
+    let rotation: Rotation3D
     let body: any Geometry3D
 
     func call(in environment: Environment) -> SCADCall {
         return SCADCall(
             name: "rotate",
-            params: ["a": [x, y, z]],
+            params: ["a": [rotation.x, rotation.y, rotation.z]],
             body: body
         )
     }
 
     var bodyTransform: AffineTransform3D {
-        .rotation(x: x, y: y, z: z)
+        .rotation(rotation)
     }
 }
 
@@ -30,7 +28,7 @@ public extension Geometry3D {
     ///   - z: The amount to rotate around the Z axis
     /// - Returns: A rotated geometry
     func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> any Geometry3D {
-        Rotate3D(x: x, y: y, z: z, body: self)
+        Rotate3D(rotation: .init(x: x, y: y, z: z), body: self)
     }
 
     /// Rotate around one axis
@@ -45,6 +43,17 @@ public extension Geometry3D {
         case .y: return rotated(y: angle)
         case .z: return rotated(z: angle)
         }
+    }
+
+    /// Rotate geometry
+    ///
+    /// When using multiple axes, the geometry is rotated around the axes in order (first X, then Y, then Z).
+    ///
+    /// - Parameters:
+    ///   - rotation: The rotation
+    /// - Returns: A rotated geometry
+    func rotated(_ rotation: Rotation3D) -> any Geometry3D {
+        Rotate3D(rotation: rotation, body: self)
     }
 }
 
