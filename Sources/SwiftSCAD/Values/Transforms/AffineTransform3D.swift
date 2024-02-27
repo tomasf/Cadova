@@ -4,7 +4,7 @@ import simd
 #endif
 
 /// An `AffineTransform3D` represents a 3D affine transformation using a 4x4 matrix.
-public struct AffineTransform3D: Equatable {
+public struct AffineTransform3D: AffineTransform, Equatable {
     private var matrix: Matrix4x4
 
     private init(_ matrix: Matrix4x4) {
@@ -59,6 +59,19 @@ public struct AffineTransform3D: Equatable {
     /// - Parameter other: The `AffineTransform3D` to concatenate with.
     public func concatenated(with other: AffineTransform3D) -> AffineTransform3D {
         AffineTransform3D(other.matrix * matrix)
+    }
+
+    /// Creates a new `AffineTransform3D` by setting a value at the given row and column indices.
+    ///
+    /// - Parameters:
+    ///   - row: The row index (0 to 3).
+    ///   - column: The column index (0 to 3).
+    ///   - value: The value to set at the specified row and column.
+    /// - Returns: A new `AffineTransform3D` with the specified value set.
+    public func setting(row: Int, column: Int, to value: Double) -> Self {
+        var transform = self
+        transform[row, column] = value
+        return transform
     }
 
     public var inverse: AffineTransform3D {
