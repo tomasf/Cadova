@@ -165,3 +165,7 @@ public extension Vector3D {
         self + (other - self) * fraction
     }
 }
+
+extension Vector3D: Vector {
+    typealias Axes = Axes3D
+}

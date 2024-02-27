@@ -151,3 +151,7 @@ public extension Vector2D {
         self + (other - self) * fraction
     }
 }
+
+extension Vector2D: Vector {
+    typealias Axes = Axes2D
+}
