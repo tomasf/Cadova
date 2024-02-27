@@ -138,6 +138,13 @@ extension AffineTransform3D {
         scaling(x: v.x, y: v.y, z: v.z)
     }
 
+    /// Creates a `AffineTransform3D` for scaling all three axes uniformly
+    ///
+    /// - Parameter s: The scaling factor for all axes
+    public static func scaling(_ s: Double) -> AffineTransform3D {
+        scaling(x: s, y: s, z: s)
+    }
+
     /// Creates a rotation `AffineTransform3D` using the given angles for rotation along the x, y, and z axes.
     ///
     /// - Parameters:
@@ -158,12 +165,9 @@ extension AffineTransform3D {
         return transform
     }
 
-    /// Creates a rotation `AffineTransform3D` using the given array of angles for rotation along the x, y, and z axes.
-    ///
-    /// - Parameter a: An array containing the rotation angles for x, y, and z axes, respectively.
-    public static func rotation(_ a: [Angle]) -> AffineTransform3D {
-        assert(a.count == 3, "Rotate expects three angles")
-        return rotation(x: a[0], y: a[1], z: a[2])
+    /// Creates a rotation `AffineTransform3D` using a Rotation3D structure
+    public static func rotation(_ r: Rotation3D) -> AffineTransform3D {
+        return rotation(x: r.x, y: r.y, z: r.z)
     }
 
     /// Creates a shearing `AffineTransform3D` that skews along one axis with respect to another axis.
@@ -227,11 +231,11 @@ extension AffineTransform3D {
         concatenated(with: .scaling(x: x, y: y, z: z))
     }
 
-    /// Creates a new `AffineTransform3D` by concatenating a rotation transformation with this transformation using the given array of angles.
+    /// Creates a new `AffineTransform3D` by concatenating a rotation transformation with this transformation using the given Rotation3D.
     ///
-    /// - Parameter a: An array containing the rotation angles for x, y, and z axes, respectively.
-    public func rotated(_ a: [Angle]) -> AffineTransform3D {
-        concatenated(with: .rotation(a))
+    /// - Parameter r: A `Rotation3D` structure containing axis rotations
+    public func rotated(_ r: Rotation3D) -> AffineTransform3D {
+        concatenated(with: .rotation(r))
     }
 
     /// Creates a new `AffineTransform3D` by concatenating a rotation transformation with this transformation using the given angles for rotation.

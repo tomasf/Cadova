@@ -1,7 +1,7 @@
 import Foundation
 
 struct ExtrudeAlong: CoreGeometry3D {
-    let path: BezierPath
+    let path: BezierPath2D
     let radius: Double
     let body: any Geometry2D
 
@@ -73,7 +73,7 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - path: The bezier path to use as a guide in the X-Y plane.
     ///   - radius: The corner radius of the extruded geometry. This should be greater than or equal to the distance between the origin and the furthest point along the X axis of the 2D shape. For example, extruding `Rectangle([14, 3], center: .all)` requires at least 7 as the radius.
-    func extruded(along path: BezierPath, radius: Double) -> any Geometry3D {
+    func extruded(along path: BezierPath2D, radius: Double) -> any Geometry3D {
         ExtrudeAlong(path: path, radius: radius, body: self)
     }
 }

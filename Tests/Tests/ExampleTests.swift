@@ -52,7 +52,7 @@ final class ExampleTests: XCTestCase {
     }
 
     func testExample4() throws {
-        let path = BezierPath(startPoint: .zero)
+        let path = BezierPath2D(startPoint: .zero)
             .addingCubicCurve(controlPoint1: [10, 65], controlPoint2: [55, -20], end: [60, 40])
 
         Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)

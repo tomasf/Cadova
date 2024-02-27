@@ -12,7 +12,7 @@ extension CGPath {
 
     func polygons() -> [Polygon] {
         var polygons: [Polygon] = []
-        var currentPath: BezierPath? = nil
+        var currentPath: BezierPath2D? = nil
 
         applyWithBlock { pointer in
             let element = pointer.pointee

@@ -29,10 +29,10 @@ public struct Polygon: CoreGeometry2D {
         self.init(provider: points)
     }
 
-    /// Creates a new `Polygon` instance with the specified Bezier path.
+    /// Creates a new `Polygon` instance with the specified 2D Bezier path.
     ///
-    /// - Parameter bezierPath: A `BezierPath` that defines the shape of the polygon.
-    public init(_ bezierPath: BezierPath) {
+    /// - Parameter bezierPath: A `BezierPath2D` that defines the shape of the polygon.
+    public init(_ bezierPath: BezierPath2D) {
         self.init(provider: bezierPath)
     }
 

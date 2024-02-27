@@ -10,7 +10,7 @@ extension [Vector2D]: PolygonPointsProvider {
     }
 }
 
-extension BezierPath: PolygonPointsProvider {
+extension BezierPath2D: PolygonPointsProvider {
     func points(in environment: Environment) -> [Vector2D] {
         points(facets: environment.facets)
     }
