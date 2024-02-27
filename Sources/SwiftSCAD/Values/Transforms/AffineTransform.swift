@@ -1,6 +1,6 @@
 import Foundation
 
-protocol AffineTransform {
+public protocol AffineTransform {
     associatedtype Vector: SwiftSCAD.Vector
 
     static var identity: Self { get }

@@ -1,7 +1,8 @@
 import Foundation
 
-protocol Vector {
+public protocol Vector {
     associatedtype Axes: SwiftSCAD.Axes
+    associatedtype Transform: AffineTransform
 
     static var zero: Self { get }
     static prefix func -(_ v: Self) -> Self

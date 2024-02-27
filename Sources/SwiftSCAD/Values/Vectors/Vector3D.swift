@@ -167,5 +167,5 @@ public extension Vector3D {
 }
 
 extension Vector3D: Vector {
-    typealias Axes = Axes3D
+    public typealias Transform = AffineTransform3D
 }

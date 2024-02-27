@@ -1,6 +1,6 @@
 import Foundation
 
-protocol Axes {
+public protocol Axes {
     associatedtype Axis
 
     init(axis: Axis)
@@ -11,7 +11,7 @@ protocol Axes {
 /// A set of possible axes in two dimensions
 
 public struct Axes2D: Axes, OptionSet, Hashable {
-    typealias Axis = Axis2D
+    public typealias Axis = Axis2D
 
     public let rawValue: Int
     public static let x = Axes2D(rawValue: 1 << 0)
@@ -47,7 +47,7 @@ public struct Axes2D: Axes, OptionSet, Hashable {
 /// A set of possible axes in three dimensions
 
 public struct Axes3D: Axes, OptionSet, Hashable {
-    typealias Axis = Axis3D
+    public typealias Axis = Axis3D
 
     public let rawValue: Int
     public static let x = Axes3D(rawValue: 1 << 0)

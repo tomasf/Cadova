@@ -153,5 +153,5 @@ public extension Vector2D {
 }
 
 extension Vector2D: Vector {
-    typealias Axes = Axes2D
+    public typealias Transform = AffineTransform2D
 }
