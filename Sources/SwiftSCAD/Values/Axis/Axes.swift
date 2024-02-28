@@ -58,7 +58,8 @@ public struct Axes3D: Axes, OptionSet, Hashable {
     public static let xy: Axes3D = [.x, .y]
     public static let xz: Axes3D = [.x, .z]
     public static let yz: Axes3D = [.y, .z]
-    public static let all: Axes3D = [.x, .y, .z]
+    public static let xyz: Axes3D = [.x, .y, .z]
+    public static let all: Axes3D = .xyz
 
     public init(rawValue: Int) {
         self.rawValue = rawValue
