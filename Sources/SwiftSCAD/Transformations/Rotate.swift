@@ -5,11 +5,16 @@ struct Rotate3D: CoreGeometry3D {
     let body: any Geometry3D
 
     func call(in environment: Environment) -> SCADCall {
-        return SCADCall(
-            name: "rotate",
-            params: ["a": [rotation.x, rotation.y, rotation.z]],
-            body: body
-        )
+        let params: [String: any SCADValue]
+
+        switch rotation.rotation {
+        case .eulerAngles(let x, let y, let z):
+            params = ["a": [x, y, z]]
+        case .axis(let v, let angle):
+            params = ["a": angle, "v": [v.x, v.y, v.z]]
+        }
+
+        return SCADCall(name: "rotate", params: params, body: body)
     }
 
     var bodyTransform: AffineTransform3D {
@@ -31,11 +36,11 @@ public extension Geometry3D {
         Rotate3D(rotation: .init(x: x, y: y, z: z), body: self)
     }
 
-    /// Rotate around one axis
+    /// Rotate around a cartesian axis
     ///
     /// - Parameters:
     ///   - angle: The angle to rotate
-    ///   - axis: The axis to rotate around
+    ///   - axis: The cartesian axis to rotate around
     /// - Returns: A rotated geometry
     func rotated(angle: Angle, axis: Axis3D) -> any Geometry3D {
         switch axis {
@@ -43,6 +48,17 @@ public extension Geometry3D {
         case .y: return rotated(y: angle)
         case .z: return rotated(z: angle)
         }
+    }
+
+    /// Rotate around an arbitrary axis defined by a 3D vector and an angle.
+    ///
+    /// This modifier is used for rotating around an axis that is not necessarily aligned with the principal axes.
+    ///
+    /// - Parameters:
+    ///   - angle: The angle of rotation around the specified axis.
+    ///   - axis: The 3D vector defining the axis of rotation.
+    func rotated(angle: Angle, axis: Vector3D) -> any Geometry3D {
+        Rotate3D(rotation: .init(axis: axis, angle: angle), body: self)
     }
 
     /// Rotate geometry

@@ -166,6 +166,19 @@ public extension Vector3D {
     }
 }
 
+public extension Vector3D {
+    /// Computes the magnitude (length) of the vector.
+    var magnitude: Double {
+        return sqrt(x * x + y * y + z * z)
+    }
+
+    /// Returns a normalized version of the vector with a magnitude of 1.
+    var normalized: Vector3D {
+        guard magnitude > 0 else { return self }
+        return Vector3D(x: x / magnitude, y: y / magnitude, z: z / magnitude)
+    }
+}
+
 extension Vector3D: Vector {
     public typealias Transform = AffineTransform3D
 }

@@ -2,9 +2,12 @@ import Foundation
 
 /// A structure representing a rotation in 3D space.
 public struct Rotation3D {
-    internal let x: Angle
-    internal let y: Angle
-    internal let z: Angle
+    internal var rotation: Rotation
+
+    internal enum Rotation {
+        case eulerAngles (x: Angle, y: Angle, z: Angle)
+        case axis (Vector3D, angle: Angle)
+    }
 
     /// Creates a `Rotation3D` structure with specified angles for each principal axis (X, Y, and Z).
     /// The rotation is applied in order: first around the X axis, then the Y axis, and finally the Z axis.
@@ -14,9 +17,7 @@ public struct Rotation3D {
     ///   - y: The rotation angle around the Y axis. Defaults to 0 degrees if not specified.
     ///   - z: The rotation angle around the Z axis. Defaults to 0 degrees if not specified.
     init(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) {
-        self.x = x
-        self.y = y
-        self.z = z
+        rotation = .eulerAngles(x: x, y: y, z: z)
     }
 
     /// Creates a `Rotation3D` instance with a specified angle around a specified axis.
@@ -33,6 +34,16 @@ public struct Rotation3D {
         case .y: self.init(y: angle)
         case .z: self.init(z: angle)
         }
+    }
+
+    /// Creates a `Rotation3D` instance with a rotation around an arbitrary axis defined by a 3D vector and an angle.
+    /// This initializer is used for creating a rotation around an axis that is not necessarily aligned with the principal axes.
+    ///
+    /// - Parameters:
+    ///   - axis: The 3D vector defining the axis of rotation.
+    ///   - angle: The angle of rotation around the specified axis.
+    init(axis: Vector3D, angle: Angle) {
+        rotation = .axis(axis, angle: angle)
     }
 }
 
