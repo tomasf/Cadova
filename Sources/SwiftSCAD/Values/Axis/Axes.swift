@@ -8,7 +8,7 @@ public protocol Axes {
     var inverted: Self { get }
 }
 
-/// A set of possible axes in two dimensions
+/// A set of cartesian axes in two dimensions (X and/or Y)
 
 public struct Axes2D: Axes, OptionSet, Hashable {
     public typealias Axis = Axis2D
@@ -44,7 +44,7 @@ public struct Axes2D: Axes, OptionSet, Hashable {
 }
 
 
-/// A set of possible axes in three dimensions
+/// A set of cartesian axes in three dimensions (X, Y and/or Z)
 
 public struct Axes3D: Axes, OptionSet, Hashable {
     public typealias Axis = Axis3D
