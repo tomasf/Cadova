@@ -22,6 +22,16 @@ public struct Angle {
     }
 }
 
+public extension Angle {
+    static func radians(_ radians: Double) -> Angle {
+        Angle(radians: radians)
+    }
+
+    static func degrees(_ degrees: Double) -> Angle {
+        Angle(degrees: degrees)
+    }
+}
+
 extension Angle: SCADValue {
     public var scadString: String {
         degrees.scadString
