@@ -95,24 +95,24 @@ struct Star: Shape2D {
     }
 }
 
-Union {
-    Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-    Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
-        .translated(x: 20)
-}
-.save(to: "example3.scad")
+Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
+    .adding {
+        Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
+            .translated(x: 20)
+    }
+    .save(to: "example3.scad")
 ```
 
 ## Extruding along a Bezier path
 ![Example 4](https://tomasf.se/projects/swiftscad/examples/example4.png)
 
 ```swift
-let path = BezierPath(startPoint: .zero)
+let path = BezierPath2D(startPoint: .zero)
     .addingCubicCurve(controlPoint1: [10, 65], controlPoint2: [55, -20], end: [60, 40])
 
 Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
     .usingDefaultFacets()
-    .extruded(along: path, radius: 11)
+    .extruded(along: path, convexity: 4)
     .usingFacets(minAngle: 5°, minSize: 1)
     .save(to: "example4.scad")
 ```

@@ -32,23 +32,23 @@ final class ExampleTests: XCTestCase {
         let centerSize: Double
 
         var body: any Geometry2D {
-            Union {
-                Circle(diameter: centerSize)
-                Circle(radius: max(pointRadius, 0.001))
-                    .translated(x: radius)
-            }
+            Circle(diameter: centerSize)
+                .adding {
+                    Circle(radius: max(pointRadius, 0.001))
+                        .translated(x: radius)
+                }
             .convexHull()
             .repeated(in: 0°..<360°, count: pointCount)
         }
     }
 
     func testExample3() throws {
-        Union {
-            Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-            Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
-                .translated(x: 20)
-        }
-        .assertEqual(toFile: "example3")
+        Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
+            .adding {
+                Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
+                    .translated(x: 20)
+            }
+            .assertEqual(toFile: "example3")
     }
 
     func testExample4() throws {
@@ -57,7 +57,7 @@ final class ExampleTests: XCTestCase {
 
         Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
             .usingDefaultFacets()
-            .extruded(along: path, radius: 11)
+            .extruded(along: path, convexity: 4)
             .usingFacets(minAngle: 5°, minSize: 1)
             .assertEqual(toFile: "example4")
     }
