@@ -149,6 +149,20 @@ public extension Vector3D {
         )
     }
 
+    // Cross product
+    static func ×(_ v1: Vector3D, _ v2: Vector3D) -> Vector3D {
+        [
+            v1.y * v2.z - v1.z * v2.y,
+            v1.z * v2.x - v1.x * v2.z,
+            v1.x * v2.y - v1.y * v2.x
+        ]
+    }
+
+    // Dot product
+    static func ⋅(_ v1: Vector3D, _ v2: Vector3D) -> Double {
+        v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
+    }
+
     var xy: Vector2D {
         Vector2D(x:x, y:y)
     }

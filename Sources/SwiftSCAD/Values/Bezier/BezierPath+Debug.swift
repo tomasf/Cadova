@@ -68,15 +68,3 @@ extension BezierPath {
         }
     }
 }
-
-fileprivate extension Vector {
-    var vector3D: Vector3D {
-        if let v3d = self as? Vector3D {
-            return v3d
-        } else if let v2d = self as? Vector2D {
-            return .init(v2d, z: 0)
-        } else {
-            preconditionFailure()
-        }
-    }
-}
