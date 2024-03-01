@@ -199,6 +199,21 @@ extension AffineTransform3D {
         }
     }
 
+    /// Creates a rotation `AffineTransform3D` that aligns one vector to another in 3D space.
+    ///
+    /// Calculate the rotation needed to align a vector `from` to another vector `to`, both in 3D space. The method ensures that the rotation minimizes the angular distance between the `from` and `to` vectors, effectively rotating around the shortest path between them.
+    ///
+    /// - Parameters:
+    ///   - from: A `Vector3D` representing the starting orientation of the vector.
+    ///   - to: A `Vector3D` representing the desired orientation of the vector.
+    /// - Returns: An `AffineTransform3D` representing the rotation from the `from` vector to the `to` vector.
+
+    public static func rotation(from: Vector3D, to: Vector3D) -> AffineTransform3D {
+        let axis = from.normalized × to.normalized
+        let angle: Angle = acos(from.normalized ⋅ to.normalized)
+        return .rotation(axis: axis, angle: angle)
+    }
+
     /// Creates a shearing `AffineTransform3D` that skews along one axis with respect to another axis.
     ///
     /// - Parameters:
