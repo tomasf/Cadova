@@ -169,27 +169,9 @@ public extension Vector3D {
 }
 
 public extension Vector3D {
-    /// Calculate the distance from this point to another point in 3D space
-    func distance(to other: Vector3D) -> Double {
-        sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2))
-    }
-
-    /// Calculate a point at a given fraction along a straight line to another point
-    func point(alongLineTo other: Vector3D, at fraction: Double) -> Vector3D {
-        self + (other - self) * fraction
-    }
-}
-
-public extension Vector3D {
     /// Computes the magnitude (length) of the vector.
     var magnitude: Double {
-        return sqrt(x * x + y * y + z * z)
-    }
-
-    /// Returns a normalized version of the vector with a magnitude of 1.
-    var normalized: Vector3D {
-        guard magnitude > 0 else { return self }
-        return Vector3D(x: x / magnitude, y: y / magnitude, z: z / magnitude)
+        sqrt(x * x + y * y + z * z)
     }
 }
 

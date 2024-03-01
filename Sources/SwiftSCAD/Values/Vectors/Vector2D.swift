@@ -133,24 +133,32 @@ public extension Vector2D {
             y: v.y - s
         )
     }
+
+    // Cross product
+    static func ×(v1: Vector2D, v2: Vector2D) -> Double {
+        return v1.x * v2.y - v1.y * v2.x
+    }
+
+    // Dot product
+    static func ⋅(v1: Vector2D, v2: Vector2D) -> Double {
+        v1.x * v2.x + v1.y * v2.y
+    }
 }
 
 public extension Vector2D {
-    /// Calculate the distance from this point to another point in 2D space
-    func distance(to other: Vector2D) -> Double {
-        sqrt(pow(x - other.x, 2) + pow(y - other.y, 2))
-    }
-
     /// Calculate the angle of a straight line between this point and another point
     func angle(to other: Vector2D) -> Angle {
         Angle(radians: atan2(other.y - y, other.x - x))
     }
+}
 
-    /// Calculate a point at a given fraction along a straight line to another point
-    func point(alongLineTo other: Vector2D, at fraction: Double) -> Vector2D {
-        self + (other - self) * fraction
+public extension Vector2D {
+    /// Computes the magnitude (length) of the vector.
+    var magnitude: Double {
+        sqrt(x * x + y * y)
     }
 }
+
 
 extension Vector2D: Vector {
     public typealias Transform = AffineTransform2D

@@ -17,12 +17,32 @@ public protocol Vector {
     static func *(_ v: Self, _ d: Double) -> Self
     static func /(_ v: Self, _ d: Double) -> Self
 
+    var magnitude: Double { get }
+    var normalized: Self { get }
     func distance(to other: Self) -> Double
     func point(alongLineTo other: Self, at fraction: Double) -> Self
 
     init(axis: Axes.Axis, value: Double, default: Double)
     func setting(axes: Axes, to: Double) -> Self
     subscript(_ axis: Axes.Axis) -> Double { get }
+}
+
+public extension Vector {
+    /// Returns a normalized version of the vector with a magnitude of 1.
+    var normalized: Self {
+        guard magnitude > 0 else { return self }
+        return self / magnitude
+    }
+
+    /// Calculate a point at a given fraction along a straight line to another point
+    func point(alongLineTo other: Self, at fraction: Double) -> Self {
+        self + (other - self) * fraction
+    }
+
+    /// Calculate the distance from this point to another point in 2D space
+    func distance(to other: Self) -> Double {
+        (other - self).magnitude
+    }
 }
 
 infix operator ×
