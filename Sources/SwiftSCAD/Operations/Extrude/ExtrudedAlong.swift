@@ -1,79 +1,63 @@
 import Foundation
 
-struct ExtrudeAlong: CoreGeometry3D {
-    let path: BezierPath2D
-    let radius: Double
-    let body: any Geometry2D
+public extension Geometry2D {
+    /// Extrudes the two-dimensional shape along a specified bezier path.
+    ///
+    /// This method creates a 3D geometry by extruding the invoking 2D shape along a given bezier path. The extrusion follows the path's curvature, applying appropriate rotations to maintain the shape's orientation relative to the path's direction.
+    ///
+    /// - Parameters:
+    ///   - path: A 2D or 3D `BezierPath` representing the path along which to extrude the shape.
+    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
 
-    private func inset(_ angle1: Angle, _ angle2: Angle) -> Double {
-        let half = abs(angle1 - angle2) / Double(2.0)
-        return (sin(half) * radius) / sin(90° - half)
-    }
+    func extruded<V: Vector>(along path: BezierPath<V>, convexity: Int = 2) -> any Geometry3D {
+        EnvironmentReader { environment in
+            let points = path.points(facets: environment.facets).map(\.vector3D)
+            let rotations = ([[0,0,1]] + points.paired().map { $1 - $0 })
+                .paired().map(AffineTransform3D.rotation(from:to:))
+                .cumulativeCombination { $0.concatenated(with: $1) }
 
-    func call(in environment: Environment) -> SCADCall {
-        let pairs = path.points(facets: environment.facets).paired()
+            let clipRotations = [rotations[0]] +
+            rotations.paired().map {
+                .linearInterpolation($0, $1, factor: 0.5)
+            } + [rotations.last!]
 
-        let geometry = pairs.enumerated().map { index, points -> (any Geometry3D) in
-            let (fromPoint, toPoint) = points
-            let length = fromPoint.distance(to: toPoint)
-            let angle = fromPoint.angle(to: toPoint)
-
-            let startInset: Double
-            let endInset: Double
-            let corner: (any Geometry3D)?
-
-            if index > 0 {
-                let (prevFromPoint, prevToPoint) = pairs[index-1]
-                let prevAngle = prevFromPoint.angle(to: prevToPoint)
-                startInset = inset(angle > prevAngle + 180° ? angle - 360° : angle, prevAngle)
-            } else {
-                startInset = 0
+            let segments = points.paired().enumerated().map { i, p in
+                Segment(
+                    origin: p.0,
+                    end: p.1,
+                    originRotation: rotations[i],
+                    originClipRotation: clipRotations[i],
+                    endClipRotation: clipRotations[i + 1]
+                )
             }
 
-            if index < pairs.count - 1 {
-                let (nextP1, nextP2) = pairs[index+1]
-                let nextFullAngle = nextP1.angle(to: nextP2)
-                let nextAngle = nextFullAngle > angle + 180° ? nextFullAngle - 360° : nextFullAngle
-
-                endInset = inset(angle, nextAngle)
-                let offset = angle < nextAngle ? radius : -radius
-
-                var endAngle = nextAngle - angle - 90°
-                if endAngle < -360° {
-                    endAngle += 360°
-                }
-
-                corner = body
-                    .translated(x: offset)
-                    .extruded(angles: Range(-90°, endAngle))
-                    .translated(x: length - endInset, y: offset)
-                    .rotated(z: angle)
-                    .translated(Vector3D(fromPoint))
-            } else {
-                endInset = 0
-                corner = nil
+            let long = 1000.0
+            for segment in segments {
+                let distance = segment.origin.distance(to: segment.end)
+                self.extruded(height: distance + long * 2, convexity: convexity)
+                    .translated(z: -long)
+                    .transformed(segment.originRotation)
+                    .translated(segment.origin)
+                    .intersection {
+                        Box(long, center: .xy)
+                            .transformed(segment.originClipRotation)
+                            .translated(segment.origin)
+                    }
+                    .intersection {
+                        Box(long, center: .xy)
+                            .translated(z: -long)
+                            .transformed(segment.endClipRotation)
+                            .translated(segment.end)
+                    }
             }
-
-            return body.extruded(height: length - startInset - endInset + 0.0002)
-                .translated(z: endInset - 0.0001)
-                .translated(z: -length)
-                .rotated(x: 90°, z: angle - 90°)
-                .translated(Vector3D(fromPoint))
-                .adding(corner)
         }
-        return Union3D(children: geometry)
-            .call(in: environment)
     }
 }
 
-public extension Geometry2D {
-    /// Extrude a 2D shape along a Bezier path
-    ///
-    /// The origin of the 2D shape is centered on the path, rounding corners where needed, with the Y axis in 2D becoming the Z axis in 3D.
-    /// - Parameters:
-    ///   - path: The bezier path to use as a guide in the X-Y plane.
-    ///   - radius: The corner radius of the extruded geometry. This should be greater than or equal to the distance between the origin and the furthest point along the X axis of the 2D shape. For example, extruding `Rectangle([14, 3], center: .all)` requires at least 7 as the radius.
-    func extruded(along path: BezierPath2D, radius: Double) -> any Geometry3D {
-        ExtrudeAlong(path: path, radius: radius, body: self)
-    }
+fileprivate struct Segment {
+    let origin: Vector3D
+    let end: Vector3D
+    let originRotation: AffineTransform3D
+    let originClipRotation: AffineTransform3D
+    let endClipRotation: AffineTransform3D
 }

@@ -28,6 +28,17 @@ public struct BezierPath <V: Vector> {
         self.init(startPoint: startPoint, curves: [])
     }
 
+    /// Initializes a `BezierPath` with a sequence of straight lines between the given points.
+    /// - Parameter points: An array of at least one point
+    /// - Note: This initializer creates a linear Bezier path by connecting each pair of points with a straight line.
+    public init(linesBetween points: [V]) {
+        precondition(!points.isEmpty, "At least one start point is required for Bezier paths")
+        self.startPoint = points[0]
+        self.curves = points.paired().map {
+            BezierCurve(controlPoints: [$0, $1])
+        }
+    }
+
     func adding(curve: BezierCurve<V>) -> BezierPath {
         let newCurves = curves + [curve]
         return BezierPath(startPoint: startPoint, curves: newCurves)
