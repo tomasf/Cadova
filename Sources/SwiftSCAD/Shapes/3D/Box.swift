@@ -20,6 +20,21 @@ public struct Box: CoreGeometry3D {
         self.center = center
     }
 
+    /// Initializes a box with equal dimensions along all axes.
+    /// - Parameters:
+    ///   - side: A `Double` value indicating the length of each side of the cube.
+    ///   - center: An `Axes3D` option set indicating which axes should be centered around the origin. By omitting or passing an empty set, the cube's corner aligns with the origin. Specifying axes centers the cube along those axes.
+    ///
+    /// Example usage:
+    /// ```
+    /// let cube = Box(10, center: .xy)
+    /// ```
+    /// This creates a cube of size 10x10x10, centered along the X and Y axes but not the Z axis.
+    public init(_ side: Double, center: Axes3D = []) {
+        self.size = [side, side, side]
+        self.center = center
+    }
+
     func call(in environment: Environment) -> SCADCall {
         let cube = SCADCall(
             name: "cube",
