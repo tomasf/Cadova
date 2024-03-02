@@ -27,8 +27,8 @@ public extension Geometry3D {
         Intersection3D(children: [self, other()])
     }
 
-    func intersection(_ other: any Geometry3D) -> any Geometry3D {
-        Intersection3D(children: [self, other])
+    func intersection(_ other: any Geometry3D...) -> any Geometry3D {
+        Intersection3D(children: [self] + other)
     }
 }
 
@@ -60,8 +60,8 @@ public extension Geometry2D {
         Intersection2D(children: [self, other()])
     }
 
-    func intersection(_ other: any Geometry2D) -> any Geometry2D {
-        Intersection2D(children: [self, other])
+    func intersection(_ other: any Geometry2D...) -> any Geometry2D {
+        Intersection2D(children: [self] + other)
     }
 }
 
