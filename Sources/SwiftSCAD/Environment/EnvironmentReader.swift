@@ -1,18 +1,18 @@
 import Foundation
 
-internal struct EnvironmentReader2D: Geometry2D {
+internal struct EnvironmentReader2D: ContainerGeometry2D {
     let body: (Environment) -> any Geometry2D
 
-    func scadString(in environment: Environment) -> String {
-        body(environment).scadString(in: environment)
+    func geometry(in environment: Environment) -> any Geometry2D {
+        body(environment)
     }
 }
 
-internal struct EnvironmentReader3D: Geometry3D {
+internal struct EnvironmentReader3D: ContainerGeometry3D {
     let body: (Environment) -> any Geometry3D
 
-    func scadString(in environment: Environment) -> String {
-        body(environment).scadString(in: environment)
+    func geometry(in environment: Environment) -> any Geometry3D {
+        body(environment)
     }
 }
 

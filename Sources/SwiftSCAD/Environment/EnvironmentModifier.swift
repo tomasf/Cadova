@@ -1,20 +1,28 @@
 import Foundation
 
-struct EnvironmentModifier2D: Geometry2D {
+struct EnvironmentModifier2D: ContainerGeometry2D {
     let body: any Geometry2D
     let modification: (Environment) -> Environment
 
-    func scadString(in environment: Environment) -> String {
-        body.scadString(in: modification(environment))
+    func geometry(in environment: Environment) -> any Geometry2D {
+        body
+    }
+
+    func modifiedEnvironment(_ environment: Environment) -> Environment {
+        modification(environment)
     }
 }
 
-struct EnvironmentModifier3D: Geometry3D {
+struct EnvironmentModifier3D: ContainerGeometry3D {
     let body: any Geometry3D
     let modification: (Environment) -> Environment
 
-    func scadString(in environment: Environment) -> String {
-        body.scadString(in: modification(environment))
+    func geometry(in environment: Environment) -> any Geometry3D {
+        body
+    }
+
+    func modifiedEnvironment(_ environment: Environment) -> Environment {
+        modification(environment)
     }
 }
 
