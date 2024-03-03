@@ -31,7 +31,7 @@ public extension Geometry2D {
     ///
     /// Use this geometry as the root, ignoring anything outside it. This is equivalent to the `!` modifier in OpenSCAD.
 
-    func exclusive() -> any Geometry2D {
+    func only() -> any Geometry2D {
         Prefix2D(prefix: "!", body: self)
     }
 
