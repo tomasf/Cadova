@@ -5,6 +5,8 @@ public extension Geometry2D {
     ///
     /// This method creates a 3D geometry by extruding the invoking 2D shape along a given bezier path. The extrusion follows the path's curvature, applying appropriate rotations to maintain the shape's orientation relative to the path's direction.
     ///
+    /// If the path is closed, meaning its start and end points coincide, the extrusion connects the ends of the shape at the point of closure, forming a continuous loop without flat ends.
+    ///
     /// - Parameters:
     ///   - path: A 2D or 3D `BezierPath` representing the path along which to extrude the shape.
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
@@ -44,12 +46,14 @@ public extension Geometry2D {
                     .translated(segment.origin)
                     .intersection {
                         Box(long, center: .xy)
+                            .translated(z: -0.01)
                             .transformed(segment.originClipRotation)
                             .translated(segment.origin)
                     }
                     .intersection {
                         Box(long, center: .xy)
                             .translated(z: -long)
+                            .translated(z: 0.01)
                             .transformed(segment.endClipRotation)
                             .translated(segment.end)
                     }
