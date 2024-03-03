@@ -12,14 +12,18 @@ public extension Geometry2D {
     func extruded<V: Vector>(along path: BezierPath<V>, convexity: Int = 2) -> any Geometry3D {
         EnvironmentReader { environment in
             let points = path.points(facets: environment.facets).map(\.vector3D)
+            let isClosed = points[0].distance(to: points.last!) < 0.0001
             let rotations = ([[0,0,1]] + points.paired().map { $1 - $0 })
                 .paired().map(AffineTransform3D.rotation(from:to:))
                 .cumulativeCombination { $0.concatenated(with: $1) }
+            let lastRotation = rotations.last!
+            let firstRotation = rotations.first!
+            let closeRotation = AffineTransform3D.linearInterpolation(lastRotation, firstRotation, factor: 0.5)
 
-            let clipRotations = [rotations[0]] +
+            let clipRotations = [isClosed ? closeRotation : firstRotation] +
             rotations.paired().map {
                 .linearInterpolation($0, $1, factor: 0.5)
-            } + [rotations.last!]
+            } + [isClosed ? closeRotation : lastRotation]
 
             let segments = points.paired().enumerated().map { i, p in
                 Segment(
