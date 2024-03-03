@@ -78,7 +78,7 @@ public struct BezierPath <V: Vector> {
     /// - Parameter controlPoints: A variadic list of control points defining the Bezier curve.
     /// - Returns: A new `BezierPath` instance with the added Bezier curve.
     public func addingCurve(_ controlPoints: V...) -> BezierPath {
-        adding(curve: BezierCurve(controlPoints: controlPoints))
+        adding(curve: BezierCurve(controlPoints: [endPoint] + controlPoints))
     }
 
     /// Closes the path by adding a line segment from the last point back to the starting point.
