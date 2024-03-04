@@ -214,7 +214,8 @@ fileprivate extension Text {
                             .translated(.init(fragment.rect.origin))
 
                         if let color, let scadColor = Color(color) {
-                            Color2D(color: scadColor, content: geometry)
+                            geometry
+                                .colored(scadColor)
                         } else {
                             geometry
                         }
