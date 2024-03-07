@@ -11,9 +11,10 @@ public struct Angle {
         self.radians = radians
     }
 
-    /// Create an angle from degrees
-    public init(degrees: Double) {
-        self.init(radians: degrees * .pi / 180.0)
+    /// Create an angle from degrees, and optionally, arcminutes and arcseconds
+    public init(degrees: Double, arcmins: Double = 0, arcsecs: Double = 0) {
+        let totalDegrees = degrees + arcmins / 60.0 + arcsecs / 3600.0
+        self.init(radians: totalDegrees * .pi / 180.0)
     }
 
     /// The angle expressed in degrees
