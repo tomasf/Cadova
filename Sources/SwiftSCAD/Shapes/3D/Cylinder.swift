@@ -54,6 +54,20 @@ public struct Cylinder: CoreGeometry3D {
         self.centerZ = centerZ
     }
 
+    /// Create a truncated right circular cone (a cylinder with different top and bottom radii)
+    /// - Parameters:
+    ///   - bottomRadius: The radius at the bottom
+    ///   - topRadius: The radius at the top
+    ///   - height: The height between the top and the bottom
+    ///   - centerZ: If true, center the cylinder along the Z axis
+
+    public init(bottomRadius: Double, topRadius: Double, height: Double, centerZ: Bool = false) {
+        self.diameter = bottomRadius * 2
+        self.topDiameter = topRadius * 2
+        self.height = height
+        self.centerZ = centerZ
+    }
+
     func call(in environment: Environment) -> SCADCall {
         var params: [String: any SCADValue] = ["h": height]
         
