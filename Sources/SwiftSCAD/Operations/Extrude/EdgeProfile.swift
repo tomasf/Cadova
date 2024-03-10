@@ -64,7 +64,7 @@ public extension Geometry2D {
     ///     - `.convexHull`: This method creates a smooth, non-layered shape. It is often computationally less intensive and results in a more aesthetically pleasing form but only works as expected for convex shapes.
     /// - Returns: The extruded 3D geometry.
 
-    func extruded(height: Double, topEdge: EdgeProfile = .sharp, bottomEdge: EdgeProfile = .sharp, method: EdgeProfile.Method) -> any Geometry3D {
+    func extruded(height: Double, topEdge: EdgeProfile, bottomEdge: EdgeProfile, method: EdgeProfile.Method) -> any Geometry3D {
         extruded(height: height)
             .intersection {
                 if topEdge != .sharp {
@@ -78,6 +78,16 @@ public extension Geometry2D {
                         .translated(z: height)
                 }
             }
+    }
+
+    /// See ``extruded(height:topEdge:bottomEdge:method:)``
+    func extruded(height: Double, topEdge: EdgeProfile, method: EdgeProfile.Method) -> any Geometry3D {
+        extruded(height: height, topEdge: topEdge, bottomEdge: .sharp, method: method)
+    }
+
+    /// See ``extruded(height:topEdge:bottomEdge:method:)``
+    func extruded(height: Double, bottomEdge: EdgeProfile, method: EdgeProfile.Method) -> any Geometry3D {
+        extruded(height: height, topEdge: .sharp, bottomEdge: bottomEdge, method: method)
     }
 }
 
