@@ -19,6 +19,7 @@ Add SwiftSCAD as a dependency for your package in Package.swift:
 <pre>
 let package = Package(
     name: "My3DGadget",
+    platforms: [.macOS(.v14)], // Needed on macOS
     dependencies: [
         <b><i>.package(url: "https://github.com/tomasf/SwiftSCAD.git", branch: "main"),</i></b>
     ],
