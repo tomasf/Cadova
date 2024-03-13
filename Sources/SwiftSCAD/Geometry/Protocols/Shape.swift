@@ -5,18 +5,17 @@ public protocol Shape3D: Geometry3D {
 }
 
 public extension Shape3D {
-    func scadString(in environment: Environment) -> String {
-        body.scadString(in: environment)
+    func output(in environment: Environment) -> Output {
+        body.output(in: environment)
     }
 }
-
 
 public protocol Shape2D: Geometry2D {
     @UnionBuilder2D var body: any Geometry2D { get }
 }
 
 public extension Shape2D {
-    func scadString(in environment: Environment) -> String {
-        body.scadString(in: environment)
+    func output(in environment: Environment) -> Output {
+        body.output(in: environment)
     }
 }

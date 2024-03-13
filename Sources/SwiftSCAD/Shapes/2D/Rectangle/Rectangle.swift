@@ -10,7 +10,7 @@ import Foundation
 /// let size: Vector2D = [10, 5]
 /// let rectangle = Rectangle(size, center: [.x, .y])
 /// ```
-public struct Rectangle: CoreGeometry2D {
+public struct Rectangle: Geometry2D {
     /// The size of the rectangle represented as a `Vector2D`.
     public let size: Vector2D
 
@@ -27,20 +27,17 @@ public struct Rectangle: CoreGeometry2D {
         self.center = center
     }
 
-    func call(in environment: Environment) -> SCADCall {
-        let square = SCADCall(
-            name: "square",
-            params: ["size": size]
-        )
-
-        guard !center.isEmpty else {
-            return square
+    public func output(in environment: Environment) -> GeometryOutput2D {
+        if center.isEmpty {
+            .init(
+                invocation: .init(name: "square", parameters: ["size": size]),
+                boundary: .box(size),
+                environment: environment
+            )
+        } else {
+            Rectangle(size)
+                .translated((size / -2).setting(axes: center.inverted, to: 0))
+                .output(in: environment)
         }
-
-        return SCADCall(
-            name: "translate",
-            params: ["v": (size / -2).setting(axes: center.inverted, to: 0)],
-            body: square
-        )
     }
 }

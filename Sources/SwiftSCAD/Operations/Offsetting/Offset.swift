@@ -1,11 +1,11 @@
 import Foundation
 
-public struct Offset: CoreGeometry2D {
+public struct Offset: WrapperGeometry2D {
+    let body: any Geometry2D
     let amount: Double
     let style: Style
-    let body: any Geometry2D
 
-    func call(in environment: Environment) -> SCADCall {
+    public var invocation: Invocation? {
         let params: [String: any SCADValue]
 
         switch style {
@@ -17,7 +17,7 @@ public struct Offset: CoreGeometry2D {
             params = ["delta": amount, "chamfer": true]
         }
 
-        return SCADCall(name: "offset", params: params, body: body)
+        return .init(name: "offset", parameters: params)
     }
 
     public enum Style {
@@ -35,7 +35,7 @@ public struct Offset: CoreGeometry2D {
 
 public extension Geometry2D {
     func offset(amount: Double, style: Offset.Style) -> any Geometry2D {
-        Offset(amount: amount, style: style, body: self)
+        Offset(body: self, amount: amount, style: style)
     }
 
     func rounded(amount: Double, side: Offset.Side = .both) -> any Geometry2D {

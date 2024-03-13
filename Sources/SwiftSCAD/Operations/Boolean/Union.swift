@@ -1,67 +1,28 @@
 import Foundation
 
-struct Union3D: CoreGeometry3D {
-    let children: [any Geometry3D]
-
-    init(children: [any Geometry3D]) {
-        self.children = children
-    }
-
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(name: "union", body: GeometrySequence(children: children))
-    }
-}
-
-/// Form a union to group multiple pieces of geometry together and treat them as one
-///
-/// ## Example
-/// ```swift
-/// Union {
-///     Cylinder(diameter: 4)
-///     Box([10, 10, 3])
-/// }
-/// .translate(x: 10)
-/// ```
-public func Union(@UnionBuilder3D _ body: () -> any Geometry3D) -> any Geometry3D {
-    body()
-}
-
-public func Union(children: [any Geometry3D]) -> any Geometry3D {
-    Union3D(children: children)
-}
-
-public extension Geometry3D {
-    /// Form a union with other geometry to group them together and treat them as one
-    ///
-    /// ## Example
-    /// ```swift
-    /// Box([10, 10, 3])
-    ///     .adding {
-    ///         Cylinder(diameter: 5)
-    ///     }
-    ///     .translate(x: 10)
-    /// ```
-    ///
-    /// - Parameter bodies: The additional geometry
-    /// - Returns: A union of this geometry and `bodies`
-    func adding(@SequenceBuilder3D _ bodies: () -> [any Geometry3D]) -> any Geometry3D {
-        Union3D(children: [self] + bodies())
-    }
-
-    func adding(_ bodies: (any Geometry3D)?...) -> any Geometry3D {
-        Union3D(children: [self] + bodies.compactMap { $0 })
-    }
-}
-
-struct Union2D: CoreGeometry2D {
+struct Union2D: Geometry2D {
     let children: [any Geometry2D]
 
-    init(children: [any Geometry2D]) {
-        self.children = children
+    func output(in environment: Environment) -> GeometryOutput2D {
+        .init(
+            invocation: .init(name: "union"),
+            body: children,
+            environment: environment,
+            boundaryMergeStrategy: .union
+        )
     }
+}
 
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(name: "union", body: GeometrySequence(children: children))
+struct Union3D: Geometry3D {
+    let children: [any Geometry3D]
+
+    func output(in environment: Environment) -> GeometryOutput3D {
+        .init(
+            invocation: .init(name: "union"),
+            body: children,
+            environment: environment,
+            boundaryMergeStrategy: .union
+        )
     }
 }
 
@@ -81,6 +42,24 @@ public func Union(@UnionBuilder2D _ body: () -> any Geometry2D) -> any Geometry2
 
 public func Union(children: [any Geometry2D]) -> any Geometry2D {
     Union2D(children: children)
+}
+
+/// Form a union to group multiple pieces of geometry together and treat them as one
+///
+/// ## Example
+/// ```swift
+/// Union {
+///     Cylinder(diameter: 4)
+///     Box([10, 10, 3])
+/// }
+/// .translate(x: 10)
+/// ```
+public func Union(@UnionBuilder3D _ body: () -> any Geometry3D) -> any Geometry3D {
+    body()
+}
+
+public func Union(children: [any Geometry3D]) -> any Geometry3D {
+    Union3D(children: children)
 }
 
 public extension Geometry2D {
@@ -103,6 +82,29 @@ public extension Geometry2D {
 
     func adding(_ bodies: (any Geometry2D)?...) -> any Geometry2D {
         Union2D(children: [self] + bodies.compactMap { $0 })
+    }
+}
+
+public extension Geometry3D {
+    /// Form a union with other geometry to group them together and treat them as one
+    ///
+    /// ## Example
+    /// ```swift
+    /// Box([10, 10, 3])
+    ///     .adding {
+    ///         Cylinder(diameter: 5)
+    ///     }
+    ///     .translate(x: 10)
+    /// ```
+    ///
+    /// - Parameter bodies: The additional geometry
+    /// - Returns: A union of this geometry and `bodies`
+    func adding(@SequenceBuilder3D _ bodies: () -> [any Geometry3D]) -> any Geometry3D {
+        Union3D(children: [self] + bodies())
+    }
+
+    func adding(_ bodies: (any Geometry3D)?...) -> any Geometry3D {
+        Union3D(children: [self] + bodies.compactMap { $0 })
     }
 }
 

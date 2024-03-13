@@ -1,10 +1,23 @@
 import Foundation
 
-struct Rotate3D: CoreGeometry3D {
-    let rotation: Rotation3D
-    let body: any Geometry3D
+struct Rotate2D: WrapperGeometry2D {
+    let body: any Geometry2D
+    let angle: Angle
 
-    func call(in environment: Environment) -> SCADCall {
+    var invocation: Invocation? {
+        .init(name: "rotate", parameters: ["a": angle])
+    }
+
+    var bodyTransform: AffineTransform3D {
+        .rotation(z: angle)
+    }
+}
+
+struct Rotate3D: WrapperGeometry3D {
+    let body: any Geometry3D
+    let rotation: Rotation3D
+
+    var invocation: Invocation? {
         let params: [String: any SCADValue]
 
         switch rotation.rotation {
@@ -14,11 +27,22 @@ struct Rotate3D: CoreGeometry3D {
             params = ["a": angle, "v": [v.x, v.y, v.z]]
         }
 
-        return SCADCall(name: "rotate", params: params, body: body)
+        return .init(name: "rotate", parameters: params)
     }
 
     var bodyTransform: AffineTransform3D {
         .rotation(rotation)
+    }
+}
+
+public extension Geometry2D {
+    /// Rotate geometry
+    ///
+    /// - Parameters:
+    ///   - angle: The amount to rotate
+    /// - Returns: A rotated geometry
+    func rotated(_ angle: Angle) -> any Geometry2D {
+        Rotate2D(body: self, angle: angle)
     }
 }
 
@@ -33,7 +57,7 @@ public extension Geometry3D {
     ///   - z: The amount to rotate around the Z axis
     /// - Returns: A rotated geometry
     func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> any Geometry3D {
-        Rotate3D(rotation: .init(x: x, y: y, z: z), body: self)
+        Rotate3D(body: self, rotation: .init(x: x, y: y, z: z))
     }
 
     /// Rotate around a cartesian axis
@@ -58,7 +82,7 @@ public extension Geometry3D {
     ///   - angle: The angle of rotation around the specified axis.
     ///   - axis: The 3D vector defining the axis of rotation.
     func rotated(angle: Angle, axis: Vector3D) -> any Geometry3D {
-        Rotate3D(rotation: .init(axis: axis, angle: angle), body: self)
+        Rotate3D(body: self, rotation: .init(axis: axis, angle: angle))
     }
 
     /// Rotate geometry
@@ -69,35 +93,6 @@ public extension Geometry3D {
     ///   - rotation: The rotation
     /// - Returns: A rotated geometry
     func rotated(_ rotation: Rotation3D) -> any Geometry3D {
-        Rotate3D(rotation: rotation, body: self)
-    }
-}
-
-
-struct Rotate2D: CoreGeometry2D {
-    let angle: Angle
-    let body: any Geometry2D
-
-    func call(in environment: Environment) -> SCADCall {
-        return SCADCall(
-            name: "rotate",
-            params: ["a": angle],
-            body: body
-        )
-    }
-
-    var bodyTransform: AffineTransform3D {
-        .rotation(z: angle)
-    }
-}
-
-public extension Geometry2D {
-    /// Rotate geometry
-    ///
-    /// - Parameters:
-    ///   - angle: The amount to rotate
-    /// - Returns: A rotated geometry
-    func rotated(_ angle: Angle) -> any Geometry2D {
-        Rotate2D(angle: angle, body: self)
+        Rotate3D(body: self, rotation: rotation)
     }
 }

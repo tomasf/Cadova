@@ -1,20 +1,40 @@
 import Foundation
 
-struct Prefix3D: Geometry3D {
+struct Prefix2D: WrapperGeometry2D {
     let prefix: String
-    let body: any Geometry3D
+    let isImmaterial: Bool
+    let body: any Geometry2D
+    let invocation: Invocation? = nil
 
-    func scadString(in environment: Environment) -> String {
-        return prefix + body.scadString(in: environment)
+    init(prefix: String, isImmaterial: Bool = false, body: any Geometry2D) {
+        self.prefix = prefix
+        self.isImmaterial = isImmaterial
+        self.body = body
+    }
+
+    func modifiedOutput(_ output: Output) -> Output {
+        output
+            .modifyingCode { prefix + $0 }
+            .modifyingBoundary { isImmaterial ? .empty : $0 }
     }
 }
 
-struct Prefix2D: Geometry2D {
+struct Prefix3D: WrapperGeometry3D {
     let prefix: String
-    let body: any Geometry2D
+    let isImmaterial: Bool
+    let body: any Geometry3D
+    let invocation: Invocation? = nil
 
-    func scadString(in environment: Environment) -> String {
-        return prefix + body.scadString(in: environment)
+    init(prefix: String, isImmaterial: Bool = false, body: any Geometry3D) {
+        self.prefix = prefix
+        self.isImmaterial = isImmaterial
+        self.body = body
+    }
+
+    func modifiedOutput(_ output: Output) -> Output {
+        output
+            .modifyingCode { prefix + $0 }
+            .modifyingBoundary { isImmaterial ? .empty : $0 }
     }
 }
 
@@ -40,7 +60,7 @@ public extension Geometry2D {
     /// Background is drawn transparently, isn't part of the actual geometry, and is ignored in final renderings. This is equivalent to the `%` modifier in OpenSCAD.
 
     func background() -> any Geometry2D {
-        Prefix2D(prefix: "%", body: self)
+        Prefix2D(prefix: "%", isImmaterial: true, body: self)
     }
 
     /// Disable this geometry
@@ -48,7 +68,7 @@ public extension Geometry2D {
     /// Ignore this geometry as if it didn't exist. This is equivalent to the `*` modifier in OpenSCAD.
 
     func disabled() -> any Geometry2D {
-        Prefix2D(prefix: "*", body: self)
+        Prefix2D(prefix: "*", isImmaterial: true, body: self)
     }
 }
 
@@ -74,7 +94,7 @@ public extension Geometry3D {
     /// Background is drawn transparently, isn't part of the actual geometry, and is ignored in final renderings. This is equivalent to the `%` modifier in OpenSCAD.
 
     func background() -> any Geometry3D {
-        Prefix3D(prefix: "%", body: self)
+        Prefix3D(prefix: "%", isImmaterial: true, body: self)
     }
 
     /// Disable this geometry
@@ -82,6 +102,6 @@ public extension Geometry3D {
     /// Ignore this geometry as if it didn't exist. This is equivalent to the `*` modifier in OpenSCAD.
 
     func disabled() -> any Geometry3D {
-        Prefix3D(prefix: "*", body: self)
+        Prefix3D(prefix: "*", isImmaterial: true, body: self)
     }
 }

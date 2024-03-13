@@ -1,51 +1,11 @@
 import Foundation
 
-struct Scale3D: CoreGeometry3D {
-    let scale: Vector3D
-    let body: any Geometry3D
-
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(
-            name: "scale",
-            params: ["v": scale],
-            body: body
-        )
-    }
-
-    var bodyTransform: AffineTransform3D {
-        .scaling(scale)
-    }
-}
-
-public extension Geometry3D {
-    func scaled(_ scale: Vector3D) -> any Geometry3D {
-        Scale3D(scale: scale, body: self)
-    }
-
-    func scaled(_ factor: Double) -> any Geometry3D {
-        Scale3D(scale: [factor, factor, factor], body: self)
-    }
-
-    func scaled(x: Double = 1, y: Double = 1, z: Double = 1) -> any Geometry3D {
-        Scale3D(scale: [x, y, z], body: self)
-    }
-
-    func flipped(along axes: Axes3D) -> any Geometry3D {
-        Scale3D(scale: Vector3D(1, 1, 1).setting(axes: axes, to: -1), body: self)
-    }
-}
-
-
-struct Scale2D: CoreGeometry2D {
-    let scale: Vector2D
+struct Scale2D: WrapperGeometry2D {
     let body: any Geometry2D
+    let scale: Vector2D
 
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(
-            name: "scale",
-            params: ["v": scale],
-            body: body
-        )
+    var invocation: Invocation? {
+        .init(name: "scale", parameters: ["v": scale])
     }
 
     var bodyTransform: AffineTransform3D {
@@ -53,20 +13,51 @@ struct Scale2D: CoreGeometry2D {
     }
 }
 
+struct Scale3D: WrapperGeometry3D {
+    let body: any Geometry3D
+    let scale: Vector3D
+
+    var invocation: Invocation? {
+        .init(name: "scale", parameters: ["v": scale])
+    }
+
+    var bodyTransform: AffineTransform3D {
+        .scaling(scale)
+    }
+}
+
 public extension Geometry2D {
     func scaled(_ scale: Vector2D) -> any Geometry2D {
-        Scale2D(scale: scale, body: self)
+        Scale2D(body: self, scale: scale)
     }
 
     func scaled(_ factor: Double) -> any Geometry2D {
-        Scale2D(scale: [factor, factor], body: self)
+        scaled(Vector2D(factor, factor))
     }
 
     func scaled(x: Double = 1, y: Double = 1) -> any Geometry2D {
-        Scale2D(scale: [x, y], body: self)
+        scaled(Vector2D(x, y))
     }
 
     func flipped(along axes: Axes2D) -> any Geometry2D {
-        Scale2D(scale: Vector2D(1, 1).setting(axes: axes, to: -1), body: self)
+        scaled(Vector2D(1, 1).setting(axes: axes, to: -1))
+    }
+}
+
+public extension Geometry3D {
+    func scaled(_ scale: Vector3D) -> any Geometry3D {
+        Scale3D(body: self, scale: scale)
+    }
+
+    func scaled(_ factor: Double) -> any Geometry3D {
+        scaled(Vector3D(factor, factor, factor))
+    }
+
+    func scaled(x: Double = 1, y: Double = 1, z: Double = 1) -> any Geometry3D {
+        scaled(Vector3D(x, y, z))
+    }
+
+    func flipped(along axes: Axes3D) -> any Geometry3D {
+        scaled(Vector3D(1, 1, 1).setting(axes: axes, to: -1))
     }
 }

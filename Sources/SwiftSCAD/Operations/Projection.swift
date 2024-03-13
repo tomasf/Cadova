@@ -1,24 +1,32 @@
 import Foundation
 
-struct Projection: CoreGeometry2D {
-    let mode: Mode
+struct Projection: Geometry2D {
     let body: any Geometry3D
+    let mode: Mode
 
-    func call(in environment: Environment) -> SCADCall {
+    private var parameters: Invocation.Parameters {
         switch mode {
-        case .whole:
-            return SCADCall(
-                name: "projection",
-                body: body
-            )
-
-        case .slice (let z):
-            return SCADCall(
-                name: "projection",
-                params: ["cut": true],
-                body: body.translated(z: -z)
-            )
+        case .whole: [:]
+        case .slice (let z): ["cut": true]
         }
+    }
+
+    private var appliedBody: any Geometry3D {
+        switch mode {
+        case .whole: body
+        case .slice (let z): body.translated(z: -z)
+        }
+    }
+
+    func output(in environment: Environment) -> Output {
+        .init(
+            invocation: .init(name: "projection", parameters: parameters),
+            body: [appliedBody],
+            bodyTransform: .scaling(z: 0),
+            environment: environment,
+            boundaryMergeStrategy: .union,
+            boundaryTransform: { $0.map(\.xy) }
+        )
     }
 
     enum Mode {
@@ -36,7 +44,7 @@ public extension Geometry3D {
     ///   let projectedSphere = sphere.projection()
     ///   ```
     func projection() -> any Geometry2D {
-        Projection(mode: .whole, body: self)
+        Projection(body: self, mode: .whole)
     }
 
     /// Projects the 3D geometry onto a 2D plane, slicing at a specific Z value.
@@ -50,6 +58,6 @@ public extension Geometry3D {
     ///   // The result will be a circle with a diameter that represents the cross-section of the truncated cone at Z = 5.
     ///   ```
     func projection(slicingAtZ z: Double) -> any Geometry2D {
-        Projection(mode: .slice(z: z), body: self)
+        Projection(body: self, mode: .slice(z: z))
     }
 }

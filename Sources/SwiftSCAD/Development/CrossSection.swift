@@ -48,14 +48,15 @@ public extension Geometry3D {
     func crossSectioned(axis: Vector3D, offset: Double = 0, rendered: Bool = false) -> any Geometry3D {
         let section = CrossSection(axis: axis, offset: offset, content: self)
 
-        IfPreview {
+        #warning("fix")
+        //IfPreview {
             section
-        } else: {
+       /* } else: {
             if rendered {
                 section
             } else {
                 self
             }
-        }
+        }*/
     }
 }

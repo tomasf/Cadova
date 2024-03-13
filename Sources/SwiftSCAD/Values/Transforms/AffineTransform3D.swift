@@ -338,6 +338,10 @@ extension AffineTransform3D {
     public func apply(to point: Vector3D) -> Vector3D {
         return Vector3D(matrixColumn: matrix * point.matrixColumn)
     }
+
+    public init(_ transform3d: AffineTransform3D) {
+        self = transform3d
+    }
 }
 
 extension AffineTransform3D: SCADValue {

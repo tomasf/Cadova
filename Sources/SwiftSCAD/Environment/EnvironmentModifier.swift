@@ -1,25 +1,19 @@
 import Foundation
 
-struct EnvironmentModifier2D: ContainerGeometry2D {
+struct EnvironmentModifier2D: WrapperGeometry2D {
     let body: any Geometry2D
     let modification: (Environment) -> Environment
-
-    func geometry(in environment: Environment) -> any Geometry2D {
-        body
-    }
+    let invocation: Invocation? = nil
 
     func modifiedEnvironment(_ environment: Environment) -> Environment {
         modification(environment)
     }
 }
 
-struct EnvironmentModifier3D: ContainerGeometry3D {
+struct EnvironmentModifier3D: WrapperGeometry3D {
     let body: any Geometry3D
     let modification: (Environment) -> Environment
-
-    func geometry(in environment: Environment) -> any Geometry3D {
-        body
-    }
+    let invocation: Invocation? = nil
 
     func modifiedEnvironment(_ environment: Environment) -> Environment {
         modification(environment)

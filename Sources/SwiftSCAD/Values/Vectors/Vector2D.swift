@@ -162,4 +162,13 @@ public extension Vector2D {
 
 extension Vector2D: Vector {
     public typealias Transform = AffineTransform2D
+    public static let elementCount = 2
+
+    public init(elements e: [Double]) {
+        self.init(e[0], e[1])
+    }
+
+    public subscript(_ index: Int) -> Double {
+        [x, y][index]
+    }
 }

@@ -64,15 +64,17 @@ extension Vector2D {
     }
 }
 
-extension CGPath: ContainerGeometry2D {
-    func geometry(in environment: Environment) -> any Geometry2D {
-        Union(children: componentsSeparated(using: environment.cgPathFillRule).map { component in
-            let (positive, negatives) = component.normalizedPolygons(using: environment.cgPathFillRule)
-            return positive
-                .subtracting {
-                    Union(children: negatives)
-                }
-        })
+extension CGPath: Shape2D {
+    public var body: any Geometry2D {
+        EnvironmentReader { environment in
+            Union(children: self.componentsSeparated(using: environment.cgPathFillRule).map { component in
+                let (positive, negatives) = component.normalizedPolygons(using: environment.cgPathFillRule)
+                return positive
+                    .subtracting {
+                        Union(children: negatives)
+                    }
+            })
+        }
     }
 
     static internal var fillRuleEnvironmentKey: Environment.ValueKey = .init(rawValue: "CGPath.FillRule")

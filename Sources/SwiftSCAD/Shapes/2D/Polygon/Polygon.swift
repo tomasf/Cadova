@@ -15,7 +15,7 @@ import Foundation
 ///     let polygonFromBezierPath = Polygon(bezierPath)
 ///     ```
 
-public struct Polygon: CoreGeometry2D {
+public struct Polygon: Geometry2D {
     private let pointsProvider: any PolygonPointsProvider
 
     internal init(provider: any PolygonPointsProvider) {
@@ -43,10 +43,13 @@ public struct Polygon: CoreGeometry2D {
         pointsProvider.points(in: environment)
     }
 
-    func call(in environment: Environment) -> SCADCall {
-        return SCADCall(
-            name: "polygon",
-            params: ["points": points(in: environment)]
+    public func output(in environment: Environment) -> GeometryOutput2D {
+        let points = points(in: environment)
+
+        return .init(
+            invocation: .init(name: "polygon", parameters:  ["points": points]),
+            boundary: .init(points: points),
+            environment: environment
         )
     }
 }

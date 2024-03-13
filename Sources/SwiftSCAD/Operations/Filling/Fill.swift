@@ -1,10 +1,10 @@
 import Foundation
 
-struct Fill2D: CoreGeometry2D {
+struct Fill2D: WrapperGeometry2D {
     let body: any Geometry2D
 
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(name: "fill", body: body)
+    var invocation: Invocation? {
+        .init(name: "fill")
     }
 }
 

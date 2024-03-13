@@ -8,7 +8,7 @@ import Foundation
 ///     .usingFacets(count: 3)
 /// ```
 
-public struct Cylinder: CoreGeometry3D {
+public struct Cylinder: LeafGeometry3D {
     let height: Double
     let diameter: Double
     let topDiameter: Double?
@@ -68,20 +68,29 @@ public struct Cylinder: CoreGeometry3D {
         self.centerZ = centerZ
     }
 
-    func call(in environment: Environment) -> SCADCall {
+    public var invocation: Invocation {
         var params: [String: any SCADValue] = ["h": height]
-        
+
         if centerZ {
             params["center"] = centerZ
         }
-        
+
         if let topDiameter = topDiameter {
             params["d1"] = diameter
             params["d2"] = topDiameter
         } else {
             params["d"] = diameter
         }
-        
-        return SCADCall(name: "cylinder", params: params)
+
+        return .init(name: "cylinder", parameters: params)
+    }
+
+    public var boundary: Bounds {
+        let bottomDiameter = diameter
+        let topDiameter = self.topDiameter ?? diameter
+
+        let bottom = Boundary2D.box([bottomDiameter, bottomDiameter]).asFlat3D()
+        let top = Boundary2D.box([topDiameter, topDiameter]).asFlat3D(z: height)
+        return .union([bottom, top])
     }
 }

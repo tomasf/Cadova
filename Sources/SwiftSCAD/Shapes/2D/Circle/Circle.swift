@@ -7,7 +7,7 @@ import Foundation
 /// let circleWithDiameter = Circle(diameter: 10)
 /// let circleWithRadius = Circle(radius: 5)
 /// ```
-public struct Circle: CoreGeometry2D {
+public struct Circle: LeafGeometry2D {
     /// The diameter of the circle.
     public let diameter: Double
 
@@ -25,10 +25,12 @@ public struct Circle: CoreGeometry2D {
         self.diameter = radius * 2
     }
 
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(
-            name: "circle",
-            params: ["d": diameter]
-        )
+    public var invocation: Invocation {
+        .init(name: "circle", parameters: ["d": diameter])
+    }
+
+    public var boundary: Boundary<Vector2D> {
+        .box([diameter, diameter])
+        .translated([-diameter/2, -diameter/2])
     }
 }

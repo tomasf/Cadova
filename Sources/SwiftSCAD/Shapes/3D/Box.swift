@@ -1,7 +1,7 @@
 import Foundation
 
 /// A rectangular cuboid shape
-public struct Box: CoreGeometry3D {
+public struct Box: Geometry3D {
     let size: Vector3D
     let center: Axes3D
 
@@ -35,21 +35,17 @@ public struct Box: CoreGeometry3D {
         self.center = center
     }
 
-    func call(in environment: Environment) -> SCADCall {
-        let cube = SCADCall(
-            name: "cube",
-            params: ["size": size],
-            body: nil
-        )
-
-        guard !center.isEmpty else {
-            return cube
+    public func output(in environment: Environment) -> GeometryOutput3D {
+        if center.isEmpty {
+            .init(
+                invocation: .init(name: "cube", parameters: ["size": size]),
+                boundary: .box(size),
+                environment: environment
+            )
+        } else {
+            Box(size)
+                .translated((size / -2).setting(axes: center.inverted, to: 0))
+                .output(in: environment)
         }
-
-        return SCADCall(
-            name: "translate",
-            params: ["v": (size / -2).setting(axes: center.inverted, to: 0)],
-            body: cube
-        )
     }
 }

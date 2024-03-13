@@ -3,7 +3,7 @@ import Foundation
 fileprivate extension Geometry {
     func save(to fileURL: URL, using environment: Environment) {
         do {
-            let string = self.scadString(in: environment)
+            let string = self.output(in: environment).scadCode
             try string.write(to: fileURL, atomically: true, encoding: .utf8)
             logger.info("Wrote output to \(fileURL.path)")
         } catch {

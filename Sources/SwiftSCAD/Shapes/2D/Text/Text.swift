@@ -89,7 +89,7 @@ public struct Text: Shape2D {
 public extension Text {
     var _debugLineFragments: any Geometry2D {
         guard let (_, _, fragments, transform) = layoutData() else {
-            return Empty()
+            return Empty2D()
         }
 
         let colors: [Color.Name] = [.red, .green, .blue]
@@ -194,7 +194,7 @@ fileprivate extension Text {
 
     func content() -> any Geometry2D {
         guard let (layoutManager, textStorage, fragments, transform) = layoutData() else {
-            return Empty()
+            return Empty2D()
         }
 
         var verticalFlip = CGAffineTransform(scaleX: 1, y: -1)

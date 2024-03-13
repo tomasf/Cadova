@@ -1,6 +1,34 @@
 import Foundation
 
-public struct Import3D: CoreGeometry3D {
+public struct Import2D: LeafGeometry2D {
+    let path: String
+    let layer: String?
+    let convexity: Int
+    let center: Bool
+
+    public init(path: String, dxfLayer: String? = nil, center: Bool = false, convexity: Int = 2) {
+        self.path = path
+        self.layer = dxfLayer
+        self.convexity = convexity
+        self.center = center
+    }
+
+    public var invocation: Invocation {
+        .init(name: "import", parameters: [
+            "file": path,
+            "layer": layer,
+            "convexity": convexity,
+            "center": center
+        ])
+    }
+
+    public var boundary: Bounds {
+        // We don't know this; the import is done by OpenSCAD
+        .empty
+    }
+}
+
+public struct Import3D: LeafGeometry3D {
     let path: String
     let convexity: Int
 
@@ -9,40 +37,15 @@ public struct Import3D: CoreGeometry3D {
         self.convexity = convexity
     }
 
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(
-            name: "import",
-            params: [
-                "file": path,
-                "convexity": convexity
-            ]
-        )
-    }
-}
-
-public struct Import2D: CoreGeometry2D {
-    let path: String
-    let layer: String?
-    let convexity: Int
-    let center: Bool
-    
-    public init(path: String, dxfLayer: String? = nil, center: Bool = false, convexity: Int = 2) {
-        self.path = path
-        self.layer = dxfLayer
-        self.convexity = convexity
-        self.center = center
-    }
-
-    func call(in environment: Environment) -> SCADCall {
-        let params: [String: (any SCADValue)?] = [
+    public var invocation: Invocation {
+        .init(name: "import", parameters: [
             "file": path,
-            "layer": layer,
-            "convexity": convexity,
-            "center": center
-        ]
-        return SCADCall(
-            name: "import",
-            params: params.compactMapValues { $0 }
-        )
+            "convexity": convexity
+        ])
+    }
+
+    public var boundary: Bounds {
+        // We don't know this; the import is done by OpenSCAD
+        .empty
     }
 }

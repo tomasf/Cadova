@@ -5,7 +5,7 @@ import Collections
 ///
 /// For more information, see [the OpenSCAD documentation](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Primitive_Solids#polyhedron).
 
-public struct Polyhedron: CoreGeometry3D {
+public struct Polyhedron: LeafGeometry3D {
     let points: [Vector3D]
     let faces: [[Int]]
     let convexity: Int
@@ -96,15 +96,16 @@ public struct Polyhedron: CoreGeometry3D {
         self.init(points: table, faces: faces, convexity: convexity)
     }
 
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(
-            name: "polyhedron",
-            params: [
-                "points": points,
-                "faces": faces,
-                "convexity": convexity
-            ]
-        )
+    public var invocation: Invocation {
+        .init(name: "polyhedron", parameters: [
+            "points": points,
+            "faces": faces,
+            "convexity": convexity
+        ])
+    }
+
+    public var boundary: Bounds {
+        .init(points: points)
     }
 }
 

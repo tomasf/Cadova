@@ -1,7 +1,7 @@
 import Foundation
 
 internal extension Color {
-    func call(child: any Geometry) -> SCADCall {
+    var invocation: Invocation {
         let params: [String: any SCADValue]
 
         switch self {
@@ -12,22 +12,25 @@ internal extension Color {
             params = ["c": name.rawValue, "alpha": alpha]
         }
 
-        return SCADCall(name: "color", params: params, body: child)
+        return Invocation(name: "color", parameters: params)
     }
 }
 
-struct ApplyColor2D: CoreGeometry2D {
+struct ApplyColor2D: WrapperGeometry2D {
     let color: Color
-    let content: any Geometry2D
+    let body: any Geometry2D
+    var invocation: Invocation? { color.invocation }
+}
 
-    func call(in environment: Environment) -> SCADCall {
-        color.call(child: content)
-    }
+struct ApplyColor3D: WrapperGeometry3D {
+    let color: Color
+    let body: any Geometry3D
+    var invocation: Invocation? { color.invocation }
 }
 
 extension Geometry2D {
     func colored(_ color: Color) -> any Geometry2D {
-        ApplyColor2D(color: color, content: self)
+        ApplyColor2D(color: color, body: self)
     }
 
     /// Apply a color to the geometry
@@ -36,7 +39,7 @@ extension Geometry2D {
     ///   - alpha: The alpha value of the color, in the range 0.0 to 1.0.
     /// - Returns: A colored geometry
     public func colored(_ name: Color.Name, alpha: Double = 1) -> any Geometry2D {
-        ApplyColor2D(color: .named(name, alpha: alpha), content: self)
+        ApplyColor2D(color: .named(name, alpha: alpha), body: self)
     }
 
     /// Apply a color to the geometry
@@ -47,22 +50,13 @@ extension Geometry2D {
     ///   - alpha: The alpha component, in the range 0.0 to 1.0.
     /// - Returns: A colored geometry
     public func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> any Geometry2D {
-        ApplyColor2D(color: .components(red: red, green: green, blue: blue, alpha: alpha), content: self)
-    }
-}
-
-struct ApplyColor3D: CoreGeometry3D {
-    let color: Color
-    let content: any Geometry3D
-
-    func call(in environment: Environment) -> SCADCall {
-        color.call(child: content)
+        ApplyColor2D(color: .components(red: red, green: green, blue: blue, alpha: alpha), body: self)
     }
 }
 
 extension Geometry3D {
     func colored(_ color: Color) -> any Geometry3D {
-        ApplyColor3D(color: color, content: self)
+        ApplyColor3D(color: color, body: self)
     }
 
     /// Apply a color to the geometry
@@ -71,7 +65,7 @@ extension Geometry3D {
     ///   - alpha: The alpha value of the color, in the range 0.0 to 1.0.
     /// - Returns: A colored geometry
     public func colored(_ name: Color.Name, alpha: Double = 1) -> any Geometry3D {
-        ApplyColor3D(color: .named(name, alpha: alpha), content: self)
+        ApplyColor3D(color: .named(name, alpha: alpha), body: self)
     }
 
     /// Apply a color to the geometry
@@ -82,6 +76,6 @@ extension Geometry3D {
     ///   - alpha: The alpha component, in the range 0.0 to 1.0.
     /// - Returns: A colored geometry
     public func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> any Geometry3D {
-        ApplyColor3D(color: .components(red: red, green: green, blue: blue, alpha: alpha), content: self)
+        ApplyColor3D(color: .components(red: red, green: green, blue: blue, alpha: alpha), body: self)
     }
 }

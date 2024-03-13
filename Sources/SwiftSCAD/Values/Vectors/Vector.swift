@@ -2,7 +2,7 @@ import Foundation
 
 public protocol Vector {
     associatedtype Axes: SwiftSCAD.Axes
-    associatedtype Transform: AffineTransform
+    associatedtype Transform: AffineTransform where Transform.Vector == Self
 
     static var zero: Self { get }
     static prefix func -(_ v: Self) -> Self
@@ -25,6 +25,10 @@ public protocol Vector {
     init(axis: Axes.Axis, value: Double, default: Double)
     func setting(axes: Axes, to: Double) -> Self
     subscript(_ axis: Axes.Axis) -> Double { get }
+
+    static var elementCount: Int { get }
+    init(elements: [Double])
+    subscript(_ index: Int) -> Double { get }
 }
 
 public extension Vector {

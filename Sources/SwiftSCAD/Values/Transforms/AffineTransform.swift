@@ -2,6 +2,7 @@ import Foundation
 
 public protocol AffineTransform {
     associatedtype Vector: SwiftSCAD.Vector
+    associatedtype Rotation
 
     static var identity: Self { get }
 
@@ -14,4 +15,10 @@ public protocol AffineTransform {
     var inverse: Self { get }
     func concatenated(with: Self) -> Self
     func apply(to point: Vector) -> Vector
+
+    static func translation(_ v: Vector) -> Self
+    static func scaling(_ v: Vector) -> Self
+    static func rotation(_ r: Rotation) -> Self
+
+    init(_ transform3d: AffineTransform3D)
 }

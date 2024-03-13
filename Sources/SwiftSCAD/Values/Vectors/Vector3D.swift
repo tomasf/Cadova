@@ -177,4 +177,13 @@ public extension Vector3D {
 
 extension Vector3D: Vector {
     public typealias Transform = AffineTransform3D
+    public static let elementCount = 3
+
+    public init(elements e: [Double]) {
+        self.init(e[0], e[1], e[2])
+    }
+
+    public subscript(_ index: Int) -> Double {
+        [x, y, z][index]
+    }
 }

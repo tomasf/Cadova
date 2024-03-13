@@ -1,7 +1,7 @@
 import Foundation
 
 /// Basic OpenSCAD-generated text
-public struct BasicText: CoreGeometry2D {
+public struct BasicText: LeafGeometry2D {
     let text: String
     let font: Font
     let horizontalAlignment: HorizontalAlignment
@@ -16,8 +16,8 @@ public struct BasicText: CoreGeometry2D {
         self.characterSpacingFactor = spacingFactor
     }
 
-    func call(in environment: Environment) -> SCADCall {
-        return SCADCall(name: "text", params: [
+    public var invocation: Invocation {
+        .init(name: "text", parameters: [
             "text": text,
             "size": font.size,
             "font": font.fontString,
@@ -25,6 +25,11 @@ public struct BasicText: CoreGeometry2D {
             "valign": verticalAlignment.rawValue,
             "spacing": characterSpacingFactor
         ])
+    }
+
+    public var boundary: Boundary<Vector2D> {
+        // We don't know this.
+        .empty
     }
 
     public struct Font {

@@ -1,5 +1,6 @@
 import Foundation
 
+/*
 struct IfPreview3D: Geometry3D {
     let previewBody: (any Geometry3D)?
     let renderBody: (any Geometry3D)?
@@ -102,3 +103,4 @@ public extension Geometry3D {
         IfRender { self }
     }
 }
+*/

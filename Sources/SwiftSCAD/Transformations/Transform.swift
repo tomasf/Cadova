@@ -1,19 +1,56 @@
 import Foundation
 
-struct Transform3D: CoreGeometry3D {
-    let transform: AffineTransform3D
-    let body: any Geometry3D
+struct Transform2D: WrapperGeometry2D {
+    let body: any Geometry2D
+    let transform: AffineTransform2D
 
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(
-            name: "multmatrix",
-            params: ["m": transform],
-            body: body
-        )
+    var invocation: Invocation? {
+        .init(name: "multmatrix", parameters: ["m": AffineTransform3D(transform)])
+    }
+
+    var bodyTransform: AffineTransform3D {
+        AffineTransform3D(transform)
+    }
+}
+
+struct Transform3D: WrapperGeometry3D {
+    let body: any Geometry3D
+    let transform: AffineTransform3D
+
+    var invocation: Invocation? {
+        .init(name: "multmatrix", parameters: ["m": transform])
+
     }
 
     var bodyTransform: AffineTransform3D {
         transform
+    }
+}
+
+public extension Geometry2D {
+    /// Applies a given affine transformation to the 2D geometry.
+    /// - Parameter transform: The transformation to be applied.
+    /// - Returns: A transformed `Geometry2D`.
+    func transformed(_ transform: AffineTransform2D) -> any Geometry2D {
+        Transform2D(body: self, transform: transform)
+    }
+
+    /// Applies a shearing transformation to the 2D geometry.
+    /// - Parameters:
+    ///   - axis: The primary axis that will be affected by the shear.
+    ///   - factor: The magnitude of the shear.
+    /// - Returns: A sheared `Geometry2D`.
+    func sheared(_ axis: Axis2D, factor: Double) -> any Geometry2D {
+        transformed(.shearing(axis, factor: factor))
+    }
+
+    /// Applies a shearing transformation to the 2D geometry using an angle.
+    /// - Parameters:
+    ///   - axis: The primary axis that will be affected by the shear.
+    ///   - angle: The angle defining the magnitude of the shear.
+    /// - Returns: A sheared `Geometry2D`.
+    func sheared(_ axis: Axis2D, angle: Angle) -> any Geometry2D {
+        transformed(.shearing(axis, angle: angle))
     }
 }
 
@@ -22,7 +59,7 @@ public extension Geometry3D {
     /// - Parameter transform: The transformation to be applied.
     /// - Returns: A transformed `Geometry3D`.
     func transformed(_ transform: AffineTransform3D) -> any Geometry3D {
-        Transform3D(transform: transform, body: self)
+        Transform3D(body: self, transform: transform)
     }
 
     /// Applies a shearing transformation to the 3D geometry.
@@ -43,50 +80,5 @@ public extension Geometry3D {
     /// - Returns: A sheared `Geometry3D`.
     func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> any Geometry3D {
         transformed(.shearing(axis, along: otherAxis, angle: angle))
-    }
-}
-
-
-struct Transform2D: CoreGeometry2D {
-    let transform: AffineTransform2D
-    let body: any Geometry2D
-
-    func call(in environment: Environment) -> SCADCall {
-        SCADCall(
-            name: "multmatrix",
-            params: ["m": AffineTransform3D(transform)],
-            body: body
-        )
-    }
-
-    var bodyTransform: AffineTransform3D {
-        AffineTransform3D(transform)
-    }
-}
-
-public extension Geometry2D {
-    /// Applies a given affine transformation to the 2D geometry.
-    /// - Parameter transform: The transformation to be applied.
-    /// - Returns: A transformed `Geometry2D`.
-    func transformed(_ transform: AffineTransform2D) -> any Geometry2D {
-        Transform2D(transform: transform, body: self)
-    }
-
-    /// Applies a shearing transformation to the 2D geometry.
-    /// - Parameters:
-    ///   - axis: The primary axis that will be affected by the shear.
-    ///   - factor: The magnitude of the shear.
-    /// - Returns: A sheared `Geometry2D`.
-    func sheared(_ axis: Axis2D, factor: Double) -> any Geometry2D {
-        transformed(.shearing(axis, factor: factor))
-    }
-
-    /// Applies a shearing transformation to the 2D geometry using an angle.
-    /// - Parameters:
-    ///   - axis: The primary axis that will be affected by the shear.
-    ///   - angle: The angle defining the magnitude of the shear.
-    /// - Returns: A sheared `Geometry2D`.
-    func sheared(_ axis: Axis2D, angle: Angle) -> any Geometry2D {
-        transformed(.shearing(axis, angle: angle))
     }
 }
