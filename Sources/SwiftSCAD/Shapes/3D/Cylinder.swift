@@ -85,12 +85,15 @@ public struct Cylinder: LeafGeometry3D {
         return .init(name: "cylinder", parameters: params)
     }
 
-    public var boundary: Bounds {
+    public func boundary(in environment: Environment) -> Bounds {
         let bottomDiameter = diameter
         let topDiameter = self.topDiameter ?? diameter
 
-        let bottom = Boundary2D.box([bottomDiameter, bottomDiameter]).asFlat3D()
-        let top = Boundary2D.box([topDiameter, topDiameter]).asFlat3D(z: height)
-        return .union([bottom, top])
+        let bottom = Boundary2D.circle(radius: bottomDiameter / 2, facets: environment.facets)
+        let top = Boundary2D.circle(radius: topDiameter / 2, facets: environment.facets)
+        return .union([
+            bottom.as3D(),
+            top.as3D(z: height)
+        ])
     }
 }

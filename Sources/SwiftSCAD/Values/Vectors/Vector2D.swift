@@ -164,6 +164,10 @@ extension Vector2D: Vector {
     public typealias Transform = AffineTransform2D
     public static let elementCount = 2
 
+    public var elements: [Double] {
+        [x, y]
+    }
+
     public init(elements e: [Double]) {
         self.init(e[0], e[1])
     }
@@ -171,4 +175,13 @@ extension Vector2D: Vector {
     public subscript(_ index: Int) -> Double {
         [x, y][index]
     }
+
+    public static func min(_ a: Self, _ b: Self) -> Self {
+        Self(x: Swift.min(a.x, b.x), y: Swift.min(a.y, b.y))
+    }
+
+    public static func max(_ a: Self, _ b: Self) -> Self {
+        Self(x: Swift.max(a.x, b.x), y: Swift.max(a.y, b.y))
+    }
+
 }

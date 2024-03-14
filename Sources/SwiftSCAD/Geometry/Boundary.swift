@@ -1,15 +1,19 @@
 import Foundation
 
 public struct Boundary<V: Vector> {
-    private let points: [V]
+    internal let points: [V]
 
-    internal init(points: [V]) {
+    fileprivate init(points: [V]) {
         self.points = points
     }
 }
 
 internal extension Boundary {
     static var empty: Boundary { .init(points: []) }
+
+    static func points(_ points: [V]) -> Boundary {
+        Self(points: points)
+    }
 
     static func box(_ size: V) -> Boundary {
         let cornerCount = Int(pow(2.0, Double(V.elementCount)))
@@ -49,6 +53,10 @@ internal extension Boundary {
     func max(_ axis: V.Axes.Axis) -> Double? {
         points.map { $0[axis] }.max()
     }
+
+    var boundingBox: BoundingBox<V> {
+        BoundingBox(points)
+    }
 }
 
 internal extension Boundary {
@@ -71,7 +79,7 @@ internal extension Boundary {
 }
 
 extension Boundary2D {
-    func asFlat3D(z: Double = 0) -> Boundary<Vector3D> {
+    func as3D(z: Double = 0) -> Boundary<Vector3D> {
         map { Vector3D($0, z: z) }
     }
 
@@ -82,14 +90,39 @@ extension Boundary2D {
     func extruded(angle fullAngle: Angle, facets: Environment.Facets) -> Boundary<Vector3D> {
         guard let maxX = max(.x) else { return .empty }
         let facetCount = facets.facetCount(circleRadius: maxX)
-        let standing = asFlat3D().transformed(.rotation(x: 90°))
+        let standing = as3D().transformed(.rotation(x: 90°))
 
         return .union((0...facetCount).map {
             let angle = (fullAngle / Double(facetCount)) * Double($0)
             return standing.transformed(.rotation(z: angle))
         })
     }
+
+    static func circle(radius: Double, facets: Environment.Facets) -> Boundary2D {
+        let facetCount = facets.facetCount(circleRadius: radius)
+        let points = (0..<facetCount).map {
+            let angle = (360° / Double(facetCount)) * Double($0)
+            return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
+        }
+        return .init(points: points)
+    }
 }
 
-typealias Boundary2D = Boundary<Vector2D>
-typealias Boundary3D = Boundary<Vector3D>
+extension Boundary3D {
+    static func sphere(radius: Double, facets: Environment.Facets) -> Boundary3D {
+        let facetCount = facets.facetCount(circleRadius: radius)
+        let layers = (0..<facetCount).map {
+            let angle = (360° / Double(facetCount)) * Double($0)
+            let layerRadius = cos(angle) * radius
+            let z = sin(angle) * radius
+
+            return Boundary2D.circle(radius: layerRadius, facets: facets)
+                .as3D(z: z)
+        }
+        return .union(layers)
+
+    }
+}
+
+public typealias Boundary2D = Boundary<Vector2D>
+public typealias Boundary3D = Boundary<Vector3D>

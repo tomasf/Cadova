@@ -104,8 +104,8 @@ public struct Polyhedron: LeafGeometry3D {
         ])
     }
 
-    public var boundary: Bounds {
-        .init(points: points)
+    public func boundary(in environment: Environment) -> Bounds {
+        .points(points)
     }
 }
 

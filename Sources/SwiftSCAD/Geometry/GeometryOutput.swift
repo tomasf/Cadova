@@ -2,8 +2,8 @@ import Foundation
 
 public struct GeometryOutput<V: Vector> {
     internal let scadCode: String
-    private let boundary: Boundary<V>
-    private let anchors: [Anchor: AffineTransform3D]
+    internal let boundary: Boundary<V>
+    internal let anchors: [Anchor: AffineTransform3D]
 
     private init(scadCode: String, boundary: Boundary<V>, anchors: [Anchor: AffineTransform3D]) {
         self.scadCode = scadCode

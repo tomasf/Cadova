@@ -30,8 +30,7 @@ public struct Sphere: LeafGeometry3D {
         .init(name: "sphere", parameters: ["d": diameter])
     }
 
-    public var boundary: Bounds {
-        .box([diameter, diameter, diameter])
-        .translated([-diameter/2, -diameter/2, -diameter/2])
+    public func boundary(in environment: Environment) -> Bounds {
+        .sphere(radius: diameter / 2, facets: environment.facets)
     }
 }

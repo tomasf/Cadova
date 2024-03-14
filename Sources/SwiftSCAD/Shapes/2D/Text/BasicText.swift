@@ -27,7 +27,7 @@ public struct BasicText: LeafGeometry2D {
         ])
     }
 
-    public var boundary: Boundary<Vector2D> {
+    public func boundary(in environment: Environment) -> Bounds {
         // We don't know this.
         .empty
     }

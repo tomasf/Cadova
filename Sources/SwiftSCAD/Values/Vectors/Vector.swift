@@ -28,7 +28,11 @@ public protocol Vector {
 
     static var elementCount: Int { get }
     init(elements: [Double])
+    var elements: [Double] { get }
     subscript(_ index: Int) -> Double { get }
+
+    static func min(_ a: Self, _ b: Self) -> Self
+    static func max(_ a: Self, _ b: Self) -> Self
 }
 
 public extension Vector {

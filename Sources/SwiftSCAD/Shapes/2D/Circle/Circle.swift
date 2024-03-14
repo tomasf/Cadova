@@ -29,8 +29,7 @@ public struct Circle: LeafGeometry2D {
         .init(name: "circle", parameters: ["d": diameter])
     }
 
-    public var boundary: Boundary<Vector2D> {
-        .box([diameter, diameter])
-        .translated([-diameter/2, -diameter/2])
+    public func boundary(in environment: Environment) -> Bounds {
+        .circle(radius: diameter / 2, facets: environment.facets)
     }
 }

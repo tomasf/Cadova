@@ -48,7 +48,7 @@ public struct Polygon: Geometry2D {
 
         return .init(
             invocation: .init(name: "polygon", parameters:  ["points": points]),
-            boundary: .init(points: points),
+            boundary: .points(points),
             environment: environment
         )
     }
@@ -72,7 +72,7 @@ public extension Polygon {
     /// Calculates the bounding rectangle of the polygon within a given environment.
     /// - Parameter environment: The environment context.
     /// - Returns: A `BoundingRect` representing the smallest rectangle enclosing the polygon.
-    func boundingRect(in environment: Environment) -> BoundingRect {
+    func boundingRect(in environment: Environment) -> BoundingBox2D {
         .init(points(in: environment))
     }
 }

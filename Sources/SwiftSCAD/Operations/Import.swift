@@ -22,7 +22,7 @@ public struct Import2D: LeafGeometry2D {
         ])
     }
 
-    public var boundary: Bounds {
+    public func boundary(in environment: Environment) -> Bounds {
         // We don't know this; the import is done by OpenSCAD
         .empty
     }
@@ -44,7 +44,7 @@ public struct Import3D: LeafGeometry3D {
         ])
     }
 
-    public var boundary: Bounds {
+    public func boundary(in environment: Environment) -> Bounds {
         // We don't know this; the import is done by OpenSCAD
         .empty
     }
