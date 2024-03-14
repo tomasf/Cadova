@@ -1,6 +1,6 @@
 import Foundation
 
-struct Translate2D: WrapperGeometry2D {
+struct Translate2D: WrappedGeometry2D {
     let body: any Geometry2D
     let distance: Vector2D
 
@@ -13,7 +13,7 @@ struct Translate2D: WrapperGeometry2D {
     }
 }
 
-struct Translate3D: WrapperGeometry3D {
+struct Translate3D: WrappedGeometry3D {
     let body: any Geometry3D
     let distance: Vector3D
 

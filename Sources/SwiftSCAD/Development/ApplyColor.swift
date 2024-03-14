@@ -16,13 +16,13 @@ internal extension Color {
     }
 }
 
-struct ApplyColor2D: WrapperGeometry2D {
+struct ApplyColor2D: WrappedGeometry2D {
     let color: Color
     let body: any Geometry2D
     var invocation: Invocation? { color.invocation }
 }
 
-struct ApplyColor3D: WrapperGeometry3D {
+struct ApplyColor3D: WrappedGeometry3D {
     let color: Color
     let body: any Geometry3D
     var invocation: Invocation? { color.invocation }

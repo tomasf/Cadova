@@ -1,6 +1,6 @@
 import Foundation
 
-struct SetVariables2D: WrapperGeometry2D {
+struct SetVariables2D: WrappedGeometry2D {
     let body: any Geometry2D
     let variables: Invocation.Parameters
     let environment: ((Environment) -> Environment)?
@@ -14,7 +14,7 @@ struct SetVariables2D: WrapperGeometry2D {
     }
 }
 
-struct SetVariables3D: WrapperGeometry3D {
+struct SetVariables3D: WrappedGeometry3D {
     let body: any Geometry3D
     let variables: Invocation.Parameters
     let environment: ((Environment) -> Environment)?

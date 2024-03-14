@@ -1,6 +1,6 @@
 import Foundation
 
-struct Prefix2D: WrapperGeometry2D {
+struct Prefix2D: WrappedGeometry2D {
     let prefix: String
     let isImmaterial: Bool
     let body: any Geometry2D
@@ -19,7 +19,7 @@ struct Prefix2D: WrapperGeometry2D {
     }
 }
 
-struct Prefix3D: WrapperGeometry3D {
+struct Prefix3D: WrappedGeometry3D {
     let prefix: String
     let isImmaterial: Bool
     let body: any Geometry3D

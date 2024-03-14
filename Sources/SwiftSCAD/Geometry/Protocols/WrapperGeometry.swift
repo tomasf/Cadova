@@ -1,6 +1,6 @@
 import Foundation
 
-protocol WrapperGeometry2D: Geometry2D {
+protocol WrappedGeometry2D: Geometry2D {
     var invocation: Invocation? { get }
     var body: any Geometry2D { get }
     var bodyTransform: AffineTransform3D { get }
@@ -8,7 +8,7 @@ protocol WrapperGeometry2D: Geometry2D {
     func modifiedOutput(_ output: Output) -> Output
 }
 
-extension WrapperGeometry2D {
+extension WrappedGeometry2D {
     public var bodyTransform: AffineTransform3D { .identity }
 
     public func output(in environment: Environment) -> Output {
@@ -30,7 +30,7 @@ extension WrapperGeometry2D {
     public func modifiedOutput(_ output: Output) -> Output { output }
 }
 
-protocol WrapperGeometry3D: Geometry3D {
+protocol WrappedGeometry3D: Geometry3D {
     var invocation: Invocation? { get }
     var body: any Geometry3D { get }
     var bodyTransform: AffineTransform3D { get }
@@ -38,7 +38,7 @@ protocol WrapperGeometry3D: Geometry3D {
     func modifiedOutput(_ output: Output) -> Output
 }
 
-extension WrapperGeometry3D {
+extension WrappedGeometry3D {
     public var bodyTransform: AffineTransform3D { .identity }
 
     public func output(in environment: Environment) -> Output {

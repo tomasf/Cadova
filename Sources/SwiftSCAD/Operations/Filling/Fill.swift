@@ -1,6 +1,6 @@
 import Foundation
 
-struct Fill2D: WrapperGeometry2D {
+struct Fill2D: WrappedGeometry2D {
     let body: any Geometry2D
 
     var invocation: Invocation? {

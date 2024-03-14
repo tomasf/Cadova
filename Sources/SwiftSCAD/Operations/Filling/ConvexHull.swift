@@ -1,6 +1,6 @@
 import Foundation
 
-struct ConvexHull2D: WrapperGeometry2D {
+struct ConvexHull2D: WrappedGeometry2D {
     let body: any Geometry2D
 
     var invocation: Invocation? {
@@ -8,7 +8,7 @@ struct ConvexHull2D: WrapperGeometry2D {
     }
 }
 
-struct ConvexHull3D: WrapperGeometry3D {
+struct ConvexHull3D: WrappedGeometry3D {
     let body: any Geometry3D
 
     var invocation: Invocation? {

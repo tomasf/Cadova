@@ -1,6 +1,6 @@
 import Foundation
 
-struct Scale2D: WrapperGeometry2D {
+struct Scale2D: WrappedGeometry2D {
     let body: any Geometry2D
     let scale: Vector2D
 
@@ -13,7 +13,7 @@ struct Scale2D: WrapperGeometry2D {
     }
 }
 
-struct Scale3D: WrapperGeometry3D {
+struct Scale3D: WrappedGeometry3D {
     let body: any Geometry3D
     let scale: Vector3D
 

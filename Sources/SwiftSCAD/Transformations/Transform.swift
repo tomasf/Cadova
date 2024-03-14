@@ -1,6 +1,6 @@
 import Foundation
 
-struct Transform2D: WrapperGeometry2D {
+struct Transform2D: WrappedGeometry2D {
     let body: any Geometry2D
     let transform: AffineTransform2D
 
@@ -13,7 +13,7 @@ struct Transform2D: WrapperGeometry2D {
     }
 }
 
-struct Transform3D: WrapperGeometry3D {
+struct Transform3D: WrappedGeometry3D {
     let body: any Geometry3D
     let transform: AffineTransform3D
 

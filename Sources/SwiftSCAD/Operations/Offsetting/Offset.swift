@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Offset: WrapperGeometry2D {
+public struct Offset: WrappedGeometry2D {
     let body: any Geometry2D
     let amount: Double
     let style: Style

@@ -1,6 +1,6 @@
 import Foundation
 
-struct EnvironmentModifier2D: WrapperGeometry2D {
+struct EnvironmentModifier2D: WrappedGeometry2D {
     let body: any Geometry2D
     let modification: (Environment) -> Environment
     let invocation: Invocation? = nil
@@ -10,7 +10,7 @@ struct EnvironmentModifier2D: WrapperGeometry2D {
     }
 }
 
-struct EnvironmentModifier3D: WrapperGeometry3D {
+struct EnvironmentModifier3D: WrappedGeometry3D {
     let body: any Geometry3D
     let modification: (Environment) -> Environment
     let invocation: Invocation? = nil

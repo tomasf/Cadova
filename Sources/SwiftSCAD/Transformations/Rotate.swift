@@ -1,6 +1,6 @@
 import Foundation
 
-struct Rotate2D: WrapperGeometry2D {
+struct Rotate2D: WrappedGeometry2D {
     let body: any Geometry2D
     let angle: Angle
 
@@ -13,7 +13,7 @@ struct Rotate2D: WrapperGeometry2D {
     }
 }
 
-struct Rotate3D: WrapperGeometry3D {
+struct Rotate3D: WrappedGeometry3D {
     let body: any Geometry3D
     let rotation: Rotation3D
 
