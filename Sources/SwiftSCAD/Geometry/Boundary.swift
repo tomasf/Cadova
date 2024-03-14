@@ -27,6 +27,14 @@ internal extension Boundary {
     static func union(_ boundaries: [Boundary]) -> Boundary {
         .init(points: boundaries.flatMap(\.points))
     }
+
+    init(boundingBox: BoundingBox<V>) {
+        self = .box(boundingBox.size).translated(boundingBox.minimum)
+    }
+
+    var boundingBox: BoundingBox<V> {
+        BoundingBox(points)
+    }
 }
 
 internal extension Boundary {
@@ -53,26 +61,27 @@ internal extension Boundary {
     func max(_ axis: V.Axes.Axis) -> Double? {
         points.map { $0[axis] }.max()
     }
-
-    var boundingBox: BoundingBox<V> {
-        BoundingBox(points)
-    }
 }
 
 internal extension Boundary {
     enum MergeStrategy {
         case union
+        case intersection
         case first
         case custom (([Boundary]) -> Boundary)
 
         func apply(_ bounds: [Boundary]) -> Boundary {
             switch self {
             case .union:
-                    .union(bounds)
+                return .union(bounds)
+            case .intersection:
+                let boxes = bounds.map(\.boundingBox)
+                let newBox = boxes.reduce(boxes[0], { $0.intersection(with: $1) })
+                return .init(boundingBox: newBox)
             case .first:
-                bounds.first ?? .empty
+                return bounds.first ?? .empty
             case .custom (let function):
-                function(bounds)
+                return function(bounds)
             }
         }
     }

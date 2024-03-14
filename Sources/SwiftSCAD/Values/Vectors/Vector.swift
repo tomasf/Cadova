@@ -23,7 +23,8 @@ public protocol Vector {
     func point(alongLineTo other: Self, at fraction: Double) -> Self
 
     init(axis: Axes.Axis, value: Double, default: Double)
-    func setting(axes: Axes, to: Double) -> Self
+    func with(_ axes: Axes, as value: Double) -> Self
+    func with(_ axis: Axes.Axis, as value: Double) -> Self
     subscript(_ axis: Axes.Axis) -> Double { get }
 
     static var elementCount: Int { get }

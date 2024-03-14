@@ -34,8 +34,8 @@ public extension Geometry2D {
             print(boundary.points)
             return Union {
                 geometry
-                boundary.visualized()
-                boundary.boundingBox.visualized(borderWidth: 0.1)
+                boundary.visualized(scale: scale)
+                boundary.boundingBox.visualized(scale: scale)
             }
         }
     }
@@ -51,8 +51,8 @@ public extension Geometry3D {
             print(boundary.points)
             return Union {
                 geometry
-                boundary.visualized()
-                boundary.boundingBox.visualized(borderWidth: 0.1)
+                boundary.visualized(scale: scale)
+                boundary.boundingBox.visualized(scale: scale)
             }
         }
     }

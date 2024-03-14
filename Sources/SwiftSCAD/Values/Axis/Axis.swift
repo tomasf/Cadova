@@ -15,6 +15,10 @@ public enum Axis3D: Int, CaseIterable {
     var direction: Vector3D {
         Vector3D(axis: self, value: 1)
     }
+
+    var otherAxes: Axes3D {
+        Axes3D(axis: self).inverted
+    }
 }
 
 /// A direction along an axis

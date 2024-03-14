@@ -7,7 +7,7 @@ struct Projection: Geometry2D {
     private var parameters: Invocation.Parameters {
         switch mode {
         case .whole: [:]
-        case .slice (let z): ["cut": true]
+        case .slice: ["cut": true]
         }
     }
 

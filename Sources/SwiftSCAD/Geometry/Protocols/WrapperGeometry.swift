@@ -13,14 +13,12 @@ extension WrappedGeometry2D {
 
     public func output(in environment: Environment) -> Output {
         if let invocation {
-            return modifiedOutput(
-                .init(
-                    invocation: invocation,
-                    body: [body],
-                    bodyTransform: bodyTransform,
-                    environment: modifiedEnvironment(environment)
-                )
-            )
+            return modifiedOutput(.init(
+                invocation: invocation,
+                body: [body],
+                bodyTransform: bodyTransform,
+                environment: modifiedEnvironment(environment)
+            ))
         } else {
             return modifiedOutput(body.output(in: modifiedEnvironment(environment)))
         }

@@ -53,6 +53,14 @@ public struct BoundingBox<V: Vector> {
     public var center: V {
         minimum + size / 2.0
     }
+
+    public func intersection(with other: BoundingBox<V>) -> BoundingBox {
+        .init(minimum: V.max(minimum, other.minimum), maximum: V.min(maximum, other.maximum))
+    }
+
+    public func offset(_ expansion: V) -> BoundingBox {
+        .init(minimum: minimum - expansion, maximum: maximum + expansion)
+    }
 }
 
 public typealias BoundingBox2D = BoundingBox<Vector2D>
@@ -60,11 +68,13 @@ public typealias BoundingBox3D = BoundingBox<Vector3D>
 
 public extension BoundingBox2D {
     @UnionBuilder2D
-    func visualized(borderWidth: Double = 1.0) -> any Geometry2D {
+    func visualized(scale: Double = 1.0) -> any Geometry2D {
+        let borderWidth = 0.1 * scale
         let half = Union {
-            Rectangle([maximum.x - minimum.x + borderWidth * 2, borderWidth])
-            Rectangle([borderWidth, maximum.y - minimum.y + borderWidth * 2])
-        }.translated(x: -borderWidth, y: -borderWidth)
+            Rectangle([maximum.x - minimum.x, borderWidth])
+            Rectangle([borderWidth, maximum.y - minimum.y])
+        }
+            .offset(amount: 0.001, style: .miter)
         Union {
             half.translated(minimum)
             half.flipped(along: .all)
@@ -75,7 +85,8 @@ public extension BoundingBox2D {
 }
 
 public extension BoundingBox3D {
-    func visualized(borderWidth: Double = 1.0) -> any Geometry3D {
+    func visualized(scale: Double = 1.0) -> any Geometry3D {
+        let borderWidth = 0.1 * scale
         let size = maximum - minimum
 
         func frame(_ size: Vector2D) -> any Geometry3D {
@@ -110,9 +121,9 @@ public extension BoundingBox3D {
 }
 
 extension Boundary3D {
-    func visualized() -> any Geometry3D {
+    func visualized(scale: Double) -> any Geometry3D {
         points.mapUnion {
-            Box([0.1, 0.1, 0.1], center: .all)
+            Box([0.1 * scale, 0.1 * scale, 0.1 * scale], center: .all)
                 .translated($0)
         }
         .colored(.red)
@@ -121,9 +132,9 @@ extension Boundary3D {
 }
 
 extension Boundary2D {
-    func visualized() -> any Geometry2D {
+    func visualized(scale: Double) -> any Geometry2D {
         points.mapUnion {
-            Rectangle([0.1, 0.1], center: .all)
+            Rectangle([0.1 * scale, 0.1 * scale], center: .all)
                 .translated($0)
         }
         .colored(.red)
