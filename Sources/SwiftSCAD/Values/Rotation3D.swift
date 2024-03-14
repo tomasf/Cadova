@@ -20,14 +20,14 @@ public struct Rotation3D {
         rotation = .eulerAngles(x: x, y: y, z: z)
     }
 
-    /// Creates a `Rotation3D` instance with a specified angle around a specified axis.
+    /// Creates a `Rotation3D` instance with a specified angle around a specified cartesian axis.
     ///
     /// This initializer allows creating a rotation by specifying a single angle and the axis
     /// around which the rotation is applied. The other two axes will have no rotation.
     ///
     /// - Parameters:
     ///   - angle: The rotation angle around the specified axis.
-    ///   - axis: The axis around which the rotation is applied (`Axis3D.x`, `Axis3D.y`, or `Axis3D.z`).
+    ///   - axis: The cartesian axis around which the rotation is applied (`Axis3D.x`, `Axis3D.y`, or `Axis3D.z`).
     init(angle: Angle, axis: Axis3D) {
         switch axis {
         case .x: self.init(x: angle)
@@ -40,9 +40,9 @@ public struct Rotation3D {
     /// This initializer is used for creating a rotation around an axis that is not necessarily aligned with the principal axes.
     ///
     /// - Parameters:
-    ///   - axis: The 3D vector defining the axis of rotation.
     ///   - angle: The angle of rotation around the specified axis.
-    init(axis: Vector3D, angle: Angle) {
+    ///   - axis: The 3D vector defining the axis of rotation.
+    init(angle: Angle, axis: Vector3D) {
         rotation = .axis(axis, angle: angle)
     }
 }

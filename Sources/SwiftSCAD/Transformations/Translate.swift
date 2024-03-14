@@ -32,7 +32,7 @@ public extension Geometry2D {
     }
 
     func translated(x: Double = 0, y: Double = 0) -> any Geometry2D {
-        Translate2D(body: self, distance: [x, y])
+        translated([x, y])
     }
 }
 
@@ -41,11 +41,7 @@ public extension Geometry3D {
         Translate3D(body: self, distance: distance)
     }
 
-    func translated(_ distance: Vector2D) -> any Geometry3D {
-        Translate3D(body: self, distance: Vector3D(distance))
-    }
-
     func translated(x: Double = 0, y: Double = 0, z: Double = 0) -> any Geometry3D {
-        Translate3D(body: self, distance: [x, y, z])
+        translated([x, y, z])
     }
 }

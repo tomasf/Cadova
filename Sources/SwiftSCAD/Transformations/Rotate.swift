@@ -82,7 +82,7 @@ public extension Geometry3D {
     ///   - angle: The angle of rotation around the specified axis.
     ///   - axis: The 3D vector defining the axis of rotation.
     func rotated(angle: Angle, axis: Vector3D) -> any Geometry3D {
-        Rotate3D(body: self, rotation: .init(axis: axis, angle: angle))
+        rotated(.init(angle: angle, axis: axis))
     }
 
     /// Rotate geometry
