@@ -6,7 +6,8 @@ struct ReadBoundary2D: Geometry2D {
 
     func output(in environment: Environment) -> Output {
         let bodyOutput = body.output(in: environment)
-        return builder(body, bodyOutput.boundary)
+        let localBoundary = bodyOutput.boundary
+        return builder(body, localBoundary)
             .output(in: environment)
     }
 }
@@ -17,7 +18,8 @@ struct ReadBoundary3D: Geometry3D {
 
     func output(in environment: Environment) -> Output {
         let bodyOutput = body.output(in: environment)
-        return builder(body, bodyOutput.boundary)
+        let localBoundary = bodyOutput.boundary
+        return builder(body, localBoundary)
             .output(in: environment)
     }
 }
@@ -25,6 +27,17 @@ struct ReadBoundary3D: Geometry3D {
 public extension Geometry2D {
     func measuringBounds(@UnionBuilder2D _ builder: @escaping (any Geometry2D, BoundingBox2D) -> any Geometry2D) -> any Geometry2D {
         ReadBoundary2D(body: self, builder: { builder($0, $1.boundingBox) })
+    }
+
+    func visualizingBounds(scale: Double = 1.0) -> any Geometry2D {
+        ReadBoundary2D(body: self) { geometry, boundary in
+            print(boundary.points)
+            return Union {
+                geometry
+                boundary.visualized()
+                boundary.boundingBox.visualized(borderWidth: 0.1)
+            }
+        }
     }
 }
 
@@ -35,7 +48,8 @@ public extension Geometry3D {
 
     func visualizingBounds(scale: Double = 1.0) -> any Geometry3D {
         ReadBoundary3D(body: self) { geometry, boundary in
-            Union {
+            print(boundary.points)
+            return Union {
                 geometry
                 boundary.visualized()
                 boundary.boundingBox.visualized(borderWidth: 0.1)

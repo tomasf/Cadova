@@ -33,7 +33,7 @@ extension GeometryOutput {
     // Without children
     init(invocation: Invocation, boundary: Boundary<V>, environment: Environment) {
         scadCode = invocation.scadCode()
-        self.boundary = boundary.transformed(V.Transform(environment.transform))
+        self.boundary = boundary
         anchors = [:]
     }
 
@@ -48,8 +48,12 @@ extension GeometryOutput {
         let newEnvironment = environment.applyingTransform(bodyTransform)
         let bodyOutputs = body.map { $0.output(in: newEnvironment) }
 
+        let localBounds = bodyOutputs.map {
+            $0.boundary.transformed(AffineTransform2D(bodyTransform))
+        }
+
         scadCode = invocation.scadCode(body: bodyOutputs.map(\.scadCode))
-        boundary = boundaryMergeStrategy.apply(bodyOutputs.map(\.boundary))
+        boundary = boundaryMergeStrategy.apply(localBounds)
         anchors = bodyOutputs.map(\.anchors).reduce(into: [:]) { $0.merge($1) { a, _ in a }}
     }
 
@@ -65,8 +69,12 @@ extension GeometryOutput {
         let newEnvironment = environment.applyingTransform(bodyTransform)
         let bodyOutputs = body.map { $0.output(in: newEnvironment) }
 
+        let localBounds = bodyOutputs.map {
+            $0.boundary.transformed(bodyTransform)
+        }
+
         scadCode = invocation.scadCode(body: bodyOutputs.map(\.scadCode))
-        boundary = boundaryTransform(boundaryMergeStrategy.apply(bodyOutputs.map(\.boundary)))
+        boundary = boundaryTransform(boundaryMergeStrategy.apply(localBounds))
         anchors = bodyOutputs.map(\.anchors).reduce(into: [:]) { $0.merge($1) { a, _ in a }}
     }
 
@@ -81,8 +89,12 @@ extension GeometryOutput {
         let newEnvironment = environment.applyingTransform(bodyTransform)
         let bodyOutputs = body.map { $0.output(in: newEnvironment) }
 
+        let localBounds = bodyOutputs.map {
+            $0.boundary.transformed(bodyTransform)
+        }
+
         scadCode = invocation.scadCode(body: bodyOutputs.map(\.scadCode))
-        boundary = boundaryMergeStrategy.apply(bodyOutputs.map(\.boundary))
+        boundary = boundaryMergeStrategy.apply(localBounds)
         anchors = bodyOutputs.map(\.anchors).reduce(into: [:]) { $0.merge($1) { a, _ in a }}
     }
 
@@ -92,14 +104,18 @@ extension GeometryOutput {
         body: [any Geometry2D],
         bodyTransform: AffineTransform3D = .identity,
         environment: Environment,
-        boundaryMergeStrategy: Boundary<Vector2D>.MergeStrategy,
+        boundaryMergeStrategy: Boundary<Vector3D>.MergeStrategy,
         boundaryTransform: ((Boundary<Vector2D>) -> Boundary<Vector3D>)
     ) where V == Vector3D {
         let newEnvironment = environment.applyingTransform(bodyTransform)
         let bodyOutputs = body.map { $0.output(in: newEnvironment) }
 
+        let localBounds = bodyOutputs.map {
+            boundaryTransform($0.boundary).transformed(bodyTransform)
+        }
+
         scadCode = invocation.scadCode(body: bodyOutputs.map(\.scadCode))
-        boundary = boundaryTransform(boundaryMergeStrategy.apply(bodyOutputs.map(\.boundary)))
+        boundary = boundaryMergeStrategy.apply(localBounds)
         anchors = bodyOutputs.map(\.anchors).reduce(into: [:]) { $0.merge($1) { a, _ in a }}
     }
 }

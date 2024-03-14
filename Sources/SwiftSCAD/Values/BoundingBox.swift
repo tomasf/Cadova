@@ -105,12 +105,7 @@ public extension BoundingBox3D {
                     .translated(maximum)
             }
         .colored(.blue)
-    }
-}
-
-extension Geometry3D {
-    public func visualizeBoundingBox() {
-        
+        .background()
     }
 }
 
@@ -121,6 +116,18 @@ extension Boundary3D {
                 .translated($0)
         }
         .colored(.red)
+        .background()
+    }
+}
+
+extension Boundary2D {
+    func visualized() -> any Geometry2D {
+        points.mapUnion {
+            Rectangle([0.1, 0.1], center: .all)
+                .translated($0)
+        }
+        .colored(.red)
+        .background()
     }
 }
 
