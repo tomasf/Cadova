@@ -111,16 +111,12 @@ extension Boundary2D {
 extension Boundary3D {
     static func sphere(radius: Double, facets: Environment.Facets) -> Boundary3D {
         let facetCount = facets.facetCount(circleRadius: radius)
-        let layers = (0..<facetCount).map {
+        let layers = (0..<facetCount / 2).map {
             let angle = (360° / Double(facetCount)) * Double($0)
-            let layerRadius = cos(angle) * radius
-            let z = sin(angle) * radius
-
-            return Boundary2D.circle(radius: layerRadius, facets: facets)
-                .as3D(z: z)
+            return Boundary2D.circle(radius: sin(angle) * radius, facets: facets)
+                .as3D(z: cos(angle) * radius)
         }
         return .union(layers)
-
     }
 }
 
