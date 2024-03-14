@@ -43,7 +43,7 @@ extension GeometryOutput {
         body: [any Geometry2D],
         bodyTransform: AffineTransform3D = .identity,
         environment: Environment,
-        boundaryMergeStrategy: Boundary<Vector2D>.MergeStrategy = .union
+        boundaryMergeStrategy: Boundary2D.MergeStrategy = .union
     ) where V == Vector2D {
         let newEnvironment = environment.applyingTransform(bodyTransform)
         let bodyOutputs = body.map { $0.output(in: newEnvironment) }
@@ -63,8 +63,8 @@ extension GeometryOutput {
         body: [any Geometry3D],
         bodyTransform: AffineTransform3D = .identity,
         environment: Environment,
-        boundaryMergeStrategy: Boundary<Vector3D>.MergeStrategy,
-        boundaryTransform: ((Boundary<Vector3D>) -> Boundary<Vector2D>)
+        boundaryMergeStrategy: Boundary3D.MergeStrategy,
+        boundaryTransform: ((Boundary3D) -> Boundary2D)
     ) where V == Vector2D {
         let newEnvironment = environment.applyingTransform(bodyTransform)
         let bodyOutputs = body.map { $0.output(in: newEnvironment) }
@@ -84,7 +84,7 @@ extension GeometryOutput {
         body: [any Geometry3D],
         bodyTransform: AffineTransform3D = .identity,
         environment: Environment,
-        boundaryMergeStrategy: Boundary<Vector3D>.MergeStrategy = .union
+        boundaryMergeStrategy: Boundary3D.MergeStrategy = .union
     ) where V == Vector3D {
         let newEnvironment = environment.applyingTransform(bodyTransform)
         let bodyOutputs = body.map { $0.output(in: newEnvironment) }
@@ -104,8 +104,8 @@ extension GeometryOutput {
         body: [any Geometry2D],
         bodyTransform: AffineTransform3D = .identity,
         environment: Environment,
-        boundaryMergeStrategy: Boundary<Vector3D>.MergeStrategy,
-        boundaryTransform: ((Boundary<Vector2D>) -> Boundary<Vector3D>)
+        boundaryMergeStrategy: Boundary3D.MergeStrategy,
+        boundaryTransform: ((Boundary2D) -> Boundary3D)
     ) where V == Vector3D {
         let newEnvironment = environment.applyingTransform(bodyTransform)
         let bodyOutputs = body.map { $0.output(in: newEnvironment) }

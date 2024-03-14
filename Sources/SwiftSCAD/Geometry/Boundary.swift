@@ -79,15 +79,15 @@ internal extension Boundary {
 }
 
 extension Boundary2D {
-    func as3D(z: Double = 0) -> Boundary<Vector3D> {
+    func as3D(z: Double = 0) -> Boundary3D {
         map { Vector3D($0, z: z) }
     }
 
-    func extruded(height: Double, topScale: Vector2D = [1, 1]) -> Boundary<Vector3D> {
+    func extruded(height: Double, topScale: Vector2D = [1, 1]) -> Boundary3D {
         map { [Vector3D($0, z: 0), Vector3D($0 * topScale, z: height)] }
     }
 
-    func extruded(angle fullAngle: Angle, facets: Environment.Facets) -> Boundary<Vector3D> {
+    func extruded(angle fullAngle: Angle, facets: Environment.Facets) -> Boundary3D {
         guard let maxX = max(.x) else { return .empty }
         let facetCount = facets.facetCount(circleRadius: maxX)
         let standing = as3D().transformed(.rotation(x: 90°))
