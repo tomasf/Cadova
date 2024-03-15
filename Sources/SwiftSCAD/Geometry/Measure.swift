@@ -26,14 +26,14 @@ struct ReadBoundary3D: Geometry3D {
 
 public extension Geometry2D {
     func measuringBounds(@UnionBuilder2D _ builder: @escaping (any Geometry2D, BoundingBox2D) -> any Geometry2D) -> any Geometry2D {
-        ReadBoundary2D(body: self, builder: { builder($0, $1.boundingBox) })
+        ReadBoundary2D(body: self, builder: { builder($0, $1.boundingBox ?? .zero) })
     }
 
     func visualizingBounds(scale: Double = 1.0) -> any Geometry2D {
         ReadBoundary2D(body: self) { geometry, boundary in
             geometry.adding {
                 boundary.visualized(scale: scale)
-                boundary.boundingBox.visualized(scale: scale)
+                boundary.boundingBox?.visualized(scale: scale)
             }
         }
     }
@@ -41,14 +41,14 @@ public extension Geometry2D {
 
 public extension Geometry3D {
     func measuringBounds(@UnionBuilder3D _ builder: @escaping (any Geometry3D, BoundingBox3D) -> any Geometry3D) -> any Geometry3D {
-        ReadBoundary3D(body: self, builder: { builder($0, $1.boundingBox) })
+        ReadBoundary3D(body: self, builder: { builder($0, $1.boundingBox ?? .zero) })
     }
 
     func visualizingBounds(scale: Double = 1.0) -> any Geometry3D {
         ReadBoundary3D(body: self) { geometry, boundary in
             geometry.adding {
                 boundary.visualized(scale: scale)
-                boundary.boundingBox.visualized(scale: scale)
+                boundary.boundingBox?.visualized(scale: scale)
             }
         }
     }

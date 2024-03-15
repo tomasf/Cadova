@@ -26,8 +26,8 @@ internal extension Boundary {
         self = .box(boundingBox.size).translated(boundingBox.minimum)
     }
 
-    var boundingBox: BoundingBox<V> {
-        BoundingBox(points)
+    var boundingBox: BoundingBox<V>? {
+        isEmpty ? nil : BoundingBox(points)
     }
 }
 
@@ -55,6 +55,10 @@ internal extension Boundary {
     func max(_ axis: V.Axes.Axis) -> Double? {
         points.map { $0[axis] }.max()
     }
+
+    var isEmpty: Bool {
+        points.isEmpty
+    }
 }
 
 internal extension Boundary {
@@ -69,7 +73,7 @@ internal extension Boundary {
             case .union:
                 .union(bounds)
             case .intersection:
-                bounds.map(\.boundingBox)
+                bounds.compactMap(\.boundingBox)
                     .reduce { $0.intersection(with: $1) }
                     .map { Boundary(boundingBox: $0) }
                 ?? .empty

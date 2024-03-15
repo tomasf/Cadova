@@ -1,6 +1,10 @@
 import Foundation
 
 @resultBuilder public struct SequenceBuilder3D {
+    public static func buildExpression(_ expression: (any Geometry3D)?) -> [any Geometry3D] {
+        [expression].compactMap { $0 }
+    }
+
     public static func buildExpression(_ expression: any Geometry3D) -> [any Geometry3D] {
         [expression]
     }
@@ -35,6 +39,10 @@ import Foundation
 }
 
 @resultBuilder public struct SequenceBuilder2D {
+    public static func buildExpression(_ expression: (any Geometry2D)?) -> [any Geometry2D] {
+        [expression].compactMap { $0 }
+    }
+
     public static func buildExpression(_ expression: any Geometry2D) -> [any Geometry2D] {
         [expression]
     }

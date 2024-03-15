@@ -54,7 +54,9 @@ extension GeometryOutput {
 
         scadCode = invocation.scadCode(body: bodyOutputs.map(\.scadCode))
         boundary = boundaryMergeStrategy.apply(localBounds)
-        anchors = bodyOutputs.map(\.anchors).reduce(into: [:]) { $0.merge($1) { a, _ in a }}
+        anchors = bodyOutputs.map(\.anchors)
+            .reduce(into: [:]) { $0.merge($1) { a, _ in a }}
+            .mapValues { $0.concatenated(with: bodyTransform) }
     }
 
     // 2D parent with 3D child
@@ -71,6 +73,7 @@ extension GeometryOutput {
         scadCode = invocation.scadCode(body: [bodyOutput.scadCode])
         boundary = boundaryMapping(bodyOutput.boundary.transformed(bodyTransform))
         anchors = bodyOutput.anchors
+            .mapValues { $0.concatenated(with: bodyTransform) }
     }
 
     // 3D parent with 3D children
@@ -90,7 +93,9 @@ extension GeometryOutput {
 
         scadCode = invocation.scadCode(body: bodyOutputs.map(\.scadCode))
         boundary = boundaryMergeStrategy.apply(localBounds)
-        anchors = bodyOutputs.map(\.anchors).reduce(into: [:]) { $0.merge($1) { a, _ in a }}
+        anchors = bodyOutputs.map(\.anchors)
+            .reduce(into: [:]) { $0.merge($1) { a, _ in a }}
+            .mapValues { $0.concatenated(with: bodyTransform) }
     }
 
     // 3D parent with 2D child
@@ -107,6 +112,7 @@ extension GeometryOutput {
         scadCode = invocation.scadCode(body: [bodyOutput.scadCode])
         boundary = boundaryMapping(bodyOutput.boundary).transformed(bodyTransform)
         anchors = bodyOutput.anchors
+            .mapValues { $0.concatenated(with: bodyTransform) }
     }
 }
 

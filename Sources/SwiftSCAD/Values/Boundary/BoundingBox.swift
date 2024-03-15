@@ -19,6 +19,8 @@ public struct BoundingBox<V: Vector> {
         self.maximum = maximum
     }
 
+    static var zero: Self { .init(minimum: .zero, maximum: .zero) }
+
     /// Initializes a new `BoundingBox` enclosing a single point.
     /// - Parameter vector: The vector used for both the minimum and maximum points.
     init(_ vector: V) {
