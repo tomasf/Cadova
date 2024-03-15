@@ -11,10 +11,9 @@ struct RotateExtrude: Geometry3D {
                 "angle": angle,
                 "convexity": convexity
             ]),
-            body: [body],
+            body: body,
             environment: environment,
-            boundaryMergeStrategy: .union,
-            boundaryTransform: { $0.extruded(angle: angle, facets: environment.facets) }
+            boundaryMapping: { $0.extruded(angle: angle, facets: environment.facets) }
         )
     }
 }

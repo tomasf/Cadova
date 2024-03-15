@@ -20,10 +20,9 @@ struct LinearExtrude: Geometry3D {
                 "scale": scale,
                 "convexity": convexity
             ]),
-            body: [body],
+            body: body,
             environment: environment,
-            boundaryMergeStrategy: .union,
-            boundaryTransform: { $0.extruded(height: height, topScale: scale) }
+            boundaryMapping: { $0.extruded(height: height, topScale: scale) }
         )
     }
 }

@@ -21,11 +21,10 @@ struct Projection: Geometry2D {
     func output(in environment: Environment) -> Output {
         .init(
             invocation: .init(name: "projection", parameters: parameters),
-            body: [appliedBody],
+            body: appliedBody,
             bodyTransform: .scaling(z: 0),
             environment: environment,
-            boundaryMergeStrategy: .union,
-            boundaryTransform: { $0.map(\.xy) }
+            boundaryMapping: { $0.map(\.xy) }
         )
     }
 

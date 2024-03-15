@@ -31,9 +31,7 @@ public extension Geometry2D {
 
     func visualizingBounds(scale: Double = 1.0) -> any Geometry2D {
         ReadBoundary2D(body: self) { geometry, boundary in
-            print(boundary.points)
-            return Union {
-                geometry
+            geometry.adding {
                 boundary.visualized(scale: scale)
                 boundary.boundingBox.visualized(scale: scale)
             }
@@ -48,9 +46,7 @@ public extension Geometry3D {
 
     func visualizingBounds(scale: Double = 1.0) -> any Geometry3D {
         ReadBoundary3D(body: self) { geometry, boundary in
-            print(boundary.points)
-            return Union {
-                geometry
+            geometry.adding {
                 boundary.visualized(scale: scale)
                 boundary.boundingBox.visualized(scale: scale)
             }

@@ -5,6 +5,12 @@ extension Sequence {
         .init(zip(self, dropFirst()))
     }
 
+    func reduce(_ function: (Element, Element) -> Element) -> Element? {
+        reduce(nil as Element?) { output, input in
+            output.map { function($0, input) } ?? output
+        }
+    }
+
     func cumulativeCombination(_ function: (Element, Element) -> Element) -> [Element] {
         reduce([]) {
             if let last = $0.last { $0 + [function(last, $1)] } else { [$1] }

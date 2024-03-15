@@ -27,6 +27,21 @@ public struct Rectangle: Geometry2D {
         self.center = center
     }
 
+    /// Initializes a square.
+    /// - Parameters:
+    ///   - side: A `Double` value indicating the length of each side of the square.
+    ///   - center: An `Axes3D` option set indicating which axes should be centered around the origin. By omitting or passing an empty set, the square's corner aligns with the origin. Specifying axes centers the square along those axes.
+    ///
+    /// Example usage:
+    /// ```
+    /// let square = Rectangle(10, center: .x)
+    /// ```
+    /// This creates a square of size 10x10, centered along the X axis but not the Y axis.
+    public init(_ side: Double, center: Axes2D = []) {
+        self.size = [side, side]
+        self.center = center
+    }
+
     public func output(in environment: Environment) -> GeometryOutput2D {
         if center.isEmpty {
             .init(
