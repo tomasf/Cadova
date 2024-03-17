@@ -16,11 +16,56 @@ extension Boundary2D {
         map { Vector3D($0, z: z) }
     }
 
-    func extruded(height: Double, topScale: Vector2D = [1, 1]) -> Boundary3D {
-        map {[
-            Vector3D($0, z: 0),
-            Vector3D($0 * topScale, z: height)
-        ]}
+    func extruded(height: Double, twist: Angle, topScale: Vector2D, facets: Environment.Facets) -> Boundary3D {
+        let hasTwist = abs(twist) > .radians(.ulpOfOne)
+        let twistSlices = hasTwist ? extrusionSlices(height: height, twist: twist, scale: topScale, facets: facets) : 1
+
+        let points = (0...twistSlices).flatMap { slice in
+            let f = Double(slice) / Double(twistSlices)
+            let transform = AffineTransform3D.identity
+                .translated(z: height * f)
+                .scaled(.init([1, 1] + (topScale - [1, 1]) * f, z: 1))
+                .rotated(z: f * twist)
+
+            return self.points.map { transform.apply(to: Vector3D($0, z: 0)) }
+        }
+        return .points(points)
+    }
+
+    func extrusionSlices(height: Double, twist: Angle, scale: Vector2D, facets: Environment.Facets) -> Int {
+
+        func helixArcLength(maxSquaredDistance: Double) -> Double {
+            let c = height / abs(twist).radians
+            return abs(twist).radians * sqrt(maxSquaredDistance + c * c)
+        }
+
+        func helixSlices(maxSquaredDistance: Double, minLength: Double, minAngle: Angle) -> Int {
+            let absTwist = abs(twist)
+            let minSlices = Swift.max(Int(ceil(absTwist / 120°)), 1);
+            let angleSlices = Int(ceil(absTwist / minAngle))
+            let lengthSlices = Int(ceil(helixArcLength(maxSquaredDistance: maxSquaredDistance) / minLength))
+            return Swift.max(minSlices, Swift.min(angleSlices, lengthSlices))
+        }
+
+        func diagonalSlices(deltaSquaredDistance: Double, minLength: Double) -> Int {
+            Swift.max(Int(ceil(sqrt(deltaSquaredDistance + height * height) / minLength)), 1)
+        }
+
+        switch facets {
+        case .fixed (let count):
+            return Int(Swift.max(twist / 360°, 1)) * count
+
+        case .dynamic (let minAngle, let minLength):
+            let deltaSquaredDistance = points.map { ($0 - $0 * scale).squaredEuclideanNorm }.max()
+            let maxSquaredBaseDistance = points.map(\.squaredEuclideanNorm).max()
+
+            guard let deltaSquaredDistance, let maxSquaredBaseDistance else { return 1 }
+
+            let diagonalSlices = diagonalSlices(deltaSquaredDistance: deltaSquaredDistance, minLength: minLength)
+            let helixSlices = helixSlices(maxSquaredDistance: maxSquaredBaseDistance, minLength: minLength, minAngle: minAngle)
+
+            return Swift.max(diagonalSlices, helixSlices)
+        }
     }
 
     func extruded(angle fullAngle: Angle, facets: Environment.Facets) -> Boundary3D {

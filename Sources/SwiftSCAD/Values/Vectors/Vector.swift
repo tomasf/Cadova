@@ -18,6 +18,7 @@ public protocol Vector {
     static func /(_ v: Self, _ d: Double) -> Self
 
     var magnitude: Double { get }
+    var squaredEuclideanNorm: Double { get }
     var normalized: Self { get }
     func distance(to other: Self) -> Double
     func point(alongLineTo other: Self, at fraction: Double) -> Self
@@ -41,6 +42,11 @@ public extension Vector {
     var normalized: Self {
         guard magnitude > 0 else { return self }
         return self / magnitude
+    }
+
+    /// The magnitude (length) of the vector.
+    var magnitude: Double {
+        sqrt(squaredEuclideanNorm)
     }
 
     /// Calculate a point at a given fraction along a straight line to another point

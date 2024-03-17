@@ -195,9 +195,8 @@ public extension Vector3D {
 }
 
 public extension Vector3D {
-    /// Computes the magnitude (length) of the vector.
-    var magnitude: Double {
-        sqrt(x * x + y * y + z * z)
+    var squaredEuclideanNorm: Double {
+        x * x + y * y + z * z
     }
 }
 

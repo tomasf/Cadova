@@ -178,9 +178,8 @@ public extension Vector2D {
 }
 
 public extension Vector2D {
-    /// Computes the magnitude (length) of the vector.
-    var magnitude: Double {
-        sqrt(x * x + y * y)
+    var squaredEuclideanNorm: Double {
+        x * x + y * y
     }
 }
 
