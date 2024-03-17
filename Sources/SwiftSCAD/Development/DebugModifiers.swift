@@ -70,6 +70,14 @@ public extension Geometry2D {
     func disabled() -> any Geometry2D {
         Prefix2D(prefix: "*", isImmaterial: true, body: self)
     }
+
+    /// Hide this geometry
+    ///
+    /// Ignore the visual aspect of this geometry, but keep its bounding box. This, for example, hides an item in a stack, but still takes up space.
+
+    func hidden() -> any Geometry2D {
+        Prefix2D(prefix: "*", isImmaterial: false, body: self)
+    }
 }
 
 public extension Geometry3D {
@@ -103,5 +111,13 @@ public extension Geometry3D {
 
     func disabled() -> any Geometry3D {
         Prefix3D(prefix: "*", isImmaterial: true, body: self)
+    }
+
+    /// Hide this geometry
+    ///
+    /// Ignore the visual aspect of this geometry, but keep its bounding box. This, for example, hides an item in a stack, but still takes up space.
+
+    func hidden() -> any Geometry3D {
+        Prefix3D(prefix: "*", isImmaterial: false, body: self)
     }
 }

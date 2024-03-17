@@ -59,7 +59,7 @@ internal struct Stack3D: Shape3D {
 
                     offset += box.size[axis] + spacing
                 } else {
-                    assertionFailure("Stack item has empty bounds: \(geometry)")
+                    logger.info("Stack contains an item without a bounding box. Skipping.")
                 }
             }
         }
