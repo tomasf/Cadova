@@ -21,6 +21,7 @@ public extension Geometry3D {
                 }
                 .scaled(scale)
                 .usingFacets(count: 8)
+                .background()
         }
     }
 }
@@ -44,6 +45,7 @@ public extension Geometry2D {
                         .colored(.green)
                 }
                 .scaled(scale)
+                .background()
         }
     }
 }

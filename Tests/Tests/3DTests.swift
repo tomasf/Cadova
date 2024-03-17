@@ -35,7 +35,7 @@ final class Geometry3DTests: XCTestCase {
             .assertOperation(.addition)
 
         _ = testGeometry
-            .scadString(in: .defaultEnvironment)
+            .output(in: .defaultEnvironment)
     }
 }
 

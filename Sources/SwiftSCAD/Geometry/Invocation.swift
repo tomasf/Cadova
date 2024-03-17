@@ -19,9 +19,9 @@ public struct Invocation {
         let head = "\(name)(\(paramText))"
 
         if body.count > 1 {
-            return "\(head) { \(body.joined()) }"
+            return "\(head) { \(body.joined(separator: " ")) }"
         } else if body.count == 1 {
-            return "\(head) \(body.joined())"
+            return "\(head) \(body[0])"
         } else {
             return "\(head);"
         }
