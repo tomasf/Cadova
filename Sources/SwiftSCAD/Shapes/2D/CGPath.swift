@@ -67,13 +67,13 @@ extension Vector2D {
 extension CGPath: Shape2D {
     public var body: any Geometry2D {
         EnvironmentReader { environment in
-            Union(children: self.componentsSeparated(using: environment.cgPathFillRule).map { component in
+            self.componentsSeparated(using: environment.cgPathFillRule).map { component in
                 let (positive, negatives) = component.normalizedPolygons(using: environment.cgPathFillRule)
                 return positive
                     .subtracting {
-                        Union(children: negatives)
+                        negatives
                     }
-            })
+            }
         }
     }
 

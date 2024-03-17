@@ -10,7 +10,7 @@ extension Boundary {
 
 extension Boundary3D {
     func visualized(scale: Double) -> any Geometry3D {
-        points.mapUnion {
+        points.map {
             Box(visualizationStandardPointSize * scale, center: .all)
                 .translated($0)
         }
@@ -21,7 +21,7 @@ extension Boundary3D {
 
 extension Boundary2D {
     func visualized(scale: Double) -> any Geometry2D {
-        points.mapUnion {
+        points.map {
             Rectangle(visualizationStandardPointSize * scale, center: .all)
                 .translated($0)
         }

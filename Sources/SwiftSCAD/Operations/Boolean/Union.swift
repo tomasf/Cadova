@@ -40,10 +40,6 @@ public func Union(@UnionBuilder2D _ body: () -> any Geometry2D) -> any Geometry2
     body()
 }
 
-public func Union(children: [any Geometry2D]) -> any Geometry2D {
-    Union2D(children: children)
-}
-
 /// Form a union to group multiple pieces of geometry together and treat them as one
 ///
 /// ## Example
@@ -56,10 +52,6 @@ public func Union(children: [any Geometry2D]) -> any Geometry2D {
 /// ```
 public func Union(@UnionBuilder3D _ body: () -> any Geometry3D) -> any Geometry3D {
     body()
-}
-
-public func Union(children: [any Geometry3D]) -> any Geometry3D {
-    Union3D(children: children)
 }
 
 public extension Geometry2D {
@@ -105,15 +97,5 @@ public extension Geometry3D {
 
     func adding(_ bodies: (any Geometry3D)?...) -> any Geometry3D {
         Union3D(children: [self] + bodies.compactMap { $0 })
-    }
-}
-
-public extension Sequence {
-    func mapUnion(@UnionBuilder3D _ transform: (Element) throws -> any Geometry3D) rethrows -> any Geometry3D {
-        Union3D(children: try map(transform))
-    }
-
-    func mapUnion(@UnionBuilder2D _ transform: (Element) throws -> any Geometry2D) rethrows -> any Geometry2D {
-        Union2D(children: try map(transform))
     }
 }

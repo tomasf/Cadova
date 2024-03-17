@@ -17,11 +17,11 @@ public extension Geometry2D {
             let facetsPerRev = environment.facets.facetCount(circleRadius: radius)
             let facetCount = max(Int(ceil(Double(facetsPerRev) / 4.0)), 1)
 
-            let slices = (0...facetCount).mapUnion { f in
+            let slices = (0...facetCount).map { f in
                 let angle = (Double(f) / Double(facetCount)) * 90°
                 let inset = cos(angle) * radius - radius
                 let zOffset = sin(angle) * radius
-                offset(amount: inset, style: .round)
+                return offset(amount: inset, style: .round)
                     .extruded(height: height - radius + zOffset)
             }
 
