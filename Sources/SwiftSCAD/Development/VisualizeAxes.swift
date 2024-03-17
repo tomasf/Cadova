@@ -1,16 +1,15 @@
 import Foundation
 
 public extension Geometry3D {
-    func visualizingAxes(scale: Double = 1) -> any Geometry3D {
-        let length = 30.0
-        let arrow = Cylinder(diameter: 1, height: length)
+    func visualizingAxes(scale: Double = 1, length: Double = 10) -> any Geometry3D {
+        let arrow = Cylinder(diameter: 0.1, height: length)
             .adding {
-                Cylinder(bottomDiameter: 2, topDiameter: 0, height: 2)
+                Cylinder(bottomDiameter: 0.2, topDiameter: 0, height: 0.2)
                     .translated(z: length)
             }
 
         return self.adding {
-            Box(2, center: .all)
+            Box(0.2, center: .all)
                 .colored(.white)
                 .adding {
                     arrow.rotated(y: 90°)
@@ -27,17 +26,16 @@ public extension Geometry3D {
 }
 
 public extension Geometry2D {
-    func visualizingAxes(scale: Double = 1) -> any Geometry2D {
-        let length = 30.0
-        let arrow = Rectangle([length - 1, 1], center: .y)
-            .translated(x: 1)
+    func visualizingAxes(scale: Double = 1, length: Double = 10) -> any Geometry2D {
+        let arrow = Rectangle([length - 0.1, 0.1], center: .y)
+            .translated(x: 0.1)
             .adding {
-                Polygon([[0, 1], [2, 0], [0, -1]])
+                Polygon([[0, 0.1], [0.2, 0], [0, -0.1]])
                     .translated(x: length)
             }
 
         return self.adding {
-            Rectangle(2, center: .all)
+            Rectangle(0.2, center: .all)
                 .colored(.white)
                 .adding {
                     arrow
