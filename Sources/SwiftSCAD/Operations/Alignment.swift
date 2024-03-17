@@ -34,6 +34,7 @@ public struct GeometryAlignment2D: Equatable {
 }
 
 public extension GeometryAlignment2D {
+    static let none = Self()
     static let center = Self(x: .mid, y: .mid)
     
     static let minX = Self(x: .min)
@@ -74,6 +75,7 @@ public struct GeometryAlignment3D: Equatable {
 }
 
 public extension GeometryAlignment3D {
+    static let none = Self()
     static let center = Self(x: .mid, y: .mid, z: .mid)
     static let centerXY = Self(x: .mid, y: .mid)
 
