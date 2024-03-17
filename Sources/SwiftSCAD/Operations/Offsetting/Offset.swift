@@ -20,6 +20,12 @@ public struct Offset: WrappedGeometry2D {
         return .init(name: "offset", parameters: params)
     }
 
+    func modifiedOutput(_ output: Output) -> Output {
+        output.modifyingBoundary { bounds in
+            bounds.scaleOffset(amount)
+        }
+    }
+
     public enum Style {
         case round
         case miter

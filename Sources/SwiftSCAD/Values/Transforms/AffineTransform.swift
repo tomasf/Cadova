@@ -19,6 +19,6 @@ public protocol AffineTransform {
     static func translation(_ v: Vector) -> Self
     static func scaling(_ v: Vector) -> Self
     static func rotation(_ r: Rotation) -> Self
-
+    
     init(_ transform3d: AffineTransform3D)
 }

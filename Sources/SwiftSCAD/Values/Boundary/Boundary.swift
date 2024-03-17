@@ -59,26 +59,43 @@ internal extension Boundary {
     var isEmpty: Bool {
         points.isEmpty
     }
+
+    func scaleOffset(_ amount: Double) -> Boundary {
+        guard let box = boundingBox else { return self }
+        return self
+            .translated(-box.center)
+            .transformed(.scaling((box.size + amount * 2) / box.size))
+            .translated(box.center)
+    }
+
+    func minkowskiSum(_ other: Boundary) -> Boundary {
+        .points(points.flatMap { point in
+            other.points.map { $0 + point }
+        })
+    }
 }
 
 internal extension Boundary {
     enum MergeStrategy {
         case union
-        case intersection
+        case boxIntersection
         case first
+        case minkowskiSum
         case custom (([Boundary]) -> Boundary)
 
         func apply(_ bounds: [Boundary]) -> Boundary {
             switch self {
             case .union:
                 .union(bounds)
-            case .intersection:
+            case .boxIntersection:
                 bounds.compactMap(\.boundingBox)
                     .reduce { $0.intersection(with: $1) }
                     .map { Boundary(boundingBox: $0) }
                 ?? .empty
             case .first:
                 bounds.first ?? .empty
+            case .minkowskiSum:
+                bounds.reduce { $0.minkowskiSum($1) } ?? .empty
             case .custom (let function):
                 function(bounds)
             }

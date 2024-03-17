@@ -21,7 +21,7 @@ extension GeometryOutput {
     }
 
     func definingAnchors(_ anchors: [Anchor: AffineTransform3D]) -> GeometryOutput<V> {
-        .init(scadCode: scadCode, boundary: boundary, anchors: anchors.merging(anchors) { $1 })
+        .init(scadCode: scadCode, boundary: boundary, anchors: self.anchors.merging(anchors) { $1 })
     }
 
     func modifyingBoundary(_ function: (Boundary<V>) -> Boundary<V>) -> GeometryOutput<V> {

@@ -7,7 +7,7 @@ extension Sequence {
 
     func reduce(_ function: (Element, Element) -> Element) -> Element? {
         reduce(nil as Element?) { output, input in
-            output.map { function($0, input) } ?? output
+            output.map { function($0, input) } ?? input
         }
     }
 
