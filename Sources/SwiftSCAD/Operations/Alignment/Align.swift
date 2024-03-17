@@ -46,13 +46,13 @@ extension BoundingBox3D {
 }
 
 public extension Geometry2D {
-    func aligned(with alignment: GeometryAlignment2D...) -> any Geometry2D {
+    func aligned(at alignment: GeometryAlignment2D...) -> any Geometry2D {
         Align2D(content: self, alignment: .init(merging: alignment))
     }
 }
 
 public extension Geometry3D {
-    func aligned(with alignment: GeometryAlignment3D...) -> any Geometry3D {
+    func aligned(at alignment: GeometryAlignment3D...) -> any Geometry3D {
         Align3D(content: self, alignment: .init(merging: alignment))
     }
 }
