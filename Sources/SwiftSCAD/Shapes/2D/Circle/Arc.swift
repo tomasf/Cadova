@@ -32,19 +32,15 @@ public struct Arc: Shape2D {
     public var body: any Geometry2D {
         EnvironmentReader { e in
             let magnitude = range.upperBound - range.lowerBound
-            let fraction = magnitude / 360°
             let circleFacets = e.facets.facetCount(circleRadius: radius)
-
-            let facetCount = max(Int(ceil(Double(circleFacets) * fraction)), 2)
-            let facetAngle = magnitude / Double(facetCount)
+            let facetCount = max(Int(ceil(Double(circleFacets) * magnitude / 360°)), 2)
 
             let outerPoints = (0...facetCount).map { i -> Vector2D in
-                let angle = range.lowerBound + facetAngle * Double(i)
+                let angle = range.lowerBound + (Double(i) / Double(facetCount)) * magnitude
                 return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
             }
-            let allPoints = [Vector2D.zero] + outerPoints + [Vector2D.zero]
 
-            Polygon(allPoints)
+            Polygon([.zero] + outerPoints)
         }
     }
 }

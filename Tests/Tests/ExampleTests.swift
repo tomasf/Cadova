@@ -15,7 +15,7 @@ final class ExampleTests: XCTestCase {
             .scaled(x: 2)
             .repeated(in: 0°..<360°, count: 5)
             .rounded(amount: 1)
-            .extruded(height: 5, twist: 20°)
+            .extruded(height: 5, twist: -20°)
             .subtracting {
                 Cylinder(bottomDiameter: 1, topDiameter: 5, height: 20)
                     .translated(y: 2, z: -7)
