@@ -192,7 +192,7 @@ extension Vector3D: Vector {
     public static let elementCount = 3
 
     public var elements: [Double] {
-        [x, y]
+        [x, y, z]
     }
 
     public init(elements e: [Double]) {
