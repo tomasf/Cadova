@@ -25,7 +25,7 @@ public struct RoundedBox: Shape3D {
     // MARK: - Single axis
     private init(_ size: Vector3D, center: Axes3D, axis: Axis3D, style: CornerStyle, cornerRadii radii: CornerRadii) {
         self.implementation = RoundedBoxSingleAxis(size: size, cornerStyle: style, axis: axis, radii: radii)
-            .translated((size / 2).setting(axes: center, to: 0))
+            .translated((size / 2).with(center, as: 0))
     }
 
     /// Initializes a rounded box along a single axis.
@@ -63,7 +63,7 @@ public struct RoundedBox: Shape3D {
     ///   - radius: The radius of the corners for all three axes.
     public init(_ size: Vector3D, center: Axes3D = .none, cornerRadius radius: Double) {
         self.implementation = RoundedBox3D(size: size, cornerRadius: radius)
-            .translated((size / 2).setting(axes: center, to: 0))
+            .translated((size / 2).with(center, as: 0))
     }
     
     public var body: any Geometry3D {

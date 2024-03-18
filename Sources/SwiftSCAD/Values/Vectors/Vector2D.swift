@@ -53,19 +53,6 @@ public extension Vector2D {
     ///   - axes: The axes to set
     ///   - value: The new value
     /// - Returns: A modified vector
-
-    func setting(axes: Axes2D, to value: Double) -> Vector2D {
-        Vector2D(
-            x: axes.contains(.x) ? value : x,
-            y: axes.contains(.y) ? value : y
-        )
-    }
-
-    /// Make a new vector where some of the dimensions are set to a new value
-    /// - Parameters:
-    ///   - axes: The axes to set
-    ///   - value: The new value
-    /// - Returns: A modified vector
     func with(_ axes: Axes2D, as value: Double) -> Vector2D {
         Vector2D(
             x: axes.contains(.x) ? value : x,

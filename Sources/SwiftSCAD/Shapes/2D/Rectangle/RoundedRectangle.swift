@@ -68,7 +68,7 @@ public struct RoundedRectangle: Shape2D {
     }
 
     @UnionBuilder2D public var body: any Geometry2D {
-        let centerTranslation = (size / -2).setting(axes: center.inverted, to: 0)
+        let centerTranslation = (size / -2).with(center.inverted, as: 0)
 
         Union {
             Corner(rotation: 90°, radius: radii.topLeft, style: cornerStyle)

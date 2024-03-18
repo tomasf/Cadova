@@ -51,7 +51,7 @@ public struct Rectangle: Geometry2D {
             )
         } else {
             Rectangle(size)
-                .translated((size / -2).setting(axes: center.inverted, to: 0))
+                .translated((size / -2).with(center.inverted, as: 0))
                 .output(in: environment)
         }
     }

@@ -49,8 +49,7 @@ extension RoundedBox {
                             .union(quadrant == 1 || quadrant == 2 ? .x : [])
                             .union(quadrant > 1 ? .y : [])
                             .union(hemisphere > 0 ? .z : [])
-                        let ones = Vector3D(x: 1, y: 1, z: 1)
-                        let offset = (box.size / 2 - box.radius) * (ones.setting(axes: mirrorAxes, to: -1))
+                        let offset = (box.size / 2 - box.radius) * (Vector3D(1,1,1).with(mirrorAxes, as: -1))
 
                         return AffineTransform3D.translation(x: box.radius)
                             .rotated(y: levelAngle)
