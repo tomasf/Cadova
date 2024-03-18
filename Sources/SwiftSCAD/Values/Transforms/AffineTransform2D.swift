@@ -65,10 +65,19 @@ public struct AffineTransform2D: AffineTransform, Equatable {
         return transform
     }
 
+    /// Returns the inverse of this affine transform, if it exists.
+    ///
+    /// The inverse transform reverses the effects of applying this transform. If the transform is non-invertible, the result is undefined.
     public var inverse: AffineTransform2D {
         .init(matrix.inverse)
     }
 
+    /// Applies a custom function to each element of the matrix, creating a new `AffineTransform2D`.
+    ///
+    /// This method allows for arbitrary transformations of the affine transform's underlying matrix by applying a provided function to each element.
+    ///
+    /// - Parameter function: A closure that takes a row index, a column index, and the current value at that position, then returns a new value to be assigned to that position.
+    /// - Returns: A new `AffineTransform2D` with the matrix modified by the provided function.
     public func applying(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> AffineTransform2D {
         .init(
             (0..<3).map { row in
@@ -79,6 +88,15 @@ public struct AffineTransform2D: AffineTransform, Equatable {
         )
     }
 
+    /// Performs linear interpolation between two affine transforms.
+    ///
+    /// This static method smoothly interpolates between two affine transforms based on a given factor.
+    ///
+    /// - Parameters:
+    ///   - from: The starting `AffineTransform2D`.
+    ///   - to: The ending `AffineTransform2D`.
+    ///   - factor: The interpolation factor, where 0.0 represents the start and 1.0 represents the end.
+    /// - Returns: An `AffineTransform2D` representing the interpolated state between the two given transforms.
     public static func linearInterpolation(_ from: AffineTransform2D, _ to: AffineTransform2D, factor: Double) -> AffineTransform2D {
         from.applying { row, column, value in
             value + (to[row, column] - value) * factor

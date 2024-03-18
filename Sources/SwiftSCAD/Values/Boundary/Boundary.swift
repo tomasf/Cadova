@@ -89,7 +89,7 @@ internal extension Boundary {
                 .union(bounds)
             case .boxIntersection:
                 bounds.compactMap(\.boundingBox)
-                    .reduce { $0.intersection(with: $1) }
+                    .reduce { $0.intersection(with: $1) ?? .zero }
                     .map { Boundary(boundingBox: $0) }
                 ?? .empty
             case .first:

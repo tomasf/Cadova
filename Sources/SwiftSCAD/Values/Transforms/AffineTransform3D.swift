@@ -74,10 +74,17 @@ public struct AffineTransform3D: AffineTransform, Equatable {
         return transform
     }
 
+    /// Computes the inverse of the affine transformation, if possible.
+    ///
+    /// - Returns: The inverse `AffineTransform3D`, which, when concatenated with the original transform, results in the identity transform. If the matrix is not invertible, the behavior is undefined.
     public var inverse: AffineTransform3D {
         .init(matrix.inverse)
     }
 
+    /// Applies a custom transformation function to each element of the matrix.
+    ///
+    /// - Parameter function: A transformation function that takes row and column indices, along with the current value, and returns a new value.
+    /// - Returns: A new `AffineTransform3D` with the function applied to each element of the matrix.
     public func applying(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> AffineTransform3D {
         .init(
             (0..<4).map { row in
@@ -88,6 +95,13 @@ public struct AffineTransform3D: AffineTransform, Equatable {
         )
     }
 
+    /// Performs linear interpolation between two affine transformations.
+    ///
+    /// - Parameters:
+    ///   - from: The starting `AffineTransform3D`.
+    ///   - to: The ending `AffineTransform3D`.
+    ///   - factor: The interpolation factor between 0.0 and 1.0, where 0.0 results in the `from` transform and 1.0 results in the `to` transform.
+    /// - Returns: A new `AffineTransform3D` representing the interpolated transformation.
     public static func linearInterpolation(_ from: AffineTransform3D, _ to: AffineTransform3D, factor: Double) -> AffineTransform3D {
         from.applying { row, column, value in
             value + (to[row, column] - value) * factor

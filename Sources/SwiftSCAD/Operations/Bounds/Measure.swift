@@ -25,12 +25,20 @@ struct ReadBoundary3D: Geometry3D {
 }
 
 public extension Geometry2D {
+    /// Measures the bounding box of the 2D geometry and applies custom modifications based on the bounding box.
+    ///
+    /// - Parameter builder: A closure defining how to modify the geometry based on its bounding box.
+    /// - Returns: A modified version of the original geometry.
     func measuringBounds(@UnionBuilder2D _ builder: @escaping (any Geometry2D, BoundingBox2D) -> any Geometry2D) -> any Geometry2D {
         ReadBoundary2D(body: self, builder: { builder($0, $1.boundingBox ?? .zero) })
     }
 }
 
 public extension Geometry3D {
+    /// Measures the bounding box of the 3D geometry and applies custom modifications based on the bounding box.
+    ///
+    /// - Parameter builder: A closure defining how to modify the geometry based on its bounding box.
+    /// - Returns: A modified version of the original geometry.
     func measuringBounds(@UnionBuilder3D _ builder: @escaping (any Geometry3D, BoundingBox3D) -> any Geometry3D) -> any Geometry3D {
         ReadBoundary3D(body: self, builder: { builder($0, $1.boundingBox ?? .zero) })
     }

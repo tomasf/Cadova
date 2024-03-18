@@ -72,7 +72,6 @@ public extension Vector2D {
         )
     }
 
-
     subscript(_ axis: Axis2D) -> Double {
         switch axis {
         case .x: return x

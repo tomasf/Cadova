@@ -53,18 +53,42 @@ public struct BoundingBox<V: Vector> {
 }
 
 extension BoundingBox {
+    /// The size of the bounding volume.
+    ///
+    /// This property calculates the size of the bounding volume as the difference between its maximum and minimum points, representing the volume's dimensions in each axis.
     public var size: V {
         maximum - minimum
     }
 
+    /// The center point of the bounding volume.
+    ///
+    /// This property calculates the center of the bounding volume, which is halfway between the minimum and maximum points. It represents the geometric center of the volume.
     public var center: V {
         minimum + size / 2.0
     }
 
-    public func intersection(with other: BoundingBox<V>) -> BoundingBox {
-        .init(minimum: V.max(minimum, other.minimum), maximum: V.min(maximum, other.maximum))
+    /// Determines whether the bounding box is valid.
+    ///
+    /// A bounding box is considered valid if it represents a real geometric area or volume, which means all its dimensions must be non-negative. This property checks that the size of the bounding box in each dimension is greater than or equal to zero, ensuring the box does not represent an inverted or non-existent space.
+    public var isValid: Bool {
+        !size.elements.contains(where: { $0 < 0 })
     }
 
+    /// Calculates the intersection of this bounding volume with another.
+    ///
+    /// This method returns a new `BoundingBox` representing the volume that is common to both this and another bounding volume. If the bounding volumes do not intersect, the result is a bounding volume with zero size at the point of closest approach.
+    /// - Parameter other: The other bounding volume to intersect with.
+    /// - Returns: A `BoundingBox` representing the intersection of the two volumes.
+    public func intersection(with other: BoundingBox<V>) -> BoundingBox? {
+        let overlap = BoundingBox(minimum: V.max(minimum, other.minimum), maximum: V.min(maximum, other.maximum))
+        return overlap.isValid ? overlap : nil
+    }
+
+    /// Expands or contracts the bounding volume.
+    ///
+    /// This method returns a new `BoundingBox` that has been expanded or contracted by the specified vector. The expansion occurs outward from the center in all dimensions if the vector's components are positive, and inward if they are negative.
+    /// - Parameter expansion: The vector by which to expand or contract the bounding volume.
+    /// - Returns: A `BoundingBox` that has been offset by the expansion vector.
     public func offset(_ expansion: V) -> BoundingBox {
         .init(minimum: minimum - expansion, maximum: maximum + expansion)
     }
