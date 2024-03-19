@@ -11,7 +11,7 @@ struct CrossSection: Shape3D {
         return content.intersection {
             Box([universeLength, universeLength, universeLength], center: .xy)
                 .translated(z: offset)
-                .transformed(.rotation(from: [0, 0, 1], to: axis))
+                .transformed(.rotation(from: .up, to: axis))
                 .colored(.blue)
         }
     }

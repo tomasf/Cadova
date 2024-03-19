@@ -306,6 +306,19 @@ extension AffineTransform3D {
         concatenated(with: .rotation(x: x, y: y, z: z))
     }
 
+    /// Creates a new `AffineTransform3D` by concatenating a rotation transformation aligning one vector to another in 3D space.
+    ///
+    /// Calculate the rotation needed to align a vector `from` to another vector `to`, both in 3D space. The method ensures that the rotation minimizes the angular distance between the `from` and `to` vectors, effectively rotating around the shortest path between them.
+    ///
+    /// - Parameters:
+    ///   - from: A `Vector3D` representing the starting orientation of the vector.
+    ///   - to: A `Vector3D` representing the desired orientation of the vector.
+    /// - Returns: An `AffineTransform3D` adding the rotation from the `from` vector to the `to` vector.
+
+    public func rotated(from: Vector3D, to: Vector3D) -> AffineTransform3D {
+        concatenated(with: .rotation(from: from, to: to))
+    }
+
     /// Creates a new `AffineTransform3D` by concatenating a shearing transformation with this transformation.
     ///
     /// - Parameters:

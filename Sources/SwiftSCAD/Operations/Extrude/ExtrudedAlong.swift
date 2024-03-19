@@ -15,7 +15,7 @@ public extension Geometry2D {
         EnvironmentReader { environment in
             let points = path.points(facets: environment.facets).map(\.vector3D)
             let isClosed = points[0].distance(to: points.last!) < 0.0001
-            let rotations = ([[0,0,1]] + points.paired().map { $1 - $0 })
+            let rotations = ([.up] + points.paired().map { $1 - $0 })
                 .paired().map(AffineTransform3D.rotation(from:to:))
                 .cumulativeCombination { $0.concatenated(with: $1) }
             let lastRotation = rotations.last!
