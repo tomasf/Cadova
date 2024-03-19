@@ -48,6 +48,14 @@ internal struct Stack3D: Shape3D {
     }
 }
 
+/// Creates a stack of 2D geometries aligned along the specified axis with optional spacing and alignment.
+///
+/// - Parameters:
+///   - axis: The axis along which the geometries are stacked.
+///   - spacing: The spacing between stacked geometries. Default is `0`.
+///   - alignment: The alignment of the stack. Can be merged from multiple alignment options.
+///   - content: A closure generating geometries to stack.
+/// - Returns: A stacked 2D geometry.
 public func Stack(
     _ axis: Axis2D,
     spacing: Double = 0,
@@ -57,6 +65,14 @@ public func Stack(
     Stack2D(items: content(), axis: axis, spacing: spacing, alignment: .init(merging: alignment))
 }
 
+/// Creates a stack of 3D geometries aligned along the specified axis with optional spacing and alignment.
+///
+/// - Parameters:
+///   - axis: The axis along which the geometries are stacked.
+///   - spacing: The spacing between stacked geometries. Default is `0`.
+///   - alignment: The alignment of the stack. Can be merged from multiple alignment options.
+///   - content: A closure generating geometries to stack.
+/// - Returns: A stacked 3D geometry.
 public func Stack(
     _ axis: Axis3D,
     spacing: Double = 0,
