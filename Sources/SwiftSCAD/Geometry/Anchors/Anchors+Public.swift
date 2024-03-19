@@ -3,15 +3,38 @@ import Foundation
 public extension Geometry2D {
     /// Defines an anchor point on this geometry.
     ///
-    /// Use this method to mark a specific point on a geometry as an anchor. This anchor can then be used to position this geometry relative to others by aligning the anchor point to a specified location. The anchor captures the current transformation state, allowing precise control over the geometry's placement.
+    /// Use this method to mark the current coordinate system as an anchor. This anchor can then be used to position and orient the geometry tree by aligning the saved transform to the origin. The anchor captures the current transformation state and applies an additional transform.
     ///
     /// - Parameters:
     ///   - anchor: The `Anchor` to define on this geometry.
-    ///   - alignment: One or more alignment options specifying where on the geometry the anchor should be located.
-    ///   - offset: An optional `Vector2D` used to offset the anchor from the specified alignment position.
+    ///   - transform: A transform applied relative to the current transformation state
     /// - Returns: A modified version of the geometry with the defined anchor.
-    func definingAnchor(_ anchor: Anchor, at alignment: GeometryAlignment2D..., offset: Vector2D = .zero) -> any Geometry2D {
-        DefineAnchor2D(body: self, anchor: anchor, alignment: .init(merging: alignment), offset: offset)
+    func definingAnchor(_ anchor: Anchor, transform: AffineTransform2D) -> any Geometry2D {
+        DefineAnchor2D(body: self, anchor: anchor, alignment: .none, transform: transform)
+    }
+
+    /// Defines an anchor point on this geometry.
+    ///
+    /// Use this method to mark a specific coordinate system as an anchor. This anchor can then be used to position and orient the geometry tree by aligning the saved transform to the origin. The anchor captures the current transformation state, optionally applying an additional alignment, offset and rotation.
+    ///
+    /// - Parameters:
+    ///   - anchor: The `Anchor` to define on this geometry.
+    ///   - alignment: One or more alignment options specifying where on the geometry the anchor should be located. If no alignment is specified, the origin is used.
+    ///   - offset: An optional `Vector2D` used to offset the anchor from the specified alignment position.
+    ///   - rotated: An optional rotation at the specified point
+    /// - Returns: A modified version of the geometry with the defined anchor.
+    func definingAnchor(
+        _ anchor: Anchor,
+        at alignment: GeometryAlignment2D...,
+        offset: Vector2D = .zero,
+        rotated rotation: Angle = .zero
+    ) -> any Geometry2D {
+        DefineAnchor2D(
+            body: self,
+            anchor: anchor,
+            alignment: .init(merging: alignment),
+            transform: .identity.translated(offset).rotated(rotation)
+        )
     }
 
     /// Aligns this geometry to a previously defined anchor.
@@ -26,17 +49,45 @@ public extension Geometry2D {
 }
 
 public extension Geometry3D {
-    /// Defines an anchor point on this 3D geometry.
+    /// Defines an anchor point
     ///
-    /// Use this method to mark a specific point on a geometry as an anchor. This anchor can then be used to position this geometry relative to others by aligning the anchor point to a specified location. The anchor captures the current transformation state, allowing precise control over the geometry's placement.
+    /// Use this method to mark the current coordinate system as an anchor. This anchor can then be used to position and orient the geometry tree by aligning the saved transform to the origin. The anchor captures the current transformation state and applies an additional transform.
     ///
     /// - Parameters:
     ///   - anchor: The `Anchor` to define on this geometry.
-    ///   - alignment: One or more alignment options specifying where on the geometry the anchor should be located.
-    ///   - offset: An optional `Vector3D` used to offset the anchor from the specified alignment position.
-    /// - Returns: A modified version of the geometry with the defined anchor.
-    func definingAnchor(_ anchor: Anchor, at alignment: GeometryAlignment3D..., offset: Vector3D = .zero) -> any Geometry3D {
-        DefineAnchor3D(body: self, anchor: anchor, alignment: .init(merging: alignment), offset: offset)
+    ///   - transform: A transform applied relative to the current transformation state
+    /// - Returns: The geometry with a defined anchor.
+    func definingAnchor(_ anchor: Anchor, transform: AffineTransform3D) -> any Geometry3D {
+        DefineAnchor3D(body: self, anchor: anchor, alignment: .none, transform: transform)
+    }
+
+    /// Defines an anchor point
+    ///
+    /// Use this method to mark a specific coordinate system as an anchor. This anchor can then be used to position and orient the geometry tree by aligning the saved transform to the origin. The anchor captures the current transformation state, optionally applying an additional alignment, offset, direction and rotation.
+    ///
+    /// - Parameters:
+    ///   - anchor: The `Anchor` to define on this geometry.
+    ///   - alignment: One or more alignment options specifying where on the geometry the anchor should be located. If no alignment is specified, the origin is used.
+    ///   - offset: An optional `Vector3D` used to offset the anchor.
+    ///   - pointing: An optional direction vector relative to the current orientation, applied after alignment and offset. This direction becomes the positive Z of this anchor.
+    ///   - rotated: An optional rotation around the direction vector.
+    /// - Returns: The geometry with a defined anchor.
+    func definingAnchor(
+        _ anchor: Anchor,
+        at alignment: GeometryAlignment3D...,
+        offset: Vector3D = .zero,
+        pointing direction: Vector3D = .up,
+        rotated rotation: Angle = 0°
+    ) -> any Geometry3D {
+        DefineAnchor3D(
+            body: self,
+            anchor: anchor,
+            alignment: .init(merging: alignment),
+            transform: .identity
+                .rotated(z: rotation)
+                .rotated(from: .up, to: direction)
+                .translated(offset)
+        )
     }
 
     /// Aligns this 3D geometry to a previously defined anchor.
@@ -47,25 +98,5 @@ public extension Geometry3D {
     /// - Returns: A modified version of the geometry, transformed to align with the specified anchor.
     func anchored(to anchor: Anchor) -> any Geometry3D {
         ApplyAnchor3D(body: self, anchor: anchor)
-    }
-}
-
-public extension Anchor {
-    /// Defines a 2D anchor with a placeholder geometry.
-    ///
-    /// This method creates a placeholder 2D geometry to define the anchor. The placeholder is immaterial, serving solely to establish the anchor's position and orientation in 2D space. It's particularly useful when you need to define an anchor independent of existing geometries, allowing for custom transformations.
-    ///
-    /// - Returns: A placeholder `Geometry2D` instance associated with this anchor, which is disabled and does not contribute to the final geometry.
-    func define() -> any Geometry2D {
-        DefineAnchor2D(body: Rectangle(0).disabled(), anchor: self, alignment: .none, offset: .zero)
-    }
-
-    /// Defines a 3D anchor with a placeholder geometry.
-    ///
-    /// This method creates a placeholder 3D geometry to define the anchor. The placeholder is immaterial, serving solely to establish the anchor's position and orientation in 3D space. It's particularly useful when you need to define an anchor independent of existing geometries, allowing for custom transformations.
-    ///
-    /// - Returns: A placeholder `Geometry3D` instance associated with this anchor, which is disabled and does not contribute to the final geometry.
-    func define() -> any Geometry3D {
-        DefineAnchor3D(body: Box(0).disabled(), anchor: self, alignment: .none, offset: .zero)
     }
 }

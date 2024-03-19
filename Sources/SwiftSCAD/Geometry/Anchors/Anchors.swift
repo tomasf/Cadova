@@ -9,13 +9,18 @@ internal struct DefineAnchor2D: Geometry2D {
     let body: any Geometry2D
     let anchor: Anchor
     let alignment: GeometryAlignment2D
-    let offset: Vector2D
+    let transform: AffineTransform2D
 
     func output(in environment: Environment) -> Output {
         let output = body.output(in: environment)
         let bounds = output.boundary.boundingBox
-        let translation = (bounds?.translation(for: alignment) ?? .zero) + offset
-        return output.definingAnchors([anchor: .translation(Vector3D(-translation))])
+        let alignmentTranslation = bounds?.translation(for: alignment)
+
+        let finalTransform = AffineTransform3D.identity
+            .concatenated(with: .init(transform))
+            .translated(alignmentTranslation.map { -Vector3D($0) } ?? .zero)
+
+        return output.definingAnchors([anchor: finalTransform])
     }
 }
 
@@ -23,13 +28,18 @@ internal struct DefineAnchor3D: Geometry3D {
     let body: any Geometry3D
     let anchor: Anchor
     let alignment: GeometryAlignment3D
-    let offset: Vector3D
+    let transform: AffineTransform3D
 
     func output(in environment: Environment) -> Output {
         let output = body.output(in: environment)
         let bounds = output.boundary.boundingBox
-        let translation = (bounds?.translation(for: alignment) ?? .zero) + offset
-        return output.definingAnchors([anchor: .translation(-translation)])
+        let alignmentTranslation = bounds?.translation(for: alignment)
+
+        let finalTransform = AffineTransform3D.identity
+            .concatenated(with: transform)
+            .translated(alignmentTranslation.map { -$0 } ?? .zero)
+
+        return output.definingAnchors([anchor: finalTransform])
     }
 }
 
