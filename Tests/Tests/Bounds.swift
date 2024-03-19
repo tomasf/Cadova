@@ -58,10 +58,8 @@ final class BoundsTests: XCTestCase {
                 Box([2,2,1])
                     .aligned(at: .centerXY)
                     .definingAnchor(top, at: .top)
-                side.define()
-                    .rotated(y: -90°)
-                    .translated(x: -4, z: -2)
             }
+            .definingAnchor(side, at: .left, offset: [0, 0, -2], pointing: .left)
             .anchored(to: top)
             .anchored(to: side)
             .assertBoundsEqual(min: [-2, -3, -8], max: [3, 3, 0])
