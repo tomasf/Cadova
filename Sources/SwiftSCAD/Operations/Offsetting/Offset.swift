@@ -1,9 +1,9 @@
 import Foundation
 
-public struct Offset: WrappedGeometry2D {
+internal struct Offset: WrappedGeometry2D {
     let body: any Geometry2D
     let amount: Double
-    let style: Style
+    let style: LineJoinStyle
 
     public var invocation: Invocation? {
         let params: [String: any SCADValue]
@@ -25,37 +25,32 @@ public struct Offset: WrappedGeometry2D {
             bounds.scaleOffset(amount)
         }
     }
+}
 
-    public enum Style {
-        case round
-        case miter
-        case bevel
-    }
+/// Describes the style of line joins in geometric shapes.
+///
+/// The `LineJoinStyle` enum is used to specify how the joining points between line segments or edges of a geometry should be rendered.
+public enum LineJoinStyle {
+    /// Joins lines with a rounded edge, creating smooth transitions between segments.
+    case round
 
-    public enum Side {
-        case outside
-        case inside
-        case both
-    }
+    /// Extends the outer edges of the lines until they meet at a sharp point.
+    case miter
+
+    /// Joins lines by connecting their endpoints with a straight line, resulting in a flat, cut-off corner.
+    case bevel
 }
 
 public extension Geometry2D {
-    func offset(amount: Double, style: Offset.Style) -> any Geometry2D {
+    /// Offsets the geometry by a specified amount.
+    ///
+    /// This method creates a new geometry that is offset from the original geometry's boundary. The offset can be inward, outward, or both, depending on the offset amount and line join style specified.
+    ///
+    /// - Parameters:
+    ///   - amount: The distance by which to offset the geometry. Positive values expand the geometry outward, while negative values contract it inward.
+    ///   - style: The line join style of the offset, which can be `.round`, `.miter`, or `.bevel`. Each style affects the shape of the geometry's corners differently.
+    /// - Returns: A new geometry object that is the result of the offset operation.
+    func offset(amount: Double, style: LineJoinStyle) -> any Geometry2D {
         Offset(body: self, amount: amount, style: style)
-    }
-
-    func rounded(amount: Double, side: Offset.Side = .both) -> any Geometry2D {
-        var body: any Geometry2D = self
-        if side != .inside {
-            body = body
-                .offset(amount: -amount, style: .miter)
-                .offset(amount: amount, style: .round)
-        }
-        if side != .outside {
-            body = body
-                .offset(amount: amount, style: .miter)
-                .offset(amount: -amount, style: .round)
-        }
-        return body
     }
 }
