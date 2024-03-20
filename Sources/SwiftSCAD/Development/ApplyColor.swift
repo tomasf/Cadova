@@ -29,7 +29,7 @@ struct ApplyColor3D: WrappedGeometry3D {
 }
 
 extension Geometry2D {
-    func colored(_ color: Color) -> any Geometry2D {
+    public func colored(_ color: Color) -> any Geometry2D {
         ApplyColor2D(color: color, body: self)
     }
 
@@ -55,7 +55,7 @@ extension Geometry2D {
 }
 
 extension Geometry3D {
-    func colored(_ color: Color) -> any Geometry3D {
+    public func colored(_ color: Color) -> any Geometry3D {
         ApplyColor3D(color: color, body: self)
     }
 
