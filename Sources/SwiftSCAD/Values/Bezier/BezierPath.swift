@@ -81,6 +81,10 @@ public struct BezierPath <V: Vector> {
         adding(curve: BezierCurve(controlPoints: [endPoint] + controlPoints))
     }
 
+    public func addingCurve(_ controlPoints: [V]) -> BezierPath {
+        adding(curve: BezierCurve(controlPoints: [endPoint] + controlPoints))
+    }
+
     /// Closes the path by adding a line segment from the last point back to the starting point.
     /// This method is useful for creating closed shapes, where the start and end points are the same.
     /// - Returns: A new `BezierPath` instance representing the closed path.
