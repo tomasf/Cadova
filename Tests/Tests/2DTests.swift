@@ -36,7 +36,7 @@ final class Geometry2DTests: XCTestCase {
                     .rotated(45°)
                     .translated(x: -3)
 
-                BasicText("SwiftSCAD", font: .init(name: "Helvetica", size: 10), horizontalAlignment: .left, verticalAlignment: .bottom)
+                Text("SwiftSCAD", font: .init(name: "Helvetica", size: 10), horizontalAlignment: .left, verticalAlignment: .bottom)
                     .offset(amount: 0.4, style: .miter)
                     .translated(y: 5)
                     .sheared(.y, angle: 20°)
