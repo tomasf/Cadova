@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a two-dimensional shape defined by a series of connected points.
-/// It supports initialization from an array of `Vector2D` points or a `BezierPath`.
+/// It supports initialization from an array of ``Vector2D`` points or a two-dimensional ``BezierPath``.
 ///
 /// - Example:
 ///   - Creating a Polygon from points:
@@ -10,7 +10,7 @@ import Foundation
 ///     ```
 ///   - Creating a Polygon from a Bezier path:
 ///     ```
-///     let bezierPath = BezierPath(startPoint: .zero)
+///     let bezierPath = BezierPath2D(startPoint: .zero)
 ///                      .addingCubicCurve(controlPoint1: [10, 65], controlPoint2: [55, -20], end: [60, 40])
 ///     let polygonFromBezierPath = Polygon(bezierPath)
 ///     ```
