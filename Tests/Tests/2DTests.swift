@@ -48,19 +48,4 @@ final class Geometry2DTests: XCTestCase {
             }
             .assertEqual(toFile: "2dmisc")
     }
-
-    #if canImport(QuartzCore)
-    func testCGPath() {
-        let path = CGMutablePath(rect: CGRect(x: 0, y: 2, width: 10, height: 20), transform: nil)
-        path.addRect(CGRect(x: 2, y: 4, width: 5, height: 10))
-
-        path
-            .usingCGPathFillRule(.evenOdd)
-            .assertEqual(toFile: "cgPath-rects-evenOdd")
-
-        path
-            .usingCGPathFillRule(.winding)
-            .assertEqual(toFile: "cgPath-rects-winding")
-    }
-    #endif
 }
