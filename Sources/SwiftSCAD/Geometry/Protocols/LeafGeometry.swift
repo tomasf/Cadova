@@ -9,8 +9,7 @@ extension LeafGeometry2D {
     public func output(in environment: Environment) -> Output {
         .init(
             invocation: invocation,
-            boundary: boundary(in: environment),
-            environment: environment
+            boundary: boundary(in: environment)
         )
     }
 }
@@ -24,8 +23,7 @@ extension LeafGeometry3D {
     public func output(in environment: Environment) -> Output {
         .init(
             invocation: invocation,
-            boundary: boundary(in: environment),
-            environment: environment
+            boundary: boundary(in: environment)
         )
     }
 }

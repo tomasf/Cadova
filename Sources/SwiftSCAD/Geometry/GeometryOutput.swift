@@ -31,7 +31,7 @@ extension GeometryOutput {
 
 extension GeometryOutput {
     // Without children
-    init(invocation: Invocation, boundary: Boundary<V>, environment: Environment) {
+    init(invocation: Invocation, boundary: Boundary<V>) {
         scadCode = invocation.scadCode()
         self.boundary = boundary
         anchors = [:]

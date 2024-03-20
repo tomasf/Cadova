@@ -39,8 +39,7 @@ public struct Box: Geometry3D {
         if center.isEmpty {
             .init(
                 invocation: .init(name: "cube", parameters: ["size": size]),
-                boundary: .box(size),
-                environment: environment
+                boundary: .box(size)
             )
         } else {
             Box(size)

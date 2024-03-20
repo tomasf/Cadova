@@ -1,66 +1,70 @@
 import Foundation
 
-public struct Text: LeafGeometry2D {
+/// Text as a 2D geometry
+public struct Text: Geometry2D {
     let text: String
-    let font: Font
-    let horizontalAlignment: HorizontalAlignment
-    let verticalAlignment: VerticalAlignment
-    let characterSpacingFactor: Double
 
-    public init(_ text: String, font: Font, horizontalAlignment: HorizontalAlignment = .left, verticalAlignment: VerticalAlignment = .baseline, spacingFactor: Double = 1) {
+    /// Initializes a new text geometry with the specified text.
+    ///
+    /// This initializer creates a text geometry representation. To customize the appearance of the text, such as changing the font, alignment, or character spacing, use the following modifiers:
+    /// - Use ``Geometry2D/usingFont(_:style:size:)`` to specify a font
+    /// - Use ``Geometry2D/usingTextAlignment(horizontal:vertical:)`` to set the horizontal and/or vertical text alignment.
+    /// - Use ``Geometry2D/usingCharacterSpacing(_:)`` to adjust the spacing between characters.
+    ///
+    /// - Parameter text: The text to be used in creating the text geometry.
+    public init(_ text: String) {
         self.text = text
-        self.font = font
-        self.horizontalAlignment = horizontalAlignment
-        self.verticalAlignment = verticalAlignment
-        self.characterSpacingFactor = spacingFactor
     }
 
-    public var invocation: Invocation {
-        .init(name: "text", parameters: [
-            "text": text,
-            "size": font.size,
-            "font": font.fontString,
-            "halign": horizontalAlignment.rawValue,
-            "valign": verticalAlignment.rawValue,
-            "spacing": characterSpacingFactor
-        ])
+    public func output(in environment: Environment) -> Output {
+        return .init(invocation: environment.textAttributes.invocation(text: text), boundary: .empty)
     }
 
-    public func boundary(in environment: Environment) -> Bounds {
-        // We don't know this.
-        .empty
-    }
-
-    public struct Font {
-        public let name: String
-        public let size: Double
-        public let style: String?
-
-        public init(name: String, size: Double, style: String? = nil) {
-            self.name = name
-            self.size = size
-            self.style = style
-        }
-
-        fileprivate var fontString: String {
-            if let style = style {
-                return name + ":style=" + style
-            } else {
-                return name
-            }
-        }
-    }
-
+    /// An enumeration representing the horizontal alignment options for text geometry.
+    ///
+    /// Use these options with ``Geometry2D/usingTextAlignment(horizontal:vertical:)`` to set the horizontal alignment of your text geometry.
     public enum HorizontalAlignment: String {
+        /// Aligns the text to the left.
         case left
+        /// Centers the text horizontally.
         case center
+        /// Aligns the text to the right.
         case right
     }
 
+    /// An enumeration representing the vertical alignment options for text geometry.
+    ///
+    /// - `top`: Aligns the text to the top.
+    /// - `center`: Centers the text vertically.
+    /// - `baseline`: Aligns the text to the baseline. The baseline is the line upon which most letters sit and below which descenders extend.
+    /// - `bottom`: Aligns the text to the bottom.
+    ///
+    /// Use these options with ``Geometry2D/usingTextAlignment(horizontal:vertical:)`` to set the vertical alignment of your text geometry.
     public enum VerticalAlignment: String {
+        /// Aligns the text to the top.
         case top
+        /// Centers the text vertically.
         case center
+        /// Aligns the text to the baseline, the line upon which most letters sit and below which descenders extend.
         case baseline
+        /// Aligns the text to the bottom.
         case bottom
+    }
+}
+
+extension Environment.TextAttributes {
+    func invocation(text: String) -> Invocation {
+        let needsFontParameter = font != nil || fontStyle != nil
+        let styleValue = fontStyle.map { ":style=\($0)" } ?? ""
+        let fontValue = needsFontParameter ? (font ?? "") + styleValue : nil
+
+        return .init(name: "text", parameters: [
+            "text": text,
+            "font": fontValue,
+            "size": fontSize,
+            "halign": horizontalAlignment?.rawValue,
+            "valign": verticalAlignment?.rawValue,
+            "spacing": characterSpacing
+        ])
     }
 }
