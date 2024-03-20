@@ -12,7 +12,9 @@ extension BezierPath {
             RoundedBox([4, 2, 0.1], center: .all, axis: .z, cornerRadius: 1)
                 .colored(.white)
                 .adding {
-                    Text(text, font: .init(name: "Helvetica", size: 1), horizontalAlignment: .center, verticalAlignment: .center)
+                    Text(text)
+                        .usingFont(size: 1)
+                        .usingTextAlignment(horizontal: .center, vertical: .center)
                         .extruded(height: 0.01)
                         .translated(z: 0.1)
                         .colored(.black)

@@ -46,8 +46,7 @@ public struct Rectangle: Geometry2D {
         if center.isEmpty {
             .init(
                 invocation: .init(name: "square", parameters: ["size": size]),
-                boundary: .box(size),
-                environment: environment
+                boundary: .box(size)
             )
         } else {
             Rectangle(size)

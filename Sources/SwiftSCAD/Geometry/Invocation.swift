@@ -11,6 +11,10 @@ public struct Invocation {
         self.parameters = parameters.compactMapValues { $0 }
     }
 
+    internal func adding(parameter key: String, value: any SCADValue) -> Invocation {
+        .init(name: name, parameters: parameters.merging([key: value]) { $1 })
+    }
+
     internal func scadCode(body: [String] = []) -> String {
         let paramText = parameters
             .sorted { $0.key < $1.key }

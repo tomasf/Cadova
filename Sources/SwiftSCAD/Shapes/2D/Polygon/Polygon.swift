@@ -48,8 +48,7 @@ public struct Polygon: Geometry2D {
 
         return .init(
             invocation: .init(name: "polygon", parameters:  ["points": points]),
-            boundary: .points(points),
-            environment: environment
+            boundary: .points(points)
         )
     }
 }
