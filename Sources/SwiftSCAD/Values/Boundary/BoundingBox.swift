@@ -14,16 +14,16 @@ public struct BoundingBox<V: Vector> {
     /// - Parameters:
     ///   - minimum: The minimum corner point of the bounding volume.
     ///   - maximum: The maximum corner point of the bounding volume.
-    init(minimum: V, maximum: V) {
+    public init(minimum: V, maximum: V) {
         self.minimum = minimum
         self.maximum = maximum
     }
 
-    static var zero: Self { .init(minimum: .zero, maximum: .zero) }
+    public static var zero: Self { .init(minimum: .zero, maximum: .zero) }
 
     /// Initializes a new `BoundingBox` enclosing a single point.
     /// - Parameter vector: The vector used for both the minimum and maximum points.
-    init(_ vector: V) {
+    public init(_ vector: V) {
         self.init(minimum: vector, maximum: vector)
     }
 
