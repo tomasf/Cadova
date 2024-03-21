@@ -57,11 +57,12 @@ extension Environment.TextAttributes {
         let needsFontParameter = font != nil || fontStyle != nil
         let styleValue = fontStyle.map { ":style=\($0)" } ?? ""
         let fontValue = needsFontParameter ? (font ?? "") + styleValue : nil
+        let size = (fontSize ?? 10.0) * 0.72
 
         return .init(name: "text", parameters: [
             "text": text,
             "font": fontValue,
-            "size": fontSize,
+            "size": size,
             "halign": horizontalAlignment?.rawValue,
             "valign": verticalAlignment?.rawValue,
             "spacing": characterSpacing

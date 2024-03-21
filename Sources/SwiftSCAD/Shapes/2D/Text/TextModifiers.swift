@@ -3,7 +3,7 @@ import Foundation
 public extension Geometry2D {
     /// Applies a specified font name, style, and size to text geometry.
     ///
-    /// This method allows for the customization of fonts. Providing `nil` for any of the parameters will leave that particular attribute unchanged.
+    /// This method allows for the customization of fonts. Providing `nil` for any of the parameters will leave that particular attribute unchanged. SwiftSCAD adjusts the font size to align with standard typographical expectations, countering OpenSCAD's unconventional scaling. This ensures that specified point sizes reflect typical visual sizes.
     ///
     /// - Parameters:
     ///   - fontName: The name of the font. Default is `nil`.
@@ -46,7 +46,7 @@ public extension Geometry2D {
 public extension Geometry3D {
     /// Applies a specified font name, style, and size to text geometry.
     ///
-    /// This method allows for the customization of fonts. Providing `nil` for any of the parameters will leave that particular attribute unchanged.
+    /// This method allows for the customization of fonts. Providing `nil` for any of the parameters will leave that particular attribute unchanged. SwiftSCAD adjusts the font size to align with standard typographical expectations, countering OpenSCAD's unconventional scaling. This ensures that specified point sizes reflect typical visual sizes.
     ///
     /// - Parameters:
     ///   - fontName: The name of the font. Default is `nil`.

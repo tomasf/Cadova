@@ -37,7 +37,7 @@ final class Geometry2DTests: XCTestCase {
                     .translated(x: -3)
 
                 Text("SwiftSCAD")
-                    .usingFont("Helvetica", size: 10)
+                    .usingFont("Helvetica", size: 14)
                     .usingTextAlignment(horizontal: .left, vertical: .bottom)
                     .offset(amount: 0.4, style: .miter)
                     .translated(y: 5)
