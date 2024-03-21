@@ -41,6 +41,10 @@ public struct BoundingBox<V: Vector> {
         )
     }
 
+    public init(union boxes: [BoundingBox]) {
+        self.init(boxes.flatMap { [$0.minimum, $0.maximum] })
+    }
+
     /// Expands the bounding volume to include the given vector.
     /// - Parameter vector: The vector point to include in the bounding volume.
     /// - Returns: A new `BoundingBox` that includes the original volume and the specified vector.
