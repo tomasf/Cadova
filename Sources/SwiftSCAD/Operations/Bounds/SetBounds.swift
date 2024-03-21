@@ -38,6 +38,12 @@ public extension Geometry2D {
             SetBounds2D(body: self, boundary: boundary)
         }
     }
+
+    func modifyingBounds(modification: @escaping (BoundingBox2D) -> BoundingBox2D) -> any Geometry2D {
+        measuringBounds { geometry, bounds in
+            geometry.settingBounds(modification(bounds))
+        }
+    }
 }
 
 public extension Geometry3D {
@@ -54,6 +60,12 @@ public extension Geometry3D {
     func settingBounds(@UnionBuilder3D _ shape: () -> any Geometry3D) -> any Geometry3D {
         ReadBoundary3D(body: shape()) { _, boundary in
             SetBounds3D(body: self, boundary: boundary)
+        }
+    }
+
+    func modifyingBounds(modification: @escaping (BoundingBox3D) -> BoundingBox3D) -> any Geometry3D {
+        measuringBounds { geometry, bounds in
+            geometry.settingBounds(modification(bounds))
         }
     }
 }
