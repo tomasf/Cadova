@@ -96,4 +96,8 @@ extension BoundingBox {
     public func offset(_ expansion: V) -> BoundingBox {
         .init(minimum: minimum - expansion, maximum: maximum + expansion)
     }
+
+    public func transformed(_ transform: V.Transform) -> BoundingBox {
+        .init([transform.apply(to: minimum), transform.apply(to: maximum)])
+    }
 }
