@@ -54,3 +54,11 @@ public struct GeometryAlignment3D: Equatable {
         .init(x?.factor ?? 0, y?.factor ?? 0, z?.factor ?? 0)
     }
 }
+
+internal extension [GeometryAlignment2D] {
+    var merged: GeometryAlignment2D { .init(merging: self) }
+}
+
+internal extension [GeometryAlignment3D] {
+    var merged: GeometryAlignment3D { .init(merging: self) }
+}
