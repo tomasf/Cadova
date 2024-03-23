@@ -93,12 +93,11 @@ public struct RoundedRectangle: Shape2D {
         .translated(centerTranslation)
     }
 
-    /// Represents the style of the corners.
-    ///
-    /// - `circular`: A regular circular corner.
-    /// - `squircular`: A squircular corner, forming a more natural and continuous curve.
+    /// Represents the style of rounded corners.
     public enum CornerStyle {
+        /// A regular circular corner.
         case circular
+        /// A squircular corner, forming a more natural and continuous curve.
         case squircular
     }
 
