@@ -25,6 +25,19 @@ public struct Circle: LeafGeometry2D {
         self.diameter = radius * 2
     }
 
+    /// Creates a new `Circle` instance with the specified chord length and sagitta.
+    ///
+    /// This initializer calculates the diameter of the circle based on the geometric
+    /// relationship between the chord length and the sagitta—the vertical distance from
+    /// the midpoint of the chord to the arc of the circle.
+    ///
+    /// - Parameters:
+    ///   - chordLength: The length of the chord of the circle.
+    ///   - sagitta: The height from the midpoint of the chord to the highest point of the arc.
+    public init(chordLength: Double, sagitta: Double) {
+        diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
+    }
+
     public var invocation: Invocation {
         .init(name: "circle", parameters: ["d": diameter])
     }
