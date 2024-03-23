@@ -20,6 +20,16 @@ public struct Box: Geometry3D {
         self.center = center
     }
 
+    /// Creates a new `Box` instance with the specified size.
+    ///
+    /// - Parameters:
+    ///   - x: The size of the box in the X axis
+    ///   - y: The size of the box in the Y axis
+    ///   - z: The size of the box in the Z axis
+    public init(x: Double, y: Double, z: Double) {
+        self.init([x, y, z])
+    }
+
     /// Initializes a box with equal dimensions along all axes.
     /// - Parameters:
     ///   - side: A `Double` value indicating the length of each side of the cube.

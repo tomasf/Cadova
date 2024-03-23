@@ -27,6 +27,15 @@ public struct Rectangle: Geometry2D {
         self.center = center
     }
 
+    /// Creates a new `Rectangle` instance with the specified size.
+    ///
+    /// - Parameters:
+    ///   - x: The size of the rectangle in the X axis
+    ///   - y: The size of the rectangle in the Y axis
+    public init(x: Double, y: Double) {
+        self.init([x, y])
+    }
+
     /// Initializes a square.
     /// - Parameters:
     ///   - side: A `Double` value indicating the length of each side of the square.
