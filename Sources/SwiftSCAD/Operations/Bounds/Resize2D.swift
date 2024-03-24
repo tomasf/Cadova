@@ -29,7 +29,7 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - x: The target size in the X direction.
     ///   - y: The target size in the Y direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the top edge remains aligned with the geometry's original top edge position.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the top edge remains aligned with the geometry's original top edge position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and repositioned according to the specified dimensions and alignment.
 
     func resized(x: Double, y: Double, alignment: GeometryAlignment2D...) -> any Geometry2D {
@@ -40,7 +40,7 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - x: The target size in the X direction.
     ///   - y: The resize behavior for the Y direction, either fixed or proportional to the X direction resizing.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the top edge remains aligned with the geometry's original top edge position.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the top edge remains aligned with the geometry's original top edge position. By default, a geometry is resized relative to its origin.
     /// - Returns: The geometry, resized and repositioned according to the specified criteria.
 
     func resized(x: Double, y: ResizeBehavior = .fixed, alignment: GeometryAlignment2D...) -> any Geometry2D {
@@ -53,7 +53,7 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - x: The resize behavior for the X direction.
     ///   - y: The target size in the Y direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the top edge remains aligned with the geometry's original top edge position.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the top edge remains aligned with the geometry's original top edge position. By default, a geometry is resized relative to its origin.
     /// - Returns: The geometry, resized and repositioned according to the specified criteria.
 
     func resized(x: ResizeBehavior = .fixed, y: Double, alignment: GeometryAlignment2D...) -> any Geometry2D {

@@ -15,7 +15,7 @@ public extension Geometry3D {
     ///   - x: The target size in the X direction.
     ///   - y: The target size in the Y direction.
     ///   - z: The target size in the Z direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and repositioned according to the specified dimensions and alignment.
 
     func resized(x: Double, y: Double, z: Double, alignment: GeometryAlignment3D...) -> any Geometry3D {
@@ -27,7 +27,7 @@ public extension Geometry3D {
     ///   - x: The target size in the X direction.
     ///   - y: The resize behavior for the Y direction.
     ///   - z: The resize behavior for the Z direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
     func resized(x: Double, y: ResizeBehavior = .fixed, z: ResizeBehavior = .fixed, alignment: GeometryAlignment3D...) -> any Geometry3D {
@@ -45,7 +45,7 @@ public extension Geometry3D {
     ///   - x: The resize behavior for the X direction.
     ///   - y: The target size in the Y direction.
     ///   - z: The resize behavior for the Z direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
     func resized(x: ResizeBehavior = .fixed, y: Double, z: ResizeBehavior = .fixed, alignment: GeometryAlignment3D...) -> any Geometry3D {
@@ -63,7 +63,7 @@ public extension Geometry3D {
     ///   - x: The resize behavior for the X direction.
     ///   - y: The resize behavior for the Y direction.
     ///   - z: The target size in the Z direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
     func resized(x: ResizeBehavior = .fixed, y: ResizeBehavior = .fixed, z: Double, alignment: GeometryAlignment3D...) -> any Geometry3D {
