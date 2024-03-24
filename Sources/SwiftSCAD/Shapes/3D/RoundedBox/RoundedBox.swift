@@ -18,39 +18,46 @@ import Foundation
 /// ```
 
 public struct RoundedBox: Shape3D {
-    internal typealias CornerRadii = RoundedRectangle.CornerRadii
-    public typealias CornerStyle = RoundedRectangle.CornerStyle
     private let implementation: any Geometry3D
     
     // MARK: - Single axis
-    private init(_ size: Vector3D, center: Axes3D, axis: Axis3D, style: CornerStyle, cornerRadii radii: CornerRadii) {
-        self.implementation = RoundedBoxSingleAxis(size: size, cornerStyle: style, axis: axis, radii: radii)
-            .translated((size / 2).with(center, as: 0))
+    private init(_ size: Vector3D, axis: Axis3D, style: RoundedCornerStyle, radii radii: RectangleCornerRadii) {
+        implementation = RoundedBoxSingleAxis(size: size, cornerStyle: style, axis: axis, radii: radii)
     }
 
     /// Initializes a rounded box along a single axis.
     ///
     /// - Parameters:
     ///   - size: The dimensions of the box in all three axes.
-    ///   - center: Defines which axes are centered at the origin.
     ///   - axis: Specifies the axis to round the corners.
     ///   - style: Determines the shape of the rounded corners.
     ///   - cornerRadius: The radius of the corners.
-    public init(_ size: Vector3D, center: Axes3D = .none, axis: Axis3D, style: CornerStyle = .circular, cornerRadius: Double) {
-        self.init(size, center: center, axis: axis, style: style, cornerRadii: .init(cornerRadius))
+    public init(
+        _ size: Vector3D,
+        center: Axes3D = .none,
+        axis: Axis3D,
+        style: RoundedCornerStyle = .circular,
+        cornerRadius: Double
+    ) {
+        self.init(size, axis: axis, style: style, radii: .init(cornerRadius))
     }
 
     /// Initializes a rounded box along a single axis with specific corner radii.
     ///
     /// - Parameters:
     ///   - size: The dimensions of the box in all three axes.
-    ///   - center: Defines which axes are centered at the origin.
     ///   - axis: Specifies the axis to round the corners.
     ///   - style: Determines the shape of the rounded corners.
-    ///   - radii: An array of corner radii for each corner. The array must contain exactly 4 elements.
-    public init(_ size: Vector3D, center: Axes3D = .none, axis: Axis3D, style: CornerStyle = .circular, cornerRadii radii: [Double]) {
-        precondition(radii.count == 4)
-        self.init(size, center: center, axis: axis, style: style, cornerRadii: .init(arrayLiteral: radii[0], radii[1], radii[2], radii[3]))
+    public init(
+        _ size: Vector3D,
+        axis: Axis3D,
+        style: RoundedCornerStyle = .circular,
+        cornerRadii a: Double,
+        _ b: Double,
+        _ c: Double,
+        _ d: Double
+    ) {
+        self.init(size, axis: axis, style: style, radii: .init(a, b, c, d))
     }
     
     // MARK: - 3D

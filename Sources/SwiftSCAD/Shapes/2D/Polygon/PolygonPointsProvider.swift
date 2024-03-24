@@ -25,3 +25,19 @@ internal struct TransformedPolygonPoints: PolygonPointsProvider {
             .map(transformation)
     }
 }
+
+internal struct JoinedPolygonPoints: PolygonPointsProvider {
+    let providers: [any PolygonPointsProvider]
+
+    func points(in environment: Environment) -> [Vector2D] {
+        providers.flatMap { $0.points(in: environment) }
+    }
+}
+
+internal struct ReversedPolygonPoints: PolygonPointsProvider {
+    let innerProvider: any PolygonPointsProvider
+
+    func points(in environment: Environment) -> [Vector2D] {
+        innerProvider.points(in: environment).reversed()
+    }
+}

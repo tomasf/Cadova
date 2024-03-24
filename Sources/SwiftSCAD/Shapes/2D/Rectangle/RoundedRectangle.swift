@@ -4,42 +4,22 @@ import Foundation
 ///
 /// You can create a `RoundedRectangle` with either a circular or squircular corner style.
 /// A squircular corner forms a more natural and continuous curve than a circular corner.
-/// Use this struct to draw rectangles with rounded corners as part of your SwiftSCAD design.
 ///
 /// # Example
 /// ```swift
 /// RoundedRectangle([100, 50], style: .circular, cornerRadius: 10)
 /// ```
 public struct RoundedRectangle: Shape2D {
-    private let radii: CornerRadii
+    private let radii: RectangleCornerRadii
     let size: Vector2D
-    let center: Axes2D
-    let cornerStyle: CornerStyle
+    let cornerStyle: RoundedCornerStyle
 
-    internal init(_ size: Vector2D, cornerStyle: CornerStyle = .circular, radii: CornerRadii, center: Axes2D) {
+    internal init(_ size: Vector2D, style cornerStyle: RoundedCornerStyle, radii: RectangleCornerRadii) {
         self.size = size
         self.radii = radii
-        self.center = center
         self.cornerStyle = cornerStyle
 
-        precondition(
-            radii.bottomLeft + radii.bottomRight <= size.x
-            && radii.topLeft + radii.topRight <= size.x
-            && radii.topLeft + radii.bottomLeft <= size.y
-            && radii.topRight + radii.bottomRight <= size.y,
-            "Rounded rectangle corners are too big to fit within rectangle size"
-        )
-    }
-
-    /// Creates a rounded rectangle with a specific corner style and radii.
-    ///
-    /// - Parameters:
-    ///   - size: The size of the rectangle.
-    ///   - style: The style of the corners, either circular or squircular.
-    ///   - cornerRadii: An array containing the radii of the four corners.
-    ///   - center: Defines which axes should be centered.
-    public init(_ size: Vector2D, style: CornerStyle = .circular, cornerRadii: [Double], center: Axes2D = []) {
-        self.init(size, cornerStyle: style, radii: [cornerRadii[0], cornerRadii[1], cornerRadii[2], cornerRadii[3]], center: center)
+        radii.validateForSize(size)
     }
 
     /// Creates a rounded rectangle with a specific corner style and uniform radius for all corners.
@@ -48,9 +28,25 @@ public struct RoundedRectangle: Shape2D {
     ///   - size: The size of the rectangle.
     ///   - style: The style of the corners, either circular or squircular.
     ///   - cornerRadius: The radius of the corners.
-    ///   - center: Defines which axes should be centered.
-    public init(_ size: Vector2D, style: CornerStyle = .circular, cornerRadius: Double, center: Axes2D = []) {
-        self.init(size, style: style, cornerRadii: [cornerRadius, cornerRadius, cornerRadius, cornerRadius], center: center)
+    public init(_ size: Vector2D, style: RoundedCornerStyle = .circular, cornerRadius: Double) {
+        self.init(size, style: style, radii: .init(cornerRadius))
+    }
+
+    /// Creates a rounded rectangle with a specific corner style and radii.
+    ///
+    /// - Parameters:
+    ///   - size: The size of the rectangle.
+    ///   - style: The style of the corners, either circular or squircular.
+    ///   - cornerRadii: An array containing the radii of the four corners.
+    public init(
+        _ size: Vector2D,
+        style: RoundedCornerStyle = .circular,
+        cornerRadii a: Double,
+        _ b: Double,
+        _ c: Double,
+        _ d: Double
+    ) {
+        self.init(size, style: style, radii: .init(a, b, c, d))
     }
 
     /// Creates a rounded rectangle with a specific corner style and individual radii for each corner.
@@ -58,103 +54,66 @@ public struct RoundedRectangle: Shape2D {
     /// - Parameters:
     ///   - size: The size of the rectangle.
     ///   - style: The style of the corners, either circular or squircular.
-    ///   - bottomLeft: The radius of the bottom-left corner.
-    ///   - bottomRight: The radius of the bottom-right corner.
-    ///   - topRight: The radius of the top-right corner.
-    ///   - topLeft: The radius of the top-left corner.
-    ///   - center: Defines which axes should be centered.
-    public init(_ size: Vector2D, style: CornerStyle = .circular, bottomLeft: Double = 0, bottomRight: Double = 0, topRight: Double = 0, topLeft: Double = 0, center: Axes2D = []) {
-        self.init(size, style: style, cornerRadii: [bottomLeft, bottomRight, topRight, topLeft], center: center)
+    ///   - minXminY: The radius of the bottom-left corner.
+    ///   - maxXminY: The radius of the bottom-right corner.
+    ///   - maxXmaxY: The radius of the top-right corner.
+    ///   - minXmaxY: The radius of the top-left corner.
+    public init(
+        _ size: Vector2D,
+        style: RoundedCornerStyle = .circular,
+        minXminY: Double = 0,
+        maxXminY: Double = 0,
+        maxXmaxY: Double = 0,
+        minXmaxY: Double = 0
+    ) {
+        self.init(size, style: style, radii: .init(minXminY, maxXminY, maxXmaxY, minXmaxY))
     }
 
-    @UnionBuilder2D public var body: any Geometry2D {
-        let centerTranslation = (size / -2).with(center.inverted, as: 0)
+    public var body: any Geometry2D {
+        func corner(radius: Double, posX: Bool, posY: Bool, environment: Environment) -> Polygon {
+            var polygon = cornerStyle
+                .polygon(radius: radius, in: environment)
+                .transformed(.identity
+                    .translated([size.x / 2 - radius, size.y / 2 - radius])
+                    .scaled(x: posX ? 1 : -1, y: posY ? 1 : -1)
+                    .translated([size.x / 2, size.y / 2])
+                )
 
-        Union {
-            Corner(rotation: 90°, radius: radii.topLeft, style: cornerStyle)
-                .translated(x: radii.topLeft, y: size.y - radii.topLeft)
+            if posX == posY {
+                polygon = polygon.reversed()
+            }
+            return polygon
+        }
 
-            Corner(rotation: 0°, radius: radii.topRight, style: cornerStyle)
-                .translated(x: size.x - radii.topRight, y: size.y - radii.topRight)
-
-            Corner(rotation: 180°, radius: radii.bottomLeft, style: cornerStyle)
-                .translated(x: radii.bottomLeft, y: radii.bottomLeft)
-
-            Corner(rotation: 270°, radius: radii.bottomRight, style: cornerStyle)
-                .translated(x: size.x - radii.bottomRight, y: radii.bottomRight)
-
+        return EnvironmentReader { e in
             Polygon([
-                [radii.topLeft, size.y], [size.x - radii.topRight, size.y],
-                [size.x, size.y - radii.topRight], [size.x, radii.bottomRight],
-                [size.x - radii.bottomRight, 0], [radii.bottomLeft, 0],
-                [0, radii.bottomLeft], [0, size.y - radii.topLeft]
+                corner(radius: radii.minXmaxY, posX: false, posY: true, environment: e),
+                corner(radius: radii.maxXmaxY, posX: true, posY: true, environment: e),
+                corner(radius: radii.maxXminY, posX: true, posY: false, environment: e),
+                corner(radius: radii.minXminY, posX: false, posY: false, environment: e),
             ])
         }
-        .translated(centerTranslation)
     }
+}
 
-    /// Represents the style of rounded corners.
-    public enum CornerStyle {
-        /// A regular circular corner.
-        case circular
-        /// A squircular corner, forming a more natural and continuous curve.
-        case squircular
-    }
-
-    internal struct CornerRadii: ExpressibleByArrayLiteral {
-        public let bottomLeft: Double
-        public let bottomRight: Double
-        public let topRight: Double
-        public let topLeft: Double
-
-        typealias ArrayLiteralElement = Double
-        init(arrayLiteral elements: Double...) {
-            precondition(elements.count == 4, "CornerRadii needs 4 radii")
-            bottomLeft = elements[0]
-            bottomRight = elements[1]
-            topRight = elements[2]
-            topLeft = elements[3]
-        }
-
-        init(_ value: Double) {
-            self.init(arrayLiteral: value, value, value, value)
+private extension RoundedCornerStyle {
+    func polygon(radius: Double, in environment: Environment) -> Polygon {
+        switch self {
+        case .circular: .circularArc(radius: radius, range: 0°..<90°, facets: environment.facets)
+        case .squircular: .squircleCorner(radius: radius, facets: environment.facets)
         }
     }
+}
 
-    private struct Corner: Shape2D {
-        let rotation: Angle
-        let radius: Double
-        let style: CornerStyle
+private extension Polygon {
+    static func squircleCorner(radius: Double, facets: Environment.Facets) -> Polygon {
+        let facetCount = facets.facetCount(circleRadius: radius)
+        let radius4th = pow(radius, 4.0)
 
-        var body: any Geometry2D {
-            if radius > .ulpOfOne {
-                if style == .circular {
-                    Arc(range: 0°..<90°, radius: radius)
-                        .rotated(rotation)
-                } else {
-                    SquircleCorner(radius: radius)
-                        .rotated(rotation)
-                }
-            }
-        }
-    }
-
-    private struct SquircleCorner: Shape2D {
-        let radius: Double
-
-        var body: any Geometry2D {
-            EnvironmentReader2D { environment in
-                let facets = environment.facets.facetCount(circleRadius: radius)
-                let radius4th = pow(radius, 4.0)
-
-                let points = [.zero] + (0...facets).map { facet -> Vector2D in
-                    let x = cos(.pi / 2.0 / Double(facets) * Double(facet)) * radius
-                    let y = pow(radius4th - pow(x, 4.0), 0.25)
-                    return Vector2D(x, y)
-                } + [.zero]
-
-                return Polygon(points)
-            }
-        }
+        return Polygon((0...facetCount).map { facet -> Vector2D in
+            let x = cos(.pi / 2.0 / Double(facetCount) * Double(facet)) * radius
+            let y = pow(radius4th - pow(x, 4.0), 0.25)
+            return Vector2D(x, y)
+        })
     }
 }

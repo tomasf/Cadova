@@ -3,9 +3,9 @@ import Foundation
 extension RoundedBox {
     internal struct RoundedBoxSingleAxis: Shape3D {
         let size: Vector3D
-        let cornerStyle: CornerStyle
+        let cornerStyle: RoundedCornerStyle
         let axis: Axis3D
-        let radii: CornerRadii
+        let radii: RectangleCornerRadii
 
         var body: any Geometry3D {
             let localSize: Vector3D
@@ -27,10 +27,10 @@ extension RoundedBox {
                 rotationAxis = .x
             }
 
-            return RoundedRectangle(localSize.xy, cornerStyle: cornerStyle, radii: radii, center: .all)
+            return RoundedRectangle(localSize.xy, style: cornerStyle, radii: radii)
                 .extruded(height: localSize.z)
                 .rotated(angle: rotation, axis: rotationAxis)
-                .translated(Vector3D(axis: axis, value: -size[axis] / 2))
+                .translated(z: axis == .z ? 0 : size.z)
         }
     }
 }

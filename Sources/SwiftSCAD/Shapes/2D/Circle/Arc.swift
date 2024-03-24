@@ -31,16 +31,20 @@ public struct Arc: Shape2D {
 
     public var body: any Geometry2D {
         EnvironmentReader { e in
-            let magnitude = range.upperBound - range.lowerBound
-            let circleFacets = e.facets.facetCount(circleRadius: radius)
-            let facetCount = max(Int(ceil(Double(circleFacets) * magnitude / 360°)), 2)
-
-            let outerPoints = (0...facetCount).map { i -> Vector2D in
-                let angle = range.lowerBound + (Double(i) / Double(facetCount)) * magnitude
-                return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
-            }
-
-            Polygon([.zero] + outerPoints)
+            Polygon([.zero]) + .circularArc(radius: radius, range: range, facets: e.facets)
         }
+    }
+}
+
+internal extension Polygon {
+    static func circularArc(radius: Double, range: Range<Angle>, facets: Environment.Facets) -> Polygon {
+        let magnitude = range.upperBound - range.lowerBound
+        let circleFacets = facets.facetCount(circleRadius: radius)
+        let facetCount = max(Int(ceil(Double(circleFacets) * magnitude / 360°)), 2)
+
+        return Polygon((0...facetCount).map { i -> Vector2D in
+            let angle = range.lowerBound + (Double(i) / Double(facetCount)) * magnitude
+            return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
+        })
     }
 }

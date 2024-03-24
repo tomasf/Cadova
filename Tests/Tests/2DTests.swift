@@ -32,7 +32,8 @@ final class Geometry2DTests: XCTestCase {
             }
             .rounded(amount: 0.35, side: . both)
             .adding {
-                RoundedRectangle([10, 10], bottomLeft: 5, bottomRight: 3, topRight: 2, topLeft: 0, center: .x)
+                RoundedRectangle([10, 10], cornerRadii: 5, 3, 2, 0)
+                    .aligned(at: .centerX)
                     .rotated(45°)
                     .translated(x: -3)
 

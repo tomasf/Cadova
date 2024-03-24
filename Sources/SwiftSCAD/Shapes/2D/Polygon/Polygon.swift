@@ -36,6 +36,10 @@ public struct Polygon: Geometry2D {
         self.init(provider: bezierPath)
     }
 
+    public init(_ polygons: [Polygon]) {
+        self.init(provider: JoinedPolygonPoints(providers: polygons.map(\.pointsProvider)))
+    }
+
     /// Returns the points defining the polygon within a given environment.
     /// - Parameter environment: The environment context.
     /// - Returns: An array of `Vector2D` representing the polygon's vertices.
@@ -73,5 +77,17 @@ public extension Polygon {
     /// - Returns: A `BoundingRect` representing the smallest rectangle enclosing the polygon.
     func boundingRect(in environment: Environment) -> BoundingBox2D {
         .init(points(in: environment))
+    }
+
+    func appending(_ other: Polygon) -> Polygon {
+        .init(provider: JoinedPolygonPoints(providers: [pointsProvider, other.pointsProvider]))
+    }
+
+    func reversed() -> Polygon {
+        .init(provider: ReversedPolygonPoints(innerProvider: pointsProvider))
+    }
+
+    static func +(_ lhs: Polygon, _ rhs: Polygon) -> Polygon {
+        lhs.appending(rhs)
     }
 }
