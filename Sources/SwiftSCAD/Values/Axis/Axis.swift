@@ -33,4 +33,7 @@ public enum AxisDirection {
     case positive
     /// The negative direction along an axis
     case negative
+
+    static let min = negative
+    static let max = positive
 }
