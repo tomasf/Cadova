@@ -44,6 +44,12 @@ public extension Geometry2D {
             geometry.settingBounds(modification(bounds))
         }
     }
+
+    func modifyingBounds(@UnionBuilder2D _ shape: @escaping (BoundingBox2D) -> any Geometry2D) -> any Geometry2D {
+        measuringBounds { geometry, bounds in
+            geometry.settingBounds { shape(bounds) }
+        }
+    }
 }
 
 public extension Geometry3D {
@@ -66,6 +72,12 @@ public extension Geometry3D {
     func modifyingBounds(modification: @escaping (BoundingBox3D) -> BoundingBox3D) -> any Geometry3D {
         measuringBounds { geometry, bounds in
             geometry.settingBounds(modification(bounds))
+        }
+    }
+
+    func modifyingBounds(@UnionBuilder3D _ shape: @escaping (BoundingBox3D) -> any Geometry3D) -> any Geometry3D {
+        measuringBounds { geometry, bounds in
+            geometry.settingBounds { shape(bounds) }
         }
     }
 }
