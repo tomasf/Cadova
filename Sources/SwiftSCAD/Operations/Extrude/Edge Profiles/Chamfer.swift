@@ -43,7 +43,7 @@ extension Chamfer: EdgeProfileShape {
                 shape
                     .offset(amount: -width, style: .round)
                     .extruded(height: 0.001)
-                    .translated(z: height - 0.001)
+                    .translated(z: extrusionHeight - 0.001)
             }
             .convexHull()
     }
