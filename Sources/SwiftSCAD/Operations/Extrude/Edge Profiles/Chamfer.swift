@@ -38,12 +38,12 @@ extension Chamfer: EdgeProfileShape {
     }
 
     func convexMask(shape: any Geometry2D, extrusionHeight: Double) -> any Geometry3D {
-        shape.extruded(height: max(extrusionHeight - height, 0.001))
+        shape.extruded(height: max(extrusionHeight - height, 0.01))
             .adding {
                 shape
                     .offset(amount: -width, style: .round)
-                    .extruded(height: 0.001)
-                    .translated(z: extrusionHeight - 0.001)
+                    .extruded(height: 0.01)
+                    .translated(z: extrusionHeight - 0.01)
             }
             .convexHull()
     }
