@@ -119,3 +119,15 @@ extension GeometryOutput {
 extension GeometryOutput {
     static var emptyLeaf: Self { .init(scadCode: ";", boundary: .empty, anchors: [:]) }
 }
+
+extension GeometryOutput<Vector2D>: Geometry2D {
+    public func output(in environment: Environment) -> Self {
+        self
+    }
+}
+
+extension GeometryOutput<Vector3D>: Geometry3D {
+    public func output(in environment: Environment) -> Self {
+        self
+    }
+}

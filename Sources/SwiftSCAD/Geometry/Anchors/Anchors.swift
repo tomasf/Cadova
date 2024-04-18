@@ -48,11 +48,12 @@ internal struct ApplyAnchor2D: Geometry2D {
     let anchor: Anchor
 
     func output(in environment: Environment) -> Output {
-        guard let transform = body.output(in: environment).anchors[anchor] else {
+        let output = body.output(in: environment)
+        guard let transform = output.anchors[anchor] else {
             preconditionFailure("Anchor \(anchor) not found")
         }
 
-        return body
+        return output
             .transformed(AffineTransform2D(transform.inverse))
             .output(in: environment)
     }
@@ -63,11 +64,12 @@ internal struct ApplyAnchor3D: Geometry3D {
     let anchor: Anchor
 
     func output(in environment: Environment) -> Output {
-        guard let transform = body.output(in: environment).anchors[anchor] else {
+        let output = body.output(in: environment)
+        guard let transform = output.anchors[anchor] else {
             preconditionFailure("Anchor \(anchor) not found")
         }
 
-        return body
+        return output
             .transformed(transform.inverse)
             .output(in: environment)
     }

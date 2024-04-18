@@ -7,7 +7,7 @@ struct ReadBoundary2D: Geometry2D {
     func output(in environment: Environment) -> GeometryOutput2D {
         let bodyOutput = body.output(in: environment)
         let localBoundary = bodyOutput.boundary
-        return builder(body, localBoundary)
+        return builder(bodyOutput, localBoundary)
             .output(in: environment)
     }
 }
@@ -19,7 +19,7 @@ struct ReadBoundary3D: Geometry3D {
     func output(in environment: Environment) -> GeometryOutput3D {
         let bodyOutput = body.output(in: environment)
         let localBoundary = bodyOutput.boundary
-        return builder(body, localBoundary)
+        return builder(bodyOutput, localBoundary)
             .output(in: environment)
     }
 }

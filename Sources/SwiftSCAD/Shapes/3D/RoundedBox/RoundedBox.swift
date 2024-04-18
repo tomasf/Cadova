@@ -21,7 +21,7 @@ public struct RoundedBox: Shape3D {
     private let implementation: any Geometry3D
     
     // MARK: - Single axis
-    private init(_ size: Vector3D, axis: Axis3D, style: RoundedCornerStyle, radii radii: RectangleCornerRadii) {
+    private init(_ size: Vector3D, axis: Axis3D, style: RoundedCornerStyle, radii: RectangleCornerRadii) {
         implementation = RoundedBoxSingleAxis(size: size, cornerStyle: style, axis: axis, radii: radii)
     }
 
