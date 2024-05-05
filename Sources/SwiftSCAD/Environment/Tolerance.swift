@@ -2,10 +2,6 @@ import Foundation
 
 private extension Environment {
     static let key = Environment.ValueKey(rawValue: "SwiftSCAD.Tolerance")
-
-    func settingTolerance(_ tolerance: Double) -> Environment {
-        setting(key: Self.key, value: tolerance)
-    }
 }
 
 public extension Environment {
@@ -16,6 +12,16 @@ public extension Environment {
     /// - Returns: The current tolerance value as a `Double`.
     var tolerance: Double {
         self[Self.key] as? Double ?? 0
+    }
+
+    /// Set the tolerance value
+    ///
+    /// This method modifies the tolerance setting of an environment. Tolerance can be understood as the permissible limit or limits of variation in measurements, dimensions, or physical properties of a geometry. While the tolerance value itself does not directly influence geometry creation in SwiftSCAD, it can be utilized by your own models to adjust generation of geometries according to the specified tolerance.
+    ///
+    /// - Returns: A new environment with a modified tolerance
+
+    func withTolerance(_ tolerance: Double) -> Environment {
+        setting(key: Self.key, value: tolerance)
     }
 }
 
@@ -28,7 +34,7 @@ public extension Geometry3D {
     /// - Returns: A modified geometry with the specified tolerance setting applied.
     func withTolerance(_ tolerance: Double) -> any Geometry3D {
         withEnvironment { enviroment in
-            enviroment.settingTolerance(tolerance)
+            enviroment.withTolerance(tolerance)
         }
     }
 }
@@ -42,7 +48,7 @@ public extension Geometry2D {
     /// - Returns: A modified geometry with the specified tolerance setting applied.
     func withTolerance(_ tolerance: Double) -> any Geometry2D {
         withEnvironment { enviroment in
-            enviroment.settingTolerance(tolerance)
+            enviroment.withTolerance(tolerance)
         }
     }
 }

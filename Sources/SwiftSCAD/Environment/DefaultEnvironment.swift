@@ -1,6 +1,6 @@
 import Foundation
 
-internal extension Environment {
+public extension Environment {
     static var defaultEnvironment: Environment {
         Environment()
             .withFacets(.defaults)
