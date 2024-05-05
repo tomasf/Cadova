@@ -9,7 +9,8 @@ extension BezierPath {
     public func visualize(scale: Double = 1, markerRotation: Rotation3D? = [45°, 0°, -45°]) -> any Geometry3D {
         @UnionBuilder3D
         func makeMarker(at location: V, text: String, transform: AffineTransform3D) -> any Geometry3D {
-            RoundedBox([4, 2, 0.1], center: .all, axis: .z, cornerRadius: 1)
+            RoundedBox([4, 2, 0.1], axis: .z, cornerRadius: 1)
+                .aligned(at: .center)
                 .colored(.white)
                 .adding {
                     Text(text)

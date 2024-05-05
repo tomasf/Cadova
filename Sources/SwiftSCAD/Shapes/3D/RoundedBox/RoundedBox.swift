@@ -34,7 +34,6 @@ public struct RoundedBox: Shape3D {
     ///   - cornerRadius: The radius of the corners.
     public init(
         _ size: Vector3D,
-        center: Axes3D = .none,
         axis: Axis3D,
         style: RoundedCornerStyle = .circular,
         cornerRadius: Double
@@ -68,9 +67,8 @@ public struct RoundedBox: Shape3D {
     ///   - size: The dimensions of the box in all three axes.
     ///   - center: Defines which axes are centered at the origin.
     ///   - radius: The radius of the corners for all three axes.
-    public init(_ size: Vector3D, center: Axes3D = .none, cornerRadius radius: Double) {
+    public init(_ size: Vector3D, cornerRadius radius: Double) {
         self.implementation = RoundedBox3D(size: size, cornerRadius: radius)
-            .translated((size / 2).with(center, as: 0))
     }
     
     public var body: any Geometry3D {
