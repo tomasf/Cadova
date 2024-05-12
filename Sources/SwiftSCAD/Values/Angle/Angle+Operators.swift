@@ -69,3 +69,13 @@ extension Angle {
         a.radians == b.radians
     }
 }
+
+public func stride(from start: Angle, through end: Angle, by stride: Angle) -> [Angle] {
+    Swift.stride(from: start.radians, through: end.radians, by: stride.radians)
+        .map(Angle.init(radians:))
+}
+
+public func stride(from start: Angle, to end: Angle, by stride: Angle) -> [Angle] {
+    Swift.stride(from: start.radians, to: end.radians, by: stride.radians)
+        .map(Angle.init(radians:))
+}
