@@ -17,7 +17,7 @@ public struct Import2D: LeafGeometry2D {
     ///   - center: Determines if the imported geometry should be centered around the origin. Defaults to `false`.
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
     public init(path: String, dxfLayer: String? = nil, center: Bool = false, convexity: Int = 2) {
-        self.path = path
+        self.path = (path as NSString).expandingTildeInPath
         self.layer = dxfLayer
         self.convexity = convexity
         self.center = center
@@ -51,7 +51,7 @@ public struct Import3D: LeafGeometry3D {
     ///   - path: The file path to the 3D model to be imported. Paths are resolved relative to the .scad file if not absolute.
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
     public init(path: String, convexity: Int = 2) {
-        self.path = path
+        self.path = (path as NSString).expandingTildeInPath
         self.convexity = convexity
     }
 
