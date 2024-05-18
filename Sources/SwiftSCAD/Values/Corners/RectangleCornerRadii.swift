@@ -1,18 +1,10 @@
 import Foundation
 
-/// Represents the style of rounded corners.
-public enum RoundedCornerStyle {
-    /// A regular circular corner.
-    case circular
-    /// A squircular corner, forming a more natural and continuous curve.
-    case squircular
-}
-
 internal struct RectangleCornerRadii {
-    public let minXminY: Double
-    public let maxXminY: Double
-    public let maxXmaxY: Double
-    public let minXmaxY: Double
+    let minXminY: Double
+    let maxXminY: Double
+    let maxXmaxY: Double
+    let minXmaxY: Double
 
     init(_ minXminY: Double, _ maxXminY: Double, _ maxXmaxY: Double, _ minXmaxY: Double) {
         self.minXminY = minXminY
@@ -21,8 +13,13 @@ internal struct RectangleCornerRadii {
         self.minXmaxY = minXmaxY
     }
 
-    init(_ value: Double) {
-        self.init(value, value, value, value)
+    init(_ value: Double, corners: RectangleCorners) {
+        self.init(
+            corners.contains(.bottomLeft) ? value : 0,
+            corners.contains(.bottomRight) ? value : 0,
+            corners.contains(.topRight) ? value : 0,
+            corners.contains(.topLeft) ? value : 0
+        )
     }
 
     func validateForSize(_ size: Vector2D) {

@@ -45,6 +45,9 @@ public extension GeometryAlignment2D {
     /// Centers the geometry both horizontally and vertically.
     static let center = Self(x: .mid, y: .mid)
 
+    /// Aligns the geometry at its origin
+    static let origin = Self(x: .min, y: .min)
+
     /// Aligns the geometry's minimum X boundary to the coordinate system's origin (X = 0).
     static let minX = Self(x: .min)
     /// Centers the geometry horizontally.
@@ -78,6 +81,9 @@ public extension GeometryAlignment3D {
     static let center = Self(x: .mid, y: .mid, z: .mid)
     /// Centers the geometry in the XY plane.
     static let centerXY = Self(x: .mid, y: .mid)
+
+    /// Aligns the geometry at its origin
+    static let origin = Self(x: .min, y: .min, z: .min)
 
     /// Aligns the geometry's minimum X boundary to the coordinate system's origin (X = 0).
     static let minX = Self(x: .min)

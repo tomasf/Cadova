@@ -45,6 +45,8 @@ public struct Rotation3D {
     init(angle: Angle, axis: Vector3D) {
         rotation = .axis(axis, angle: angle)
     }
+
+    static let none = Rotation3D(x: 0°, y: 0°, z: 0°)
 }
 
 extension Rotation3D: ExpressibleByArrayLiteral {
