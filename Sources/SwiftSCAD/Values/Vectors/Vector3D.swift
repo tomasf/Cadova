@@ -54,12 +54,7 @@ public extension Vector3D {
         self.init(x, y, z)
     }
 
-    /// Make a new vector where some of the dimensions are set to a new value
-    /// - Parameters:
-    ///   - axes: The axes to set
-    ///   - value: The new value
-    /// - Returns: A modified vector
-    func with(_ axes: Axes3D, as value: Double) -> Vector3D {
+    internal func with(_ axes: Axes3D, as value: Double) -> Vector3D {
         Vector3D(
             x: axes.contains(.x) ? value : x,
             y: axes.contains(.y) ? value : y,
@@ -189,6 +184,7 @@ public extension Vector3D {
 
 extension Vector3D: Vector {
     public typealias Transform = AffineTransform3D
+    public typealias Axes = Axes3D
     public static let elementCount = 3
 
     public var elements: [Double] {
