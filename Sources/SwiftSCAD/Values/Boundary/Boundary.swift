@@ -22,6 +22,10 @@ internal extension Boundary {
         .init(points: boundaries.flatMap(\.points))
     }
 
+    static func union(_ boundaries: Boundary...) -> Boundary {
+        .init(points: boundaries.flatMap(\.points))
+    }
+
     init(boundingBox: BoundingBox<V>) {
         self = .box(boundingBox.size).translated(boundingBox.minimum)
     }

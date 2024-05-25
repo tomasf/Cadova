@@ -9,35 +9,26 @@ import Foundation
 /// ```
 
 public struct Cylinder: LeafGeometry3D {
-    let height: Double
-    let diameter: Double
-    let topDiameter: Double?
-    let centerZ: Bool
+    private let height: Double
+    private let diameter: Diameter
 
     /// Create a right circular cylinder
     /// - Parameters:
     ///   - diameter: The diameter of the cylinder
     ///   - height: The height of the cylinder
-    ///   - centerZ: If true, center the cylinder along the Z axis
 
-    public init(diameter: Double, height: Double, centerZ: Bool = false) {
-        self.diameter = diameter
-        self.topDiameter = nil
+    public init(diameter: Double, height: Double) {
+        self.diameter = .constant(diameter)
         self.height = height
-        self.centerZ = centerZ
     }
 
     /// Create a right circular cylinder
     /// - Parameters:
     ///   - radius: The radius (half diameter) of the cylinder
     ///   - height: The height of the cylinder
-    ///   - centerZ: If true, center the cylinder along the Z axis
 
-    public init(radius: Double, height: Double, centerZ: Bool = false) {
-        self.diameter = radius * 2
-        self.topDiameter = nil
-        self.height = height
-        self.centerZ = centerZ
+    public init(radius: Double, height: Double) {
+        self.init(diameter: radius * 2, height: height)
     }
 
     /// Create a truncated right circular cone (a cylinder with different top and bottom diameters)
@@ -45,13 +36,10 @@ public struct Cylinder: LeafGeometry3D {
     ///   - bottomDiameter: The diameter at the bottom
     ///   - topDiameter: The diameter at the top
     ///   - height: The height between the top and the bottom
-    ///   - centerZ: If true, center the cylinder along the Z axis
 
-    public init(bottomDiameter: Double, topDiameter: Double, height: Double, centerZ: Bool = false) {
-        self.diameter = bottomDiameter
-        self.topDiameter = topDiameter
+    public init(bottomDiameter: Double, topDiameter: Double, height: Double) {
+        self.diameter = .linear(bottom: bottomDiameter, top: topDiameter)
         self.height = height
-        self.centerZ = centerZ
     }
 
     /// Create a truncated right circular cone (a cylinder with different top and bottom radii)
@@ -59,41 +47,44 @@ public struct Cylinder: LeafGeometry3D {
     ///   - bottomRadius: The radius at the bottom
     ///   - topRadius: The radius at the top
     ///   - height: The height between the top and the bottom
-    ///   - centerZ: If true, center the cylinder along the Z axis
 
-    public init(bottomRadius: Double, topRadius: Double, height: Double, centerZ: Bool = false) {
-        self.diameter = bottomRadius * 2
-        self.topDiameter = topRadius * 2
-        self.height = height
-        self.centerZ = centerZ
+    public init(bottomRadius: Double, topRadius: Double, height: Double) {
+        self.init(bottomDiameter: bottomRadius * 2, topDiameter: topRadius * 2, height: height)
+    }
+}
+
+extension Cylinder {
+    private enum Diameter {
+        case constant (Double)
+        case linear (bottom: Double, top: Double)
     }
 
     public var invocation: Invocation {
         var params: [String: any SCADValue] = ["h": height]
 
-        if centerZ {
-            params["center"] = centerZ
-        }
-
-        if let topDiameter = topDiameter {
-            params["d1"] = diameter
-            params["d2"] = topDiameter
-        } else {
+        switch diameter {
+        case .constant(let diameter):
             params["d"] = diameter
+
+        case .linear (let bottom, let top):
+            params["d1"] = bottom
+            params["d2"] = top
         }
 
         return .init(name: "cylinder", parameters: params)
     }
 
     public func boundary(in environment: Environment) -> Bounds {
-        let bottomDiameter = diameter
-        let topDiameter = self.topDiameter ?? diameter
+        let (bottomDiameter, topDiameter) = switch diameter {
+        case .constant (let diameter): (diameter, diameter)
+        case .linear (let bottom, let top): (bottom, top)
+        }
 
         let bottom = Boundary2D.circle(radius: bottomDiameter / 2, facets: environment.facets)
         let top = Boundary2D.circle(radius: topDiameter / 2, facets: environment.facets)
-        return .union([
+        return .union(
             bottom.as3D(),
             top.as3D(z: height)
-        ])
+        )
     }
 }
