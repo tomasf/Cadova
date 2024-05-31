@@ -63,3 +63,7 @@ public struct RegularPolygon: Shape2D {
             .usingFacets(count: sideCount)
     }
 }
+
+extension RegularPolygon: Area2D {
+    public var area: Double { Double(sideCount) / 2.0 * pow(circumradius, 2) * sin(360° / Double(sideCount)) }
+}

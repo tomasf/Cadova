@@ -37,3 +37,7 @@ public struct Rectangle: Geometry2D {
         )
     }
 }
+
+extension Rectangle: Area2D {
+    public var area: Double { size.x * size.y }
+}

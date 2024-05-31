@@ -1,6 +1,6 @@
 import Foundation
 
-/// An `Arc` represents a segment of a circle in two-dimensional space.
+/// An `Arc` represents a circular sector in two-dimensional space.
 /// It can be defined by a range of angles and either a radius or a diameter.
 ///
 /// # Example
@@ -9,8 +9,8 @@ import Foundation
 /// let arcWithDiameter = Arc(range: 0°..<90°, diameter: 10)
 /// ```
 public struct Arc: Shape2D {
-    let range: Range<Angle>
-    let radius: Double
+    public let range: Range<Angle>
+    public let radius: Double
 
     /// Creates a new `Arc` instance with the specified range of angles and radius.
     ///
@@ -34,6 +34,10 @@ public struct Arc: Shape2D {
             Polygon([.zero]) + .circularArc(radius: radius, range: range, facets: e.facets)
         }
     }
+
+    public var angularDistance: Angle {
+        range.upperBound - range.lowerBound
+    }
 }
 
 internal extension Polygon {
@@ -47,4 +51,8 @@ internal extension Polygon {
             return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
         })
     }
+}
+
+extension Arc: Area2D {
+    public var area: Double { radius * radius * .pi * (angularDistance / 360°) }
 }

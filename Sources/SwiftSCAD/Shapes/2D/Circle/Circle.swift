@@ -46,3 +46,7 @@ public struct Circle: LeafGeometry2D {
         .circle(radius: diameter / 2, facets: environment.facets)
     }
 }
+
+extension Circle: Area2D {
+    public var area: Double { (diameter / 2) * (diameter / 2) * .pi }
+}
