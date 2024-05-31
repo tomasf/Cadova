@@ -22,7 +22,8 @@ extension Boundary3D {
 extension Boundary2D {
     func visualized(scale: Double) -> any Geometry2D {
         points.map {
-            Rectangle(visualizationStandardPointSize * scale, center: .all)
+            Rectangle(visualizationStandardPointSize * scale)
+                .aligned(at: .center)
                 .translated($0)
         }
         .colored(visualizationPointColor)

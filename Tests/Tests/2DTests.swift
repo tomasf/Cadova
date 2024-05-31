@@ -4,7 +4,8 @@ import XCTest
 final class Geometry2DTests: XCTestCase {
     func test2DBasics() {
         Union {
-            Rectangle(Vector2D(30, 10), center: .y)
+            Rectangle(Vector2D(30, 10))
+                .aligned(at: .centerY)
                 .subtracting {
                     Circle(diameter: 8)
                 }
@@ -19,7 +20,8 @@ final class Geometry2DTests: XCTestCase {
     }
 
     func test2DMisc() {
-        Rectangle(Vector2D(30, 10), center: .y)
+        Rectangle(Vector2D(30, 10))
+            .aligned(at: .centerY)
             .subtracting {
                 Circle(diameter: 8)
                     .scaled(x: 2)

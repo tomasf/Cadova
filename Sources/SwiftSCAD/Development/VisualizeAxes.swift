@@ -28,7 +28,8 @@ public extension Geometry3D {
 
 public extension Geometry2D {
     func visualizingAxes(scale: Double = 1, length: Double = 10) -> any Geometry2D {
-        let arrow = Rectangle([length - 0.1, 0.1], center: .y)
+        let arrow = Rectangle([length - 0.1, 0.1])
+            .aligned(at: .centerY)
             .translated(x: 0.1)
             .adding {
                 Polygon([[0, 0.1], [0.2, 0], [0, -0.1]])
@@ -36,7 +37,8 @@ public extension Geometry2D {
             }
 
         return self.adding {
-            Rectangle(0.2, center: .all)
+            Rectangle(0.2)
+                .aligned(at: .center)
                 .colored(.white)
                 .adding {
                     arrow

@@ -40,7 +40,8 @@ public struct CylinderBridge: Shape2D {
     public var body: any Geometry2D {
         Circle(diameter: bottomDiameter)
             .subtracting {
-                Rectangle([bottomDiameter, bottomDiameter], center: .y)
+                Rectangle([bottomDiameter, bottomDiameter])
+                    .aligned(at: .centerY)
                     .translated(x: topDiameter / 2)
                     .repeated(in: 0°..<360°, count: sideCount)
             }

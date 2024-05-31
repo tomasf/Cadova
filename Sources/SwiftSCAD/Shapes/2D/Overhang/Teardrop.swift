@@ -49,7 +49,8 @@ public struct Teardrop: Shape2D {
 
         if style == .bridged {
             return base.intersection {
-                Rectangle([diameter, diameter], center: .xy)
+                Rectangle([diameter, diameter])
+                    .aligned(at: .center)
             }
         } else {
             return base
