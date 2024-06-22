@@ -90,4 +90,8 @@ public extension Polygon {
     static func +(_ lhs: Polygon, _ rhs: Polygon) -> Polygon {
         lhs.appending(rhs)
     }
+
+    func length(in environment: Environment) -> Double {
+        points(in: environment).paired().map { $0.distance(to: $1) }.reduce(0, +)
+    }
 }
