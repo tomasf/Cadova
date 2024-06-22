@@ -39,6 +39,15 @@ public struct BezierPath <V: Vector> {
         }
     }
 
+    public init(paths: [BezierPath]) {
+        guard let first = paths.first else {
+            preconditionFailure("Paths must not be empty.")
+        }
+
+        self.startPoint = first.startPoint
+        self.curves = Array(paths.map(\.curves).joined())
+    }
+
     func adding(curve: BezierCurve<V>) -> BezierPath {
         let newCurves = curves + [curve]
         return BezierPath(startPoint: startPoint, curves: newCurves)
