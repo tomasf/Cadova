@@ -11,10 +11,13 @@ public struct Circle: LeafGeometry2D {
     /// The diameter of the circle.
     public let diameter: Double
 
+    public var radius: Double { diameter / 2 }
+
     /// Creates a new `Circle` instance with the specified diameter.
     ///
     /// - Parameter diameter: The diameter of the circle.
     public init(diameter: Double) {
+        precondition(diameter > 0, "Diameter must be greater than 0.")
         self.diameter = diameter
     }
 
@@ -22,6 +25,7 @@ public struct Circle: LeafGeometry2D {
     ///
     /// - Parameter radius: The radius of the circle.
     public init(radius: Double) {
+        precondition(radius > 0, "Radius must be greater than 0.")
         self.diameter = radius * 2
     }
 
@@ -35,6 +39,10 @@ public struct Circle: LeafGeometry2D {
     ///   - chordLength: The length of the chord of the circle.
     ///   - sagitta: The height from the midpoint of the chord to the highest point of the arc.
     public init(chordLength: Double, sagitta: Double) {
+        precondition(chordLength > 0, "Chord length must be greater than 0.")
+        precondition(sagitta > 0, "Sagitta must be greater than 0.")
+        precondition(sagitta <= chordLength / 2, "Sagitta must be less than or equal to half of the chord length.")
+        
         diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
     }
 
@@ -44,6 +52,15 @@ public struct Circle: LeafGeometry2D {
 
     public func boundary(in environment: Environment) -> Bounds {
         .circle(radius: diameter / 2, facets: environment.facets)
+    }
+}
+
+public extension Circle {
+    func chordLength(atSagitta sagitta: Double) -> Double {
+        precondition(sagitta >= 0, "Sagitta must be greater than or equal to 0.")
+        precondition(sagitta <= radius, "Sagitta must be less than or equal to the radius.")
+        
+        return 2.0 * sqrt((radius * radius) - ((radius - sagitta) * (radius - sagitta)))
     }
 }
 
