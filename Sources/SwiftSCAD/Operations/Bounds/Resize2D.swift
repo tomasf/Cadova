@@ -61,4 +61,14 @@ public extension Geometry2D {
             Vector2D(x.value(current: currentSize.x, from: currentSize.y, to: y), y)
         }
     }
+
+    /// Resizes the geometry based on its current bounding box
+    /// - Parameters:
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
+    ///   - calculator: A closure that accepts the current bounding box and returns the new size
+    /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
+
+    func resized(alignment: GeometryAlignment2D..., calculator: @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
+        resized(alignment.merged, calculator)
+    }
 }
