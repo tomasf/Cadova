@@ -18,25 +18,12 @@ extension Fillet: EdgeProfileShape {
         }
     }
 
-    func mask(shape: any Geometry2D, extrusionHeight: Double, method: EdgeProfile.Method) -> any Geometry3D {
-        switch method {
-        case .layered (let layerHeight):
-            layeredMask(shape: shape, extrusionHeight: extrusionHeight, layerHeight: layerHeight)
-        case .convexHull:
-            convexMask(shape: shape, extrusionHeight: extrusionHeight)
-        }
+    var height: Double {
+        radius
     }
-    
-    @UnionBuilder3D
-    func layeredMask(shape: any Geometry2D, extrusionHeight: Double, layerHeight: Double) -> any Geometry3D {
-        let layerCount = Int(ceil(radius / layerHeight))
-        let effectiveRadius = Double(layerCount) * layerHeight
 
-        for l in 0...layerCount {
-            let z = Double(l) * layerHeight
-            shape.offset(amount: (cos(asin(z / radius) as Angle) - 1) * radius, style: .round)
-                .extruded(height: extrusionHeight - effectiveRadius + z)
-        }
+    func inset(at z: Double) -> Double {
+        (cos(asin(z / radius) as Angle) - 1) * -radius
     }
 
     func convexMask(shape: any Geometry2D, extrusionHeight: Double) -> any Geometry3D {
@@ -46,7 +33,7 @@ extension Fillet: EdgeProfileShape {
 
             return (0...facetCount).map { f in
                 let angle = (Double(f) / Double(facetCount)) * 90°
-                let inset = cos(angle) * radius - radius
+                let inset = (cos(angle) - 1) * radius
                 let zOffset = sin(angle) * radius
                 return shape.offset(amount: inset, style: .round)
                     .extruded(height: extrusionHeight - radius + zOffset)
