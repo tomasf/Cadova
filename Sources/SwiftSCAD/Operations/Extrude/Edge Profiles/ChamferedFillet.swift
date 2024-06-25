@@ -14,8 +14,18 @@ internal struct ChamferedFillet {
 
 extension ChamferedFillet: EdgeProfileShape {
     func shape(angle: Angle) -> any Geometry2D {
-        assertionFailure("shape(angle:) is not implemented for OverhangFillet")
-        return Rectangle(0)
+        precondition(abs(angle - 90°) < 0.001°, "shape(angle:) is only supported for 90° for ChamferedFillet")
+
+        return Polygon([ [0,0], [radius, 0], [0, radius] ])
+            .subtracting {
+                Arc(range: 180°..<(180° + overhang), radius: radius)
+                    .translated(x: radius, y: radius)
+                    .adding {
+                        Rectangle([topInset, 0.001])
+                            .translated(x: radius - topInset)
+                    }
+                    .convexHull()
+            }
     }
 
     var height: Double {
