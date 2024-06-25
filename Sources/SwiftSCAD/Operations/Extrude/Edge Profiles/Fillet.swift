@@ -23,7 +23,7 @@ extension Fillet: EdgeProfileShape {
     }
 
     func inset(at z: Double) -> Double {
-        (cos(asin(z / radius) as Angle) - 1) * -radius
+        (sqrt(1 - pow(z / radius, 2)) - 1) * -radius
     }
 
     func convexMask(shape: any Geometry2D, extrusionHeight: Double) -> any Geometry3D {
