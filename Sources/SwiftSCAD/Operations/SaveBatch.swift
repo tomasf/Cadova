@@ -28,7 +28,7 @@ public func save(to directory: URL? = nil, environment: Environment? = nil, @Sav
     }
 }
 
-public func save(to directory: String? = nil, environment: Environment? = nil, @SaveMemberBuilder geometries: () -> [SaveMember]) {
+public func save(to directory: String?, environment: Environment? = nil, @SaveMemberBuilder geometries: () -> [SaveMember]) {
     let url = directory.map { URL(expandingFilePath: $0) }
     save(to: url, environment: environment, geometries: geometries)
 }
