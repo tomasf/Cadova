@@ -16,6 +16,8 @@ internal extension EdgeProfile {
             Fillet(radius: radius)
         case .chamfer(let width, let height):
             Chamfer(width: width, height: height)
+        case .chamferedFillet(let radius, let overhang):
+            ChamferedFillet(radius: radius, overhang: overhang)
         }
     }
 }
