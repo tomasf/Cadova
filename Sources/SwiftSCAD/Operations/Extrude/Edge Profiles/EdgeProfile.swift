@@ -2,16 +2,22 @@ import Foundation
 
 /// The profile of an edge
 public enum EdgeProfile: Equatable {
-    /// Represents an edge that remains unmodified, maintaining its original sharpness.
-    case sharp
     /// Represents an edge modified to be rounded.
     /// - Parameter radius: The radius of the curvature applied to the edge, determining the degree of roundness.
     case fillet (radius: Double)
+
     /// Represents an edge that is chamfered, creating a beveled effect by cutting off the edge at a flat angle.
     /// - Parameters:
     ///   - width: The horizontal distance from the original edge to the chamfer's farthest point, determining the chamfer's depth.
     ///   - height: The vertical height from the base of the edge to the top of the chamfer.
     case chamfer (width: Double, height: Double)
+
+    /// Represents an edge that combines a rounded fillet with a straight chamfer near the top or bottom.
+    /// Useful for 3D printing where bottom edges can't have too much overhang.
+    /// - Parameters:
+    ///   - radius: The radius of the curvature applied to the edge.
+    ///   - overhang: The angle of the straight chamfer near the top or bottom.
+    case chamferedFillet (radius: Double, overhang: Angle = 45°)
 
     /// Methods for building an extruded shape with modified edges
     public enum Method {

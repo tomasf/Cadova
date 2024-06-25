@@ -37,11 +37,11 @@ public struct Teardrop: Shape2D {
         let base = Union {
             Circle(diameter: diameter)
 
-            Rectangle([diagonal, diagonal])
+            Rectangle(diagonal)
                 .rotated(-angle)
                 .translated(x: -x, y: y)
                 .intersection {
-                    Rectangle([diagonal, diagonal])
+                    Rectangle(diagonal)
                         .rotated(angle + 90°)
                         .translated(x: x, y: y)
                 }
@@ -49,7 +49,7 @@ public struct Teardrop: Shape2D {
 
         if style == .bridged {
             return base.intersection {
-                Rectangle([diameter, diameter])
+                Rectangle(diameter)
                     .aligned(at: .center)
             }
         } else {
