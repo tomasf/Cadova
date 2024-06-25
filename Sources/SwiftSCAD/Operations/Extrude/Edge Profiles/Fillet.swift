@@ -32,10 +32,10 @@ extension Fillet: EdgeProfileShape {
         let layerCount = Int(ceil(radius / layerHeight))
         let effectiveRadius = Double(layerCount) * layerHeight
 
-        for l in 0..<layerCount {
+        for l in 0...layerCount {
             let z = Double(l) * layerHeight
             shape.offset(amount: (cos(asin(z / radius) as Angle) - 1) * radius, style: .round)
-                .extruded(height: extrusionHeight - effectiveRadius + z + layerHeight)
+                .extruded(height: extrusionHeight - effectiveRadius + z)
         }
     }
 
