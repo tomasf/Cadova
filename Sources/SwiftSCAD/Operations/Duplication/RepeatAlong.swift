@@ -60,6 +60,23 @@ extension Geometry2D {
     }
 }
 
+extension Geometry2D {
+    /// Repeat the geometry along an axis
+    /// - Parameters:
+    ///   - axis: The axis to repeat along
+    ///   - spacing: The spacing between the measured bounding box of each instance
+    ///   - count: The number of geometries to generate
+    /// - Returns: A new geometry with this geometry repeated
+
+    @UnionBuilder2D
+    public func repeated(along axis: Axis2D, spacing: Double, count: Int) -> any Geometry2D {
+        measuringBounds { geometry, bounds in
+            let step = bounds.size[axis] + spacing
+            geometry.repeated(along: axis, step: step, count: count)
+        }
+    }
+}
+
 extension Geometry3D {
     /// Repeat the geometry along an axis
     /// - Parameters:
@@ -116,6 +133,23 @@ extension Geometry3D {
     public func repeated(along axis: Axis3D, step: Double, count: Int) -> any Geometry3D {
         for i in 0..<count {
             self.translated(.init(axis: axis, value: Double(i) * step))
+        }
+    }
+}
+
+extension Geometry3D {
+    /// Repeat the geometry along an axis
+    /// - Parameters:
+    ///   - axis: The axis to repeat along
+    ///   - spacing: The spacing between the measured bounding box of each instance
+    ///   - count: The number of geometries to generate
+    /// - Returns: A new geometry with this geometry repeated
+
+    @UnionBuilder3D
+    public func repeated(along axis: Axis3D, spacing: Double, count: Int) -> any Geometry3D {
+        measuringBounds { geometry, bounds in
+            let step = bounds.size[axis] + spacing
+            geometry.repeated(along: axis, step: step, count: count)
         }
     }
 }
