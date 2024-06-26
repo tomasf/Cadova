@@ -95,4 +95,15 @@ public extension Geometry3D {
     func rotated(_ rotation: Rotation3D) -> any Geometry3D {
         Rotate3D(body: self, rotation: rotation)
     }
+
+    /// Rotate geometry from one direction vector to another.
+    ///
+    /// - Parameters:
+    ///   - from: A `Vector3D` representing the starting orientation of the vector.
+    ///   - to: A `Vector3D` representing the desired orientation of the vector.
+    /// - Returns: An `AffineTransform3D` representing the rotation from the `from` vector to the `to` vector.
+
+    func rotated(from: Vector3D = .up, to: Vector3D) -> any Geometry3D {
+        transformed(.rotation(from: from, to: to))
+    }
 }
