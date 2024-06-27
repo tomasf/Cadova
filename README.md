@@ -5,16 +5,25 @@ SwiftSCAD runs on macOS, Windows and Linux.
 
 [![Swift](https://github.com/tomasf/SwiftSCAD/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/SwiftSCAD/actions/workflows/swift.yml)
 
-# Usage
-Create a new Swift executable package:
+# Getting Started
+> tl;dr: Create a new executable Swift package, add SwiftSCAD as a dependency, import it in your code, create geometry and use the `save(to:)` method to save it to disk as an OpenSCAD file.
 
+## 1. Install OpenSCAD
+[Install OpenSCAD][openscad-download] in order to preview and render your models. Use a development snapshot version because the stable releases are usually very old.
+
+## 2. Install Swift
+If you're using macOS, it's easiest to [install the latest version of Xcode][xcode].
+
+For Windows and Linux, [install Swift directly][swift]. I also recommend [installing VS Code][vscode] with the [Swift extension][swift-extension] to make development easier.
+
+## 3. Create a new Swift executable package:
 ```
 $ mkdir My3DGadget
 $ cd My3DGadget
 $ swift package init --type executable
 ```
 
-Add SwiftSCAD as a dependency for your package in Package.swift:
+## 4. Add SwiftSCAD as a dependency for your package in Package.swift:
 
 <pre>
 let package = Package(
@@ -29,7 +38,8 @@ let package = Package(
 )
 </pre>
 
-In your code, import SwiftSCAD, create geometry and save it:
+## 5. Use SwiftSCAD
+In `main.swift`, import SwiftSCAD, create geometry and save it:
 
 ```swift
 import SwiftSCAD
@@ -42,7 +52,17 @@ Box([10, 10, 5])
     .save(to: "gadget.scad")
 ```
 
-Run your code using `swift run` to generate the .scad file. Open it in OpenSCAD to preview your model. For the best experience, hide the editor view using *View > Hide Editor* and enable *Design > Automatic Reload and Preview*. With this in place, OpenSCAD will reload automatically every time you run your code after making changes to the model.
+Run your code using `swift run` (or using Xcode/VS Code) to generate the `.scad` file. By default, the files are saved to the current working directory. The full path will be printed in the console.
+
+Open it in OpenSCAD to preview your model. For the best experience, hide the editor view using *View > Hide Editor* and enable *Design > Automatic Reload and Preview*. With this in place, OpenSCAD will reload automatically every time you run your code after making changes to the model.
+
+# Libraries
+* [Helical][helical] - A SwiftSCAD library providing customizable threads, screws, bolts, nuts and related parts.
+* [RichText][richtext] - TextKit-based companion library for SwiftSCAD (macOS only)
+
+# Projects using SwiftSCAD
+* [Coffee scoop](https://github.com/tomasf/coffee-scoop)
+* [Trash Can Dice Game](https://github.com/tomasf/dice-game)
 
 # Examples
 
@@ -119,3 +139,10 @@ Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
 ```
 
 [openscad]: https://openscad.org
+[openscad-download]: https://openscad.org/downloads.html#snapshots
+[xcode]: https://developer.apple.com/download/all/?q=xcode
+[swift]: https://www.swift.org/install
+[vscode]: https://code.visualstudio.com/Download
+[swift-extension]: https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang
+[helical]: https://github.com/tomasf/Helical
+[richtext]: https://github.com/tomasf/RichText
