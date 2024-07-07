@@ -35,7 +35,7 @@ public extension Environment {
             }
         }
 
-        static internal var environmentKey: Environment.ValueKey = .init(rawValue: "SwiftSCAD.Facets")
+        static internal let environmentKey: Environment.ValueKey = .init(rawValue: "SwiftSCAD.Facets")
     }
 
     /// Accesses the current facets setting from the environment.

@@ -27,13 +27,19 @@ let package = Package(
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Logging", package: "swift-log"),
             ],
-            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableExperimentalFeature("StrictConcurrency")
+            ]
         ),
         .testTarget(
             name: "Tests",
             dependencies: ["SwiftSCAD"],
             resources: [.copy("SCAD")],
-            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
+            swiftSettings: [
+                .enableUpcomingFeature("ExistentialAny"),
+                .enableExperimentalFeature("StrictConcurrency")
+            ]
         )
     ]
 )

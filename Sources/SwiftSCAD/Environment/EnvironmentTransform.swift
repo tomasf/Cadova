@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Environment {
-    static fileprivate var environmentKey: Environment.ValueKey = .init(rawValue: "SwiftSCAD.Transform")
+    static fileprivate let environmentKey: Environment.ValueKey = .init(rawValue: "SwiftSCAD.Transform")
 
     /// Accesses the current affine transformation applied to this environment.
     ///
