@@ -47,3 +47,7 @@ public func acos(_ value: Double) -> Angle {
 public func atan(_ value: Double) -> Angle {
     Angle(radians: atan(value))
 }
+
+public func atan2(_ y: Double, _ x: Double) -> Angle {
+    Angle(radians: atan2(y, x))
+}
