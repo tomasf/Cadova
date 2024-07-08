@@ -1,10 +1,10 @@
 import Foundation
 
-public enum Color {
+public enum Color: Sendable {
     case components (red: Double, green: Double, blue: Double, alpha: Double)
     case named (Name, alpha: Double)
 
-    public enum Name: String {
+    public enum Name: String, Sendable {
         case lavender
         case thistle
         case plum

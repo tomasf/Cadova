@@ -1,10 +1,10 @@
 import Foundation
 
 /// A structure representing a rotation in 3D space.
-public struct Rotation3D {
+public struct Rotation3D: Sendable {
     internal var rotation: Rotation
 
-    internal enum Rotation {
+    internal enum Rotation: Sendable {
         case eulerAngles (x: Angle, y: Angle, z: Angle)
         case axis (Vector3D, angle: Angle)
     }

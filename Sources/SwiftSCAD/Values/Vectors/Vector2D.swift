@@ -8,7 +8,7 @@ import Foundation
 /// let v2: Vector2D = [10, 15]
 /// ```
 ///
-public struct Vector2D: ExpressibleByArrayLiteral, SCADValue, Hashable {
+public struct Vector2D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable {
     public var x: Double
     public var y: Double
 

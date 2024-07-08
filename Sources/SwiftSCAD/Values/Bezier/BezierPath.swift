@@ -8,7 +8,7 @@ public typealias BezierPath3D = BezierPath<Vector3D>
 /// You can create a `BezierPath` by providing a starting point and adding curves and line segments to the path. 2D paths can be used to create `Polygon` shapes.
 ///
 /// To create a `BezierPath`, start with the `init(startPoint:)` initializer, specifying the starting point of the path. Then, you can chain calls to `addingLine(to:)`, `addingQuadraticCurve(controlPoint:end:)`, and `addingCubicCurve(controlPoint1:controlPoint2:end:)` to build a complete path.
-public struct BezierPath <V: Vector> {
+public struct BezierPath <V: Vector>: Sendable {
     let startPoint: V
     let curves: [BezierCurve<V>]
 

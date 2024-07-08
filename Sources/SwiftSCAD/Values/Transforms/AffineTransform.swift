@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AffineTransform {
+public protocol AffineTransform: Sendable {
     associatedtype Vector: SwiftSCAD.Vector
     associatedtype Rotation
 

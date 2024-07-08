@@ -5,7 +5,7 @@ import Foundation
 /// `RectangleCorners` allows for specifying and manipulating individual corners or groups of corners of a rectangle.
 /// It is used for operations that involve corner-specific modifications, such as rounding corners.
 
-public struct RectangleCorners: OptionSet, Hashable {
+public struct RectangleCorners: OptionSet, Hashable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

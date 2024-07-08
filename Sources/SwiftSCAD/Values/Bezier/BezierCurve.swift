@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct BezierCurve <V: Vector> {
+internal struct BezierCurve <V: Vector>: Sendable {
     let controlPoints: [V]
 
     init(controlPoints: [V]) {

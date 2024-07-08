@@ -3,7 +3,7 @@ import Foundation
 public typealias Boundary2D = Boundary<Vector2D>
 public typealias Boundary3D = Boundary<Vector3D>
 
-public struct Boundary<V: Vector> {
+public struct Boundary<V: Vector>: Sendable {
     internal let points: [V]
 
     internal init(points: [V]) {

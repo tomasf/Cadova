@@ -1,13 +1,13 @@
 import Foundation
 
 /// One of the cartesian axes in two dimensions (X or Y)
-public enum Axis2D: Int, CaseIterable {
+public enum Axis2D: Int, CaseIterable, Sendable {
     case x
     case y
 }
 
 /// An enumeration representing the three Cartesian axes in a three-dimensional space: X, Y, and Z.
-public enum Axis3D: Int, CaseIterable {
+public enum Axis3D: Int, CaseIterable, Sendable {
     case x
     case y
     case z
@@ -28,7 +28,7 @@ public enum Axis3D: Int, CaseIterable {
 }
 
 /// A direction along an axis
-public enum AxisDirection {
+public enum AxisDirection: Sendable {
     /// The positive direction along an axis
     case positive
     /// The negative direction along an axis

@@ -1,7 +1,7 @@
 import Foundation
 
 /// The profile of an edge
-public enum EdgeProfile: Equatable {
+public enum EdgeProfile: Equatable, Sendable {
     /// Represents an edge modified to be rounded.
     /// - Parameter radius: The radius of the curvature applied to the edge, determining the degree of roundness.
     case fillet (radius: Double)

@@ -4,7 +4,7 @@ public extension Environment {
     private static let key = Environment.ValueKey(rawValue: "SwiftSCAD.Operation")
 
     /// Represents a geometric operation, specifically for determining if geometries are being added or subtracted.
-    enum Operation {
+    enum Operation: Sendable {
         /// Represents the addition of geometries.
         case addition
         /// Represents the subtraction of geometries, typically used for creating holes or negative spaces within another geometry.

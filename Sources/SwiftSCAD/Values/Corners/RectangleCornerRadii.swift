@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct RectangleCornerRadii {
+internal struct RectangleCornerRadii: Sendable {
     let minXminY: Double
     let maxXminY: Double
     let maxXmaxY: Double

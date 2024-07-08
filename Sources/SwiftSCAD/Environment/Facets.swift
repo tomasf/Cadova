@@ -2,7 +2,7 @@ import Foundation
 
 public extension Environment {
     /// An enumeration representing the method for calculating the number of facets (or segments) used in rendering circular geometries.
-    enum Facets {
+    enum Facets: Sendable {
         /// Specifies a fixed number of facets for all circles, regardless of size.
         case fixed (Int)
 

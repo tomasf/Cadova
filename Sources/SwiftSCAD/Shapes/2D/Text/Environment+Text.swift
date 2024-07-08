@@ -1,7 +1,7 @@
 import Foundation
 
 internal extension Environment {
-    struct TextAttributes {
+    struct TextAttributes: Sendable {
         var font: String?
         var fontStyle: String?
         var fontSize: Double?
@@ -35,7 +35,6 @@ internal extension Environment {
             e = e.settingTextAttribute(\.fontSize, value: size)
         }
         return e
-
     }
 
     func withTextAlignment(horizontal: Text.HorizontalAlignment? = nil, vertical: Text.VerticalAlignment? = nil) -> Environment {

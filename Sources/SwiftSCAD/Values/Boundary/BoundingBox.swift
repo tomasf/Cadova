@@ -4,7 +4,7 @@ public typealias BoundingBox2D = BoundingBox<Vector2D>
 public typealias BoundingBox3D = BoundingBox<Vector3D>
 
 /// An axis-aligned bounding volume defined by its minimum and maximum corners, used to calculate and represent the bounding area or volume of shapes or points in a generic vector space.
-public struct BoundingBox<V: Vector> {
+public struct BoundingBox<V: Vector>: Sendable {
     /// The minimum corner point of the bounding volume, typically representing the "lower" corner in geometric space.
     public let minimum: V
     /// The maximum corner point of the bounding volume, typically representing the "upper" corner in geometric space.

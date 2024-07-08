@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Vector {
+public protocol Vector: Sendable {
     associatedtype Axes: SwiftSCAD.Axes
     associatedtype Transform: AffineTransform where Transform.Vector == Self
 

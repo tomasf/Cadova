@@ -4,7 +4,7 @@ import simd
 #endif
 
 /// An `AffineTransform2D` represents a 2D affine transformation using a 3x3 matrix.
-public struct AffineTransform2D: AffineTransform, Equatable {
+public struct AffineTransform2D: AffineTransform, Equatable, Sendable {
     private var matrix: Matrix3x3
 
     internal init(_ matrix: Matrix3x3) {

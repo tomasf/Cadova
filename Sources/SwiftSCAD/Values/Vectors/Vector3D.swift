@@ -7,7 +7,7 @@ import Foundation
 /// let v1 = Vector3D(x: 10, y: 15, z: 5)
 /// let v2: Vector3D = [10, 15, 5]
 /// ```
-public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable {
+public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable {
     public var x: Double
     public var y: Double
     public var z: Double

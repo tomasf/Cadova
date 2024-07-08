@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct BasicMatrix4x4: Equatable {
+internal struct BasicMatrix4x4: Equatable, Sendable {
     typealias Row = [Double]
     typealias Column = [Double]
 

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents the style of rounded corners.
-public enum RoundedCornerStyle {
+public enum RoundedCornerStyle: Sendable {
     /// A regular circular corner.
     case circular
     /// A squircular corner, forming a more natural and continuous curve.

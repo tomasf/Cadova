@@ -23,7 +23,7 @@ public struct Text: Geometry2D {
     /// An enumeration representing the horizontal alignment options for text geometry.
     ///
     /// Use these options with ``Geometry2D/usingTextAlignment(horizontal:vertical:)`` to set the horizontal alignment of your text geometry.
-    public enum HorizontalAlignment: String {
+    public enum HorizontalAlignment: String, Sendable {
         /// Aligns the text to the left.
         case left
         /// Centers the text horizontally.
@@ -40,7 +40,7 @@ public struct Text: Geometry2D {
     /// - `bottom`: Aligns the text to the bottom.
     ///
     /// Use these options with ``Geometry2D/usingTextAlignment(horizontal:vertical:)`` to set the vertical alignment of your text geometry.
-    public enum VerticalAlignment: String {
+    public enum VerticalAlignment: String, Sendable {
         /// Aligns the text to the top.
         case top
         /// Centers the text vertically.

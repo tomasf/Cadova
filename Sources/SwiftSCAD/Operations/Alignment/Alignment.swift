@@ -1,6 +1,6 @@
 import Foundation
 
-public enum AxisAlignment: Equatable {
+public enum AxisAlignment: Equatable, Sendable {
     case min
     case mid
     case max
@@ -14,7 +14,7 @@ public enum AxisAlignment: Equatable {
     }
 }
 
-public struct GeometryAlignment2D: Equatable {
+public struct GeometryAlignment2D: Equatable, Sendable {
     internal let x: AxisAlignment?
     internal let y: AxisAlignment?
 
@@ -33,7 +33,7 @@ public struct GeometryAlignment2D: Equatable {
     }
 }
 
-public struct GeometryAlignment3D: Equatable {
+public struct GeometryAlignment3D: Equatable, Sendable {
     internal let x: AxisAlignment?
     internal let y: AxisAlignment?
     internal let z: AxisAlignment?
