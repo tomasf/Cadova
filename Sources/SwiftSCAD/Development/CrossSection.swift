@@ -10,8 +10,8 @@ struct CrossSection: Shape3D {
 
         return content.intersection {
             Box([universeLength, universeLength, universeLength], center: .xy)
-                .translated(z: offset)
                 .transformed(.rotation(from: .up, to: axis))
+                .translated(z: offset)
                 .colored(.blue)
         }
     }
