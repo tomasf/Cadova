@@ -69,8 +69,9 @@ extension Boundary2D {
     }
 
     func extruded(angle fullAngle: Angle, facets: Environment.Facets) -> Boundary3D {
-        guard let maxX = max(.x) else { return .empty }
-        let facetCount = facets.facetCount(circleRadius: maxX)
+        guard let minX = min(.x), let maxX = max(.x) else { return .empty }
+        let radius = Swift.max(maxX, -minX)
+        let facetCount = facets.facetCount(circleRadius: radius)
         let standing = as3D().transformed(.rotation(x: 90°))
 
         return .union((0...facetCount).map {
