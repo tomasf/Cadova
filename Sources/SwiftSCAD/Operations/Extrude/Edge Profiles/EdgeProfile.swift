@@ -70,4 +70,15 @@ internal extension EdgeProfile {
     func mask(shape: any Geometry2D, extrusionHeight: Double, method: EdgeProfile.Method) -> any Geometry3D {
         profileShape.mask(shape: shape, extrusionHeight: extrusionHeight, method: method)
     }
+
+    func negativeMask(shape: any Geometry2D, method: EdgeProfile.Method) -> any Geometry3D {
+        let height = profileShape.height
+        return shape
+            .offset(amount: 0.01, style: .round)
+            .extruded(height: height + 0.01)
+            .subtracting {
+                profileShape.mask(shape: shape, extrusionHeight: height, method: method)
+            }
+            .translated(z: -height)
+    }
 }
