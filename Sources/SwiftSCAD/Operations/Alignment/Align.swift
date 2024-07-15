@@ -8,7 +8,7 @@ public struct Align2D: Shape2D {
         EnvironmentReader { environment in
             let output = content.output(in: environment)
             let translation = output.boundary.boundingBox?.translation(for: alignment) ?? .zero
-            output
+            GeometrySnapshot2D(source: content, output: output)
                 .translated(translation)
         }
     }
@@ -22,7 +22,7 @@ public struct Align3D: Shape3D {
         EnvironmentReader { environment in
             let output = content.output(in: environment)
             let translation = output.boundary.boundingBox?.translation(for: alignment) ?? .zero
-            output
+            GeometrySnapshot3D(source: content, output: output)
                 .translated(translation)
         }
     }
