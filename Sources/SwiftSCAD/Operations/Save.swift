@@ -11,7 +11,7 @@ extension GeometryOutput {
     }
 
     func export(to path: String) {
-        export(to: URL(expandingFilePath: path))
+        export(to: URL(expandingFilePath: path, extension: "scad"))
     }
 
     var scadData: Data { Data(scadCode.utf8) }
