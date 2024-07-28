@@ -1,14 +1,14 @@
 import Foundation
 
 public struct Color: Sendable {
-    private let source: Source
+    private let value: Value
 
     init(red: Double, green: Double, blue: Double, alpha: Double = 1.0) {
-        source = .components(red: red, green: green, blue: blue, alpha: alpha)
+        value = .components(red: red, green: green, blue: blue, alpha: alpha)
     }
 
     func withAlphaComponent(_ alpha: Double) -> Color {
-        switch source {
+        switch value {
         case .components (let red, let green, let blue, _):
             Color(red: red, green: green, blue: blue, alpha: alpha)
         case .named (let name, _):
@@ -18,7 +18,7 @@ public struct Color: Sendable {
 }
 
 internal extension Color {
-    enum Source {
+    enum Value {
         case components (red: Double, green: Double, blue: Double, alpha: Double)
         case named (String, alpha: Double)
 
@@ -33,11 +33,11 @@ internal extension Color {
     }
 
     init(name: String, alpha: Double = 1.0) {
-        source = .named(name, alpha: alpha)
+        value = .named(name, alpha: alpha)
     }
 
     var invocation: Invocation {
-        Invocation(name: "color", parameters: source.parameters)
+        Invocation(name: "color", parameters: value.parameters)
     }
 }
 
