@@ -9,7 +9,7 @@ public struct GeometryOutput<V: Vector> {
     internal let anchors: [Anchor: AffineTransform3D]
     internal let namedGeometry: NamedGeometry
 
-    private init(scadCode: String, boundary: Boundary<V>, anchors: [Anchor: AffineTransform3D], namedGeometry: NamedGeometry) {
+    internal init(scadCode: String, boundary: Boundary<V>, anchors: [Anchor: AffineTransform3D], namedGeometry: NamedGeometry) {
         self.scadCode = scadCode
         self.boundary = boundary
         self.anchors = anchors
@@ -28,6 +28,14 @@ extension GeometryOutput {
 
     func modifyingBoundary(_ function: (Boundary<V>) -> Boundary<V>) -> GeometryOutput<V> {
         .init(scadCode: scadCode, boundary: function(boundary), anchors: anchors, namedGeometry: namedGeometry)
+    }
+
+    func naming(_ body: any Geometry2D, _ name: String) -> GeometryOutput<V> {
+        .init(scadCode: scadCode, boundary: boundary, anchors: anchors, namedGeometry: namedGeometry.adding(body, named: name))
+    }
+
+    func naming(_ body: any Geometry3D, _ name: String) -> GeometryOutput<V> {
+        .init(scadCode: scadCode, boundary: boundary, anchors: anchors, namedGeometry: namedGeometry.adding(body, named: name))
     }
 }
 
@@ -126,3 +134,10 @@ extension GeometryOutput {
 extension GeometryOutput {
     static var emptyLeaf: Self { .init(scadCode: ";", boundary: .empty, anchors: [:], namedGeometry: [:]) }
 }
+
+protocol UniversalGeometryOutput {
+    var scadCode: String { get }
+    var namedGeometry: NamedGeometry { get }
+}
+
+extension GeometryOutput: UniversalGeometryOutput {}

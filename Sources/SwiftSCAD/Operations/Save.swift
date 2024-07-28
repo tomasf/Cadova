@@ -1,6 +1,6 @@
 import Foundation
 
-extension GeometryOutput {
+extension UniversalGeometryOutput {
     func export(to fileURL: URL) {
         do {
             try scadCode.write(to: fileURL, atomically: true, encoding: .utf8)
@@ -15,6 +15,13 @@ extension GeometryOutput {
     }
 
     var scadData: Data { Data(scadCode.utf8) }
+
+    func exportNamedMembers(to root: URL, using environment: Environment) {
+        for (name, geometryList) in namedGeometry {
+            geometryList.output(in: environment)
+                .export(to: URL(expandingFilePath: name, extension: "scad", relativeTo: root))
+        }
+    }
 }
 
 

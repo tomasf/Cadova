@@ -1,34 +1,29 @@
 import Foundation
 
-public typealias SaveMemberBuilder = ArrayBuilder<SaveMember>
+public func save(to directory: URL? = nil, environment: Environment? = nil, @AnyGeometryBuilder geometries: () -> [AnyGeometry]) {
+    let effectiveEnvironment = environment ?? .defaultEnvironment
+    let namedGeometry = NamedGeometry.merging(geometries().map {
+        $0.output(in: effectiveEnvironment).namedGeometry
+    })
+    for (name, geometry) in namedGeometry {
+        let fileURL = URL(expandingFilePath: name, extension: "scad", relativeTo: directory)
 
-public struct SaveMember {
-    fileprivate let name: String
-    fileprivate let evaluation: (Environment) -> Data
-}
-
-public extension Geometry2D {
-    func named(_ name: String) -> SaveMember {
-        SaveMember(name: name) { self.usingDefaultFacets().output(in: $0).scadData }
+        switch geometry {
+        case .twoD (let geometry):
+            geometry
+                .usingDefaultFacets()
+                .output(in: effectiveEnvironment)
+                .export(to: fileURL)
+        case .threeD (let geometry):
+            geometry
+                .usingDefaultFacets()
+                .output(in: effectiveEnvironment)
+                .export(to: fileURL)
+        }
     }
 }
 
-public extension Geometry3D {
-    func named(_ name: String) -> SaveMember {
-        SaveMember(name: name) { self.usingDefaultFacets().output(in: $0).scadData }
-    }
-}
-
-public func save(to directory: URL? = nil, environment: Environment? = nil, @SaveMemberBuilder geometries: () -> [SaveMember]) {
-    for geometry in geometries() {
-        let data = geometry.evaluation(environment ?? .defaultEnvironment)
-        let fileURL = URL(expandingFilePath: geometry.name, extension: "scad", relativeTo: directory)
-        try! data.write(to: fileURL)
-        logger.info("Wrote output to \(fileURL.path)")
-    }
-}
-
-public func save(to directory: String?, environment: Environment? = nil, @SaveMemberBuilder geometries: () -> [SaveMember]) {
+public func save(to directory: String?, environment: Environment? = nil, @AnyGeometryBuilder geometries: () -> [AnyGeometry]) {
     let url = directory.map { URL(expandingFilePath: $0) }
     save(to: url, environment: environment, geometries: geometries)
 }
