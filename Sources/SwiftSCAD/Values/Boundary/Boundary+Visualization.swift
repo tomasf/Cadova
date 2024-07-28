@@ -2,7 +2,7 @@ import Foundation
 
 extension Boundary {
     fileprivate var visualizationPointColor: Color {
-        Color.named(.red, alpha: 1)
+        .red
     }
 
     fileprivate var visualizationStandardPointSize: Double { 0.1 }
