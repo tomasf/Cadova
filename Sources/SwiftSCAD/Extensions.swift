@@ -30,7 +30,7 @@ extension Range {
 extension URL {
     init(expandingFilePath path: String, extension requiredExtension: String? = nil, relativeTo: URL? = nil) {
         var url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath, relativeTo: relativeTo)
-        if let requiredExtension, url.pathExtension != path {
+        if let requiredExtension, url.pathExtension != requiredExtension {
             url.appendPathExtension(requiredExtension)
         }
         self = url
