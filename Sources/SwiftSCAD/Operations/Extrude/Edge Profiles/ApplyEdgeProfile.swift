@@ -59,8 +59,8 @@ public extension Geometry3D {
             }
         } else {
             measuringBounds { _, box in
-                applyingBottomEdgeProfile(profile, at: box.maximum.z, method: method) {
-                    projection(slicingAtZ: box.maximum.z + 0.01)
+                applyingBottomEdgeProfile(profile, at: box.minimum.z, method: method) {
+                    projection(slicingAtZ: box.minimum.z + 0.01)
                 }
             }
         }
