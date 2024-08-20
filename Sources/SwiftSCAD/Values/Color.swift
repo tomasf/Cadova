@@ -3,11 +3,11 @@ import Foundation
 public struct Color: Sendable {
     private let value: Value
 
-    init(red: Double, green: Double, blue: Double, alpha: Double = 1.0) {
+    public init(red: Double, green: Double, blue: Double, alpha: Double = 1.0) {
         value = .components(red: red, green: green, blue: blue, alpha: alpha)
     }
 
-    func withAlphaComponent(_ alpha: Double) -> Color {
+    public func withAlphaComponent(_ alpha: Double) -> Color {
         switch value {
         case .components (let red, let green, let blue, _):
             Color(red: red, green: green, blue: blue, alpha: alpha)
