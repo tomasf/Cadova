@@ -12,7 +12,7 @@ public extension Geometry2D {
     ///   - topShape: The 2D geometry to use as the top shape.
     /// - Returns: A 3D convex hull connecting the base and top geometries.
     func extrudedHull(height: Double, to topShape: any Geometry2D) -> any Geometry3D {
-        let sliceHeight = 0.001
+        let sliceHeight = 0.01
 
         return extruded(height: sliceHeight)
             .adding {
