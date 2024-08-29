@@ -41,8 +41,8 @@ public extension Geometry2D {
     ///   - with: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
-    func intersection(@UnionBuilder2D with other: () -> any Geometry2D) -> any Geometry2D {
-        Intersection2D(children: [self, other()])
+    func intersection(@SequenceBuilder2D with other: () -> [any Geometry2D]) -> any Geometry2D {
+        Intersection2D(children: [self] + other())
     }
 
     func intersection(_ other: any Geometry2D...) -> any Geometry2D {
@@ -65,8 +65,8 @@ public extension Geometry3D {
     ///   - with: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
-    func intersection(@UnionBuilder3D with other: () -> any Geometry3D) -> any Geometry3D {
-        Intersection3D(children: [self, other()])
+    func intersection(@SequenceBuilder3D with other: () -> [any Geometry3D]) -> any Geometry3D {
+        Intersection3D(children: [self] + other())
     }
 
     func intersection(_ other: any Geometry3D...) -> any Geometry3D {
