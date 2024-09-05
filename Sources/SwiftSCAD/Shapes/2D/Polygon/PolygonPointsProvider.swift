@@ -41,3 +41,12 @@ internal struct ReversedPolygonPoints: PolygonPointsProvider {
         innerProvider.points(in: environment).reversed()
     }
 }
+
+internal struct BezierPathRange: PolygonPointsProvider {
+    let bezierPath: BezierPath2D
+    let range: ClosedRange<BezierPath.Position>
+
+    func points(in environment: Environment) -> [Vector2D] {
+        bezierPath.points(in: range, facets: environment.facets)
+    }
+}

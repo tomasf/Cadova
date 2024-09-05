@@ -8,7 +8,7 @@ internal struct BezierCurve <V: Vector>: Sendable {
         self.controlPoints = controlPoints
     }
 
-    private func point(at fraction: Double) -> V {
+    internal func point(at fraction: Double) -> V {
         var workingPoints = controlPoints
         while workingPoints.count > 1 {
             workingPoints = workingPoints.paired().map { $0.point(alongLineTo: $1, at: fraction) }
@@ -28,6 +28,26 @@ internal struct BezierCurve <V: Vector>: Sendable {
         return points(in: range.lowerBound..<midFraction, segmentLength: segmentLength)
         + [midPoint]
         + points(in: midFraction..<range.upperBound, segmentLength: segmentLength)
+    }
+
+    private func points(in range: Range<Double>, segmentCount: Int) -> [V] {
+        let segmentLength = (range.upperBound - range.lowerBound) / Double(segmentCount)
+        return (0...segmentCount).map { f in
+            point(at: range.lowerBound + Double(f) * segmentLength)
+        }
+    }
+
+    func points(in range: Range<Double>, facets: Environment.Facets) -> [V] {
+        guard controlPoints.count > 2 else {
+            return controlPoints
+        }
+
+        switch facets {
+        case .fixed (let count):
+            return points(in: range, segmentCount: count)
+        case .dynamic(_, let minSize):
+            return points(in: range, segmentLength: minSize)
+        }
     }
 
     private func points(segmentLength: Double) -> [V] {
@@ -54,7 +74,7 @@ internal struct BezierCurve <V: Vector>: Sendable {
         }
     }
 
-    func transform<T: AffineTransform>(using transform: T) -> Self where T == V.Transform, T.Vector == V {
+    func transformed<T: AffineTransform>(using transform: T) -> Self where T == V.Transform, T.Vector == V {
         Self(controlPoints: controlPoints.map { transform.apply(to: $0) })
     }
 }

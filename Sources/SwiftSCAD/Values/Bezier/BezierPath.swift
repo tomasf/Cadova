@@ -16,7 +16,7 @@ public struct BezierPath <V: Vector>: Sendable {
         curves.last?.controlPoints.last ?? startPoint
     }
 
-    private init(startPoint: V, curves: [BezierCurve<V>]) {
+    internal init(startPoint: V, curves: [BezierCurve<V>]) {
         self.startPoint = startPoint
         self.curves = curves
     }
@@ -99,26 +99,5 @@ public struct BezierPath <V: Vector>: Sendable {
     /// - Returns: A new `BezierPath` instance representing the closed path.
     public func closed() -> BezierPath {
         addingLine(to: startPoint)
-    }
-
-    /// Generates a sequence of points representing the path.
-    ///
-    /// - Parameter facets: The desired level of detail for the generated points, affecting the smoothness of curves.
-    /// - Returns: An array of points that approximate the Bezier path.
-    public func points(facets: Environment.Facets) -> [V] {
-        return [startPoint] + curves.map { curve in
-            Array(curve.points(facets: facets)[1...])
-        }.joined()
-    }
-
-    /// Applies the given 2D affine transform to the `BezierPath`.
-    ///
-    /// - Parameter transform: The affine transform to apply.
-    /// - Returns: A new `BezierPath` instance with the transformed points.
-    public func transform<T: AffineTransform>(using transform: T) -> BezierPath where T.Vector == V, T == V.Transform {
-        BezierPath(
-            startPoint: transform.apply(to: startPoint),
-            curves: curves.map { $0.transform(using: transform) }
-        )
     }
 }

@@ -20,5 +20,7 @@ public protocol AffineTransform: Sendable {
     static func scaling(_ v: Vector) -> Self
     static func rotation(_ r: Rotation) -> Self
     
+    func translated(_ v: Vector) -> Self
+
     init(_ transform3d: AffineTransform3D)
 }
