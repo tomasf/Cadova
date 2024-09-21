@@ -18,7 +18,7 @@ public struct GeometryAlignment2D: Equatable, Sendable {
     internal let x: AxisAlignment?
     internal let y: AxisAlignment?
 
-    internal init(x: AxisAlignment? = nil, y: AxisAlignment? = nil) {
+    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil) {
         self.x = x
         self.y = y
     }
@@ -38,7 +38,7 @@ public struct GeometryAlignment3D: Equatable, Sendable {
     internal let y: AxisAlignment?
     internal let z: AxisAlignment?
 
-    internal init(x: AxisAlignment? = nil, y: AxisAlignment? = nil, z: AxisAlignment? = nil) {
+    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil, z: AxisAlignment? = nil) {
         self.x = x
         self.y = y
         self.z = z

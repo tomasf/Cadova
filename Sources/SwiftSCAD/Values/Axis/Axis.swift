@@ -12,6 +12,13 @@ public enum Axis3D: Int, CaseIterable, Sendable {
     case y
     case z
 
+    public init(_ axis: Axis2D) {
+        switch axis {
+        case .x: self = .x
+        case .y: self = .y
+        }
+    }
+
     /// The unit vector pointing in the direction of the axis.
     ///
     /// This property returns a `Vector3D` representing the direction of the axis with a magnitude of 1. It is useful for operations that require understanding or manipulating the orientation of geometry in 3D space.
