@@ -87,7 +87,7 @@ public extension Polygon {
         .init(provider: ReversedPolygonPoints(innerProvider: pointsProvider))
     }
 
-    public init(_ bezierPath: BezierPath2D, in range: ClosedRange<BezierPath.Position>) {
+    init(_ bezierPath: BezierPath2D, in range: ClosedRange<BezierPath.Position>) {
         self.init(provider: BezierPathRange(bezierPath: bezierPath, range: range))
     }
 

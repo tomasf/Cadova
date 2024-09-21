@@ -71,7 +71,7 @@ public extension BezierPath {
         return curves[fromCurveIndex...toCurveIndex].enumerated().flatMap { index, curve in
             let startFraction = (index == fromCurveIndex) ? fromFraction : 0.0
             let endFraction = (index == toCurveIndex) ? toFraction : 1.0
-            return curve.points(in: 0..<endFraction, facets: facets)
+            return curve.points(in: startFraction..<endFraction, facets: facets)
         }
     }
 
