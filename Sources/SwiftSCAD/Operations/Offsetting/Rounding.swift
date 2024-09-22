@@ -35,4 +35,23 @@ public extension Geometry2D {
         }
         return body
     }
+
+    /// Applies rounding to the geometry's corners but limits the effect to areas covered by a mask.
+    ///
+    /// This method combines the base geometry with a specified mask, rounding the geometry's corners only within the mask's boundaries. The `amount` and `side` parameters determine the extent and direction of rounding, similar to the ``rounded(amount:side:)`` method.
+    ///
+    /// - Parameters:
+    ///   - amount: The radius of rounding to be applied to the geometry's corners. Positive values specify the radius of the rounding effect.
+    ///   - side: The side of the geometry's boundary to apply the rounding to. Defaults to `.both`, applying rounding to both the inside and outside edges.
+    ///   - mask: A closure that defines the mask geometry, limiting where the rounding is applied.
+    /// - Returns: A new geometry object with rounded corners, limited to the area covered by the mask.
+
+    func rounded(amount: Double, side: RoundingSide = .both, @UnionBuilder2D in mask: () -> any Geometry2D) -> any Geometry2D {
+        let maskShape = mask()
+        return subtracting(maskShape)
+            .adding {
+                self.rounded(amount: amount, side: side)
+                    .intersection(maskShape)
+            }
+    }
 }
