@@ -45,14 +45,15 @@ public extension Geometry2D {
                     .transformed(segment.originRotation)
                     .translated(segment.origin)
                     .intersection {
-                        Box(long, center: .xy)
+                        Box(long)
+                            .aligned(at: .centerXY)
                             .translated(z: -0.01)
                             .transformed(segment.originClipRotation)
                             .translated(segment.origin)
                     }
                     .intersection {
-                        Box(long, center: .xy)
-                            .translated(z: -long)
+                        Box(long)
+                            .aligned(at: .centerXY, .maxZ)
                             .translated(z: 0.01)
                             .transformed(segment.endClipRotation)
                             .translated(segment.end)

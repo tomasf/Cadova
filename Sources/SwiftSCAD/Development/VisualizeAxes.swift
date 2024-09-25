@@ -9,7 +9,8 @@ public extension Geometry3D {
             }
 
         return self.adding {
-            Box(0.2, center: .all)
+            Box(0.2)
+                .aligned(at: .center)
                 .colored(.white)
                 .adding {
                     arrow.rotated(y: 90°)

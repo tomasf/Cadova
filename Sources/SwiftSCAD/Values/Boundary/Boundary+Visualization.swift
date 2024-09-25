@@ -11,7 +11,8 @@ extension Boundary {
 extension Boundary3D {
     func visualized(scale: Double) -> any Geometry3D {
         points.map {
-            Box(visualizationStandardPointSize * scale, center: .all)
+            Box(visualizationStandardPointSize * scale)
+                .aligned(at: .center)
                 .translated($0)
         }
         .colored(visualizationPointColor)

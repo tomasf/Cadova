@@ -9,7 +9,8 @@ struct CrossSection: Shape3D {
         let universeLength = 1000.0
 
         return content.intersection {
-            Box([universeLength, universeLength, universeLength], center: .xy)
+            Box([universeLength, universeLength, universeLength])
+                .aligned(at: .centerXY)
                 .transformed(.rotation(from: .up, to: axis))
                 .translated(z: offset)
                 .colored(.blue)
