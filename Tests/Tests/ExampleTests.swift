@@ -3,7 +3,8 @@ import XCTest
 
 final class ExampleTests: XCTestCase {
     func testExample1() throws {
-        Box([10, 20, 5], center: .y)
+        Box([10, 20, 5])
+            .aligned(at: .centerY)
             .rotated(y: -20°, z: 45°)
             .assertEqual(toFile: "example1")
     }

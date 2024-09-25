@@ -3,7 +3,8 @@ import XCTest
 
 final class Geometry3DTests: XCTestCase {
     func test3DBasics() {
-        Box([20, 20, 20], center: .all)
+        Box([20, 20, 20])
+            .aligned(at: .center)
             .intersection {
                 Sphere(diameter: 23)
             }
