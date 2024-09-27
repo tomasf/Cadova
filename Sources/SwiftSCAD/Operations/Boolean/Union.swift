@@ -8,7 +8,8 @@ struct Union2D: Geometry2D {
             invocation: .init(name: "union"),
             body: children,
             environment: environment,
-            boundaryMergeStrategy: .union
+            boundaryMergeStrategy: .union,
+            combination: .union
         )
     }
 }
@@ -21,7 +22,8 @@ struct Union3D: Geometry3D {
             invocation: .init(name: "union"),
             body: children,
             environment: environment,
-            boundaryMergeStrategy: .union
+            boundaryMergeStrategy: .union,
+            combination: .union
         )
     }
 }

@@ -8,7 +8,8 @@ struct Minkowski2D: Geometry2D {
             invocation: .init(name: "minkowski"),
             body: children,
             environment: environment,
-            boundaryMergeStrategy: .minkowskiSum
+            boundaryMergeStrategy: .minkowskiSum,
+            combination: .minkowskiSum
         )
     }
 }
@@ -21,7 +22,8 @@ struct Minkowski3D: Geometry3D {
             invocation: .init(name: "minkowski"),
             body: children,
             environment: environment,
-            boundaryMergeStrategy: .minkowskiSum
+            boundaryMergeStrategy: .minkowskiSum,
+            combination: .minkowskiSum
         )
     }
 }

@@ -15,7 +15,7 @@ extension WrappedGeometry2D {
         if let invocation {
             return modifiedOutput(.init(
                 invocation: invocation,
-                body: [body],
+                body: body,
                 bodyTransform: bodyTransform,
                 environment: modifiedEnvironment(environment)
             ))
@@ -44,7 +44,7 @@ extension WrappedGeometry3D {
             return modifiedOutput(
                 .init(
                     invocation: invocation,
-                    body: [body],
+                    body: body,
                     bodyTransform: bodyTransform,
                     environment: modifiedEnvironment(environment)
                 )

@@ -8,7 +8,8 @@ struct Intersection2D: Geometry2D {
             invocation: .init(name: "intersection"),
             body: children,
             environment: environment,
-            boundaryMergeStrategy: .boxIntersection
+            boundaryMergeStrategy: .boxIntersection,
+            combination: .intersection
         )
     }
 }
@@ -21,7 +22,8 @@ struct Intersection3D: Geometry3D {
             invocation: .init(name: "intersection"),
             body: children,
             environment: environment,
-            boundaryMergeStrategy: .boxIntersection
+            boundaryMergeStrategy: .boxIntersection,
+            combination: .intersection
         )
     }
 }

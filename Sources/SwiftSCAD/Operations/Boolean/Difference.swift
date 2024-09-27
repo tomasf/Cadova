@@ -15,7 +15,8 @@ struct Difference2D: Geometry2D {
             invocation: .init(name: "difference"),
             body: [positive, negative],
             environment: environment,
-            boundaryMergeStrategy: .first
+            boundaryMergeStrategy: .first,
+            combination: .difference
         )
     }
 }
@@ -35,7 +36,8 @@ struct Difference3D: Geometry3D {
             invocation: .init(name: "difference"),
             body: [positive, negative],
             environment: environment,
-            boundaryMergeStrategy: .first
+            boundaryMergeStrategy: .first,
+            combination: .difference
         )
     }
 }
