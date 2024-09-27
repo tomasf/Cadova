@@ -7,47 +7,36 @@ public struct GeometryOutput<V: Vector> {
     internal let scadCode: String
     internal let boundary: Boundary<V>
     internal let anchors: [Anchor: AffineTransform3D]
-    internal let namedGeometry: NamedGeometry
     internal let elements: GeometryOutputElements
 
     internal init(
         scadCode: String,
         boundary: Boundary<V>,
-        anchors: [Anchor: AffineTransform3D] = [:],
-        namedGeometry: NamedGeometry = [:],
-        elements: GeometryOutputElements = [:]
+        anchors: [Anchor: AffineTransform3D],
+        elements: GeometryOutputElements
     ) {
         self.scadCode = scadCode
         self.boundary = boundary
         self.anchors = anchors
-        self.namedGeometry = namedGeometry
         self.elements = elements
     }
 }
 
 extension GeometryOutput {
     func modifyingCode(_ function: (_ code: String) -> String) -> GeometryOutput {
-        .init(scadCode: function(scadCode), boundary: boundary, anchors: anchors, namedGeometry: namedGeometry)
+        .init(scadCode: function(scadCode), boundary: boundary, anchors: anchors, elements: elements)
     }
 
     func definingAnchors(_ anchors: [Anchor: AffineTransform3D]) -> GeometryOutput {
-        .init(scadCode: scadCode, boundary: boundary, anchors: self.anchors.merging(anchors) { $1 }, namedGeometry: namedGeometry)
+        .init(scadCode: scadCode, boundary: boundary, anchors: self.anchors.merging(anchors) { $1 }, elements: elements)
     }
 
     func modifyingBoundary(_ function: (Boundary<V>) -> Boundary<V>) -> GeometryOutput {
-        .init(scadCode: scadCode, boundary: function(boundary), anchors: anchors, namedGeometry: namedGeometry)
-    }
-
-    func naming(_ body: any Geometry2D, _ name: String) -> GeometryOutput {
-        .init(scadCode: scadCode, boundary: boundary, anchors: anchors, namedGeometry: namedGeometry.adding(body, named: name))
-    }
-
-    func naming(_ body: any Geometry3D, _ name: String) -> GeometryOutput {
-        .init(scadCode: scadCode, boundary: boundary, anchors: anchors, namedGeometry: namedGeometry.adding(body, named: name))
+        .init(scadCode: scadCode, boundary: function(boundary), anchors: anchors, elements: elements)
     }
 
     func settingElements(_ newElements: GeometryOutputElements) -> GeometryOutput {
-        .init(scadCode: scadCode, boundary: boundary, anchors: anchors, namedGeometry: namedGeometry, elements: newElements)
+        .init(scadCode: scadCode, boundary: boundary, anchors: anchors, elements: newElements)
     }
 
     func setting(element key: GeometryOutputElementKey, to value: (any GeometryOutputElement)?) -> GeometryOutput {
@@ -63,7 +52,6 @@ extension GeometryOutput {
         scadCode = invocation.scadCode()
         self.boundary = boundary
         anchors = [:]
-        namedGeometry = [:]
         elements = [:]
     }
 
@@ -88,7 +76,6 @@ extension GeometryOutput {
         anchors = bodyOutputs.map(\.anchors)
             .reduce(into: [:]) { $0.merge($1) { a, _ in a }}
             .mapValues { $0.concatenated(with: bodyTransform) }
-        namedGeometry = .merging(bodyOutputs.map(\.namedGeometry))
         elements = GeometryOutputElements.combine(bodyOutputs.map(\.elements), operation: combination)
     }
 
@@ -105,7 +92,6 @@ extension GeometryOutput {
         scadCode = invocation.scadCode(body: [bodyOutput.scadCode])
         boundary = bodyOutput.boundary.transformed(AffineTransform2D(bodyTransform))
         anchors = bodyOutput.anchors.mapValues { $0.concatenated(with: bodyTransform) }
-        namedGeometry = bodyOutput.namedGeometry
         elements = bodyOutput.elements
     }
 
@@ -124,7 +110,6 @@ extension GeometryOutput {
         boundary = boundaryMapping(bodyOutput.boundary.transformed(bodyTransform))
         anchors = bodyOutput.anchors
             .mapValues { $0.concatenated(with: bodyTransform) }
-        namedGeometry = bodyOutput.namedGeometry
         elements = bodyOutput.elements
     }
 
@@ -149,7 +134,6 @@ extension GeometryOutput {
         anchors = bodyOutputs.map(\.anchors)
             .reduce(into: [:]) { $0.merge($1) { a, _ in a }}
             .mapValues { $0.concatenated(with: bodyTransform) }
-        namedGeometry = .merging(bodyOutputs.map(\.namedGeometry))
         elements = GeometryOutputElements.combine(bodyOutputs.map(\.elements), operation: combination)
     }
 
@@ -166,7 +150,6 @@ extension GeometryOutput {
         scadCode = invocation.scadCode(body: [bodyOutput.scadCode])
         boundary = bodyOutput.boundary.transformed(bodyTransform)
         anchors = bodyOutput.anchors.mapValues { $0.concatenated(with: bodyTransform) }
-        namedGeometry = bodyOutput.namedGeometry
         elements = bodyOutput.elements
     }
 
@@ -185,18 +168,17 @@ extension GeometryOutput {
         boundary = boundaryMapping(bodyOutput.boundary).transformed(bodyTransform)
         anchors = bodyOutput.anchors
             .mapValues { $0.concatenated(with: bodyTransform) }
-        namedGeometry = bodyOutput.namedGeometry
         elements = bodyOutput.elements
     }
 }
 
 extension GeometryOutput {
-    static var emptyLeaf: Self { .init(scadCode: ";", boundary: .empty) }
+    static var emptyLeaf: Self { .init(scadCode: ";", boundary: .empty, anchors: [:], elements: [:]) }
 }
 
 protocol UniversalGeometryOutput {
     var scadCode: String { get }
-    var namedGeometry: NamedGeometry { get }
+    var elements: GeometryOutputElements { get }
 }
 
 extension GeometryOutput: UniversalGeometryOutput {}

@@ -17,9 +17,11 @@ extension UniversalGeometryOutput {
     var scadData: Data { Data(scadCode.utf8) }
 
     func exportNamedMembers(to root: URL, using environment: Environment) {
-        for (name, geometryList) in namedGeometry {
-            geometryList.output(in: environment)
-                .export(to: URL(expandingFilePath: name, extension: "scad", relativeTo: root))
+        if let namedGeometry {
+            for (name, geometryList) in namedGeometry.geometry {
+                geometryList.output(in: environment)
+                    .export(to: URL(expandingFilePath: name, extension: "scad", relativeTo: root))
+            }
         }
     }
 }

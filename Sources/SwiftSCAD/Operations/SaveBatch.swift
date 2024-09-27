@@ -2,10 +2,10 @@ import Foundation
 
 public func save(to directory: URL? = nil, environment: Environment? = nil, @AnyGeometryBuilder geometries: () -> [AnyGeometry]) {
     let effectiveEnvironment = environment ?? .defaultEnvironment
-    let namedGeometry = NamedGeometry.merging(geometries().map {
+    let namedGeometry = NamedGeometry.merging(geometries().compactMap {
         $0.output(in: effectiveEnvironment).namedGeometry
     })
-    for (name, geometry) in namedGeometry {
+    for (name, geometry) in namedGeometry.geometry {
         let fileURL = URL(expandingFilePath: name, extension: "scad", relativeTo: directory)
 
         switch geometry {
