@@ -11,9 +11,9 @@ internal struct OutputReader2D: Geometry2D {
 }
 
 public extension Geometry2D {
-    func readingOutputElement(key: GeometryOutputElementKey, @UnionBuilder2D generator: @escaping (_ body: any Geometry2D, _ value: (any GeometryOutputElement)?) -> any Geometry2D) -> any Geometry2D {
+    func readingOutputElement<E: GeometryOutputElement>(_ type: E.Type, @UnionBuilder2D generator: @escaping (_ body: any Geometry2D, _ value: E?) -> any Geometry2D) -> any Geometry2D {
         OutputReader2D(body: self) { output in
-            generator(self, output.elements[key])
+            generator(self, output.elements[type])
         }
     }
 }
@@ -29,9 +29,9 @@ internal struct OutputReader3D: Geometry3D {
 }
 
 public extension Geometry3D {
-    func readingOutputElement(key: GeometryOutputElementKey, @UnionBuilder3D generator: @escaping (_ body: any Geometry3D, _ value: (any GeometryOutputElement)?) -> any Geometry3D) -> any Geometry3D {
+    func readingOutputElement<E: GeometryOutputElement>(_ type: E.Type, @UnionBuilder3D generator: @escaping (_ body: any Geometry3D, _ value: E?) -> any Geometry3D) -> any Geometry3D {
         OutputReader3D(body: self) { output in
-            generator(self, output.elements[key])
+            generator(self, output.elements[type])
         }
     }
 }

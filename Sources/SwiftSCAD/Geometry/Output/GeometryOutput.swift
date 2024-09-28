@@ -39,9 +39,9 @@ extension GeometryOutput {
         .init(scadCode: scadCode, boundary: boundary, anchors: anchors, elements: newElements)
     }
 
-    func setting(element key: GeometryOutputElementKey, to value: (any GeometryOutputElement)?) -> GeometryOutput {
+    func setting<E: GeometryOutputElement>(element: E?) -> GeometryOutput {
         var newElements = elements
-        newElements[key] = value
+        newElements[E.self] = element
         return settingElements(newElements)
     }
 }

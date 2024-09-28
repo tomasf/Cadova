@@ -14,19 +14,13 @@ public protocol GeometryOutputElement {
 internal extension GeometryOutputElement {
     static func combine(anyElements elements: [any GeometryOutputElement], operation: GeometryCombination) -> Self? {
         guard let typedElements = elements as? [Self] else {
-            preconditionFailure("All elements for one output element key must be of the same type")
+            preconditionFailure("Internal error: output element type cast failed")
         }
         return combine(elements: typedElements, operation: operation)
     }
 }
 
-extension Array: GeometryOutputElement {
-    public static func combine(elements: [[Element]], operation: GeometryCombination) -> [Element]? {
-        Array(elements.joined())
-    }
-}
-
-internal typealias GeometryOutputElements = [GeometryOutputElementKey: any GeometryOutputElement]
+internal typealias GeometryOutputElements = [ObjectIdentifier: any GeometryOutputElement]
 
 public enum GeometryCombination {
     case union
@@ -35,20 +29,11 @@ public enum GeometryCombination {
     case minkowskiSum
 }
 
-/// Represents a key for geometry output elements.
-public struct GeometryOutputElementKey: RawRepresentable, Hashable, Sendable {
-    public var rawValue: String
-
-    public init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-}
-
 internal extension GeometryOutputElements {
     static func combine(_ elements: [GeometryOutputElements], operation: GeometryCombination) -> GeometryOutputElements {
         var result: GeometryOutputElements = [:]
 
-        let valueArraysForKeys = elements.reduce(into: [GeometryOutputElementKey: [any GeometryOutputElement]]()) {
+        let valueArraysForKeys = elements.reduce(into: [ObjectIdentifier: [any GeometryOutputElement]]()) {
             for (key, value) in $1 {
                 $0[key, default: []].append(value)
             }
@@ -64,5 +49,14 @@ internal extension GeometryOutputElements {
         }
 
         return result
+    }
+
+    subscript<E: GeometryOutputElement>(_ type: E.Type) -> E? {
+        get {
+            self[ObjectIdentifier(type)] as? E
+        }
+        set {
+            self[ObjectIdentifier(type)] = newValue
+        }
     }
 }

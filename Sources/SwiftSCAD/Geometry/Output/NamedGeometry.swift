@@ -1,8 +1,6 @@
 import Foundation
 
 internal struct NamedGeometry: GeometryOutputElement {
-    static let elementKey = GeometryOutputElementKey(rawValue: "SwiftSCAD.NamedGeometry")
-
     let geometry: [String: GeometryList]
 
     init(_ geometry: [String: GeometryList] = [:]) {
@@ -55,18 +53,18 @@ extension NamedGeometry {
 
 extension UniversalGeometryOutput {
     var namedGeometry: NamedGeometry? {
-        elements[NamedGeometry.elementKey] as? NamedGeometry
+        elements[NamedGeometry.self]
     }
 }
 
 extension GeometryOutput {
     func naming(_ body: any Geometry2D, _ name: String) -> GeometryOutput {
         let newNamedGeometry = (namedGeometry ?? NamedGeometry()).adding(body, named: name)
-        return setting(element: NamedGeometry.elementKey, to: newNamedGeometry)
+        return setting(element: newNamedGeometry)
     }
 
     func naming(_ body: any Geometry3D, _ name: String) -> GeometryOutput {
         let newNamedGeometry = (namedGeometry ?? NamedGeometry()).adding(body, named: name)
-        return setting(element: NamedGeometry.elementKey, to: newNamedGeometry)
+        return setting(element: newNamedGeometry)
     }
 }

@@ -11,15 +11,15 @@ internal struct OutputModifier2D: Geometry2D {
 }
 
 public extension Geometry2D {
-    func settingOutputElement(_ key: GeometryOutputElementKey, value: any GeometryOutputElement) -> any Geometry2D {
+    func withOutputElement<E: GeometryOutputElement>(_ value: E) -> any Geometry2D {
         OutputModifier2D(body: self) { output in
-            output.setting(element: key, to: value)
+            output.setting(element: value)
         }
     }
 
-    func modifyingOutputElement(_ key: GeometryOutputElementKey, modification: @escaping ((any GeometryOutputElement)?) -> (any GeometryOutputElement)?) -> any Geometry2D {
+    func modifyingOutputElement<E: GeometryOutputElement>(_ type: E.Type, modification: @escaping (E?) -> E?) -> any Geometry2D {
         OutputModifier2D(body: self) { output in
-            output.setting(element: key, to: modification(output.elements[key]))
+            output.setting(element: modification(output.elements[E.self]))
         }
     }
 }
@@ -35,15 +35,15 @@ internal struct OutputModifier3D: Geometry3D {
 }
 
 public extension Geometry3D {
-    func settingOutputElement(_ key: GeometryOutputElementKey, value: any GeometryOutputElement) -> any Geometry3D {
+    func withOutputElement<E: GeometryOutputElement>(_ value: E) -> any Geometry3D {
         OutputModifier3D(body: self) { output in
-            output.setting(element: key, to: value)
+            output.setting(element: value)
         }
     }
 
-    func modifyingOutputElement(_ key: GeometryOutputElementKey, modification: @escaping ((any GeometryOutputElement)?) -> (any GeometryOutputElement)?) -> any Geometry3D {
+    func modifyingOutputElement<E: GeometryOutputElement>(_ type: E.Type, modification: @escaping (E?) -> E?) -> any Geometry3D {
         OutputModifier3D(body: self) { output in
-            output.setting(element: key, to: modification(output.elements[key]))
+            output.setting(element: modification(output.elements[E.self]))
         }
     }
 }
