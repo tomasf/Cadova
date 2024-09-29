@@ -53,7 +53,7 @@ internal struct ApplyAnchor2D: Geometry2D {
             preconditionFailure("Anchor \(anchor) not found")
         }
 
-        return GeometrySnapshot2D(source: body, output: output)
+        return body
             .transformed(AffineTransform2D(transform.inverse))
             .output(in: environment)
     }
@@ -69,7 +69,7 @@ internal struct ApplyAnchor3D: Geometry3D {
             preconditionFailure("Anchor \(anchor) not found")
         }
 
-        return GeometrySnapshot3D(source: body, output: output)
+        return body
             .transformed(transform.inverse)
             .output(in: environment)
     }

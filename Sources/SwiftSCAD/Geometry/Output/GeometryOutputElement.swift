@@ -8,55 +8,31 @@
 import Foundation
 
 public protocol GeometryOutputElement {
-    static func combine(elements: [Self], operation: GeometryCombination) -> Self?
+    static func combine(elements: [Self], for operation: GeometryCombination) -> Self?
 }
 
 internal extension GeometryOutputElement {
-    static func combine(anyElements elements: [any GeometryOutputElement], operation: GeometryCombination) -> Self? {
-        guard let typedElements = elements as? [Self] else {
-            preconditionFailure("Internal error: output element type cast failed")
-        }
-        return combine(elements: typedElements, operation: operation)
+    static func combine(anyElements elements: [any GeometryOutputElement], for operation: GeometryCombination) -> Self? {
+        combine(elements: elements as! [Self], for: operation)
     }
 }
 
-internal typealias GeometryOutputElements = [ObjectIdentifier: any GeometryOutputElement]
+internal typealias OutputElementsByType = [ObjectIdentifier: any GeometryOutputElement]
 
-public enum GeometryCombination {
-    case union
-    case intersection
-    case difference
-    case minkowskiSum
-}
-
-internal extension GeometryOutputElements {
-    static func combine(_ elements: [GeometryOutputElements], operation: GeometryCombination) -> GeometryOutputElements {
-        var result: GeometryOutputElements = [:]
-
-        let valueArraysForKeys = elements.reduce(into: [ObjectIdentifier: [any GeometryOutputElement]]()) {
+internal extension OutputElementsByType {
+    init(combining elements: [Self], operation: GeometryCombination) {
+        self = elements.reduce(into: [ObjectIdentifier: [any GeometryOutputElement]]()) {
             for (key, value) in $1 {
                 $0[key, default: []].append(value)
             }
         }
-
-        for (key, values) in valueArraysForKeys {
-            if values.count > 1 {
-                let type = type(of: values[0])
-                result[key] = type.combine(anyElements: values, operation: operation)
-            } else {
-                result[key] = values[0]
-            }
+        .compactMapValues {
+            $0.count > 1 ? type(of: $0[0]).combine(anyElements: $0, for: operation) : $0[0]
         }
-
-        return result
     }
 
     subscript<E: GeometryOutputElement>(_ type: E.Type) -> E? {
-        get {
-            self[ObjectIdentifier(type)] as? E
-        }
-        set {
-            self[ObjectIdentifier(type)] = newValue
-        }
+        get { self[ObjectIdentifier(type)] as? E }
+        set { self[ObjectIdentifier(type)] = newValue }
     }
 }

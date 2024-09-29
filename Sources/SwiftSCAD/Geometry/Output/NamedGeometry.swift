@@ -21,7 +21,7 @@ internal struct NamedGeometry: GeometryOutputElement {
         .merging([self, NamedGeometry([name: .threeD([child])])])
     }
 
-    static func combine(elements: [NamedGeometry], operation: GeometryCombination) -> NamedGeometry? {
+    static func combine(elements: [NamedGeometry], for operation: GeometryCombination) -> NamedGeometry? {
         merging(elements)
     }
 }

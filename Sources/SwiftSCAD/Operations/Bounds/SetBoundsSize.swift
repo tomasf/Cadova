@@ -1,9 +1,9 @@
 import Foundation
 
 public extension Geometry2D {
-    private func settingBounds(snapshot: GeometrySnapshot2D, currentSize: Vector2D, targetSize: Vector2D, alignment: GeometryAlignment2D) -> any Geometry2D {
+    private func settingBounds(geometry: any Geometry2D, currentSize: Vector2D, targetSize: Vector2D, alignment: GeometryAlignment2D) -> any Geometry2D {
         let translation = (targetSize - currentSize) * alignment.factors
-        return snapshot
+        return geometry
             .aligned(at: .origin)
             .translated(translation)
             .settingBounds(.init(minimum: .zero, maximum: targetSize))
@@ -20,9 +20,9 @@ public extension Geometry2D {
     /// - Returns: A modified geometry with the updated bounding box.
 
     func settingBoundsSize(x: Double? = nil, y: Double? = nil, alignment: GeometryAlignment2D...) -> any Geometry2D {
-        measuringBounds { snapshot, box in
+        measuringBounds { geometry, box in
             let newSize = Vector2D(x ?? box.size.x, y ?? box.size.y)
-            settingBounds(snapshot: snapshot, currentSize: box.size, targetSize: newSize, alignment: alignment.merged)
+            settingBounds(geometry: geometry, currentSize: box.size, targetSize: newSize, alignment: alignment.merged)
         }
     }
 
@@ -35,16 +35,16 @@ public extension Geometry2D {
     /// - Returns: A modified geometry with the updated bounding box.
 
     func settingBoundsSize(_ targetSize: Vector2D, alignment: GeometryAlignment2D...) -> any Geometry2D {
-        measuringBounds { snapshot, box in
-            settingBounds(snapshot: snapshot, currentSize: box.size, targetSize: targetSize, alignment: alignment.merged)
+        measuringBounds { geometry, box in
+            settingBounds(geometry: geometry, currentSize: box.size, targetSize: targetSize, alignment: alignment.merged)
         }
     }
 }
 
 public extension Geometry3D {
-    private func settingBounds(snapshot: GeometrySnapshot3D, currentSize: Vector3D, targetSize: Vector3D, alignment: GeometryAlignment3D) -> any Geometry3D {
+    private func settingBounds(geometry: any Geometry3D, currentSize: Vector3D, targetSize: Vector3D, alignment: GeometryAlignment3D) -> any Geometry3D {
         let translation = (targetSize - currentSize) * alignment.factors
-        return snapshot
+        return geometry
             .aligned(at: .origin)
             .translated(translation)
             .settingBounds(.init(minimum: .zero, maximum: targetSize))
@@ -62,9 +62,9 @@ public extension Geometry3D {
     /// - Returns: A modified geometry with the updated bounding box.
 
     func settingBoundsSize(x: Double? = nil, y: Double? = nil, z: Double? = nil, alignment: GeometryAlignment3D...) -> any Geometry3D {
-        measuringBounds { snapshot, box in
+        measuringBounds { geometry, box in
             let newSize = Vector3D(x ?? box.size.x, y ?? box.size.y, z ?? box.size.z)
-            settingBounds(snapshot: snapshot, currentSize: box.size, targetSize: newSize, alignment: alignment.merged)
+            settingBounds(geometry: geometry, currentSize: box.size, targetSize: newSize, alignment: alignment.merged)
         }
     }
 
@@ -77,8 +77,8 @@ public extension Geometry3D {
     /// - Returns: A modified geometry with the updated bounding box.
 
     func settingBoundsSize(_ targetSize: Vector3D, alignment: GeometryAlignment3D...) -> any Geometry3D {
-        measuringBounds { snapshot, box in
-            settingBounds(snapshot: snapshot, currentSize: box.size, targetSize: targetSize, alignment: alignment.merged)
+        measuringBounds { geometry, box in
+            settingBounds(geometry: geometry, currentSize: box.size, targetSize: targetSize, alignment: alignment.merged)
         }
     }
 }

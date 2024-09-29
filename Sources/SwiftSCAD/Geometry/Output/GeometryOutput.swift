@@ -7,13 +7,13 @@ public struct GeometryOutput<V: Vector> {
     internal let scadCode: String
     internal let boundary: Boundary<V>
     internal let anchors: [Anchor: AffineTransform3D]
-    internal let elements: GeometryOutputElements
+    internal let elements: OutputElementsByType
 
     internal init(
         scadCode: String,
         boundary: Boundary<V>,
         anchors: [Anchor: AffineTransform3D],
-        elements: GeometryOutputElements
+        elements: OutputElementsByType
     ) {
         self.scadCode = scadCode
         self.boundary = boundary
@@ -35,7 +35,7 @@ extension GeometryOutput {
         .init(scadCode: scadCode, boundary: function(boundary), anchors: anchors, elements: elements)
     }
 
-    func settingElements(_ newElements: GeometryOutputElements) -> GeometryOutput {
+    func settingElements(_ newElements: OutputElementsByType) -> GeometryOutput {
         .init(scadCode: scadCode, boundary: boundary, anchors: anchors, elements: newElements)
     }
 
@@ -76,7 +76,7 @@ extension GeometryOutput {
         anchors = bodyOutputs.map(\.anchors)
             .reduce(into: [:]) { $0.merge($1) { a, _ in a }}
             .mapValues { $0.concatenated(with: bodyTransform) }
-        elements = GeometryOutputElements.combine(bodyOutputs.map(\.elements), operation: combination)
+        elements = .init(combining: bodyOutputs.map(\.elements), operation: combination)
     }
 
     // 2D parent with 2D child
@@ -134,7 +134,7 @@ extension GeometryOutput {
         anchors = bodyOutputs.map(\.anchors)
             .reduce(into: [:]) { $0.merge($1) { a, _ in a }}
             .mapValues { $0.concatenated(with: bodyTransform) }
-        elements = GeometryOutputElements.combine(bodyOutputs.map(\.elements), operation: combination)
+        elements = .init(combining: bodyOutputs.map(\.elements), operation: combination)
     }
 
     // 3D parent with 3D child
@@ -178,7 +178,14 @@ extension GeometryOutput {
 
 protocol UniversalGeometryOutput {
     var scadCode: String { get }
-    var elements: GeometryOutputElements { get }
+    var elements: OutputElementsByType { get }
 }
 
 extension GeometryOutput: UniversalGeometryOutput {}
+
+public enum GeometryCombination {
+    case union
+    case intersection
+    case difference
+    case minkowskiSum
+}
