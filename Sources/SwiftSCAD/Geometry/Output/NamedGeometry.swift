@@ -41,13 +41,13 @@ extension NamedGeometry {
             }
         }
 
-        func invocation(in environment: Environment) -> Invocation {
+        func codeFragment(in environment: Environment) -> CodeFragment {
             switch self {
             case .twoD (let geometry):
-                Union2D(children: geometry).invocation(in: environment)
+                Union2D(children: geometry).codeFragment(in: environment)
 
             case .threeD (let geometry):
-                Union3D(children: geometry).invocation(in: environment)
+                Union3D(children: geometry).codeFragment(in: environment)
             }
         }
     }

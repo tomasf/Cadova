@@ -18,8 +18,8 @@ internal struct DefineAnchor2D: Geometry2D {
             .translated(alignmentTranslation.map { -Vector3D($0) } ?? .zero)
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        body.invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
@@ -49,8 +49,8 @@ internal struct DefineAnchor3D: Geometry3D {
             .translated(alignmentTranslation.map { -$0 } ?? .zero)
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        body.invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
@@ -80,8 +80,8 @@ internal struct ApplyAnchor2D: Geometry2D {
         return body.transformed(AffineTransform2D(transform.inverse))
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        body(in: environment).invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body(in: environment).codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
@@ -110,8 +110,8 @@ internal struct ApplyAnchor3D: Geometry3D {
         return body.transformed(transform.inverse)
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        body(in: environment).invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body(in: environment).codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {

@@ -2,14 +2,14 @@ import Foundation
 
 struct Minkowski2D: CombinedGeometry2D {
     let children: [any Geometry2D]
-    let invocationName = "minkowski"
+    let moduleName = "minkowski"
     let boundaryMergeStrategy = Boundary2D.MergeStrategy.minkowskiSum
     let combination = GeometryCombination.minkowskiSum
 }
 
 struct Minkowski3D: CombinedGeometry3D {
     let children: [any Geometry3D]
-    let invocationName = "minkowski"
+    let moduleName = "minkowski"
     let boundaryMergeStrategy = Boundary3D.MergeStrategy.minkowskiSum
     let combination = GeometryCombination.minkowskiSum
 }

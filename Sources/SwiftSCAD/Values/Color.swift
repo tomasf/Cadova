@@ -22,7 +22,7 @@ internal extension Color {
         case components (red: Double, green: Double, blue: Double, alpha: Double)
         case named (String, alpha: Double)
 
-        var parameters: Invocation.Parameters {
+        var parameters: CodeFragment.Parameters {
             switch self {
             case .components (let red, let green, let blue, let alpha):
                 ["c": [red, green, blue, alpha]]
@@ -36,7 +36,7 @@ internal extension Color {
         value = .named(name, alpha: alpha)
     }
 
-    var invocationParameters: Invocation.Parameters {
+    var moduleParameters: CodeFragment.Parameters {
         value.parameters
     }
 }

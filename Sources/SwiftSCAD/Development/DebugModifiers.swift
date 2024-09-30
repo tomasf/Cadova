@@ -11,8 +11,8 @@ struct Prefix2D: Geometry2D {
         self.body = body
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        .init(prefix: prefix, body: body.invocation(in: environment))
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(prefix: prefix, body: body.codeFragment(in: environment))
     }
 
     func boundary(in environment: Environment) -> Bounds {
@@ -39,8 +39,8 @@ struct Prefix3D: Geometry3D {
         self.body = body
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        .init(prefix: prefix, body: body.invocation(in: environment))
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(prefix: prefix, body: body.codeFragment(in: environment))
     }
 
     func boundary(in environment: Environment) -> Bounds {

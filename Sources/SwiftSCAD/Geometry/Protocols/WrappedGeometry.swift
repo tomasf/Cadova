@@ -3,8 +3,8 @@ import Foundation
 protocol WrappedGeometry2D: Geometry2D {
     var body: any Geometry2D { get }
     func modifiedEnvironment(_ environment: Environment) -> Environment
-    var invocationName: String? { get }
-    var invocationParameters: Invocation.Parameters { get }
+    var moduleName: String? { get }
+    var moduleParameters: CodeFragment.Parameters { get }
 }
 
 extension WrappedGeometry2D {
@@ -12,11 +12,11 @@ extension WrappedGeometry2D {
         modifiedEnvironment(environment)
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        if let invocationName {
-            Invocation(name: invocationName, parameters: invocationParameters, body: [body.invocation(in: bodyEnvironment(environment))])
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        if let moduleName {
+            CodeFragment(module: moduleName, parameters: moduleParameters, body: [body.codeFragment(in: bodyEnvironment(environment))])
         } else {
-            body.invocation(in: bodyEnvironment(environment))
+            body.codeFragment(in: bodyEnvironment(environment))
         }
     }
 
@@ -36,16 +36,16 @@ extension WrappedGeometry2D {
         environment
     }
 
-    public var invocationName: String? { nil }
-    public var invocationParameters: Invocation.Parameters { [:] }
+    public var moduleName: String? { nil }
+    public var moduleParameters: CodeFragment.Parameters { [:] }
 }
 
 protocol WrappedGeometry3D: Geometry3D {
     var body: any Geometry3D { get }
     var bodyTransform: AffineTransform3D { get }
     func modifiedEnvironment(_ environment: Environment) -> Environment
-    var invocationName: String? { get }
-    var invocationParameters: Invocation.Parameters { get }
+    var moduleName: String? { get }
+    var moduleParameters: CodeFragment.Parameters { get }
 }
 
 extension WrappedGeometry3D {
@@ -55,11 +55,11 @@ extension WrappedGeometry3D {
         modifiedEnvironment(environment.applyingTransform(bodyTransform))
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        if let invocationName {
-            Invocation(name: invocationName, parameters: invocationParameters, body: [body.invocation(in: bodyEnvironment(environment))])
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        if let moduleName {
+            CodeFragment(module: moduleName, parameters: moduleParameters, body: [body.codeFragment(in: bodyEnvironment(environment))])
         } else {
-            body.invocation(in: bodyEnvironment(environment))
+            body.codeFragment(in: bodyEnvironment(environment))
         }
     }
 
@@ -77,6 +77,6 @@ extension WrappedGeometry3D {
 
     func modifiedEnvironment(_ environment: Environment) -> Environment { environment }
 
-    public var invocationName: String? { nil }
-    public var invocationParameters: Invocation.Parameters { [:] }
+    public var moduleName: String? { nil }
+    public var moduleParameters: CodeFragment.Parameters { [:] }
 }

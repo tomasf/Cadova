@@ -3,8 +3,8 @@ import Foundation
 internal struct EnvironmentReader2D: Geometry2D {
     let body: (Environment) -> any Geometry2D
 
-    func invocation(in environment: Environment) -> Invocation {
-        body(environment).invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body(environment).codeFragment(in: environment)
     }
     
     func boundary(in environment: Environment) -> Bounds {
@@ -23,8 +23,8 @@ internal struct EnvironmentReader2D: Geometry2D {
 internal struct EnvironmentReader3D: Geometry3D {
     let body: (Environment) -> any Geometry3D
 
-    func invocation(in environment: Environment) -> Invocation {
-        body(environment).invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body(environment).codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {

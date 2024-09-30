@@ -47,9 +47,9 @@ public struct Polygon: Geometry2D {
         pointsProvider.points(in: environment)
     }
 
-    public func invocation(in environment: Environment) -> Invocation {
+    public func codeFragment(in environment: Environment) -> CodeFragment {
         .init(
-            name: "polygon",
+            module: "polygon",
             parameters:  ["points": points(in: environment)],
             body: []
         )

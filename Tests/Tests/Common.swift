@@ -2,17 +2,17 @@ import XCTest
 @testable import SwiftSCAD
 
 fileprivate func assertEqualGeometry(_ geometry: any Geometry2D, toFile fileName: String) {
-    assertEqualOutputs(geometry.invocation(in: .defaultEnvironment), toFile: fileName)
+    assertEqualOutputs(geometry.codeFragment(in: .defaultEnvironment), toFile: fileName)
 }
 
 fileprivate func assertEqualGeometry(_ geometry: any Geometry3D, toFile fileName: String) {
-    assertEqualOutputs(geometry.invocation(in: .defaultEnvironment), toFile: fileName)
+    assertEqualOutputs(geometry.codeFragment(in: .defaultEnvironment), toFile: fileName)
 }
 
-fileprivate func assertEqualOutputs(_ invocation: Invocation, toFile fileName: String) {
+fileprivate func assertEqualOutputs(_ fragment: CodeFragment, toFile fileName: String) {
     let url = Bundle.module.url(forResource: fileName, withExtension: "scad", subdirectory: "SCAD")!
     let correctString = try! String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
-    let generatedString = invocation.scadCode.trimmingCharacters(in: .whitespacesAndNewlines)
+    let generatedString = fragment.scadCode.trimmingCharacters(in: .whitespacesAndNewlines)
     XCTAssertEqual(generatedString, correctString)
 }
 

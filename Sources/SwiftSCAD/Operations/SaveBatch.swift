@@ -12,12 +12,12 @@ public func save(to directory: URL? = nil, environment: Environment? = nil, @Any
         case .twoD (let geometry):
             geometry
                 .usingDefaultFacets()
-                .invocation(in: effectiveEnvironment)
+                .codeFragment(in: effectiveEnvironment)
                 .export(to: fileURL)
         case .threeD (let geometry):
             geometry
                 .usingDefaultFacets()
-                .invocation(in: effectiveEnvironment)
+                .codeFragment(in: effectiveEnvironment)
                 .export(to: fileURL)
         }
     }

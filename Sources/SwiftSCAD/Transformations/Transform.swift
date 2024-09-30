@@ -4,8 +4,8 @@ struct Transform2D: TransformedGeometry2D {
     let body: any Geometry2D
     let transform: AffineTransform2D
 
-    let invocationName = "multmatrix"
-    var invocationParameters: Invocation.Parameters {
+    let moduleName = "multmatrix"
+    var moduleParameters: CodeFragment.Parameters {
         ["m": AffineTransform3D(transform)]
     }
     var bodyTransform: AffineTransform2D { transform }
@@ -15,8 +15,8 @@ struct Transform3D: TransformedGeometry3D {
     let body: any Geometry3D
     let transform: AffineTransform3D
 
-    let invocationName = "multmatrix"
-    var invocationParameters: Invocation.Parameters {
+    let moduleName = "multmatrix"
+    var moduleParameters: CodeFragment.Parameters {
         ["m": transform]
     }
     var bodyTransform: AffineTransform3D { transform }

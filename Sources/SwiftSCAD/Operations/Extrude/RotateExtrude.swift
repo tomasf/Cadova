@@ -5,11 +5,11 @@ struct RotateExtrude: Geometry3D {
     let angle: Angle
     let convexity: Int
 
-    func invocation(in environment: Environment) -> Invocation {
-        .init(name: "rotate_extrude", parameters: [
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(module: "rotate_extrude", parameters: [
             "angle": angle,
             "convexity": convexity
-        ], body: [body.invocation(in: environment)])
+        ], body: [body.codeFragment(in: environment)])
     }
 
     func boundary(in environment: Environment) -> Bounds {

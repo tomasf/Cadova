@@ -3,13 +3,13 @@ import Foundation
 struct ConvexHull2D: WrappedGeometry2D {
     let body: any Geometry2D
 
-    let invocationName: String? = "hull"
+    let moduleName: String? = "hull"
 }
 
 struct ConvexHull3D: WrappedGeometry3D {
     let body: any Geometry3D
 
-    let invocationName: String? = "hull"
+    let moduleName: String? = "hull"
 }
 
 public extension Geometry2D {

@@ -4,8 +4,8 @@ struct Translate2D: TransformedGeometry2D {
     let body: any Geometry2D
     let distance: Vector2D
 
-    let invocationName = "translate"
-    var invocationParameters: Invocation.Parameters {
+    let moduleName = "translate"
+    var moduleParameters: CodeFragment.Parameters {
         ["v": distance]
     }
     var bodyTransform: AffineTransform2D { .translation(distance) }
@@ -15,8 +15,8 @@ struct Translate3D: TransformedGeometry3D {
     let body: any Geometry3D
     let distance: Vector3D
 
-    let invocationName = "translate"
-    var invocationParameters: Invocation.Parameters {
+    let moduleName = "translate"
+    var moduleParameters: CodeFragment.Parameters {
         ["v": distance]
     }
     var bodyTransform: AffineTransform3D { .translation(distance) }

@@ -8,13 +8,13 @@ struct LinearExtrude: Geometry3D {
     let scale: Vector2D
     let convexity: Int
 
-    func invocation(in environment: Environment) -> Invocation {
-        .init(name: "linear_extrude", parameters: [
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(module: "linear_extrude", parameters: [
             "height": height,
             "twist": twist.map { -$0 } ?? 0°,
             "scale": scale,
             "convexity": convexity
-        ], body: [body.invocation(in: environment)])
+        ], body: [body.codeFragment(in: environment)])
     }
 
     func boundary(in environment: Environment) -> Bounds {

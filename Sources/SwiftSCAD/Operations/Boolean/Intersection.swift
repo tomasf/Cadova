@@ -2,14 +2,14 @@ import Foundation
 
 struct Intersection2D: CombinedGeometry2D {
     let children: [any Geometry2D]
-    let invocationName = "intersection"
+    let moduleName = "intersection"
     let boundaryMergeStrategy = Boundary2D.MergeStrategy.boxIntersection
     let combination = GeometryCombination.intersection
 }
 
 struct Intersection3D: CombinedGeometry3D {
     let children: [any Geometry3D]
-    let invocationName = "intersection"
+    let moduleName = "intersection"
     let boundaryMergeStrategy = Boundary3D.MergeStrategy.boxIntersection
     let combination = GeometryCombination.intersection
 }

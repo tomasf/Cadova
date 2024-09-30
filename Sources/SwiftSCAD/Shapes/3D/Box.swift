@@ -43,8 +43,8 @@ public struct Box: LeafGeometry3D {
         self.size = [side, side, side]
     }
 
-    public let invocationName = "cube"
-    public var invocationParameters: Invocation.Parameters {
+    public let moduleName = "cube"
+    public var moduleParameters: CodeFragment.Parameters {
         ["size": size]
     }
 

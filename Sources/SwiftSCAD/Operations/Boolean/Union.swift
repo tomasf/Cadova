@@ -2,14 +2,14 @@ import Foundation
 
 struct Union2D: CombinedGeometry2D {
     let children: [any Geometry2D]
-    let invocationName = "union"
+    let moduleName = "union"
     let boundaryMergeStrategy = Boundary2D.MergeStrategy.union
     let combination = GeometryCombination.union
 }
 
 struct Union3D: CombinedGeometry3D {
     let children: [any Geometry3D]
-    let invocationName = "union"
+    let moduleName = "union"
     let boundaryMergeStrategy = Boundary3D.MergeStrategy.union
     let combination = GeometryCombination.union
 }

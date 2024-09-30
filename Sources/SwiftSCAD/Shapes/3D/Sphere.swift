@@ -26,8 +26,8 @@ public struct Sphere: LeafGeometry3D {
         self.diameter = radius * 2
     }
 
-    public let invocationName = "sphere"
-    public var invocationParameters: Invocation.Parameters {
+    public let moduleName = "sphere"
+    public var moduleParameters: CodeFragment.Parameters {
         ["d": diameter]
     }
 

@@ -4,8 +4,8 @@ internal struct ResultModifier2D: Geometry2D {
     let body: any Geometry2D
     let modifier: (ResultElementsByType) -> ResultElementsByType
 
-    func invocation(in environment: Environment) -> Invocation {
-        body.invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
@@ -39,8 +39,8 @@ internal struct ResultModifier3D: Geometry3D {
     let body: any Geometry3D
     let modifier: (ResultElementsByType) -> ResultElementsByType
 
-    func invocation(in environment: Environment) -> Invocation {
-        body.invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {

@@ -24,8 +24,8 @@ public struct Import2D: LeafGeometry2D {
     }
 
     public let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
-    public let invocationName = "import"
-    public var invocationParameters: Invocation.Parameters {
+    public let moduleName = "import"
+    public var moduleParameters: CodeFragment.Parameters {
         [
             "file": path,
             "layer": layer,
@@ -53,8 +53,8 @@ public struct Import3D: LeafGeometry3D {
     }
 
     public let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
-    public let invocationName = "import"
-    public var invocationParameters: Invocation.Parameters {
+    public let moduleName = "import"
+    public var moduleParameters: CodeFragment.Parameters {
         [
             "file": path,
             "convexity": convexity

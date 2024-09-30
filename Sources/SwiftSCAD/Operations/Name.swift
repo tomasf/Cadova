@@ -10,8 +10,8 @@ struct NameGeometry2D: Geometry2D {
     let name: String
     let transform: TransformContext
 
-    func invocation(in environment: Environment) -> Invocation {
-        body.invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
@@ -34,8 +34,8 @@ struct NameGeometry3D: Geometry3D {
     let name: String
     let transform: TransformContext
 
-    func invocation(in environment: Environment) -> Invocation {
-        body.invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {

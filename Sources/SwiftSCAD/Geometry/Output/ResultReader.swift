@@ -8,8 +8,8 @@ internal struct ResultReader2D: Geometry2D {
         generator(body.elements(in: environment))
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        body(in: environment).invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body(in: environment).codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
@@ -41,8 +41,8 @@ internal struct ResultReader3D: Geometry3D {
         generator(body.elements(in: environment))
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        body(in: environment).invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body(in: environment).codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {

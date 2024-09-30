@@ -4,16 +4,16 @@ struct ApplyColor2D: WrappedGeometry2D {
     let color: Color
     let body: any Geometry2D
 
-    var invocationName: String? { "color" }
-    var invocationParameters: Invocation.Parameters { color.invocationParameters }
+    var moduleName: String? { "color" }
+    var moduleParameters: CodeFragment.Parameters { color.moduleParameters }
 }
 
 struct ApplyColor3D: WrappedGeometry3D {
     let color: Color
     let body: any Geometry3D
 
-    var invocationName: String? { "color" }
-    var invocationParameters: Invocation.Parameters { color.invocationParameters }
+    var moduleName: String? { "color" }
+    var moduleParameters: CodeFragment.Parameters { color.moduleParameters }
 }
 
 public extension Geometry2D {

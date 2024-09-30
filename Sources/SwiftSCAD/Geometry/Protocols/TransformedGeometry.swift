@@ -10,8 +10,8 @@ import Foundation
 protocol TransformedGeometry2D: Geometry2D {
     var body: any Geometry2D { get }
     var bodyTransform: AffineTransform2D { get }
-    var invocationName: String { get }
-    var invocationParameters: Invocation.Parameters { get }
+    var moduleName: String { get }
+    var moduleParameters: CodeFragment.Parameters { get }
 }
 
 extension TransformedGeometry2D {
@@ -19,11 +19,11 @@ extension TransformedGeometry2D {
         environment.applyingTransform(.init(bodyTransform))
     }
 
-    func invocation(in environment: Environment) -> Invocation {
+    func codeFragment(in environment: Environment) -> CodeFragment {
         .init(
-            name: invocationName,
-            parameters: invocationParameters,
-            body: [body.invocation(in: bodyEnvironment(environment))]
+            module: moduleName,
+            parameters: moduleParameters,
+            body: [body.codeFragment(in: bodyEnvironment(environment))]
         )
     }
 
@@ -44,8 +44,8 @@ extension TransformedGeometry2D {
 protocol TransformedGeometry3D: Geometry3D {
     var body: any Geometry3D { get }
     var bodyTransform: AffineTransform3D { get }
-    var invocationName: String { get }
-    var invocationParameters: Invocation.Parameters { get }
+    var moduleName: String { get }
+    var moduleParameters: CodeFragment.Parameters { get }
 }
 
 extension TransformedGeometry3D {
@@ -53,11 +53,11 @@ extension TransformedGeometry3D {
         environment.applyingTransform(.init(bodyTransform))
     }
 
-    func invocation(in environment: Environment) -> Invocation {
+    func codeFragment(in environment: Environment) -> CodeFragment {
         .init(
-            name: invocationName,
-            parameters: invocationParameters,
-            body: [body.invocation(in: bodyEnvironment(environment))]
+            module: moduleName,
+            parameters: moduleParameters,
+            body: [body.codeFragment(in: bodyEnvironment(environment))]
         )
     }
 

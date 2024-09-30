@@ -9,8 +9,8 @@ struct ReadBoundary2D: Geometry2D {
         return builder(boundary)
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        body(in: environment).invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body(in: environment).codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
@@ -35,8 +35,8 @@ struct ReadBoundary3D: Geometry3D {
         return builder(boundary)
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        body(in: environment).invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body(in: environment).codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {

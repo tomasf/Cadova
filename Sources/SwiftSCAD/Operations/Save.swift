@@ -1,6 +1,6 @@
 import Foundation
 
-extension Invocation {
+extension CodeFragment {
     func export(to fileURL: URL) {
         do {
             try scadCode.write(to: fileURL, atomically: true, encoding: .utf8)
@@ -20,7 +20,7 @@ extension Invocation {
 extension NamedGeometry {
     func exportNamedMembers(to root: URL, using environment: Environment) {
         for (name, geometryList) in geometry {
-            geometryList.invocation(in: environment)
+            geometryList.codeFragment(in: environment)
                 .export(to: URL(expandingFilePath: name, extension: "scad", relativeTo: root))
         }
     }
@@ -32,7 +32,7 @@ public extension Geometry3D {
     @discardableResult
     func save(to path: String) -> any Geometry3D {
         usingDefaultFacets()
-            .invocation(in: .defaultEnvironment)
+            .codeFragment(in: .defaultEnvironment)
             .export(to: path)
         return self
     }
@@ -42,7 +42,7 @@ public extension Geometry3D {
     @discardableResult
     func save(to url: URL) -> any Geometry3D {
         usingDefaultFacets()
-            .invocation(in: .defaultEnvironment)
+            .codeFragment(in: .defaultEnvironment)
             .export(to: url)
         return self
     }
@@ -54,7 +54,7 @@ public extension Geometry2D {
     @discardableResult
     func save(to path: String) -> any Geometry2D {
         usingDefaultFacets()
-            .invocation(in: .defaultEnvironment)
+            .codeFragment(in: .defaultEnvironment)
             .export(to: path)
         return self
     }
@@ -64,7 +64,7 @@ public extension Geometry2D {
     @discardableResult
     func save(to url: URL) -> any Geometry2D {
         usingDefaultFacets()
-            .invocation(in: .defaultEnvironment)
+            .codeFragment(in: .defaultEnvironment)
             .export(to: url)
         return self
     }

@@ -16,11 +16,11 @@ public struct Text: LeafGeometry2D {
         self.text = text
     }
 
-    public func invocation(in environment: Environment) -> Invocation {
-        .init(name: "text", parameters: environment.textAttributes.invocationParameters(text: text), body: [])
+    public func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(module: "text", parameters: environment.textAttributes.moduleParameters(text: text), body: [])
     }
-    public let invocationName = "" // Unused
-    public var invocationParameters: Invocation.Parameters { [:] } // Unused
+    public let moduleName = "" // Unused
+    public var moduleParameters: CodeFragment.Parameters { [:] } // Unused
 
     public var boundary: Bounds { .empty }
 }
@@ -59,7 +59,7 @@ public extension Text {
 }
 
 extension Environment.TextAttributes {
-    func invocationParameters(text: String) -> Invocation.Parameters {
+    func moduleParameters(text: String) -> CodeFragment.Parameters {
         let needsFontParameter = font != nil || fontStyle != nil
         let styleValue = fontStyle.map { ":style=\($0)" } ?? ""
         let fontValue = needsFontParameter ? (font ?? "") + styleValue : nil

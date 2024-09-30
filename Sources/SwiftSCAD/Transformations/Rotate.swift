@@ -4,8 +4,8 @@ struct Rotate2D: TransformedGeometry2D {
     let body: any Geometry2D
     let angle: Angle
 
-    let invocationName = "rotate"
-    var invocationParameters: Invocation.Parameters {
+    let moduleName = "rotate"
+    var moduleParameters: CodeFragment.Parameters {
         ["a": angle]
     }
     var bodyTransform: AffineTransform2D { .rotation(angle) }
@@ -15,8 +15,8 @@ struct Rotate3D: TransformedGeometry3D {
     let body: any Geometry3D
     let rotation: Rotation3D
 
-    let invocationName = "rotate"
-    var invocationParameters: Invocation.Parameters {
+    let moduleName = "rotate"
+    var moduleParameters: CodeFragment.Parameters {
         switch rotation.rotation {
         case .eulerAngles(let x, let y, let z):
             ["a": [x, y, z]]

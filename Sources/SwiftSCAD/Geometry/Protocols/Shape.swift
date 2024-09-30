@@ -20,8 +20,8 @@ public protocol Shape2D: Geometry2D {
 }
 
 public extension Shape2D {
-    func invocation(in environment: Environment) -> Invocation {
-        body.invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
@@ -57,8 +57,8 @@ public protocol Shape3D: Geometry3D {
 }
 
 public extension Shape3D {
-    func invocation(in environment: Environment) -> Invocation {
-        body.invocation(in: environment)
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {

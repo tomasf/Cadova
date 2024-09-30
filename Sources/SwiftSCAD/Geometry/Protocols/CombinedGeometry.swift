@@ -1,15 +1,15 @@
 import Foundation
 
 internal protocol CombinedGeometry2D: Geometry2D {
-    var invocationName: String { get }
+    var moduleName: String { get }
     var children: [any Geometry2D] { get }
     var boundaryMergeStrategy: Boundary2D.MergeStrategy { get }
     var combination: GeometryCombination { get }
 }
 
 extension CombinedGeometry2D {
-    func invocation(in environment: Environment) -> Invocation {
-        .init(name: invocationName, body: children.map { $0.invocation(in: environment) })
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(module: moduleName, body: children.map { $0.codeFragment(in: environment) })
     }
 
     func boundary(in environment: Environment) -> Boundary2D {
@@ -29,15 +29,15 @@ extension CombinedGeometry2D {
 }
 
 internal protocol CombinedGeometry3D: Geometry3D {
-    var invocationName: String { get }
+    var moduleName: String { get }
     var children: [any Geometry3D] { get }
     var boundaryMergeStrategy: Boundary3D.MergeStrategy { get }
     var combination: GeometryCombination { get }
 }
 
 extension CombinedGeometry3D {
-    func invocation(in environment: Environment) -> Invocation {
-        .init(name: invocationName, body: children.map { $0.invocation(in: environment) })
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(module: moduleName, body: children.map { $0.codeFragment(in: environment) })
     }
 
     func boundary(in environment: Environment) -> Boundary3D {

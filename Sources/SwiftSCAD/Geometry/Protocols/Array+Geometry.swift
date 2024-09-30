@@ -5,8 +5,8 @@ extension Array<Geometry2D>: Geometry2D {
         Union2D(children: self)
     }
 
-    public func invocation(in environment: Environment) -> Invocation {
-        body(in: environment).invocation(in: environment)
+    public func codeFragment(in environment: Environment) -> CodeFragment {
+        body(in: environment).codeFragment(in: environment)
     }
 
     public func boundary(in environment: Environment) -> Geometry2D.Bounds {
@@ -27,8 +27,8 @@ extension Array<Geometry3D>: Geometry3D {
         Union3D(children: self)
     }
 
-    public func invocation(in environment: Environment) -> Invocation {
-        body(in: environment).invocation(in: environment)
+    public func codeFragment(in environment: Environment) -> CodeFragment {
+        body(in: environment).codeFragment(in: environment)
     }
 
     public func boundary(in environment: Environment) -> Geometry3D.Bounds {

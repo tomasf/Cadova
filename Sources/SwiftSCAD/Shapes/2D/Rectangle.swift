@@ -30,8 +30,8 @@ public struct Rectangle: LeafGeometry2D {
         self.size = [side, side]
     }
 
-    public let invocationName = "square"
-    public var invocationParameters: Invocation.Parameters {
+    public let moduleName = "square"
+    public var moduleParameters: CodeFragment.Parameters {
         ["size": size]
     }
     public var boundary: Bounds { .box(size) }

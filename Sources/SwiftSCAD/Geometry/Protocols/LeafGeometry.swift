@@ -1,14 +1,14 @@
 import Foundation
 
 public protocol LeafGeometry2D: Geometry2D {
-    var invocationName: String { get }
-    var invocationParameters: Invocation.Parameters { get }
+    var moduleName: String { get }
+    var moduleParameters: CodeFragment.Parameters { get }
     var boundary: Bounds { get }
 }
 
 extension LeafGeometry2D {
-    public func invocation(in environment: Environment) -> Invocation {
-        .init(name: invocationName, parameters: invocationParameters, body: [])
+    public func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(module: moduleName, parameters: moduleParameters, body: [])
     }
 
     public func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
@@ -25,14 +25,14 @@ extension LeafGeometry2D {
 }
 
 public protocol LeafGeometry3D: Geometry3D {
-    var invocationName: String { get }
-    var invocationParameters: Invocation.Parameters { get }
+    var moduleName: String { get }
+    var moduleParameters: CodeFragment.Parameters { get }
     var boundary: Bounds { get }
 }
 
 extension LeafGeometry3D {
-    public func invocation(in environment: Environment) -> Invocation {
-        .init(name: invocationName, parameters: invocationParameters, body: [])
+    public func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(module: moduleName, parameters: moduleParameters, body: [])
     }
 
     public func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {

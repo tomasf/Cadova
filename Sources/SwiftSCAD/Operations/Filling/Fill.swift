@@ -2,7 +2,7 @@ import Foundation
 
 struct Fill: WrappedGeometry2D {
     let body: any Geometry2D
-    let invocationName: String? = "fill"
+    let moduleName: String? = "fill"
 }
 
 public extension Geometry2D {

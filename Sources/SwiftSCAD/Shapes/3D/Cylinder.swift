@@ -59,8 +59,8 @@ extension Cylinder {
         case linear (bottom: Double, top: Double)
     }
 
-    public var invocationName: String { "cylinder" }
-    public var invocationParameters: Invocation.Parameters {
+    public var moduleName: String { "cylinder" }
+    public var moduleParameters: CodeFragment.Parameters {
         switch diameter {
         case .constant (let diameter): [
             "d": diameter,

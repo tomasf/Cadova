@@ -46,8 +46,8 @@ public struct Circle: LeafGeometry2D {
         diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
     }
 
-    public let invocationName = "circle"
-    public var invocationParameters: Invocation.Parameters {
+    public let moduleName = "circle"
+    public var moduleParameters: CodeFragment.Parameters {
         ["d": diameter]
     }
 

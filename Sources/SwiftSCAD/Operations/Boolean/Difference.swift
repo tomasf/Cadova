@@ -11,7 +11,7 @@ struct Difference2D: CombinedGeometry2D {
     }
 
     var children: [any Geometry2D] { [positive, negative] }
-    let invocationName = "difference"
+    let moduleName = "difference"
     let boundaryMergeStrategy = Boundary2D.MergeStrategy.first
     let combination = GeometryCombination.difference
 }
@@ -27,7 +27,7 @@ struct Difference3D: CombinedGeometry3D {
     }
 
     var children: [any Geometry3D] { [positive, negative] }
-    let invocationName = "difference"
+    let moduleName = "difference"
     let boundaryMergeStrategy = Boundary3D.MergeStrategy.first
     let combination = GeometryCombination.difference
 }

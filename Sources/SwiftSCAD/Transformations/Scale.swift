@@ -4,8 +4,8 @@ struct Scale2D: TransformedGeometry2D {
     let body: any Geometry2D
     let scale: Vector2D
 
-    let invocationName = "scale"
-    var invocationParameters: Invocation.Parameters {
+    let moduleName = "scale"
+    var moduleParameters: CodeFragment.Parameters {
         ["v": scale]
     }
     var bodyTransform: AffineTransform2D { .scaling(scale) }
@@ -15,8 +15,8 @@ struct Scale3D: TransformedGeometry3D {
     let body: any Geometry3D
     let scale: Vector3D
 
-    let invocationName = "scale"
-    var invocationParameters: Invocation.Parameters {
+    let moduleName = "scale"
+    var moduleParameters: CodeFragment.Parameters {
         ["v": scale]
     }
     var bodyTransform: AffineTransform3D { .scaling(scale) }

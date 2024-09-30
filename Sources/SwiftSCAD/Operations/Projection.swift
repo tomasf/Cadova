@@ -9,7 +9,7 @@ struct Projection: Geometry2D {
         case slice (z: Double)
     }
 
-    private var parameters: Invocation.Parameters {
+    private var parameters: CodeFragment.Parameters {
         switch mode {
         case .whole: [:]
         case .slice: ["cut": true]
@@ -27,8 +27,8 @@ struct Projection: Geometry2D {
         environment.applyingTransform(.scaling(z: 0))
     }
 
-    func invocation(in environment: Environment) -> Invocation {
-        .init(name: "projection", parameters: parameters, body: [appliedBody.invocation(in: newEnvironment(environment))])
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        .init(module: "projection", parameters: parameters, body: [appliedBody.codeFragment(in: newEnvironment(environment))])
     }
 
     func boundary(in environment: Environment) -> Bounds {

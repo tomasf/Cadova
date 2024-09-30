@@ -1,7 +1,7 @@
 import Foundation
 
 fileprivate extension Environment.Facets {
-    var specialVariables: Invocation.Parameters {
+    var specialVariables: CodeFragment.Parameters {
         switch self {
         case .fixed (let count):
             ["$fn": count]
