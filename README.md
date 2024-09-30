@@ -71,7 +71,8 @@ Open it in OpenSCAD to preview your model. For the best experience, hide the edi
 ![Example 1](https://tomasf.se/projects/swiftscad/examples/example1.png)
 
 ```swift
-Box([10, 20, 5], center: .y)
+Box([10, 20, 5])
+    .aligned(at: .centerY)
     .rotated(y: -20°, z: 45°)
     .save(to: "~/Desktop/examples/example1.scad")
 ```

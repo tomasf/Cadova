@@ -37,7 +37,7 @@ public extension Geometry2D {
     ///
     /// ## Example
     /// ```swift
-    /// Rectangle([10, 10], center: .all)
+    /// Rectangle([10, 10])
     ///     .subtracting {
     ///        Circle(diameter: 4)
     ///     }
@@ -61,7 +61,7 @@ public extension Geometry3D {
     ///
     /// ## Example
     /// ```swift
-    /// Box([10, 10, 5], center: .all)
+    /// Box([10, 10, 5])
     ///     .subtracting {
     ///        Cylinder(diameter: 4, height: 3)
     ///     }
