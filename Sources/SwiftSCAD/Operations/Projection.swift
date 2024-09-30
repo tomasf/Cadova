@@ -35,11 +35,11 @@ struct Projection: Geometry2D {
         body.boundary(in: newEnvironment(environment)).map(\.xy)
     }
 
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         appliedBody.anchors(in: newEnvironment(environment))
     }
 
-    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         appliedBody.elements(in: newEnvironment(environment))
     }
 }

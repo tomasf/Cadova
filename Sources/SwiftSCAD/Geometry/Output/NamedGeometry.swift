@@ -33,8 +33,10 @@ extension NamedGeometry {
 
         func merging(with other: GeometryList) -> GeometryList {
             switch (self, other) {
-            case (.twoD (let a), .twoD (let b)): return .twoD(a + b)
-            case (.threeD (let a), .threeD (let b)): return .threeD(a + b)
+            case (.twoD (let a), .twoD (let b)):
+                return .twoD(a + b)
+            case (.threeD (let a), .threeD (let b)):
+                return .threeD(a + b)
             default: preconditionFailure("You can't mix 2D and 3D for the same geometry name")
             }
         }

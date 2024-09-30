@@ -16,11 +16,11 @@ internal struct ResultReader2D: Geometry2D {
         body(in: environment).boundary(in: environment)
     }
 
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         body(in: environment).anchors(in: environment)
     }
 
-    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body(in: environment).elements(in: environment)
     }
 }
@@ -49,11 +49,11 @@ internal struct ResultReader3D: Geometry3D {
         body(in: environment).boundary(in: environment)
     }
 
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         body(in: environment).anchors(in: environment)
     }
 
-    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body(in: environment).elements(in: environment)
     }
 }

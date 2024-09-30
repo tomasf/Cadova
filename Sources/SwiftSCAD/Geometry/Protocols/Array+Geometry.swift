@@ -13,11 +13,11 @@ extension Array<Geometry2D>: Geometry2D {
         body(in: environment).boundary(in: environment)
     }
 
-    public func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    public func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         body(in: environment).anchors(in: environment)
     }
 
-    public func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    public func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body(in: environment).elements(in: environment)
     }
 }
@@ -35,11 +35,11 @@ extension Array<Geometry3D>: Geometry3D {
         body(in: environment).boundary(in: environment)
     }
 
-    public func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    public func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         body(in: environment).anchors(in: environment)
     }
 
-    public func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    public func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body(in: environment).elements(in: environment)
     }
 }

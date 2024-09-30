@@ -26,12 +26,12 @@ internal struct DefineAnchor2D: Geometry2D {
         body.boundary(in: environment)
     }
 
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         let anchorTransform = anchor(for: boundary(in: environment).boundingBox)
         return body.anchors(in: environment).merging([anchor: anchorTransform]) { $1 }
     }
 
-    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body.elements(in: environment)
     }
 }
@@ -57,12 +57,12 @@ internal struct DefineAnchor3D: Geometry3D {
         body.boundary(in: environment)
     }
 
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         let anchorTransform = anchor(for: boundary(in: environment).boundingBox)
         return body.anchors(in: environment).merging([anchor: anchorTransform]) { $1 }
     }
 
-    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body.elements(in: environment)
     }
 }
@@ -88,11 +88,11 @@ internal struct ApplyAnchor2D: Geometry2D {
         body(in: environment).boundary(in: environment)
     }
 
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         body(in: environment).anchors(in: environment)
     }
 
-    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body(in: environment).elements(in: environment)
     }
 }
@@ -118,11 +118,11 @@ internal struct ApplyAnchor3D: Geometry3D {
         body(in: environment).boundary(in: environment)
     }
 
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         body(in: environment).anchors(in: environment)
     }
 
-    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body(in: environment).elements(in: environment)
     }
 }

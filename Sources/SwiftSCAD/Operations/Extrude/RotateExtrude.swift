@@ -17,11 +17,11 @@ struct RotateExtrude: Geometry3D {
             .extruded(angle: angle, facets: environment.facets)
     }
 
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
         body.anchors(in: environment)
     }
 
-    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body.elements(in: environment)
     }
 }
