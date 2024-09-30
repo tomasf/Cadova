@@ -10,8 +10,7 @@ internal struct Stack2D: Shape2D {
         EnvironmentReader { environment in
             var offset = 0.0
             for geometry in items {
-                let output = geometry.output(in: environment)
-                if let box = output.boundary.boundingBox {
+                if let box = geometry.boundary(in: environment).boundingBox {
                     geometry
                         .translated(-box.minimum)
                         .translated((box.size * -alignment.factors).with(axis, as: offset))
@@ -35,8 +34,7 @@ internal struct Stack3D: Shape3D {
         EnvironmentReader { environment in
             var offset = 0.0
             for geometry in items {
-                let output = geometry.output(in: environment)
-                if let box = output.boundary.boundingBox {
+                if let box = geometry.boundary(in: environment).boundingBox {
                      geometry
                         .translated(-box.minimum)
                         .translated((box.size * -alignment.factors).with(axis, as: offset))

@@ -2,17 +2,17 @@ import XCTest
 @testable import SwiftSCAD
 
 fileprivate func assertEqualGeometry(_ geometry: any Geometry2D, toFile fileName: String) {
-    assertEqualOutputs(geometry.output(in: .defaultEnvironment), toFile: fileName)
+    assertEqualOutputs(geometry.invocation(in: .defaultEnvironment), toFile: fileName)
 }
 
 fileprivate func assertEqualGeometry(_ geometry: any Geometry3D, toFile fileName: String) {
-    assertEqualOutputs(geometry.output(in: .defaultEnvironment), toFile: fileName)
+    assertEqualOutputs(geometry.invocation(in: .defaultEnvironment), toFile: fileName)
 }
 
-fileprivate func assertEqualOutputs<V>(_ output: GeometryOutput<V>, toFile fileName: String) {
+fileprivate func assertEqualOutputs(_ invocation: Invocation, toFile fileName: String) {
     let url = Bundle.module.url(forResource: fileName, withExtension: "scad", subdirectory: "SCAD")!
     let correctString = try! String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
-    let generatedString = output.scadCode.trimmingCharacters(in: .whitespacesAndNewlines)
+    let generatedString = invocation.scadCode.trimmingCharacters(in: .whitespacesAndNewlines)
     XCTAssertEqual(generatedString, correctString)
 }
 
@@ -23,7 +23,7 @@ extension Geometry2D {
 
     @discardableResult
     func assertBoundsEqual(_ correctBB: BoundingBox2D) -> any Geometry2D {
-        let generatedBB = output(in: .defaultEnvironment).boundary.boundingBox
+        let generatedBB = boundary(in: .defaultEnvironment).boundingBox
         generatedBB!.assertEqual(to: correctBB)
         return self
     }
@@ -36,8 +36,8 @@ extension Geometry2D {
 
     @discardableResult
     func assertBoundsEqual(@UnionBuilder2D _ other: () -> any Geometry2D) -> any Geometry2D {
-        let bb1 = self.output(in: .defaultEnvironment).boundary.boundingBox
-        let bb2 = other().output(in: .defaultEnvironment).boundary.boundingBox
+        let bb1 = self.boundary(in: .defaultEnvironment).boundingBox
+        let bb2 = other().boundary(in: .defaultEnvironment).boundingBox
         bb1!.assertEqual(to: bb2!)
         return self
     }
@@ -50,7 +50,7 @@ extension Geometry3D {
 
     @discardableResult
     func assertBoundsEqual(_ correctBB: BoundingBox3D) -> any Geometry3D {
-        let generatedBB = output(in: .defaultEnvironment).boundary.boundingBox
+        let generatedBB = boundary(in: .defaultEnvironment).boundingBox
         generatedBB?.assertEqual(to: correctBB)
         return self
     }
@@ -63,8 +63,8 @@ extension Geometry3D {
 
     @discardableResult
     func assertBoundsEqual(@UnionBuilder3D _ other: () -> any Geometry3D) -> any Geometry3D {
-        let bb1 = self.output(in: .defaultEnvironment).boundary.boundingBox
-        let bb2 = other().output(in: .defaultEnvironment).boundary.boundingBox
+        let bb1 = self.boundary(in: .defaultEnvironment).boundingBox
+        let bb2 = other().boundary(in: .defaultEnvironment).boundingBox
         bb1!.assertEqual(to: bb2!)
         return self
     }

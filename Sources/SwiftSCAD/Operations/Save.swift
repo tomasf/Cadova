@@ -1,6 +1,6 @@
 import Foundation
 
-extension UniversalGeometryOutput {
+extension Invocation {
     func export(to fileURL: URL) {
         do {
             try scadCode.write(to: fileURL, atomically: true, encoding: .utf8)
@@ -15,17 +15,16 @@ extension UniversalGeometryOutput {
     }
 
     var scadData: Data { Data(scadCode.utf8) }
+}
 
+extension NamedGeometry {
     func exportNamedMembers(to root: URL, using environment: Environment) {
-        if let namedGeometry {
-            for (name, geometryList) in namedGeometry.geometry {
-                geometryList.output(in: environment)
-                    .export(to: URL(expandingFilePath: name, extension: "scad", relativeTo: root))
-            }
+        for (name, geometryList) in geometry {
+            geometryList.invocation(in: environment)
+                .export(to: URL(expandingFilePath: name, extension: "scad", relativeTo: root))
         }
     }
 }
-
 
 public extension Geometry3D {
     /// Saves the 3D geometry to a specified path.
@@ -33,7 +32,8 @@ public extension Geometry3D {
     @discardableResult
     func save(to path: String) -> any Geometry3D {
         usingDefaultFacets()
-            .output(in: .defaultEnvironment).export(to: path)
+            .invocation(in: .defaultEnvironment)
+            .export(to: path)
         return self
     }
 
@@ -42,7 +42,8 @@ public extension Geometry3D {
     @discardableResult
     func save(to url: URL) -> any Geometry3D {
         usingDefaultFacets()
-            .output(in: .defaultEnvironment).export(to: url)
+            .invocation(in: .defaultEnvironment)
+            .export(to: url)
         return self
     }
 }
@@ -53,7 +54,8 @@ public extension Geometry2D {
     @discardableResult
     func save(to path: String) -> any Geometry2D {
         usingDefaultFacets()
-            .output(in: .defaultEnvironment).export(to: path)
+            .invocation(in: .defaultEnvironment)
+            .export(to: path)
         return self
     }
 
@@ -62,7 +64,8 @@ public extension Geometry2D {
     @discardableResult
     func save(to url: URL) -> any Geometry2D {
         usingDefaultFacets()
-            .output(in: .defaultEnvironment).export(to: url)
+            .invocation(in: .defaultEnvironment)
+            .export(to: url)
         return self
     }
 }

@@ -1,30 +1,25 @@
 import Foundation
 
-struct Transform2D: WrappedGeometry2D {
+struct Transform2D: TransformedGeometry2D {
     let body: any Geometry2D
     let transform: AffineTransform2D
 
-    var invocation: Invocation? {
-        .init(name: "multmatrix", parameters: ["m": AffineTransform3D(transform)])
+    let invocationName = "multmatrix"
+    var invocationParameters: Invocation.Parameters {
+        ["m": AffineTransform3D(transform)]
     }
-
-    var bodyTransform: AffineTransform3D {
-        AffineTransform3D(transform)
-    }
+    var bodyTransform: AffineTransform2D { transform }
 }
 
-struct Transform3D: WrappedGeometry3D {
+struct Transform3D: TransformedGeometry3D {
     let body: any Geometry3D
     let transform: AffineTransform3D
 
-    var invocation: Invocation? {
-        .init(name: "multmatrix", parameters: ["m": transform])
-
+    let invocationName = "multmatrix"
+    var invocationParameters: Invocation.Parameters {
+        ["m": transform]
     }
-
-    var bodyTransform: AffineTransform3D {
-        transform
-    }
+    var bodyTransform: AffineTransform3D { transform }
 }
 
 public extension Geometry2D {

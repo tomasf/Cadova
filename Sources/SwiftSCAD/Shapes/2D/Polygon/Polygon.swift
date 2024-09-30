@@ -47,14 +47,20 @@ public struct Polygon: Geometry2D {
         pointsProvider.points(in: environment)
     }
 
-    public func output(in environment: Environment) -> GeometryOutput2D {
-        let points = points(in: environment)
-
-        return .init(
-            invocation: .init(name: "polygon", parameters:  ["points": points]),
-            boundary: .points(points)
+    public func invocation(in environment: Environment) -> Invocation {
+        .init(
+            name: "polygon",
+            parameters:  ["points": points(in: environment)],
+            body: []
         )
     }
+
+    public func boundary(in environment: Environment) -> Bounds {
+        .points(points(in: environment))
+    }
+
+    public func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] { [:] }
+    public func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] { [:] }
 }
 
 public extension Polygon {

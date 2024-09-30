@@ -4,6 +4,11 @@ struct Projection: Geometry2D {
     let body: any Geometry3D
     let mode: Mode
 
+    enum Mode {
+        case whole
+        case slice (z: Double)
+    }
+
     private var parameters: Invocation.Parameters {
         switch mode {
         case .whole: [:]
@@ -18,19 +23,24 @@ struct Projection: Geometry2D {
         }
     }
 
-    func output(in environment: Environment) -> Output {
-        .init(
-            invocation: .init(name: "projection", parameters: parameters),
-            body: appliedBody,
-            bodyTransform: .scaling(z: 0),
-            environment: environment,
-            boundaryMapping: { $0.map(\.xy) }
-        )
+    func newEnvironment(_ environment: Environment) -> Environment {
+        environment.applyingTransform(.scaling(z: 0))
     }
 
-    enum Mode {
-        case whole
-        case slice (z: Double)
+    func invocation(in environment: Environment) -> Invocation {
+        .init(name: "projection", parameters: parameters, body: [appliedBody.invocation(in: newEnvironment(environment))])
+    }
+
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: newEnvironment(environment)).map(\.xy)
+    }
+
+    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+        appliedBody.anchors(in: newEnvironment(environment))
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+        appliedBody.elements(in: newEnvironment(environment))
     }
 }
 

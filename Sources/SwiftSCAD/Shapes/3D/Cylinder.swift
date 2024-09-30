@@ -59,19 +59,19 @@ extension Cylinder {
         case linear (bottom: Double, top: Double)
     }
 
-    public var invocation: Invocation {
-        var params: [String: any SCADValue] = ["h": height]
-
+    public var invocationName: String { "cylinder" }
+    public var invocationParameters: Invocation.Parameters {
         switch diameter {
-        case .constant(let diameter):
-            params["d"] = diameter
-
-        case .linear (let bottom, let top):
-            params["d1"] = bottom
-            params["d2"] = top
+        case .constant (let diameter): [
+            "d": diameter,
+            "h": height
+        ]
+        case .linear (let bottom, let top): [
+            "d1": bottom,
+            "d2": top,
+            "h": height
+        ]
         }
-
-        return .init(name: "cylinder", parameters: params)
     }
 
     public func boundary(in environment: Environment) -> Bounds {
@@ -87,4 +87,5 @@ extension Cylinder {
             top.as3D(z: height)
         )
     }
+    public var boundary: Bounds { .empty } // Unused
 }

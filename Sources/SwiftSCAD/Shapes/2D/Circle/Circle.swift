@@ -46,13 +46,16 @@ public struct Circle: LeafGeometry2D {
         diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
     }
 
-    public var invocation: Invocation {
-        .init(name: "circle", parameters: ["d": diameter])
+    public let invocationName = "circle"
+    public var invocationParameters: Invocation.Parameters {
+        ["d": diameter]
     }
 
     public func boundary(in environment: Environment) -> Bounds {
         .circle(radius: diameter / 2, facets: environment.facets)
     }
+
+    public var boundary: Bounds { .empty } // Unused
 }
 
 public extension Circle {

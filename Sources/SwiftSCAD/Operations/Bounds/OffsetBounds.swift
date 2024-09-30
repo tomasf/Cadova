@@ -8,8 +8,8 @@ public extension Geometry2D {
     /// - Returns: A geometry with the boundary translated by the given offset.
 
     func offsettingBounds(_ offset: Vector2D) -> any Geometry2D {
-        ReadBoundary2D(body: self) { snapshot, boundary in
-            SetBounds2D(body: snapshot, boundary: boundary.translated(offset))
+        ReadBoundary2D(body: self) { boundary in
+            SetBounds2D(body: self, boundary: boundary.translated(offset))
         }
     }
 
@@ -34,8 +34,8 @@ public extension Geometry3D {
     /// - Returns: A geometry with the boundary translated by the given offset.
 
     func offsettingBounds(_ offset: Vector3D) -> any Geometry3D {
-        ReadBoundary3D(body: self) { snapshot, boundary in
-            SetBounds3D(body: snapshot, boundary: boundary.translated(offset))
+        ReadBoundary3D(body: self) { boundary in
+            SetBounds3D(body: self, boundary: boundary.translated(offset))
         }
     }
 

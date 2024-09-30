@@ -20,8 +20,20 @@ public protocol Shape2D: Geometry2D {
 }
 
 public extension Shape2D {
-    func output(in environment: Environment) -> Output {
-        body.output(in: environment)
+    func invocation(in environment: Environment) -> Invocation {
+        body.invocation(in: environment)
+    }
+
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: environment)
+    }
+
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
+        body.anchors(in: environment)
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        body.elements(in: environment)
     }
 }
 
@@ -45,7 +57,19 @@ public protocol Shape3D: Geometry3D {
 }
 
 public extension Shape3D {
-    func output(in environment: Environment) -> Output {
-        body.output(in: environment)
+    func invocation(in environment: Environment) -> Invocation {
+        body.invocation(in: environment)
+    }
+
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: environment)
+    }
+
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
+        body.anchors(in: environment)
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        body.elements(in: environment)
     }
 }

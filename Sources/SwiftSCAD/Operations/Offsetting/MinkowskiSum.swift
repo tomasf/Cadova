@@ -1,31 +1,17 @@
 import Foundation
 
-struct Minkowski2D: Geometry2D {
+struct Minkowski2D: CombinedGeometry2D {
     let children: [any Geometry2D]
-
-    func output(in environment: Environment) -> Output {
-        .init(
-            invocation: .init(name: "minkowski"),
-            body: children,
-            environment: environment,
-            boundaryMergeStrategy: .minkowskiSum,
-            combination: .minkowskiSum
-        )
-    }
+    let invocationName = "minkowski"
+    let boundaryMergeStrategy = Boundary2D.MergeStrategy.minkowskiSum
+    let combination = GeometryCombination.minkowskiSum
 }
 
-struct Minkowski3D: Geometry3D {
+struct Minkowski3D: CombinedGeometry3D {
     let children: [any Geometry3D]
-
-    func output(in environment: Environment) -> Output {
-        .init(
-            invocation: .init(name: "minkowski"),
-            body: children,
-            environment: environment,
-            boundaryMergeStrategy: .minkowskiSum,
-            combination: .minkowskiSum
-        )
-    }
+    let invocationName = "minkowski"
+    let boundaryMergeStrategy = Boundary3D.MergeStrategy.minkowskiSum
+    let combination = GeometryCombination.minkowskiSum
 }
 
 public extension Geometry2D {

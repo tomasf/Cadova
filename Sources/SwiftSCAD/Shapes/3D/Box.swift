@@ -43,11 +43,12 @@ public struct Box: LeafGeometry3D {
         self.size = [side, side, side]
     }
 
-    public var invocation: Invocation {
-        .init(name: "cube", parameters: ["size": size])
+    public let invocationName = "cube"
+    public var invocationParameters: Invocation.Parameters {
+        ["size": size]
     }
 
-    public func boundary(in environment: Environment) -> Bounds {
+    public var boundary: Bounds {
         .box(size)
     }
 }

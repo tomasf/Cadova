@@ -1,29 +1,25 @@
 import Foundation
 
-struct Scale2D: WrappedGeometry2D {
+struct Scale2D: TransformedGeometry2D {
     let body: any Geometry2D
     let scale: Vector2D
 
-    var invocation: Invocation? {
-        .init(name: "scale", parameters: ["v": scale])
+    let invocationName = "scale"
+    var invocationParameters: Invocation.Parameters {
+        ["v": scale]
     }
-
-    var bodyTransform: AffineTransform3D {
-        .scaling(x: scale.x, y: scale.y, z: 1)
-    }
+    var bodyTransform: AffineTransform2D { .scaling(scale) }
 }
 
-struct Scale3D: WrappedGeometry3D {
+struct Scale3D: TransformedGeometry3D {
     let body: any Geometry3D
     let scale: Vector3D
 
-    var invocation: Invocation? {
-        .init(name: "scale", parameters: ["v": scale])
+    let invocationName = "scale"
+    var invocationParameters: Invocation.Parameters {
+        ["v": scale]
     }
-
-    var bodyTransform: AffineTransform3D {
-        .scaling(scale)
-    }
+    var bodyTransform: AffineTransform3D { .scaling(scale) }
 }
 
 public extension Geometry2D {

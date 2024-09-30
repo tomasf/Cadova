@@ -8,18 +8,26 @@ struct LinearExtrude: Geometry3D {
     let scale: Vector2D
     let convexity: Int
 
-    func output(in environment: Environment) -> Output {
-        return GeometryOutput<Vector3D>(
-            invocation: .init(name: "linear_extrude", parameters: [
-                "height": height,
-                "twist": twist.map { -$0 } ?? 0°,
-                "scale": scale,
-                "convexity": convexity
-            ]),
-            body: body,
-            environment: environment,
-            boundaryMapping: { $0.extruded(height: height, twist: twist ?? 0°, topScale: scale, facets: environment.facets) }
-        )
+    func invocation(in environment: Environment) -> Invocation {
+        .init(name: "linear_extrude", parameters: [
+            "height": height,
+            "twist": twist.map { -$0 } ?? 0°,
+            "scale": scale,
+            "convexity": convexity
+        ], body: [body.invocation(in: environment)])
+    }
+
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: environment)
+            .extruded(height: height, twist: twist ?? 0°, topScale: scale, facets: environment.facets)
+    }
+
+    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+        body.anchors(in: environment)
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier : any ResultElement] {
+        body.elements(in: environment)
     }
 }
 

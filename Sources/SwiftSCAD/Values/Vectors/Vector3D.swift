@@ -207,3 +207,9 @@ extension Vector3D: Vector {
         Self(x: Swift.max(a.x, b.x), y: Swift.max(a.y, b.y), z: Swift.max(a.z, b.z))
     }
 }
+
+extension Vector3D: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        String(format: "[%g, %g, %g]", x, y, z)
+    }
+}

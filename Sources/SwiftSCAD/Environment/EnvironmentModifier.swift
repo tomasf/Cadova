@@ -3,7 +3,6 @@ import Foundation
 struct EnvironmentModifier2D: WrappedGeometry2D {
     let body: any Geometry2D
     let modification: (Environment) -> Environment
-    let invocation: Invocation? = nil
 
     func modifiedEnvironment(_ environment: Environment) -> Environment {
         modification(environment)
@@ -13,7 +12,6 @@ struct EnvironmentModifier2D: WrappedGeometry2D {
 struct EnvironmentModifier3D: WrappedGeometry3D {
     let body: any Geometry3D
     let modification: (Environment) -> Environment
-    let invocation: Invocation? = nil
 
     func modifiedEnvironment(_ environment: Environment) -> Environment {
         modification(environment)

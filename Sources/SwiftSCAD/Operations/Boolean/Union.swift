@@ -1,31 +1,17 @@
 import Foundation
 
-struct Union2D: Geometry2D {
+struct Union2D: CombinedGeometry2D {
     let children: [any Geometry2D]
-
-    func output(in environment: Environment) -> GeometryOutput2D {
-        .init(
-            invocation: .init(name: "union"),
-            body: children,
-            environment: environment,
-            boundaryMergeStrategy: .union,
-            combination: .union
-        )
-    }
+    let invocationName = "union"
+    let boundaryMergeStrategy = Boundary2D.MergeStrategy.union
+    let combination = GeometryCombination.union
 }
 
-struct Union3D: Geometry3D {
+struct Union3D: CombinedGeometry3D {
     let children: [any Geometry3D]
-
-    func output(in environment: Environment) -> GeometryOutput3D {
-        .init(
-            invocation: .init(name: "union"),
-            body: children,
-            environment: environment,
-            boundaryMergeStrategy: .union,
-            combination: .union
-        )
-    }
+    let invocationName = "union"
+    let boundaryMergeStrategy = Boundary3D.MergeStrategy.union
+    let combination = GeometryCombination.union
 }
 
 /// Form a union to group multiple pieces of geometry together and treat them as one

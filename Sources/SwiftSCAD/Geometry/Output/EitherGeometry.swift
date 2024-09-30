@@ -1,18 +1,18 @@
 import Foundation
 
 public struct AnyGeometry {
-    private let outputProvider: (Environment) -> any UniversalGeometryOutput
+    private let elementsProvider: (Environment) -> ResultElementsByType
 
     internal init(_ geometry: any Geometry2D) {
-        self.outputProvider = geometry.output(in:)
+        self.elementsProvider = geometry.elements(in:)
     }
 
     internal init(_ geometry: any Geometry3D) {
-        self.outputProvider = geometry.output(in:)
+        self.elementsProvider = geometry.elements(in:)
     }
 
-    internal func output(in environment: Environment) -> any UniversalGeometryOutput {
-        outputProvider(environment)
+    internal func namedGeometry(in environment: Environment) -> NamedGeometry? {
+        elementsProvider(environment)[NamedGeometry.self]
     }
 }
 

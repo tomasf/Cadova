@@ -4,8 +4,9 @@ struct ForceRender2D: WrappedGeometry2D {
     let body: any Geometry2D
     let convexity: Int
     
-    var invocation: Invocation? {
-        .init(name: "render", parameters: ["convexity": convexity])
+    let invocationName: String? = "render"
+    var invocationParameters: Invocation.Parameters {
+        ["convexity": convexity]
     }
 }
 
@@ -13,8 +14,9 @@ struct ForceRender3D: WrappedGeometry3D {
     let body: any Geometry3D
     let convexity: Int
     
-    var invocation: Invocation? {
-        .init(name: "render", parameters: ["convexity": convexity])
+    let invocationName: String? = "render"
+    var invocationParameters: Invocation.Parameters {
+        ["convexity": convexity]
     }
 }
 

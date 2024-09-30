@@ -3,7 +3,7 @@ import Foundation
 public func save(to directory: URL? = nil, environment: Environment? = nil, @AnyGeometryBuilder geometries: () -> [AnyGeometry]) {
     let effectiveEnvironment = environment ?? .defaultEnvironment
     let namedGeometry = NamedGeometry.merging(geometries().compactMap {
-        $0.output(in: effectiveEnvironment).namedGeometry
+        $0.namedGeometry(in: effectiveEnvironment)
     })
     for (name, geometry) in namedGeometry.geometry {
         let fileURL = URL(expandingFilePath: name, extension: "scad", relativeTo: directory)
@@ -12,12 +12,12 @@ public func save(to directory: URL? = nil, environment: Environment? = nil, @Any
         case .twoD (let geometry):
             geometry
                 .usingDefaultFacets()
-                .output(in: effectiveEnvironment)
+                .invocation(in: effectiveEnvironment)
                 .export(to: fileURL)
         case .threeD (let geometry):
             geometry
                 .usingDefaultFacets()
-                .output(in: effectiveEnvironment)
+                .invocation(in: effectiveEnvironment)
                 .export(to: fileURL)
         }
     }

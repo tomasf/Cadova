@@ -1,59 +1,82 @@
 import Foundation
 
 protocol WrappedGeometry2D: Geometry2D {
-    var invocation: Invocation? { get }
     var body: any Geometry2D { get }
-    var bodyTransform: AffineTransform3D { get }
     func modifiedEnvironment(_ environment: Environment) -> Environment
-    func modifiedOutput(_ output: Output) -> Output
+    var invocationName: String? { get }
+    var invocationParameters: Invocation.Parameters { get }
 }
 
 extension WrappedGeometry2D {
-    public var bodyTransform: AffineTransform3D { .identity }
+    internal func bodyEnvironment(_ environment: Environment) -> Environment {
+        modifiedEnvironment(environment)
+    }
 
-    public func output(in environment: Environment) -> Output {
-        if let invocation {
-            return modifiedOutput(.init(
-                invocation: invocation,
-                body: body,
-                bodyTransform: bodyTransform,
-                environment: modifiedEnvironment(environment)
-            ))
+    func invocation(in environment: Environment) -> Invocation {
+        if let invocationName {
+            Invocation(name: invocationName, parameters: invocationParameters, body: [body.invocation(in: bodyEnvironment(environment))])
         } else {
-            return modifiedOutput(body.output(in: modifiedEnvironment(environment)))
+            body.invocation(in: bodyEnvironment(environment))
         }
     }
 
-    public func modifiedEnvironment(_ e: Environment) -> Environment { e }
-    public func modifiedOutput(_ output: Output) -> Output { output }
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: bodyEnvironment(environment))
+    }
+
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
+        body.anchors(in: bodyEnvironment(environment))
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        body.elements(in: bodyEnvironment(environment))
+    }
+
+    func modifiedEnvironment(_ environment: Environment) -> Environment {
+        environment
+    }
+
+    public var invocationName: String? { nil }
+    public var invocationParameters: Invocation.Parameters { [:] }
 }
 
 protocol WrappedGeometry3D: Geometry3D {
-    var invocation: Invocation? { get }
     var body: any Geometry3D { get }
     var bodyTransform: AffineTransform3D { get }
     func modifiedEnvironment(_ environment: Environment) -> Environment
-    func modifiedOutput(_ output: Output) -> Output
+    var invocationName: String? { get }
+    var invocationParameters: Invocation.Parameters { get }
 }
 
 extension WrappedGeometry3D {
     public var bodyTransform: AffineTransform3D { .identity }
 
-    public func output(in environment: Environment) -> Output {
-        if let invocation {
-            return modifiedOutput(
-                .init(
-                    invocation: invocation,
-                    body: body,
-                    bodyTransform: bodyTransform,
-                    environment: modifiedEnvironment(environment)
-                )
-            )
+    internal func bodyEnvironment(_ environment: Environment) -> Environment {
+        modifiedEnvironment(environment.applyingTransform(bodyTransform))
+    }
+
+    func invocation(in environment: Environment) -> Invocation {
+        if let invocationName {
+            Invocation(name: invocationName, parameters: invocationParameters, body: [body.invocation(in: bodyEnvironment(environment))])
         } else {
-            return modifiedOutput(body.output(in: modifiedEnvironment(environment)))
+            body.invocation(in: bodyEnvironment(environment))
         }
     }
 
-    public func modifiedEnvironment(_ e: Environment) -> Environment { e }
-    public func modifiedOutput(_ output: Output) -> Output { output }
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: bodyEnvironment(environment))
+    }
+
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
+        body.anchors(in: bodyEnvironment(environment))
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        body.elements(in: bodyEnvironment(environment))
+    }
+
+    func modifiedEnvironment(_ environment: Environment) -> Environment { environment }
+
+    public var invocationName: String? { nil }
+    public var invocationParameters: Invocation.Parameters { [:] }
 }

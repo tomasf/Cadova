@@ -1,6 +1,6 @@
 import Foundation
 
-struct Difference2D: Geometry2D {
+struct Difference2D: CombinedGeometry2D {
     let positive: any Geometry2D
     let negative: any Geometry2D
 
@@ -10,18 +10,13 @@ struct Difference2D: Geometry2D {
             .invertingOperation()
     }
 
-    func output(in environment: Environment) -> Output {
-        .init(
-            invocation: .init(name: "difference"),
-            body: [positive, negative],
-            environment: environment,
-            boundaryMergeStrategy: .first,
-            combination: .difference
-        )
-    }
+    var children: [any Geometry2D] { [positive, negative] }
+    let invocationName = "difference"
+    let boundaryMergeStrategy = Boundary2D.MergeStrategy.first
+    let combination = GeometryCombination.difference
 }
 
-struct Difference3D: Geometry3D {
+struct Difference3D: CombinedGeometry3D {
     let positive: any Geometry3D
     let negative: any Geometry3D
 
@@ -31,15 +26,10 @@ struct Difference3D: Geometry3D {
             .invertingOperation()
     }
 
-    func output(in environment: Environment) -> Output {
-        .init(
-            invocation: .init(name: "difference"),
-            body: [positive, negative],
-            environment: environment,
-            boundaryMergeStrategy: .first,
-            combination: .difference
-        )
-    }
+    var children: [any Geometry3D] { [positive, negative] }
+    let invocationName = "difference"
+    let boundaryMergeStrategy = Boundary3D.MergeStrategy.first
+    let combination = GeometryCombination.difference
 }
 
 public extension Geometry2D {

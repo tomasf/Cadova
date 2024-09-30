@@ -36,8 +36,8 @@ internal extension Color {
         value = .named(name, alpha: alpha)
     }
 
-    var invocation: Invocation {
-        Invocation(name: "color", parameters: value.parameters)
+    var invocationParameters: Invocation.Parameters {
+        value.parameters
     }
 }
 

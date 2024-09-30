@@ -1,7 +1,7 @@
 import Foundation
 
 /// Text as a 2D geometry
-public struct Text: Geometry2D {
+public struct Text: LeafGeometry2D {
     let text: String
 
     /// Initializes a new text geometry with the specified text.
@@ -16,14 +16,20 @@ public struct Text: Geometry2D {
         self.text = text
     }
 
-    public func output(in environment: Environment) -> Output {
-        return .init(invocation: environment.textAttributes.invocation(text: text), boundary: .empty)
+    public func invocation(in environment: Environment) -> Invocation {
+        .init(name: "text", parameters: environment.textAttributes.invocationParameters(text: text), body: [])
     }
+    public let invocationName = "" // Unused
+    public var invocationParameters: Invocation.Parameters { [:] } // Unused
 
+    public var boundary: Bounds { .empty }
+}
+
+public extension Text {
     /// An enumeration representing the horizontal alignment options for text geometry.
     ///
     /// Use these options with ``Geometry2D/usingTextAlignment(horizontal:vertical:)`` to set the horizontal alignment of your text geometry.
-    public enum HorizontalAlignment: String, Sendable {
+    enum HorizontalAlignment: String, Sendable {
         /// Aligns the text to the left.
         case left
         /// Centers the text horizontally.
@@ -40,7 +46,7 @@ public struct Text: Geometry2D {
     /// - `bottom`: Aligns the text to the bottom.
     ///
     /// Use these options with ``Geometry2D/usingTextAlignment(horizontal:vertical:)`` to set the vertical alignment of your text geometry.
-    public enum VerticalAlignment: String, Sendable {
+    enum VerticalAlignment: String, Sendable {
         /// Aligns the text to the top.
         case top
         /// Centers the text vertically.
@@ -53,19 +59,19 @@ public struct Text: Geometry2D {
 }
 
 extension Environment.TextAttributes {
-    func invocation(text: String) -> Invocation {
+    func invocationParameters(text: String) -> Invocation.Parameters {
         let needsFontParameter = font != nil || fontStyle != nil
         let styleValue = fontStyle.map { ":style=\($0)" } ?? ""
         let fontValue = needsFontParameter ? (font ?? "") + styleValue : nil
         let size = (fontSize ?? 10.0) * 0.72
 
-        return .init(name: "text", parameters: [
+        return [
             "text": text,
             "font": fontValue,
             "size": size,
             "halign": horizontalAlignment?.rawValue,
             "valign": verticalAlignment?.rawValue,
             "spacing": characterSpacing
-        ])
+        ]
     }
 }

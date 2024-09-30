@@ -10,9 +10,22 @@ struct NameGeometry2D: Geometry2D {
     let name: String
     let transform: TransformContext
 
-    func output(in environment: Environment) -> Output {
-        let t: AffineTransform2D = transform == .global ? .init(environment.transform) : .identity
-        return body.output(in: environment).naming(body.transformed(t), name)
+    func invocation(in environment: Environment) -> Invocation {
+        body.invocation(in: environment)
+    }
+
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: environment)
+    }
+
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
+        body.anchors(in: environment)
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        let elements = body.elements(in: environment)
+        let namedGeometry = elements[NamedGeometry.self] ?? .init()
+        return elements.setting(NamedGeometry.self, to: namedGeometry.adding(body, named: name))
     }
 }
 
@@ -21,9 +34,22 @@ struct NameGeometry3D: Geometry3D {
     let name: String
     let transform: TransformContext
 
-    func output(in environment: Environment) -> Output {
-        let t: AffineTransform3D = transform == .global ? environment.transform : .identity
-        return body.output(in: environment).naming(body.transformed(t), name)
+    func invocation(in environment: Environment) -> Invocation {
+        body.invocation(in: environment)
+    }
+
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: environment)
+    }
+
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
+        body.anchors(in: environment)
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        let elements = body.elements(in: environment)
+        let namedGeometry = elements[NamedGeometry.self] ?? .init()
+        return elements.setting(NamedGeometry.self, to: namedGeometry.adding(body, named: name))
     }
 }
 

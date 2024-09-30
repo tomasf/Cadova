@@ -26,11 +26,13 @@ public struct Sphere: LeafGeometry3D {
         self.diameter = radius * 2
     }
 
-    public var invocation: Invocation {
-        .init(name: "sphere", parameters: ["d": diameter])
+    public let invocationName = "sphere"
+    public var invocationParameters: Invocation.Parameters {
+        ["d": diameter]
     }
 
     public func boundary(in environment: Environment) -> Bounds {
         .sphere(radius: diameter / 2, facets: environment.facets)
     }
+    public var boundary: Bounds { .empty } // Unused
 }

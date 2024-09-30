@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct NamedGeometry: GeometryOutputElement {
+internal struct NamedGeometry: ResultElement {
     let geometry: [String: GeometryList]
 
     init(_ geometry: [String: GeometryList] = [:]) {
@@ -39,32 +39,14 @@ extension NamedGeometry {
             }
         }
 
-        func output(in environment: Environment) -> any UniversalGeometryOutput {
+        func invocation(in environment: Environment) -> Invocation {
             switch self {
             case .twoD (let geometry):
-                Union2D(children: geometry).output(in: environment)
+                Union2D(children: geometry).invocation(in: environment)
 
             case .threeD (let geometry):
-                Union3D(children: geometry).output(in: environment)
+                Union3D(children: geometry).invocation(in: environment)
             }
         }
-    }
-}
-
-extension UniversalGeometryOutput {
-    var namedGeometry: NamedGeometry? {
-        elements[NamedGeometry.self]
-    }
-}
-
-extension GeometryOutput {
-    func naming(_ body: any Geometry2D, _ name: String) -> GeometryOutput {
-        let newNamedGeometry = (namedGeometry ?? NamedGeometry()).adding(body, named: name)
-        return setting(element: newNamedGeometry)
-    }
-
-    func naming(_ body: any Geometry3D, _ name: String) -> GeometryOutput {
-        let newNamedGeometry = (namedGeometry ?? NamedGeometry()).adding(body, named: name)
-        return setting(element: newNamedGeometry)
     }
 }

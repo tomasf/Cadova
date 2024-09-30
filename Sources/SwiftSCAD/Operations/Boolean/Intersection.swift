@@ -1,31 +1,17 @@
 import Foundation
 
-struct Intersection2D: Geometry2D {
+struct Intersection2D: CombinedGeometry2D {
     let children: [any Geometry2D]
-
-    func output(in environment: Environment) -> Output {
-        .init(
-            invocation: .init(name: "intersection"),
-            body: children,
-            environment: environment,
-            boundaryMergeStrategy: .boxIntersection,
-            combination: .intersection
-        )
-    }
+    let invocationName = "intersection"
+    let boundaryMergeStrategy = Boundary2D.MergeStrategy.boxIntersection
+    let combination = GeometryCombination.intersection
 }
 
-struct Intersection3D: Geometry3D {
+struct Intersection3D: CombinedGeometry3D {
     let children: [any Geometry3D]
-
-    func output(in environment: Environment) -> Output {
-        .init(
-            invocation: .init(name: "intersection"),
-            body: children,
-            environment: environment,
-            boundaryMergeStrategy: .boxIntersection,
-            combination: .intersection
-        )
-    }
+    let invocationName = "intersection"
+    let boundaryMergeStrategy = Boundary3D.MergeStrategy.boxIntersection
+    let combination = GeometryCombination.intersection
 }
 
 public extension Geometry2D {

@@ -96,15 +96,16 @@ public struct Polyhedron: LeafGeometry3D {
         self.init(points: table, faces: faces, convexity: convexity)
     }
 
-    public var invocation: Invocation {
-        .init(name: "polyhedron", parameters: [
+    public let invocationName = "polyhedron"
+    public var invocationParameters: Invocation.Parameters {
+        [
             "points": points,
             "faces": faces,
             "convexity": convexity
-        ])
+        ]
     }
 
-    public func boundary(in environment: Environment) -> Bounds {
+    public var boundary: Bounds {
         .points(points)
     }
 }

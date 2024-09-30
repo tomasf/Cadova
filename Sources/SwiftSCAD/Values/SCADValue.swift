@@ -1,11 +1,11 @@
 import Foundation
 
-protocol SCADValue: Sendable {
+public protocol SCADValue: Sendable {
     var scadString: String { get }
 }
 
 extension Double: SCADValue {
-    var scadString: String {
+    public var scadString: String {
         String(format: "%.06f", self)
     }
 }
@@ -33,7 +33,7 @@ extension String: SCADValue {
 }
 
 extension Array: SCADValue where Element: SCADValue {
-    var scadString: String {
+    public var scadString: String {
         "[" + map(\.scadString).joined(separator: ", ")  + "]"
     }
 }

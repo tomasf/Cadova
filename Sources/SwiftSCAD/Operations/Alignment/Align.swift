@@ -6,8 +6,8 @@ public struct Align2D: Shape2D {
 
     public var body: any Geometry2D {
         EnvironmentReader { environment in
-            let output = content.output(in: environment)
-            let translation = output.boundary.boundingBox?.translation(for: alignment) ?? .zero
+            let boundary = content.boundary(in: environment)
+            let translation = boundary.boundingBox?.translation(for: alignment) ?? .zero
             content
                 .translated(translation)
         }
@@ -20,8 +20,8 @@ public struct Align3D: Shape3D {
 
     public var body: any Geometry3D {
         EnvironmentReader { environment in
-            let output = content.output(in: environment)
-            let translation = output.boundary.boundingBox?.translation(for: alignment) ?? .zero
+            let boundary = content.boundary(in: environment)
+            let translation = boundary.boundingBox?.translation(for: alignment) ?? .zero
             content
                 .translated(translation)
         }

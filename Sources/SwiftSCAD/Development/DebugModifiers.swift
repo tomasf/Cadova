@@ -1,10 +1,9 @@
 import Foundation
 
-struct Prefix2D: WrappedGeometry2D {
-    let prefix: String
+struct Prefix2D: Geometry2D {
     let isImmaterial: Bool
+    let prefix: String
     let body: any Geometry2D
-    let invocation: Invocation? = nil
 
     init(prefix: String, isImmaterial: Bool = false, body: any Geometry2D) {
         self.prefix = prefix
@@ -12,18 +11,27 @@ struct Prefix2D: WrappedGeometry2D {
         self.body = body
     }
 
-    func modifiedOutput(_ output: Output) -> Output {
-        output
-            .modifyingCode { prefix + $0 }
-            .modifyingBoundary { isImmaterial ? .empty : $0 }
+    func invocation(in environment: Environment) -> Invocation {
+        .init(prefix: prefix, body: body.invocation(in: environment))
+    }
+
+    func boundary(in environment: Environment) -> Bounds {
+        isImmaterial ? .empty : body.boundary(in: environment)
+    }
+
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
+        body.anchors(in: environment)
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        body.elements(in: environment)
     }
 }
 
-struct Prefix3D: WrappedGeometry3D {
-    let prefix: String
+struct Prefix3D: Geometry3D {
     let isImmaterial: Bool
+    let prefix: String
     let body: any Geometry3D
-    let invocation: Invocation? = nil
 
     init(prefix: String, isImmaterial: Bool = false, body: any Geometry3D) {
         self.prefix = prefix
@@ -31,12 +39,21 @@ struct Prefix3D: WrappedGeometry3D {
         self.body = body
     }
 
-    func modifiedOutput(_ output: Output) -> Output {
-        output
-            .modifyingCode { prefix + $0 }
-            .modifyingBoundary { isImmaterial ? .empty : $0 }
+    func invocation(in environment: Environment) -> Invocation {
+        .init(prefix: prefix, body: body.invocation(in: environment))
     }
-}
+
+    func boundary(in environment: Environment) -> Bounds {
+        isImmaterial ? .empty : body.boundary(in: environment)
+    }
+
+    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
+        body.anchors(in: environment)
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        body.elements(in: environment)
+    }}
 
 public extension Geometry2D {
     /// Highlight this geometry

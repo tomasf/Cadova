@@ -1,29 +1,25 @@
 import Foundation
 
-struct Translate2D: WrappedGeometry2D {
+struct Translate2D: TransformedGeometry2D {
     let body: any Geometry2D
     let distance: Vector2D
 
-    var invocation: Invocation? {
-        .init(name: "translate", parameters: ["v": distance])
+    let invocationName = "translate"
+    var invocationParameters: Invocation.Parameters {
+        ["v": distance]
     }
-
-    var bodyTransform: AffineTransform3D {
-        .translation(Vector3D(distance))
-    }
+    var bodyTransform: AffineTransform2D { .translation(distance) }
 }
 
-struct Translate3D: WrappedGeometry3D {
+struct Translate3D: TransformedGeometry3D {
     let body: any Geometry3D
     let distance: Vector3D
 
-    var invocation: Invocation? {
-        .init(name: "translate", parameters: ["v": distance])
+    let invocationName = "translate"
+    var invocationParameters: Invocation.Parameters {
+        ["v": distance]
     }
-
-    var bodyTransform: AffineTransform3D {
-        .translation(distance)
-    }
+    var bodyTransform: AffineTransform3D { .translation(distance) }
 }
 
 public extension Geometry2D {

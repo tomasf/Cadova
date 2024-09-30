@@ -3,13 +3,17 @@ import Foundation
 struct ApplyColor2D: WrappedGeometry2D {
     let color: Color
     let body: any Geometry2D
-    var invocation: Invocation? { color.invocation }
+
+    var invocationName: String? { "color" }
+    var invocationParameters: Invocation.Parameters { color.invocationParameters }
 }
 
 struct ApplyColor3D: WrappedGeometry3D {
     let color: Color
     let body: any Geometry3D
-    var invocation: Invocation? { color.invocation }
+
+    var invocationName: String? { "color" }
+    var invocationParameters: Invocation.Parameters { color.invocationParameters }
 }
 
 public extension Geometry2D {

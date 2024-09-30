@@ -7,21 +7,21 @@
 
 import Foundation
 
-public protocol GeometryOutputElement {
+public protocol ResultElement {
     static func combine(elements: [Self], for operation: GeometryCombination) -> Self?
 }
 
-internal extension GeometryOutputElement {
-    static func combine(anyElements elements: [any GeometryOutputElement], for operation: GeometryCombination) -> Self? {
+internal extension ResultElement {
+    static func combine(anyElements elements: [any ResultElement], for operation: GeometryCombination) -> Self? {
         combine(elements: elements as! [Self], for: operation)
     }
 }
 
-internal typealias OutputElementsByType = [ObjectIdentifier: any GeometryOutputElement]
+internal typealias ResultElementsByType = [ObjectIdentifier: any ResultElement]
 
-internal extension OutputElementsByType {
+internal extension ResultElementsByType {
     init(combining elements: [Self], operation: GeometryCombination) {
-        self = elements.reduce(into: [ObjectIdentifier: [any GeometryOutputElement]]()) {
+        self = elements.reduce(into: [ObjectIdentifier: [any ResultElement]]()) {
             for (key, value) in $1 {
                 $0[key, default: []].append(value)
             }
@@ -31,8 +31,14 @@ internal extension OutputElementsByType {
         }
     }
 
-    subscript<E: GeometryOutputElement>(_ type: E.Type) -> E? {
+    subscript<E: ResultElement>(_ type: E.Type) -> E? {
         get { self[ObjectIdentifier(type)] as? E }
         set { self[ObjectIdentifier(type)] = newValue }
+    }
+
+    func setting<E: ResultElement>(_ type: E.Type, to value: E?) -> Self {
+        var dict = self
+        dict[E.self] = value
+        return dict
     }
 }

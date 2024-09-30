@@ -1,38 +1,30 @@
 import Foundation
 
-struct Rotate2D: WrappedGeometry2D {
+struct Rotate2D: TransformedGeometry2D {
     let body: any Geometry2D
     let angle: Angle
 
-    var invocation: Invocation? {
-        .init(name: "rotate", parameters: ["a": angle])
+    let invocationName = "rotate"
+    var invocationParameters: Invocation.Parameters {
+        ["a": angle]
     }
-
-    var bodyTransform: AffineTransform3D {
-        .rotation(z: angle)
-    }
+    var bodyTransform: AffineTransform2D { .rotation(angle) }
 }
 
-struct Rotate3D: WrappedGeometry3D {
+struct Rotate3D: TransformedGeometry3D {
     let body: any Geometry3D
     let rotation: Rotation3D
 
-    var invocation: Invocation? {
-        let params: [String: any SCADValue]
-
+    let invocationName = "rotate"
+    var invocationParameters: Invocation.Parameters {
         switch rotation.rotation {
         case .eulerAngles(let x, let y, let z):
-            params = ["a": [x, y, z]]
+            ["a": [x, y, z]]
         case .axis(let v, let angle):
-            params = ["a": angle, "v": [v.x, v.y, v.z]]
+            ["a": angle, "v": [v.x, v.y, v.z]]
         }
-
-        return .init(name: "rotate", parameters: params)
     }
-
-    var bodyTransform: AffineTransform3D {
-        .rotation(rotation)
-    }
+    var bodyTransform: AffineTransform3D { .rotation(rotation) }
 }
 
 public extension Geometry2D {

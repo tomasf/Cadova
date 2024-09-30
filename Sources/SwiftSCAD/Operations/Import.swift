@@ -23,18 +23,15 @@ public struct Import2D: LeafGeometry2D {
         self.center = center
     }
 
-    public var invocation: Invocation {
-        .init(name: "import", parameters: [
+    public let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
+    public let invocationName = "import"
+    public var invocationParameters: Invocation.Parameters {
+        [
             "file": path,
             "layer": layer,
             "convexity": convexity,
             "center": center
-        ])
-    }
-
-    public func boundary(in environment: Environment) -> Bounds {
-        // We don't know this; the import is done by OpenSCAD
-        .empty
+        ]
     }
 }
 
@@ -55,15 +52,12 @@ public struct Import3D: LeafGeometry3D {
         self.convexity = convexity
     }
 
-    public var invocation: Invocation {
-        .init(name: "import", parameters: [
+    public let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
+    public let invocationName = "import"
+    public var invocationParameters: Invocation.Parameters {
+        [
             "file": path,
             "convexity": convexity
-        ])
-    }
-
-    public func boundary(in environment: Environment) -> Bounds {
-        // We don't know this; the import is done by OpenSCAD
-        .empty
+        ]
     }
 }

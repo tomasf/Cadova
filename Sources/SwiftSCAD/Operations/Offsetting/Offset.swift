@@ -5,25 +5,17 @@ internal struct Offset: WrappedGeometry2D {
     let amount: Double
     let style: LineJoinStyle
 
-    public var invocation: Invocation? {
-        let params: [String: any SCADValue]
-
+    let invocationName: String? = "offset"
+    var invocationParameters: Invocation.Parameters {
         switch style {
-        case .round:
-            params = ["r": amount]
-        case .miter:
-            params = ["delta": amount]
-        case .bevel:
-            params = ["delta": amount, "chamfer": true]
+        case .round: ["r": amount]
+        case .miter: ["delta": amount]
+        case .bevel: ["delta": amount, "chamfer": true]
         }
-
-        return .init(name: "offset", parameters: params)
     }
 
-    func modifiedOutput(_ output: Output) -> Output {
-        output.modifyingBoundary { bounds in
-            bounds.scaleOffset(amount)
-        }
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: environment).scaleOffset(amount)
     }
 }
 
