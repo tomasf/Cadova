@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol TransformedGeometry2D: Geometry2D {
+internal protocol TransformedGeometry2D: Geometry2D {
     var body: any Geometry2D { get }
     var bodyTransform: AffineTransform2D { get }
     var moduleName: String { get }
@@ -41,7 +41,7 @@ extension TransformedGeometry2D {
     }
 }
 
-protocol TransformedGeometry3D: Geometry3D {
+internal protocol TransformedGeometry3D: Geometry3D {
     var body: any Geometry3D { get }
     var bodyTransform: AffineTransform3D { get }
     var moduleName: String { get }

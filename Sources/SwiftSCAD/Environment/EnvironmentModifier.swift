@@ -1,19 +1,51 @@
 import Foundation
 
-struct EnvironmentModifier2D: WrappedGeometry2D {
+struct EnvironmentModifier2D: Geometry2D {
     let body: any Geometry2D
     let modification: (Environment) -> Environment
 
-    func modifiedEnvironment(_ environment: Environment) -> Environment {
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: modifiedEnvironment(environment))
+    }
+
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: modifiedEnvironment(environment))
+    }
+
+    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+        body.anchors(in: modifiedEnvironment(environment))
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        body.elements(in: modifiedEnvironment(environment))
+    }
+
+    private func modifiedEnvironment(_ environment: Environment) -> Environment {
         modification(environment)
     }
 }
 
-struct EnvironmentModifier3D: WrappedGeometry3D {
+struct EnvironmentModifier3D: Geometry3D {
     let body: any Geometry3D
     let modification: (Environment) -> Environment
 
-    func modifiedEnvironment(_ environment: Environment) -> Environment {
+    func codeFragment(in environment: Environment) -> CodeFragment {
+        body.codeFragment(in: modifiedEnvironment(environment))
+    }
+
+    func boundary(in environment: Environment) -> Bounds {
+        body.boundary(in: modifiedEnvironment(environment))
+    }
+
+    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
+        body.anchors(in: modifiedEnvironment(environment))
+    }
+
+    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
+        body.elements(in: modifiedEnvironment(environment))
+    }
+
+    private func modifiedEnvironment(_ environment: Environment) -> Environment {
         modification(environment)
     }
 }

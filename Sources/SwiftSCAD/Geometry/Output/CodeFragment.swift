@@ -34,10 +34,10 @@ public struct CodeFragment: Sendable {
         case .empty:
             return ";"
 
-        case .prefix(let string, let fragment):
+        case .prefix (let string, let fragment):
             return string + fragment.scadCode
 
-        case .call(let name, let parameters, let body):
+        case .call (let name, let parameters, let body):
             let paramText = parameters
                 .sorted { $0.key < $1.key }
                 .map { "\($0)=\($1.scadString)"}

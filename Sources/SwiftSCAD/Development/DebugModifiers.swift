@@ -1,6 +1,6 @@
 import Foundation
 
-struct Prefix2D: Geometry2D {
+struct Prefix2D: WrappedGeometry2D {
     let isImmaterial: Bool
     let prefix: String
     let body: any Geometry2D
@@ -18,17 +18,9 @@ struct Prefix2D: Geometry2D {
     func boundary(in environment: Environment) -> Bounds {
         isImmaterial ? .empty : body.boundary(in: environment)
     }
-
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body.anchors(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: environment)
-    }
 }
 
-struct Prefix3D: Geometry3D {
+struct Prefix3D: WrappedGeometry3D {
     let isImmaterial: Bool
     let prefix: String
     let body: any Geometry3D
@@ -46,14 +38,7 @@ struct Prefix3D: Geometry3D {
     func boundary(in environment: Environment) -> Bounds {
         isImmaterial ? .empty : body.boundary(in: environment)
     }
-
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body.anchors(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: environment)
-    }}
+}
 
 public extension Geometry2D {
     /// Highlight this geometry

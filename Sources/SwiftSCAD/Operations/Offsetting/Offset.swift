@@ -5,7 +5,7 @@ internal struct Offset: WrappedGeometry2D {
     let amount: Double
     let style: LineJoinStyle
 
-    let moduleName: String? = "offset"
+    let moduleName = "offset"
     var moduleParameters: CodeFragment.Parameters {
         switch style {
         case .round: ["r": amount]

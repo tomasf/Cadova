@@ -1,5 +1,13 @@
 import Foundation
 
+// SwiftSCAD Geometry Protocols
+// Geometry: Base
+//   LeafGeometry: For concrete geometry without children, e.g. Circle, Box, Text
+//   CombinedGeometry: Geometry containing multiple children, e.g. Union, Difference, MinkowskiSum
+//   TransformedGeometry: Single-child wrapper that applies a transform, e.g. Rotate, Translate
+//   WrappedGeometry: Generic single-child wrapper
+//   Shape: User-facing
+
 /// Two-dimensional geometry
 public protocol Geometry2D {
     typealias Bounds = Boundary<Vector2D>

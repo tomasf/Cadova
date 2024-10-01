@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol LeafGeometry2D: Geometry2D {
+internal protocol LeafGeometry2D: Geometry2D {
     var moduleName: String { get }
     var moduleParameters: CodeFragment.Parameters { get }
     var boundary: Bounds { get }
@@ -24,7 +24,7 @@ extension LeafGeometry2D {
     }
 }
 
-public protocol LeafGeometry3D: Geometry3D {
+internal protocol LeafGeometry3D: Geometry3D {
     var moduleName: String { get }
     var moduleParameters: CodeFragment.Parameters { get }
     var boundary: Bounds { get }
