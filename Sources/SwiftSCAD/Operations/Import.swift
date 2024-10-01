@@ -23,9 +23,9 @@ public struct Import2D: LeafGeometry2D {
         self.center = center
     }
 
-    public let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
-    public let moduleName = "import"
-    public var moduleParameters: CodeFragment.Parameters {
+    let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
+    let moduleName = "import"
+    var moduleParameters: CodeFragment.Parameters {
         [
             "file": path,
             "layer": layer,
@@ -52,9 +52,9 @@ public struct Import3D: LeafGeometry3D {
         self.convexity = convexity
     }
 
-    public let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
-    public let moduleName = "import"
-    public var moduleParameters: CodeFragment.Parameters {
+    let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
+    let moduleName = "import"
+    var moduleParameters: CodeFragment.Parameters {
         [
             "file": path,
             "convexity": convexity

@@ -1,7 +1,7 @@
 import Foundation
 
 public struct CodeFragment: Sendable {
-    public typealias Parameters = [String: (any SCADValue)?]
+    internal typealias Parameters = [String: (any SCADValue)?]
 
     private indirect enum Fragment {
         case empty

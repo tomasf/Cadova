@@ -59,8 +59,8 @@ extension Cylinder {
         case linear (bottom: Double, top: Double)
     }
 
-    public var moduleName: String { "cylinder" }
-    public var moduleParameters: CodeFragment.Parameters {
+    var moduleName: String { "cylinder" }
+    var moduleParameters: CodeFragment.Parameters {
         switch diameter {
         case .constant (let diameter): [
             "d": diameter,
@@ -87,5 +87,5 @@ extension Cylinder {
             top.as3D(z: height)
         )
     }
-    public var boundary: Bounds { .empty } // Unused
+    var boundary: Bounds { .empty } // Unused
 }

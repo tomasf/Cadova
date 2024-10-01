@@ -30,11 +30,11 @@ public struct Rectangle: LeafGeometry2D {
         self.size = [side, side]
     }
 
-    public let moduleName = "square"
-    public var moduleParameters: CodeFragment.Parameters {
+    let moduleName = "square"
+    var moduleParameters: CodeFragment.Parameters {
         ["size": size]
     }
-    public var boundary: Bounds { .box(size) }
+    var boundary: Bounds { .box(size) }
 }
 
 extension Rectangle: Area2D {

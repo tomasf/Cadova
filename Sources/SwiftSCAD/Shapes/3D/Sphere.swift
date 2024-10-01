@@ -26,13 +26,13 @@ public struct Sphere: LeafGeometry3D {
         self.diameter = radius * 2
     }
 
-    public let moduleName = "sphere"
-    public var moduleParameters: CodeFragment.Parameters {
+    let moduleName = "sphere"
+    var moduleParameters: CodeFragment.Parameters {
         ["d": diameter]
     }
 
     public func boundary(in environment: Environment) -> Bounds {
         .sphere(radius: diameter / 2, facets: environment.facets)
     }
-    public var boundary: Bounds { .empty } // Unused
+    var boundary: Bounds { .empty } // Unused
 }

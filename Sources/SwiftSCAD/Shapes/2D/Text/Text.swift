@@ -19,10 +19,10 @@ public struct Text: LeafGeometry2D {
     public func codeFragment(in environment: Environment) -> CodeFragment {
         .init(module: "text", parameters: environment.textAttributes.moduleParameters(text: text), body: [])
     }
-    public let moduleName = "" // Unused
-    public var moduleParameters: CodeFragment.Parameters { [:] } // Unused
+    let moduleName = "" // Unused
+    var moduleParameters: CodeFragment.Parameters { [:] } // Unused
 
-    public var boundary: Bounds { .empty }
+    var boundary: Bounds { .empty }
 }
 
 public extension Text {

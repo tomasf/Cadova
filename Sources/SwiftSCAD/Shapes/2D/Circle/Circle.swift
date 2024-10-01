@@ -46,8 +46,8 @@ public struct Circle: LeafGeometry2D {
         diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
     }
 
-    public let moduleName = "circle"
-    public var moduleParameters: CodeFragment.Parameters {
+    let moduleName = "circle"
+    var moduleParameters: CodeFragment.Parameters {
         ["d": diameter]
     }
 
@@ -55,7 +55,7 @@ public struct Circle: LeafGeometry2D {
         .circle(radius: diameter / 2, facets: environment.facets)
     }
 
-    public var boundary: Bounds { .empty } // Unused
+    var boundary: Bounds { .empty } // Unused
 }
 
 public extension Circle {

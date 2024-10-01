@@ -96,8 +96,8 @@ public struct Polyhedron: LeafGeometry3D {
         self.init(points: table, faces: faces, convexity: convexity)
     }
 
-    public let moduleName = "polyhedron"
-    public var moduleParameters: CodeFragment.Parameters {
+    let moduleName = "polyhedron"
+    var moduleParameters: CodeFragment.Parameters {
         [
             "points": points,
             "faces": faces,
@@ -105,7 +105,7 @@ public struct Polyhedron: LeafGeometry3D {
         ]
     }
 
-    public var boundary: Bounds {
+    var boundary: Bounds {
         .points(points)
     }
 }

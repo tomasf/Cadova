@@ -43,12 +43,12 @@ public struct Box: LeafGeometry3D {
         self.size = [side, side, side]
     }
 
-    public let moduleName = "cube"
-    public var moduleParameters: CodeFragment.Parameters {
+    let moduleName = "cube"
+    var moduleParameters: CodeFragment.Parameters {
         ["size": size]
     }
 
-    public var boundary: Bounds {
+    var boundary: Bounds {
         .box(size)
     }
 }

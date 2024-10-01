@@ -4,7 +4,7 @@ struct ApplyColor2D: WrappedGeometry2D {
     let color: Color
     let body: any Geometry2D
 
-    var moduleName: String? { "color" }
+    let moduleName: String? = "color"
     var moduleParameters: CodeFragment.Parameters { color.moduleParameters }
 }
 
@@ -12,7 +12,7 @@ struct ApplyColor3D: WrappedGeometry3D {
     let color: Color
     let body: any Geometry3D
 
-    var moduleName: String? { "color" }
+    let moduleName: String? = "color"
     var moduleParameters: CodeFragment.Parameters { color.moduleParameters }
 }
 

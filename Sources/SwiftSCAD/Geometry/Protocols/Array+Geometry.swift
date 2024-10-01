@@ -1,6 +1,6 @@
 import Foundation
 
-extension Array<Geometry2D>: Geometry2D {
+extension [Geometry2D]: Geometry2D {
     func body(in environment: Environment) -> any Geometry2D {
         Union2D(children: self)
     }
@@ -22,7 +22,7 @@ extension Array<Geometry2D>: Geometry2D {
     }
 }
 
-extension Array<Geometry3D>: Geometry3D {
+extension [Geometry3D]: Geometry3D {
     func body(in environment: Environment) -> any Geometry3D {
         Union3D(children: self)
     }
