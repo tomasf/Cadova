@@ -1,5 +1,10 @@
 import Foundation
 
+public struct Anchor: Hashable {
+    internal let id = UUID()
+    public init() {}
+}
+
 public extension Geometry2D {
     /// Defines an anchor point on this geometry.
     ///

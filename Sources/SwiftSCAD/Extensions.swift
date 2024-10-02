@@ -36,3 +36,11 @@ extension URL {
         self = url
     }
 }
+
+extension Dictionary {
+    func setting(_ key: Key, to value: Value) -> Self {
+        var dict = self
+        dict[key] = value
+        return dict
+    }
+}
