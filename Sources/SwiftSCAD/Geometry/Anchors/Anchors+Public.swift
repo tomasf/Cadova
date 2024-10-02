@@ -15,7 +15,7 @@ public extension Geometry2D {
     ///   - transform: A transform applied relative to the current transformation state
     /// - Returns: A modified version of the geometry with the defined anchor.
     func definingAnchor(_ anchor: Anchor, transform: AffineTransform2D) -> any Geometry2D {
-        DefineAnchor2D(body: self, anchor: anchor, alignment: .none, transform: transform)
+        definingAnchor(anchor, alignment: .none, transform: transform)
     }
 
     /// Defines an anchor point on this geometry.
@@ -34,22 +34,28 @@ public extension Geometry2D {
         offset: Vector2D = .zero,
         rotated rotation: Angle = .zero
     ) -> any Geometry2D {
-        DefineAnchor2D(
-            body: self,
-            anchor: anchor,
-            alignment: .init(merging: alignment),
-            transform: .identity.translated(offset).rotated(rotation)
-        )
+        definingAnchor(anchor, alignment: alignment.merged, transform: .identity.translated(offset).rotated(rotation))
     }
 
     /// Aligns this geometry to a previously defined anchor.
     ///
-    /// This method transforms the geometry so that the specified anchor point aligns with the origin of the coordinate system. It's used to position this geometry based on the location and orientation of an anchor defined elsewhere.
+    /// This method transforms the geometry so that the specified anchor point aligns with the origin of the coordinate system. It's used to position this geometry based on the location and orientation of an anchor defined inside this geometry.
     ///
     /// - Parameter anchor: The `Anchor` to which this geometry should be aligned.
     /// - Returns: A modified version of the geometry, transformed to align with the specified anchor.
     func anchored(to anchor: Anchor) -> any Geometry2D {
-        ApplyAnchor2D(body: self, anchor: anchor)
+        EnvironmentReader { environment in
+            readingResult(AnchorList.self) { body, anchorList in
+                if let transform = anchorList?.anchors[anchor] {
+                    self.transformed(.init(AffineTransform3D.identity
+                        .concatenated(with: environment.transform)
+                        .concatenated(with: transform)
+                    ))
+                } else {
+                    preconditionFailure("Anchor \(anchor) not found. Did you define it somewhere inside this geometry using defineAnchor(...)?")
+                }
+            }
+        }
     }
 }
 
@@ -63,7 +69,7 @@ public extension Geometry3D {
     ///   - transform: A transform applied relative to the current transformation state
     /// - Returns: The geometry with a defined anchor.
     func definingAnchor(_ anchor: Anchor, transform: AffineTransform3D) -> any Geometry3D {
-        DefineAnchor3D(body: self, anchor: anchor, alignment: .none, transform: transform)
+        definingAnchor(anchor, alignment: .none, transform: transform)
     }
 
     /// Defines an anchor point
@@ -84,10 +90,9 @@ public extension Geometry3D {
         pointing direction: Vector3D = .up,
         rotated rotation: Angle = 0°
     ) -> any Geometry3D {
-        DefineAnchor3D(
-            body: self,
-            anchor: anchor,
-            alignment: .init(merging: alignment),
+        definingAnchor(
+            anchor,
+            alignment: alignment.merged,
             transform: .identity
                 .rotated(z: rotation)
                 .rotated(from: .up, to: direction)
@@ -97,11 +102,22 @@ public extension Geometry3D {
 
     /// Aligns this 3D geometry to a previously defined anchor.
     ///
-    /// This method transforms the geometry so that the specified anchor point aligns with the origin of the coordinate system. It's used to position this geometry based on the location and orientation of an anchor defined elsewhere.
+    /// This method transforms the geometry so that the specified anchor point aligns with the origin of the coordinate system. It's used to position this geometry based on the location and orientation of an anchor defined inside this geometry.
     ///
     /// - Parameter anchor: The `Anchor` to which this geometry should be aligned.
     /// - Returns: A modified version of the geometry, transformed to align with the specified anchor.
     func anchored(to anchor: Anchor) -> any Geometry3D {
-        ApplyAnchor3D(body: self, anchor: anchor)
+        EnvironmentReader { environment in
+            readingResult(AnchorList.self) { body, anchorList in
+                if let transform = anchorList?.anchors[anchor] {
+                    self.transformed(AffineTransform3D.identity
+                        .concatenated(with: environment.transform)
+                        .concatenated(with: transform)
+                    )
+                } else {
+                    preconditionFailure("Anchor \(anchor) not found. Did you define it somewhere inside this geometry using defineAnchor(...)?")
+                }
+            }
+        }
     }
 }
