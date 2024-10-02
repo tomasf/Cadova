@@ -18,10 +18,6 @@ struct NameGeometry2D: Geometry2D {
         body.boundary(in: environment)
     }
 
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body.anchors(in: environment)
-    }
-
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         let elements = body.elements(in: environment)
         let namedGeometry = elements[NamedGeometry.self] ?? .init()
@@ -40,10 +36,6 @@ struct NameGeometry3D: Geometry3D {
 
     func boundary(in environment: Environment) -> Bounds {
         body.boundary(in: environment)
-    }
-
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body.anchors(in: environment)
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {

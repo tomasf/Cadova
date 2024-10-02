@@ -17,11 +17,6 @@ extension CombinedGeometry2D {
         return boundaryMergeStrategy.apply(boundaries)
     }
 
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        let allAnchors = children.map { $0.anchors(in: environment) }
-        return allAnchors.reduce(into: [:]) { $0.merge($1) { a, _ in a }}
-    }
-
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         let allElements = children.map { $0.elements(in: environment) }
         return .init(combining: allElements, operation: combination)
@@ -43,11 +38,6 @@ extension CombinedGeometry3D {
     func boundary(in environment: Environment) -> Boundary3D {
         let boundaries = children.map { $0.boundary(in: environment) }
         return boundaryMergeStrategy.apply(boundaries)
-    }
-
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        let allAnchors = children.map { $0.anchors(in: environment) }
-        return allAnchors.reduce(into: [:]) { $0.merge($1) { a, _ in a }}
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {

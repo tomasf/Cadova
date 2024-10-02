@@ -31,11 +31,6 @@ extension TransformedGeometry2D {
         body.boundary(in: bodyEnvironment(environment)).transformed(bodyTransform)
     }
 
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body.anchors(in: bodyEnvironment(environment))
-            .mapValues { $0.concatenated(with: .init(bodyTransform)) }
-    }
-
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body.elements(in: bodyEnvironment(environment))
     }
@@ -63,11 +58,6 @@ extension TransformedGeometry3D {
 
     func boundary(in environment: Environment) -> Bounds {
         body.boundary(in: bodyEnvironment(environment)).transformed(bodyTransform)
-    }
-
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body.anchors(in: bodyEnvironment(environment))
-            .mapValues { $0.concatenated(with: bodyTransform) }
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {

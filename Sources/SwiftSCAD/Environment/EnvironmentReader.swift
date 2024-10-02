@@ -10,11 +10,7 @@ internal struct EnvironmentReader2D: Geometry2D {
     func boundary(in environment: Environment) -> Bounds {
         body(environment).boundary(in: environment)
     }
-    
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body(environment).anchors(in: environment)
-    }
-    
+
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body(environment).elements(in: environment)
     }
@@ -29,10 +25,6 @@ internal struct EnvironmentReader3D: Geometry3D {
 
     func boundary(in environment: Environment) -> Bounds {
         body(environment).boundary(in: environment)
-    }
-
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body(environment).anchors(in: environment)
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {

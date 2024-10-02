@@ -12,10 +12,6 @@ struct EnvironmentModifier2D: Geometry2D {
         body.boundary(in: modifiedEnvironment(environment))
     }
 
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
-        body.anchors(in: modifiedEnvironment(environment))
-    }
-
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body.elements(in: modifiedEnvironment(environment))
     }
@@ -35,10 +31,6 @@ struct EnvironmentModifier3D: Geometry3D {
 
     func boundary(in environment: Environment) -> Bounds {
         body.boundary(in: modifiedEnvironment(environment))
-    }
-
-    func anchors(in environment: Environment) -> [Anchor : AffineTransform3D] {
-        body.anchors(in: modifiedEnvironment(environment))
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {

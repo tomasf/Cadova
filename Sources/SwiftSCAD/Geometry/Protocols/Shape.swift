@@ -28,10 +28,6 @@ public extension Shape2D {
         body.boundary(in: environment)
     }
 
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body.anchors(in: environment)
-    }
-
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body.elements(in: environment)
     }
@@ -63,10 +59,6 @@ public extension Shape3D {
 
     func boundary(in environment: Environment) -> Bounds {
         body.boundary(in: environment)
-    }
-
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body.anchors(in: environment)
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {

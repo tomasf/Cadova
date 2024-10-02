@@ -11,10 +11,6 @@ extension LeafGeometry2D {
         .init(module: moduleName, parameters: moduleParameters, body: [])
     }
 
-    public func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        [:]
-    }
-
     public func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         [:]
     }
@@ -33,10 +29,6 @@ internal protocol LeafGeometry3D: Geometry3D {
 extension LeafGeometry3D {
     public func codeFragment(in environment: Environment) -> CodeFragment {
         .init(module: moduleName, parameters: moduleParameters, body: [])
-    }
-
-    public func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        [:]
     }
 
     public func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {

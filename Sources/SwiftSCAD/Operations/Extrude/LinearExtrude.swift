@@ -22,10 +22,6 @@ struct LinearExtrude: Geometry3D {
             .extruded(height: height, twist: twist ?? 0°, topScale: scale, facets: environment.facets)
     }
 
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] {
-        body.anchors(in: environment)
-    }
-
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body.elements(in: environment)
     }

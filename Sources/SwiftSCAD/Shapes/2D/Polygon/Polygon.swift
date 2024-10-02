@@ -59,7 +59,6 @@ public struct Polygon: Geometry2D {
         .points(points(in: environment))
     }
 
-    public func anchors(in environment: Environment) -> [Anchor: AffineTransform3D] { [:] }
     public func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] { [:] }
 }
 

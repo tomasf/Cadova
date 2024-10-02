@@ -14,7 +14,6 @@ public protocol Geometry2D {
 
     func codeFragment(in environment: Environment) -> CodeFragment
     func boundary(in environment: Environment) -> Bounds
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D]
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement]
 }
 
@@ -24,6 +23,5 @@ public protocol Geometry3D {
 
     func codeFragment(in environment: Environment) -> CodeFragment
     func boundary(in environment: Environment) -> Bounds
-    func anchors(in environment: Environment) -> [Anchor: AffineTransform3D]
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement]
 }
