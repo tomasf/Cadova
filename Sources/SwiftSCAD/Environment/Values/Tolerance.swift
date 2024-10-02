@@ -1,10 +1,8 @@
 import Foundation
 
-private extension Environment {
-    static let key = Environment.ValueKey(rawValue: "SwiftSCAD.Tolerance")
-}
-
 public extension Environment {
+    private static let key = ValueKey("SwiftSCAD.Tolerance")
+
     /// The tolerance value currently set in the environment.
     ///
     /// This property retrieves the tolerance setting from the environment. If not explicitly set, the tolerance defaults to 0. Tolerance can be understood as the permissible limit or limits of variation in measurements, dimensions, or physical properties of a geometry. While the tolerance value itself does not directly influence geometry creation in SwiftSCAD, it can be utilized by your own models to adjust generation of geometries according to the specified tolerance.

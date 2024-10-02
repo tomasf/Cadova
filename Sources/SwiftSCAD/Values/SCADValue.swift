@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol SCADValue: Sendable {
+protocol SCADValue: Sendable {
     var scadString: String { get }
 }
 
@@ -33,7 +33,7 @@ extension String: SCADValue {
 }
 
 extension Array: SCADValue where Element: SCADValue {
-    public var scadString: String {
+    var scadString: String {
         "[" + map(\.scadString).joined(separator: ", ")  + "]"
     }
 }

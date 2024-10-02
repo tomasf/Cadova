@@ -1,6 +1,8 @@
 import Foundation
 
 public extension Environment {
+    static private let environmentKey = ValueKey("SwiftSCAD.Facets")
+
     /// An enumeration representing the method for calculating the number of facets (or segments) used in rendering circular geometries.
     enum Facets: Sendable {
         /// Specifies a fixed number of facets for all circles, regardless of size.
@@ -34,13 +36,11 @@ public extension Environment {
                 return Int(max(min(angleFacets, sizeFacets), 5))
             }
         }
-
-        static internal let environmentKey: Environment.ValueKey = .init(rawValue: "SwiftSCAD.Facets")
     }
 
     /// Accesses the current facets setting from the environment.
     var facets: Facets {
-        self[Facets.environmentKey] as? Facets ?? .defaults
+        self[Self.environmentKey] as? Facets ?? .defaults
     }
 
     /// Returns a new environment with the specified facets settings applied.
@@ -49,6 +49,6 @@ public extension Environment {
     /// - Parameter facets: The `Facets` setting to apply to the environment.
     /// - Returns: A new `Environment` with the updated facets settings.
     func withFacets(_ facets: Facets) -> Environment {
-        setting(key: Facets.environmentKey, value: facets)
+        setting(key: Self.environmentKey, value: facets)
     }
 }

@@ -1,46 +1,40 @@
 import Foundation
 
-struct ReadBoundary2D: Geometry2D {
-    var body: any Geometry2D
-    var builder: (Boundary2D) -> any Geometry2D
+fileprivate struct ReadBoundary2D: Shape2D {
+    let target: any Geometry2D
+    let builder: (Boundary2D) -> any Geometry2D
 
-    func body(in environment: Environment) -> any Geometry2D {
-        let boundary = body.boundary(in: environment)
-        return builder(boundary)
-    }
-
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body(in: environment).codeFragment(in: environment)
-    }
-
-    func boundary(in environment: Environment) -> Bounds {
-        body(in: environment).boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body(in: environment).elements(in: environment)
+    var body: any Geometry2D {
+        EnvironmentReader { environment in
+            builder(target.boundary(in: environment))
+        }
     }
 }
 
-struct ReadBoundary3D: Geometry3D {
-    var body: any Geometry3D
-    var builder: (Boundary3D) -> any Geometry3D
+fileprivate struct ReadBoundary3D: Shape3D {
+    let target: any Geometry3D
+    let builder: (Boundary3D) -> any Geometry3D
 
-    func body(in environment: Environment) -> any Geometry3D {
-        let boundary = body.boundary(in: environment)
-        return builder(boundary)
+    var body: any Geometry3D {
+        EnvironmentReader { environment in
+            builder(target.boundary(in: environment))
+        }
     }
+}
 
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body(in: environment).codeFragment(in: environment)
+internal extension Geometry2D {
+    func readingBoundary(@UnionBuilder2D _ builder: @escaping (any Geometry2D, Boundary2D) -> any Geometry2D) -> any Geometry2D {
+        ReadBoundary2D(target: self) { boundary in
+            builder(self, boundary)
+        }
     }
+}
 
-    func boundary(in environment: Environment) -> Bounds {
-        body(in: environment).boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body(in: environment).elements(in: environment)
+internal extension Geometry3D {
+    func readingBoundary(@UnionBuilder3D _ builder: @escaping (any Geometry3D, Boundary3D) -> any Geometry3D) -> any Geometry3D {
+        ReadBoundary3D(target: self) { boundary in
+            builder(self, boundary)
+        }
     }
 }
 
@@ -50,7 +44,9 @@ public extension Geometry2D {
     /// - Parameter builder: A closure defining how to modify the geometry based on its bounding box.
     /// - Returns: A modified version of the original geometry.
     func measuringBounds(@UnionBuilder2D _ builder: @escaping (any Geometry2D, BoundingBox2D) -> any Geometry2D) -> any Geometry2D {
-        ReadBoundary2D(body: self) { builder(self, $0.boundingBox ?? .zero) }
+        readingBoundary { geometry, boundary in
+            builder(geometry, boundary.boundingBox ?? .zero)
+        }
     }
 }
 
@@ -60,7 +56,9 @@ public extension Geometry3D {
     /// - Parameter builder: A closure defining how to modify the geometry based on its bounding box.
     /// - Returns: A modified version of the original geometry.
     func measuringBounds(@UnionBuilder3D _ builder: @escaping (any Geometry3D, BoundingBox3D) -> any Geometry3D) -> any Geometry3D {
-        ReadBoundary3D(body: self) { builder(self, $0.boundingBox ?? .zero) }
+        readingBoundary { geometry, boundary in
+            builder(geometry, boundary.boundingBox ?? .zero)
+        }
     }
 }
 

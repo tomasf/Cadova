@@ -1,7 +1,7 @@
 import Foundation
 
 internal extension Environment {
-    private static let key = ValueKey(rawValue: "SwiftSCAD.NaturalUpDirection")
+    private static let key = ValueKey("SwiftSCAD.NaturalUpDirection")
 
     struct NaturalUpDirectionData {
         let direction: Vector3D

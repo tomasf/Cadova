@@ -13,9 +13,7 @@ import Foundation
         []
     }
 
-    public static func buildExpression(_ never: Never) -> [any Geometry2D] {
-        []
-    }
+    public static func buildExpression(_ never: Never) -> [any Geometry2D] {}
 
     public static func buildBlock(_ children: [any Geometry2D]...) -> [any Geometry2D] {
         children.flatMap { $0 }
@@ -59,9 +57,7 @@ import Foundation
         []
     }
 
-    public static func buildExpression(_ never: Never) -> [any Geometry3D] {
-        []
-    }
+    public static func buildExpression(_ never: Never) -> [any Geometry3D] {}
 
     public static func buildBlock(_ children: [any Geometry3D]...) -> [any Geometry3D] {
         children.flatMap { $0 }

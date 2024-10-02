@@ -30,7 +30,7 @@ public extension Geometry2D {
     /// - Parameter shape: The shape whose bounds you want to use.
     /// - Returns: A geometry with the bounds obtained from the custom shape.
     func settingBounds(@UnionBuilder2D _ shape: () -> any Geometry2D) -> any Geometry2D {
-        ReadBoundary2D(body: shape()) { boundary in
+        shape().readingBoundary { _, boundary in
             SetBounds2D(body: self, boundary: boundary)
         }
     }
@@ -39,7 +39,7 @@ public extension Geometry2D {
     /// - Parameter shape: The shape whose bounds you want to use.
     /// - Returns: A geometry with the bounds obtained from the custom shape.
     func settingBounds(_ shape: any Geometry2D) -> any Geometry2D {
-        ReadBoundary2D(body: shape) { boundary in
+        shape.readingBoundary { _, boundary in
             SetBounds2D(body: self, boundary: boundary)
         }
     }
@@ -69,7 +69,7 @@ public extension Geometry3D {
     /// - Parameter shape: The shape whose bounds you want to use.
     /// - Returns: A geometry with the bounds obtained from the custom shape.
     func settingBounds(@UnionBuilder3D _ shape: () -> any Geometry3D) -> any Geometry3D {
-        ReadBoundary3D(body: shape()) { boundary in
+        shape().readingBoundary { _, boundary in
             SetBounds3D(body: self, boundary: boundary)
         }
     }
@@ -78,7 +78,7 @@ public extension Geometry3D {
     /// - Parameter shape: The shape whose bounds you want to use.
     /// - Returns: A geometry with the bounds obtained from the custom shape.
     func settingBounds(_ shape: any Geometry3D) -> any Geometry3D {
-        ReadBoundary3D(body: shape) { boundary in
+        shape.readingBoundary { _, boundary in
             SetBounds3D(body: self, boundary: boundary)
         }
     }
