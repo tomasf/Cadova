@@ -78,3 +78,9 @@ internal struct BezierCurve <V: Vector>: Sendable {
         Self(controlPoints: controlPoints.map { transform.apply(to: $0) })
     }
 }
+
+extension BezierCurve: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        controlPoints.map { $0.debugDescription }.joined(separator: ",  ")
+    }
+}

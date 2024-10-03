@@ -101,3 +101,9 @@ public struct BezierPath <V: Vector>: Sendable {
         addingLine(to: startPoint)
     }
 }
+
+extension BezierPath: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        "Start point: \(startPoint)\n" + curves.enumerated().map { "\($0): " + $1.debugDescription }.joined(separator: "\n")
+    }
+}

@@ -70,18 +70,8 @@ extension Geometry3D {
     }
 }
 
-extension Vector {
-    var stringRepresentation: String {
-        "[" + elements.map { String(format: "%.03f", $0) }.joined(separator: ", ") + "]"
-    }
-}
-
 extension BoundingBox {
-    var stringRepresentation: String {
-        "min: \(minimum.stringRepresentation), max: \(maximum.stringRepresentation)"
-    }
-
     func assertEqual(to other: BoundingBox) {
-        XCTAssertEqual(stringRepresentation, other.stringRepresentation)
+        XCTAssertEqual(debugDescription, other.debugDescription)
     }
 }

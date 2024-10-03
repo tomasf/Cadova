@@ -82,3 +82,20 @@ public struct Axes3D: Axes, OptionSet, Hashable, Sendable {
         contains(Self(axis: axis))
     }
 }
+
+extension Axes2D: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        "[" + Axis2D.allCases.compactMap {
+            contains(axis: $0) ? String(describing: $0) : nil
+        }.joined(separator: ",") + "]"
+    }
+}
+
+extension Axes3D: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        "[" + Axis3D.allCases.compactMap {
+            contains(axis: $0) ? String(describing: $0) : nil
+        }.joined(separator: ",") + "]"
+    }
+}
+

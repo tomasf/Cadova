@@ -101,3 +101,9 @@ extension BoundingBox {
         .init([transform.apply(to: minimum), transform.apply(to: maximum)])
     }
 }
+
+extension BoundingBox: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        "[min: \(minimum), max: \(maximum)]"
+    }
+}

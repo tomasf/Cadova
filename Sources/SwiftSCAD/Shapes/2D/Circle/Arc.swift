@@ -48,7 +48,10 @@ internal extension Polygon {
 
         return Polygon((0...facetCount).map { i -> Vector2D in
             let angle = range.lowerBound + (Double(i) / Double(facetCount)) * magnitude
-            return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
+            return Vector2D(
+                x: cos(angle) * radius,
+                y: sin(angle) * radius
+            )
         })
     }
 }
