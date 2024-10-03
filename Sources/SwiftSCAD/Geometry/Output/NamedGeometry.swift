@@ -44,10 +44,10 @@ extension NamedGeometry {
         func codeFragment(in environment: Environment) -> CodeFragment {
             switch self {
             case .twoD (let geometry):
-                Union2D(children: geometry).codeFragment(in: environment)
+                Union(geometry).codeFragment(in: environment)
 
             case .threeD (let geometry):
-                Union3D(children: geometry).codeFragment(in: environment)
+                Union(geometry).codeFragment(in: environment)
             }
         }
     }

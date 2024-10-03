@@ -2,7 +2,7 @@ import Foundation
 
 extension [Geometry2D]: Geometry2D {
     func body(in environment: Environment) -> any Geometry2D {
-        Union2D(children: self)
+        Union(self)
     }
 
     public func codeFragment(in environment: Environment) -> CodeFragment {
@@ -20,7 +20,7 @@ extension [Geometry2D]: Geometry2D {
 
 extension [Geometry3D]: Geometry3D {
     func body(in environment: Environment) -> any Geometry3D {
-        Union3D(children: self)
+        Union(self)
     }
 
     public func codeFragment(in environment: Environment) -> CodeFragment {

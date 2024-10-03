@@ -36,11 +36,7 @@ import Foundation
     }
 
     public static func buildFinalResult(_ children: [any Geometry2D]) -> any Geometry2D {
-        if children.count == 1 {
-            children[0]
-        } else {
-            Union2D(children: children)
-        }
+        Union(children)
     }
 }
 
@@ -80,10 +76,6 @@ import Foundation
     }
 
     public static func buildFinalResult(_ children: [any Geometry3D]) -> any Geometry3D {
-        if children.count == 1 {
-            children[0]
-        } else {
-            Union3D(children: children)
-        }
+        Union(children)
     }
 }

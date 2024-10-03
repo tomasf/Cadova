@@ -52,7 +52,7 @@ public extension Geometry2D {
     }
 
     func subtracting(_ negative: (any Geometry2D)?...) -> any Geometry2D {
-        Difference2D(positive: self, negative: Union2D(children: negative.compactMap { $0 }))
+        Difference2D(positive: self, negative: Union(negative))
     }
 }
 
@@ -76,6 +76,6 @@ public extension Geometry3D {
     }
 
     func subtracting(_ negative: (any Geometry3D)?...) -> any Geometry3D {
-        Difference3D(positive: self, negative: Union3D(children: negative.compactMap { $0 }))
+        Difference3D(positive: self, negative: Union(negative))
     }
 }
