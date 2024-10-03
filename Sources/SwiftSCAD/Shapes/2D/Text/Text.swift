@@ -60,9 +60,9 @@ public extension Text {
 
 extension Environment.TextAttributes {
     func moduleParameters(text: String) -> CodeFragment.Parameters {
-        let needsFontParameter = font != nil || fontStyle != nil
+        let needsFontParameter = fontName != nil || fontStyle != nil
         let styleValue = fontStyle.map { ":style=\($0)" } ?? ""
-        let fontValue = needsFontParameter ? (font ?? "") + styleValue : nil
+        let fontValue = needsFontParameter ? (fontName ?? "") + styleValue : nil
         let size = (fontSize ?? 10.0) * 0.72
 
         return [

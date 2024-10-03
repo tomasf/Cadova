@@ -2,7 +2,7 @@ import Foundation
 
 internal extension Environment {
     struct TextAttributes: Sendable {
-        var font: String?
+        var fontName: String?
         var fontStyle: String?
         var fontSize: Double?
 
@@ -11,7 +11,7 @@ internal extension Environment {
         var characterSpacing: Double?
     }
 
-    static private let environmentKey: Environment.ValueKey = .init(rawValue: "SwiftSCAD.TextAttributes")
+    static private let environmentKey = ValueKey("SwiftSCAD.TextAttributes")
 
     var textAttributes: TextAttributes {
         self[Self.environmentKey] as? TextAttributes ?? .init()
@@ -26,7 +26,7 @@ internal extension Environment {
     func withFont(name: String?, style: String?, size: Double?) -> Environment {
         var e = self
         if let name {
-            e = e.settingTextAttribute(\.font, value: name)
+            e = e.settingTextAttribute(\.fontName, value: name)
         }
         if let style {
             e = e.settingTextAttribute(\.fontStyle, value: style)
@@ -53,7 +53,7 @@ public extension Environment {
     /// The current font name set in the environment's text attributes.
     ///
     /// This property reflects the font name that will be applied to text geometries within the environment. If `nil`, the default system font is used.
-    var fontName: String? { textAttributes.font }
+    var fontName: String? { textAttributes.fontName }
 
     /// The current font style set in the environment's text attributes.
     ///
