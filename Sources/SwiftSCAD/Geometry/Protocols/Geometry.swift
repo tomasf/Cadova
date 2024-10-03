@@ -8,7 +8,8 @@ import Foundation
 //   WrappedGeometry: Generic single-child wrapper
 //   Shape: User-facing
 
-/// Two-dimensional geometry
+/// Two-dimensional geometry.
+/// Don't conform your types to this protocol directly; instead, use `Shape2D` and implement its `body` property.
 public protocol Geometry2D {
     typealias Bounds = Boundary<Vector2D>
 
@@ -18,6 +19,7 @@ public protocol Geometry2D {
 }
 
 /// Three-dimensional geometry
+/// Don't conform your types to this protocol directly; instead, use `Shape3D` and implement its `body` property.
 public protocol Geometry3D {
     typealias Bounds = Boundary<Vector3D>
 

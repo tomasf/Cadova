@@ -17,6 +17,8 @@ import Foundation
         []
     }
 
+    public static func buildExpression(_ never: Never) -> [Element] {}
+
     public static func buildBlock(_ children: [Element]...) -> [Element] {
         children.flatMap { $0 }
     }

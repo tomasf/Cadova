@@ -47,6 +47,8 @@ public struct AnyGeometry {
         []
     }
 
+    public static func buildExpression(_ never: Never) -> [AnyGeometry] {}
+
     public static func buildBlock(_ children: [AnyGeometry]...) -> [AnyGeometry] {
         children.flatMap { $0 }
     }
