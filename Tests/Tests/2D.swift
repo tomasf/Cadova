@@ -1,9 +1,9 @@
-import XCTest
+import Testing
 @testable import SwiftSCAD
 
-final class Geometry2DTests: XCTestCase {
-    func test2DBasics() {
-        Union {
+struct Geometry2DTests {
+    @Test func basic2D() {
+        let geometry = Union {
             Rectangle(Vector2D(30, 10))
                 .aligned(at: .centerY)
                 .subtracting {
@@ -16,11 +16,12 @@ final class Geometry2DTests: XCTestCase {
                 }
             Arc(range: 80°..<280°, radius: 3.5)
         }
-        .assertEqual(toFile: "2dbasics")
+
+        #expect(geometry.code == scadFile("2dbasics"))
     }
 
-    func test2DMisc() {
-        Rectangle(Vector2D(30, 10))
+    @Test func misc2D() {
+        let geometry = Rectangle(Vector2D(30, 10))
             .aligned(at: .centerY)
             .subtracting {
                 Circle(diameter: 8)
@@ -54,6 +55,7 @@ final class Geometry2DTests: XCTestCase {
                     .repeated(in: 20°..<250°, count: 5)
                     .translated(x: 50, y: -10)
             }
-            .assertEqual(toFile: "2dmisc")
+
+        #expect(geometry.code == scadFile("2dmisc"))
     }
 }
