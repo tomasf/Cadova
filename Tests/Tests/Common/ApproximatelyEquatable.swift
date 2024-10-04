@@ -1,14 +1,25 @@
 import Foundation
 import SwiftSCAD
 
-infix operator ≈
+infix operator ≈: ComparisonPrecedence
+
 protocol ApproximatelyEquatable {
     static func ≈(_ lhs: Self, _ rhs: Self) -> Bool
 }
 
 extension Double: ApproximatelyEquatable {
     static func ≈(lhs: Self, rhs: Self) -> Bool {
-        abs(lhs - rhs) < 0.0001
+        abs(lhs - rhs) < 0.001
+    }
+}
+
+extension Optional: ApproximatelyEquatable where Wrapped: ApproximatelyEquatable {
+    static func ≈(lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.none, .none): true
+        case (.none, .some), (.some, .none): false
+        case (.some(let a), .some(let b)): a ≈ b
+        }
     }
 }
 
@@ -23,8 +34,6 @@ extension Array: ApproximatelyEquatable where Element: ApproximatelyEquatable {}
 
 
 extension Vector {
-    static var tolerance: Double { 0.001 }
-
     static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
         lhs.elements ≈ rhs.elements
     }
@@ -36,5 +45,11 @@ extension Vector3D: ApproximatelyEquatable {}
 extension Angle: ApproximatelyEquatable {
     static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
         lhs.radians ≈ rhs.radians
+    }
+}
+
+extension BoundingBox: ApproximatelyEquatable {
+    static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
+        lhs.minimum ≈ rhs.minimum && lhs.maximum ≈ rhs.maximum
     }
 }

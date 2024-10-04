@@ -1,11 +1,11 @@
-import XCTest
+import Testing
 @testable import SwiftSCAD
 
 #if canImport(simd)
 import simd
 
-final class MatrixTests: XCTestCase {
-    func testEqualImplementations3x3() {
+struct MatrixTests {
+    @Test func equalImplementations3x3() {
         let simdMatrix1 = simd_double3x3(rows: [
             .init(45.3, 4565, -94.245),
             .init(12.4, 0, -15),
@@ -22,28 +22,28 @@ final class MatrixTests: XCTestCase {
         let basicMatrix2 = BasicMatrix3x3(rows: simdMatrix2.values)
         let basicVector1 = BasicMatrix3x3.Column(simdVector1[0], simdVector1[1], simdVector1[2])
 
-        assertEqualEnoughMatrix(simdMatrix1.values, basicMatrix1.values)
-        assertEqualEnoughMatrix(simdMatrix2.values, basicMatrix2.values)
+        #expect(simdMatrix1.values ≈ basicMatrix1.values)
+        #expect(simdMatrix2.values ≈ basicMatrix2.values)
 
         let simdMultiplied = simdMatrix1 * simdMatrix2
         let basicMultiplied = basicMatrix1 * basicMatrix2
-        assertEqualEnoughMatrix(simdMultiplied.values, basicMultiplied.values)
+        #expect(simdMultiplied.values ≈ basicMultiplied.values)
 
         let simdApplied = simdVector1 * simdMultiplied
         let basicApplied = basicVector1 * basicMultiplied
-        assertEqualEnough([simdApplied.x, simdApplied.y, simdApplied.z], basicApplied)
+        #expect([simdApplied.x, simdApplied.y, simdApplied.z] ≈ basicApplied)
 
         let simdApplied2 = simdMultiplied * simdVector1
         let basicApplied2 = basicMultiplied * basicVector1
-        assertEqualEnough([simdApplied2.x, simdApplied2.y, simdApplied2.z], basicApplied2)
+        #expect([simdApplied2.x, simdApplied2.y, simdApplied2.z] ≈ basicApplied2)
 
         let simdInverse = simdMatrix1.inverse
         let basicInverse = basicMatrix1.inverse
-        assertEqualEnoughMatrix(simdInverse.values, basicInverse.values)
-        assertEqualEnoughMatrix(basicMatrix1.values, basicInverse.inverse.values)
+        #expect(simdInverse.values ≈ basicInverse.values)
+        #expect(basicMatrix1.values ≈ basicInverse.inverse.values)
     }
 
-    func testEqualImplementations4x4() {
+    @Test func equalImplementations4x4() {
         let simdMatrix1 = simd_double4x4(rows: [
             .init(45.3, 67.2, 4565, -94.245),
             .init(12.4, 0, 45.1, -15),
@@ -64,34 +64,20 @@ final class MatrixTests: XCTestCase {
 
         let simdMultiplied = simdMatrix1 * simdMatrix2
         let basicMultiplied = basicMatrix1 * basicMatrix2
-        assertEqualEnoughMatrix(simdMultiplied.values, basicMultiplied.values)
+        #expect(simdMultiplied.values ≈ basicMultiplied.values)
 
         let simdApplied = simdVector1 * simdMultiplied
         let basicApplied = basicVector1 * basicMultiplied
-        assertEqualEnough([simdApplied.x, simdApplied.y, simdApplied.z, simdApplied.w], basicApplied)
+        #expect([simdApplied.x, simdApplied.y, simdApplied.z, simdApplied.w] ≈ basicApplied)
 
         let simdApplied2 = simdMultiplied * simdVector1
         let basicApplied2 = basicMultiplied * basicVector1
-        assertEqualEnough([simdApplied2.x, simdApplied2.y, simdApplied2.z, simdApplied2.w], basicApplied2)
+        #expect([simdApplied2.x, simdApplied2.y, simdApplied2.z, simdApplied2.w] ≈ basicApplied2)
 
         let simdInverse = simdMatrix1.inverse
         let basicInverse = basicMatrix1.inverse
-        assertEqualEnoughMatrix(simdInverse.values, basicInverse.values)
-        assertEqualEnoughMatrix(basicMatrix1.values, basicInverse.inverse.values)
-    }
-
-    func assertEqualEnough(_ a: [Double], _ b: [Double]) {
-        XCTAssertEqual(a.count, b.count)
-        for (v1, v2) in zip(a, b) {
-            XCTAssertEqual(v1, v2, accuracy: 0.01)
-        }
-    }
-
-    func assertEqualEnoughMatrix(_ a: [[Double]], _ b: [[Double]]) {
-        XCTAssertEqual(a.count, b.count)
-        for (row1, row2) in zip(a, b) {
-            assertEqualEnough(row1, row2)
-        }
+        #expect(simdInverse.values ≈ basicInverse.values)
+        #expect(basicMatrix1.values ≈ basicInverse.inverse.values)
     }
 }
 
