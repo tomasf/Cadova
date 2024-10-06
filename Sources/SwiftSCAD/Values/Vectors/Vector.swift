@@ -17,6 +17,8 @@ public protocol Vector: Sendable, CustomDebugStringConvertible {
     static func *(_ v: Self, _ d: Double) -> Self
     static func /(_ v: Self, _ d: Double) -> Self
 
+    static func ⋅(_ v1: Self, _ v2: Self) -> Double
+
     var magnitude: Double { get }
     var squaredEuclideanNorm: Double { get }
     var normalized: Self { get }
@@ -37,6 +39,10 @@ public protocol Vector: Sendable, CustomDebugStringConvertible {
 }
 
 public extension Vector {
+    subscript(_ index: Int) -> Double {
+        elements[index]
+    }
+
     /// Returns a normalized version of the vector with a magnitude of 1.
     var normalized: Self {
         guard magnitude > 0 else { return self }
