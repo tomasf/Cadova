@@ -4,9 +4,9 @@ public extension Geometry3D {
     private func resized(_ alignment: GeometryAlignment3D, _ calculator: @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
         return measuringBounds { geometry, box in
             geometry
-                .translated(-box.minimum - alignment.factors * box.size)
+                .translated(alignment.offset(for: box))
                 .scaled(calculator(box.size) / box.size)
-                .translated(box.minimum + alignment.factors * box.size)
+                .translated(-alignment.offset(for: box))
         }
     }
 

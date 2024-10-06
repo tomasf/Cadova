@@ -19,9 +19,9 @@ public extension Geometry2D {
     private func resized(_ alignment: GeometryAlignment2D, _ calculator: @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
         return measuringBounds { geometry, box in
             geometry
-                .translated(-box.minimum - alignment.factors * box.size)
+                .translated(alignment.offset(for: box))
                 .scaled(calculator(box.size) / box.size)
-                .translated(box.minimum + alignment.factors * box.size)
+                .translated(-alignment.offset(for: box))
         }
     }
 
