@@ -102,6 +102,23 @@ extension BoundingBox {
     }
 }
 
+extension BoundingBox2D {
+    func translation(for alignment: GeometryAlignment2D) -> Vector2D {
+        let x = alignment.x?.translation(origin: minimum.x, size: size.x) ?? 0
+        let y = alignment.y?.translation(origin: minimum.y, size: size.y) ?? 0
+        return Vector2D(x, y)
+    }
+}
+
+extension BoundingBox3D {
+    func translation(for alignment: GeometryAlignment3D) -> Vector3D {
+        let x = alignment.x?.translation(origin: minimum.x, size: size.x) ?? 0
+        let y = alignment.y?.translation(origin: minimum.y, size: size.y) ?? 0
+        let z = alignment.z?.translation(origin: minimum.z, size: size.z) ?? 0
+        return Vector3D(x, y, z)
+    }
+}
+
 extension BoundingBox: CustomDebugStringConvertible {
     public var debugDescription: String {
         "[min: \(minimum), max: \(maximum)]"

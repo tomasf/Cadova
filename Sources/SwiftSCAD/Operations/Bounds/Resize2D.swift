@@ -17,11 +17,11 @@ public enum ResizeBehavior {
 
 public extension Geometry2D {
     private func resized(_ alignment: GeometryAlignment2D, _ calculator: @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
-        return measuringBounds { geometry, box in
+        measuringBounds { geometry, box in
             geometry
-                .translated(alignment.offset(for: box))
+                .translated(box.translation(for: alignment))
                 .scaled(calculator(box.size) / box.size)
-                .translated(-alignment.offset(for: box))
+                .translated(-box.translation(for: alignment))
         }
     }
 
@@ -33,7 +33,7 @@ public extension Geometry2D {
     /// - Returns: A new geometry resized and repositioned according to the specified dimensions and alignment.
 
     func resized(x: Double, y: Double, alignment: GeometryAlignment2D...) -> any Geometry2D {
-        resized(alignment.merged) { _ in [x, y] }
+        resized(alignment.merged.defaultingToOrigin()) { _ in [x, y] }
     }
 
     /// Resizes the geometry in the X direction with an optional behavior in the Y direction.
@@ -44,7 +44,7 @@ public extension Geometry2D {
     /// - Returns: The geometry, resized and repositioned according to the specified criteria.
 
     func resized(x: Double, y: ResizeBehavior = .fixed, alignment: GeometryAlignment2D...) -> any Geometry2D {
-        resized(alignment.merged) { currentSize in
+        resized(alignment.merged.defaultingToOrigin()) { currentSize in
             Vector2D(x, y.value(current: currentSize.y, from: currentSize.x, to: x))
         }
     }
@@ -57,7 +57,7 @@ public extension Geometry2D {
     /// - Returns: The geometry, resized and repositioned according to the specified criteria.
 
     func resized(x: ResizeBehavior = .fixed, y: Double, alignment: GeometryAlignment2D...) -> any Geometry2D {
-        resized(alignment.merged) { currentSize in
+        resized(alignment.merged.defaultingToOrigin()) { currentSize in
             Vector2D(x.value(current: currentSize.x, from: currentSize.y, to: y), y)
         }
     }
@@ -69,6 +69,6 @@ public extension Geometry2D {
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
     func resized(alignment: GeometryAlignment2D..., calculator: @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
-        resized(alignment.merged, calculator)
+        resized(alignment.merged.defaultingToOrigin(), calculator)
     }
 }

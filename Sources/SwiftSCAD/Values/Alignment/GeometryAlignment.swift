@@ -19,8 +19,11 @@ public struct GeometryAlignment2D: Equatable, Sendable {
         .init(x?.factor ?? 0, y?.factor ?? 0)
     }
 
-    internal func offset(for boundingBox: BoundingBox2D) -> Vector2D {
-        -boundingBox.minimum - factors * boundingBox.size
+    internal func defaultingToOrigin() -> Self {
+        .init(
+            x: x ?? .min,
+            y: y ?? .min
+        )
     }
 }
 
@@ -45,8 +48,11 @@ public struct GeometryAlignment3D: Equatable, Sendable {
         .init(x?.factor ?? 0, y?.factor ?? 0, z?.factor ?? 0)
     }
 
-    internal func offset(for boundingBox: BoundingBox3D) -> Vector3D {
-        -boundingBox.minimum - factors * boundingBox.size
+    internal func defaultingToOrigin() -> Self {
+        .init(
+            x: x ?? .min,
+            y: y ?? .min
+        )
     }
 }
 

@@ -25,9 +25,9 @@ public extension Geometry2D {
         measuringBounds { _, box in
             let alignment = pivot.merged
             self
-                .translated(alignment.offset(for: box))
+                .translated(box.translation(for: alignment))
                 .rotated(angle)
-                .translated(-alignment.offset(for: box))
+                .translated(-box.translation(for: alignment))
         }
     }
 }
@@ -62,9 +62,9 @@ public extension Geometry3D {
         measuringBounds { _, box in
             let alignment = pivot.merged
             self
-                .translated(alignment.offset(for: box))
+                .translated(box.translation(for: alignment))
                 .rotated(x: x, y: y, z: z)
-                .translated(-alignment.offset(for: box))
+                .translated(-box.translation(for: alignment))
         }
 
     }

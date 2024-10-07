@@ -12,4 +12,8 @@ public enum AxisAlignment: Equatable, Sendable {
         case .max: 1.0
         }
     }
+
+    internal func translation(origin: Double, size: Double) -> Double {
+        -origin - size * factor
+    }
 }

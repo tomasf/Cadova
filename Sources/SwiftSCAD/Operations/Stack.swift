@@ -12,7 +12,7 @@ internal struct Stack2D: Shape2D {
             for geometry in items {
                 if let box = geometry.boundary(in: environment).boundingBox {
                     geometry
-                        .translated(alignment.offset(for: box).with(axis, as: offset))
+                        .translated(box.translation(for: alignment).with(axis, as: offset))
 
                     offset += box.size[axis] + spacing
                 } else {
@@ -35,7 +35,7 @@ internal struct Stack3D: Shape3D {
             for geometry in items {
                 if let box = geometry.boundary(in: environment).boundingBox {
                      geometry
-                        .translated(alignment.offset(for: box).with(axis, as: offset))
+                        .translated(box.translation(for: alignment).with(axis, as: offset))
 
                     offset += box.size[axis] + spacing
                 } else {
@@ -60,7 +60,7 @@ public func Stack(
     alignment: GeometryAlignment2D...,
     @SequenceBuilder2D content: @escaping () -> [any Geometry2D]
 ) -> any Geometry2D {
-    Stack2D(items: content(), axis: axis, spacing: spacing, alignment: .init(merging: alignment))
+    Stack2D(items: content(), axis: axis, spacing: spacing, alignment: alignment.merged.defaultingToOrigin())
 }
 
 /// Creates a stack of 3D geometries aligned along the specified axis with optional spacing and alignment.
@@ -77,5 +77,5 @@ public func Stack(
     alignment: GeometryAlignment3D...,
     @SequenceBuilder3D content: @escaping () -> [any Geometry3D]
 ) -> any Geometry3D {
-    Stack3D(items: content(), axis: axis, spacing: spacing, alignment: .init(merging: alignment))
+    Stack3D(items: content(), axis: axis, spacing: spacing, alignment: alignment.merged.defaultingToOrigin())
 }
