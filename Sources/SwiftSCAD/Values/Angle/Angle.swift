@@ -29,9 +29,25 @@ public struct Angle: Sendable {
         self.init(radians: totalDegrees * .pi / 180.0)
     }
 
+    /// Create an angle from a number of complete turns.
+    ///
+    /// Initializes an `Angle` instance where the angle is specified as a multiple of complete 360° rotations.
+    ///
+    /// - Parameter turns: The number of complete turns (360° rotations).
+    /// - Precondition: The turns value must be a finite number.
+    public init(turns: Double) {
+        precondition(turns.isFinite, "Turns can't be NaN or infinite")
+        self.init(radians: turns * 2.0 * .pi)
+    }
+
     /// The angle expressed in degrees
     public var degrees: Double {
         radians / (.pi / 180.0)
+    }
+
+    /// The angle expressed in complete turns
+    public var turns: Double {
+        radians / (2 * .pi)
     }
 }
 
@@ -55,16 +71,16 @@ public extension Angle {
     static func degrees(_ degrees: Double) -> Angle {
         Angle(degrees: degrees)
     }
-}
 
-/// Calculate the absolute value of an angle.
-///
-/// This function returns the absolute value of an angle, ensuring the angle's magnitude is positive. It is particularly useful in contexts where the direction of the angle (clockwise or counterclockwise) is irrelevant.
-///
-/// - Parameter angle: The angle for which to compute the absolute value.
-/// - Returns: An `Angle` instance representing the absolute value of the specified angle.
-public func abs(_ angle: Angle) -> Angle {
-    Angle(radians: abs(angle.radians))
+    /// Create an angle from a number of complete turns.
+    ///
+    /// Provides a static method to create an `Angle` from turns, making it easy to express angles as multiples of 360° rotations.
+    ///
+    /// - Parameter turns: The number of complete turns (360° rotations).
+    /// - Returns: An `Angle` instance representing the specified angle in turns.
+    static func turns(_ turns: Double) -> Angle {
+        Angle(turns: turns)
+    }
 }
 
 extension Angle: SCADValue {
