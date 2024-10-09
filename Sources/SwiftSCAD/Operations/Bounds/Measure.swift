@@ -62,10 +62,10 @@ public extension Geometry3D {
     }
 }
 
-public func measureBounds<V>(_ geometry: any Geometry2D, in environment: Environment = .defaultEnvironment, operation: (BoundingBox2D) -> V) -> V {
-    operation(geometry.boundary(in: environment).boundingBox ?? .zero)
+public func measureBounds<V>(_ geometry: any Geometry2D, in environment: Environment = .defaultEnvironment, operation: (BoundingBox2D?) -> V) -> V {
+    operation(geometry.boundary(in: environment).boundingBox)
 }
 
-public func measureBounds<V>(_ geometry: any Geometry3D, in environment: Environment = .defaultEnvironment, operation: (BoundingBox3D) -> V) -> V {
-    operation(geometry.boundary(in: environment).boundingBox ?? .zero)
+public func measureBounds<V>(_ geometry: any Geometry3D, in environment: Environment = .defaultEnvironment, operation: (BoundingBox3D?) -> V) -> V {
+    operation(geometry.boundary(in: environment).boundingBox)
 }
