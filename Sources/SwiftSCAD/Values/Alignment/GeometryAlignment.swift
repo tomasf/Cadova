@@ -51,7 +51,8 @@ public struct GeometryAlignment3D: Equatable, Sendable {
     internal func defaultingToOrigin() -> Self {
         .init(
             x: x ?? .min,
-            y: y ?? .min
+            y: y ?? .min,
+            z: z ?? .min
         )
     }
 }
