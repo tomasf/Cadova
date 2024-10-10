@@ -21,6 +21,10 @@ internal struct NamedGeometry: ResultElement {
         .merging([self, NamedGeometry([name: .threeD([child])])])
     }
 
+    func transformingNames(_ operation: (String) -> String) -> NamedGeometry {
+        .init(Dictionary(geometry.map { (operation($0), $1) }) { $1 })
+    }
+
     static func combine(elements: [NamedGeometry], for operation: GeometryCombination) -> NamedGeometry? {
         merging(elements)
     }
