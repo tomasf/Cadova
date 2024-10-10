@@ -76,82 +76,6 @@ public extension Vector2D {
 }
 
 public extension Vector2D {
-    static func /(_ v: Vector2D, _ d: Double) -> Vector2D {
-        return Vector2D(
-            x: v.x / d,
-            y: v.y / d
-        )
-    }
-
-    static func *(_ v: Vector2D, _ d: Double) -> Vector2D {
-        return Vector2D(
-            x: v.x * d,
-            y: v.y * d
-        )
-    }
-
-    static func *(_ v1: Vector2D, _ v2: Vector2D) -> Vector2D {
-        return Vector2D(
-            x: v1.x * v2.x,
-            y: v1.y * v2.y
-        )
-    }
-
-    static func /(_ v1: Vector2D, _ v2: Vector2D) -> Vector2D {
-        return Vector2D(
-            x: v1.x / v2.x,
-            y: v1.y / v2.y
-        )
-    }
-
-    static func +(_ v1: Vector2D, _ v2: Vector2D) -> Vector2D {
-        return Vector2D(
-            x: v1.x + v2.x,
-            y: v1.y + v2.y
-        )
-    }
-
-    static func -(_ v1: Vector2D, _ v2: Vector2D) -> Vector2D {
-        return Vector2D(
-            x: v1.x - v2.x,
-            y: v1.y - v2.y
-        )
-    }
-
-    static prefix func -(_ v: Vector2D) -> Vector2D {
-        return Vector2D(
-            x: -v.x,
-            y: -v.y
-        )
-    }
-
-
-    static func +(_ v: Vector2D, _ s: Double) -> Vector2D {
-        return Vector2D(
-            x: v.x + s,
-            y: v.y + s
-        )
-    }
-
-    static func -(_ v: Vector2D, _ s: Double) -> Vector2D {
-        return Vector2D(
-            x: v.x - s,
-            y: v.y - s
-        )
-    }
-
-    // Cross product
-    static func ×(v1: Vector2D, v2: Vector2D) -> Double {
-        return v1.x * v2.y - v1.y * v2.x
-    }
-
-    // Dot product
-    static func ⋅(v1: Vector2D, v2: Vector2D) -> Double {
-        v1.x * v2.x + v1.y * v2.y
-    }
-}
-
-public extension Vector2D {
     /// Calculate the angle of a straight line between this point and another point
     func angle(to other: Vector2D) -> Angle {
         Angle(radians: atan2(other.y - y, other.x - x))
@@ -176,10 +100,6 @@ extension Vector2D: Vector {
 
     public init(elements e: [Double]) {
         self.init(e[0], e[1])
-    }
-
-    public subscript(_ index: Int) -> Double {
-        [x, y][index]
     }
 
     public static func min(_ a: Self, _ b: Self) -> Self {

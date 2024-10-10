@@ -53,6 +53,18 @@ public struct BezierPath <V: Vector>: Sendable {
         return BezierPath(startPoint: startPoint, curves: newCurves)
     }
 
+    /// Adds a Bezier curve to the path using the specified control points. This method can be used to add curves with any number of control points beyond the basic line, quadratic, and cubic curves.
+    ///
+    /// - Parameter controlPoints: A variadic list of control points defining the Bezier curve.
+    /// - Returns: A new `BezierPath` instance with the added Bezier curve.
+    public func addingCurve(_ controlPoints: V...) -> BezierPath {
+        adding(curve: BezierCurve(controlPoints: [endPoint] + controlPoints))
+    }
+
+    public func addingCurve(_ controlPoints: [V]) -> BezierPath {
+        adding(curve: BezierCurve(controlPoints: [endPoint] + controlPoints))
+    }
+
     /// Adds a line segment from the last point of the `BezierPath` to the specified point.
     ///
     /// - Parameter point: The end point of the line segment to add.
@@ -80,18 +92,6 @@ public struct BezierPath <V: Vector>: Sendable {
     /// - Returns: A new `BezierPath` instance with the added cubic Bezier curve.
     public func addingCubicCurve(controlPoint1: V, controlPoint2: V, end: V) -> BezierPath {
         adding(curve: BezierCurve(controlPoints: [endPoint, controlPoint1, controlPoint2, end]))
-    }
-
-    /// Adds a Bezier curve to the path using the specified control points. This method can be used to add curves with any number of control points beyond the basic line, quadratic, and cubic curves.
-    ///
-    /// - Parameter controlPoints: A variadic list of control points defining the Bezier curve.
-    /// - Returns: A new `BezierPath` instance with the added Bezier curve.
-    public func addingCurve(_ controlPoints: V...) -> BezierPath {
-        adding(curve: BezierCurve(controlPoints: [endPoint] + controlPoints))
-    }
-
-    public func addingCurve(_ controlPoints: [V]) -> BezierPath {
-        adding(curve: BezierCurve(controlPoints: [endPoint] + controlPoints))
     }
 
     /// Closes the path by adding a line segment from the last point back to the starting point.

@@ -4,9 +4,9 @@ public extension Geometry3D {
     private func resized(_ alignment: GeometryAlignment3D, _ calculator: @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
         return measuringBounds { geometry, box in
             geometry
-                .translated(-box.minimum - alignment.factors * box.size)
+                .translated(box.translation(for: alignment))
                 .scaled(calculator(box.size) / box.size)
-                .translated(box.minimum + alignment.factors * box.size)
+                .translated(-box.translation(for: alignment))
         }
     }
 
@@ -19,7 +19,7 @@ public extension Geometry3D {
     /// - Returns: A new geometry resized and repositioned according to the specified dimensions and alignment.
 
     func resized(x: Double, y: Double, z: Double, alignment: GeometryAlignment3D...) -> any Geometry3D {
-        resized(alignment.merged) { _ in Vector3D(x, y, z) }
+        resized(alignment.merged.defaultingToOrigin()) { _ in Vector3D(x, y, z) }
     }
 
     /// Resizes the geometry in the X direction with optional behaviors in the other directions.
@@ -31,7 +31,7 @@ public extension Geometry3D {
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
     func resized(x: Double, y: ResizeBehavior = .fixed, z: ResizeBehavior = .fixed, alignment: GeometryAlignment3D...) -> any Geometry3D {
-        resized(alignment.merged) { current in
+        resized(alignment.merged.defaultingToOrigin()) { current in
             Vector3D(
                 x,
                 y.value(current: current.y, from: current.x, to: x),
@@ -49,7 +49,7 @@ public extension Geometry3D {
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
     func resized(x: ResizeBehavior = .fixed, y: Double, z: ResizeBehavior = .fixed, alignment: GeometryAlignment3D...) -> any Geometry3D {
-        resized(alignment.merged) { current in
+        resized(alignment.merged.defaultingToOrigin()) { current in
             Vector3D(
                 x.value(current: current.x, from: current.y, to: y),
                 y,
@@ -67,7 +67,7 @@ public extension Geometry3D {
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
     func resized(x: ResizeBehavior = .fixed, y: ResizeBehavior = .fixed, z: Double, alignment: GeometryAlignment3D...) -> any Geometry3D {
-        resized(alignment.merged) { current in
+        resized(alignment.merged.defaultingToOrigin()) { current in
             Vector3D(
                 x.value(current: current.x, from: current.z, to: z),
                 y.value(current: current.y, from: current.z, to: z),
@@ -83,6 +83,6 @@ public extension Geometry3D {
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
     func resized(alignment: GeometryAlignment3D..., calculator: @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
-        resized(alignment.merged, calculator)
+        resized(alignment.merged.defaultingToOrigin(), calculator)
     }
 }

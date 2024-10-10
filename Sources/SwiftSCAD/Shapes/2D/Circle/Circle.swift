@@ -59,6 +59,19 @@ public struct Circle: LeafGeometry2D {
 }
 
 public extension Circle {
+    /// Calculates the corresponding coordinate on the circle (X or Y) given the known coordinate.
+    ///
+    /// Given a known coordinate (either X or Y), this function returns the positive corresponding coordinate.
+    ///
+    /// - Parameter knownCoordinate: The known coordinate (either X or Y).
+    /// - Returns: The positive corresponding coordinate (Y if X is provided, X if Y is provided).
+    /// - Precondition: The known coordinate must be within the circle's radius.
+    ///
+    func correspondingCoordinate(for knownCoordinate: Double) -> Double {
+        precondition(abs(knownCoordinate) <= radius, "The coordinate must be within the circle's radius.")
+        return sqrt(radius * radius - knownCoordinate * knownCoordinate)
+    }
+
     /// Calculates the chord length for a given sagitta in the circle.
     ///
     /// The chord length is the straight-line distance between two points on the circle's circumference

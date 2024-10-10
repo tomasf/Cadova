@@ -11,11 +11,15 @@ public extension Geometry2D {
     /// Example usage:
     /// ```
     /// let originalShape = Rectangle([10, 5])
-    /// let compositeShape = originalShape.cloned { $0.translated(x: 15, y: 0) }
+    /// let compositeShape = originalShape.cloned { $0.rotated(45°) }
     /// ```
     /// In this example, `compositeShape` includes both the original rectangle and a version that has been translated 15 units along the x-axis.
     func cloned(@UnionBuilder2D _ transform: (any Geometry2D) -> any Geometry2D) -> any Geometry2D {
         adding(transform(self))
+    }
+
+    func clonedAt(x: Double = 0, y: Double = 0) -> any Geometry2D {
+        cloned { $0.translated(x: x, y: y) }
     }
 }
 
@@ -30,10 +34,14 @@ public extension Geometry3D {
     /// Example usage:
     /// ```
     /// let cube = Box([2, 2, 2])
-    /// let compositeGeometry = cube.cloned { $0.translated(x: 3, y: 3, z: 0) }
+    /// let compositeGeometry = cube.cloned { $0.rotated(x: 45°) }
     /// ```
     /// This example produces `compositeGeometry`, which includes the original cube and a translated copy, demonstrating the transformation visually.
     func cloned(@UnionBuilder3D _ transform: (any Geometry3D) -> any Geometry3D) -> any Geometry3D {
         adding(transform(self))
+    }
+
+    func clonedAt(x: Double = 0, y: Double = 0, z: Double = 0) -> any Geometry3D {
+        cloned { $0.translated(x: x, y: y, z: z) }
     }
 }

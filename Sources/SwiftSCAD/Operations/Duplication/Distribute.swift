@@ -8,7 +8,7 @@ extension Geometry2D {
     /// - Returns: A new geometry with this geometry repeated
     
     @UnionBuilder2D
-    public func distributed(at offsets: [Double], along axis: Axis2D) -> any Geometry2D {
+    public func distributed(at offsets: any Sequence<Double>, along axis: Axis2D) -> any Geometry2D {
         for offset in offsets {
             translated(Vector2D(axis: axis, value: offset))
         }
@@ -20,7 +20,7 @@ extension Geometry2D {
     /// - Returns: A new geometry with this geometry repeated
     
     @UnionBuilder2D
-    public func distributed(at angles: [Angle]) -> any Geometry2D {
+    public func distributed(at angles: any Sequence<Angle>) -> any Geometry2D {
         for angle in angles {
             rotated(angle)
         }
@@ -32,7 +32,7 @@ extension Geometry2D {
     /// - Returns: A new geometry with this geometry repeated
     
     @UnionBuilder2D
-    public func distributed(at offsets: [Vector2D]) -> any Geometry2D {
+    public func distributed(at offsets: any Sequence<Vector2D>) -> any Geometry2D {
         for offset in offsets {
             translated(offset)
         }
@@ -57,7 +57,7 @@ extension Geometry3D {
     /// - Returns: A new geometry with this geometry repeated
     
     @UnionBuilder3D
-    public func distributed(at offsets: [Double], along axis: Axis3D) -> any Geometry3D {
+    public func distributed(at offsets: any Sequence<Double>, along axis: Axis3D) -> any Geometry3D {
         for offset in offsets {
             translated(Vector3D(axis: axis, value: offset))
         }
@@ -70,7 +70,7 @@ extension Geometry3D {
     /// - Returns: A new geometry with this geometry repeated
     
     @UnionBuilder3D
-    public func distributed(at angles: [Angle], around axis: Axis3D) -> any Geometry3D {
+    public func distributed(at angles: any Sequence<Angle>, around axis: Axis3D) -> any Geometry3D {
         for angle in angles {
             rotated(angle: angle, axis: axis)
         }
@@ -82,7 +82,7 @@ extension Geometry3D {
     /// - Returns: A new geometry with this geometry repeated
     
     @UnionBuilder3D
-    public func distributed(at points: [Vector3D]) -> any Geometry3D {
+    public func distributed(at points: any Sequence<Vector3D>) -> any Geometry3D {
         for offset in points {
             translated(offset)
         }

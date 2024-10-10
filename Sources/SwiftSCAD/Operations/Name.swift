@@ -3,56 +3,70 @@ import Foundation
 public enum TransformContext {
     case global
     case local
-}
 
-struct NameGeometry2D: Geometry2D {
-    let body: any Geometry2D
-    let name: String
-    let transform: TransformContext
-
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body.codeFragment(in: environment)
+    fileprivate func prepare(_ geometry: any Geometry2D, in environment: Environment) -> any Geometry2D {
+        switch self {
+        case .global: geometry.transformed(.init(environment.transform))
+        case .local: geometry
+        }
     }
 
-    func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        let elements = body.elements(in: environment)
-        let namedGeometry = elements[NamedGeometry.self] ?? .init()
-        return elements.setting(NamedGeometry.self, to: namedGeometry.adding(body, named: name))
-    }
-}
-
-struct NameGeometry3D: Geometry3D {
-    let body: any Geometry3D
-    let name: String
-    let transform: TransformContext
-
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body.codeFragment(in: environment)
-    }
-
-    func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        let elements = body.elements(in: environment)
-        let namedGeometry = elements[NamedGeometry.self] ?? .init()
-        return elements.setting(NamedGeometry.self, to: namedGeometry.adding(body, named: name))
+    fileprivate func prepare(_ geometry: any Geometry3D, in environment: Environment) -> any Geometry3D {
+        switch self {
+        case .global: geometry.transformed(environment.transform)
+        case .local: geometry
+        }
     }
 }
 
 public extension Geometry2D {
-    func named(_ name: String, transform: TransformContext = .global) -> any Geometry2D {
-        NameGeometry2D(body: self, name: name, transform: transform)
+    func named(_ name: String, transform context: TransformContext = .global) -> any Geometry2D {
+        EnvironmentReader { environment in
+            modifyingResult(NamedGeometry.self) { oldValue in
+                (oldValue ?? .init()).adding(context.prepare(self, in: environment), named: name)
+            }
+        }
+    }
+
+    func prefixingNames(_ prefix: String) -> any Geometry2D {
+        modifyingResult(NamedGeometry.self) { namedGeometry in
+            namedGeometry?.transformingNames { prefix + $0 }
+        }
+    }
+
+    func suffixingNames(_ suffix: String) -> any Geometry2D {
+        modifyingResult(NamedGeometry.self) { namedGeometry in
+            namedGeometry?.transformingNames { $0 + suffix }
+        }
+    }
+
+    func clearingNamedGeometry() -> any Geometry2D {
+        withResult(NamedGeometry())
     }
 }
 
 public extension Geometry3D {
-    func named(_ name: String, transform: TransformContext = .global) -> any Geometry3D {
-        NameGeometry3D(body: self, name: name, transform: transform)
+    func named(_ name: String, transform context: TransformContext = .global) -> any Geometry3D {
+        EnvironmentReader { environment in
+            modifyingResult(NamedGeometry.self) { oldValue in
+                (oldValue ?? .init()).adding(context.prepare(self, in: environment), named: name)
+            }
+        }
+    }
+
+    func prefixingNames(_ prefix: String) -> any Geometry3D {
+        modifyingResult(NamedGeometry.self) { namedGeometry in
+            namedGeometry?.transformingNames { prefix + $0 }
+        }
+    }
+
+    func suffixingNames(_ suffix: String) -> any Geometry3D {
+        modifyingResult(NamedGeometry.self) { namedGeometry in
+            namedGeometry?.transformingNames { $0 + suffix }
+        }
+    }
+
+    func clearingNamedGeometry() -> any Geometry3D {
+        withResult(NamedGeometry())
     }
 }

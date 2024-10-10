@@ -5,7 +5,7 @@ public func save(to directory: URL? = nil, environment: Environment? = nil, @Any
     let namedGeometry = NamedGeometry.merging(geometries().compactMap {
         $0.namedGeometry(in: effectiveEnvironment)
     })
-    for (name, geometry) in namedGeometry.geometry {
+    for (name, geometry) in namedGeometry.geometry.sorted(by: { $0.key < $1.key }) {
         let fileURL = URL(expandingFilePath: name, extension: "scad", relativeTo: directory)
 
         switch geometry {

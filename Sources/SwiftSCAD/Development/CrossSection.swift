@@ -11,8 +11,8 @@ struct CrossSection: Shape3D {
         return content.intersection {
             Box([universeLength, universeLength, universeLength])
                 .aligned(at: .centerXY)
-                .transformed(.rotation(from: .up, to: axis))
                 .translated(z: offset)
+                .transformed(.rotation(from: .up, to: axis))
                 .colored(.blue)
         }
     }
@@ -31,7 +31,8 @@ public extension Geometry3D {
     @UnionBuilder3D
     func crossSectioned(axis: Axis3D, offset: Double = 0, cuttingAway axisDirection: AxisDirection = .negative) -> any Geometry3D {
         let direction = axis.direction * (axisDirection == .positive ? -1 : 1)
-        crossSectioned(axis: direction, offset: offset)
+        let signedOffset = offset * (axisDirection == .positive ? -1 : 1)
+        crossSectioned(axis: direction, offset: signedOffset)
     }
 
     /// Create a cross-section of this geometry

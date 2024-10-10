@@ -39,7 +39,9 @@ internal struct BezierCurve <V: Vector>: Sendable {
 
     func points(in range: Range<Double>, facets: Environment.Facets) -> [V] {
         guard controlPoints.count > 2 else {
-            return controlPoints
+            let start = controlPoints[0].point(alongLineTo: controlPoints[1], at: range.lowerBound)
+            let end = controlPoints[0].point(alongLineTo: controlPoints[1], at: range.upperBound)
+            return [start, end]
         }
 
         switch facets {
