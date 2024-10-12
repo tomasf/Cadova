@@ -21,8 +21,13 @@ public extension Geometry2D {
 
     func settingBoundsSize(x: Double? = nil, y: Double? = nil, alignment: GeometryAlignment2D...) -> any Geometry2D {
         measuringBounds { geometry, box in
-            let newSize = Vector2D(x ?? box.size.x, y ?? box.size.y)
-            settingBounds(geometry: geometry, currentSize: box.size, targetSize: newSize, alignment: alignment.merged)
+            if let x = x, let y = y, !alignment.merged.hasEffect {
+                settingBounds(.init(minimum: .zero, maximum: Vector2D(x, y)))
+            } else {
+                let box = box.requireNonNil()
+                let newSize = Vector2D(x ?? box.size.x, y ?? box.size.y)
+                settingBounds(geometry: geometry, currentSize: box.size, targetSize: newSize, alignment: alignment.merged)
+            }
         }
     }
 
@@ -36,7 +41,11 @@ public extension Geometry2D {
 
     func settingBoundsSize(_ targetSize: Vector2D, alignment: GeometryAlignment2D...) -> any Geometry2D {
         measuringBounds { geometry, box in
-            settingBounds(geometry: geometry, currentSize: box.size, targetSize: targetSize, alignment: alignment.merged)
+            if alignment.merged.hasEffect {
+                settingBounds(geometry: geometry, currentSize: box.requireNonNil().size, targetSize: targetSize, alignment: alignment.merged)
+            } else {
+                settingBounds(.init(minimum: .zero, maximum: targetSize))
+            }
         }
     }
 }
@@ -63,8 +72,13 @@ public extension Geometry3D {
 
     func settingBoundsSize(x: Double? = nil, y: Double? = nil, z: Double? = nil, alignment: GeometryAlignment3D...) -> any Geometry3D {
         measuringBounds { geometry, box in
-            let newSize = Vector3D(x ?? box.size.x, y ?? box.size.y, z ?? box.size.z)
-            settingBounds(geometry: geometry, currentSize: box.size, targetSize: newSize, alignment: alignment.merged)
+            if let x = x, let y = y, let z = z, !alignment.merged.hasEffect {
+                settingBounds(.init(minimum: .zero, maximum: Vector3D(x, y, z)))
+            } else {
+                let box = box.requireNonNil()
+                let newSize = Vector3D(x ?? box.size.x, y ?? box.size.y, z ?? box.size.z)
+                settingBounds(geometry: geometry, currentSize: box.size, targetSize: newSize, alignment: alignment.merged)
+            }
         }
     }
 
@@ -78,7 +92,11 @@ public extension Geometry3D {
 
     func settingBoundsSize(_ targetSize: Vector3D, alignment: GeometryAlignment3D...) -> any Geometry3D {
         measuringBounds { geometry, box in
-            settingBounds(geometry: geometry, currentSize: box.size, targetSize: targetSize, alignment: alignment.merged)
+            if alignment.merged.hasEffect {
+                settingBounds(geometry: geometry, currentSize: box.requireNonNil().size, targetSize: targetSize, alignment: alignment.merged)
+            } else {
+                settingBounds(.init(minimum: .zero, maximum: targetSize))
+            }
         }
     }
 }

@@ -43,9 +43,9 @@ public extension Geometry2D {
     ///
     /// - Parameter builder: A closure defining how to modify the geometry based on its bounding box.
     /// - Returns: A modified version of the original geometry.
-    func measuringBounds(@UnionBuilder2D _ builder: @escaping (any Geometry2D, BoundingBox2D) -> any Geometry2D) -> any Geometry2D {
+    func measuringBounds(@UnionBuilder2D _ builder: @escaping (any Geometry2D, BoundingBox2D?) -> any Geometry2D) -> any Geometry2D {
         readingBoundary { geometry, boundary in
-            builder(geometry, boundary.boundingBox ?? .zero)
+            builder(geometry, boundary.boundingBox)
         }
     }
 }
@@ -55,9 +55,9 @@ public extension Geometry3D {
     ///
     /// - Parameter builder: A closure defining how to modify the geometry based on its bounding box.
     /// - Returns: A modified version of the original geometry.
-    func measuringBounds(@UnionBuilder3D _ builder: @escaping (any Geometry3D, BoundingBox3D) -> any Geometry3D) -> any Geometry3D {
+    func measuringBounds(@UnionBuilder3D _ builder: @escaping (any Geometry3D, BoundingBox3D?) -> any Geometry3D) -> any Geometry3D {
         readingBoundary { geometry, boundary in
-            builder(geometry, boundary.boundingBox ?? .zero)
+            builder(geometry, boundary.boundingBox)
         }
     }
 }

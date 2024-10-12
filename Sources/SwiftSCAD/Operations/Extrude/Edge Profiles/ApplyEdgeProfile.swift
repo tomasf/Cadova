@@ -22,7 +22,7 @@ public extension Geometry3D {
             return applyingTopEdgeProfile(profile: profile, at: z, shape: slice, method: method)
         } else {
             return measuringBounds { _, box in
-                return applyingTopEdgeProfile(profile: profile, at: box.maximum.z, shape: slice, method: method)
+                applyingTopEdgeProfile(profile: profile, at: box.requireNonNil().maximum.z, shape: slice, method: method)
             }
         }
     }
@@ -34,6 +34,7 @@ public extension Geometry3D {
             }
         } else {
             measuringBounds { _, box in
+                let box = box.requireNonNil()
                 applyingTopEdgeProfile(profile, at: box.maximum.z, method: method) {
                     projection(slicingAtZ: box.maximum.z - 0.01)
                 }
@@ -47,6 +48,7 @@ public extension Geometry3D {
             return applyingBottomEdgeProfile(profile: profile, at: z, shape: slice, method: method)
         } else {
             return measuringBounds { _, box in
+                let box = box.requireNonNil()
                 return applyingBottomEdgeProfile(profile: profile, at: box.minimum.z, shape: slice, method: method)
             }
         }
@@ -59,6 +61,7 @@ public extension Geometry3D {
             }
         } else {
             measuringBounds { _, box in
+                let box = box.requireNonNil()
                 applyingBottomEdgeProfile(profile, at: box.minimum.z, method: method) {
                     projection(slicingAtZ: box.minimum.z + 0.01)
                 }

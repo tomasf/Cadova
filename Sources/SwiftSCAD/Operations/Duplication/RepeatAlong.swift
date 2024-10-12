@@ -68,11 +68,20 @@ extension Geometry2D {
     ///   - count: The number of geometries to generate
     /// - Returns: A new geometry with this geometry repeated
 
-    @UnionBuilder2D
     public func repeated(along axis: Axis2D, spacing: Double, count: Int) -> any Geometry2D {
         measuringBounds { geometry, bounds in
-            let step = bounds.size[axis] + spacing
+            let step = bounds.requireNonNil().size[axis] + spacing
             geometry.repeated(along: axis, step: step, count: count)
+        }
+    }
+
+    public func repeated(along axis: Axis2D, in range: ClosedRange<Double>, minimumSpacing: Double) -> any Geometry2D {
+        measuringBounds { geometry, bounds in
+            let boundsLength = bounds.requireNonNil().size[axis]
+            let availableLength = range.upperBound - range.lowerBound - boundsLength
+            let count = Int(floor(availableLength / (boundsLength + minimumSpacing)))
+            let step = availableLength / Double(count)
+            geometry.repeated(along: axis, step: step, count: count + 1)
         }
     }
 }
@@ -145,11 +154,21 @@ extension Geometry3D {
     ///   - count: The number of geometries to generate
     /// - Returns: A new geometry with this geometry repeated
 
-    @UnionBuilder3D
     public func repeated(along axis: Axis3D, spacing: Double, count: Int) -> any Geometry3D {
         measuringBounds { geometry, bounds in
-            let step = bounds.size[axis] + spacing
+            let boundsLength = bounds.requireNonNil().size[axis]
+            let step = boundsLength + spacing
             geometry.repeated(along: axis, step: step, count: count)
+        }
+    }
+
+    public func repeated(along axis: Axis3D, in range: ClosedRange<Double>, minimumSpacing: Double) -> any Geometry3D {
+        measuringBounds { geometry, bounds in
+            let boundsLength = bounds.requireNonNil().size[axis]
+            let availableLength = range.upperBound - range.lowerBound - boundsLength
+            let count = Int(floor(availableLength / (boundsLength + minimumSpacing)))
+            let step = availableLength / Double(count)
+            geometry.repeated(along: axis, step: step, count: max(count + 1, 1))
         }
     }
 }

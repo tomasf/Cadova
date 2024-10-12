@@ -16,6 +16,7 @@ internal struct RoundedBoxMaskSingleAxis: Shape3D {
         Box(size)
             .transformed(.rotation(rotation).inverse)
             .measuringBounds { box, transformedBounds in
+                let transformedBounds = transformedBounds.requireNonNil()
                 RoundedRectangleMask(transformedBounds.size.xy, style: cornerStyle, radii: radii)
                     .extruded(height: transformedBounds.size.z)
             }

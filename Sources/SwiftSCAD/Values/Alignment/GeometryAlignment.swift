@@ -10,7 +10,7 @@ public struct GeometryAlignment2D: Equatable, Sendable {
         self.y = y
     }
 
-    internal init(merging alignments: [GeometryAlignment2D]) {
+    fileprivate init(merging alignments: [GeometryAlignment2D]) {
         x = alignments.compactMap(\.x).last
         y = alignments.compactMap(\.y).last
     }
@@ -25,6 +25,10 @@ public struct GeometryAlignment2D: Equatable, Sendable {
             y: y ?? .min
         )
     }
+
+    internal var hasEffect: Bool {
+        x != nil || y != nil
+    }
 }
 
 public struct GeometryAlignment3D: Equatable, Sendable {
@@ -38,7 +42,7 @@ public struct GeometryAlignment3D: Equatable, Sendable {
         self.z = z
     }
 
-    internal init(merging alignments: [GeometryAlignment3D]) {
+    fileprivate init(merging alignments: [GeometryAlignment3D]) {
         x = alignments.compactMap(\.x).last
         y = alignments.compactMap(\.y).last
         z = alignments.compactMap(\.z).last
@@ -54,6 +58,10 @@ public struct GeometryAlignment3D: Equatable, Sendable {
             y: y ?? .min,
             z: z ?? .min
         )
+    }
+
+    internal var hasEffect: Bool {
+        x != nil || y != nil || z != nil
     }
 }
 

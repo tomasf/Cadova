@@ -24,10 +24,11 @@ public extension Geometry2D {
     ) -> any Geometry2D {
         measuringBounds { _, box in
             let alignment = pivot.merged
+            let translation = box.requireNonNil().translation(for: alignment)
             self
-                .translated(box.translation(for: alignment))
+                .translated(translation)
                 .rotated(angle)
-                .translated(-box.translation(for: alignment))
+                .translated(-translation)
         }
     }
 }
@@ -61,10 +62,11 @@ public extension Geometry3D {
     ) -> any Geometry3D {
         measuringBounds { _, box in
             let alignment = pivot.merged
+            let translation = box.requireNonNil().translation(for: alignment)
             self
-                .translated(box.translation(for: alignment))
+                .translated(translation)
                 .rotated(x: x, y: y, z: z)
-                .translated(-box.translation(for: alignment))
+                .translated(-translation)
         }
 
     }

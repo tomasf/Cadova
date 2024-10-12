@@ -24,6 +24,7 @@ internal extension Geometry2D {
     func roundingRectangleCorners(_ radii: RectangleCornerRadii, style: RoundedCornerStyle = .circular) -> any Geometry2D {
         let epsilon = 0.001
         return measuringBounds { child, box in
+            let box = box.requireNonNil()
             child.intersection {
                 RoundedRectangleMask(box.size + 2 * epsilon, style: style, radii: radii)
                     .translated(box.minimum - epsilon)

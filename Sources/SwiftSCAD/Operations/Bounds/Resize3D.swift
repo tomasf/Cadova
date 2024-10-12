@@ -3,10 +3,12 @@ import Foundation
 public extension Geometry3D {
     private func resized(_ alignment: GeometryAlignment3D, _ calculator: @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
         return measuringBounds { geometry, box in
+            let box = box.requireNonNil()
+            let translation = box.translation(for: alignment)
             geometry
-                .translated(box.translation(for: alignment))
+                .translated(translation)
                 .scaled(calculator(box.size) / box.size)
-                .translated(-box.translation(for: alignment))
+                .translated(-translation)
         }
     }
 

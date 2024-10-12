@@ -124,3 +124,21 @@ extension BoundingBox: CustomDebugStringConvertible {
         "[min: \(minimum), max: \(maximum)]"
     }
 }
+
+extension BoundingBox2D? {
+    func requireNonNil() -> BoundingBox2D {
+        guard let box = self else {
+            preconditionFailure("Bounding box was empty")
+        }
+        return box
+    }
+}
+
+extension BoundingBox3D? {
+    func requireNonNil() -> BoundingBox3D {
+        guard let box = self else {
+            preconditionFailure("Bounding box was empty")
+        }
+        return box
+    }
+}
