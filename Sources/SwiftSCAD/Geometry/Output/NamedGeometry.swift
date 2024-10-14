@@ -1,9 +1,9 @@
 import Foundation
 
 internal struct NamedGeometry: ResultElement {
-    let geometry: [String: GeometryList]
+    let geometry: [String: CompoundGeometry]
 
-    init(_ geometry: [String: GeometryList] = [:]) {
+    init(_ geometry: [String: CompoundGeometry] = [:]) {
         self.geometry = geometry
     }
 
@@ -31,11 +31,11 @@ internal struct NamedGeometry: ResultElement {
 }
 
 extension NamedGeometry {
-    enum GeometryList {
+    enum CompoundGeometry {
         case twoD ([any Geometry2D])
         case threeD ([any Geometry3D])
 
-        func merging(with other: GeometryList) -> GeometryList {
+        func merging(with other: CompoundGeometry) -> CompoundGeometry {
             switch (self, other) {
             case (.twoD (let a), .twoD (let b)):
                 return .twoD(a + b)
@@ -48,10 +48,22 @@ extension NamedGeometry {
         func codeFragment(in environment: Environment) -> CodeFragment {
             switch self {
             case .twoD (let geometry):
-                Union(geometry).codeFragment(in: environment)
+                geometry.usingDefaultFacets().codeFragment(in: environment)
 
             case .threeD (let geometry):
-                Union(geometry).codeFragment(in: environment)
+                geometry.usingDefaultFacets().codeFragment(in: environment)
+            }
+        }
+
+        func outputFormats(in environment: Environment) -> [any OutputFormat] {
+            switch self {
+            case .twoD (let geometry):
+                let elements = geometry.usingDefaultFacets().elements(in: environment)
+                return Array(elements[OutputFormatSet2D.self]?.formats ?? [.scad])
+
+            case .threeD (let geometry):
+                let elements = geometry.usingDefaultFacets().elements(in: environment)
+                return Array(elements[OutputFormatSet3D.self]?.formats ?? [.scad])
             }
         }
     }

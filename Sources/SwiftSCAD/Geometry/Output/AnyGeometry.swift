@@ -2,17 +2,35 @@ import Foundation
 
 public struct AnyGeometry {
     private let elementsProvider: (Environment) -> ResultElementsByType
+    private let codeFragmentProvider: (Environment) -> CodeFragment
+    private let outputFormatProvider: (Environment) -> [any OutputFormat]
 
     internal init(_ geometry: any Geometry2D) {
-        self.elementsProvider = geometry.elements(in:)
+        elementsProvider = geometry.elements(in:)
+        codeFragmentProvider = geometry.codeFragment(in:)
+        outputFormatProvider = {
+            geometry.elements(in: $0)[OutputFormatSet2D.self]?.formats ?? [.scad]
+        }
     }
 
     internal init(_ geometry: any Geometry3D) {
-        self.elementsProvider = geometry.elements(in:)
+        elementsProvider = geometry.elements(in:)
+        codeFragmentProvider = geometry.codeFragment(in:)
+        outputFormatProvider = {
+            geometry.elements(in: $0)[OutputFormatSet3D.self]?.formats ?? [.scad]
+        }
     }
 
     internal func namedGeometry(in environment: Environment) -> NamedGeometry? {
         elementsProvider(environment)[NamedGeometry.self]
+    }
+
+    internal func outputFormats(in environment: Environment) -> [any OutputFormat] {
+        outputFormatProvider(environment)
+    }
+
+    internal func codeFragment(in environment: Environment) -> CodeFragment {
+        codeFragmentProvider(environment)
     }
 }
 

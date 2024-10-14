@@ -35,6 +35,10 @@ extension URL {
         }
         self = url
     }
+
+    func withRequiredExtension(_ requiredExtension: String) -> URL {
+        pathExtension == requiredExtension ? self : appendingPathExtension(requiredExtension)
+    }
 }
 
 extension Dictionary {
