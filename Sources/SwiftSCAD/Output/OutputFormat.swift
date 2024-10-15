@@ -17,7 +17,7 @@ public enum OutputFormat3D {
     case wrl
     case amf
 
-    static let stl = Self.stlASCII
+    public static let stl = Self.stlASCII
 }
 
 internal protocol OutputFormat: Hashable, Sendable {
