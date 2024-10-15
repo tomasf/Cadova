@@ -5,7 +5,7 @@ import Foundation
 
 internal extension OpenSCADExport {
     static func findExecutableAutomatically() -> URL? {
-        if let path = associatedExecutable(forExtension: ".scad"), path.contains(/openscad/.ignoresCase()) {
+        if let path = associatedExecutable(forExtension: ".scad"), path.range(of: "openscad", options: .caseInsensitive) != nil {
             return URL(filePath: path)
         } else {
             return nil
