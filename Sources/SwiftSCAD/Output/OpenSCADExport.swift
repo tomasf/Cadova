@@ -1,11 +1,10 @@
 import Foundation
-#if canImport(AppKit)
-import AppKit
-#endif
 
 struct OpenSCADExport {
     let inputCode: Data
     let outputFormat: any OutputFormat
+
+    static let executableEnvironmentVariableName = "OPENSCAD"
 
     func run() throws -> Data {
         guard let formatString = outputFormat.openSCADTypeString else {
@@ -50,6 +49,14 @@ struct OpenSCADExport {
         return data
     }
 
+    static func executableURL() -> URL? {
+        if let path = ProcessInfo.processInfo.environment[executableEnvironmentVariableName] {
+            return URL(filePath: path)
+        }
+
+        return findExecutableAutomatically()
+    }
+
     enum RunError: LocalizedError {
         case noExecutable
         case processFailed (Int, String)
@@ -65,29 +72,5 @@ struct OpenSCADExport {
                 "Running OpenSCAD failed. No data was returned."
             }
         }
-    }
-}
-
-private extension OpenSCADExport {
-    static func findExecutableAutomatically() -> URL? {
-#if canImport(AppKit)
-        guard let bundleURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "org.openscad.OpenSCAD") else {
-            return nil
-        }
-
-        return Bundle(url: bundleURL)?.executableURL
-#else
-        return nil
-#endif
-    }
-
-    static let executableEnvironmentVariableName = "OPENSCAD"
-
-    static func executableURL() -> URL? {
-        if let path = ProcessInfo.processInfo.environment[executableEnvironmentVariableName] {
-            return URL(filePath: path)
-        }
-
-        return findExecutableAutomatically()
     }
 }
