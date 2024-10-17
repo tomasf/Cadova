@@ -35,6 +35,10 @@ struct OpenSCADExport {
         process.standardError = errorPipe
 
         try process.run()
+        guard let data = try outputPipe.fileHandleForReading.readToEnd() else {
+            throw RunError.noData
+        }
+
         process.waitUntilExit()
 
         if process.terminationStatus != 0 {
@@ -43,10 +47,11 @@ struct OpenSCADExport {
             throw RunError.processFailed(Int(process.terminationStatus), errorString ?? "")
         }
 
-        guard let data = try outputPipe.fileHandleForReading.readToEnd() else {
-            throw RunError.noData
+        if case OutputFormat3D.stlBinary = outputFormat {
+            return data.fixBinarySTLIfNeeded()
+        } else {
+            return data
         }
-        return data
     }
 
     static func executableURL() -> URL? {
