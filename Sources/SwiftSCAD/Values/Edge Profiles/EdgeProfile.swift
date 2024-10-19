@@ -3,8 +3,9 @@ import Foundation
 /// The profile of an edge
 public enum EdgeProfile: Equatable, Sendable {
     /// Represents an edge modified to be rounded.
-    /// - Parameter radius: The radius of the curvature applied to the edge, determining the degree of roundness.
-    case fillet (radius: Double)
+    ///   - width: The horizontal distance from the original edge to the fillet's farthest point, determining the fillet's depth.
+    ///   - height: The vertical height from the base of the edge to the top of the fillet.
+    case fillet (width: Double, height: Double)
 
     /// Represents an edge that is chamfered, creating a beveled effect by cutting off the edge at a flat angle.
     /// - Parameters:
@@ -29,6 +30,12 @@ public enum EdgeProfile: Equatable, Sendable {
 }
 
 public extension EdgeProfile {
+    /// Represents an edge modified to be rounded.
+    /// - Parameter radius: The radius of the curvature applied to the edge, determining the degree of roundness.
+    static func fillet(radius: Double) -> EdgeProfile {
+        .fillet(width: radius, height: radius)
+    }
+
     /// A 45° chamfered edge
     static func chamfer(size: Double) -> EdgeProfile {
         .chamfer(width: size, height: size)

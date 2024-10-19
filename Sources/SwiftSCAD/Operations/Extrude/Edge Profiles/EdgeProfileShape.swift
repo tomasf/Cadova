@@ -12,8 +12,8 @@ internal protocol EdgeProfileShape {
 internal extension EdgeProfile {
     var profileShape: any EdgeProfileShape {
         switch self {
-        case .fillet(let radius):
-            Fillet(radius: radius)
+        case .fillet(let width, let height):
+            Fillet(width: width, height: height)
         case .chamfer(let width, let height):
             Chamfer(width: width, height: height)
         case .chamferedFillet(let radius, let overhang):
