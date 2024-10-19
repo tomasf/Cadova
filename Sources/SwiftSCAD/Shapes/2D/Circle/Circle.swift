@@ -59,6 +59,14 @@ public struct Circle: LeafGeometry2D {
 }
 
 public extension Circle {
+    static func ellipse(width: Double, height: Double) -> any Geometry2D {
+        let diameter = max(width, height)
+        return Circle(diameter: diameter)
+            .scaled(x: width / diameter, y: height / diameter)
+    }
+}
+
+public extension Circle {
     /// Calculates the corresponding coordinate on the circle (X or Y) given the known coordinate.
     ///
     /// Given a known coordinate (either X or Y), this function returns the positive corresponding coordinate.
