@@ -11,15 +11,7 @@ public func curve<V: Vector>(_ controlPoints: [V]) -> BezierPath<V>.Component {
 // MARK: - Groups
 
 public func group<V: Vector>(@BezierPath<V>.Builder builder: () -> [BezierPath<V>.Component]) -> BezierPath<V>.Component {
-    .init(group: builder(), positioning: nil)
-}
-
-public func relative<V: Vector>(@BezierPath<V>.Builder builder: () -> [BezierPath<V>.Component]) -> BezierPath<V>.Component {
-    .init(group: builder(), positioning: .relative)
-}
-
-public func absolute<V: Vector>(@BezierPath<V>.Builder builder: () -> [BezierPath<V>.Component]) -> BezierPath<V>.Component {
-    .init(group: builder(), positioning: .absolute)
+    .init(group: builder())
 }
 
 

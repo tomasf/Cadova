@@ -2,7 +2,7 @@ extension BezierPath {
     public struct Component {
         private enum Contents {
             case points ([OptionalVector<V>])
-            case subcomponents ([Component], positioning: BezierPath.Positioning?)
+            case subcomponents ([Component])
         }
         private let contents: Contents
 
@@ -10,8 +10,8 @@ extension BezierPath {
             contents = .points(points)
         }
 
-        internal init(group: [Component], positioning: BezierPath.Positioning? = nil) {
-            contents = .subcomponents(group, positioning: positioning)
+        internal init(group: [Component]) {
+            contents = .subcomponents(group)
         }
 
         internal func bezierCurves(start: inout V, positioning: BezierPath<V>.Positioning) -> [BezierCurve<V>] {
@@ -22,16 +22,10 @@ extension BezierPath {
                 start = controlPoints.last!
                 return [BezierCurve(controlPoints: controlPoints)]
 
-            case .subcomponents (let components, let override):
-                if let override {
-                    return components.flatMap {
-                        $0.bezierCurves(start: &start, positioning: override)
-                    }
-                } else {
-                    var localStart = start
-                    return components.flatMap {
-                        $0.bezierCurves(start: &localStart, positioning: positioning)
-                    }
+            case .subcomponents (let components):
+                var localStart = start
+                return components.flatMap {
+                    $0.bezierCurves(start: &localStart, positioning: positioning)
                 }
             }
         }
