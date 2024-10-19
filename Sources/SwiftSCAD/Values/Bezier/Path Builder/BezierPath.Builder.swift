@@ -42,12 +42,12 @@ public extension BezierPath {
 }
 
 public extension BezierPath {
-    enum Positioning {
+    enum BuilderPositioning {
         case relative
         case absolute
     }
 
-    init(from: V = .zero, _ positioning: Positioning, @Builder builder: () -> [Component]) {
+    init(from: V = .zero, _ positioning: BuilderPositioning, @Builder builder: () -> [Component]) {
         var start = from
         self.init(startPoint: from, curves: builder().flatMap {
             $0.bezierCurves(start: &start, positioning: positioning)

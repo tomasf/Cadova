@@ -14,7 +14,7 @@ extension BezierPath {
             contents = .subcomponents(group)
         }
 
-        internal func bezierCurves(start: inout V, positioning: BezierPath<V>.Positioning) -> [BezierCurve<V>] {
+        internal func bezierCurves(start: inout V, positioning: BezierPath<V>.BuilderPositioning) -> [BezierCurve<V>] {
             switch contents {
             case .points (let points):
                 let addition = positioning == .absolute ? .zero : start
