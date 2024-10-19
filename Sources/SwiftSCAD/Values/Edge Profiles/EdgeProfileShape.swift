@@ -1,6 +1,7 @@
 import Foundation
 
 internal protocol EdgeProfileShape {
+    var shape: any Geometry2D { get }
     func shape(angle: Angle) -> any Geometry2D
 
     var height: Double { get }
@@ -23,6 +24,20 @@ internal extension EdgeProfile {
 }
 
 extension EdgeProfileShape {
+    var overlap: Double {
+        0.01
+    }
+
+    func baseMask(width: Double, height: Double) -> any Geometry2D {
+        Polygon([
+            [-overlap, -overlap],
+            [width, -overlap],
+            [width, 0],
+            [0, height],
+            [-overlap, height],
+        ])
+    }
+
     func mask(shape: any Geometry2D, extrusionHeight: Double, method: EdgeProfile.Method) -> any Geometry3D {
         switch method {
         case .layered (let layerHeight):
@@ -42,5 +57,9 @@ extension EdgeProfileShape {
             shape.offset(amount: -inset(at: z), style: .round)
                 .extruded(height: extrusionHeight - effectiveHeight + z)
         }
+    }
+
+    func shape(angle: Angle) -> any Geometry2D {
+        shape.sheared(.y, angle: 90° - angle)
     }
 }

@@ -6,13 +6,8 @@ internal struct Chamfer {
 }
 
 extension Chamfer: EdgeProfileShape {
-    func shape(angle: Angle) -> any Geometry2D {
-        let length = height / sin(angle)
-        return Polygon([
-            [0, 0],
-            [width, 0],
-            [cos(angle) * length, sin(angle) * length],
-        ])
+    var shape: any Geometry2D {
+        baseMask(width: width, height: height)
     }
 
     func inset(at z: Double) -> Double {

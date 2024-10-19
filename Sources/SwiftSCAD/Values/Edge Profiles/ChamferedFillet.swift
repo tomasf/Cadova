@@ -13,10 +13,8 @@ internal struct ChamferedFillet {
 }
 
 extension ChamferedFillet: EdgeProfileShape {
-    func shape(angle: Angle) -> any Geometry2D {
-        precondition(abs(angle - 90°) < 0.001°, "shape(angle:) is only supported for 90° for ChamferedFillet")
-
-        return Polygon([ [0,0], [radius, 0], [0, radius] ])
+    var shape: any Geometry2D {
+        baseMask(width: radius, height: radius)
             .subtracting {
                 Arc(range: 180°..<(180° + overhang), radius: radius)
                     .translated(x: radius, y: radius)

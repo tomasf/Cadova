@@ -6,19 +6,12 @@ internal struct Fillet {
 }
 
 extension Fillet: EdgeProfileShape {
-    func shape(angle: Angle) -> any Geometry2D {
-        let iy = cos(angle) * height
-        let inset = (height * (1 - cos(angle)) * cos(angle) / sin(angle)) + sin(angle) * width
-
-        return Polygon([
-            [0, 0],
-            [inset, 0],
-            [inset - sin(angle) * width, height + iy]
-        ])
-        .subtracting {
-            Circle.ellipse(width: width * 2, height: height * 2)
-                .translated(x: inset, y: height)
-        }
+    var shape: any Geometry2D {
+        baseMask(width: width, height: height)
+            .subtracting {
+                Circle.ellipse(width: width * 2, height: height * 2)
+                    .translated(x: width, y: height)
+            }
     }
 
     func inset(at z: Double) -> Double {
