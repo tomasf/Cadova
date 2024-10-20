@@ -50,3 +50,15 @@ public extension Geometry2D {
         }
     }
 }
+
+public func readTolerance(@UnionBuilder2D _ reader: @escaping (Double) -> any Geometry2D) -> any Geometry2D {
+    EnvironmentReader { e in
+        reader(e.tolerance)
+    }
+}
+
+public func readTolerance(@UnionBuilder3D _ reader: @escaping (Double) -> any Geometry3D) -> any Geometry3D {
+    EnvironmentReader { e in
+        reader(e.tolerance)
+    }
+}
