@@ -46,11 +46,10 @@ struct ExampleTests {
     }
 
     @Test func example3() {
-        let geometry = Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-            .adding {
-                Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
-                    .translated(x: 20)
-            }
+        let geometry = Stack(.x, spacing: 1, alignment: .centerY) {
+            Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
+            Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
+        }
 
         #expect(geometry.code == scadFile("example3"))
     }

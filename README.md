@@ -71,10 +71,10 @@ Open it in OpenSCAD to preview your model. For the best experience, hide the edi
 ![Example 1](https://tomasf.se/projects/swiftscad/examples/example1.png)
 
 ```swift
-Box([10, 20, 5])
+Box(x: 10, y: 20, z: 5)
     .aligned(at: .centerY)
     .rotated(y: -20°, z: 45°)
-    .save(to: "~/Desktop/examples/example1.scad")
+    .save(to: "example1.scad")
 ```
 
 ## Extruded star with subtraction
@@ -94,7 +94,7 @@ Circle(diameter: 10)
             .rotated(x: 20°)
             .highlighted()
     }
-    .save(to: "example2.scad")
+    .save(to: "example2")
 ```
 
 ## Reusable star shape
@@ -109,21 +109,20 @@ struct Star: Shape2D {
 
     var body: any Geometry2D {
         Circle(diameter: centerSize)
-        .adding {
-            Circle(radius: max(pointRadius, 0.001))
-                .translated(x: radius)
-        }
-        .convexHull()
-        .repeated(in: 0°..<360°, count: pointCount)
+            .adding {
+                Circle(radius: max(pointRadius, 0.001))
+                    .translated(x: radius)
+            }
+            .convexHull()
+            .repeated(in: 0°..<360°, count: pointCount)
     }
 }
 
-Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-    .adding {
-        Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
-            .translated(x: 20)
-    }
-    .save(to: "example3.scad")
+Stack(.x, spacing: 1, alignment: .centerY) {
+    Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
+    Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
+}
+.save(to: "example3")
 ```
 
 ## Extruding along a Bezier path
@@ -131,13 +130,17 @@ Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
 
 ```swift
 let path = BezierPath2D(startPoint: .zero)
-    .addingCubicCurve(controlPoint1: [10, 65], controlPoint2: [55, -20], end: [60, 40])
+    .addingCubicCurve(
+        controlPoint1: [10, 65],
+        controlPoint2: [55, -20],
+        end: [60, 40]
+    )
 
 Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
     .usingDefaultFacets()
     .extruded(along: path, convexity: 4)
     .usingFacets(minAngle: 5°, minSize: 1)
-    .save(to: "example4.scad")
+    .save(to: "example4")
 ```
 
 [openscad]: https://openscad.org
