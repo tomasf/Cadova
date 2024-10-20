@@ -47,7 +47,7 @@ public extension BezierPath {
         case absolute
     }
 
-    init(from: V = .zero, _ positioning: BuilderPositioning, @Builder builder: () -> [Component]) {
+    init(from: V = .zero, _ positioning: BuilderPositioning = .absolute, @Builder builder: () -> [Component]) {
         var start = from
         self.init(startPoint: from, curves: builder().flatMap {
             $0.bezierCurves(start: &start, positioning: positioning)

@@ -17,8 +17,15 @@ extension BezierPath {
         internal func bezierCurves(start: inout V, positioning: BezierPath<V>.BuilderPositioning) -> [BezierCurve<V>] {
             switch contents {
             case .points (let points):
-                let addition = positioning == .absolute ? .zero : start
-                let controlPoints = [start] + points.map { $0.vector(with: start) + addition }
+                let controlPoints: [V]
+                switch positioning {
+                case .relative:
+                    controlPoints = [start] + points.map { $0.vector(with: .zero) + start }
+
+                case .absolute:
+                    controlPoints = [start] + points.map { $0.vector(with: start) }
+                }
+
                 start = controlPoints.last!
                 return [BezierCurve(controlPoints: controlPoints)]
 
