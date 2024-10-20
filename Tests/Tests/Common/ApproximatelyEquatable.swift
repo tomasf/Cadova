@@ -1,5 +1,5 @@
 import Foundation
-import SwiftSCAD
+@testable import SwiftSCAD
 
 infix operator ≈: ComparisonPrecedence
 
@@ -51,5 +51,17 @@ extension Angle: ApproximatelyEquatable {
 extension BoundingBox: ApproximatelyEquatable {
     static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
         lhs.minimum ≈ rhs.minimum && lhs.maximum ≈ rhs.maximum
+    }
+}
+
+extension BezierPath: ApproximatelyEquatable where V: ApproximatelyEquatable {
+    static func ≈(lhs: Self, rhs: Self) -> Bool {
+        lhs.startPoint ≈ rhs.startPoint && lhs.curves ≈ rhs.curves
+    }
+}
+
+extension BezierPath.Curve: ApproximatelyEquatable where V: ApproximatelyEquatable {
+    static func ≈(lhs: Self, rhs: Self) -> Bool {
+        lhs.controlPoints ≈ rhs.controlPoints
     }
 }
