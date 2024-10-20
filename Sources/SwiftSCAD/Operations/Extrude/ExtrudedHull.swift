@@ -33,7 +33,7 @@ public extension Geometry2D {
     ///   - height: The height of the extrusion.
     ///   - topShape: The 2D geometry to use as the top shape.
     /// - Returns: A 3D convex hull connecting the base and top geometries.
-    func extrudedHull(height: Double, @UnionBuilder2D to topShape: () -> any Geometry2D) -> any Geometry3D {
+    func extrudedHull(height: Double, @GeometryBuilder2D to topShape: () -> any Geometry2D) -> any Geometry3D {
         extrudedHull(height: height, to: topShape())
     }
 }

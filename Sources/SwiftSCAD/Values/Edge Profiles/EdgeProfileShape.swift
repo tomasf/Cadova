@@ -34,7 +34,7 @@ extension EdgeProfileShape {
         }
     }
 
-    @UnionBuilder3D
+    @GeometryBuilder3D
     func layeredMask(shape: any Geometry2D, extrusionHeight: Double, layerHeight: Double) -> any Geometry3D {
         let layerCount = Int(ceil(size.y / layerHeight))
         let effectiveHeight = Double(layerCount) * layerHeight

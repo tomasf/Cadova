@@ -7,7 +7,7 @@ extension BezierPath {
     ///   - markerRotation: The rotation to use for markers. Set to nil to hide them.
 
     public func visualize(scale: Double = 1, markerRotation: Rotation3D? = [45°, 0°, -45°]) -> any Geometry3D {
-        @UnionBuilder3D
+        @GeometryBuilder3D
         func makeMarker(at location: V, text: String, transform: AffineTransform3D) -> any Geometry3D {
             Box([4, 2, 0.1])
                 .roundingBoxCorners(axis: .z, radius: 1)

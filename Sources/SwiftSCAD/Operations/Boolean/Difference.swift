@@ -47,7 +47,7 @@ public extension Geometry2D {
     ///   - negative: The negative geometry to subtract
     /// - Returns: The new geometry
 
-    func subtracting(@UnionBuilder2D _ negative: () -> any Geometry2D) -> any Geometry2D {
+    func subtracting(@GeometryBuilder2D _ negative: () -> any Geometry2D) -> any Geometry2D {
         Difference2D(positive: self, negative: negative())
     }
 
@@ -71,7 +71,7 @@ public extension Geometry3D {
     ///   - negative: The negative geometry to subtract
     /// - Returns: The new geometry
 
-    func subtracting(@UnionBuilder3D _ negative: () -> any Geometry3D) -> any Geometry3D {
+    func subtracting(@GeometryBuilder3D _ negative: () -> any Geometry3D) -> any Geometry3D {
         Difference3D(positive: self, negative: negative())
     }
 

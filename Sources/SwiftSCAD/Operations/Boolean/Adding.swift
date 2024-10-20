@@ -14,7 +14,7 @@ public extension Geometry2D {
     ///
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
-    func adding(@SequenceBuilder2D _ bodies: () -> [any Geometry2D]) -> any Geometry2D {
+    func adding(@GeometryBuilder2D _ bodies: () -> [any Geometry2D]) -> any Geometry2D {
         Union([self] + bodies())
     }
 
@@ -37,7 +37,7 @@ public extension Geometry3D {
     ///
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
-    func adding(@SequenceBuilder3D _ bodies: () -> [any Geometry3D]) -> any Geometry3D {
+    func adding(@GeometryBuilder3D _ bodies: () -> [any Geometry3D]) -> any Geometry3D {
         Union([self] + bodies())
     }
 

@@ -28,7 +28,7 @@ public extension Geometry3D {
     ///   - offset: The offset from zero at which to cut
     ///   - cuttingAway: Which direction to cut. The default, .negative, cuts away towards the negative direction of the axis, leaving the positive part visible.
     /// - Returns: A cross-sectioned geometry
-    @UnionBuilder3D
+    @GeometryBuilder3D
     func crossSectioned(axis: Axis3D, offset: Double = 0, cuttingAway axisDirection: AxisDirection = .negative) -> any Geometry3D {
         let direction = axis.direction * (axisDirection == .positive ? -1 : 1)
         let signedOffset = offset * (axisDirection == .positive ? -1 : 1)
@@ -44,7 +44,7 @@ public extension Geometry3D {
     ///   - offset: The offset from zero at which to cut
     /// - Returns: A cross-sectioned geometry
 
-    @UnionBuilder3D
+    @GeometryBuilder3D
     func crossSectioned(axis: Vector3D, offset: Double = 0) -> any Geometry3D {
         CrossSection(axis: axis, offset: offset, content: self)
     }

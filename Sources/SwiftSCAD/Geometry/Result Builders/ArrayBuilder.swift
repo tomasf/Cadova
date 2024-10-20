@@ -40,5 +40,5 @@ import Foundation
     }
 }
 
-public typealias SequenceBuilder3D = ArrayBuilder<any Geometry3D>
-public typealias SequenceBuilder2D = ArrayBuilder<any Geometry2D>
+public typealias GeometryBuilder3D = ArrayBuilder<any Geometry3D>
+public typealias GeometryBuilder2D = ArrayBuilder<any Geometry2D>

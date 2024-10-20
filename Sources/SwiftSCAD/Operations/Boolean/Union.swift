@@ -24,7 +24,7 @@ fileprivate struct Union3D: CombinedGeometry3D {
 /// }
 /// .translate(x: 10)
 /// ```
-public func Union(@UnionBuilder2D _ body: () -> any Geometry2D) -> any Geometry2D {
+public func Union(@GeometryBuilder2D _ body: () -> any Geometry2D) -> any Geometry2D {
     body()
 }
 
@@ -54,7 +54,7 @@ public func Union(_ children: [(any Geometry2D)?]) -> any Geometry2D {
 /// }
 /// .translate(x: 10)
 /// ```
-public func Union(@UnionBuilder3D _ body: () -> any Geometry3D) -> any Geometry3D {
+public func Union(@GeometryBuilder3D _ body: () -> any Geometry3D) -> any Geometry3D {
     body()
 }
 

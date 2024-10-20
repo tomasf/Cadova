@@ -16,7 +16,7 @@ internal extension Geometry3D {
 }
 
 public extension Geometry3D {
-    func applyingTopEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: EdgeProfile.Method, @UnionBuilder2D shape: () -> any Geometry2D) -> any Geometry3D {
+    func applyingTopEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: EdgeProfile.Method, @GeometryBuilder2D shape: () -> any Geometry2D) -> any Geometry3D {
         let slice = shape()
         if let z {
             return applyingTopEdgeProfile(profile: profile, at: z, shape: slice, method: method)
@@ -42,7 +42,7 @@ public extension Geometry3D {
         }
     }
 
-    func applyingBottomEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: EdgeProfile.Method, @UnionBuilder2D shape: () -> any Geometry2D) -> any Geometry3D {
+    func applyingBottomEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: EdgeProfile.Method, @GeometryBuilder2D shape: () -> any Geometry2D) -> any Geometry3D {
         let slice = shape()
         if let z {
             return applyingBottomEdgeProfile(profile: profile, at: z, shape: slice, method: method)

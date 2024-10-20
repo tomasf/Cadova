@@ -16,7 +16,7 @@ public protocol Shape2D: Geometry2D {
     /// The geometry content of this shape.
     ///
     /// Implement this property to define the shape's structure using SwiftSCAD's geometry primitives and operations.
-    @UnionBuilder2D var body: any Geometry2D { get }
+    @GeometryBuilder2D var body: any Geometry2D { get }
 }
 
 public extension Shape2D {
@@ -49,7 +49,7 @@ public protocol Shape3D: Geometry3D {
     /// The geometry content of this shape.
     ///
     /// Implement this property to define the shape's structure using SwiftSCAD's geometry primitives and operations.
-    @UnionBuilder3D var body: any Geometry3D { get }
+    @GeometryBuilder3D var body: any Geometry3D { get }
 }
 
 public extension Shape3D {

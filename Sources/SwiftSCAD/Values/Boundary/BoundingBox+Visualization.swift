@@ -13,7 +13,7 @@ public extension BoundingBox2D {
     ///
     /// - Parameter scale: A multiplier for the border width, allowing customization of the visualization's thickness. Defaults to 1.0. Adjust this if the scale of the visualization is impractical.
     /// - Returns: A `Geometry2D` representation of the bounding box border.
-    @UnionBuilder2D
+    @GeometryBuilder2D
     func visualized(scale: Double = 1.0) -> any Geometry2D {
         let borderWidth = visualizationStandardBorderWidth * scale
         let half = Union {

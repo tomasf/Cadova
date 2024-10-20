@@ -38,7 +38,7 @@ internal struct EnvironmentReader3D: Geometry3D {
 ///
 /// - Parameter body: A closure that takes the current `Environment` and returns a new `Geometry2D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-public func readEnvironment(@UnionBuilder2D _ body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
+public func readEnvironment(@GeometryBuilder2D _ body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
     EnvironmentReader2D(body: body)
 }
 
@@ -48,7 +48,7 @@ public func readEnvironment(@UnionBuilder2D _ body: @escaping (Environment) -> a
 ///
 /// - Parameter body: A closure that takes the current `Environment` and returns a new `Geometry3D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-public func readEnvironment(@UnionBuilder3D _ body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
+public func readEnvironment(@GeometryBuilder3D _ body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
     EnvironmentReader3D(body: body)
 }
 
@@ -59,7 +59,7 @@ public extension Geometry2D {
     ///
     /// - Parameter body: A closure that takes the wrapped geometry and the current `Environment` and returns a new `Geometry2D` instance based on that environment.
     /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-    func readingEnvironment(@UnionBuilder2D _ body: @escaping (any Geometry2D, Environment) -> any Geometry2D) -> any Geometry2D {
+    func readingEnvironment(@GeometryBuilder2D _ body: @escaping (any Geometry2D, Environment) -> any Geometry2D) -> any Geometry2D {
         EnvironmentReader2D { environment in
             body(self, environment)
         }
@@ -73,7 +73,7 @@ public extension Geometry3D {
     ///
     /// - Parameter body: A closure that takes the wrapped geometry and the current `Environment` and returns a new `Geometry3D` instance based on that environment.
     /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-    func readingEnvironment(@UnionBuilder3D _ body: @escaping (any Geometry3D, Environment) -> any Geometry3D) -> any Geometry3D {
+    func readingEnvironment(@GeometryBuilder3D _ body: @escaping (any Geometry3D, Environment) -> any Geometry3D) -> any Geometry3D {
         EnvironmentReader3D { environment in
             body(self, environment)
         }

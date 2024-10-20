@@ -58,7 +58,7 @@ public func Stack(
     _ axis: Axis2D,
     spacing: Double = 0,
     alignment: GeometryAlignment2D...,
-    @SequenceBuilder2D content: @escaping () -> [any Geometry2D]
+    @GeometryBuilder2D content: @escaping () -> [any Geometry2D]
 ) -> any Geometry2D {
     Stack2D(items: content(), axis: axis, spacing: spacing, alignment: alignment.merged.defaultingToOrigin())
 }
@@ -75,7 +75,7 @@ public func Stack(
     _ axis: Axis3D,
     spacing: Double = 0,
     alignment: GeometryAlignment3D...,
-    @SequenceBuilder3D content: @escaping () -> [any Geometry3D]
+    @GeometryBuilder3D content: @escaping () -> [any Geometry3D]
 ) -> any Geometry3D {
     Stack3D(items: content(), axis: axis, spacing: spacing, alignment: alignment.merged.defaultingToOrigin())
 }

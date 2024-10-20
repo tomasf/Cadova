@@ -29,7 +29,7 @@ public extension Geometry2D {
     /// Defines the bounds of the geometry based on a custom 2D shape.
     /// - Parameter shape: The shape whose bounds you want to use.
     /// - Returns: A geometry with the bounds obtained from the custom shape.
-    func settingBounds(@UnionBuilder2D _ shape: () -> any Geometry2D) -> any Geometry2D {
+    func settingBounds(@GeometryBuilder2D _ shape: () -> any Geometry2D) -> any Geometry2D {
         shape().readingBoundary { _, boundary in
             SetBounds2D(body: self, boundary: boundary)
         }
@@ -50,7 +50,7 @@ public extension Geometry2D {
         }
     }
 
-    func modifyingBounds(@UnionBuilder2D _ shape: @escaping (BoundingBox2D?) -> any Geometry2D) -> any Geometry2D {
+    func modifyingBounds(@GeometryBuilder2D _ shape: @escaping (BoundingBox2D?) -> any Geometry2D) -> any Geometry2D {
         measuringBounds { geometry, bounds in
             geometry.settingBounds { shape(bounds) }
         }
@@ -68,7 +68,7 @@ public extension Geometry3D {
     /// Defines the bounds of the geometry based on a custom 3D shape.
     /// - Parameter shape: The shape whose bounds you want to use.
     /// - Returns: A geometry with the bounds obtained from the custom shape.
-    func settingBounds(@UnionBuilder3D _ shape: () -> any Geometry3D) -> any Geometry3D {
+    func settingBounds(@GeometryBuilder3D _ shape: () -> any Geometry3D) -> any Geometry3D {
         shape().readingBoundary { _, boundary in
             SetBounds3D(body: self, boundary: boundary)
         }
@@ -89,7 +89,7 @@ public extension Geometry3D {
         }
     }
 
-    func modifyingBounds(@UnionBuilder3D _ shape: @escaping (BoundingBox3D?) -> any Geometry3D) -> any Geometry3D {
+    func modifyingBounds(@GeometryBuilder3D _ shape: @escaping (BoundingBox3D?) -> any Geometry3D) -> any Geometry3D {
         measuringBounds { geometry, bounds in
             geometry.settingBounds { shape(bounds) }
         }

@@ -21,7 +21,7 @@ public extension Geometry2D {
     ///
     /// - Parameter adding: The 3D geometries to combine with this geometry.
     /// - Returns: A geometry representing the Minkowski sum
-    func minkowskiSum(@SequenceBuilder2D adding other: () -> [any Geometry2D]) -> any Geometry2D {
+    func minkowskiSum(@GeometryBuilder2D adding other: () -> [any Geometry2D]) -> any Geometry2D {
         Minkowski2D(children: [self] + other())
     }
 }
@@ -33,7 +33,7 @@ public extension Geometry3D {
     ///
     /// - Parameter adding: The 3D geometries to combine with this geometry.
     /// - Returns: A geometry representing the Minkowski sum
-    func minkowskiSum(@SequenceBuilder3D adding other: () -> [any Geometry3D]) -> any Geometry3D {
+    func minkowskiSum(@GeometryBuilder3D adding other: () -> [any Geometry3D]) -> any Geometry3D {
         Minkowski3D(children: [self] + other())
     }
 }

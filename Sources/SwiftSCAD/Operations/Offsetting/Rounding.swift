@@ -46,7 +46,7 @@ public extension Geometry2D {
     ///   - mask: A closure that defines the mask geometry, limiting where the rounding is applied.
     /// - Returns: A new geometry object with rounded corners, limited to the area covered by the mask.
 
-    func rounded(amount: Double, side: RoundingSide = .both, @UnionBuilder2D in mask: () -> any Geometry2D) -> any Geometry2D {
+    func rounded(amount: Double, side: RoundingSide = .both, @GeometryBuilder2D in mask: () -> any Geometry2D) -> any Geometry2D {
         let maskShape = mask()
         return subtracting(maskShape)
             .adding {
