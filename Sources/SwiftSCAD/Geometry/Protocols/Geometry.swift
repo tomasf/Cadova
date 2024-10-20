@@ -27,3 +27,6 @@ public protocol Geometry3D {
     func boundary(in environment: Environment) -> Bounds
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement]
 }
+
+public typealias GeometryBuilder3D = ArrayBuilder<any Geometry3D>
+public typealias GeometryBuilder2D = ArrayBuilder<any Geometry2D>
