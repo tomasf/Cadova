@@ -52,6 +52,18 @@ public extension BezierPath {
                 .translated(point(at: position).vector3D)
         )
     }
+
+    func readTransform(at position: Position, @UnionBuilder2D _ reader: @escaping (V.Transform) -> any Geometry2D) -> any Geometry2D {
+        EnvironmentReader { e in
+            reader(transform(at: position, facets: e.facets))
+        }
+    }
+
+    func readTransform(at position: Position, @UnionBuilder3D _ reader: @escaping (V.Transform) -> any Geometry3D) -> any Geometry3D {
+        EnvironmentReader { e in
+            reader(transform(at: position, facets: e.facets))
+        }
+    }
 }
 
 public extension BezierPath {
