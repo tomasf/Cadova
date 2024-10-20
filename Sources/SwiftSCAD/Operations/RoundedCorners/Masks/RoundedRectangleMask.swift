@@ -29,7 +29,7 @@ internal struct RoundedRectangleMask: Shape2D {
             return polygon
         }
 
-        return EnvironmentReader { e in
+        return readEnvironment { e in
             Polygon([
                 corner(radius: radii.minXmaxY, posX: false, posY: true, environment: e),
                 corner(radius: radii.maxXmaxY, posX: true, posY: true, environment: e),

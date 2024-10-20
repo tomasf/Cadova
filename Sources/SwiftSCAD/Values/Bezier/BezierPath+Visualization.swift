@@ -45,7 +45,7 @@ extension BezierPath {
                 .usingFacets(count: 3)
         }
 
-        return EnvironmentReader { environment -> any Geometry3D in
+        return readEnvironment { environment -> any Geometry3D in
             if let markerRotation {
                 let transform = AffineTransform3D.scaling(scale).rotated(markerRotation)
                 for (curveIndex, curve) in curves.enumerated() {

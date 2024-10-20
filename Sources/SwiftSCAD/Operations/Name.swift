@@ -21,7 +21,7 @@ public enum TransformContext {
 
 public extension Geometry2D {
     func named(_ name: String, transform context: TransformContext = .global) -> any Geometry2D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             modifyingResult(NamedGeometry.self) { oldValue in
                 (oldValue ?? .init()).adding(context.prepare(self, in: environment), named: name)
             }
@@ -47,7 +47,7 @@ public extension Geometry2D {
 
 public extension Geometry3D {
     func named(_ name: String, transform context: TransformContext = .global) -> any Geometry3D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             modifyingResult(NamedGeometry.self) { oldValue in
                 (oldValue ?? .init()).adding(context.prepare(self, in: environment), named: name)
             }

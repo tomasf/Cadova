@@ -107,13 +107,13 @@ public extension Polygon {
     }
 
     func readPoints(@UnionBuilder2D _ reader: @escaping ([Vector2D]) -> any Geometry2D) -> any Geometry2D {
-        EnvironmentReader { e in
+        readEnvironment { e in
             reader(points(in: e))
         }
     }
 
     func readPoints(@UnionBuilder3D _ reader: @escaping ([Vector2D]) -> any Geometry3D) -> any Geometry3D {
-        EnvironmentReader { e in
+        readEnvironment { e in
             reader(points(in: e))
         }
     }

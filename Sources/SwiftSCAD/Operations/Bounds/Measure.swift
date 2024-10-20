@@ -5,7 +5,7 @@ fileprivate struct ReadBoundary2D: Shape2D {
     let builder: (Boundary2D) -> any Geometry2D
 
     var body: any Geometry2D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             builder(target.boundary(in: environment))
         }
     }
@@ -16,7 +16,7 @@ fileprivate struct ReadBoundary3D: Shape3D {
     let builder: (Boundary3D) -> any Geometry3D
 
     var body: any Geometry3D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             builder(target.boundary(in: environment))
         }
     }

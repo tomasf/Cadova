@@ -38,7 +38,7 @@ internal struct EnvironmentReader3D: Geometry3D {
 ///
 /// - Parameter body: A closure that takes the current `Environment` and returns a new `Geometry2D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-public func EnvironmentReader(@UnionBuilder2D body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
+public func readEnvironment(@UnionBuilder2D _ body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
     EnvironmentReader2D(body: body)
 }
 
@@ -48,7 +48,7 @@ public func EnvironmentReader(@UnionBuilder2D body: @escaping (Environment) -> a
 ///
 /// - Parameter body: A closure that takes the current `Environment` and returns a new `Geometry3D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-public func EnvironmentReader(@UnionBuilder3D body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
+public func readEnvironment(@UnionBuilder3D _ body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
     EnvironmentReader3D(body: body)
 }
 

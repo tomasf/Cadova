@@ -82,3 +82,13 @@ public func RoundedBox(_ size: Vector3D, cornerRadius radius: Double) -> any Geo
     Box(size)
         .roundingBoxCorners(radius: radius)
 }
+
+@available(*, deprecated, message: "Use readEnvironment instead")
+public func EnvironmentReader(@UnionBuilder2D body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
+    readEnvironment(body)
+}
+
+@available(*, deprecated, message: "Use readEnvironment instead")
+public func EnvironmentReader(@UnionBuilder3D body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
+    readEnvironment(body)
+}

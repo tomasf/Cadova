@@ -47,13 +47,13 @@ internal extension Geometry3D {
 }
 
 public func readOperation(@UnionBuilder2D _ reader: @escaping (Environment.Operation) -> any Geometry2D) -> any Geometry2D {
-    EnvironmentReader { e in
+    readEnvironment { e in
         reader(e.operation)
     }
 }
 
 public func readOperation(@UnionBuilder3D _ reader: @escaping (Environment.Operation) -> any Geometry3D) -> any Geometry3D {
-    EnvironmentReader { e in
+    readEnvironment { e in
         reader(e.operation)
     }
 }

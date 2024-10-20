@@ -36,7 +36,7 @@ public struct Teardrop: Shape2D {
         let y = sin(angle) * diameter/2
         let diagonal = diameter / sin(angle)
 
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             Circle(diameter: diameter)
                 .adding {
                     Rectangle(diagonal)

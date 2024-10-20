@@ -7,7 +7,7 @@ internal struct Stack2D: Shape2D {
     let alignment: GeometryAlignment2D
 
     public var body: any Geometry2D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             var offset = 0.0
             for geometry in items {
                 if let box = geometry.boundary(in: environment).boundingBox {
@@ -30,7 +30,7 @@ internal struct Stack3D: Shape3D {
     let alignment: GeometryAlignment3D
 
     public var body: any Geometry3D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             var offset = 0.0
             for geometry in items {
                 if let box = geometry.boundary(in: environment).boundingBox {

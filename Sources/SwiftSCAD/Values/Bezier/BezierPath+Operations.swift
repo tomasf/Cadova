@@ -54,13 +54,13 @@ public extension BezierPath {
     }
 
     func readTransform(at position: Position, @UnionBuilder2D _ reader: @escaping (V.Transform) -> any Geometry2D) -> any Geometry2D {
-        EnvironmentReader { e in
+        readEnvironment { e in
             reader(transform(at: position, facets: e.facets))
         }
     }
 
     func readTransform(at position: Position, @UnionBuilder3D _ reader: @escaping (V.Transform) -> any Geometry3D) -> any Geometry3D {
-        EnvironmentReader { e in
+        readEnvironment { e in
             reader(transform(at: position, facets: e.facets))
         }
     }
@@ -113,13 +113,13 @@ public extension BezierPath {
     }
 
     func readPoints(in range: ClosedRange<Position>? = nil, @UnionBuilder2D _ reader: @escaping ([V]) -> any Geometry2D) -> any Geometry2D {
-        EnvironmentReader { e in
+        readEnvironment { e in
             reader(points(in: range ?? positionRange, facets: e.facets))
         }
     }
 
     func readPoints(in range: ClosedRange<Position>? = nil, @UnionBuilder3D _ reader: @escaping ([V]) -> any Geometry3D) -> any Geometry3D {
-        EnvironmentReader { e in
+        readEnvironment { e in
             reader(points(in: range ?? positionRange, facets: e.facets))
         }
     }

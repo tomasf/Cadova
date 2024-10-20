@@ -30,7 +30,7 @@ public struct Arc: Shape2D {
     }
 
     public var body: any Geometry2D {
-        EnvironmentReader { e in
+        readEnvironment { e in
             Polygon([.zero]) + .circularArc(radius: radius, range: range, facets: e.facets)
         }
     }

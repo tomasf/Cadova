@@ -43,7 +43,7 @@ public extension Polygon {
     ///
     /// - Note: The `path` array must contain at least two transforms, and `steps` must be at least 1.
     func extruded(along path: [AffineTransform3D], steps: Int = 1, convexity: Int = 2) -> any Geometry3D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             let expandedPath = [path[0]] + path.paired().flatMap { t1, t2 in
                 (1...steps).map { .linearInterpolation(t1, t2, factor: 1.0 / Double(steps) * Double($0)) }
             }
@@ -60,7 +60,7 @@ public extension Polygon {
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
 
     func extrudedAlongHelix(pitch: Double, height: Double, convexity: Int = 2) -> any Geometry3D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             let radius = boundingRect(in: environment).maximum.x
             let stepsPerRev = Double(environment.facets.facetCount(circleRadius: radius))
             let steps = Int(ceil(stepsPerRev * height / pitch))

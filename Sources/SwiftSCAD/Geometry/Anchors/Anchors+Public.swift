@@ -44,7 +44,7 @@ public extension Geometry2D {
     /// - Parameter anchor: The `Anchor` to which this geometry should be aligned.
     /// - Returns: A modified version of the geometry, transformed to align with the specified anchor.
     func anchored(to anchor: Anchor) -> any Geometry2D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             readingResult(AnchorList.self) { body, anchorList in
                 if let transform = anchorList?.anchors[anchor] {
                     self.transformed(.init(AffineTransform3D.identity
@@ -107,7 +107,7 @@ public extension Geometry3D {
     /// - Parameter anchor: The `Anchor` to which this geometry should be aligned.
     /// - Returns: A modified version of the geometry, transformed to align with the specified anchor.
     func anchored(to anchor: Anchor) -> any Geometry3D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             readingResult(AnchorList.self) { body, anchorList in
                 if let transform = anchorList?.anchors[anchor] {
                     self.transformed(AffineTransform3D.identity

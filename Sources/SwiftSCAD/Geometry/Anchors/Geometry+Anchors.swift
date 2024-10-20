@@ -2,7 +2,7 @@ import Foundation
 
 internal extension Geometry2D {
     func definingAnchor(_ anchor: Anchor, alignment: GeometryAlignment2D, transform: AffineTransform2D) -> any Geometry2D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             measuringBounds { _, bounds in
                 var alignmentTranslation = Vector2D.zero
                 if alignment.hasEffect {
@@ -23,7 +23,7 @@ internal extension Geometry2D {
 
 internal extension Geometry3D {
     func definingAnchor(_ anchor: Anchor, alignment: GeometryAlignment3D, transform: AffineTransform3D) -> any Geometry3D {
-        EnvironmentReader { environment in
+        readEnvironment { environment in
             measuringBounds { _, bounds in
                 var alignmentTranslation = Vector3D.zero
                 if alignment.hasEffect {
