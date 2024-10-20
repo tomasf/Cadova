@@ -12,8 +12,8 @@ public extension Geometry2D {
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
 
     func extruded<V: Vector>(along path: BezierPath<V>, in range: ClosedRange<BezierPath.Position>? = nil, convexity: Int = 2) -> any Geometry3D {
-        EnvironmentReader { environment in
-            let points = path.points(in: range ?? path.positionRange, facets: environment.facets).map(\.vector3D)
+        path.readPoints(in: range) { rawPoints in
+            let points = rawPoints.map(\.vector3D)
             let isClosed = points[0].distance(to: points.last!) < 0.0001
             let rotations = ([.up] + points.paired().map { $1 - $0 })
                 .paired().map(AffineTransform3D.rotation(from:to:))

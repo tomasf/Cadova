@@ -40,13 +40,6 @@ public struct Polygon: Geometry2D {
         self.init(provider: JoinedPolygonPoints(providers: polygons.map(\.pointsProvider)))
     }
 
-    /// Returns the points defining the polygon within a given environment.
-    /// - Parameter environment: The environment context.
-    /// - Returns: An array of `Vector2D` representing the polygon's vertices.
-    public func points(in environment: Environment) -> [Vector2D] {
-        pointsProvider.points(in: environment)
-    }
-
     public func codeFragment(in environment: Environment) -> CodeFragment {
         .init(
             module: "polygon",
@@ -99,8 +92,29 @@ public extension Polygon {
     static func +(_ lhs: Polygon, _ rhs: Polygon) -> Polygon {
         lhs.appending(rhs)
     }
+}
+
+public extension Polygon {
+    /// Returns the points defining the polygon within a given environment.
+    /// - Parameter environment: The environment context.
+    /// - Returns: An array of `Vector2D` representing the polygon's vertices.
+    func points(in environment: Environment) -> [Vector2D] {
+        pointsProvider.points(in: environment)
+    }
 
     func length(in environment: Environment) -> Double {
         points(in: environment).paired().map { $0.distance(to: $1) }.reduce(0, +)
+    }
+
+    func readPoints(@UnionBuilder2D _ reader: @escaping ([Vector2D]) -> any Geometry2D) -> any Geometry2D {
+        EnvironmentReader { e in
+            reader(points(in: e))
+        }
+    }
+
+    func readPoints(@UnionBuilder3D _ reader: @escaping ([Vector2D]) -> any Geometry3D) -> any Geometry3D {
+        EnvironmentReader { e in
+            reader(points(in: e))
+        }
     }
 }

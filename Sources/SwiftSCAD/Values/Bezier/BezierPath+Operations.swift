@@ -20,6 +20,41 @@ public extension BezierPath {
         0...Position(curves.count)
     }
 
+    /// Applies the given 2D affine transform to the `BezierPath`.
+    ///
+    /// - Parameter transform: The affine transform to apply.
+    /// - Returns: A new `BezierPath` instance with the transformed points.
+    func transformed<T: AffineTransform>(using transform: T) -> BezierPath where T.Vector == V, T == V.Transform {
+        BezierPath(
+            startPoint: transform.apply(to: startPoint),
+            curves: curves.map { $0.transformed(using: transform) }
+        )
+    }
+
+    /// Calculates the transformation when rotated and translated along the Bézier path up to a specified position.
+    ///
+    /// This method computes the transformation that includes both rotation and translation,
+    /// as an object moves along the Bézier path up to a given position specified by `position`. The transformation
+    /// accounts for the rotations necessary to align the object with the path's direction.
+    ///
+    /// - Parameters:
+    ///   - position: The position along the path where the transformation is calculated. This value is of type
+    ///   - facets: The desired level of detail for the generated points, affecting the smoothness and accuracy of the path traversal
+    /// - Returns: A `V.Transform` representing the combined rotation and translation needed to move an object along the
+    ///   Bézier path to the specified position.
+    func transform(at position: Position, facets: Environment.Facets) -> V.Transform {
+        guard !curves.isEmpty else { return .translation(startPoint) }
+        return .init(
+            points(in: 0...position, facets: facets).map(\.vector3D)
+                .paired().map(-)
+                .paired().map(AffineTransform3D.rotation(from:to:))
+                .reduce(AffineTransform3D.identity) { $0.concatenated(with: $1) }
+                .translated(point(at: position).vector3D)
+        )
+    }
+}
+
+public extension BezierPath {
     /// Generates a sequence of points representing the path.
     ///
     /// - Parameter facets: The desired level of detail for the generated points, affecting the smoothness of curves.
@@ -43,17 +78,6 @@ public extension BezierPath {
             .reduce(0, +)
     }
 
-    /// Applies the given 2D affine transform to the `BezierPath`.
-    ///
-    /// - Parameter transform: The affine transform to apply.
-    /// - Returns: A new `BezierPath` instance with the transformed points.
-    func transformed<T: AffineTransform>(using transform: T) -> BezierPath where T.Vector == V, T == V.Transform {
-        BezierPath(
-            startPoint: transform.apply(to: startPoint),
-            curves: curves.map { $0.transformed(using: transform) }
-        )
-    }
-
     /// Returns the point at a given position along the path
     func point(at position: Position) -> V {
         assert(positionRange ~= position)
@@ -64,7 +88,7 @@ public extension BezierPath {
         return curves[curveIndex].point(at: fraction)
     }
 
-    internal func points(in pathFractionRange: ClosedRange<Position>, facets: Environment.Facets) -> [V] {
+    func points(in pathFractionRange: ClosedRange<Position>, facets: Environment.Facets) -> [V] {
         let (fromCurveIndex, fromFraction) = pathFractionRange.lowerBound.indexAndFraction(curveCount: curves.count)
         let (toCurveIndex, toFraction) = pathFractionRange.upperBound.indexAndFraction(curveCount: curves.count)
 
@@ -76,27 +100,16 @@ public extension BezierPath {
         }
     }
 
+    func readPoints(in range: ClosedRange<Position>? = nil, @UnionBuilder2D _ reader: @escaping ([V]) -> any Geometry2D) -> any Geometry2D {
+        EnvironmentReader { e in
+            reader(points(in: range ?? positionRange, facets: e.facets))
+        }
+    }
 
-    /// Calculates the transformation when rotated and translated along the Bézier path up to a specified position.
-    ///
-    /// This method computes the transformation that includes both rotation and translation,
-    /// as an object moves along the Bézier path up to a given position specified by `position`. The transformation
-    /// accounts for the rotations necessary to align the object with the path's direction.
-    ///
-    /// - Parameters:
-    ///   - position: The position along the path where the transformation is calculated. This value is of type
-    ///   - facets: The desired level of detail for the generated points, affecting the smoothness and accuracy of the path traversal
-    /// - Returns: A `V.Transform` representing the combined rotation and translation needed to move an object along the
-    ///   Bézier path to the specified position.
-    func transform(at position: Position, facets: Environment.Facets) -> V.Transform {
-        guard !curves.isEmpty else { return .translation(startPoint) }
-        return .init(
-            points(in: 0...position, facets: facets).map(\.vector3D)
-                .paired().map(-)
-                .paired().map(AffineTransform3D.rotation(from:to:))
-                .reduce(AffineTransform3D.identity) { $0.concatenated(with: $1) }
-                .translated(point(at: position).vector3D)
-        )
+    func readPoints(in range: ClosedRange<Position>? = nil, @UnionBuilder3D _ reader: @escaping ([V]) -> any Geometry3D) -> any Geometry3D {
+        EnvironmentReader { e in
+            reader(points(in: range ?? positionRange, facets: e.facets))
+        }
     }
 }
 
