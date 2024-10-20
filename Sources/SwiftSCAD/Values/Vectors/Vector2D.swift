@@ -92,6 +92,7 @@ public extension Vector2D {
 extension Vector2D: Vector {
     public typealias Transform = AffineTransform2D
     public typealias Axes = Axes2D
+    public typealias Geometry = any Geometry2D
     public static let elementCount = 2
 
     public var elements: [Double] {

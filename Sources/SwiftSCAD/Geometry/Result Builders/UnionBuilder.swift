@@ -1,81 +1,50 @@
 import Foundation
 
-@resultBuilder public struct UnionBuilder2D {
-    public static func buildExpression(_ geometry: any Geometry2D) -> [any Geometry2D] {
+public typealias UnionBuilder2D = UnionBuilder<Vector2D>
+public typealias UnionBuilder3D = UnionBuilder<Vector3D>
+
+@resultBuilder public struct UnionBuilder<V: Vector> {
+    public typealias Geometry = V.Geometry
+
+    public static func buildExpression(_ geometry: Geometry) -> [Geometry] {
         [geometry]
     }
 
-    public static func buildExpression<S>(_ geometry: S) -> [any Geometry2D] where S: Sequence, S.Element: Geometry2D {
+    public static func buildExpression<S>(_ geometry: S) -> [Geometry] where S: Sequence, S.Element == Geometry {
         Array(geometry)
     }
 
-    public static func buildExpression(_ void: Void) -> [any Geometry2D] {
+    public static func buildExpression(_ void: Void) -> [Geometry] {
         []
     }
 
-    public static func buildExpression(_ never: Never) -> [any Geometry2D] {}
+    public static func buildExpression(_ never: Never) -> [Geometry] {}
 
-    public static func buildBlock(_ children: [any Geometry2D]...) -> [any Geometry2D] {
+    public static func buildBlock(_ children: [Geometry]...) -> [Geometry] {
         children.flatMap { $0 }
     }
 
-    public static func buildOptional(_ child: [any Geometry2D]?) -> [any Geometry2D] {
+    public static func buildOptional(_ child: [Geometry]?) -> [Geometry] {
         child ?? []
     }
 
-    public static func buildEither(first child: [any Geometry2D]) -> [any Geometry2D] {
+    public static func buildEither(first child: [Geometry]) -> [Geometry] {
         child
     }
 
-    public static func buildEither(second child: [any Geometry2D]) -> [any Geometry2D] {
+    public static func buildEither(second child: [Geometry]) -> [Geometry] {
         child
     }
 
-    public static func buildArray(_ children: [[any Geometry2D]]) -> [any Geometry2D] {
+    public static func buildArray(_ children: [[Geometry]]) -> [Geometry] {
         children.flatMap { $0 }
     }
 
-    public static func buildFinalResult(_ children: [any Geometry2D]) -> any Geometry2D {
+    public static func buildFinalResult(_ children: [Geometry]) -> Geometry where Geometry == any Geometry2D {
         Union(children)
     }
-}
 
-@resultBuilder public struct UnionBuilder3D {
-    public static func buildExpression(_ geometry: any Geometry3D) -> [any Geometry3D] {
-        [geometry]
-    }
-
-    public static func buildExpression<S>(_ geometry: S) -> [any Geometry3D] where S: Sequence, S.Element: Geometry3D {
-        Array(geometry)
-    }
-
-    public static func buildExpression(_ void: Void) -> [any Geometry3D] {
-        []
-    }
-
-    public static func buildExpression(_ never: Never) -> [any Geometry3D] {}
-
-    public static func buildBlock(_ children: [any Geometry3D]...) -> [any Geometry3D] {
-        children.flatMap { $0 }
-    }
-
-    public static func buildOptional(_ child: [any Geometry3D]?) -> [any Geometry3D] {
-        child ?? []
-    }
-
-    public static func buildEither(first child: [any Geometry3D]) -> [any Geometry3D] {
-        child
-    }
-
-    public static func buildEither(second child: [any Geometry3D]) -> [any Geometry3D] {
-        child
-    }
-
-    public static func buildArray(_ children: [[any Geometry3D]]) -> [any Geometry3D] {
-        children.flatMap { $0 }
-    }
-
-    public static func buildFinalResult(_ children: [any Geometry3D]) -> any Geometry3D {
+    public static func buildFinalResult(_ children: [Geometry]) -> Geometry where Geometry == any Geometry3D {
         Union(children)
     }
 }

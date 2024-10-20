@@ -97,6 +97,7 @@ public extension Vector3D {
 extension Vector3D: Vector {
     public typealias Transform = AffineTransform3D
     public typealias Axes = Axes3D
+    public typealias Geometry = any Geometry3D
     public static let elementCount = 3
 
     public var elements: [Double] {
