@@ -3,7 +3,7 @@ import Testing
 
 struct BezierCurveTests {
     @Test func quadraticCurvePoints() {
-        let curve = BezierCurve<Vector2D>(controlPoints: [
+        let curve = BezierPath2D.Curve(controlPoints: [
             [2.5, 8], [19.3, 25], [27, 10]
         ])
 
@@ -12,7 +12,7 @@ struct BezierCurveTests {
     }
 
     @Test func cubicCurvePoints() {
-        let curve = BezierCurve<Vector2D>(controlPoints: [
+        let curve = BezierPath2D.Curve(controlPoints: [
             [12.5, 8], [19.3, 25], [30.2, 12], [27, 10]
         ])
 
@@ -21,7 +21,7 @@ struct BezierCurveTests {
     }
 
     @Test func quartic3DCurvePoints() {
-        let curve = BezierCurve<Vector3D>(controlPoints: [
+        let curve = BezierPath3D.Curve(controlPoints: [
             [11, 12.5, 8], [19.3, 56, 25], [30.2, 41.5, 12], [-12, 3.5, 20], [19, 27, 10]
         ])
 

@@ -23,7 +23,7 @@ public func line(x: Double? = nil, y: Double? = nil) -> BezierPath2D.Component {
 
 public func curve(
     controlX x1: Double, controlY y1: Double,
-    endX endX: Double,   endY endY: Double
+    endX: Double, endY: Double
 ) -> BezierPath2D.Component {
     .init([.init(x1, y1), .init(endX, endY)])
 }
@@ -31,7 +31,7 @@ public func curve(
 public func curve(
     controlX x1: Double, controlY y1: Double,
     controlX x2: Double, controlY y2: Double,
-    endX endX: Double,   endY endY: Double
+    endX: Double, endY: Double
 ) -> BezierPath2D.Component {
     .init([.init(x1, y1), .init(x2, y2), .init(endX, endY)])
 }
@@ -45,7 +45,7 @@ public func line(x: Double? = nil, y: Double? = nil, z: Double? = nil) -> Bezier
 
 public func curve(
     controlX x1: Double, controlY y1: Double, controlZ z1: Double,
-    endX endX: Double,   endY endY: Double,   endZ endZ: Double
+    endX: Double, endY: Double, endZ: Double
 ) -> BezierPath3D.Component {
     .init([.init(x1, y1, z1), .init(endX, endY, endZ)])
 }
@@ -53,7 +53,7 @@ public func curve(
 public func curve(
     controlX x1: Double, controlY y1: Double, controlZ z1: Double,
     controlX x2: Double, controlY y2: Double, controlZ z2: Double,
-    endX: Double,        endY: Double,        endZ: Double
+    endX: Double, endY: Double, endZ: Double
 ) -> BezierPath3D.Component {
     .init([.init(x1, y1, z1), .init(x2, y2, z2), .init(endX, endY, endZ)])
 }

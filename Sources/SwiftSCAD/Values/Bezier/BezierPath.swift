@@ -10,13 +10,13 @@ public typealias BezierPath3D = BezierPath<Vector3D>
 /// To create a `BezierPath`, start with the `init(startPoint:)` initializer, specifying the starting point of the path. Then, you can chain calls to `addingLine(to:)`, `addingQuadraticCurve(controlPoint:end:)`, and `addingCubicCurve(controlPoint1:controlPoint2:end:)` to build a complete path.
 public struct BezierPath <V: Vector>: Sendable {
     let startPoint: V
-    let curves: [BezierCurve<V>]
+    let curves: [Curve]
 
     var endPoint: V {
         curves.last?.controlPoints.last ?? startPoint
     }
 
-    internal init(startPoint: V, curves: [BezierCurve<V>]) {
+    internal init(startPoint: V, curves: [Curve]) {
         self.startPoint = startPoint
         self.curves = curves
     }
@@ -35,7 +35,7 @@ public struct BezierPath <V: Vector>: Sendable {
         precondition(!points.isEmpty, "At least one start point is required for Bezier paths")
         self.startPoint = points[0]
         self.curves = points.paired().map {
-            BezierCurve(controlPoints: [$0, $1])
+            Curve(controlPoints: [$0, $1])
         }
     }
 
@@ -48,7 +48,7 @@ public struct BezierPath <V: Vector>: Sendable {
         self.curves = Array(paths.map(\.curves).joined())
     }
 
-    func adding(curve: BezierCurve<V>) -> BezierPath {
+    func adding(curve: Curve) -> BezierPath {
         let newCurves = curves + [curve]
         return BezierPath(startPoint: startPoint, curves: newCurves)
     }
@@ -58,11 +58,11 @@ public struct BezierPath <V: Vector>: Sendable {
     /// - Parameter controlPoints: A variadic list of control points defining the Bezier curve.
     /// - Returns: A new `BezierPath` instance with the added Bezier curve.
     public func addingCurve(_ controlPoints: V...) -> BezierPath {
-        adding(curve: BezierCurve(controlPoints: [endPoint] + controlPoints))
+        adding(curve: Curve(controlPoints: [endPoint] + controlPoints))
     }
 
     public func addingCurve(_ controlPoints: [V]) -> BezierPath {
-        adding(curve: BezierCurve(controlPoints: [endPoint] + controlPoints))
+        adding(curve: Curve(controlPoints: [endPoint] + controlPoints))
     }
 
     /// Adds a line segment from the last point of the `BezierPath` to the specified point.
@@ -70,7 +70,7 @@ public struct BezierPath <V: Vector>: Sendable {
     /// - Parameter point: The end point of the line segment to add.
     /// - Returns: A new `BezierPath` instance with the added line segment.
     public func addingLine(to point: V) -> BezierPath {
-        adding(curve: BezierCurve(controlPoints: [endPoint, point]))
+        adding(curve: Curve(controlPoints: [endPoint, point]))
     }
 
     /// Adds a quadratic Bezier curve to the `BezierPath`.
@@ -80,7 +80,7 @@ public struct BezierPath <V: Vector>: Sendable {
     ///   - end: The end point of the quadratic Bezier curve.
     /// - Returns: A new `BezierPath` instance with the added quadratic Bezier curve.
     public func addingQuadraticCurve(controlPoint: V, end: V) -> BezierPath {
-        adding(curve: BezierCurve(controlPoints: [endPoint, controlPoint, end]))
+        adding(curve: Curve(controlPoints: [endPoint, controlPoint, end]))
     }
 
     /// Adds a cubic Bezier curve to the `BezierPath`.
@@ -91,7 +91,7 @@ public struct BezierPath <V: Vector>: Sendable {
     ///   - end: The end point of the cubic Bezier curve.
     /// - Returns: A new `BezierPath` instance with the added cubic Bezier curve.
     public func addingCubicCurve(controlPoint1: V, controlPoint2: V, end: V) -> BezierPath {
-        adding(curve: BezierCurve(controlPoints: [endPoint, controlPoint1, controlPoint2, end]))
+        adding(curve: Curve(controlPoints: [endPoint, controlPoint1, controlPoint2, end]))
     }
 
     /// Closes the path by adding a line segment from the last point back to the starting point.

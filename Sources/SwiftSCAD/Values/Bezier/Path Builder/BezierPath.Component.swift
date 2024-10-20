@@ -14,7 +14,7 @@ extension BezierPath {
             contents = .subcomponents(group)
         }
 
-        internal func bezierCurves(start: inout V, positioning: BezierPath<V>.BuilderPositioning) -> [BezierCurve<V>] {
+        internal func bezierCurves(start: inout V, positioning: BezierPath<V>.BuilderPositioning) -> [Curve] {
             switch contents {
             case .points (let points):
                 let controlPoints: [V]
@@ -27,7 +27,7 @@ extension BezierPath {
                 }
 
                 start = controlPoints.last!
-                return [BezierCurve(controlPoints: controlPoints)]
+                return [Curve(controlPoints: controlPoints)]
 
             case .subcomponents (let components):
                 var localStart = start
