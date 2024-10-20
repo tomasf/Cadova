@@ -1,39 +1,50 @@
 import Foundation
 
 /// The profile of an edge
-public enum EdgeProfile: Equatable, Sendable {
-    /// Represents an edge modified to be rounded.
-    ///   - width: The horizontal distance from the original edge to the fillet's farthest point, determining the fillet's depth.
-    ///   - height: The vertical height from the base of the edge to the top of the fillet.
-    case fillet (width: Double, height: Double)
+public struct EdgeProfile: Sendable {
+    private let profileShape: any EdgeProfileShape
 
-    /// Represents an edge that is chamfered, creating a beveled effect by cutting off the edge at a flat angle.
-    /// - Parameters:
-    ///   - width: The horizontal distance from the original edge to the chamfer's farthest point, determining the chamfer's depth.
-    ///   - height: The vertical height from the base of the edge to the top of the chamfer.
-    case chamfer (width: Double, height: Double)
-
-    /// Represents an edge that combines a rounded fillet with a straight chamfer near the top or bottom.
-    /// Useful for 3D printing where bottom edges can't have too much overhang.
-    /// - Parameters:
-    ///   - radius: The radius of the curvature applied to the edge.
-    ///   - overhang: The angle of the straight chamfer near the top or bottom.
-    case chamferedFillet (radius: Double, overhang: Angle = 45°)
-
-    /// Methods for building an extruded shape with modified edges
-    public enum Method {
-        /// Divide the extrusion into distinct layers with a given thickness. While less elegant and more expensive to render, it is suitable for non-convex shapes. Layers work well for 3D printing, as the printing process inherently occurs in layers.
-        case layered (height: Double)
-        /// Create a smooth, non-layered shape. It is often computationally less intensive and results in a more aesthetically pleasing form but only works as expected for convex shapes.
-        case convexHull
+    internal init(_ profileShape: any EdgeProfileShape) {
+        self.profileShape = profileShape
     }
+
+    /// Generates a shape for edge modification, suitable for extrusion along an edge to customize its profile.
+    ///
+    /// This method creates a 2D shape, designed for altering edges by extruding this shape along the edge's path. The extruded shape can be utilized to modify a 3D object’s edges by either adding to or subtracting from it:
+    /// - For exterior edges, subtract the extruded shape to mitigate sharpness or create a beveled effect.
+    /// - For interior edges, add the extruded shape to expand it.
+    ///
+    /// - Parameter angle: specifies the edge's angle. This makes the shape align with the geometry of the edge being modified.
+    public func shape(angle: Angle = 90°) -> any Geometry2D {
+        profileShape.shape(angle: angle)
+    }
+
+    public var width: Double { profileShape.size.x }
+    public var height: Double { profileShape.size.y }
 }
 
 public extension EdgeProfile {
+    /// Represents an edge modified to be rounded with an elliptic shape
+    ///   - width: The horizontal distance from the original edge to the fillet's farthest point, determining the fillet's depth.
+    ///   - height: The vertical height from the base of the edge to the top of the fillet.
+    static func fillet(width: Double, height: Double) -> EdgeProfile {
+        .init(Fillet(width: width, height: height))
+    }
+
     /// Represents an edge modified to be rounded.
     /// - Parameter radius: The radius of the curvature applied to the edge, determining the degree of roundness.
     static func fillet(radius: Double) -> EdgeProfile {
         .fillet(width: radius, height: radius)
+    }
+}
+
+public extension EdgeProfile {
+    /// Represents an edge that is chamfered, creating a beveled effect by cutting off the edge at a flat angle.
+    /// - Parameters:
+    ///   - width: The horizontal distance from the original edge to the chamfer's farthest point, determining the chamfer's depth.
+    ///   - height: The vertical height from the base of the edge to the top of the chamfer.
+    static func chamfer(width: Double, height: Double) -> EdgeProfile {
+        .init(Chamfer(width: width, height: height))
     }
 
     /// A 45° chamfered edge
@@ -61,15 +72,23 @@ public extension EdgeProfile {
 }
 
 public extension EdgeProfile {
-    /// Generates a shape for edge modification, suitable for extrusion along an edge to customize its profile.
-    ///
-    /// This method creates a 2D shape, designed for altering edges by extruding this shape along the edge's path. The extruded shape can be utilized to modify a 3D object’s edges by either adding to or subtracting from it:
-    /// - For exterior edges, subtract the extruded shape to mitigate sharpness or create a beveled effect.
-    /// - For interior edges, add the extruded shape to expand it.
-    ///
-    /// - Parameter angle: specifies the edge's angle. This makes the shape align with the geometry of the edge being modified.
-    func shape(angle: Angle = 90°) -> any Geometry2D {
-        profileShape.shape(angle: angle)
+    /// Represents an edge that combines a rounded fillet with a straight chamfer near the top or bottom.
+    /// Useful for 3D printing where bottom edges can't have too much overhang.
+    /// - Parameters:
+    ///   - radius: The radius of the curvature applied to the edge.
+    ///   - overhang: The angle of the straight chamfer near the top or bottom.
+    static func chamferedFillet(radius: Double, overhang: Angle = 45°) -> EdgeProfile {
+        .init(ChamferedFillet(radius: radius, overhang: overhang))
+    }
+}
+
+public extension EdgeProfile {
+    /// Methods for building an extruded shape with modified edges
+    enum Method {
+        /// Divide the extrusion into distinct layers with a given thickness. While less elegant and more expensive to render, it is suitable for non-convex shapes. Layers work well for 3D printing, as the printing process inherently occurs in layers.
+        case layered (height: Double)
+        /// Create a smooth, non-layered shape. It is often computationally less intensive and results in a more aesthetically pleasing form but only works as expected for convex shapes.
+        case convexHull
     }
 }
 
@@ -79,8 +98,7 @@ internal extension EdgeProfile {
     }
 
     func negativeMask(shape: any Geometry2D, method: EdgeProfile.Method) -> any Geometry3D {
-        let height = profileShape.height
-        return shape
+        shape
             .offset(amount: 0.01, style: .round)
             .extruded(height: height + 0.01)
             .subtracting {

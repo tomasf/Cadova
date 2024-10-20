@@ -1,11 +1,13 @@
 import Foundation
 
-internal struct Fillet {
+internal struct Fillet: EdgeProfileShape {
     let width: Double
     let height: Double
-}
 
-extension Fillet: EdgeProfileShape {
+    var size: Vector2D {
+        .init(width, height)
+    }
+
     var shape: any Geometry2D {
         baseMask(width: width, height: height)
             .subtracting {

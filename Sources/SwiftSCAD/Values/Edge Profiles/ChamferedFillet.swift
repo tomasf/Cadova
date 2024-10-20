@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct ChamferedFillet {
+internal struct ChamferedFillet: EdgeProfileShape {
     let radius: Double
     let overhang: Angle
 
@@ -10,9 +10,7 @@ internal struct ChamferedFillet {
         self.radius = radius
         self.overhang = overhang
     }
-}
 
-extension ChamferedFillet: EdgeProfileShape {
     var shape: any Geometry2D {
         baseMask(width: radius, height: radius)
             .subtracting {
@@ -26,8 +24,8 @@ extension ChamferedFillet: EdgeProfileShape {
             }
     }
 
-    var height: Double {
-        radius
+    var size: Vector2D {
+        .init(radius, radius)
     }
 
     var arcEnd: Vector2D {
