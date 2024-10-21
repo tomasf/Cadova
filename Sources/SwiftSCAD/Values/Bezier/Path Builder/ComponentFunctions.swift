@@ -5,33 +5,29 @@ public func line<V: Vector>(_ point: V) -> BezierPath<V>.Component {
 }
 
 public func curve<V: Vector>(_ controlPoints: [V]) -> BezierPath<V>.Component {
-    .init(controlPoints.map(OptionalVector.init))
+    .init(controlPoints.map(PathBuilderVector<V>.init))
 }
-
-// MARK: - Groups
-
-public func group<V: Vector>(@BezierPath<V>.Builder builder: () -> [BezierPath<V>.Component]) -> BezierPath<V>.Component {
-    .init(group: builder())
-}
-
 
 // MARK: - 2D
 
-public func line(x: Double? = nil, y: Double? = nil) -> BezierPath2D.Component {
+public func line(
+    x: any PathBuilderValue = .unchanged,
+    y: any PathBuilderValue = .unchanged
+) -> BezierPath2D.Component {
     .init([.init(x, y)])
 }
 
 public func curve(
-    controlX x1: Double, controlY y1: Double,
-    endX: Double, endY: Double
+    controlX x1: any PathBuilderValue, controlY y1: any PathBuilderValue,
+    endX: any PathBuilderValue, endY: any PathBuilderValue
 ) -> BezierPath2D.Component {
     .init([.init(x1, y1), .init(endX, endY)])
 }
 
 public func curve(
-    controlX x1: Double, controlY y1: Double,
-    controlX x2: Double, controlY y2: Double,
-    endX: Double, endY: Double
+    controlX x1: any PathBuilderValue, controlY y1: any PathBuilderValue,
+    controlX x2: any PathBuilderValue, controlY y2: any PathBuilderValue,
+    endX: any PathBuilderValue, endY: any PathBuilderValue
 ) -> BezierPath2D.Component {
     .init([.init(x1, y1), .init(x2, y2), .init(endX, endY)])
 }
@@ -39,21 +35,25 @@ public func curve(
 
 // MARK: - 3D
 
-public func line(x: Double? = nil, y: Double? = nil, z: Double? = nil) -> BezierPath3D.Component {
+public func line(
+    x: any PathBuilderValue = .unchanged,
+    y: any PathBuilderValue = .unchanged,
+    z: any PathBuilderValue = .unchanged
+) -> BezierPath3D.Component {
     .init([.init(x, y, z)])
 }
 
 public func curve(
-    controlX x1: Double, controlY y1: Double, controlZ z1: Double,
-    endX: Double, endY: Double, endZ: Double
+    controlX x1: any PathBuilderValue, controlY y1: any PathBuilderValue, controlZ z1: any PathBuilderValue,
+    endX: any PathBuilderValue, endY: any PathBuilderValue, endZ: any PathBuilderValue
 ) -> BezierPath3D.Component {
     .init([.init(x1, y1, z1), .init(endX, endY, endZ)])
 }
 
 public func curve(
-    controlX x1: Double, controlY y1: Double, controlZ z1: Double,
-    controlX x2: Double, controlY y2: Double, controlZ z2: Double,
-    endX: Double, endY: Double, endZ: Double
+    controlX x1: any PathBuilderValue, controlY y1: any PathBuilderValue, controlZ z1: any PathBuilderValue,
+    controlX x2: any PathBuilderValue, controlY y2: any PathBuilderValue, controlZ z2: any PathBuilderValue,
+    endX: any PathBuilderValue, endY: any PathBuilderValue, endZ: any PathBuilderValue
 ) -> BezierPath3D.Component {
     .init([.init(x1, y1, z1), .init(x2, y2, z2), .init(endX, endY, endZ)])
 }

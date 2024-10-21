@@ -1,7 +1,7 @@
 import Foundation
 
-internal struct DimensionalValue<Element: Equatable & Sendable, V: Vector>: Equatable, Sendable {
-    private enum Value: Equatable {
+internal struct DimensionalValue<Element: Sendable, V: Vector>: Sendable {
+    private enum Value {
         case xy (Element, Element)
         case xyz (Element, Element, Element)
     }
@@ -43,12 +43,8 @@ internal struct DimensionalValue<Element: Equatable & Sendable, V: Vector>: Equa
         value = .xyz(x, y, z)
     }
 
-    func map<New>(_ operation: (Element) -> New) -> DimensionalValue<New, V> {
-        .init(elements.map(operation))
-    }
-
-    func mapVector(_ operation: (Int, Element) -> Double) -> V {
-        .init(elements: elements.enumerated().map(operation))
+    func map<New>(_ operation: (_ index: Int, _ element: Element) -> New) -> DimensionalValue<New, V> {
+        .init(elements.enumerated().map(operation))
     }
 
     subscript(_ index: Int) -> Element {
@@ -57,5 +53,11 @@ internal struct DimensionalValue<Element: Equatable & Sendable, V: Vector>: Equa
 
     func contains(_ predicate: (Element) -> Bool) -> Bool {
         elements.contains(where: predicate)
+    }
+}
+
+extension DimensionalValue where Element == Double {
+    var vector: V {
+        .init(elements: elements)
     }
 }

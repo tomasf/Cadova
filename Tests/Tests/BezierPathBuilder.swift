@@ -3,7 +3,7 @@ import Testing
 
 struct BezierPathBuilderTests {
     @Test func testAbsolute() {
-        let builderPath = BezierPath2D(from: [10, 4], .absolute) {
+        let builderPath = BezierPath2D(from: [10, 4]) {
             line(x: 22, y: 1)
             line(x: 2)
             line(y: 76)
@@ -31,10 +31,13 @@ struct BezierPathBuilderTests {
     }
 
     @Test func testRelative() {
-        let builderPath = BezierPath2D(from: [10, 4], .relative) {
+        let builderPath = BezierPath2D(from: [10, 4], mode: .relative) {
             line(x: 22, y: 1)
             line(x: 2)
-            line(y: 76)
+            line(y: 74)
+            if true {
+                line(y: 2)
+            }
             curve(
                 controlX: 7, controlY: 12,
                 endX: 77, endY: 18
@@ -50,6 +53,7 @@ struct BezierPathBuilderTests {
         let manualPath = BezierPath2D(startPoint: [10, 4])
             .addingLine(to: [32, 5])
             .addingLine(to: [34, 5])
+            .addingLine(to: [34, 79])
             .addingLine(to: [34, 81])
             .addingQuadraticCurve(controlPoint: [41, 93], end: [111, 99])
             .addingLine(to: [111, 99])

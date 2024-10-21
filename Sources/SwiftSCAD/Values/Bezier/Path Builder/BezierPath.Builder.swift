@@ -1,56 +1,40 @@
 import Foundation
 
 public extension BezierPath {
-    @resultBuilder struct Builder {
-        public typealias Component = BezierPath<V>.Component
+    typealias Builder = ArrayBuilder<BezierPath<V>.Component>
 
-        public static func buildExpression(_ expression: Component) -> [Component] {
-            [expression]
+    init(from: V = .zero, mode defaultMode: PathBuilderPositioning = .absolute, @Builder builder: () -> [Component]) {
+        var start = from
+        self.init(startPoint: from, curves: builder().flatMap {
+            $0.bezierCurves(start: &start, defaultMode: defaultMode)
+        })
+    }
+
+    struct Component {
+        private let points: [PathBuilderVector<V>]
+
+        internal init(_ points: [PathBuilderVector<V>]) {
+            self.points = points
         }
 
-        public static func buildBlock(_ children: [Component]...) -> [Component] {
-            children.flatMap { $0 }
-        }
-
-        // If without else
-        public static func buildOptional(_ children: [Component]?) -> [Component] {
-            if let children {
-                [.init(group: children)]
-            } else {
-                []
+        internal func bezierCurves(start: inout V, defaultMode: PathBuilderPositioning) -> [Curve] {
+            let controlPoints = [start] + points.map {
+                $0.value(relativeTo: start, defaultMode: defaultMode)
             }
+            start = controlPoints.last!
+            return [Curve(controlPoints: controlPoints)]
         }
 
-        // If
-        public static func buildEither(first child: [Component]) -> [Component] {
-            [.init(group: child)]
+        internal func withDefaultMode(_ mode: PathBuilderPositioning) -> Self {
+            .init(points.map { $0.withDefaultMode(mode) })
         }
 
-        // Else
-        public static func buildEither(second child: [Component]) -> [Component] {
-            [.init(group: child)]
-        }
-
-        // Loops
-        public static func buildArray(_ children: [[Component]]) -> [Component] {
-            children.flatMap { $0 }
-        }
-
-        public static func buildExpression(_ void: Void) -> [Component] { [] }
-        public static func buildExpression(_ never: Never) -> [Component] {}
+        public var relative: Component { withDefaultMode(.relative) }
+        public var absolute: Component { withDefaultMode(.absolute) }
     }
 }
 
-public extension BezierPath {
-    enum BuilderPositioning {
-        case relative
-        case absolute
-    }
-
-    init(from: V = .zero, _ positioning: BuilderPositioning = .absolute, @Builder builder: () -> [Component]) {
-        var start = from
-        self.init(startPoint: from, curves: builder().flatMap {
-            $0.bezierCurves(start: &start, positioning: positioning)
-        })
-    }
+public enum PathBuilderPositioning: Sendable {
+    case absolute
+    case relative
 }
