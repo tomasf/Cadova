@@ -1,13 +1,22 @@
 import Foundation
 
+infix operator ×
+infix operator ⋅
+
 public protocol Vector: Sendable, CustomDebugStringConvertible {
     associatedtype Axes: SwiftSCAD.Axes
     associatedtype Transform: AffineTransform where Transform.Vector == Self
     associatedtype Geometry
-    
+
     static var zero: Self { get }
+    init(_ single: Double)
+
+    static func min(_ a: Self, _ b: Self) -> Self
+    static func max(_ a: Self, _ b: Self) -> Self
+
+    // Operators
     static prefix func -(_ v: Self) -> Self
-    
+
     static func +(_ v1: Self, _ v2: Self) -> Self
     static func -(_ v1: Self, _ v2: Self) -> Self
     static func *(_ v1: Self, _ v2: Self) -> Self
@@ -20,25 +29,25 @@ public protocol Vector: Sendable, CustomDebugStringConvertible {
 
     static func ⋅(_ v1: Self, _ v2: Self) -> Double
 
+    // Magnitude and normalization
     var magnitude: Double { get }
     var squaredEuclideanNorm: Double { get }
     var normalized: Self { get }
+
+    // Hypotenuse
     func distance(to other: Self) -> Double
     func point(alongLineTo other: Self, at fraction: Double) -> Self
 
+    // Access by axis
     init(axis: Axes.Axis, value: Double, default: Double)
     func with(_ axis: Axes.Axis, as value: Double) -> Self
     subscript(_ axis: Axes.Axis) -> Double { get }
 
-    init(_ single: Double)
-
+    // Access by index
     static var elementCount: Int { get }
     init(elements: [Double])
     var elements: [Double] { get }
     subscript(_ index: Int) -> Double { get }
-
-    static func min(_ a: Self, _ b: Self) -> Self
-    static func max(_ a: Self, _ b: Self) -> Self
 }
 
 public extension Vector {
@@ -68,17 +77,12 @@ public extension Vector {
     }
 }
 
-infix operator ×
-infix operator ⋅
-
 internal extension Vector {
     var vector3D: Vector3D {
-        if let v3d = self as? Vector3D {
-            return v3d
-        } else if let v2d = self as? Vector2D {
-            return .init(v2d, z: 0)
-        } else {
-            preconditionFailure()
+        switch self {
+        case let self as Vector3D: self
+        case let self as Vector2D: .init(self.x, self.y, 0)
+        default: preconditionFailure()
         }
     }
 }
