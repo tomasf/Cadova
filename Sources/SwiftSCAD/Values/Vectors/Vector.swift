@@ -30,6 +30,8 @@ public protocol Vector: Sendable, CustomDebugStringConvertible {
     func with(_ axis: Axes.Axis, as value: Double) -> Self
     subscript(_ axis: Axes.Axis) -> Double { get }
 
+    init(_ single: Double)
+
     static var elementCount: Int { get }
     init(elements: [Double])
     var elements: [Double] { get }

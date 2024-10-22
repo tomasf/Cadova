@@ -12,7 +12,12 @@ public struct Vector2D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable
     public var x: Double
     public var y: Double
 
-    public static let zero = Vector2D(x: 0, y: 0)
+    public static let zero = Vector2D(0)
+
+    public init(_ single: Double) {
+        x = single
+        y = single
+    }
 
     public init(x: Double = 0, y: Double = 0) {
         precondition(x.isFinite, "Vector elements can't be NaN or infinite")

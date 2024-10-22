@@ -71,6 +71,18 @@ extension BoundingBox {
         minimum + size / 2.0
     }
 
+    /// Accesses the range of values in the specified axis within the bounding box.
+    ///
+    /// This subscript returns the range of coordinates along the provided axis (e.g., x, y, or z for a 3D bounding box).
+    /// The range is defined by the bounding box's minimum and maximum values along that axis.
+    ///
+    /// - Parameter axis: The axis for which to retrieve the coordinate range.
+    /// - Returns: A `Range<Double>` representing the minimum to maximum coordinates along the given axis.
+    ///
+    public subscript(_ axis: V.Axes.Axis) -> Range<Double> {
+        .init(minimum[axis], maximum[axis])
+    }
+
     /// Determines whether the bounding box is valid.
     ///
     /// A bounding box is considered valid if it represents a real geometric area or volume, which means all its dimensions must be non-negative. This property checks that the size of the bounding box in each dimension is greater than or equal to zero, ensuring the box does not represent an inverted or non-existent space.

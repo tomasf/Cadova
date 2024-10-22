@@ -48,3 +48,24 @@ extension Dictionary {
         return dict
     }
 }
+
+extension RangeExpression {
+    var min: Bound? {
+        switch self {
+        case let self as ClosedRange<Bound>: self.lowerBound
+        case let self as Range<Bound>: self.lowerBound
+        case let self as PartialRangeFrom<Bound>: self.lowerBound
+        default: nil
+        }
+    }
+
+    var max: Bound? {
+        switch self {
+        case let self as ClosedRange<Bound>: self.upperBound
+        case let self as Range<Bound>: self.upperBound
+        case let self as PartialRangeThrough<Bound>: self.upperBound
+        case let self as PartialRangeUpTo<Bound>: self.upperBound
+        default: nil
+        }
+    }
+}

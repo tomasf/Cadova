@@ -12,7 +12,13 @@ public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable
     public var y: Double
     public var z: Double
 
-    public static let zero = Vector3D(x: 0, y: 0, z: 0)
+    public static let zero = Vector3D(0)
+
+    public init(_ single: Double) {
+        x = single
+        y = single
+        z = single
+    }
 
     public init(x: Double = 0, y: Double = 0, z: Double = 0) {
         precondition(x.isFinite, "Vector elements can't be NaN or infinite")
