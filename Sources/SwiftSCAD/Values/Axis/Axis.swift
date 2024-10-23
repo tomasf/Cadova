@@ -1,13 +1,19 @@
 import Foundation
 
+public protocol Axis: CaseIterable, Sendable {
+    var index: Int { get }
+}
+
 /// One of the cartesian axes in two dimensions (X or Y)
-public enum Axis2D: Int, CaseIterable, Sendable {
+public enum Axis2D: Int, Axis {
     case x
     case y
+
+    public var index: Int { rawValue }
 }
 
 /// An enumeration representing the three Cartesian axes in a three-dimensional space: X, Y, and Z.
-public enum Axis3D: Int, CaseIterable, Sendable {
+public enum Axis3D: Int, Axis {
     case x
     case y
     case z
@@ -32,6 +38,8 @@ public enum Axis3D: Int, CaseIterable, Sendable {
     var otherAxes: Axes3D {
         Axes3D(axis: self).inverted
     }
+
+    public var index: Int { rawValue }
 }
 
 /// A direction along an axis

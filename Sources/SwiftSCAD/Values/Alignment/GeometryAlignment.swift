@@ -1,69 +1,45 @@
-
 import Foundation
 
-public struct GeometryAlignment2D: Equatable, Sendable {
-    internal let x: AxisAlignment?
-    internal let y: AxisAlignment?
+public struct GeometryAlignment<V: Vector>: Equatable, Sendable {
+    let values: DimensionalValues<AxisAlignment?, V>
 
-    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil) {
-        self.x = x
-        self.y = y
+    private init(_ values: DimensionalValues<AxisAlignment?, V>) {
+        self.values = values
     }
 
-    fileprivate init(merging alignments: [GeometryAlignment2D]) {
-        x = alignments.compactMap(\.x).last
-        y = alignments.compactMap(\.y).last
+    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil) where V == Vector2D {
+        values = .init(x: x, y: y)
     }
 
-    internal var factors: Vector2D {
-        .init(x?.factor ?? 0, y?.factor ?? 0)
+    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil, z: AxisAlignment? = nil) where V == Vector3D {
+        values = .init(x: x, y: y, z: z)
     }
 
-    internal func defaultingToOrigin() -> Self {
-        .init(
-            x: x ?? .min,
-            y: y ?? .min
-        )
+    fileprivate init(merging alignments: [Self]) {
+        values = .init { index in
+            alignments.compactMap { $0[index] }.last
+        }
     }
 
-    internal var hasEffect: Bool {
-        x != nil || y != nil
-    }
-}
-
-public struct GeometryAlignment3D: Equatable, Sendable {
-    internal let x: AxisAlignment?
-    internal let y: AxisAlignment?
-    internal let z: AxisAlignment?
-
-    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil, z: AxisAlignment? = nil) {
-        self.x = x
-        self.y = y
-        self.z = z
+    public subscript(axis: V.Axes.Axis) -> AxisAlignment? {
+        values[axis]
     }
 
-    fileprivate init(merging alignments: [GeometryAlignment3D]) {
-        x = alignments.compactMap(\.x).last
-        y = alignments.compactMap(\.y).last
-        z = alignments.compactMap(\.z).last
-    }
-
-    internal var factors: Vector3D {
-        .init(x?.factor ?? 0, y?.factor ?? 0, z?.factor ?? 0)
+    internal var factors: V {
+        values.map { $0?.factor ?? 0 }.vector
     }
 
     internal func defaultingToOrigin() -> Self {
-        .init(
-            x: x ?? .min,
-            y: y ?? .min,
-            z: z ?? .min
-        )
+        .init(values.map { $0 ?? .min })
     }
 
     internal var hasEffect: Bool {
-        x != nil || y != nil || z != nil
+        values.contains { $0 != nil }
     }
 }
+
+public typealias GeometryAlignment2D = GeometryAlignment<Vector2D>
+public typealias GeometryAlignment3D = GeometryAlignment<Vector3D>
 
 internal extension [GeometryAlignment2D] {
     var merged: GeometryAlignment2D { .init(merging: self) }

@@ -1,7 +1,10 @@
 import Foundation
 
-internal struct DimensionalValue<Element: Sendable, V: Vector>: Sendable {
-    private enum Value {
+// Container for non-Double values related to dimensions
+internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
+    typealias Axis = V.Axes.Axis
+
+    internal enum Value {
         case xy (Element, Element)
         case xyz (Element, Element, Element)
     }
@@ -31,8 +34,8 @@ internal struct DimensionalValue<Element: Sendable, V: Vector>: Sendable {
         self.init(elements)
     }
 
-    init(_ map: (Int) -> Element) {
-        self.init((0..<V.elementCount).map(map))
+    init(_ map: (Axis) -> Element) {
+        self.init(Axis.allCases.map { map($0) })
     }
 
     init(x: Element, y: Element) where V == Vector2D {
@@ -43,12 +46,22 @@ internal struct DimensionalValue<Element: Sendable, V: Vector>: Sendable {
         value = .xyz(x, y, z)
     }
 
-    func map<New>(_ operation: (_ index: Int, _ element: Element) -> New) -> DimensionalValue<New, V> {
-        .init(elements.enumerated().map(operation))
+    func map<New>(_ operation: (_ axis: Axis, _ element: Element) -> New) -> DimensionalValues<New, V> {
+        .init(Axis.allCases.map {
+            operation($0, self[$0])
+        })
+    }
+
+    func map<New>(_ operation: (Element) -> New) -> DimensionalValues<New, V> {
+        .init(elements.map(operation))
     }
 
     subscript(_ index: Int) -> Element {
         elements[index]
+    }
+
+    subscript(_ axis: V.Axes.Axis) -> Element {
+        elements[axis.index]
     }
 
     func contains(_ predicate: (Element) -> Bool) -> Bool {
@@ -56,8 +69,11 @@ internal struct DimensionalValue<Element: Sendable, V: Vector>: Sendable {
     }
 }
 
-extension DimensionalValue where Element == Double {
+extension DimensionalValues where Element == Double {
     var vector: V {
         .init(elements: elements)
     }
 }
+
+extension DimensionalValues.Value: Equatable where Element: Equatable {}
+extension DimensionalValues: Equatable where Element: Equatable {}

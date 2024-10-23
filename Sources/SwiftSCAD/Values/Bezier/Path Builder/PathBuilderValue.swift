@@ -44,7 +44,7 @@ internal extension PathBuilderValue {
     }
 }
 
-internal typealias PathBuilderVector<V: Vector> = DimensionalValue<PositionedValue, V>
+internal typealias PathBuilderVector<V: Vector> = DimensionalValues<PositionedValue, V>
 
 internal extension PathBuilderVector where Element == PositionedValue {
     init(_ vector: V) {

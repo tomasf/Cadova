@@ -1,7 +1,7 @@
 import Foundation
 
 public protocol Axes {
-    associatedtype Axis
+    associatedtype Axis: SwiftSCAD.Axis
 
     init(axis: Axis)
     func contains(axis: Axis) -> Bool

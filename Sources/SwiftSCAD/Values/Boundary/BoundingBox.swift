@@ -19,7 +19,7 @@ public struct BoundingBox<V: Vector>: Sendable {
         self.maximum = maximum
     }
 
-    public static var zero: Self { .init(minimum: .zero, maximum: .zero) }
+    public static var zero: Self { .init(.zero) }
 
     /// Initializes a new `BoundingBox` enclosing a single point.
     /// - Parameter vector: The vector used for both the minimum and maximum points.
@@ -50,8 +50,8 @@ public struct BoundingBox<V: Vector>: Sendable {
     /// - Returns: A new `BoundingBox` that includes the original volume and the specified vector.
     public func adding(_ vector: V) -> BoundingBox<V> {
         .init(
-            minimum: V(elements: zip(minimum.elements, vector.elements).map { min($0, $1) }),
-            maximum: V(elements: zip(maximum.elements, vector.elements).map { max($0, $1) })
+            minimum: V(elements: zip(minimum.elements, vector.elements).map(min)),
+            maximum: V(elements: zip(maximum.elements, vector.elements).map(max))
         )
     }
 }
@@ -114,20 +114,11 @@ extension BoundingBox {
     }
 }
 
-extension BoundingBox2D {
-    func translation(for alignment: GeometryAlignment2D) -> Vector2D {
-        let x = alignment.x?.translation(origin: minimum.x, size: size.x) ?? 0
-        let y = alignment.y?.translation(origin: minimum.y, size: size.y) ?? 0
-        return Vector2D(x, y)
-    }
-}
-
-extension BoundingBox3D {
-    func translation(for alignment: GeometryAlignment3D) -> Vector3D {
-        let x = alignment.x?.translation(origin: minimum.x, size: size.x) ?? 0
-        let y = alignment.y?.translation(origin: minimum.y, size: size.y) ?? 0
-        let z = alignment.z?.translation(origin: minimum.z, size: size.z) ?? 0
-        return Vector3D(x, y, z)
+extension BoundingBox {
+    func translation(for alignment: GeometryAlignment<V>) -> V {
+        alignment.values.map { axis, axisAlignment in
+            axisAlignment?.translation(origin: minimum[axis], size: size[axis]) ?? 0
+        }.vector
     }
 }
 
