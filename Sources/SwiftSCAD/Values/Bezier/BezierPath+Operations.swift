@@ -24,7 +24,7 @@ public extension BezierPath {
     ///
     /// - Parameter transform: The affine transform to apply.
     /// - Returns: A new `BezierPath` instance with the transformed points.
-    func transformed<T: AffineTransform>(using transform: T) -> BezierPath where T.Vector == V, T == V.Transform {
+    func transformed<T: AffineTransform>(using transform: T) -> BezierPath where T.V == V, T == V.Transform {
         BezierPath(
             startPoint: transform.apply(to: startPoint),
             curves: curves.map { $0.transformed(using: transform) }

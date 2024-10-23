@@ -5,7 +5,7 @@ infix operator ⋅
 
 public protocol Vector: Sendable, CustomDebugStringConvertible {
     associatedtype Axes: SwiftSCAD.Axes
-    associatedtype Transform: AffineTransform where Transform.Vector == Self
+    associatedtype Transform: AffineTransform where Transform.V == Self
     associatedtype Geometry
 
     static var zero: Self { get }
