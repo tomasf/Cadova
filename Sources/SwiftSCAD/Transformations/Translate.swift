@@ -59,6 +59,19 @@ public extension Geometry3D {
         Translate3D(body: self, distance: distance)
     }
 
+    /// Translate geometry in 3D space using a 2D vector for the x and y axes and an individual z-axis component.
+    ///
+    /// This method allows specifying a 2D vector for the x and y components and an individual value for the z-axis, providing flexibility when working with combined 2D and 3D coordinates.
+    ///
+    /// - Parameters:
+    ///   - xyDistance: A `Vector2D` representing the distance to move along the x and y axes.
+    ///   - z: The distance to move along the z-axis.
+    /// - Returns: A translated geometry.
+    /// 
+    func translated(_ xyDistance: Vector2D, z: Double) -> any Geometry3D {
+        Translate3D(body: self, distance: .init(xyDistance, z: z))
+    }
+
     /// Translate geometry in 3D space using individual components.
     ///
     /// This method moves the geometry by specifying the individual distance components along the x, y, and z axes. It allows for precise control over the translation in each direction.
