@@ -1,7 +1,7 @@
 import Foundation
 
 public struct GeometryAlignment<V: Vector>: Equatable, Sendable {
-    let values: DimensionalValues<AxisAlignment?, V>
+    internal let values: DimensionalValues<AxisAlignment?, V>
 
     private init(_ values: DimensionalValues<AxisAlignment?, V>) {
         self.values = values

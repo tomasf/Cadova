@@ -43,31 +43,3 @@ internal extension PathBuilderValue {
         }
     }
 }
-
-internal typealias PathBuilderVector<V: Vector> = DimensionalValues<PositionedValue, V>
-
-internal extension PathBuilderVector where Element == PositionedValue {
-    init(_ vector: V) {
-        self.init {
-            PositionedValue(value: vector[$0], mode: nil)
-        }
-    }
-
-    init(_ x: any PathBuilderValue, _ y: any PathBuilderValue) where V == Vector2D {
-        self.init(x: x.positionedValue, y: y.positionedValue)
-    }
-
-    init(_ x: any PathBuilderValue, _ y: any PathBuilderValue, _ z: any PathBuilderValue) where V == Vector3D {
-        self.init(x: x.positionedValue, y: y.positionedValue, z: z.positionedValue)
-    }
-
-    func withDefaultMode(_ mode: PathBuilderPositioning) -> Self {
-        map { $1.withDefaultMode(mode) }
-    }
-
-    func value(relativeTo base: V, defaultMode: PathBuilderPositioning) -> V {
-        map {
-            $1.value(relativeTo: base[$0], defaultMode: defaultMode)
-        }.vector
-    }
-}
