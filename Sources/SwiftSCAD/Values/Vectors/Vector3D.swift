@@ -54,10 +54,11 @@ public extension Vector3D {
     ///   - value: The value to use
     ///   - default: The value to use for the other axes
     init(axis: Axis3D, value: Double, default defaultValue: Double = 0) {
-        let x = (axis == .x) ? value : defaultValue
-        let y = (axis == .y) ? value : defaultValue
-        let z = (axis == .z) ? value : defaultValue
-        self.init(x, y, z)
+        self.init(
+            x: (axis == .x) ? value : defaultValue,
+            y: (axis == .y) ? value : defaultValue,
+            z: (axis == .z) ? value : defaultValue
+        )
     }
 
     internal func with(_ axes: Axes3D, as value: Double) -> Vector3D {

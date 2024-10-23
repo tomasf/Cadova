@@ -61,19 +61,6 @@ public struct AffineTransform3D: AffineTransform, Equatable, Sendable {
         AffineTransform3D(other.matrix * matrix)
     }
 
-    /// Creates a new `AffineTransform3D` by setting a value at the given row and column indices.
-    ///
-    /// - Parameters:
-    ///   - row: The row index (0 to 3).
-    ///   - column: The column index (0 to 3).
-    ///   - value: The value to set at the specified row and column.
-    /// - Returns: A new `AffineTransform3D` with the specified value set.
-    public func setting(row: Int, column: Int, to value: Double) -> Self {
-        var transform = self
-        transform[row, column] = value
-        return transform
-    }
-
     /// Computes the inverse of the affine transformation, if possible.
     ///
     /// - Returns: The inverse `AffineTransform3D`, which, when concatenated with the original transform, results in the identity transform. If the matrix is not invertible, the behavior is undefined.
@@ -85,7 +72,7 @@ public struct AffineTransform3D: AffineTransform, Equatable, Sendable {
     ///
     /// - Parameter function: A transformation function that takes row and column indices, along with the current value, and returns a new value.
     /// - Returns: A new `AffineTransform3D` with the function applied to each element of the matrix.
-    public func applying(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> AffineTransform3D {
+    public func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> AffineTransform3D {
         .init(
             (0..<4).map { row in
                 (0..<4).map { column in
@@ -103,7 +90,7 @@ public struct AffineTransform3D: AffineTransform, Equatable, Sendable {
     ///   - factor: The interpolation factor between 0.0 and 1.0, where 0.0 results in the `from` transform and 1.0 results in the `to` transform.
     /// - Returns: A new `AffineTransform3D` representing the interpolated transformation.
     public static func linearInterpolation(_ from: AffineTransform3D, _ to: AffineTransform3D, factor: Double) -> AffineTransform3D {
-        from.applying { row, column, value in
+        from.mapValues { row, column, value in
             value + (to[row, column] - value) * factor
         }
     }
@@ -374,16 +361,6 @@ extension AffineTransform3D {
 extension AffineTransform3D: SCADValue {
     public var scadString: String {
         values.scadString
-    }
-}
-
-fileprivate extension Axis3D {
-    var index: Int {
-        switch self {
-        case .x: return 0
-        case .y: return 1
-        case .z: return 2
-        }
     }
 }
 

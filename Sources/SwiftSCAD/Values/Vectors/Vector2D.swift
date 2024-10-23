@@ -48,9 +48,10 @@ public extension Vector2D {
     ///   - default: The value to use for the other axes
 
     init(axis: Axis2D, value: Double, default defaultValue: Double = 0) {
-        let x = (axis == .x) ? value : defaultValue
-        let y = (axis == .y) ? value : defaultValue
-        self.init(x, y)
+        self.init(
+            x: (axis == .x) ? value : defaultValue,
+            y: (axis == .y) ? value : defaultValue
+        )
     }
 
     internal func with(_ axes: Axes2D, as value: Double) -> Vector2D {
@@ -83,7 +84,7 @@ public extension Vector2D {
 public extension Vector2D {
     /// Calculate the angle of a straight line between this point and another point
     func angle(to other: Vector2D) -> Angle {
-        Angle(radians: atan2(other.y - y, other.x - x))
+        atan2(other.y - y, other.x - x)
     }
 }
 

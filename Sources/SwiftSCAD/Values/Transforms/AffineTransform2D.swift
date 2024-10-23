@@ -52,19 +52,6 @@ public struct AffineTransform2D: AffineTransform, Equatable, Sendable {
         AffineTransform2D(other.matrix * matrix)
     }
 
-    /// Creates a new `AffineTransform2D` by setting a value at the given row and column indices.
-    ///
-    /// - Parameters:
-    ///   - row: The row index (0 to 2).
-    ///   - column: The column index (0 to 2).
-    ///   - value: The value to set at the specified row and column.
-    /// - Returns: A new `AffineTransform2D` with the specified value set.
-    public func setting(row: Int, column: Int, to value: Double) -> Self {
-        var transform = self
-        transform[row, column] = value
-        return transform
-    }
-
     /// Returns the inverse of this affine transform, if it exists.
     ///
     /// The inverse transform reverses the effects of applying this transform. If the transform is non-invertible, the result is undefined.
@@ -78,7 +65,7 @@ public struct AffineTransform2D: AffineTransform, Equatable, Sendable {
     ///
     /// - Parameter function: A closure that takes a row index, a column index, and the current value at that position, then returns a new value to be assigned to that position.
     /// - Returns: A new `AffineTransform2D` with the matrix modified by the provided function.
-    public func applying(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> AffineTransform2D {
+    public func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> AffineTransform2D {
         .init(
             (0..<3).map { row in
                 (0..<3).map { column in
@@ -98,7 +85,7 @@ public struct AffineTransform2D: AffineTransform, Equatable, Sendable {
     ///   - factor: The interpolation factor, where 0.0 represents the start and 1.0 represents the end.
     /// - Returns: An `AffineTransform2D` representing the interpolated state between the two given transforms.
     public static func linearInterpolation(_ from: AffineTransform2D, _ to: AffineTransform2D, factor: Double) -> AffineTransform2D {
-        from.applying { row, column, value in
+        from.mapValues { row, column, value in
             value + (to[row, column] - value) * factor
         }
     }
