@@ -33,17 +33,14 @@ struct OpenSCADExport {
 
         try process.run()
         inputPipe.fileHandleForWriting.write(inputCode)
-        try inputPipe.fileHandleForWriting.close()
+        inputPipe.fileHandleForWriting.closeFile()
 
-        guard let data = try outputPipe.fileHandleForReading.readToEnd() else {
-            throw RunError.noData
-        }
-
+        let data = outputPipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
 
         if process.terminationStatus != 0 {
-            let errorData = try? errorPipe.fileHandleForReading.readToEnd()
-            let errorString = errorData.flatMap { String(data: $0, encoding: .utf8) }
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            let errorString = String(data: errorData, encoding: .utf8)
             throw RunError.processFailed(Int(process.terminationStatus), errorString ?? "")
         }
 
@@ -56,7 +53,7 @@ struct OpenSCADExport {
 
     static func executableURL() -> URL? {
         if let path = ProcessInfo.processInfo.environment[executableEnvironmentVariableName] {
-            return URL(filePath: path)
+            return URL(fileURLWithPath: path)
         }
 
         return findExecutableAutomatically()

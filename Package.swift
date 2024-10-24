@@ -1,12 +1,9 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 
 import PackageDescription
 
 let package = Package(
     name: "SwiftSCAD",
-    platforms: [
-        .macOS(.v14)
-    ],
     products: [
         .library(
             name: "SwiftSCAD",
@@ -22,20 +19,12 @@ let package = Package(
             dependencies: [
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Logging", package: "swift-log"),
-            ],
-            swiftSettings: [
-                .enableUpcomingFeature("ExistentialAny"),
-                .enableExperimentalFeature("StrictConcurrency")
             ]
         ),
         .testTarget(
             name: "Tests",
             dependencies: ["SwiftSCAD"],
-            resources: [.copy("SCAD")],
-            swiftSettings: [
-                .enableUpcomingFeature("ExistentialAny"),
-                .enableExperimentalFeature("StrictConcurrency")
-            ]
+            resources: [.copy("SCAD")]
         )
     ]
 )

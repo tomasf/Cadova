@@ -1,6 +1,6 @@
 import Foundation
 
-internal extension BoundingBox {
+fileprivate extension BoundingBox {
     func partialBox(from: Double?, to: Double?, in axis: V.Axes.Axis) -> BoundingBox {
         .init(
             minimum: minimum.with(axis, as: from ?? minimum[axis] - 1),
