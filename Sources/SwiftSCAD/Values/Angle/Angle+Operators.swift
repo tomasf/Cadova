@@ -14,61 +14,56 @@ public extension Double {
     }
 }
 
-extension Angle: Comparable, AdditiveArithmetic {
-    public static var zero: Angle {
-        0°
-    }
-    
-    public static prefix func -(_ a: Angle) -> Angle {
+extension Angle: AdditiveArithmetic {}
+
+public extension Angle {
+    static let zero = 0°
+
+    static prefix func -(_ a: Angle) -> Angle {
         Angle(radians: -a.radians)
     }
 
-    public static func +(_ a: Angle, _ b: Angle) -> Angle {
+    static func +(_ a: Angle, _ b: Angle) -> Angle {
         Angle(radians: a.radians + b.radians)
     }
 
-    public static func -(_ a: Angle, _ b: Angle) -> Angle {
+    static func -(_ a: Angle, _ b: Angle) -> Angle {
         Angle(radians: a.radians - b.radians)
     }
+}
 
-    public static func *(_ a: Angle, _ b: Double) -> Angle {
+public extension Angle {
+    static func *(_ a: Angle, _ b: Double) -> Angle {
         Angle(radians: a.radians * b)
     }
 
-    public static func *(_ a: Double, _ b: Angle) -> Angle {
+    static func *(_ a: Double, _ b: Angle) -> Angle {
         Angle(radians: a * b.radians)
     }
 
-    public static func /(_ a: Angle, _ b: Double) -> Angle {
+    static func /(_ a: Angle, _ b: Double) -> Angle {
         Angle(radians: a.radians / b)
     }
 
-    public static func /(_ a: Angle, _ b: Angle) -> Double {
+    static func /(_ a: Angle, _ b: Angle) -> Double {
         a.radians / b.radians
     }
 }
 
-extension Angle {
-    public static func <(_ a: Angle, _ b: Angle) -> Bool {
+extension Angle: Comparable {}
+public extension Angle {
+    static func <(_ a: Angle, _ b: Angle) -> Bool {
         a.radians < b.radians
     }
 
-    public static func <=(_ a: Angle, _ b: Angle) -> Bool {
-        a.radians <= b.radians
-    }
-
-    public static func >(_ a: Angle, _ b: Angle) -> Bool {
-        a.radians > b.radians
-    }
-
-    public static func >=(_ a: Angle, _ b: Angle) -> Bool {
-        a.radians >= b.radians
-    }
-
-    public static func ==(_ a: Angle, _ b: Angle) -> Bool {
+    static func ==(_ a: Angle, _ b: Angle) -> Bool {
         a.radians == b.radians
     }
 }
+
+// To support stride, we'd ideally conform Angle to Strideable. However, that requires that Angle conforms
+// to Numeric, which requires multiplication. Multiplying two angles is not meaningful, so we can't do that.
+// Hence these manual overloads of stride().
 
 public func stride(from start: Angle, through end: Angle, by stride: Angle) -> [Angle] {
     Swift.stride(from: start.radians, through: end.radians, by: stride.radians)
