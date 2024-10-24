@@ -4,7 +4,7 @@ SwiftSCAD is a library that allows you to create 3D and 2D CAD models in Swift. 
 SwiftSCAD runs on macOS, Windows and Linux.
 
 [![Swift](https://github.com/tomasf/SwiftSCAD/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/SwiftSCAD/actions/workflows/swift.yml)
-![asd](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
+![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
 
 # Getting Started
 > tl;dr: Create a new executable Swift package, add SwiftSCAD as a dependency, import it in your code, create geometry and use the `save(to:)` method to save it to disk as an OpenSCAD file.

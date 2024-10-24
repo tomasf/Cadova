@@ -78,20 +78,11 @@ public struct Polyhedron: LeafGeometry3D {
     /// Create a polyhedron from faces
     /// - Parameters:
     ///   - faces: A list of faces made up of hashable items representing points. Faces must cover the entire shape without any holes.
+    ///   - value: A closure that provides the concrete vector for an item
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
-
-
-    public init<Vertex: PolyhedronVertex>(faces: [OrderedSet<Vertex>], convexity: Int = 2) {
-        let table: [Vertex: Vector3D] = faces.joined().reduce(into: [:]) { table, vertex in
-            table[vertex] = vertex.point
-        }
-
-        self.init(points: table, faces: faces, convexity: convexity)
-    }
-
-    public init<Vertex: Hashable>(faces: [OrderedSet<Vertex>], convexity: Int = 2, resolver: (Vertex) -> Vector3D) {
-        let table: [Vertex: Vector3D] = faces.joined().reduce(into: [:]) { table, vertex in
-            table[vertex] = resolver(vertex)
+    public init<Point: Hashable>(faces: [OrderedSet<Point>], convexity: Int = 2, value: (Point) -> Vector3D) {
+        let table: [Point: Vector3D] = Set(faces.joined()).reduce(into: [:]) { table, vertex in
+            table[vertex] = value(vertex)
         }
         self.init(points: table, faces: faces, convexity: convexity)
     }
@@ -108,8 +99,4 @@ public struct Polyhedron: LeafGeometry3D {
     var boundary: Bounds {
         .points(points)
     }
-}
-
-public protocol PolyhedronVertex: Hashable {
-    var point: Vector3D { get }
 }

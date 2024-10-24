@@ -21,7 +21,7 @@ internal struct RoundedBoxMask3D: Shape3D {
                 var levels: Int { facets * 2 }
             }
 
-            struct Position: PolyhedronVertex {
+            struct Position: Hashable {
                 let sector: Int
                 let level: Int
                 let box: BoxParameters
@@ -48,7 +48,7 @@ internal struct RoundedBoxMask3D: Shape3D {
                         .union(quadrant == 1 || quadrant == 2 ? .x : [])
                         .union(quadrant > 1 ? .y : [])
                         .union(hemisphere > 0 ? .z : [])
-                    let offset = (box.size / 2 - box.radius) * (Vector3D(1,1,1).with(mirrorAxes, as: -1))
+                    let offset = (box.size / 2 - box.radius) * (Vector3D(1).with(mirrorAxes, as: -1))
 
                     return AffineTransform3D.translation(x: box.radius)
                         .rotated(y: levelAngle)
@@ -79,7 +79,7 @@ internal struct RoundedBoxMask3D: Shape3D {
                 Position(sector: $0 * parameters.facets, level: parameters.levels-1, box: parameters)
             })
 
-            return Polyhedron(faces: sides + [top, bottom])
+            return Polyhedron(faces: sides + [top, bottom], value: \.point)
                 .translated(size / 2)
         }
     }
