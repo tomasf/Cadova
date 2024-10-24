@@ -16,9 +16,6 @@ struct OpenSCADExport {
         }
 
         let inputPipe = Pipe()
-        inputPipe.fileHandleForWriting.write(inputCode)
-        try inputPipe.fileHandleForWriting.close()
-
         let outputPipe = Pipe()
         let errorPipe = Pipe()
 
@@ -35,6 +32,9 @@ struct OpenSCADExport {
         process.standardError = errorPipe
 
         try process.run()
+        inputPipe.fileHandleForWriting.write(inputCode)
+        try inputPipe.fileHandleForWriting.close()
+
         guard let data = try outputPipe.fileHandleForReading.readToEnd() else {
             throw RunError.noData
         }
