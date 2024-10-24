@@ -10,7 +10,7 @@ extension Geometry2D {
     @GeometryBuilder2D
     public func distributed(at offsets: any Sequence<Double>, along axis: Axis2D) -> any Geometry2D {
         for offset in offsets {
-            translated(Vector2D(axis: axis, value: offset))
+            translated(Vector2D(axis, value: offset))
         }
     }
     
@@ -59,7 +59,7 @@ extension Geometry3D {
     @GeometryBuilder3D
     public func distributed(at offsets: any Sequence<Double>, along axis: Axis3D) -> any Geometry3D {
         for offset in offsets {
-            translated(Vector3D(axis: axis, value: offset))
+            translated(Vector3D(axis, value: offset))
         }
     }
     

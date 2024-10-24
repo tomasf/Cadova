@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Axis: CaseIterable, Sendable {
+public protocol Axis: Equatable, CaseIterable, Sendable {
     var index: Int { get }
 }
 
@@ -29,7 +29,7 @@ public enum Axis3D: Int, Axis {
     ///
     /// This property returns a `Vector3D` representing the direction of the axis with a magnitude of 1. It is useful for operations that require understanding or manipulating the orientation of geometry in 3D space.
     var direction: Vector3D {
-        Vector3D(axis: self, value: 1)
+        Vector3D(self, value: 1)
     }
 
     /// The other two axes that are orthogonal to this axis.

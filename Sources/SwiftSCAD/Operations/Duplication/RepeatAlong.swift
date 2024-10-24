@@ -11,7 +11,7 @@ extension Geometry2D {
     @GeometryBuilder2D
     public func repeated(along axis: Axis2D, in range: Range<Double>, step: Double) -> any Geometry2D {
         for value in stride(from: range.lowerBound, to: range.upperBound, by: step) {
-            translated(Vector2D(axis: axis, value: value))
+            translated(Vector2D(axis, value: value))
         }
     }
 
@@ -26,7 +26,7 @@ extension Geometry2D {
     public func repeated(along axis: Axis2D, in range: Range<Double>, count: Int) -> any Geometry2D {
         let step = (range.upperBound - range.lowerBound) / Double(count)
         for value in stride(from: range.lowerBound, to: range.upperBound, by: step) {
-            translated(Vector2D(axis: axis, value: value))
+            translated(Vector2D(axis, value: value))
         }
     }
 
@@ -41,7 +41,7 @@ extension Geometry2D {
     public func repeated(along axis: Axis2D, in range: ClosedRange<Double>, count: Int) -> any Geometry2D {
         let step = (range.upperBound - range.lowerBound) / Double(count - 1)
         for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
-            translated(Vector2D(axis: axis, value: value))
+            translated(Vector2D(axis, value: value))
         }
     }
 
@@ -55,7 +55,7 @@ extension Geometry2D {
     @GeometryBuilder2D
     public func repeated(along axis: Axis2D, step: Double, count: Int) -> any Geometry2D {
         for i in 0..<count {
-            self.translated(.init(axis: axis, value: Double(i) * step))
+            self.translated(.init(axis, value: Double(i) * step))
         }
     }
 }
@@ -97,7 +97,7 @@ extension Geometry3D {
     @GeometryBuilder3D
     public func repeated(along axis: Axis3D, in range: Range<Double>, step: Double) -> any Geometry3D {
         for value in stride(from: range.lowerBound, to: range.upperBound, by: step) {
-            translated(Vector3D(axis: axis, value: value))
+            translated(Vector3D(axis, value: value))
         }
     }
 
@@ -112,7 +112,7 @@ extension Geometry3D {
     public func repeated(along axis: Axis3D, in range: Range<Double>, count: Int) -> any Geometry3D {
         let step = (range.upperBound - range.lowerBound) / Double(count)
         for value in stride(from: range.lowerBound, to: range.upperBound, by: step) {
-            translated(Vector3D(axis: axis, value: value))
+            translated(Vector3D(axis, value: value))
         }
     }
 
@@ -127,7 +127,7 @@ extension Geometry3D {
     public func repeated(along axis: Axis3D, in range: ClosedRange<Double>, count: Int) -> any Geometry3D {
         let step = (range.upperBound - range.lowerBound) / Double(count - 1)
         for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
-            translated(Vector3D(axis: axis, value: value))
+            translated(Vector3D(axis, value: value))
         }
     }
 
@@ -141,7 +141,7 @@ extension Geometry3D {
     @GeometryBuilder3D
     public func repeated(along axis: Axis3D, step: Double, count: Int) -> any Geometry3D {
         for i in 0..<count {
-            self.translated(.init(axis: axis, value: Double(i) * step))
+            self.translated(.init(axis, value: Double(i) * step))
         }
     }
 }
