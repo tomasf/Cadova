@@ -11,13 +11,6 @@ internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
 
     private let value: Value
 
-    private var elements: [Element] {
-        switch value {
-        case let .xy(x, y): [x, y]
-        case let .xyz(x, y, z): [x, y, z]
-        }
-    }
-
     init(_ elements: [Element]) {
         precondition(elements.count == V.elementCount)
 
@@ -30,20 +23,15 @@ internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
         }
     }
 
-    init(_ elements: Element...) {
-        self.init(elements)
-    }
-
     init(_ map: (Axis) -> Element) {
         self.init(Axis.allCases.map { map($0) })
     }
 
-    init(x: Element, y: Element) where V == Vector2D {
-        value = .xy(x, y)
-    }
-
-    init(x: Element, y: Element, z: Element) where V == Vector3D {
-        value = .xyz(x, y, z)
+    subscript(_ axis: V.Axes.Axis) -> Element {
+        switch value {
+        case let .xy(x, y): [x, y][axis.index]
+        case let .xyz(x, y, z): [x, y, z][axis.index]
+        }
     }
 
     func map<New>(_ operation: (_ axis: Axis, _ element: Element) -> New) -> DimensionalValues<New, V> {
@@ -53,25 +41,29 @@ internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
     }
 
     func map<New>(_ operation: (Element) -> New) -> DimensionalValues<New, V> {
-        .init(elements.map(operation))
-    }
-
-    subscript(_ index: Int) -> Element {
-        elements[index]
-    }
-
-    subscript(_ axis: V.Axes.Axis) -> Element {
-        elements[axis.index]
+        map { operation($1) }
     }
 
     func contains(_ predicate: (Element) -> Bool) -> Bool {
-        elements.contains(where: predicate)
+        Axis.allCases.contains {
+            predicate(self[$0])
+        }
+    }
+}
+
+extension DimensionalValues {
+    init(x: Element, y: Element) where V == Vector2D {
+        value = .xy(x, y)
+    }
+
+    init(x: Element, y: Element, z: Element) where V == Vector3D {
+        value = .xyz(x, y, z)
     }
 }
 
 extension DimensionalValues where Element == Double {
     var vector: V {
-        .init(elements: elements)
+        .init { self[$0] }
     }
 }
 

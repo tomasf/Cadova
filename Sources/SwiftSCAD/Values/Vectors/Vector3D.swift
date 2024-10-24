@@ -42,6 +42,10 @@ public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable
         self.init(x: arrayLiteral[0], y: arrayLiteral[1], z: arrayLiteral[2])
     }
 
+    public init(_ getter: (Axes.Axis) -> Double) {
+        self.init(x: getter(.x), y: getter(.y), z: getter(.z))
+    }
+
     public var scadString: String {
         [x, y, z].scadString
     }
