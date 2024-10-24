@@ -44,7 +44,8 @@ public extension Polyhedron {
         Key: Hashable, Face: Sequence<Key>, FaceList: Sequence<Face>
     >(faces: FaceList, convexity: Int = 2, value: (Key) -> Vector3D) {
         var pointValues: [Vector3D] = []
-        let keyIndices: [Key: Int] = Set(faces.joined()).reduce(into: [:]) { table, key in
+        let orderedKeys = OrderedSet(faces.joined())
+        let keyIndices: [Key: Int] = orderedKeys.reduce(into: [:]) { table, key in
             pointValues.append(value(key))
             table[key] = pointValues.endIndex - 1
         }
