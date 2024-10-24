@@ -52,19 +52,6 @@ public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable
 }
 
 public extension Vector3D {
-    /// Create a vector where some axes are set to a given value and the others are zero
-    /// - Parameters:
-    ///   - axis: The axes to set
-    ///   - value: The value to use
-    ///   - default: The value to use for the other axes
-    init(axis: Axis3D, value: Double, default defaultValue: Double = 0) {
-        self.init(
-            x: (axis == .x) ? value : defaultValue,
-            y: (axis == .y) ? value : defaultValue,
-            z: (axis == .z) ? value : defaultValue
-        )
-    }
-
     internal func with(_ axes: Axes3D, as value: Double) -> Vector3D {
         Vector3D(
             x: axes.contains(.x) ? value : x,

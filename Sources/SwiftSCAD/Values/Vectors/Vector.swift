@@ -40,7 +40,6 @@ public protocol Vector: Sendable, CustomDebugStringConvertible {
 
     // Access by axis
     init(_ getter: (Axes.Axis) -> Double)
-    init(axis: Axes.Axis, value: Double, default: Double)
     func with(_ axis: Axes.Axis, as value: Double) -> Self
     subscript(_ axis: Axes.Axis) -> Double { get }
 
