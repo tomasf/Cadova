@@ -29,7 +29,6 @@ $ swift package init --type executable
 <pre>
 let package = Package(
     name: "My3DGadget",
-    platforms: [.macOS(.v14)], // Needed on macOS
     dependencies: [
         <b><i>.package(url: "https://github.com/tomasf/SwiftSCAD.git", from: "0.7.1"),</i></b>
     ],
@@ -60,10 +59,6 @@ Open it in OpenSCAD to preview your model. For the best experience, hide the edi
 # Libraries
 * [Helical][helical] - A SwiftSCAD library providing customizable threads, screws, bolts, nuts and related parts.
 * [RichText][richtext] - TextKit-based companion library for SwiftSCAD (macOS only)
-
-# Projects using SwiftSCAD
-* [Coffee scoop](https://github.com/tomasf/coffee-scoop)
-* [Trash Can Dice Game](https://github.com/tomasf/dice-game)
 
 # Examples
 
