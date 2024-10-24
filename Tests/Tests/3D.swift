@@ -24,4 +24,16 @@ struct Geometry3DTests {
 
         #expect(geometry.code == scadFile("empty3d"))
     }
+
+    @Test func roundedBoxes() {
+        let geometry = Stack(.x, spacing: 1) {
+            Box([10, 8, 5])
+                .roundingBoxCorners(radius: 2)
+            Box([10, 8, 5])
+                .roundingBoxCorners(radius: 2)
+                .usingFacets(count: 20)
+        }
+
+        #expect(geometry.code == scadFile("rounded-box"))
+    }
 }
