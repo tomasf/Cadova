@@ -52,28 +52,7 @@ public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable
 }
 
 public extension Vector3D {
-    internal func with(_ axes: Axes3D, as value: Double) -> Vector3D {
-        Vector3D(
-            x: axes.contains(.x) ? value : x,
-            y: axes.contains(.y) ? value : y,
-            z: axes.contains(.z) ? value : z
-        )
-    }
-
-    /// Make a new vector by changing one element
-    /// - Parameters:
-    ///   - axis: The axis to change
-    ///   - value: The new value
-    /// - Returns: A modified vector
-    func with(_ axis: Axis3D, as value: Double) -> Vector3D {
-        Vector3D(
-            x: axis == .x ? value : x,
-            y: axis == .y ? value : y,
-            z: axis == .z ? value : z
-        )
-    }
-
-    subscript(_ axis: Axis3D) -> Double {
+    subscript(_ axis: Self.Axis) -> Double {
         switch axis {
         case .x: return x
         case .y: return y
@@ -84,7 +63,7 @@ public extension Vector3D {
 
 public extension Vector3D {
     var xy: Vector2D {
-        Vector2D(x:x, y:y)
+        .init(x: x, y: y)
     }
 
     var squaredEuclideanNorm: Double {

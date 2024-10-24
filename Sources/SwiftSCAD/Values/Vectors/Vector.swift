@@ -8,6 +8,8 @@ public protocol Vector: Sendable, CustomDebugStringConvertible {
     associatedtype Transform: AffineTransform where Transform.V == Self
     associatedtype Geometry
 
+    typealias Axis = Axes.Axis
+
     static var zero: Self { get }
     init(_ single: Double)
 
@@ -39,10 +41,10 @@ public protocol Vector: Sendable, CustomDebugStringConvertible {
     func point(alongLineTo other: Self, at fraction: Double) -> Self
 
     // Access by axis
-    init(_ axis: Axes.Axis, value: Double)
-    init(_ getter: (Axes.Axis) -> Double)
-    func with(_ axis: Axes.Axis, as value: Double) -> Self
-    subscript(_ axis: Axes.Axis) -> Double { get }
+    init(_ axis: Axis, value: Double)
+    init(_ getter: (Axis) -> Double)
+    func with(_ axis: Axis, as value: Double) -> Self
+    subscript(_ axis: Axis) -> Double { get }
 
     // Access by index
     static var elementCount: Int { get }
@@ -81,8 +83,17 @@ public extension Vector {
     /// - Parameters:
     ///   - axis: The axes to set
     ///   - value: The value to use
-    init(_ axis: Axes.Axis, value: Double) {
+    init(_ axis: Axis, value: Double) {
         self.init { $0 == axis ? value : 0 }
+    }
+
+    /// Make a new vector by changing one element
+    /// - Parameters:
+    ///   - axis: The axis to change
+    ///   - value: The new value
+    /// - Returns: A modified vector
+    func with(_ axis: Axis, as value: Double) -> Self {
+        .init { $0 == axis ? value : self[$0] }
     }
 }
 
@@ -93,5 +104,9 @@ internal extension Vector {
         case let self as Vector2D: .init(self.x, self.y, 0)
         default: preconditionFailure()
         }
+    }
+
+    func with(_ axes: Axes, as value: Double) -> Self {
+        .init { axes.contains(axis: $0) ? value : self[$0] }
     }
 }

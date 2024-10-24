@@ -35,36 +35,15 @@ public struct Vector2D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable
         self.init(x: arrayLiteral[0], y: arrayLiteral[1])
     }
 
-    public init(_ getter: (Axes.Axis) -> Double) {
+    public init(_ getter: (Self.Axis) -> Double) {
         self.init(x: getter(.x), y: getter(.y))
     }
 
     public var scadString: String {
         [x, y].scadString
     }
-}
 
-public extension Vector2D {
-    internal func with(_ axes: Axes2D, as value: Double) -> Vector2D {
-        Vector2D(
-            x: axes.contains(.x) ? value : x,
-            y: axes.contains(.y) ? value : y
-        )
-    }
-
-    /// Make a new vector by changing one element
-    /// - Parameters:
-    ///   - axis: The axis to change
-    ///   - value: The new value
-    /// - Returns: A modified vector
-    func with(_ axis: Axis2D, as value: Double) -> Vector2D {
-        Vector2D(
-            x: axis == .x ? value : x,
-            y: axis == .y ? value : y
-        )
-    }
-
-    subscript(_ axis: Axis2D) -> Double {
+    public subscript(_ axis: Axis2D) -> Double {
         switch axis {
         case .x: return x
         case .y: return y
