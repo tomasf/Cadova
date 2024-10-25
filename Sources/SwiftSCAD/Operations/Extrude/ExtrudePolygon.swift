@@ -1,32 +1,28 @@
 import Foundation
-import Collections
 
 private extension Polyhedron {
     init(extruding shape: Polygon, along path: [AffineTransform3D], convexity: Int, environment: Environment) {
         struct Vertex: Hashable {
-            let transform: Int
-            let point: Int
+            let step: Int
+            let pointIndex: Int
         }
 
-        let flatPoints = shape.points(in: environment).map { Vector3D($0) }
-        let pointCount = flatPoints.count
-        let sideFaces = (path.startIndex..<path.endIndex).paired().flatMap { fromPolygonIndex, toPolygonIndex in
-            (0..<pointCount).map { pointIndex in
-                let nextPointIndex = (pointIndex + 1) % pointCount
-                return OrderedSet([
-                    Vertex(transform: fromPolygonIndex, point: pointIndex),
-                    Vertex(transform: toPolygonIndex, point: pointIndex),
-                    Vertex(transform: toPolygonIndex, point: nextPointIndex),
-                    Vertex(transform: fromPolygonIndex, point: nextPointIndex)
-                ])
-            }
+        let points = shape.points(in: environment)
+        let pointCount = points.count
+        let sideFaces = path.indices.paired().flatMap { fromStep, toStep in
+            points.indices.map { pointIndex in [
+                Vertex(step: fromStep, pointIndex: pointIndex),
+                Vertex(step: toStep, pointIndex: pointIndex),
+                Vertex(step: toStep, pointIndex: (pointIndex + 1) % pointCount),
+                Vertex(step: fromStep, pointIndex: (pointIndex + 1) % pointCount)
+            ]}
         }
 
-        let startFace = OrderedSet((0..<pointCount).map { Vertex(transform: 0, point: $0) })
-        let endFace = OrderedSet((0..<pointCount).map { Vertex(transform: path.count - 1, point: $0) }.reversed())
+        let startFace = points.indices.map { Vertex(step: 0, pointIndex: $0) }
+        let endFace = points.indices.reversed().map { Vertex(step: path.endIndex - 1, pointIndex: $0) }
 
-        self.init(faces: sideFaces + [startFace, endFace], convexity: convexity) { ref in
-            path[ref.transform].apply(to: flatPoints[ref.point])
+        self.init(faces: sideFaces + [startFace, endFace], convexity: convexity) { vertex in
+            path[vertex.step].apply(to: Vector3D(points[vertex.pointIndex]))
         }
     }
 }

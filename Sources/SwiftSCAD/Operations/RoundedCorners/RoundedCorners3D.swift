@@ -42,7 +42,7 @@ public extension Geometry3D {
             child.intersection {
                 let box = box.requireNonNil()
                 RoundedBoxMask3D(size: box.size + 2 * epsilon, cornerRadius: radius)
-                    .translated(box.minimum)
+                    .translated(box.center)
             }
         }
     }

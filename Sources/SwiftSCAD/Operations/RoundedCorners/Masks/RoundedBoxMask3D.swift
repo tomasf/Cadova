@@ -1,5 +1,4 @@
 import Foundation
-import Collections
 
 internal struct RoundedBoxMask3D: Shape3D {
     let size: Vector3D
@@ -60,27 +59,26 @@ internal struct RoundedBoxMask3D: Shape3D {
 
             let parameters = BoxParameters(radius: cornerRadius, size: size, facets: facets)
 
-            let sides = (0..<parameters.sectors).flatMap { sector -> [OrderedSet<Position>] in
+            let sides = (0..<parameters.sectors).flatMap { sector -> [[Position]] in
                 (0..<parameters.levels-1).map { level in
-                    OrderedSet([
+                    [
                         Position(sector: sector, level: level, box: parameters),
-                        Position(sector: sector+1, level: level, box: parameters),
-                        Position(sector: sector+1, level: level+1, box: parameters),
-                        Position(sector: sector, level: level+1, box: parameters)
-                    ])
+                        Position(sector: sector + 1, level: level, box: parameters),
+                        Position(sector: sector + 1, level: level + 1, box: parameters),
+                        Position(sector: sector, level: level + 1, box: parameters)
+                    ]
                 }
             }
 
-            let top = OrderedSet((0..<4).reversed().map {
+            let top = (0..<4).reversed().map {
                 Position(sector: $0 * parameters.facets, level: 0, box: parameters)
-            })
+            }
 
-            let bottom = OrderedSet((0..<4).map {
-                Position(sector: $0 * parameters.facets, level: parameters.levels-1, box: parameters)
-            })
+            let bottom = (0..<4).map {
+                Position(sector: $0 * parameters.facets, level: parameters.levels - 1, box: parameters)
+            }
 
             return Polyhedron(faces: sides + [top, bottom], value: \.point)
-                .translated(size / 2)
         }
     }
 }
