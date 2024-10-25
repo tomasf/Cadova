@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 @testable import SwiftSCAD
 
 func scadFile(_ fileName: String) -> String {
@@ -29,7 +30,10 @@ extension Geometry3D {
     }
 
     var code: String {
-        usingDefaultFacets().codeFragment(in: .defaultEnvironment).scadCode
+        let code1 = usingDefaultFacets().codeFragment(in: .defaultEnvironment).scadCode
+        let code2 = usingDefaultFacets().codeFragment(in: .defaultEnvironment).scadCode
+        #expect(code1 == code2, "Inconsistent code generation")
+        return code1
     }
 
     var bounds: BoundingBox3D? {
