@@ -16,7 +16,7 @@ import Foundation
 ///     ```
 
 public struct Polygon: Geometry2D {
-    private let pointsProvider: any PolygonPointsProvider
+    internal let pointsProvider: any PolygonPointsProvider
 
     internal init(provider: any PolygonPointsProvider) {
         pointsProvider = provider
@@ -70,13 +70,6 @@ public extension Polygon {
         applying { transform.apply(to: $0) }
     }
 
-    /// Calculates the bounding rectangle of the polygon within a given environment.
-    /// - Parameter environment: The environment context.
-    /// - Returns: A `BoundingRect` representing the smallest rectangle enclosing the polygon.
-    func boundingRect(in environment: Environment) -> BoundingBox2D {
-        .init(points(in: environment))
-    }
-
     func appending(_ other: Polygon) -> Polygon {
         .init(provider: JoinedPolygonPoints(providers: [pointsProvider, other.pointsProvider]))
     }
@@ -91,30 +84,5 @@ public extension Polygon {
 
     static func +(_ lhs: Polygon, _ rhs: Polygon) -> Polygon {
         lhs.appending(rhs)
-    }
-}
-
-public extension Polygon {
-    /// Returns the points defining the polygon within a given environment.
-    /// - Parameter environment: The environment context.
-    /// - Returns: An array of `Vector2D` representing the polygon's vertices.
-    func points(in environment: Environment) -> [Vector2D] {
-        pointsProvider.points(in: environment)
-    }
-
-    func length(in environment: Environment) -> Double {
-        points(in: environment).paired().map { $0.distance(to: $1) }.reduce(0, +)
-    }
-
-    func readPoints(@GeometryBuilder2D _ reader: @escaping ([Vector2D]) -> any Geometry2D) -> any Geometry2D {
-        readEnvironment { e in
-            reader(points(in: e))
-        }
-    }
-
-    func readPoints(@GeometryBuilder3D _ reader: @escaping ([Vector2D]) -> any Geometry3D) -> any Geometry3D {
-        readEnvironment { e in
-            reader(points(in: e))
-        }
     }
 }

@@ -5,6 +5,10 @@ extension Sequence {
         .init(zip(self, dropFirst()))
     }
 
+    func wrappedPairs() -> [(Element, Element)] {
+        .init(zip(self, dropFirst() + Array(prefix(1))))
+    }
+
     func reduce(_ function: (Element, Element) -> Element) -> Element? {
         reduce(nil as Element?) { output, input in
             output.map { function($0, input) } ?? input
