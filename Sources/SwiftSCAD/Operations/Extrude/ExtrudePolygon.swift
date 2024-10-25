@@ -61,7 +61,7 @@ public extension Polygon {
             let stepsPerRev = Double(environment.facets.facetCount(circleRadius: radius))
             let steps = Int(ceil(stepsPerRev * height / pitch))
 
-            self.extruded(along: (0..<steps).map { step in
+            self.extruded(along: (0...steps).map { step in
                     .rotation(x: 90°, z: Double(step) / stepsPerRev * 360°)
                     .translated(z: Double(step) / stepsPerRev * pitch)
             }, convexity: convexity)
