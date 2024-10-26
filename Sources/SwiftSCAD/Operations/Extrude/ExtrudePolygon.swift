@@ -55,16 +55,26 @@ public extension Polygon {
     ///   - height: The total height of the helix
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
 
-    func extrudedAlongHelix(pitch: Double, height: Double, convexity: Int = 2) -> any Geometry3D {
+    func extrudedAlongHelix(
+        pitch: Double,
+        height: Double,
+        convexity: Int = 2,
+        offset: ((Double) -> Double)? = nil
+    ) -> any Geometry3D {
         readEnvironment { environment in
             let radius = boundingRect(in: environment).maximum.x
             let stepsPerRev = Double(environment.facets.facetCount(circleRadius: radius))
             let steps = Int(ceil(stepsPerRev * height / pitch))
 
-            self.extruded(along: (0...steps).map { step in
-                    .rotation(x: 90°, z: Double(step) / stepsPerRev * 360°)
-                    .translated(z: Double(step) / stepsPerRev * pitch)
-            }, convexity: convexity)
+            let path = (0...steps).map { step -> AffineTransform3D in
+                let z = Double(step) / stepsPerRev * pitch
+                return .identity
+                    .translated(x: offset?(z) ?? 0)
+                    .rotated(x: 90°, z: Double(step) / stepsPerRev * 360°)
+                    .translated(z: z)
+            }
+
+            self.extruded(along:path, convexity: convexity)
         }
     }
 }
