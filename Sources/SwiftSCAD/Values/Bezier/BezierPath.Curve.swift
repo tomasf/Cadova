@@ -80,6 +80,12 @@ extension BezierPath {
         func transformed<T: AffineTransform>(using transform: T) -> Self where T == V.Transform, T.V == V {
             Self(controlPoints: controlPoints.map { transform.apply(to: $0) })
         }
+
+        var endDirection: V {
+            let last = controlPoints[controlPoints.count - 1]
+            let secondLast = controlPoints[controlPoints.count - 2]
+            return (last - secondLast).normalized
+        }
     }
 }
 
