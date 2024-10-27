@@ -21,8 +21,12 @@ public struct GeometryAlignment<V: Vector>: Equatable, Sendable {
         }
     }
 
-    public subscript(axis: V.Axes.Axis) -> AxisAlignment? {
+    public subscript(axis: V.Axis) -> AxisAlignment? {
         values[axis]
+    }
+
+    public func with(axis: V.Axis, as newValue: AxisAlignment) -> Self {
+        .init(values.map { $0 == axis ? newValue : $1 })
     }
 
     internal var factors: V {
