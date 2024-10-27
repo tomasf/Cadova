@@ -5,24 +5,38 @@ public extension BezierPath {
 
     init(from: V = .zero, mode defaultMode: PathBuilderPositioning = .absolute, @Builder builder: () -> [Component]) {
         var start = from
-        self.init(startPoint: from, curves: builder().flatMap {
-            $0.bezierCurves(start: &start, defaultMode: defaultMode)
+        var direction: V? = nil
+        self.init(startPoint: from, curves: builder().map {
+            $0.bezierCurve(start: &start, direction: &direction, defaultMode: defaultMode)
         })
     }
 
     struct Component {
+        private let continuousDistance: Double?
         private let points: [PathBuilderVector<V>]
 
-        internal init(_ points: [PathBuilderVector<V>]) {
+        internal init(continuousDistance: Double? = nil, _ points: [PathBuilderVector<V>]) {
+            self.continuousDistance = continuousDistance
             self.points = points
         }
 
-        internal func bezierCurves(start: inout V, defaultMode: PathBuilderPositioning) -> [Curve] {
-            let controlPoints = [start] + points.map {
+        internal func bezierCurve(start: inout V, direction: inout V?, defaultMode: PathBuilderPositioning) -> Curve {
+            var controlPoints = [start]
+
+            if let continuousDistance {
+                guard let direction else {
+                    preconditionFailure("Adding a continuous segment requires a previous segment to match")
+                }
+                controlPoints.append(start + direction * continuousDistance)
+            }
+
+            controlPoints += points.map {
                 $0.value(relativeTo: start, defaultMode: defaultMode)
             }
             start = controlPoints.last!
-            return [Curve(controlPoints: controlPoints)]
+            let curve = Curve(controlPoints: controlPoints)
+            direction = curve.endDirection
+            return curve
         }
 
         internal func withDefaultMode(_ mode: PathBuilderPositioning) -> Self {
