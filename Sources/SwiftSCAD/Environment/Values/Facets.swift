@@ -36,6 +36,21 @@ public extension Environment {
                 return Int(max(min(angleFacets, sizeFacets), 5))
             }
         }
+
+        /// Calculates the number of facets for an item based on its length and the current facet settings.
+        ///
+        /// For `dynamic`, it calculates the appropriate number of facets based on the minimum size
+        /// - Parameter length: The total length
+        /// - Returns: The calculated number of facets
+        public func facetCount(length: Double) -> Int {
+            switch self {
+            case .fixed (let count):
+                return max(count, 3)
+
+            case .dynamic(_, let minSize):
+                return Int(ceil(min(length / minSize, 5)))
+            }
+        }
     }
 
     /// Accesses the current facets setting from the environment.
