@@ -9,32 +9,22 @@ import Foundation
 /// ```
 
 public struct Cylinder: LeafGeometry3D {
-    private let height: Double
-    private let diameter: Diameter
-
-    private enum Diameter {
-        case constant (Double)
-        case linear (bottom: Double, top: Double)
-    }
+    public let height: Double
+    public let bottomDiameter: Double
+    public let topDiameter: Double?
 
     var moduleName: String { "cylinder" }
     var moduleParameters: CodeFragment.Parameters {
-        switch diameter {
-        case .constant (let diameter):
-            ["d": diameter, "h": height]
-        case .linear (let bottom, let top):
-            ["d1": bottom, "d2": top, "h": height]
+        if let topDiameter {
+            ["d1": bottomDiameter, "d2": topDiameter, "h": height]
+        } else {
+            ["d": bottomDiameter, "h": height]
         }
     }
 
     public func boundary(in environment: Environment) -> Bounds {
-        let (bottomDiameter, topDiameter) = switch diameter {
-        case .constant (let diameter): (diameter, diameter)
-        case .linear (let bottom, let top): (bottom, top)
-        }
-
         let bottom = Boundary2D.circle(radius: bottomDiameter / 2, facets: environment.facets)
-        let top = Boundary2D.circle(radius: topDiameter / 2, facets: environment.facets)
+        let top = Boundary2D.circle(radius: (topDiameter ?? bottomDiameter) / 2, facets: environment.facets)
         return .union(
             bottom.as3D(),
             top.as3D(z: height)
@@ -52,7 +42,8 @@ public extension Cylinder {
     init(diameter: Double, height: Double) {
         assert(diameter >= 0, "Cylinder diameter must not be negative")
         assert(height >= 0, "Cylinder height must not be negative")
-        self.diameter = .constant(diameter)
+        self.bottomDiameter = diameter
+        self.topDiameter = nil
         self.height = height
     }
 
@@ -65,7 +56,8 @@ public extension Cylinder {
     init(bottomDiameter: Double, topDiameter: Double, height: Double) {
         assert(bottomDiameter >= 0 && topDiameter >= 0, "Cylinder diameters must not be negative")
         assert(height >= 0, "Cylinder height must not be negative")
-        self.diameter = .linear(bottom: bottomDiameter, top: topDiameter)
+        self.bottomDiameter = bottomDiameter
+        self.topDiameter = topDiameter
         self.height = height
     }
 
