@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import SwiftSCAD
 
@@ -35,5 +36,17 @@ struct Geometry3DTests {
         }
 
         #expect(geometry.code == scadFile("rounded-box"))
+    }
+
+    @Test func cylinders() {
+        let geometry = Stack(.y, spacing: 1) {
+            Cylinder(bottomRadius: 3, topRadius: 6, height: 10)
+            Cylinder(largerDiameter: 10, apexAngle: 10°, height: 20)
+            Cylinder(largerDiameter: 20, apexAngle: -30°, height: 25)
+            Cylinder(smallerDiameter: 8, apexAngle: 60°, height: 10)
+            Cylinder(bottomDiameter: 10, topDiameter: 20, apexAngle: 20°)
+        }
+
+        #expect(geometry.code == scadFile("cylinders"))
     }
 }
