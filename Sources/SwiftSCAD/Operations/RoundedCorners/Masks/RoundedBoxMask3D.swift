@@ -5,7 +5,7 @@ internal struct RoundedBoxMask3D: Shape3D {
     let cornerRadius: Double
 
     var body: any Geometry3D {
-        EnvironmentReader3D { environment in
+        readEnvironment { environment in
             let facets = environment.facets.facetCount(circleRadius: cornerRadius) / 4
             guard facets > 1 else {
                 return Box(size)

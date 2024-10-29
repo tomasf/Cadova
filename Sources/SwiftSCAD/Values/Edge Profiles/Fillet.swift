@@ -21,12 +21,12 @@ internal struct Fillet: EdgeProfileShape {
     }
 
     func convexMask(shape: any Geometry2D, extrusionHeight: Double) -> any Geometry3D {
-        EnvironmentReader3D { environment in
+        readEnvironment { environment in
             let facetsPerRev = environment.facets.facetCount(circleRadius: max(width, height))
             let facetCount = max(Int(ceil(Double(facetsPerRev) / 4.0)), 1)
             let angleIncrement = 90° / Double(facetCount)
 
-            return (0...facetCount).map { f in
+            (0...facetCount).map { f in
                 let angle = Double(f) * angleIncrement
                 let inset = (cos(angle) - 1) * width
                 let zOffset = sin(angle) * height
