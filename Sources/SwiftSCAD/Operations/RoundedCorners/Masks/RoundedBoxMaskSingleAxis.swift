@@ -21,6 +21,6 @@ internal struct RoundedBoxMaskSingleAxis: Shape3D {
                     .extruded(height: transformedBounds.size.z)
             }
             .rotated(rotation)
-            .aligned(at: .origin)
+            .aligned(at: .min)
     }
 }

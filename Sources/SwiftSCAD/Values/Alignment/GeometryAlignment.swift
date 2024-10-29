@@ -15,6 +15,10 @@ public struct GeometryAlignment<V: Vector>: Equatable, Sendable {
         values = .init(x: x, y: y, z: z)
     }
 
+    public init(all value: AxisAlignment?) {
+        values = .init { _ in value }
+    }
+
     fileprivate init(merging alignments: [Self]) {
         values = .init { index in
             alignments.compactMap { $0[index] }.last

@@ -1,15 +1,20 @@
 import Foundation
 
-public extension GeometryAlignment2D {
+public extension GeometryAlignment {
     /// Represents no alignment, leaving the geometry in its original position.
-    static let none = Self()
+    static var none: Self { .init(all: nil) }
 
-    /// Centers the geometry both horizontally and vertically.
-    static let center = Self(x: .mid, y: .mid)
+    /// Centers the geometry along all axes
+    static var center: Self { .init(all: .mid) }
 
-    /// Aligns the geometry at its origin
-    static let origin = Self(x: .min, y: .min)
+    /// Aligns the geometry at its minimum in all axes
+    static var min: Self { .init(all: .min) }
 
+    /// Aligns the geometry at its maximum in all axes
+    static var max: Self { .init(all: .max) }
+}
+
+public extension GeometryAlignment2D {
     /// Aligns the geometry's minimum X boundary to the coordinate system's origin (X = 0).
     static let minX = Self(x: .min)
     /// Centers the geometry horizontally.
@@ -36,16 +41,8 @@ public extension GeometryAlignment2D {
 }
 
 public extension GeometryAlignment3D {
-    /// Represents no alignment, maintaining the geometry's original position.
-    static let none = Self()
-
-    /// Centers the geometry in all three dimensions.
-    static let center = Self(x: .mid, y: .mid, z: .mid)
     /// Centers the geometry in the XY plane.
     static let centerXY = Self(x: .mid, y: .mid)
-
-    /// Aligns the geometry at its origin
-    static let origin = Self(x: .min, y: .min, z: .min)
 
     /// Aligns the geometry's minimum X boundary to the coordinate system's origin (X = 0).
     static let minX = Self(x: .min)

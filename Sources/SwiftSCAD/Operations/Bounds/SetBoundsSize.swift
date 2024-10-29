@@ -4,7 +4,7 @@ public extension Geometry2D {
     private func settingBounds(geometry: any Geometry2D, currentSize: Vector2D, targetSize: Vector2D, alignment: GeometryAlignment2D) -> any Geometry2D {
         let translation = (targetSize - currentSize) * alignment.factors
         return geometry
-            .aligned(at: .origin)
+            .aligned(at: .min)
             .translated(translation)
             .settingBounds(.init(minimum: .zero, maximum: targetSize))
     }
@@ -54,7 +54,7 @@ public extension Geometry3D {
     private func settingBounds(geometry: any Geometry3D, currentSize: Vector3D, targetSize: Vector3D, alignment: GeometryAlignment3D) -> any Geometry3D {
         let translation = (targetSize - currentSize) * alignment.factors
         return geometry
-            .aligned(at: .origin)
+            .aligned(at: .min)
             .translated(translation)
             .settingBounds(.init(minimum: .zero, maximum: targetSize))
     }
