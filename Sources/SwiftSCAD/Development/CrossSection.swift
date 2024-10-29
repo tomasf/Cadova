@@ -8,7 +8,7 @@ fileprivate struct CrossSection: Shape3D {
     var body: any Geometry3D {
         let universeLength = 1000.0
 
-        return content.intersection {
+        return content.intersecting {
             Box([universeLength, universeLength, universeLength])
                 .aligned(at: .centerXY)
                 .translated(z: offset)

@@ -44,14 +44,14 @@ public extension Geometry2D {
                     .translated(z: -long)
                     .transformed(segment.originRotation)
                     .translated(segment.origin)
-                    .intersection {
+                    .intersecting {
                         Box(long)
                             .aligned(at: .centerXY)
                             .translated(z: -0.01)
                             .transformed(segment.originClipRotation)
                             .translated(segment.origin)
                     }
-                    .intersection {
+                    .intersecting {
                         Box(long)
                             .aligned(at: .centerXY, .maxZ)
                             .translated(z: 0.01)

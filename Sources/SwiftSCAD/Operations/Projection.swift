@@ -28,7 +28,11 @@ struct Projection: Geometry2D {
     }
 
     func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(module: "projection", parameters: parameters, body: [appliedBody.codeFragment(in: newEnvironment(environment))])
+        .init(
+            module: "projection",
+            parameters: parameters,
+            body: [appliedBody.codeFragment(in: newEnvironment(environment))]
+        )
     }
 
     func boundary(in environment: Environment) -> Bounds {

@@ -41,7 +41,7 @@ public extension Geometry2D {
             var box = measuredBox ?? .universe
             box = box.partialBox(from: x?.min, to: x?.max, in: .x)
             box = box.partialBox(from: y?.min, to: y?.max, in: .y)
-            self.intersection { box.mask }
+            self.intersecting { box.mask }
         }
     }
 }
@@ -65,7 +65,7 @@ public extension Geometry3D {
             box = box.partialBox(from: x?.min, to: x?.max, in: .x)
             box = box.partialBox(from: y?.min, to: y?.max, in: .y)
             box = box.partialBox(from: z?.min, to: z?.max, in: .z)
-            self.intersection { box.mask }
+            self.intersecting { box.mask }
         }
     }
 }

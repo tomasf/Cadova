@@ -25,7 +25,7 @@ internal extension Geometry2D {
         let epsilon = 0.001
         return measuringBounds { child, box in
             let box = box.requireNonNil()
-            child.intersection {
+            child.intersecting {
                 RoundedRectangleMask(box.size + 2 * epsilon, style: style, radii: radii)
                     .translated(box.minimum - epsilon)
             }

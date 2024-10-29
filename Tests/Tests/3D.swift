@@ -6,7 +6,7 @@ struct Geometry3DTests {
     @Test func basic3D() {
         let geometry = Box([20, 20, 20])
             .aligned(at: .center)
-            .intersection {
+            .intersecting {
                 Sphere(diameter: 23)
             }
             .subtracting {

@@ -39,7 +39,7 @@ public extension Geometry3D {
     func roundingBoxCorners(radius: Double) -> any Geometry3D {
         let epsilon = 0.001
         return measuringBounds { child, box in
-            child.intersection {
+            child.intersecting {
                 let box = box.requireNonNil()
                 RoundedBoxMask3D(size: box.size + 2 * epsilon, cornerRadius: radius)
                     .translated(box.center)
@@ -53,7 +53,7 @@ internal extension Geometry3D {
         let epsilon = 0.001
         return measuringBounds { child, box in
             let box = box.requireNonNil()
-            child.intersection {
+            child.intersecting {
                 RoundedBoxMaskSingleAxis(size: box.size + 2 * epsilon, cornerStyle: style, axis: axis, radii: radii)
                     .translated(box.minimum)
             }

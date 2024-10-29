@@ -9,7 +9,7 @@ struct Geometry2DTests {
                 .subtracting {
                     Circle(diameter: 8)
                 }
-                .intersection {
+                .intersecting {
                     Polygon([
                         [0, -10], [20, 2], [0, 10]
                     ])

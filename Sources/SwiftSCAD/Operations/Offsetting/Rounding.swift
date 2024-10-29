@@ -51,7 +51,7 @@ public extension Geometry2D {
         return subtracting(maskShape)
             .adding {
                 self.rounded(amount: amount, side: side)
-                    .intersection(maskShape)
+                    .intersecting(maskShape)
             }
     }
 }

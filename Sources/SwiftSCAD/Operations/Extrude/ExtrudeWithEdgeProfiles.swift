@@ -19,10 +19,10 @@ public extension Geometry2D {
     func extruded(height: Double, topEdge: EdgeProfile?, bottomEdge: EdgeProfile?, method: EdgeProfile.Method) -> any Geometry3D {
         var shape = extruded(height: height)
         if let topEdge {
-            shape = shape.intersection(topEdge.mask(shape: self, extrusionHeight: height, method: method))
+            shape = shape.intersecting(topEdge.mask(shape: self, extrusionHeight: height, method: method))
         }
         if let bottomEdge {
-            shape = shape.intersection {
+            shape = shape.intersecting {
                 bottomEdge.mask(shape: self, extrusionHeight: height, method: method)
                     .flipped(along: .z)
                     .translated(z: height)
