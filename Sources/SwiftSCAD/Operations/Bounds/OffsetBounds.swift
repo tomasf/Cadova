@@ -9,7 +9,7 @@ public extension Geometry2D {
 
     func offsettingBounds(_ offset: Vector2D) -> any Geometry2D {
         readingBoundary { _, boundary in
-            SetBounds2D(body: self, boundary: boundary.translated(offset))
+            SetBounds(body: self, boundary: boundary.translated(offset))
         }
     }
 
@@ -35,7 +35,7 @@ public extension Geometry3D {
 
     func offsettingBounds(_ offset: Vector3D) -> any Geometry3D {
         readingBoundary { _, boundary in
-            SetBounds3D(body: self, boundary: boundary.translated(offset))
+            SetBounds(body: self, boundary: boundary.translated(offset))
         }
     }
 

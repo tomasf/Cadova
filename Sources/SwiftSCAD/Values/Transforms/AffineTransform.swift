@@ -22,6 +22,8 @@ public protocol AffineTransform: Sendable {
     func translated(_ v: V) -> Self
     func scaled(_ v: V) -> Self
     func rotated(_ rotation: Rotation) -> Self
+
+    init(_ transform3D: AffineTransform3D)
 }
 
 public extension AffineTransform {
@@ -39,8 +41,6 @@ public extension AffineTransform {
     }
 }
 
-internal extension AffineTransform {
-    init(_ transform3d: AffineTransform3D) {
-        preconditionFailure("Unknown transform type")
-    }
+internal protocol AffineTransformInternal {
+    var transform3D: AffineTransform3D { get }
 }

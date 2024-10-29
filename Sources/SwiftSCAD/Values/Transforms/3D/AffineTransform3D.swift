@@ -114,6 +114,12 @@ public extension AffineTransform3D {
     }
 }
 
+extension AffineTransform3D: AffineTransformInternal {
+    var transform3D: AffineTransform3D {
+        self
+    }
+}
+
 extension AffineTransform3D: SCADValue {
     public var scadString: String {
         values.scadString

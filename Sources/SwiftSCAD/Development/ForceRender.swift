@@ -1,24 +1,18 @@
 import Foundation
 
-struct ForceRender2D: WrappedGeometry2D {
-    let body: any Geometry2D
+fileprivate struct ForceRender<Geometry> {
+    let body: Geometry
     let convexity: Int
-    
+
     let moduleName: String? = "render"
     var moduleParameters: CodeFragment.Parameters {
         ["convexity": convexity]
     }
 }
 
-struct ForceRender3D: WrappedGeometry3D {
-    let body: any Geometry3D
-    let convexity: Int
-    
-    let moduleName: String? = "render"
-    var moduleParameters: CodeFragment.Parameters {
-        ["convexity": convexity]
-    }
-}
+extension ForceRender<any Geometry2D>: Geometry2D, WrappedGeometry2D {}
+extension ForceRender<any Geometry3D>: Geometry3D, WrappedGeometry3D {}
+
 
 public extension Geometry2D {
     /// Force rendering
@@ -28,7 +22,7 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
     func forceRendered(convexity: Int = 2) -> any Geometry2D {
-        ForceRender2D(body: self, convexity: convexity)
+        ForceRender(body: self, convexity: convexity)
     }
 }
 
@@ -40,6 +34,6 @@ public extension Geometry3D {
     /// - Parameters:
     ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
     func forceRendered(convexity: Int = 2) -> any Geometry3D {
-        ForceRender3D(body: self, convexity: convexity)
+        ForceRender(body: self, convexity: convexity)
     }
 }

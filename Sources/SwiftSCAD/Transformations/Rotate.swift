@@ -1,21 +1,20 @@
 import Foundation
 
-struct Rotate2D: TransformedGeometry2D {
-    let body: any Geometry2D
-    let angle: Angle
+fileprivate struct Rotate<V: Vector> {
+    let body: V.Geometry
+    let rotation: V.Transform.Rotation
 
     let moduleName = "rotate"
-    var moduleParameters: CodeFragment.Parameters {
-        ["a": angle]
-    }
-    var bodyTransform: AffineTransform2D { .rotation(angle) }
+    var bodyTransform: V.Transform { .rotation(rotation) }
 }
 
-struct Rotate3D: TransformedGeometry3D {
-    let body: any Geometry3D
-    let rotation: Rotation3D
+extension Rotate<Vector2D>: Geometry2D, TransformedGeometry2D {
+    var moduleParameters: CodeFragment.Parameters {
+        ["a": rotation]
+    }
+}
 
-    let moduleName = "rotate"
+extension Rotate<Vector3D>: Geometry3D, TransformedGeometry3D {
     var moduleParameters: CodeFragment.Parameters {
         switch rotation.rotation {
         case .eulerAngles(let x, let y, let z):
@@ -24,8 +23,8 @@ struct Rotate3D: TransformedGeometry3D {
             ["a": angle, "v": [v.x, v.y, v.z]]
         }
     }
-    var bodyTransform: AffineTransform3D { .rotation(rotation) }
 }
+
 
 public extension Geometry2D {
     /// Rotate geometry
@@ -34,7 +33,7 @@ public extension Geometry2D {
     ///   - angle: The amount to rotate
     /// - Returns: A rotated geometry
     func rotated(_ angle: Angle) -> any Geometry2D {
-        Rotate2D(body: self, angle: angle)
+        Rotate(body: self, rotation: angle)
     }
 }
 
@@ -49,7 +48,7 @@ public extension Geometry3D {
     ///   - z: The amount to rotate around the Z axis
     /// - Returns: A rotated geometry
     func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> any Geometry3D {
-        Rotate3D(body: self, rotation: .init(x: x, y: y, z: z))
+        Rotate(body: self, rotation: .init(x: x, y: y, z: z))
     }
 
     /// Rotate around a cartesian axis
@@ -85,7 +84,7 @@ public extension Geometry3D {
     ///   - rotation: The rotation
     /// - Returns: A rotated geometry
     func rotated(_ rotation: Rotation3D) -> any Geometry3D {
-        Rotate3D(body: self, rotation: rotation)
+        Rotate(body: self, rotation: rotation)
     }
 
     /// Rotate geometry from one direction vector to another.

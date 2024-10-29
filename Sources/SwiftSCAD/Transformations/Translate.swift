@@ -1,26 +1,18 @@
 import Foundation
 
-struct Translate2D: TransformedGeometry2D {
-    let body: any Geometry2D
-    let distance: Vector2D
+fileprivate struct Translate<V: Vector> where V: SCADValue {
+    let body: V.Geometry
+    let distance: V
 
     let moduleName = "translate"
     var moduleParameters: CodeFragment.Parameters {
         ["v": distance]
     }
-    var bodyTransform: AffineTransform2D { .translation(distance) }
+    var bodyTransform: V.Transform { .translation(distance) }
 }
 
-struct Translate3D: TransformedGeometry3D {
-    let body: any Geometry3D
-    let distance: Vector3D
-
-    let moduleName = "translate"
-    var moduleParameters: CodeFragment.Parameters {
-        ["v": distance]
-    }
-    var bodyTransform: AffineTransform3D { .translation(distance) }
-}
+extension Translate<Vector2D>: Geometry2D, TransformedGeometry2D {}
+extension Translate<Vector3D>: Geometry3D, TransformedGeometry3D {}
 
 public extension Geometry2D {
     /// Translate geometry in 2D space.
@@ -31,7 +23,7 @@ public extension Geometry2D {
     ///   - distance: A `Vector2D` representing the distance to move along the x and y axes.
     /// - Returns: A translated geometry.
     func translated(_ distance: Vector2D) -> any Geometry2D {
-        Translate2D(body: self, distance: distance)
+        Translate(body: self, distance: distance)
     }
 
     /// Translate geometry in 2D space using individual components.
@@ -56,7 +48,7 @@ public extension Geometry3D {
     ///   - distance: A `Vector3D` representing the distance to move along the x, y, and z axes.
     /// - Returns: A translated geometry.
     func translated(_ distance: Vector3D) -> any Geometry3D {
-        Translate3D(body: self, distance: distance)
+        Translate(body: self, distance: distance)
     }
 
     /// Translate geometry in 3D space using a 2D vector for the x and y axes and an individual z-axis component.
@@ -69,7 +61,7 @@ public extension Geometry3D {
     /// - Returns: A translated geometry.
     /// 
     func translated(_ xyDistance: Vector2D, z: Double) -> any Geometry3D {
-        Translate3D(body: self, distance: .init(xyDistance, z: z))
+        translated(.init(xyDistance, z: z))
     }
 
     /// Translate geometry in 3D space using individual components.

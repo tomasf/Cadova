@@ -1,36 +1,31 @@
 import Foundation
 
-struct Difference2D: CombinedGeometry2D {
-    let positive: any Geometry2D
-    let negative: any Geometry2D
+fileprivate struct Difference<V: Vector> {
+    private let positive: V.Geometry
+    private let negative: V.Geometry
 
-    init(positive: any Geometry2D, negative: any Geometry2D) {
+    var children: [V.Geometry] { [positive, negative] }
+    let moduleName = "difference"
+    let boundaryMergeStrategy = Boundary<V>.MergeStrategy.first
+    let combination = GeometryCombination.difference
+}
+
+extension Difference<Vector2D>: Geometry2D, CombinedGeometry2D {
+    init(positive: V.Geometry, negative: V.Geometry) {
         self.positive = positive
         self.negative = negative
             .invertingOperation()
     }
-
-    var children: [any Geometry2D] { [positive, negative] }
-    let moduleName = "difference"
-    let boundaryMergeStrategy = Boundary2D.MergeStrategy.first
-    let combination = GeometryCombination.difference
 }
 
-struct Difference3D: CombinedGeometry3D {
-    let positive: any Geometry3D
-    let negative: any Geometry3D
-
-    init(positive: any Geometry3D, negative: any Geometry3D) {
+extension Difference<Vector3D>: Geometry3D, CombinedGeometry3D {
+    init(positive: V.Geometry, negative: V.Geometry) {
         self.positive = positive
         self.negative = negative
             .invertingOperation()
     }
-
-    var children: [any Geometry3D] { [positive, negative] }
-    let moduleName = "difference"
-    let boundaryMergeStrategy = Boundary3D.MergeStrategy.first
-    let combination = GeometryCombination.difference
 }
+
 
 public extension Geometry2D {
     /// Subtract other geometry from this geometry
@@ -48,11 +43,11 @@ public extension Geometry2D {
     /// - Returns: The new geometry
 
     func subtracting(@GeometryBuilder2D _ negative: () -> any Geometry2D) -> any Geometry2D {
-        Difference2D(positive: self, negative: negative())
+        Difference(positive: self, negative: negative())
     }
 
     func subtracting(_ negative: (any Geometry2D)?...) -> any Geometry2D {
-        Difference2D(positive: self, negative: union(negative))
+        Difference(positive: self, negative: union(negative))
     }
 }
 
@@ -72,10 +67,10 @@ public extension Geometry3D {
     /// - Returns: The new geometry
 
     func subtracting(@GeometryBuilder3D _ negative: () -> any Geometry3D) -> any Geometry3D {
-        Difference3D(positive: self, negative: negative())
+        Difference(positive: self, negative: negative())
     }
 
     func subtracting(_ negative: (any Geometry3D)?...) -> any Geometry3D {
-        Difference3D(positive: self, negative: union(negative))
+        Difference(positive: self, negative: union(negative))
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-struct CrossSection: Shape3D {
+fileprivate struct CrossSection: Shape3D {
     let axis: Vector3D
     let offset: Double
     let content: any Geometry3D

@@ -1,6 +1,6 @@
 import Foundation
 
-struct ApplyColor<Geometry> {
+fileprivate struct ApplyColor<Geometry> {
     let color: Color
     let body: Geometry
 

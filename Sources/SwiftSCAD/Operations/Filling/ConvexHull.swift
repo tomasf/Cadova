@@ -1,14 +1,13 @@
 import Foundation
 
-struct ConvexHull2D: WrappedGeometry2D {
-    let body: any Geometry2D
+fileprivate struct ConvexHull<Geometry> {
+    let body: Geometry
     let moduleName: String? = "hull"
 }
 
-struct ConvexHull3D: WrappedGeometry3D {
-    let body: any Geometry3D
-    let moduleName: String? = "hull"
-}
+extension ConvexHull<Geometry2D>: Geometry2D, WrappedGeometry2D {}
+extension ConvexHull<Geometry3D>: Geometry3D, WrappedGeometry3D {}
+
 
 public extension Geometry2D {
     /// Create a convex hull of this geometry in 2D space.
@@ -17,7 +16,7 @@ public extension Geometry2D {
     ///
     /// - Returns: A new geometry representing the convex hull of the original geometry.
     func convexHull() -> any Geometry2D {
-        ConvexHull2D(body: self)
+        ConvexHull(body: self)
     }
 }
 
@@ -28,6 +27,6 @@ public extension Geometry3D {
     ///
     /// - Returns: A new geometry representing the convex hull of the original geometry.
     func convexHull() -> any Geometry3D {
-        ConvexHull3D(body: self)
+        ConvexHull(body: self)
     }
 }

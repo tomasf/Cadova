@@ -1,26 +1,19 @@
 import Foundation
 
-struct Scale2D: TransformedGeometry2D {
-    let body: any Geometry2D
-    let scale: Vector2D
+fileprivate struct Scale<V: Vector> where V: SCADValue {
+    let body: V.Geometry
+    let scale: V
 
     let moduleName = "scale"
     var moduleParameters: CodeFragment.Parameters {
         ["v": scale]
     }
-    var bodyTransform: AffineTransform2D { .scaling(scale) }
+    var bodyTransform: V.Transform { .scaling(scale) }
 }
 
-struct Scale3D: TransformedGeometry3D {
-    let body: any Geometry3D
-    let scale: Vector3D
+extension Scale<Vector2D>: Geometry2D, TransformedGeometry2D {}
+extension Scale<Vector3D>: Geometry3D, TransformedGeometry3D {}
 
-    let moduleName = "scale"
-    var moduleParameters: CodeFragment.Parameters {
-        ["v": scale]
-    }
-    var bodyTransform: AffineTransform3D { .scaling(scale) }
-}
 
 public extension Geometry2D {
     /// Scale geometry uniformly or non-uniformly.
@@ -31,7 +24,7 @@ public extension Geometry2D {
     ///   - scale: A `Vector2D` representing the scaling factors along the x and y axes.
     /// - Returns: A scaled geometry.
     func scaled(_ scale: Vector2D) -> any Geometry2D {
-        Scale2D(body: self, scale: scale)
+        Scale(body: self, scale: scale)
     }
 
     /// Scale geometry uniformly.
@@ -78,7 +71,7 @@ public extension Geometry3D {
     ///   - scale: A `Vector3D` representing the scaling factors along the x, y, and z axes.
     /// - Returns: A scaled geometry.
     func scaled(_ scale: Vector3D) -> any Geometry3D {
-        Scale3D(body: self, scale: scale)
+        Scale(body: self, scale: scale)
     }
 
     /// Scale geometry uniformly.

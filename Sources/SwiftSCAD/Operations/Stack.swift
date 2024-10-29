@@ -1,46 +1,56 @@
 import Foundation
 
-internal struct Stack2D: Shape2D {
-    let items: [any Geometry2D]
-    let axis: Axis2D
+fileprivate struct _Stack<V: Vector> {
+    let items: [V.Geometry]
+    let axis: V.Axis
     let spacing: Double
-    let alignment: GeometryAlignment2D
+    let alignment: GeometryAlignment<V>
+
+    init(_ items: [V.Geometry], axis: V.Axis, alignment: GeometryAlignment<V>, spacing: Double) {
+        self.items = items
+        self.axis = axis
+        self.alignment = alignment.defaultingToOrigin().with(axis: axis, as: .min)
+        self.spacing = spacing
+    }
+}
+
+extension _Stack<Vector2D>: Geometry2D, Shape2D {
+    func requireBoundingBox(_ geometry: V.Geometry, in environment: Environment) -> BoundingBox<V> {
+        guard let box = geometry.boundary(in: environment).boundingBox else {
+            preconditionFailure("Stack item has empty bounds: \(geometry)")
+        }
+        return box
+    }
 
     public var body: any Geometry2D {
         readEnvironment { environment in
             var offset = 0.0
             for geometry in items {
-                if let box = geometry.boundary(in: environment).boundingBox {
-                    geometry
-                        .translated(box.translation(for: alignment.with(axis: axis, as: .min)) + .init(axis, value: offset))
-
-                    offset += box.size[axis] + spacing
-                } else {
-                    assertionFailure("Stack item has empty bounds: \(geometry)")
-                }
+                let box = requireBoundingBox(geometry, in: environment)
+                geometry
+                    .translated(box.translation(for: alignment) + .init(axis, value: offset))
+                offset += box.size[axis] + spacing
             }
         }
     }
 }
 
-internal struct Stack3D: Shape3D {
-    let items: [any Geometry3D]
-    let axis: Axis3D
-    let spacing: Double
-    let alignment: GeometryAlignment3D
+extension _Stack<Vector3D>: Geometry3D, Shape3D {
+    func requireBoundingBox(_ geometry: V.Geometry, in environment: Environment) -> BoundingBox<V> {
+        guard let box = geometry.boundary(in: environment).boundingBox else {
+            preconditionFailure("Stack item has empty bounds: \(geometry)")
+        }
+        return box
+    }
 
     public var body: any Geometry3D {
         readEnvironment { environment in
             var offset = 0.0
             for geometry in items {
-                if let box = geometry.boundary(in: environment).boundingBox {
-                     geometry
-                        .translated(box.translation(for: alignment.with(axis: axis, as: .min)) + .init(axis, value: offset))
-
-                    offset += box.size[axis] + spacing
-                } else {
-                    logger.info("Stack contains an item without a bounding box. Skipping.")
-                }
+                let box = requireBoundingBox(geometry, in: environment)
+                geometry
+                    .translated(box.translation(for: alignment) + .init(axis, value: offset))
+                offset += box.size[axis] + spacing
             }
         }
     }
@@ -60,7 +70,7 @@ public func Stack(
     alignment: GeometryAlignment2D...,
     @GeometryBuilder2D content: @escaping () -> [any Geometry2D]
 ) -> any Geometry2D {
-    Stack2D(items: content(), axis: axis, spacing: spacing, alignment: alignment.merged.defaultingToOrigin())
+    _Stack(content(), axis: axis, alignment: alignment.merged, spacing: spacing)
 }
 
 /// Creates a stack of 3D geometries aligned along the specified axis with optional spacing and alignment.
@@ -77,5 +87,5 @@ public func Stack(
     alignment: GeometryAlignment3D...,
     @GeometryBuilder3D content: @escaping () -> [any Geometry3D]
 ) -> any Geometry3D {
-    Stack3D(items: content(), axis: axis, spacing: spacing, alignment: alignment.merged.defaultingToOrigin())
+    _Stack(content(), axis: axis, alignment: alignment.merged, spacing: spacing)
 }

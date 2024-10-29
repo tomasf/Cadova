@@ -1,29 +1,24 @@
 import Foundation
 
-struct SetBounds2D: WrappedGeometry2D {
-    let body: any Geometry2D
-    let boundary: Boundary2D
+internal struct SetBounds<V: Vector> {
+    let body: V.Geometry
+    let boundary: Boundary<V>
 
-    func boundary(in environment: Environment) -> Bounds {
+    func boundary(in environment: Environment) -> Boundary<V> {
         boundary
     }
 }
 
-struct SetBounds3D: WrappedGeometry3D {
-    let body: any Geometry3D
-    let boundary: Boundary3D
+extension SetBounds<Vector2D>: Geometry2D, WrappedGeometry2D {}
+extension SetBounds<Vector3D>: Geometry3D, WrappedGeometry3D {}
 
-    func boundary(in environment: Environment) -> Bounds {
-        boundary
-    }
-}
 
 public extension Geometry2D {
     /// Defines the bounds of the geometry as the specified 2D bounding box.
     /// - Parameter box: The bounding box to set for the geometry.
     /// - Returns: A  geometry with the specified bounds.
     func settingBounds(_ box: BoundingBox2D) -> any Geometry2D {
-        SetBounds2D(body: self, boundary: .init(boundingBox: box))
+        SetBounds(body: self, boundary: .init(boundingBox: box))
     }
 
     /// Defines the bounds of the geometry based on a custom 2D shape.
@@ -31,7 +26,7 @@ public extension Geometry2D {
     /// - Returns: A geometry with the bounds obtained from the custom shape.
     func settingBounds(@GeometryBuilder2D _ shape: () -> any Geometry2D) -> any Geometry2D {
         shape().readingBoundary { _, boundary in
-            SetBounds2D(body: self, boundary: boundary)
+            SetBounds(body: self, boundary: boundary)
         }
     }
 
@@ -40,7 +35,7 @@ public extension Geometry2D {
     /// - Returns: A geometry with the bounds obtained from the custom shape.
     func settingBounds(_ shape: any Geometry2D) -> any Geometry2D {
         shape.readingBoundary { _, boundary in
-            SetBounds2D(body: self, boundary: boundary)
+            SetBounds(body: self, boundary: boundary)
         }
     }
 
@@ -62,7 +57,7 @@ public extension Geometry3D {
     /// - Parameter box: The bounding box to set for the geometry.
     /// - Returns: A  geometry with the specified bounds.
     func settingBounds(_ box: BoundingBox3D) -> any Geometry3D {
-        SetBounds3D(body: self, boundary: .init(boundingBox: box))
+        SetBounds(body: self, boundary: .init(boundingBox: box))
     }
 
     /// Defines the bounds of the geometry based on a custom 3D shape.
@@ -70,7 +65,7 @@ public extension Geometry3D {
     /// - Returns: A geometry with the bounds obtained from the custom shape.
     func settingBounds(@GeometryBuilder3D _ shape: () -> any Geometry3D) -> any Geometry3D {
         shape().readingBoundary { _, boundary in
-            SetBounds3D(body: self, boundary: boundary)
+            SetBounds(body: self, boundary: boundary)
         }
     }
 
@@ -79,7 +74,7 @@ public extension Geometry3D {
     /// - Returns: A geometry with the bounds obtained from the custom shape.
     func settingBounds(_ shape: any Geometry3D) -> any Geometry3D {
         shape.readingBoundary { _, boundary in
-            SetBounds3D(body: self, boundary: boundary)
+            SetBounds(body: self, boundary: boundary)
         }
     }
 

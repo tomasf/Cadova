@@ -101,6 +101,12 @@ public extension AffineTransform2D {
     }
 }
 
+extension AffineTransform2D: AffineTransformInternal {
+    var transform3D: AffineTransform3D {
+        .init(self)
+    }
+}
+
 internal extension Vector2D {
     var matrixColumn: Matrix3x3.Column {
         .init(x, y, 1.0)

@@ -1,6 +1,6 @@
 import Foundation
 
-struct Prefix<Geometry> {
+fileprivate struct Prefix<Geometry> {
     let isImmaterial: Bool
     let prefix: String
     let body: Geometry

@@ -1,9 +1,11 @@
 import Foundation
 
-fileprivate struct ReadBoundary2D: Shape2D {
-    let target: any Geometry2D
-    let builder: (Boundary2D) -> any Geometry2D
+fileprivate struct ReadBoundary<V: Vector> {
+    let target: V.Geometry
+    let builder: (Boundary<V>) -> V.Geometry
+}
 
+extension ReadBoundary<Vector2D>: Geometry2D, Shape2D {
     var body: any Geometry2D {
         readEnvironment { environment in
             builder(target.boundary(in: environment))
@@ -11,10 +13,7 @@ fileprivate struct ReadBoundary2D: Shape2D {
     }
 }
 
-fileprivate struct ReadBoundary3D: Shape3D {
-    let target: any Geometry3D
-    let builder: (Boundary3D) -> any Geometry3D
-
+extension ReadBoundary<Vector3D>: Geometry3D, Shape3D {
     var body: any Geometry3D {
         readEnvironment { environment in
             builder(target.boundary(in: environment))
@@ -22,9 +21,10 @@ fileprivate struct ReadBoundary3D: Shape3D {
     }
 }
 
+
 internal extension Geometry2D {
     func readingBoundary(@GeometryBuilder2D _ builder: @escaping (any Geometry2D, Boundary2D) -> any Geometry2D) -> any Geometry2D {
-        ReadBoundary2D(target: self) { boundary in
+        ReadBoundary(target: self) { boundary in
             builder(self, boundary)
         }
     }
@@ -32,7 +32,7 @@ internal extension Geometry2D {
 
 internal extension Geometry3D {
     func readingBoundary(@GeometryBuilder3D _ builder: @escaping (any Geometry3D, Boundary3D) -> any Geometry3D) -> any Geometry3D {
-        ReadBoundary3D(target: self) { boundary in
+        ReadBoundary(target: self) { boundary in
             builder(self, boundary)
         }
     }

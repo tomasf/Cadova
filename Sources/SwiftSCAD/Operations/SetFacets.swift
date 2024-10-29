@@ -13,7 +13,7 @@ fileprivate extension Environment.Facets {
 
 public extension Geometry2D {
     internal func usingFacets(_ facets: Environment.Facets) -> any Geometry2D {
-        SetVariables2D(body: self, variables: facets.specialVariables)
+        SetVariables(body: self, variables: facets.specialVariables)
             .withEnvironment { $0.withFacets(facets) }
     }
 
@@ -47,7 +47,7 @@ public extension Geometry2D {
 
 public extension Geometry3D {
     func usingFacets(_ facets: Environment.Facets) -> any Geometry3D {
-        SetVariables3D(body: self, variables: facets.specialVariables)
+        SetVariables(body: self, variables: facets.specialVariables)
             .withEnvironment { $0.withFacets(facets) }
     }
 
