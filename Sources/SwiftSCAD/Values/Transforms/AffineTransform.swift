@@ -39,6 +39,27 @@ public extension AffineTransform {
             value + (to[row, column] - value) * factor
         }
     }
+
+    /// Creates a new `AffineTransform` by concatenating a translation with this transformation using the given vector.
+    ///
+    /// - Parameter v: The vector representing the translation along each axis.
+    func translated(_ v: V) -> Self {
+        concatenated(with: .translation(v))
+    }
+
+    /// Creates a new `AffineTransform` by concatenating a scaling transformation with this transformation using the given vector.
+    ///
+    /// - Parameter v: The vector representing the scaling along each axis.
+    func scaled(_ v: V) -> Self {
+        concatenated(with: .scaling(v))
+    }
+
+    /// Creates a new `AffineTransform` by concatenating a rotation transformation with this transformation using the given rotation.
+    ///
+    /// - Parameter r: The rotation to apply
+    func rotated(_ r: Rotation) -> Self {
+        concatenated(with: .rotation(r))
+    }
 }
 
 internal protocol AffineTransformInternal {

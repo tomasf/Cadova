@@ -11,20 +11,6 @@ public extension AffineTransform3D {
         concatenated(with: .translation(x: x, y: y, z: z))
     }
 
-    /// Creates a new `AffineTransform3D` by concatenating a translation with this transformation using the given 3D vector.
-    ///
-    /// - Parameter v: The 3D vector representing the translation along each axis.
-    func translated(_ v: Vector3D) -> AffineTransform3D {
-        concatenated(with: .translation(v))
-    }
-
-    /// Creates a new `AffineTransform3D` by concatenating a scaling transformation with this transformation using the given 3D vector.
-    ///
-    /// - Parameter v: The 3D vector representing the scaling along each axis.
-    func scaled(_ v: Vector3D) -> AffineTransform3D {
-        concatenated(with: .scaling(v))
-    }
-
     /// Creates a new `AffineTransform3D` by concatenating a scaling transformation with this transformation.
     ///
     /// - Parameters:
@@ -33,13 +19,6 @@ public extension AffineTransform3D {
     ///   - z: The scaling factor along the z-axis.
     func scaled(x: Double = 1, y: Double = 1, z: Double = 1) -> AffineTransform3D {
         concatenated(with: .scaling(x: x, y: y, z: z))
-    }
-
-    /// Creates a new `AffineTransform3D` by concatenating a rotation transformation with this transformation using the given Rotation3D.
-    ///
-    /// - Parameter r: A `Rotation3D` structure containing axis rotations
-    func rotated(_ r: Rotation3D) -> AffineTransform3D {
-        concatenated(with: .rotation(r))
     }
 
     /// Creates a new `AffineTransform3D` by concatenating a rotation transformation with this transformation using the given angles for rotation.
