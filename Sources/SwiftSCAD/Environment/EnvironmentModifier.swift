@@ -1,46 +1,42 @@
 import Foundation
 
-struct EnvironmentModifier2D: Geometry2D {
-    let body: any Geometry2D
+struct EnvironmentModifier<Geometry> {
+    let body: Geometry
     let modification: (Environment) -> Environment
 
+    func modifiedEnvironment(_ environment: Environment) -> Environment {
+        modification(environment)
+    }
+}
+
+extension EnvironmentModifier<any Geometry2D>: Geometry2D {
     func codeFragment(in environment: Environment) -> CodeFragment {
         body.codeFragment(in: modifiedEnvironment(environment))
     }
 
-    func boundary(in environment: Environment) -> Bounds {
+    func boundary(in environment: Environment) -> Boundary2D {
         body.boundary(in: modifiedEnvironment(environment))
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body.elements(in: modifiedEnvironment(environment))
     }
-
-    private func modifiedEnvironment(_ environment: Environment) -> Environment {
-        modification(environment)
-    }
 }
 
-struct EnvironmentModifier3D: Geometry3D {
-    let body: any Geometry3D
-    let modification: (Environment) -> Environment
-
+extension EnvironmentModifier<any Geometry3D>: Geometry3D {
     func codeFragment(in environment: Environment) -> CodeFragment {
         body.codeFragment(in: modifiedEnvironment(environment))
     }
 
-    func boundary(in environment: Environment) -> Bounds {
+    func boundary(in environment: Environment) -> Boundary3D {
         body.boundary(in: modifiedEnvironment(environment))
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
         body.elements(in: modifiedEnvironment(environment))
     }
-
-    private func modifiedEnvironment(_ environment: Environment) -> Environment {
-        modification(environment)
-    }
 }
+
 
 public extension Geometry2D {
     /// Applies a specified environment modification to this geometry, affecting its appearance or behavior.
@@ -57,7 +53,7 @@ public extension Geometry2D {
     /// - Parameter modifier: A closure that takes the current `Environment` and returns the modified `Environment`.
     /// - Returns: A new geometry with the modified environment settings applied.
     func withEnvironment(_ modifier: @escaping (Environment) -> Environment) -> any Geometry2D {
-        EnvironmentModifier2D(body: self, modification: modifier)
+        EnvironmentModifier(body: self, modification: modifier)
     }
 
     func withEnvironment(key: Environment.ValueKey, value: (any Sendable)?) -> any Geometry2D {
@@ -86,7 +82,7 @@ public extension Geometry3D {
     /// - Parameter modifier: A closure that takes the current `Environment` and returns the modified `Environment`.
     /// - Returns: A new geometry with the modified environment settings applied.
     func withEnvironment(_ modifier: @escaping (Environment) -> Environment) -> any Geometry3D {
-        EnvironmentModifier3D(body: self, modification: modifier)
+        EnvironmentModifier(body: self, modification: modifier)
     }
 
     func withEnvironment(key: Environment.ValueKey, value: (any Sendable)?) -> any Geometry3D {

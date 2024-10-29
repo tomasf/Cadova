@@ -1,10 +1,12 @@
 import Foundation
 
-public struct Align2D: Shape2D {
-    let content: any Geometry2D
-    let alignment: GeometryAlignment2D
+internal struct Align<V: Vector> {
+    let content: V.Geometry
+    let alignment: GeometryAlignment<V>
+}
 
-    public var body: any Geometry2D {
+extension Align<Vector2D>: Geometry2D, Shape2D {
+    var body: any Geometry2D {
         readEnvironment { environment in
             let boundary = content.boundary(in: environment)
             let translation = boundary.boundingBox?.translation(for: alignment) ?? .zero
@@ -14,11 +16,8 @@ public struct Align2D: Shape2D {
     }
 }
 
-public struct Align3D: Shape3D {
-    let content: any Geometry3D
-    let alignment: GeometryAlignment3D
-
-    public var body: any Geometry3D {
+extension Align<Vector3D>: Geometry3D, Shape3D {
+    var body: any Geometry3D {
         readEnvironment { environment in
             let boundary = content.boundary(in: environment)
             let translation = boundary.boundingBox?.translation(for: alignment) ?? .zero

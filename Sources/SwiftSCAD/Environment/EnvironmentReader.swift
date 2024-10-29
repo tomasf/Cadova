@@ -1,13 +1,16 @@
 import Foundation
 
-internal struct EnvironmentReader2D: Geometry2D {
-    let body: (Environment) -> any Geometry2D
+// Remove underscore once deprecated EnvironmentReader is removed
+struct _EnvironmentReader<Geometry> {
+    let body: (Environment) -> Geometry
+}
 
+extension _EnvironmentReader<any Geometry2D>: Geometry2D {
     func codeFragment(in environment: Environment) -> CodeFragment {
         body(environment).codeFragment(in: environment)
     }
-    
-    func boundary(in environment: Environment) -> Bounds {
+
+    func boundary(in environment: Environment) -> Boundary2D {
         body(environment).boundary(in: environment)
     }
 
@@ -16,14 +19,12 @@ internal struct EnvironmentReader2D: Geometry2D {
     }
 }
 
-internal struct EnvironmentReader3D: Geometry3D {
-    let body: (Environment) -> any Geometry3D
-
+extension _EnvironmentReader<any Geometry3D>: Geometry3D {
     func codeFragment(in environment: Environment) -> CodeFragment {
         body(environment).codeFragment(in: environment)
     }
 
-    func boundary(in environment: Environment) -> Bounds {
+    func boundary(in environment: Environment) -> Boundary3D {
         body(environment).boundary(in: environment)
     }
 
@@ -39,7 +40,7 @@ internal struct EnvironmentReader3D: Geometry3D {
 /// - Parameter body: A closure that takes the current `Environment` and returns a new `Geometry2D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
 public func readEnvironment(@GeometryBuilder2D _ body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
-    EnvironmentReader2D(body: body)
+    _EnvironmentReader(body: body)
 }
 
 /// Creates a geometry that can read and respond to the current environment settings.
@@ -49,7 +50,5 @@ public func readEnvironment(@GeometryBuilder2D _ body: @escaping (Environment) -
 /// - Parameter body: A closure that takes the current `Environment` and returns a new `Geometry3D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
 public func readEnvironment(@GeometryBuilder3D _ body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
-    EnvironmentReader3D(body: body)
-}
-
+    _EnvironmentReader(body: body)
 }
