@@ -32,28 +32,23 @@ public struct Teardrop: Shape2D {
     }
 
     public var body: any Geometry2D {
-        let x = cos(angle) * diameter/2
-        let y = sin(angle) * diameter/2
-        let diagonal = diameter / sin(angle)
+        let radius = diameter / 2
+        let mask = Rectangle(radius / sin(angle))
+            .rotated(-angle)
+            .translated(x: -cos(angle) * radius, y: sin(angle) * radius)
 
         readEnvironment { environment in
             Circle(diameter: diameter)
-                .adding {
-                    Rectangle(diagonal)
-                        .rotated(-angle)
-                        .translated(x: -x, y: y)
-                        .intersection {
-                            Rectangle(diagonal)
-                                .rotated(angle + 90°)
-                                .translated(x: x, y: y)
+            intersection {
+                mask
+                mask.flipped(along: .x)
 
-                            if style == .bridged {
-                                Rectangle(diameter)
-                                    .aligned(at: .center)
-                            }
-                        }
+                if style == .bridged {
+                    Rectangle(diameter)
+                        .aligned(at: .center)
                 }
-                .rotated(environment.naturalUpDirectionXYAngle.map { $0 - 90° } ?? .zero)
+            }
+            .rotated(environment.naturalUpDirectionXYAngle.map { $0 - 90° } ?? .zero)
         }
     }
 
