@@ -11,8 +11,8 @@ internal struct Fillet: EdgeProfileShape {
     var shape: any Geometry2D {
         baseMask(width: width, height: height)
             .subtracting {
-                Circle.ellipse(width: width * 2, height: height * 2)
-                    .translated(x: width, y: height)
+                Circle.ellipse(x: width * 2, y: height * 2)
+                    .aligned(at: .min)
             }
     }
 

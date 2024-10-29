@@ -59,10 +59,14 @@ public struct Circle: LeafGeometry2D {
 }
 
 public extension Circle {
-    static func ellipse(width: Double, height: Double) -> any Geometry2D {
-        let diameter = max(width, height)
+    static func ellipse(size: Vector2D) -> any Geometry2D {
+        let diameter = max(size.x, size.y)
         return Circle(diameter: diameter)
-            .scaled(x: width / diameter, y: height / diameter)
+            .scaled(size / diameter)
+    }
+
+    static func ellipse(x: Double, y: Double) -> any Geometry2D {
+        ellipse(size: .init(x, y))
     }
 }
 

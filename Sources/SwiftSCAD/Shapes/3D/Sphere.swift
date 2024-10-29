@@ -36,3 +36,15 @@ public struct Sphere: LeafGeometry3D {
     }
     var boundary: Bounds { .empty } // Unused
 }
+
+public extension Sphere {
+    static func ellipsoid(size: Vector3D) -> any Geometry3D {
+        let diameter = max(size.x, size.y, size.z)
+        return Sphere(diameter: diameter)
+            .scaled(size / diameter)
+    }
+
+    static func ellipsoid(x: Double, y: Double, z: Double) -> any Geometry3D {
+        ellipsoid(size: .init(x, y, z))
+    }
+}
