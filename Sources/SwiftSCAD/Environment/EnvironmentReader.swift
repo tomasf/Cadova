@@ -52,30 +52,4 @@ public func readEnvironment(@GeometryBuilder3D _ body: @escaping (Environment) -
     EnvironmentReader3D(body: body)
 }
 
-public extension Geometry2D {
-    /// Creates a geometry that can read and respond to the current environment settings.
-    ///
-    /// Use this function to create a geometry that has access to environmental information. This allows for dynamic and conditional geometry creation based on the current environment settings such as facets, text settings, or custom values you've defined.
-    ///
-    /// - Parameter body: A closure that takes the wrapped geometry and the current `Environment` and returns a new `Geometry2D` instance based on that environment.
-    /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-    func readingEnvironment(@GeometryBuilder2D _ body: @escaping (any Geometry2D, Environment) -> any Geometry2D) -> any Geometry2D {
-        EnvironmentReader2D { environment in
-            body(self, environment)
-        }
-    }
-}
-
-public extension Geometry3D {
-    /// Creates a geometry that can read and respond to the current environment settings.
-    ///
-    /// Use this function to create a geometry that has access to environmental information. This allows for dynamic and conditional geometry creation based on the current environment settings such as facets, text settings, or custom values you've defined.
-    ///
-    /// - Parameter body: A closure that takes the wrapped geometry and the current `Environment` and returns a new `Geometry3D` instance based on that environment.
-    /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-    func readingEnvironment(@GeometryBuilder3D _ body: @escaping (any Geometry3D, Environment) -> any Geometry3D) -> any Geometry3D {
-        EnvironmentReader3D { environment in
-            body(self, environment)
-        }
-    }
 }

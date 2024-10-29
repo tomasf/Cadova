@@ -23,7 +23,7 @@ extension Geometry2D {
 
 extension Geometry3D {
     func readingOperation(_ action: @escaping (Environment.Operation) -> ()) -> any Geometry3D {
-        readingEnvironment { geo, environment in
+        readEnvironment { environment in
             action(environment.operation)
             return self
         }
