@@ -9,9 +9,8 @@ public extension Geometry2D {
     ///
     /// - Parameters:
     ///   - path: A 2D or 3D `BezierPath` representing the path along which to extrude the shape.
-    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
 
-    func extruded<V: Vector>(along path: BezierPath<V>, in range: ClosedRange<BezierPath.Position>? = nil, convexity: Int = 2) -> any Geometry3D {
+    func extruded<V: Vector>(along path: BezierPath<V>, in range: ClosedRange<BezierPath.Position>? = nil) -> any Geometry3D {
         path.readPoints(in: range) { rawPoints in
             let points = rawPoints.map(\.vector3D)
             let isClosed = points[0].distance(to: points.last!) < 0.0001
@@ -40,7 +39,7 @@ public extension Geometry2D {
             let long = 1000.0
             for segment in segments {
                 let distance = segment.origin.distance(to: segment.end)
-                self.extruded(height: distance + long * 2, convexity: convexity)
+                self.extruded(height: distance + long * 2)
                     .translated(z: -long)
                     .transformed(segment.originRotation)
                     .translated(segment.origin)

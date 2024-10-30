@@ -1,10 +1,9 @@
 import Foundation
 
-// Import 2D content from external files
+/// Import 2D content from external files
 public struct Import2D: LeafGeometry2D {
     let path: String
     let layer: String?
-    let convexity: Int
     let center: Bool
 
     /// Initializes a new `Import2D` instance for importing 2D geometries.
@@ -15,11 +14,9 @@ public struct Import2D: LeafGeometry2D {
     ///   - path: The file path to the 2D geometry to be imported. Paths are resolved relative to the .scad file if not absolute.
     ///   - dxfLayer: Optionally specifies a layer to import from a DXF file. This parameter has no effect for SVG files.
     ///   - center: Determines if the imported geometry should be centered around the origin. Defaults to `false`.
-    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
-    public init(path: String, dxfLayer: String? = nil, center: Bool = false, convexity: Int = 2) {
+    public init(path: String, dxfLayer: String? = nil, center: Bool = false) {
         self.path = (path as NSString).expandingTildeInPath
         self.layer = dxfLayer
-        self.convexity = convexity
         self.center = center
     }
 
@@ -29,16 +26,14 @@ public struct Import2D: LeafGeometry2D {
         [
             "file": path,
             "layer": layer,
-            "convexity": convexity,
             "center": center
         ]
     }
 }
 
-// Import 3D content from external files
+/// Import 3D content from external files
 public struct Import3D: LeafGeometry3D {
     let path: String
-    let convexity: Int
 
     /// Initializes a new `Import3D` instance for importing 3D models.
     ///
@@ -46,18 +41,14 @@ public struct Import3D: LeafGeometry3D {
     ///
     /// - Parameters:
     ///   - path: The file path to the 3D model to be imported. Paths are resolved relative to the .scad file if not absolute.
-    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
-    public init(path: String, convexity: Int = 2) {
+    public init(path: String) {
         self.path = (path as NSString).expandingTildeInPath
-        self.convexity = convexity
     }
 
     let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
     let moduleName = "import"
     var moduleParameters: CodeFragment.Parameters {
-        [
-            "file": path,
-            "convexity": convexity
-        ]
+        ["file": path]
     }
+    let supportsPreviewConvexity = true
 }

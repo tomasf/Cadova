@@ -1,7 +1,7 @@
 import Foundation
 
 private extension Polyhedron {
-    init(extruding shape: Polygon, along path: [AffineTransform3D], convexity: Int, environment: Environment) {
+    init(extruding shape: Polygon, along path: [AffineTransform3D], environment: Environment) {
         struct Vertex: Hashable {
             let step: Int
             let pointIndex: Int
@@ -21,7 +21,7 @@ private extension Polyhedron {
         let startFace = points.indices.map { Vertex(step: 0, pointIndex: $0) }
         let endFace = points.indices.reversed().map { Vertex(step: path.endIndex - 1, pointIndex: $0) }
 
-        self.init(faces: sideFaces + [startFace, endFace], convexity: convexity) { vertex in
+        self.init(faces: sideFaces + [startFace, endFace]) { vertex in
             path[vertex.step].apply(to: Vector3D(points[vertex.pointIndex]))
         }
     }
@@ -33,18 +33,17 @@ public extension Polygon {
     /// - Parameters:
     ///   - path: An array of affine transforms representing the path along which the polygon will be extruded.
     ///   - steps: The number of steps to divide the interpolation between each pair of transforms in the `path`. Defaults to 1.
-    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
     ///
     /// - Returns: A 3D geometry resulting from extruding the polygon along the specified path.
     ///
     /// - Note: The `path` array must contain at least two transforms, and `steps` must be at least 1.
-    func extruded(along path: [AffineTransform3D], steps: Int = 1, convexity: Int = 2) -> any Geometry3D {
+    func extruded(along path: [AffineTransform3D], steps: Int = 1) -> any Geometry3D {
         readEnvironment { environment in
             let expandedPath = [path[0]] + path.paired().flatMap { t1, t2 in
                 (1...steps).map { .linearInterpolation(t1, t2, factor: 1.0 / Double(steps) * Double($0)) }
             }
 
-            Polyhedron(extruding: self, along: expandedPath, convexity: convexity, environment: environment)
+            Polyhedron(extruding: self, along: expandedPath, environment: environment)
         }
     }
 
@@ -53,12 +52,10 @@ public extension Polygon {
     /// - Parameters:
     ///   - pitch: The Z distance between each turn of the helix
     ///   - height: The total height of the helix
-    ///   - convexity: The maximum number of surfaces a straight line can intersect the result. This helps OpenSCAD preview the geometry correctly, but has no effect on final rendering.
 
     func extrudedAlongHelix(
         pitch: Double,
         height: Double,
-        convexity: Int = 2,
         offset: ((Double) -> Double)? = nil
     ) -> any Geometry3D {
         readEnvironment { environment in
@@ -74,7 +71,7 @@ public extension Polygon {
                     .translated(z: z)
             }
 
-            self.extruded(along:path, convexity: convexity)
+            self.extruded(along:path)
         }
     }
 }

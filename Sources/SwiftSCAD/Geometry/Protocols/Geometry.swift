@@ -6,6 +6,7 @@ import Foundation
 //   CombinedGeometry: Geometry containing multiple children, e.g. Union, Difference, MinkowskiSum
 //   TransformedGeometry: Single-child wrapper that applies a transform, e.g. Rotate, Translate
 //   WrappedGeometry: Generic single-child wrapper
+//   ExtrusionGeometry: 3D wrapper for 2D child
 //   Shape: User-facing
 
 /// Two-dimensional geometry.

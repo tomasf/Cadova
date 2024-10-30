@@ -133,7 +133,8 @@ let path = BezierPath2D(startPoint: .zero)
 
 Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
     .usingDefaultFacets()
-    .extruded(along: path, convexity: 4)
+    .extruded(along: path)
+    .withPreviewConvexity(4)
     .usingFacets(minAngle: 5°, minSize: 1)
     .save(to: "example4")
 ```

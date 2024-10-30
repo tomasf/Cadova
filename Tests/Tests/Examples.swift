@@ -60,7 +60,8 @@ struct ExampleTests {
 
         let geometry = Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
             .usingDefaultFacets()
-            .extruded(along: path, convexity: 4)
+            .extruded(along: path)
+            .withPreviewConvexity(4)
             .usingFacets(minAngle: 5°, minSize: 1)
 
         #expect(geometry.code == scadFile("example4"))
