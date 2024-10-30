@@ -2,9 +2,14 @@ import Foundation
 
 fileprivate struct MinkowskiSum<V: Vector> {
     let children: [V.Geometry]
+    let convexity: Int?
     let moduleName = "minkowski"
     let boundaryMergeStrategy = Boundary<V>.MergeStrategy.minkowskiSum
     let combination = GeometryCombination.minkowskiSum
+
+    var moduleParameters: CodeFragment.Parameters {
+        ["convexity": convexity]
+    }
 }
 
 extension MinkowskiSum<Vector2D>: Geometry2D, CombinedGeometry2D {}
@@ -19,7 +24,7 @@ public extension Geometry2D {
     /// - Parameter adding: The 3D geometries to combine with this geometry.
     /// - Returns: A geometry representing the Minkowski sum
     func minkowskiSum(@GeometryBuilder2D adding other: () -> [any Geometry2D]) -> any Geometry2D {
-        MinkowskiSum(children: [self] + other())
+        MinkowskiSum(children: [self] + other(), convexity: nil)
     }
 }
 
@@ -30,7 +35,7 @@ public extension Geometry3D {
     ///
     /// - Parameter adding: The 3D geometries to combine with this geometry.
     /// - Returns: A geometry representing the Minkowski sum
-    func minkowskiSum(@GeometryBuilder3D adding other: () -> [any Geometry3D]) -> any Geometry3D {
-        MinkowskiSum(children: [self] + other())
+    func minkowskiSum(convexity: Int? = nil, @GeometryBuilder3D adding other: () -> [any Geometry3D]) -> any Geometry3D {
+        MinkowskiSum(children: [self] + other(), convexity: convexity)
     }
 }

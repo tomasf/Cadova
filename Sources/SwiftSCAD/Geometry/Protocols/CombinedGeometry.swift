@@ -2,6 +2,7 @@ import Foundation
 
 internal protocol CombinedGeometry2D: Geometry2D {
     var moduleName: String { get }
+    var moduleParameters: CodeFragment.Parameters { get }
     var children: [any Geometry2D] { get }
     var boundaryMergeStrategy: Boundary2D.MergeStrategy { get }
     var combination: GeometryCombination { get }
@@ -9,7 +10,7 @@ internal protocol CombinedGeometry2D: Geometry2D {
 
 extension CombinedGeometry2D {
     func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(module: moduleName, body: children.map { $0.codeFragment(in: environment) })
+        .init(module: moduleName, parameters: moduleParameters, body: children.map { $0.codeFragment(in: environment) })
     }
 
     func boundary(in environment: Environment) -> Boundary2D {
@@ -21,10 +22,13 @@ extension CombinedGeometry2D {
         let allElements = children.map { $0.elements(in: environment) }
         return .init(combining: allElements, operation: combination)
     }
+
+    var moduleParameters: CodeFragment.Parameters { [:] }
 }
 
 internal protocol CombinedGeometry3D: Geometry3D {
     var moduleName: String { get }
+    var moduleParameters: CodeFragment.Parameters { get }
     var children: [any Geometry3D] { get }
     var boundaryMergeStrategy: Boundary3D.MergeStrategy { get }
     var combination: GeometryCombination { get }
@@ -32,7 +36,7 @@ internal protocol CombinedGeometry3D: Geometry3D {
 
 extension CombinedGeometry3D {
     func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(module: moduleName, body: children.map { $0.codeFragment(in: environment) })
+        .init(module: moduleName, parameters: moduleParameters, body: children.map { $0.codeFragment(in: environment) })
     }
 
     func boundary(in environment: Environment) -> Boundary3D {
@@ -44,6 +48,8 @@ extension CombinedGeometry3D {
         let allElements = children.map { $0.elements(in: environment) }
         return .init(combining: allElements, operation: combination)
     }
+
+    var moduleParameters: CodeFragment.Parameters { [:] }
 }
 
 public enum GeometryCombination {
