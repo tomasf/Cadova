@@ -20,16 +20,21 @@ public protocol Shape2D: Geometry2D {
 }
 
 public extension Shape2D {
+    private func preparedBody(in environment: Environment) -> any Geometry2D {
+        environment.inject(into: self)
+        return body
+    }
+
     func codeFragment(in environment: Environment) -> CodeFragment {
-        body.codeFragment(in: environment)
+        preparedBody(in: environment).codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: environment)
+        preparedBody(in: environment).boundary(in: environment)
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: environment)
+        preparedBody(in: environment).elements(in: environment)
     }
 }
 
@@ -53,15 +58,20 @@ public protocol Shape3D: Geometry3D {
 }
 
 public extension Shape3D {
+    private func preparedBody(in environment: Environment) -> any Geometry3D {
+        environment.inject(into: self)
+        return body
+    }
+
     func codeFragment(in environment: Environment) -> CodeFragment {
-        body.codeFragment(in: environment)
+        preparedBody(in: environment).codeFragment(in: environment)
     }
 
     func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: environment)
+        preparedBody(in: environment).boundary(in: environment)
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: environment)
+        preparedBody(in: environment).elements(in: environment)
     }
 }

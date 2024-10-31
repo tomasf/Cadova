@@ -6,6 +6,8 @@ fileprivate struct _Stack<V: Vector> {
     let spacing: Double
     let alignment: GeometryAlignment<V>
 
+    @EnvironmentValue(\.self) private var environment
+
     init(_ items: [V.Geometry], axis: V.Axis, alignment: GeometryAlignment<V>, spacing: Double) {
         self.items = items
         self.axis = axis
@@ -23,14 +25,12 @@ extension _Stack<Vector2D>: Geometry2D, Shape2D {
     }
 
     public var body: any Geometry2D {
-        readEnvironment { environment in
-            var offset = 0.0
-            for geometry in items {
-                let box = requireBoundingBox(geometry, in: environment)
-                geometry
-                    .translated(box.translation(for: alignment) + .init(axis, value: offset))
-                offset += box.size[axis] + spacing
-            }
+        var offset = 0.0
+        for geometry in items {
+            let box = requireBoundingBox(geometry, in: environment)
+            geometry
+                .translated(box.translation(for: alignment) + .init(axis, value: offset))
+            offset += box.size[axis] + spacing
         }
     }
 }
@@ -44,14 +44,12 @@ extension _Stack<Vector3D>: Geometry3D, Shape3D {
     }
 
     public var body: any Geometry3D {
-        readEnvironment { environment in
-            var offset = 0.0
-            for geometry in items {
-                let box = requireBoundingBox(geometry, in: environment)
-                geometry
-                    .translated(box.translation(for: alignment) + .init(axis, value: offset))
-                offset += box.size[axis] + spacing
-            }
+        var offset = 0.0
+        for geometry in items {
+            let box = requireBoundingBox(geometry, in: environment)
+            geometry
+                .translated(box.translation(for: alignment) + .init(axis, value: offset))
+            offset += box.size[axis] + spacing
         }
     }
 }

@@ -11,6 +11,8 @@ import Foundation
 public struct Arc: Shape2D {
     public let range: Range<Angle>
     public let radius: Double
+    
+    @EnvironmentValue(\.facets) var facets
 
     /// Creates a new `Arc` instance with the specified range of angles and radius.
     ///
@@ -30,9 +32,7 @@ public struct Arc: Shape2D {
     }
 
     public var body: any Geometry2D {
-        readEnvironment { e in
-            Polygon([.zero]) + .circularArc(radius: radius, range: range, facets: e.facets)
-        }
+        Polygon([.zero]) + .circularArc(radius: radius, range: range, facets: facets)
     }
 
     public var angularDistance: Angle {

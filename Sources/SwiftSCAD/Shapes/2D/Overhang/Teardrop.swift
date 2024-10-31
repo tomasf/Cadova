@@ -19,6 +19,8 @@ public struct Teardrop: Shape2D {
     public let angle: Angle
     public let diameter: Double
 
+    @EnvironmentValue(\.naturalUpDirectionXYAngle) var upAngle
+
     /// Creates a teardrop shape with a specific diameter, angle, and style.
     /// - Parameters:
     ///   - diameter: The diameter of the circular part of the teardrop.
@@ -37,19 +39,17 @@ public struct Teardrop: Shape2D {
             .rotated(-angle)
             .translated(x: -cos(angle) * radius, y: sin(angle) * radius)
 
-        readEnvironment { environment in
-            Circle(diameter: diameter)
-            intersection {
-                mask
-                mask.flipped(along: .x)
+        Circle(diameter: diameter)
+        intersection {
+            mask
+            mask.flipped(along: .x)
 
-                if style == .bridged {
-                    Rectangle(diameter)
-                        .aligned(at: .center)
-                }
+            if style == .bridged {
+                Rectangle(diameter)
+                    .aligned(at: .center)
             }
-            .rotated(environment.naturalUpDirectionXYAngle.map { $0 - 90° } ?? .zero)
         }
+        .rotated(upAngle.map { $0 - 90° } ?? .zero)
     }
 
     /// Defines the style of a teardrop shape.

@@ -3,21 +3,19 @@ import Foundation
 fileprivate struct ReadBoundary<V: Vector> {
     let target: V.Geometry
     let builder: (Boundary<V>) -> V.Geometry
+
+    @EnvironmentValue(\.self) var environment
 }
 
 extension ReadBoundary<Vector2D>: Geometry2D, Shape2D {
     var body: any Geometry2D {
-        readEnvironment { environment in
-            builder(target.boundary(in: environment))
-        }
+        builder(target.boundary(in: environment))
     }
 }
 
 extension ReadBoundary<Vector3D>: Geometry3D, Shape3D {
     var body: any Geometry3D {
-        readEnvironment { environment in
-            builder(target.boundary(in: environment))
-        }
+        builder(target.boundary(in: environment))
     }
 }
 

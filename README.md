@@ -19,8 +19,8 @@ For Windows and Linux, [install Swift directly][swift]. I also recommend [instal
 
 ## 3. Create a new Swift executable package:
 ```
-$ mkdir My3DGadget
-$ cd My3DGadget
+$ mkdir thingamajig
+$ cd thingamajig
 $ swift package init --type executable
 ```
 
@@ -28,12 +28,12 @@ $ swift package init --type executable
 
 <pre>
 let package = Package(
-    name: "My3DGadget",
+    name: "thingamajig",
     dependencies: [
         <b><i>.package(url: "https://github.com/tomasf/SwiftSCAD.git", from: "0.8.0"),</i></b>
     ],
     targets: [
-        .executableTarget(name: "My3DGadget", dependencies: [<b><i>"SwiftSCAD"</i></b>])
+        .executableTarget(name: "thingamajig", dependencies: [<b><i>"SwiftSCAD"</i></b>])
     ]
 )
 </pre>
