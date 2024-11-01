@@ -10,7 +10,7 @@ import Foundation
 
     public var wrappedValue: T {
         guard let value = value.value else {
-            logger.warning("EnvironmentValue was evaluated without its value being set.")
+            logger.error("EnvironmentValue was accessed outside of a Shape's body, which is unsupported. Returning a default value.")
             return Environment.defaultEnvironment[keyPath: keyPath]
         }
         return value
@@ -18,21 +18,27 @@ import Foundation
 }
 
 internal protocol EnvironmentUpdatable {
-    func update(with environment: Environment)
+    func update(with environment: Environment?)
 }
 
 extension EnvironmentValue: EnvironmentUpdatable {
     final private class MutableValue { var value: T? }
 
-    func update(with environment: Environment) {
-        value.value = environment[keyPath: keyPath]
+    func update(with environment: Environment?) {
+        value.value = environment?[keyPath: keyPath]
     }
 }
 
-internal extension Environment {
-    func inject(into target: Any) {
-        for child in Mirror(reflecting: target).children {
-            (child.value as? any EnvironmentUpdatable)?.update(with: self)
-        }
+
+fileprivate func inject(environment: Environment?, into target: Any) {
+    for (_, value) in Mirror(reflecting: target).children {
+        (value as? any EnvironmentUpdatable)?.update(with: environment)
     }
+}
+
+internal func whileInjecting<T>(environment: Environment, into target: Any, actions: () -> T) -> T {
+    inject(environment: environment, into: target)
+    let result = actions()
+    inject(environment: nil, into: target)
+    return result
 }

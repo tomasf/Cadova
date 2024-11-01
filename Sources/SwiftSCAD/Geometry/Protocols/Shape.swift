@@ -20,21 +20,22 @@ public protocol Shape2D: Geometry2D {
 }
 
 public extension Shape2D {
-    private func preparedBody(in environment: Environment) -> any Geometry2D {
-        environment.inject(into: self)
-        return body
-    }
-
     func codeFragment(in environment: Environment) -> CodeFragment {
-        preparedBody(in: environment).codeFragment(in: environment)
+        whileInjecting(environment: environment, into: self) {
+            body.codeFragment(in: environment)
+        }
     }
 
     func boundary(in environment: Environment) -> Bounds {
-        preparedBody(in: environment).boundary(in: environment)
+        whileInjecting(environment: environment, into: self) {
+            body.boundary(in: environment)
+        }
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        preparedBody(in: environment).elements(in: environment)
+        whileInjecting(environment: environment, into: self) {
+            body.elements(in: environment)
+        }
     }
 }
 
@@ -58,20 +59,21 @@ public protocol Shape3D: Geometry3D {
 }
 
 public extension Shape3D {
-    private func preparedBody(in environment: Environment) -> any Geometry3D {
-        environment.inject(into: self)
-        return body
-    }
-
     func codeFragment(in environment: Environment) -> CodeFragment {
-        preparedBody(in: environment).codeFragment(in: environment)
+        whileInjecting(environment: environment, into: self) {
+            body.codeFragment(in: environment)
+        }
     }
 
     func boundary(in environment: Environment) -> Bounds {
-        preparedBody(in: environment).boundary(in: environment)
+        whileInjecting(environment: environment, into: self) {
+            body.boundary(in: environment)
+        }
     }
 
     func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        preparedBody(in: environment).elements(in: environment)
+        whileInjecting(environment: environment, into: self) {
+            body.elements(in: environment)
+        }
     }
 }
