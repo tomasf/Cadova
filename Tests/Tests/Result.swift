@@ -27,7 +27,7 @@ struct ResultTests {
     }
 }
 
-struct TestElement: ResultElement {
+fileprivate struct TestElement: ResultElement {
     let value: Int
 
     static func combine(elements: [TestElement], for operation: GeometryCombination) -> TestElement? {
@@ -39,7 +39,7 @@ struct TestElement: ResultElement {
     }
 }
 
-extension Geometry3D {
+fileprivate extension Geometry3D {
     func withTestValue(_ value: Int) -> any Geometry3D {
         withResult(TestElement(value: value))
     }
