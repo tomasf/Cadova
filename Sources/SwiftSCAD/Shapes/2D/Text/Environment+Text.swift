@@ -11,7 +11,7 @@ internal extension Environment {
         var characterSpacing: Double?
     }
 
-    static private let environmentKey = ValueKey("SwiftSCAD.TextAttributes")
+    static private let environmentKey = Key("SwiftSCAD.TextAttributes")
 
     var textAttributes: TextAttributes {
         self[Self.environmentKey] as? TextAttributes ?? .init()

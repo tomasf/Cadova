@@ -4,13 +4,13 @@ import Foundation
 ///
 /// You can use `Environment` to customize settings and attributes that affect child geometries within SwiftSCAD. Modifiers allow for dynamic adjustments of the environment, which can be applied to geometries to affect their rendering or behavior.
 public struct Environment: Sendable {
-    private let values: [ValueKey: any Sendable]
+    private let values: [Key: any Sendable]
 
     public init() {
         self.init(values: [:])
     }
 
-    init(values: [ValueKey: any Sendable]) {
+    init(values: [Key: any Sendable]) {
         self.values = values
     }
 
@@ -18,7 +18,7 @@ public struct Environment: Sendable {
     ///
     /// - Parameter newValues: A dictionary of values to add to the environment.
     /// - Returns: A new `Environment` instance with the added values.
-    public func setting(_ newValues: [ValueKey: any Sendable]) -> Environment {
+    public func setting(_ newValues: [Key: any Sendable]) -> Environment {
         Environment(values: values.merging(newValues, uniquingKeysWith: { $1 }))
     }
 
@@ -28,7 +28,7 @@ public struct Environment: Sendable {
     ///   - key: The key for the value to update or add.
     ///   - value: The new value to set. If `nil`, the key is removed from the environment.
     /// - Returns: A new `Environment` instance with the updated values.
-    public func setting(key: ValueKey, value: (any Sendable)?) -> Environment {
+    public func setting(key: Key, value: (any Sendable)?) -> Environment {
         var values = self.values
         values[key] = value
         return Environment(values: values)
@@ -38,14 +38,14 @@ public struct Environment: Sendable {
     ///
     /// - Parameter key: The key of the value to access.
     /// - Returns: The value associated with `key` if it exists; otherwise, `nil`.
-    public subscript(key: ValueKey) -> (any Sendable)? {
+    public subscript(key: Key) -> (any Sendable)? {
         values[key]
     }
 }
 
 public extension Environment {
     /// Represents a key for environment values.
-    struct ValueKey: RawRepresentable, Hashable, Sendable {
+    struct Key: RawRepresentable, Hashable, Sendable {
         public var rawValue: String
 
         public init(rawValue: String) {

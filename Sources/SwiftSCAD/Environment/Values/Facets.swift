@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Environment {
-    static private let environmentKey = ValueKey("SwiftSCAD.Facets")
+    static private let environmentKey = Key("SwiftSCAD.Facets")
 
     /// An enumeration representing the method for calculating the number of facets (or segments) used in rendering circular geometries.
     enum Facets: Sendable {

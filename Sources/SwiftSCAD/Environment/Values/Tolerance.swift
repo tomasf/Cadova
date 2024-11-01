@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Environment {
-    private static let key = ValueKey("SwiftSCAD.Tolerance")
+    private static let key = Key("SwiftSCAD.Tolerance")
 
     /// The tolerance value currently set in the environment.
     ///

@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Environment {
-    private static let key = ValueKey("SwiftSCAD.PreviewConvexity")
+    private static let key = Key("SwiftSCAD.PreviewConvexity")
 
     /// The preview convexity currently set in the environment.
     ///

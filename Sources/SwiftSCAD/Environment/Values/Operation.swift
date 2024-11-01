@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Environment {
-    private static let key = ValueKey("SwiftSCAD.Operation")
+    private static let key = Key("SwiftSCAD.Operation")
 
     /// Represents a geometric operation, specifically for determining if geometries are being added or subtracted.
     enum Operation: Sendable {

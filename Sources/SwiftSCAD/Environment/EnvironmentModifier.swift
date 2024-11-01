@@ -56,7 +56,7 @@ public extension Geometry2D {
         EnvironmentModifier(body: self, modification: modifier)
     }
 
-    func withEnvironment(key: Environment.ValueKey, value: (any Sendable)?) -> any Geometry2D {
+    func withEnvironment(key: Environment.Key, value: (any Sendable)?) -> any Geometry2D {
         withEnvironment { environment in
             environment.setting(key: key, value: value)
         }
@@ -85,7 +85,7 @@ public extension Geometry3D {
         EnvironmentModifier(body: self, modification: modifier)
     }
 
-    func withEnvironment(key: Environment.ValueKey, value: (any Sendable)?) -> any Geometry3D {
+    func withEnvironment(key: Environment.Key, value: (any Sendable)?) -> any Geometry3D {
         withEnvironment { environment in
             environment.setting(key: key, value: value)
         }

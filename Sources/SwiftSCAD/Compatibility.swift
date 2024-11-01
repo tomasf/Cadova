@@ -105,3 +105,7 @@ public func Union(@GeometryBuilder2D _ body: () -> any Geometry2D) -> any Geomet
 public func Union(@GeometryBuilder3D _ body: () -> any Geometry3D) -> any Geometry3D {
     union(body)
 }
+
+public extension Environment {
+    @available(*, deprecated, renamed: "Key") typealias ValueKey = Key
+}
