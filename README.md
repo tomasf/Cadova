@@ -30,7 +30,7 @@ $ swift package init --type executable
 let package = Package(
     name: "thingamajig",
     dependencies: [
-        <b><i>.package(url: "https://github.com/tomasf/SwiftSCAD.git", from: "0.8.0"),</i></b>
+        <b><i>.package(url: "https://github.com/tomasf/SwiftSCAD.git", from: "0.8.1"),</i></b>
     ],
     targets: [
         .executableTarget(name: "thingamajig", dependencies: [<b><i>"SwiftSCAD"</i></b>])
