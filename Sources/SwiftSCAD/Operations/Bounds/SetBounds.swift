@@ -3,14 +3,21 @@ import Foundation
 internal struct SetBounds<V: Vector> {
     let body: V.Geometry
     let boundary: Boundary<V>
+}
 
-    func boundary(in environment: Environment) -> Boundary<V> {
-        boundary
+extension SetBounds<Vector2D>: Geometry2D {
+    func evaluated(in environment: Environment) -> Output2D {
+        let bodyOutput = body.evaluated(in: environment)
+        return .init(codeFragment: bodyOutput.codeFragment, boundary: boundary, elements: bodyOutput.elements)
     }
 }
 
-extension SetBounds<Vector2D>: Geometry2D, WrappedGeometry2D {}
-extension SetBounds<Vector3D>: Geometry3D, WrappedGeometry3D {}
+extension SetBounds<Vector3D>: Geometry3D {
+    func evaluated(in environment: Environment) -> Output3D {
+        let bodyOutput = body.evaluated(in: environment)
+        return .init(codeFragment: bodyOutput.codeFragment, boundary: boundary, elements: bodyOutput.elements)
+    }
+}
 
 
 public extension Geometry2D {

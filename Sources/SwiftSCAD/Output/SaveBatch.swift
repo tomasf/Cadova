@@ -4,13 +4,12 @@ public func save(to directory: URL? = nil, environment: Environment? = nil, @Any
     let environment = environment ?? .defaultEnvironment
 
     for geometry in geometries() {
-        let (name, formats) = geometry.results(in: environment)
+        let (codeFragment, name, formats) = geometry.evaluated(in: environment)
         guard let name else {
             logger.warning("Found a geometry without a name. Use .named(_:) to assign names to geometry.")
             continue
         }
 
-        let codeFragment = geometry.codeFragment(in: environment)
         for format in formats {
             let fileURL = URL(expandingFilePath: name, extension: format.fileExtension, relativeTo: directory)
             codeFragment.save(to: fileURL, format: format)

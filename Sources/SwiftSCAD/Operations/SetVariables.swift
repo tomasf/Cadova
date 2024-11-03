@@ -4,7 +4,7 @@ internal struct SetVariables<Geometry> {
     let body: Geometry
     let variables: CodeFragment.Parameters
 
-    let moduleName: String? = "let"
+    let moduleName = "let"
     var moduleParameters: CodeFragment.Parameters { variables }
 }
 

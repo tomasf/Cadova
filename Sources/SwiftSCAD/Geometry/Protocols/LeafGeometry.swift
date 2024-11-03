@@ -3,46 +3,37 @@ import Foundation
 internal protocol LeafGeometry2D: Geometry2D {
     var moduleName: String { get }
     var moduleParameters: CodeFragment.Parameters { get }
-    var boundary: Bounds { get }
+    func boundary(in environment: Environment) -> Bounds
 }
 
 extension LeafGeometry2D {
-    public func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(module: moduleName, parameters: moduleParameters, body: [])
-    }
-
-    public func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        [:]
-    }
-
-    public func boundary(in environment: Environment) -> Bounds {
-        boundary
+    public func evaluated(in environment: Environment) -> Output {
+        .init(
+            moduleName: moduleName,
+            moduleParameters: moduleParameters,
+            boundary: boundary(in: environment),
+            supportsPreviewConvexity: false,
+            environment: environment
+        )
     }
 }
 
 internal protocol LeafGeometry3D: Geometry3D {
     var moduleName: String { get }
     var moduleParameters: CodeFragment.Parameters { get }
-    var boundary: Bounds { get }
+    func boundary(in environment: Environment) -> Bounds
     var supportsPreviewConvexity: Bool { get }
 }
 
 extension LeafGeometry3D {
-    public func codeFragment(in environment: Environment) -> CodeFragment {
-        var params = moduleParameters
-        if let convexity = environment.previewConvexity, supportsPreviewConvexity {
-            params["convexity"] = convexity
-        }
-
-        return .init(module: moduleName, parameters: params, body: [])
-    }
-
-    public func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        [:]
-    }
-
-    public func boundary(in environment: Environment) -> Bounds {
-        boundary
+    public func evaluated(in environment: Environment) -> Output {
+        .init(
+            moduleName: moduleName,
+            moduleParameters: moduleParameters,
+            boundary: boundary(in: environment),
+            supportsPreviewConvexity: supportsPreviewConvexity,
+            environment: environment
+        )
     }
 
     var supportsPreviewConvexity: Bool { false }

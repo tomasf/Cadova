@@ -10,30 +10,14 @@ struct EnvironmentModifier<Geometry> {
 }
 
 extension EnvironmentModifier<any Geometry2D>: Geometry2D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body.codeFragment(in: modifiedEnvironment(environment))
-    }
-
-    func boundary(in environment: Environment) -> Boundary2D {
-        body.boundary(in: modifiedEnvironment(environment))
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: modifiedEnvironment(environment))
+    func evaluated(in environment: Environment) -> Output2D {
+        body.evaluated(in: modifiedEnvironment(environment))
     }
 }
 
 extension EnvironmentModifier<any Geometry3D>: Geometry3D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body.codeFragment(in: modifiedEnvironment(environment))
-    }
-
-    func boundary(in environment: Environment) -> Boundary3D {
-        body.boundary(in: modifiedEnvironment(environment))
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: modifiedEnvironment(environment))
+    func evaluated(in environment: Environment) -> Output3D {
+        body.evaluated(in: modifiedEnvironment(environment))
     }
 }
 

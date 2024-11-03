@@ -12,23 +12,25 @@ fileprivate struct Prefix<Geometry> {
     }
 }
 
-extension Prefix<any Geometry2D>: Geometry2D, WrappedGeometry2D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(prefix: prefix, body: body.codeFragment(in: environment))
-    }
-
-    func boundary(in environment: Environment) -> Boundary2D {
-        isImmaterial ? .empty : body.boundary(in: environment)
+extension Prefix<any Geometry2D>: Geometry2D {
+    func evaluated(in environment: Environment) -> Output2D {
+        let child = body.evaluated(in: environment)
+        return .init(
+            codeFragment: .init(prefix: prefix, body: child.codeFragment),
+            boundary: isImmaterial ? .empty : child.boundary,
+            elements: child.elements
+        )
     }
 }
 
-extension Prefix<any Geometry3D>: Geometry3D, WrappedGeometry3D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(prefix: prefix, body: body.codeFragment(in: environment))
-    }
-
-    func boundary(in environment: Environment) -> Boundary3D {
-        isImmaterial ? .empty : body.boundary(in: environment)
+extension Prefix<any Geometry3D>: Geometry3D {
+    func evaluated(in environment: Environment) -> Output3D {
+        let child = body.evaluated(in: environment)
+        return .init(
+            codeFragment: .init(prefix: prefix, body: child.codeFragment),
+            boundary: isImmaterial ? .empty : child.boundary,
+            elements: child.elements
+        )
     }
 }
 

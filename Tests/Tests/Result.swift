@@ -45,6 +45,6 @@ fileprivate extension Geometry3D {
     }
 
     var testValue: Int? {
-        elements(in: .defaultEnvironment)[TestElement.self]?.value
+        evaluated(in: .defaultEnvironment).elements[TestElement.self]?.value
     }
 }

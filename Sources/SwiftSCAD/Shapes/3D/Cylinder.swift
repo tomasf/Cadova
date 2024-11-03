@@ -30,7 +30,6 @@ public struct Cylinder: LeafGeometry3D {
             top.as3D(z: height)
         )
     }
-    var boundary: Bounds { .empty } // Unused
 }
 
 public extension Cylinder {

@@ -16,13 +16,20 @@ public struct Text: LeafGeometry2D {
         self.text = text
     }
 
-    public func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(module: "text", parameters: environment.textAttributes.moduleParameters(text: text), body: [])
+    public func evaluated(in environment: Environment) -> Output2D {
+        .init(
+            codeFragment: .init(module: "text", parameters: environment.textAttributes.moduleParameters(text: text), body: []),
+            boundary: boundary(in: environment),
+            elements: [:]
+        )
     }
+
     let moduleName = "" // Unused
     var moduleParameters: CodeFragment.Parameters { [:] } // Unused
 
-    var boundary: Bounds { .empty }
+    func boundary(in environment: Environment) -> Bounds {
+        .empty
+    }
 }
 
 public extension Text {

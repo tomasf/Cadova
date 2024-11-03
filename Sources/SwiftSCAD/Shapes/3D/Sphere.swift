@@ -34,7 +34,6 @@ public struct Sphere: LeafGeometry3D {
     public func boundary(in environment: Environment) -> Bounds {
         .sphere(radius: diameter / 2, facets: environment.facets)
     }
-    var boundary: Bounds { .empty } // Unused
 }
 
 public extension Sphere {

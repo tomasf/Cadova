@@ -7,9 +7,9 @@ struct EnvironmentTest {
         // Injected environment values are only valid inside body
         #expect(shape.injectedTestValue == 0)
 
-        _ = shape
+        shape
             .withTestEnvironmentValue(381)
-            .code
+            .triggerEvaluation()
 
         // Was it properly reset after evaluation?
         #expect(shape.injectedTestValue == 0)
@@ -28,7 +28,7 @@ fileprivate struct TestShape: Shape3D {
             #expect($0 == 381)
 
             // This happens outside of the actual call of body, but still inside
-            // codeFragment(in:), and we still want the wrapper value to be valid here
+            // evaluated(in:), and we still want the wrapper value to be valid here
             #expect(injectedTestValue == 381)
         }
 

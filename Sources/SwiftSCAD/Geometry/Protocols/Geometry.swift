@@ -12,21 +12,19 @@ import Foundation
 /// Two-dimensional geometry.
 /// Don't conform your types to this protocol directly; instead, use `Shape2D` and implement its `body` property.
 public protocol Geometry2D {
+    typealias Output = Output2D
     typealias Bounds = Boundary<Vector2D>
 
-    func codeFragment(in environment: Environment) -> CodeFragment
-    func boundary(in environment: Environment) -> Bounds
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement]
+    func evaluated(in environment: Environment) -> Output
 }
 
 /// Three-dimensional geometry
 /// Don't conform your types to this protocol directly; instead, use `Shape3D` and implement its `body` property.
 public protocol Geometry3D {
+    typealias Output = Output3D
     typealias Bounds = Boundary<Vector3D>
 
-    func codeFragment(in environment: Environment) -> CodeFragment
-    func boundary(in environment: Environment) -> Bounds
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement]
+    func evaluated(in environment: Environment) -> Output
 }
 
 public typealias GeometryBuilder3D = ArrayBuilder<any Geometry3D>

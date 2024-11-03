@@ -20,7 +20,10 @@ public struct Import2D: LeafGeometry2D {
         self.center = center
     }
 
-    let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
+    func boundary(in environment: Environment) -> Bounds {
+        .empty // We don't know this; the import is done by OpenSCAD
+    }
+
     let moduleName = "import"
     var moduleParameters: CodeFragment.Parameters {
         [
@@ -45,7 +48,10 @@ public struct Import3D: LeafGeometry3D {
         self.path = (path as NSString).expandingTildeInPath
     }
 
-    let boundary = Bounds.empty // We don't know this; the import is done by OpenSCAD
+    func boundary(in environment: Environment) -> Bounds {
+        .empty // We don't know this; the import is done by OpenSCAD
+    }
+
     let moduleName = "import"
     var moduleParameters: CodeFragment.Parameters {
         ["file": path]

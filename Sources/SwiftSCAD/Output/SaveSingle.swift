@@ -37,8 +37,7 @@ public extension Geometry2D {
 internal extension AnyGeometry {
     func save(to url: URL) {
         let environment = Environment.defaultEnvironment
-        let formats = results(in: environment).outputFormats
-        let codeFragment = codeFragment(in: environment)
+        let (codeFragment, _, formats) = evaluated(in: environment)
         for format in formats {
             let finalURL = url.withRequiredExtension(format.fileExtension)
             codeFragment.save(to: finalURL, format: format)

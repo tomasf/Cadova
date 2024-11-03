@@ -15,24 +15,14 @@ internal protocol TransformedGeometry2D: Geometry2D {
 }
 
 extension TransformedGeometry2D {
-    private func bodyEnvironment(_ environment: Environment) -> Environment {
-        environment.applyingTransform(.init(bodyTransform))
-    }
-
-    func codeFragment(in environment: Environment) -> CodeFragment {
+    func evaluated(in environment: Environment) -> Output {
         .init(
-            module: moduleName,
-            parameters: moduleParameters,
-            body: [body.codeFragment(in: bodyEnvironment(environment))]
+            body: body,
+            moduleName: moduleName,
+            moduleParameters: moduleParameters,
+            transform: bodyTransform,
+            environment: environment
         )
-    }
-
-    func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: bodyEnvironment(environment)).transformed(bodyTransform)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: bodyEnvironment(environment))
     }
 }
 
@@ -44,23 +34,13 @@ internal protocol TransformedGeometry3D: Geometry3D {
 }
 
 extension TransformedGeometry3D {
-    private func bodyEnvironment(_ environment: Environment) -> Environment {
-        environment.applyingTransform(.init(bodyTransform))
-    }
-
-    func codeFragment(in environment: Environment) -> CodeFragment {
+    func evaluated(in environment: Environment) -> Output {
         .init(
-            module: moduleName,
-            parameters: moduleParameters,
-            body: [body.codeFragment(in: bodyEnvironment(environment))]
+            body: body,
+            moduleName: moduleName,
+            moduleParameters: moduleParameters,
+            transform: bodyTransform,
+            environment: environment
         )
-    }
-
-    func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: bodyEnvironment(environment)).transformed(bodyTransform)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: bodyEnvironment(environment))
     }
 }

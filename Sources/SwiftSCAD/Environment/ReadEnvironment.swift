@@ -6,30 +6,14 @@ struct _EnvironmentReader<Geometry> {
 }
 
 extension _EnvironmentReader<any Geometry2D>: Geometry2D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body(environment).codeFragment(in: environment)
-    }
-
-    func boundary(in environment: Environment) -> Boundary2D {
-        body(environment).boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body(environment).elements(in: environment)
+    func evaluated(in environment: Environment) -> Output2D {
+        body(environment).evaluated(in: environment)
     }
 }
 
 extension _EnvironmentReader<any Geometry3D>: Geometry3D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body(environment).codeFragment(in: environment)
-    }
-
-    func boundary(in environment: Environment) -> Boundary3D {
-        body(environment).boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body(environment).elements(in: environment)
+    func evaluated(in environment: Environment) -> Output3D {
+        body(environment).evaluated(in: environment)
     }
 }
 

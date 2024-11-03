@@ -2,7 +2,7 @@ import Foundation
 
 fileprivate struct ForceRender<Geometry> {
     let body: Geometry
-    let moduleName: String? = "render"
+    let moduleName = "render"
 }
 
 extension ForceRender<any Geometry2D>: Geometry2D, WrappedGeometry2D {}

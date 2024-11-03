@@ -20,21 +20,9 @@ public protocol Shape2D: Geometry2D {
 }
 
 public extension Shape2D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
+    func evaluated(in environment: Environment) -> Output {
         whileInjecting(environment: environment, into: self) {
-            body.codeFragment(in: environment)
-        }
-    }
-
-    func boundary(in environment: Environment) -> Bounds {
-        whileInjecting(environment: environment, into: self) {
-            body.boundary(in: environment)
-        }
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        whileInjecting(environment: environment, into: self) {
-            body.elements(in: environment)
+            body.evaluated(in: environment)
         }
     }
 }
@@ -59,21 +47,9 @@ public protocol Shape3D: Geometry3D {
 }
 
 public extension Shape3D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
+    func evaluated(in environment: Environment) -> Output {
         whileInjecting(environment: environment, into: self) {
-            body.codeFragment(in: environment)
-        }
-    }
-
-    func boundary(in environment: Environment) -> Bounds {
-        whileInjecting(environment: environment, into: self) {
-            body.boundary(in: environment)
-        }
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        whileInjecting(environment: environment, into: self) {
-            body.elements(in: environment)
+            body.evaluated(in: environment)
         }
     }
 }

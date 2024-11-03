@@ -23,24 +23,14 @@ struct Projection: Geometry2D {
         }
     }
 
-    func newEnvironment(_ environment: Environment) -> Environment {
-        environment.applyingTransform(.scaling(z: 0))
-    }
-
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(
-            module: "projection",
-            parameters: parameters,
-            body: [appliedBody.codeFragment(in: newEnvironment(environment))]
+    func evaluated(in environment: Environment) -> Output2D {
+        let environment = environment.applyingTransform(.scaling(z: 0))
+        let bodyOutput = appliedBody.evaluated(in: environment)
+        return .init(
+            codeFragment: .init(module: "projection", parameters: parameters, body: [bodyOutput.codeFragment]),
+            boundary: bodyOutput.boundary.map(\.xy),
+            elements: bodyOutput.elements
         )
-    }
-
-    func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: newEnvironment(environment)).map(\.xy)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        appliedBody.elements(in: newEnvironment(environment))
     }
 }
 

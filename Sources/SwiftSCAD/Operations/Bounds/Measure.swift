@@ -9,13 +9,13 @@ fileprivate struct ReadBoundary<V: Vector> {
 
 extension ReadBoundary<Vector2D>: Geometry2D, Shape2D {
     var body: any Geometry2D {
-        builder(target.boundary(in: environment))
+        builder(target.evaluated(in: environment).boundary)
     }
 }
 
 extension ReadBoundary<Vector3D>: Geometry3D, Shape3D {
     var body: any Geometry3D {
-        builder(target.boundary(in: environment))
+        builder(target.evaluated(in: environment).boundary)
     }
 }
 
@@ -61,9 +61,9 @@ public extension Geometry3D {
 }
 
 public func measureBounds<V>(_ geometry: any Geometry2D, in environment: Environment = .defaultEnvironment, operation: (BoundingBox2D?) -> V) -> V {
-    operation(geometry.boundary(in: environment).boundingBox)
+    operation(geometry.evaluated(in: environment).boundary.boundingBox)
 }
 
 public func measureBounds<V>(_ geometry: any Geometry3D, in environment: Environment = .defaultEnvironment, operation: (BoundingBox3D?) -> V) -> V {
-    operation(geometry.boundary(in: environment).boundingBox)
+    operation(geometry.evaluated(in: environment).boundary.boundingBox)
 }

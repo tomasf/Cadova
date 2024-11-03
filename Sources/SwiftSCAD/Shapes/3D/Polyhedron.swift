@@ -22,7 +22,7 @@ public struct Polyhedron: LeafGeometry3D {
         ["points": points, "faces": faces]
     }
 
-    var boundary: Bounds {
+    func boundary(in environment: Environment) -> Bounds {
         .points(points)
     }
 

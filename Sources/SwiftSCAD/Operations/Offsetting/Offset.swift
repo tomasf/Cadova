@@ -5,7 +5,7 @@ internal struct Offset: WrappedGeometry2D {
     let amount: Double
     let style: LineJoinStyle
 
-    let moduleName: String? = "offset"
+    let moduleName = "offset"
     var moduleParameters: CodeFragment.Parameters {
         switch style {
         case .round: ["r": amount]
@@ -14,8 +14,8 @@ internal struct Offset: WrappedGeometry2D {
         }
     }
 
-    func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: environment).scaleOffset(amount)
+    func boundary(bodyBoundary: Bounds) -> Bounds {
+        bodyBoundary.scaleOffset(amount)
     }
 }
 

@@ -18,7 +18,7 @@ fileprivate struct _Stack<V: Vector> {
 
 extension _Stack<Vector2D>: Geometry2D, Shape2D {
     func requireBoundingBox(_ geometry: V.Geometry, in environment: Environment) -> BoundingBox<V> {
-        guard let box = geometry.boundary(in: environment).boundingBox else {
+        guard let box = geometry.evaluated(in: environment).boundary.boundingBox else {
             preconditionFailure("Stack item has empty bounds: \(geometry)")
         }
         return box
@@ -37,7 +37,7 @@ extension _Stack<Vector2D>: Geometry2D, Shape2D {
 
 extension _Stack<Vector3D>: Geometry3D, Shape3D {
     func requireBoundingBox(_ geometry: V.Geometry, in environment: Environment) -> BoundingBox<V> {
-        guard let box = geometry.boundary(in: environment).boundingBox else {
+        guard let box = geometry.evaluated(in: environment).boundary.boundingBox else {
             preconditionFailure("Stack item has empty bounds: \(geometry)")
         }
         return box

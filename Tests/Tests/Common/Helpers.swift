@@ -9,15 +9,15 @@ func scadFile(_ fileName: String) -> String {
 
 extension Geometry2D {
     var code: String {
-        usingDefaultFacets().codeFragment(in: .defaultEnvironment).scadCode
+        usingDefaultFacets().evaluated(in: .defaultEnvironment).codeFragment.scadCode
     }
 
     func triggerEvaluation() {
-        _ = codeFragment(in: .defaultEnvironment)
+        _ = evaluated(in: .defaultEnvironment)
     }
 
     var bounds: BoundingBox2D? {
-        boundary(in: .defaultEnvironment).boundingBox
+        evaluated(in: .defaultEnvironment).boundary.boundingBox
     }
 }
 
@@ -30,17 +30,17 @@ extension Geometry3D {
     }
 
     var code: String {
-        let code1 = usingDefaultFacets().codeFragment(in: .defaultEnvironment).scadCode
-        let code2 = usingDefaultFacets().codeFragment(in: .defaultEnvironment).scadCode
+        let code1 = usingDefaultFacets().evaluated(in: .defaultEnvironment).codeFragment.scadCode
+        let code2 = usingDefaultFacets().evaluated(in: .defaultEnvironment).codeFragment.scadCode
         #expect(code1 == code2, "Inconsistent code generation")
         return code1
     }
 
     var bounds: BoundingBox3D? {
-        boundary(in: .defaultEnvironment).boundingBox
+        evaluated(in: .defaultEnvironment).boundary.boundingBox
     }
 
     func triggerEvaluation() {
-        _ = codeFragment(in: .defaultEnvironment)
+        _ = evaluated(in: .defaultEnvironment)
     }
 }

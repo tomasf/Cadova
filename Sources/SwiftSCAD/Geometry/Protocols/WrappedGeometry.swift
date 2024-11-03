@@ -2,56 +2,36 @@ import Foundation
 
 internal protocol WrappedGeometry2D: Geometry2D {
     var body: any Geometry2D { get }
-    var moduleName: String? { get }
+    var moduleName: String { get }
     var moduleParameters: CodeFragment.Parameters { get }
+    func boundary(bodyBoundary: Bounds) -> Bounds
 }
 
 extension WrappedGeometry2D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        let bodyFragment = body.codeFragment(in: environment)
-        if let moduleName {
-            return CodeFragment(module: moduleName, parameters: moduleParameters, body: [bodyFragment])
-        } else {
-            return bodyFragment
+    func evaluated(in environment: Environment) -> Output {
+        .init(bodyOutput: body.evaluated(in: environment), moduleName: moduleName, moduleParameters: moduleParameters) {
+            boundary(bodyBoundary: $0)
         }
     }
 
-    func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: environment)
-    }
-
-    public var moduleName: String? { nil }
+    func boundary(bodyBoundary: Bounds) -> Bounds { bodyBoundary }
     public var moduleParameters: CodeFragment.Parameters { [:] }
 }
 
 internal protocol WrappedGeometry3D: Geometry3D {
     var body: any Geometry3D { get }
-    var moduleName: String? { get }
+    var moduleName: String { get }
     var moduleParameters: CodeFragment.Parameters { get }
+    func boundary(bodyBoundary: Bounds) -> Bounds
 }
 
 extension WrappedGeometry3D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        let bodyFragment = body.codeFragment(in: environment)
-        if let moduleName {
-            return CodeFragment(module: moduleName, parameters: moduleParameters, body: [bodyFragment])
-        } else {
-            return bodyFragment
+    func evaluated(in environment: Environment) -> Output {
+        .init(bodyOutput: body.evaluated(in: environment), moduleName: moduleName, moduleParameters: moduleParameters) {
+            boundary(bodyBoundary: $0)
         }
     }
 
-    func boundary(in environment: Environment) -> Bounds {
-        body.boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: environment)
-    }
-
-    public var moduleName: String? { nil }
+    func boundary(bodyBoundary: Bounds) -> Bounds { bodyBoundary }
     public var moduleParameters: CodeFragment.Parameters { [:] }
 }

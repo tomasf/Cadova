@@ -9,18 +9,15 @@ internal protocol CombinedGeometry2D: Geometry2D {
 }
 
 extension CombinedGeometry2D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(module: moduleName, parameters: moduleParameters, body: children.map { $0.codeFragment(in: environment) })
-    }
-
-    func boundary(in environment: Environment) -> Boundary2D {
-        let boundaries = children.map { $0.boundary(in: environment) }
-        return boundaryMergeStrategy.apply(boundaries)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        let allElements = children.map { $0.elements(in: environment) }
-        return .init(combining: allElements, operation: combination)
+    func evaluated(in environment: Environment) -> Output2D {
+        .init(
+            children: children,
+            boundaryMergeStrategy: boundaryMergeStrategy,
+            combination: combination,
+            moduleName: moduleName,
+            moduleParameters: moduleParameters,
+            environment: environment
+        )
     }
 
     var moduleParameters: CodeFragment.Parameters { [:] }
@@ -36,37 +33,16 @@ internal protocol CombinedGeometry3D: Geometry3D {
 }
 
 extension CombinedGeometry3D {
-    func childEnvironment(for environment: Environment) -> Environment {
-        supportsPreviewConvexity ? environment.withPreviewConvexity(nil) : environment
-    }
-
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        var params = moduleParameters
-        if let convexity = environment.previewConvexity, supportsPreviewConvexity {
-            params["convexity"] = convexity
-        }
-
-        return .init(
-            module: moduleName,
-            parameters: params,
-            body: children.map {
-                $0.codeFragment(in: childEnvironment(for: environment))
-            }
+    func evaluated(in environment: Environment) -> Output3D {
+        .init(
+            children: children,
+            boundaryMergeStrategy: boundaryMergeStrategy,
+            combination: combination,
+            moduleName: moduleName,
+            moduleParameters: moduleParameters,
+            supportsPreviewConvexity: supportsPreviewConvexity,
+            environment: environment
         )
-    }
-
-    func boundary(in environment: Environment) -> Boundary3D {
-        let boundaries = children.map {
-            $0.boundary(in: childEnvironment(for: environment))
-        }
-        return boundaryMergeStrategy.apply(boundaries)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        let allElements = children.map {
-            $0.elements(in: childEnvironment(for: environment))
-        }
-        return .init(combining: allElements, operation: combination)
     }
 
     var moduleParameters: CodeFragment.Parameters { [:] }

@@ -51,11 +51,9 @@ public struct Circle: LeafGeometry2D {
         ["d": diameter]
     }
 
-    public func boundary(in environment: Environment) -> Bounds {
+    func boundary(in environment: Environment) -> Bounds {
         .circle(radius: diameter / 2, facets: environment.facets)
     }
-
-    var boundary: Bounds { .empty } // Unused
 }
 
 public extension Circle {

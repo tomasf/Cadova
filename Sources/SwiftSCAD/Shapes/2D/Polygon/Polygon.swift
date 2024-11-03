@@ -40,19 +40,14 @@ public struct Polygon: Geometry2D {
         self.init(provider: JoinedPolygonPoints(providers: polygons.map(\.pointsProvider)))
     }
 
-    public func codeFragment(in environment: Environment) -> CodeFragment {
-        .init(
-            module: "polygon",
-            parameters:  ["points": points(in: environment)],
-            body: []
+    public func evaluated(in environment: Environment) -> Output2D {
+        let points = points(in: environment)
+        return .init(
+            codeFragment: .init(module: "polygon", parameters:  ["points": points], body: []),
+            boundary: .points(points),
+            elements: [:]
         )
     }
-
-    public func boundary(in environment: Environment) -> Bounds {
-        .points(points(in: environment))
-    }
-
-    public func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] { [:] }
 }
 
 public extension Polygon {

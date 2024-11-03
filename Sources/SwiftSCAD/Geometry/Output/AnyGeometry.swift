@@ -1,35 +1,32 @@
 import Foundation
 
 public struct AnyGeometry {
-    private let elementsProvider: (Environment) -> ResultElementsByType
-    private let codeFragmentProvider: (Environment) -> CodeFragment
-    private let outputFormatReader: (ResultElementsByType) -> [any OutputFormat]
+    private let dataProvider: (Environment) -> (CodeFragment, name: String?, [any OutputFormat])
 
     internal init(_ geometry: any Geometry2D) {
-        elementsProvider = geometry.elements(in:)
-        codeFragmentProvider = geometry.codeFragment(in:)
-        outputFormatReader = {
-            $0[OutputFormatSet2D.self]?.formats ?? [.scad]
+        dataProvider = { environment in
+            let output = geometry.evaluated(in: environment)
+            return (
+                output.codeFragment,
+                output.elements[GeometryName.self]?.name,
+                output.elements[OutputFormatSet2D.self]?.formats ?? [.scad]
+            )
         }
     }
 
     internal init(_ geometry: any Geometry3D) {
-        elementsProvider = geometry.elements(in:)
-        codeFragmentProvider = geometry.codeFragment(in:)
-        outputFormatReader = {
-            $0[OutputFormatSet3D.self]?.formats ?? [.scad]
+        dataProvider = { environment in
+            let output = geometry.evaluated(in: environment)
+            return (
+                output.codeFragment,
+                output.elements[GeometryName.self]?.name,
+                output.elements[OutputFormatSet3D.self]?.formats ?? [.scad]
+            )
         }
     }
 
-    internal func codeFragment(in environment: Environment) -> CodeFragment {
-        codeFragmentProvider(environment)
-    }
-
-    internal func results(in environment: Environment) -> (name: String?, outputFormats: [any OutputFormat]) {
-        let elements = elementsProvider(environment)
-        let outputFormats = outputFormatReader(elements)
-        let name = elements[GeometryName.self]?.name
-        return (name, outputFormats)
+    internal func evaluated(in environment: Environment) -> (CodeFragment, name: String?, [any OutputFormat]) {
+        dataProvider(environment)
     }
 }
 

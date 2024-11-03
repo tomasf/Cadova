@@ -34,7 +34,10 @@ public struct Rectangle: LeafGeometry2D {
     var moduleParameters: CodeFragment.Parameters {
         ["size": size]
     }
-    var boundary: Bounds { .box(size) }
+
+    func boundary(in environment: Environment) -> Bounds {
+        .box(size)
+    }
 }
 
 extension Rectangle: Area2D {

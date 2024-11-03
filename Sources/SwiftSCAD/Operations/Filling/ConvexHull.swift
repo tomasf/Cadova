@@ -2,7 +2,7 @@ import Foundation
 
 fileprivate struct ConvexHull<Geometry> {
     let body: Geometry
-    let moduleName: String? = "hull"
+    let moduleName = "hull"
 }
 
 extension ConvexHull<Geometry2D>: Geometry2D, WrappedGeometry2D {}

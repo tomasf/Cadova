@@ -8,32 +8,9 @@ internal protocol ExtrusionGeometry: Geometry3D {
 }
 
 extension ExtrusionGeometry {
-    func bodyEnvironment(for environment: Environment) -> Environment {
-        environment.withPreviewConvexity(nil)
-    }
-
-    func codeFragment(in environment: Environment) -> CodeFragment {
-
-        var parameters = moduleParameters
-        if let previewConvexity = environment.previewConvexity {
-            parameters["convexity"] = previewConvexity
-        }
-
-        return CodeFragment(
-            module: moduleName,
-            parameters: parameters,
-            body: [body.codeFragment(in: bodyEnvironment(for: environment))]
-        )
-    }
-
-    func boundary(in environment: Environment) -> Bounds {
-        boundary(
-            for: body.boundary(in: bodyEnvironment(for: environment)),
-            facets: environment.facets
-        )
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        body.elements(in: bodyEnvironment(for: environment))
+    func evaluated(in environment: Environment) -> Output3D {
+        return .init(child: body, boundaryExtrusion: {
+            boundary(for: $0, facets: $1)
+        }, moduleName: moduleName, moduleParameters: moduleParameters, environment: environment)
     }
 }

@@ -6,30 +6,24 @@ struct ResultModifier<Geometry> {
 }
 
 extension ResultModifier<any Geometry2D>: Geometry2D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body.codeFragment(in: environment)
-    }
-
-    func boundary(in environment: Environment) -> Boundary2D {
-        body.boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        modifier(body.elements(in: environment))
+    func evaluated(in environment: Environment) -> Output2D {
+        let bodyOutput = body.evaluated(in: environment)
+        return .init(
+            codeFragment: bodyOutput.codeFragment,
+            boundary: bodyOutput.boundary,
+            elements: modifier(bodyOutput.elements)
+        )
     }
 }
 
 extension ResultModifier<any Geometry3D>: Geometry3D {
-    func codeFragment(in environment: Environment) -> CodeFragment {
-        body.codeFragment(in: environment)
-    }
-
-    func boundary(in environment: Environment) -> Boundary3D {
-        body.boundary(in: environment)
-    }
-
-    func elements(in environment: Environment) -> [ObjectIdentifier: any ResultElement] {
-        modifier(body.elements(in: environment))
+    func evaluated(in environment: Environment) -> Output3D {
+        let bodyOutput = body.evaluated(in: environment)
+        return .init(
+            codeFragment: bodyOutput.codeFragment,
+            boundary: bodyOutput.boundary,
+            elements: modifier(bodyOutput.elements)
+        )
     }
 }
 

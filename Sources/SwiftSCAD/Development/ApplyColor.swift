@@ -4,7 +4,7 @@ fileprivate struct ApplyColor<Geometry> {
     let color: Color
     let body: Geometry
 
-    let moduleName: String? = "color"
+    let moduleName = "color"
     var moduleParameters: CodeFragment.Parameters { color.moduleParameters }
 }
 
