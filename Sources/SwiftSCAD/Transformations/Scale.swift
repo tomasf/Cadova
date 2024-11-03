@@ -58,7 +58,7 @@ public extension Geometry2D {
     ///   - axes: The axes along which to flip the geometry.
     /// - Returns: A flipped geometry.
     func flipped(along axes: Axes2D) -> any Geometry2D {
-        scaled(Vector2D(1, 1).with(axes, as: -1))
+        scaled(Vector2D(1).with(axes, as: -1))
     }
 }
 
@@ -106,6 +106,6 @@ public extension Geometry3D {
     ///   - axes: The axes along which to flip the geometry.
     /// - Returns: A flipped geometry.
     func flipped(along axes: Axes3D) -> any Geometry3D {
-        scaled(Vector3D(1, 1, 1).with(axes, as: -1))
+        scaled(Vector3D(1).with(axes, as: -1))
     }
 }
