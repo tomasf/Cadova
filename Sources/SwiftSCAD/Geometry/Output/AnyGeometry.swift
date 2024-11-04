@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AnyGeometry {
+public struct AnyGeometry: @unchecked Sendable {
     private let dataProvider: (Environment) -> (CodeFragment, name: String?, [any OutputFormat])
 
     internal init(_ geometry: any Geometry2D) {

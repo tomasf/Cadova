@@ -3,11 +3,11 @@ import Foundation
 public func save(to directory: URL? = nil, environment: Environment? = nil, @AnyGeometryBuilder geometries: () -> [AnyGeometry]) {
     let environment = environment ?? .defaultEnvironment
 
-    for geometry in geometries() {
+    geometries().concurrentForEach { geometry in
         let (codeFragment, name, formats) = geometry.evaluated(in: environment)
         guard let name else {
             logger.warning("Found a geometry without a name. Use .named(_:) to assign names to geometry.")
-            continue
+            return
         }
 
         for format in formats {
