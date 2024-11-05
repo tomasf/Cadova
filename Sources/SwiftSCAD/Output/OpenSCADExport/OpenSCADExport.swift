@@ -62,16 +62,13 @@ struct OpenSCADExport {
     enum RunError: LocalizedError {
         case noExecutable
         case processFailed (Int, String)
-        case noData
 
         var errorDescription: String? {
             switch self {
             case .noExecutable:
-                "OpenSCAD was not found. Use the \(OpenSCADExport.executableEnvironmentVariableName) environment variable to set the path to the executable."
+                "Export failed: OpenSCAD was not found. Set the \(OpenSCADExport.executableEnvironmentVariableName) environment variable to the full path of the executable."
             case .processFailed (let code, let info):
-                "Running OpenSCAD failed with code \(code): \(info)"
-            case .noData:
-                "Running OpenSCAD failed. No data was returned."
+                "Export failed: OpenSCAD exited with code \(code): \(info)"
             }
         }
     }

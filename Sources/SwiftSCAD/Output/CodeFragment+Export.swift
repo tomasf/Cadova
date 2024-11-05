@@ -2,21 +2,17 @@ import Foundation
 
 extension CodeFragment {
     func save(to fileURL: URL, format: any OutputFormat) {
-        if format.openSCADTypeString != nil {
-            let operation = OpenSCADExport(inputCode: scadData, outputFormat: format)
-            do {
-                try operation.run().write(to: fileURL, options: .atomic)
-            } catch {
-                logger.error("Export failed: \(error.localizedDescription)")
-                return
+        do {
+            let data = if format.openSCADTypeString != nil {
+                try OpenSCADExport(inputCode: scadData, outputFormat: format).run()
+            } else {
+                scadData
             }
-        } else {
-            do {
-                try scadData.write(to: fileURL, options: .atomic)
-            } catch {
-                logger.error("Failed to write to file \(fileURL)")
-                return
-            }
+
+            try data.write(to: fileURL, options: .atomic)
+        } catch {
+            logger.error("\(error.localizedDescription)")
+            return
         }
         logger.info("Wrote output to \(fileURL.path)")
     }
