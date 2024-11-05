@@ -1,5 +1,18 @@
 import Foundation
 
+internal extension Geometry3D {
+    func roundingBoxCorners(radius: Double, mode: RoundedBoxMask3D.Mode) -> any Geometry3D {
+        let epsilon = 0.001
+        return measuringBounds { child, box in
+            child.intersecting {
+                let box = box.requireNonNil()
+                RoundedBoxMask3D(size: box.size + 2 * epsilon, cornerRadius: radius, mode: mode)
+                    .translated(box.center)
+            }
+        }
+    }
+}
+
 public extension Geometry3D {
     /// Rounds the corners of the geometry using its bounding box dimensions along a specified axis.
     ///
@@ -37,14 +50,14 @@ public extension Geometry3D {
     /// The rounding is done in a spherical manner, affecting all eight corners of the bounding box uniformly.
     
     func roundingBoxCorners(radius: Double) -> any Geometry3D {
-        let epsilon = 0.001
-        return measuringBounds { child, box in
-            child.intersecting {
-                let box = box.requireNonNil()
-                RoundedBoxMask3D(size: box.size + 2 * epsilon, cornerRadius: radius)
-                    .translated(box.center)
-            }
-        }
+        roundingBoxCorners(radius: radius, mode: .full)
+    }
+
+    func roundingBoxCorners(radius: Double, side: Box.Side) -> any Geometry3D {
+        self
+            .rotated(from: side.direction, to: .up)
+            .roundingBoxCorners(radius: radius, mode: .top)
+            .rotated(from: .up, to: side.direction)
     }
 }
 
