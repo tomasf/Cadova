@@ -53,6 +53,19 @@ public extension Geometry3D {
         roundingBoxCorners(radius: radius, mode: .full)
     }
 
+    /// Rounds the four corners of the specified side of the geometry.
+    ///
+    /// This method applies rounding to the four corners of the chosen side of the geometry.
+    ///
+    /// - Parameters:
+    ///   - radius: The radius of the rounding applied to the four corners.
+    ///   - side: The side of the box to round, specified using `Box.Side` (e.g., `.minY`, `.top`, `.back`).
+    ///
+    /// - Returns: A new `Geometry3D` object with the specified side's corners rounded.
+    ///
+    /// This method is intended for geometries with box-like structures, where rounding only one side’s corners
+    /// is desired. The specified side’s four corners are smoothly rounded based on the given radius.
+    ///
     func roundingBoxCorners(radius: Double, side: Box.Side) -> any Geometry3D {
         self
             .rotated(from: side.direction, to: .up)
