@@ -33,6 +33,10 @@ struct Geometry3DTests {
             Box([10, 8, 5])
                 .roundingBoxCorners(radius: 2)
                 .usingFacets(count: 20)
+            Box([3, 4, 18])
+                .roundingBoxCorners(.topRight, axis: .x, radius: 2)
+            Box([8, 10, 6])
+                .roundingBoxCorners(.bottom, axis: .y, radius: 2.5)
         }
 
         #expect(geometry.code == scadFile("rounded-box"))
