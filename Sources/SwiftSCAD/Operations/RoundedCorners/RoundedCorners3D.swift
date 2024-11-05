@@ -63,13 +63,20 @@ public extension Geometry3D {
 
 internal extension Geometry3D {
     func roundingBoxCorners(axis: Axis3D, _ radii: RectangleCornerRadii, style: RoundedCornerStyle = .circular) -> any Geometry3D {
-        let epsilon = 0.001
-        return measuringBounds { child, box in
-            let box = box.requireNonNil()
-            child.intersecting {
-                RoundedBoxMaskSingleAxis(size: box.size + 2 * epsilon, cornerStyle: style, axis: axis, radii: radii)
-                    .translated(box.minimum)
+        let adjustments = [90°, 0°, 180°]
+
+        return self
+            .rotated(from: axis.direction * -1, to: .up)
+            .rotated(z: adjustments[axis.index])
+            .measuringBounds { body, box in
+                let box = box.requireNonNil()
+                body.intersecting {
+                    RoundedRectangleMask(box.size.xy, style: style, radii: radii)
+                        .extruded(height: box.size.z)
+                        .translated(box.minimum)
+                }
             }
-        }
+            .rotated(z: -adjustments[axis.index])
+            .rotated(from: .up, to: axis.direction * -1)
     }
 }
