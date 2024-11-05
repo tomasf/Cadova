@@ -51,4 +51,8 @@ public enum AxisDirection: Sendable {
 
     static let min = negative
     static let max = positive
+
+    internal var factor: Double {
+        self == .negative ? -1 : 1
+    }
 }

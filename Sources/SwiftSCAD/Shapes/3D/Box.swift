@@ -50,4 +50,5 @@ public struct Box: LeafGeometry3D {
 
     func boundary(in environment: Environment) -> Bounds {
         .box(size)
-    }}
+    }
+}
