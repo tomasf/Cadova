@@ -15,7 +15,7 @@ public extension Geometry2D {
     /// This method uses the bounding rectangle of the geometry to determine the appropriate size for the rounding mask.
     /// It is intended for geometries that are rectangular or similar enough for this approximation to be effective.
 
-    func roundingRectangleCorners(_ corners: RectangleCorners = .all, radius: Double, style: RoundedCornerStyle = .circular) -> any Geometry2D {
+    func roundingRectangleCorners(_ corners: Rectangle.Corners = .all, radius: Double, style: RoundedCornerStyle = .circular) -> any Geometry2D {
         roundingRectangleCorners(.init(radius, corners: corners), style: style)
     }
 }

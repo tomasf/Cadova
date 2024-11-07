@@ -32,7 +32,7 @@ public extension Geometry3D {
     /// This method uses the bounding box of the geometry to determine the appropriate size for rounding.
     /// It is intended for geometries that are box-like or similar enough for this approximation to be effective.
 
-    func roundingBoxCorners(_ corners: RectangleCorners = .all, axis: Axis3D, radius: Double, style: RoundedCornerStyle = .circular) -> any Geometry3D {
+    func roundingBoxCorners(_ corners: Rectangle.Corners = .all, axis: Axis3D, radius: Double, style: RoundedCornerStyle = .circular) -> any Geometry3D {
         roundingBoxCorners(axis: axis, .init(radius, corners: corners), style: style)
     }
 
@@ -66,11 +66,62 @@ public extension Geometry3D {
     /// This method is intended for geometries with box-like structures, where rounding only one side’s corners
     /// is desired. The specified side’s four corners are smoothly rounded based on the given radius.
     ///
-    func roundingBoxCorners(radius: Double, side: Box.Side) -> any Geometry3D {
+    func roundingBoxCorners(side: Box.Side, radius: Double) -> any Geometry3D {
         self
             .rotated(from: side.direction, to: .up)
             .roundingBoxCorners(radius: radius, mode: .top)
             .rotated(from: .up, to: side.direction)
+    }
+
+    /// Rounds the specified corner and its adjacent edges based on the geometry's bounding box dimensions.
+    ///
+    /// This method applies rounding to a single corner of the geometry, smoothing the transition between the three edges that converge at the specified corner.
+    /// The rounding effect is localized to the given corner and provides a softened appearance at that point.
+    ///
+    /// - Parameters:
+    ///   - corner: The corner to round, specified using `Box.Corner` (e.g., `.minXminYminZ`).
+    ///   - radius: The radius of the rounding applied to the selected corner and its adjacent edges.
+    ///
+    /// - Returns: A new `Geometry3D` object with the specified corner and its adjacent edges rounded.
+    ///
+    /// This method is intended for box-like geometries where rounding only one corner is desired.
+    /// It uses the bounding box of the geometry to determine the correct positioning and size for the rounding effect.
+    /// The specified corner is rounded in a way that affects the three edges meeting at that corner.
+    ///
+    func roundingBoxCorner(_ corner: Box.Corner, radius: Double) -> any Geometry3D {
+        self
+            .flipped(along: corner.maxAxes)
+            .measuringBounds { child, box in
+                child.intersecting {
+                    let box = box.requireNonNil()
+                    child.intersecting {
+                        RoundedBoxCornerMask(boxSize: box.size, radius: radius)
+                            .translated(box.minimum)
+                    }
+                }
+            }
+            .flipped(along: corner.maxAxes)
+    }
+
+    /// Rounds the specified corners of the geometry based on its bounding box dimensions.
+    ///
+    /// This method applies rounding to multiple corners of the geometry, smoothing the transition at each selected corner.
+    /// Each corner is rounded individually, providing a softened appearance at the points specified by the `corners` parameter.
+    ///
+    /// - Parameters:
+    ///   - corners: A set of corners to round, specified using `Box.Corner` (e.g., `[.minXminYminZ, .maxXminYminZ]`).
+    ///   - radius: The radius of the rounding applied to each specified corner and its adjacent edges.
+    ///
+    /// - Returns: A new `Geometry3D` object with the specified corners rounded.
+    ///
+    /// This method is intended for box-like geometries where rounding multiple corners is desired.
+    /// It uses the bounding box of the geometry to determine the correct positioning and size for the rounding effect.
+    /// Each specified corner is rounded individually, affecting the three edges that meet at each corner.
+    ///
+    func roundingBoxCorners(_ corners: Set<Box.Corner>, radius: Double) -> any Geometry3D {
+        corners.reduce(self) {
+            $0.roundingBoxCorner($1, radius: radius)
+        }
     }
 }
 

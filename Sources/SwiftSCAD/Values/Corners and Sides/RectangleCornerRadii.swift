@@ -13,7 +13,7 @@ internal struct RectangleCornerRadii: Sendable {
         self.minXmaxY = minXmaxY
     }
 
-    init(_ value: Double, corners: RectangleCorners) {
+    init(_ value: Double, corners: Rectangle.Corners) {
         self.init(
             corners.contains(.bottomLeft) ? value : 0,
             corners.contains(.bottomRight) ? value : 0,

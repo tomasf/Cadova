@@ -19,7 +19,7 @@ internal struct RoundedBoxMask3D: Shape3D {
 
     var body: any Geometry3D {
         readEnvironment { environment in
-            let facets = environment.facets.facetCount(circleRadius: cornerRadius) / 4
+            let facets = max(environment.facets.facetCount(circleRadius: cornerRadius) / 4, 1)
 
             struct BoxParameters: Hashable {
                 let radius: Double

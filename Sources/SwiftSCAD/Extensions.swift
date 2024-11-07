@@ -73,3 +73,9 @@ extension RangeExpression {
         }
     }
 }
+
+extension Comparable {
+    func clamped(to range: ClosedRange<Self>) -> Self {
+        max(range.lowerBound, min(range.upperBound, self))
+    }
+}
