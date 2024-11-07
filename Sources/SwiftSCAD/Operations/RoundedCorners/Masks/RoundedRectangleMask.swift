@@ -20,7 +20,6 @@ internal struct RoundedRectangleMask: Shape2D {
 
     var body: any Geometry2D {
         func corner(radius: Double, posX: Bool, posY: Bool) -> Polygon {
-            print(radius)
             var polygon = style
                 .polygon(radius: radius, facets: facets)
                 .transformed(.identity

@@ -3,16 +3,13 @@ import Foundation
 public extension Geometry3D {
     /// Saves the 3D geometry to a specified URL.
     /// - Parameter url: The URL of the file to save the geometry to.
-    @discardableResult
-    func save(to url: URL) -> any Geometry3D {
+    func save(to url: URL) {
         AnyGeometry(self.usingDefaultFacets()).save(to: url)
-        return self
     }
 
     /// Saves the 3D geometry to a specified path.
     /// - Parameter path: The path of the file to save the geometry to.
-    @discardableResult
-    func save(to path: String) -> any Geometry3D {
+    func save(to path: String) {
         save(to: URL(expandingFilePath: path))
     }
 }
@@ -20,16 +17,13 @@ public extension Geometry3D {
 public extension Geometry2D {
     /// Saves the 2D geometry to a specified URL.
     /// - Parameter url: The URL of the file to save the geometry to.
-    @discardableResult
-    func save(to url: URL) -> any Geometry2D {
+    func save(to url: URL) {
         AnyGeometry(self.usingDefaultFacets()).save(to: url)
-        return self
     }
 
     /// Saves the 2D geometry to a specified path.
     /// - Parameter path: The path of the file to save the geometry to.
-    @discardableResult
-    func save(to path: String) -> any Geometry2D {
+    func save(to path: String) {
         save(to: URL(expandingFilePath: path))
     }
 }
