@@ -20,8 +20,8 @@ public extension Geometry2D {
         return measuringBounds { child, box in
             let box = box.requireNonNil()
             child.intersecting {
-                RoundedRectangleMask(size: box.size + 2 * epsilon, radius: radius, corners: corners, style: style)
-                    .translated(box.minimum - epsilon)
+                RoundedRectangleMask(size: box.size, radius: radius, corners: corners, style: style)
+                    .translated(box.center)
             }
         }
     }

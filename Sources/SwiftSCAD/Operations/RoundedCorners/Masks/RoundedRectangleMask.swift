@@ -19,27 +19,39 @@ internal struct RoundedRectangleMask: Shape2D {
     }
 
     var body: any Geometry2D {
-        func corner(radius: Double, posX: Bool, posY: Bool) -> Polygon {
-            var polygon = style
-                .polygon(radius: radius, facets: facets)
-                .transformed(.identity
-                    .translated([size.x / 2 - radius, size.y / 2 - radius])
-                    .scaled(x: posX ? 1 : -1, y: posY ? 1 : -1)
-                    .translated([size.x / 2, size.y / 2])
-                )
-
-            if posX == posY {
-                polygon = polygon.reversed()
+        func corner(_ corner: Rectangle.Corner) -> Polygon {
+            if corners.contains(corner) {
+                style.polygon(radius: radius, facets: facets)
+                    .transformed(.identity
+                        .translated(.init(-radius))
+                        .rotated(corner.rotation)
+                        .translated(corner.point(boxSize: size))
+                    )
+            } else {
+                .init([corner.point(boxSize: size)])
             }
-            return polygon
         }
 
-        return Polygon([
-            corner(radius: corners.contains(.minXmaxY) ? radius : 0, posX: false, posY: true),
-            corner(radius: corners.contains(.maxXmaxY) ? radius : 0, posX: true, posY: true),
-            corner(radius: corners.contains(.maxXminY) ? radius : 0, posX: true, posY: false),
-            corner(radius: corners.contains(.minXminY) ? radius : 0, posX: false, posY: false),
-        ])
+        return Polygon([corner(.minXminY), corner(.maxXminY), corner(.maxXmaxY), corner(.minXmaxY)])
     }
 }
 
+fileprivate extension Rectangle.Corners {
+    func cornerCountAffecting(_ axis: Axis2D) -> Int {
+        switch axis {
+        case .x: (isDisjoint(with: Self.minX) ? 0 : 1) + (isDisjoint(with: Self.maxX) ? 0 : 1)
+        case .y: (isDisjoint(with: Self.minY) ? 0 : 1) + (isDisjoint(with: Self.maxY) ? 0 : 1)
+        }
+    }
+}
+
+fileprivate extension Rectangle.Corner {
+    var rotation: Angle {
+        switch (x, y) {
+        case (.negative, .negative): 180°
+        case (.positive, .negative): 270°
+        case (.positive, .positive): 0°
+        case (.negative, .positive): 90°
+        }
+    }
+}

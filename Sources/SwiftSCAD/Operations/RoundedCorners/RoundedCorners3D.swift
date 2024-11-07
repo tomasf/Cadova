@@ -30,7 +30,8 @@ public extension Geometry3D {
                 body.intersecting {
                     RoundedRectangleMask(size: box.size.xy, radius: radius, corners: corners, style: style)
                         .extruded(height: box.size.z)
-                        .translated(box.minimum)
+                        .translated(z: -box.size.z / 2)
+                        .translated(box.center)
                 }
             }
             .rotated(z: -adjustments[axis.index])

@@ -43,7 +43,7 @@ public enum Axis3D: Int, Axis {
 }
 
 /// A direction along an axis
-public enum AxisDirection: Sendable, Hashable {
+public enum AxisDirection: Sendable, Hashable, CaseIterable {
     /// The positive direction along an axis (pointing towards positive infinity)
     case positive
     /// The negative direction along an axis (pointing towards negative infinity)

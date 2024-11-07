@@ -49,6 +49,13 @@ internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
             predicate(self[$0])
         }
     }
+
+    var values: [Element] {
+        switch value {
+        case .xy(let x, let y): [x, y]
+        case .xyz(let x, let y, let z): [x, y, z]
+        }
+    }
 }
 
 extension DimensionalValues {
@@ -67,5 +74,16 @@ extension DimensionalValues where Element == Double {
     }
 }
 
+extension DimensionalValues where Element == Bool {
+    var axes: V.Axes {
+        map { $1 ? $0 : nil }
+            .values.compactMap(\.self)
+            .map(V.Axes.init(axis:))
+            .reduce(.init()) { $0.union($1) }
+    }
+}
+
 extension DimensionalValues.Value: Equatable where Element: Equatable {}
 extension DimensionalValues: Equatable where Element: Equatable {}
+extension DimensionalValues.Value: Hashable where Element: Hashable {}
+extension DimensionalValues: Hashable where Element: Hashable {}

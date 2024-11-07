@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Axes {
+public protocol Axes: OptionSet, Hashable, Sendable {
     associatedtype Axis: SwiftSCAD.Axis
 
     init(axis: Axis)
@@ -10,7 +10,7 @@ public protocol Axes {
 
 /// A set of cartesian axes in two dimensions (X and/or Y)
 
-public struct Axes2D: Axes, OptionSet, Hashable, Sendable {
+public struct Axes2D: Axes {
     public typealias Axis = Axis2D
 
     public let rawValue: Int
@@ -46,7 +46,7 @@ public struct Axes2D: Axes, OptionSet, Hashable, Sendable {
 
 /// A set of cartesian axes in three dimensions (X, Y and/or Z)
 
-public struct Axes3D: Axes, OptionSet, Hashable, Sendable {
+public struct Axes3D: Axes {
     public typealias Axis = Axis3D
 
     public let rawValue: Int
