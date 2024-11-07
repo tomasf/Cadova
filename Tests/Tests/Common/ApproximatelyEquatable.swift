@@ -35,7 +35,7 @@ extension Array: ApproximatelyEquatable where Element: ApproximatelyEquatable {}
 
 extension Vector {
     static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
-        lhs.elements ≈ rhs.elements
+        zip(lhs, rhs).allSatisfy(≈)
     }
 }
 

@@ -77,8 +77,8 @@ extension Vector3D: Vector {
     public typealias Geometry = any Geometry3D
     public static let elementCount = 3
 
-    public var elements: [Double] {
-        [x, y, z]
+    public subscript(_ index: Int) -> Double {
+        [x, y, z][index]
     }
 
     public init(elements e: [Double]) {

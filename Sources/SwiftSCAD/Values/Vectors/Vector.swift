@@ -3,7 +3,7 @@ import Foundation
 infix operator ×
 infix operator ⋅
 
-public protocol Vector: Sendable, CustomDebugStringConvertible {
+public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where Element == Double {
     associatedtype Axes: SwiftSCAD.Axes
     associatedtype Transform: AffineTransform where Transform.V == Self
     associatedtype Geometry
@@ -49,14 +49,13 @@ public protocol Vector: Sendable, CustomDebugStringConvertible {
     // Access by index
     static var elementCount: Int { get }
     init(elements: [Double])
-    var elements: [Double] { get }
     subscript(_ index: Int) -> Double { get }
 }
 
 public extension Vector {
-    subscript(_ index: Int) -> Double {
-        elements[index]
-    }
+    func index(after i: Int) -> Int { i + 1 }
+    var startIndex: Int { 0 }
+    var endIndex: Int { Self.elementCount }
 
     /// Returns a normalized version of the vector with a magnitude of 1.
     var normalized: Self {

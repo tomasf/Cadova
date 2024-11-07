@@ -7,9 +7,7 @@ internal struct RoundedBoxCornerMask: Shape3D {
     @Environment(\.facets) var facets
 
     init(boxSize: Vector3D, radius: Double) {
-        precondition(boxSize.x >= radius, "All box dimensions must be >= radius")
-        precondition(boxSize.y >= radius, "All box dimensions must be >= radius")
-        precondition(boxSize.z >= radius, "All box dimensions must be >= radius")
+        precondition(boxSize.allSatisfy { $0 >= radius }, "All box dimensions must be >= radius")
         self.boxSize = boxSize
         self.radius = radius
     }

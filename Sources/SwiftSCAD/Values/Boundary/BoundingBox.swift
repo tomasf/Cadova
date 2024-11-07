@@ -50,8 +50,8 @@ public struct BoundingBox<V: Vector>: Sendable {
     /// - Returns: A new `BoundingBox` that includes the original volume and the specified vector.
     public func adding(_ vector: V) -> BoundingBox<V> {
         .init(
-            minimum: V(elements: zip(minimum.elements, vector.elements).map(min)),
-            maximum: V(elements: zip(maximum.elements, vector.elements).map(max))
+            minimum: V(elements: zip(minimum, vector).map(min)),
+            maximum: V(elements: zip(maximum, vector).map(max))
         )
     }
 }
@@ -87,7 +87,7 @@ extension BoundingBox {
     ///
     /// A bounding box is considered valid if it represents a real geometric area or volume, which means all its dimensions must be non-negative. This property checks that the size of the bounding box in each dimension is greater than or equal to zero, ensuring the box does not represent an inverted or non-existent space.
     public var isValid: Bool {
-        !size.elements.contains(where: { $0 < 0 })
+        !size.contains { $0 < 0 }
     }
 
     /// Calculates the intersection of this bounding volume with another.
