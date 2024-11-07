@@ -1,66 +1,48 @@
 import Foundation
 
-/// `Environment` provides a flexible container for environment-specific values influencing the rendering of geometries.
-///
-/// You can use `Environment` to customize settings and attributes that affect child geometries within SwiftSCAD. Modifiers allow for dynamic adjustments of the environment, which can be applied to geometries to affect their rendering or behavior.
-public struct Environment: Sendable {
-    private let values: [Key: any Sendable]
+@propertyWrapper public struct Environment<T> {
+    private let keyPath: KeyPath<EnvironmentValues, T>
+    private let value = MutableValue()
 
-    public init() {
-        self.init(values: [:])
+    public init() where T == EnvironmentValues {
+        self.init(\.self)
     }
 
-    init(values: [Key: any Sendable]) {
-        self.values = values
+    public init(_ keyPath: KeyPath<EnvironmentValues, T>) {
+        self.keyPath = keyPath
     }
 
-    /// Returns a new environment by adding new values to the current environment.
-    ///
-    /// - Parameter newValues: A dictionary of values to add to the environment.
-    /// - Returns: A new `Environment` instance with the added values.
-    public func setting(_ newValues: [Key: any Sendable]) -> Environment {
-        Environment(values: values.merging(newValues, uniquingKeysWith: { $1 }))
-    }
-
-    /// Returns a new environment with a specified value updated or added.
-    ///
-    /// - Parameters:
-    ///   - key: The key for the value to update or add.
-    ///   - value: The new value to set. If `nil`, the key is removed from the environment.
-    /// - Returns: A new `Environment` instance with the updated values.
-    public func setting(key: Key, value: (any Sendable)?) -> Environment {
-        var values = self.values
-        values[key] = value
-        return Environment(values: values)
-    }
-
-    /// Accesses the value associated with the specified key in the environment.
-    ///
-    /// - Parameter key: The key of the value to access.
-    /// - Returns: The value associated with `key` if it exists; otherwise, `nil`.
-    public subscript(key: Key) -> (any Sendable)? {
-        values[key]
+    public var wrappedValue: T {
+        guard let value = value.value else {
+            logger.error("@Environment value was accessed outside of a Shape's body, which is unsupported. Returning a default value.")
+            return EnvironmentValues.defaultEnvironment[keyPath: keyPath]
+        }
+        return value
     }
 }
 
-public extension Environment {
-    /// Represents a key for environment values.
-    struct Key: RawRepresentable, Hashable, Sendable {
-        public var rawValue: String
+internal protocol EnvironmentUpdatable {
+    func update(with environment: EnvironmentValues?)
+}
 
-        public init(rawValue: String) {
-            self.rawValue = rawValue
-        }
+extension Environment: EnvironmentUpdatable {
+    final private class MutableValue { var value: T? }
 
-        public init(_ rawValue: String) {
-            self.init(rawValue: rawValue)
-        }
+    func update(with environment: EnvironmentValues?) {
+        value.value = environment?[keyPath: keyPath]
     }
 }
 
-public extension Environment {
-    static var defaultEnvironment: Environment {
-        Environment()
-            .withFacets(.defaults)
+
+fileprivate func inject(environment: EnvironmentValues?, into target: Any) {
+    for (_, value) in Mirror(reflecting: target).children {
+        (value as? any EnvironmentUpdatable)?.update(with: environment)
     }
+}
+
+internal func whileInjecting<T>(environment: EnvironmentValues, into target: Any, actions: () -> T) -> T {
+    inject(environment: environment, into: target)
+    let result = actions()
+    inject(environment: nil, into: target)
+    return result
 }

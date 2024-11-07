@@ -9,7 +9,7 @@ internal protocol CombinedGeometry2D: Geometry2D {
 }
 
 extension CombinedGeometry2D {
-    func evaluated(in environment: Environment) -> Output2D {
+    func evaluated(in environment: EnvironmentValues) -> Output2D {
         .init(
             children: children,
             boundaryMergeStrategy: boundaryMergeStrategy,
@@ -33,7 +33,7 @@ internal protocol CombinedGeometry3D: Geometry3D {
 }
 
 extension CombinedGeometry3D {
-    func evaluated(in environment: Environment) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> Output3D {
         .init(
             children: children,
             boundaryMergeStrategy: boundaryMergeStrategy,

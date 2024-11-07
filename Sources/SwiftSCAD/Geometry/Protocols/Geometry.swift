@@ -15,7 +15,7 @@ public protocol Geometry2D {
     typealias Output = Output2D
     typealias Bounds = Boundary<Vector2D>
 
-    func evaluated(in environment: Environment) -> Output
+    func evaluated(in environment: EnvironmentValues) -> Output
 }
 
 /// Three-dimensional geometry
@@ -24,7 +24,7 @@ public protocol Geometry3D {
     typealias Output = Output3D
     typealias Bounds = Boundary<Vector3D>
 
-    func evaluated(in environment: Environment) -> Output
+    func evaluated(in environment: EnvironmentValues) -> Output
 }
 
 public typealias GeometryBuilder3D = ArrayBuilder<any Geometry3D>

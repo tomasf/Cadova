@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Environment {
+public extension EnvironmentValues {
     private static let key = Key("SwiftSCAD.Tolerance")
 
     /// The tolerance value currently set in the environment.
@@ -18,7 +18,7 @@ public extension Environment {
     ///
     /// - Returns: A new environment with a modified tolerance
 
-    func withTolerance(_ tolerance: Double) -> Environment {
+    func withTolerance(_ tolerance: Double) -> EnvironmentValues {
         setting(key: Self.key, value: tolerance)
     }
 }

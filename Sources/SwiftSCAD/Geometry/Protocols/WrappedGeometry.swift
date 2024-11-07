@@ -8,7 +8,7 @@ internal protocol WrappedGeometry2D: Geometry2D {
 }
 
 extension WrappedGeometry2D {
-    func evaluated(in environment: Environment) -> Output {
+    func evaluated(in environment: EnvironmentValues) -> Output {
         .init(bodyOutput: body.evaluated(in: environment), moduleName: moduleName, moduleParameters: moduleParameters) {
             boundary(bodyBoundary: $0)
         }
@@ -26,7 +26,7 @@ internal protocol WrappedGeometry3D: Geometry3D {
 }
 
 extension WrappedGeometry3D {
-    func evaluated(in environment: Environment) -> Output {
+    func evaluated(in environment: EnvironmentValues) -> Output {
         .init(bodyOutput: body.evaluated(in: environment), moduleName: moduleName, moduleParameters: moduleParameters) {
             boundary(bodyBoundary: $0)
         }

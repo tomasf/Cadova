@@ -14,7 +14,7 @@ internal struct RoundedRectangleMask: Shape2D {
     }
 
     public var body: any Geometry2D {
-        func corner(radius: Double, posX: Bool, posY: Bool, environment: Environment) -> Polygon {
+        func corner(radius: Double, posX: Bool, posY: Bool, environment: EnvironmentValues) -> Polygon {
             var polygon = cornerStyle
                 .polygon(radius: radius, in: environment)
                 .transformed(.identity

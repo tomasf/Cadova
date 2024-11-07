@@ -38,28 +38,28 @@ public extension Polygon {
     /// Returns the points defining the polygon within a given environment.
     /// - Parameter environment: The environment context.
     /// - Returns: An array of `Vector2D` representing the polygon's vertices.
-    func points(in environment: Environment) -> [Vector2D] {
+    func points(in environment: EnvironmentValues) -> [Vector2D] {
         pointsProvider.points(in: environment)
     }
 
     /// Calculates the bounding rectangle of the polygon within a given environment.
     /// - Parameter environment: The environment context.
     /// - Returns: A `BoundingRect2D` representing the smallest rectangle enclosing the polygon.
-    func boundingRect(in environment: Environment) -> BoundingBox2D {
+    func boundingRect(in environment: EnvironmentValues) -> BoundingBox2D {
         .init(points(in: environment))
     }
 
     /// Calculates the length (perimeter, if closed) of the polygon within a given environment.
     /// - Parameter environment: The environment context.
     /// - Returns: The total length of the polygon as a `Double`.
-    func length(in environment: Environment) -> Double {
+    func length(in environment: EnvironmentValues) -> Double {
         points(in: environment).length
     }
 
     /// Calculates the area of the polygon within a given environment.
     /// - Parameter environment: The environment context.
     /// - Returns: The area of the polygon as a `Double`.
-    func area(in environment: Environment) -> Double {
+    func area(in environment: EnvironmentValues) -> Double {
         points(in: environment).area
     }
 

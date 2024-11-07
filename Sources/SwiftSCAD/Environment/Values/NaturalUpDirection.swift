@@ -1,6 +1,6 @@
 import Foundation
 
-internal extension Environment {
+internal extension EnvironmentValues {
     private static let key = Key("SwiftSCAD.NaturalUpDirection")
 
     struct NaturalUpDirectionData {
@@ -12,12 +12,12 @@ internal extension Environment {
         self[Self.key] as? NaturalUpDirectionData
     }
 
-    func settingNaturalUpDirectionData(_ direction: NaturalUpDirectionData?) -> Environment {
+    func settingNaturalUpDirectionData(_ direction: NaturalUpDirectionData?) -> EnvironmentValues {
         setting(key: Self.key, value: direction)
     }
 }
 
-public extension Environment {
+public extension EnvironmentValues {
     /// The natural up direction for the current environment.
     ///
     /// This computed property returns the up direction as a `Vector3D` if it has been set.
@@ -58,9 +58,9 @@ public extension Environment {
     /// any specific orientation considerations from the environment.
     ///
     /// - Parameter direction: A `Vector3D` representing the new natural up direction, or `nil` to remove it.
-    /// - Returns: A new `Environment` instance with the updated natural up direction.
+    /// - Returns: A new `EnvironmentValues` instance with the updated natural up direction.
     ///
-    func settingNaturalUpDirection(_ direction: Vector3D?) -> Environment {
+    func settingNaturalUpDirection(_ direction: Vector3D?) -> EnvironmentValues {
         settingNaturalUpDirectionData(direction.map {
             .init(direction: $0, transform: transform)
         })

@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Environment {
+public extension EnvironmentValues {
     static private let environmentKey = Key("SwiftSCAD.Facets")
 
     /// An enumeration representing the method for calculating the number of facets (or segments) used in rendering circular geometries.
@@ -62,8 +62,8 @@ public extension Environment {
     ///
     /// This method allows for precise control over the resolution of circular geometries.
     /// - Parameter facets: The `Facets` setting to apply to the environment.
-    /// - Returns: A new `Environment` with the updated facets settings.
-    func withFacets(_ facets: Facets) -> Environment {
+    /// - Returns: A new `EnvironmentValues` with the updated facets settings.
+    func withFacets(_ facets: Facets) -> EnvironmentValues {
         setting(key: Self.environmentKey, value: facets)
     }
 }

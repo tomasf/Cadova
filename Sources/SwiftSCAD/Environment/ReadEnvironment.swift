@@ -2,17 +2,17 @@ import Foundation
 
 // Remove underscore once deprecated EnvironmentReader is removed
 struct _EnvironmentReader<Geometry> {
-    let body: (Environment) -> Geometry
+    let body: (EnvironmentValues) -> Geometry
 }
 
 extension _EnvironmentReader<any Geometry2D>: Geometry2D {
-    func evaluated(in environment: Environment) -> Output2D {
+    func evaluated(in environment: EnvironmentValues) -> Output2D {
         body(environment).evaluated(in: environment)
     }
 }
 
 extension _EnvironmentReader<any Geometry3D>: Geometry3D {
-    func evaluated(in environment: Environment) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> Output3D {
         body(environment).evaluated(in: environment)
     }
 }
@@ -21,14 +21,14 @@ extension _EnvironmentReader<any Geometry3D>: Geometry3D {
 ///
 /// Use this function to create a geometry that has access to environmental information. This allows for dynamic and conditional geometry creation based on the current environment settings such as facets, text settings, or custom values you've defined.
 ///
-/// - Parameter body: A closure that takes the current `Environment` and returns a new `Geometry2D` instance based on that environment.
+/// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a new `Geometry2D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-public func readEnvironment(@GeometryBuilder2D _ body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
+public func readEnvironment(@GeometryBuilder2D _ body: @escaping (EnvironmentValues) -> any Geometry2D) -> any Geometry2D {
     _EnvironmentReader(body: body)
 }
 
 public func readEnvironment<T>(
-    _ keyPath1: KeyPath<Environment, T>,
+    _ keyPath1: KeyPath<EnvironmentValues, T>,
     @GeometryBuilder2D _ body: @escaping (T) -> any Geometry2D
 ) -> any Geometry2D {
     readEnvironment {
@@ -37,8 +37,8 @@ public func readEnvironment<T>(
 }
 
 public func readEnvironment<T, U>(
-    _ keyPath1: KeyPath<Environment, T>,
-    _ keyPath2: KeyPath<Environment, U>,
+    _ keyPath1: KeyPath<EnvironmentValues, T>,
+    _ keyPath2: KeyPath<EnvironmentValues, U>,
     @GeometryBuilder2D _ body: @escaping (T, U) -> any Geometry2D
 ) -> any Geometry2D {
     readEnvironment {
@@ -47,9 +47,9 @@ public func readEnvironment<T, U>(
 }
 
 public func readEnvironment<T, U, V>(
-    _ keyPath1: KeyPath<Environment, T>,
-    _ keyPath2: KeyPath<Environment, U>,
-    _ keyPath3: KeyPath<Environment, V>,
+    _ keyPath1: KeyPath<EnvironmentValues, T>,
+    _ keyPath2: KeyPath<EnvironmentValues, U>,
+    _ keyPath3: KeyPath<EnvironmentValues, V>,
     @GeometryBuilder2D _ body: @escaping (T, U, V) -> any Geometry2D
 ) -> any Geometry2D {
     readEnvironment {
@@ -61,14 +61,14 @@ public func readEnvironment<T, U, V>(
 ///
 /// Use this function to create a geometry that has access to environmental information. This allows for dynamic and conditional geometry creation based on the current environment settings such as facets, text settings, or custom values you've defined.
 ///
-/// - Parameter body: A closure that takes the current `Environment` and returns a new `Geometry3D` instance based on that environment.
+/// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a new `Geometry3D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
-public func readEnvironment(@GeometryBuilder3D _ body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
+public func readEnvironment(@GeometryBuilder3D _ body: @escaping (EnvironmentValues) -> any Geometry3D) -> any Geometry3D {
     _EnvironmentReader(body: body)
 }
 
 public func readEnvironment<T>(
-    _ keyPath1: KeyPath<Environment, T>,
+    _ keyPath1: KeyPath<EnvironmentValues, T>,
     @GeometryBuilder3D _ body: @escaping (T) -> any Geometry3D
 ) -> any Geometry3D {
     readEnvironment {
@@ -77,8 +77,8 @@ public func readEnvironment<T>(
 }
 
 public func readEnvironment<T, U>(
-    _ keyPath1: KeyPath<Environment, T>,
-    _ keyPath2: KeyPath<Environment, U>,
+    _ keyPath1: KeyPath<EnvironmentValues, T>,
+    _ keyPath2: KeyPath<EnvironmentValues, U>,
     @GeometryBuilder3D _ body: @escaping (T, U) -> any Geometry3D
 ) -> any Geometry3D {
     readEnvironment {
@@ -87,9 +87,9 @@ public func readEnvironment<T, U>(
 }
 
 public func readEnvironment<T, U, V>(
-    _ keyPath1: KeyPath<Environment, T>,
-    _ keyPath2: KeyPath<Environment, U>,
-    _ keyPath3: KeyPath<Environment, V>,
+    _ keyPath1: KeyPath<EnvironmentValues, T>,
+    _ keyPath2: KeyPath<EnvironmentValues, U>,
+    _ keyPath3: KeyPath<EnvironmentValues, V>,
     @GeometryBuilder3D _ body: @escaping (T, U, V) -> any Geometry3D
 ) -> any Geometry3D {
     readEnvironment {

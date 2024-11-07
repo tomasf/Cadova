@@ -16,7 +16,7 @@ public struct Text: LeafGeometry2D {
         self.text = text
     }
 
-    public func evaluated(in environment: Environment) -> Output2D {
+    public func evaluated(in environment: EnvironmentValues) -> Output2D {
         .init(
             codeFragment: .init(module: "text", parameters: environment.textAttributes.moduleParameters(text: text), body: []),
             boundary: boundary(in: environment),
@@ -27,7 +27,7 @@ public struct Text: LeafGeometry2D {
     let moduleName = "" // Unused
     var moduleParameters: CodeFragment.Parameters { [:] } // Unused
 
-    func boundary(in environment: Environment) -> Bounds {
+    func boundary(in environment: EnvironmentValues) -> Bounds {
         .empty
     }
 }
@@ -65,7 +65,7 @@ public extension Text {
     }
 }
 
-extension Environment.TextAttributes {
+extension EnvironmentValues.TextAttributes {
     func moduleParameters(text: String) -> CodeFragment.Parameters {
         let needsFontParameter = fontName != nil || fontStyle != nil
         let styleValue = fontStyle.map { ":style=\($0)" } ?? ""

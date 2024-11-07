@@ -13,7 +13,7 @@ fileprivate struct Prefix<Geometry> {
 }
 
 extension Prefix<any Geometry2D>: Geometry2D {
-    func evaluated(in environment: Environment) -> Output2D {
+    func evaluated(in environment: EnvironmentValues) -> Output2D {
         let child = body.evaluated(in: environment)
         return .init(
             codeFragment: .init(prefix: prefix, body: child.codeFragment),
@@ -24,7 +24,7 @@ extension Prefix<any Geometry2D>: Geometry2D {
 }
 
 extension Prefix<any Geometry3D>: Geometry3D {
-    func evaluated(in environment: Environment) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> Output3D {
         let child = body.evaluated(in: environment)
         return .init(
             codeFragment: .init(prefix: prefix, body: child.codeFragment),

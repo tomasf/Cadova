@@ -20,7 +20,7 @@ public struct Import2D: LeafGeometry2D {
         self.center = center
     }
 
-    func boundary(in environment: Environment) -> Bounds {
+    func boundary(in environment: EnvironmentValues) -> Bounds {
         .empty // We don't know this; the import is done by OpenSCAD
     }
 
@@ -48,7 +48,7 @@ public struct Import3D: LeafGeometry3D {
         self.path = (path as NSString).expandingTildeInPath
     }
 
-    func boundary(in environment: Environment) -> Bounds {
+    func boundary(in environment: EnvironmentValues) -> Bounds {
         .empty // We don't know this; the import is done by OpenSCAD
     }
 

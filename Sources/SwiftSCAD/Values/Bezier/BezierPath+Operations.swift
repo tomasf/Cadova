@@ -42,7 +42,7 @@ public extension BezierPath {
     ///   - facets: The desired level of detail for the generated points, affecting the smoothness and accuracy of the path traversal
     /// - Returns: A `V.Transform` representing the combined rotation and translation needed to move an object along the
     ///   Bézier path to the specified position.
-    func transform(at position: Position, facets: Environment.Facets) -> V.Transform {
+    func transform(at position: Position, facets: EnvironmentValues.Facets) -> V.Transform {
         guard !curves.isEmpty else { return .translation(startPoint) }
         return .init(
             points(in: 0...position, facets: facets).map(\.vector3D)
@@ -71,7 +71,7 @@ public extension BezierPath {
     ///
     /// - Parameter facets: The desired level of detail for the generated points, affecting the smoothness of curves.
     /// - Returns: An array of points that approximate the Bezier path.
-    func points(facets: Environment.Facets) -> [V] {
+    func points(facets: EnvironmentValues.Facets) -> [V] {
         return [startPoint] + curves.flatMap {
             $0.points(facets: facets)[1...]
         }
@@ -83,7 +83,7 @@ public extension BezierPath {
     ///   of the length calculation. More detailed facet values result in more points being generated, leading to a more
     ///   accurate length approximation.
     /// - Returns: A `Double` value representing the total length of the Bézier path.
-    func length(facets: Environment.Facets) -> Double {
+    func length(facets: EnvironmentValues.Facets) -> Double {
         points(facets: facets)
             .paired()
             .map { $0.distance(to: $1) }
@@ -100,7 +100,7 @@ public extension BezierPath {
         return curves[curveIndex].point(at: fraction)
     }
 
-    func points(in pathFractionRange: ClosedRange<Position>, facets: Environment.Facets) -> [V] {
+    func points(in pathFractionRange: ClosedRange<Position>, facets: EnvironmentValues.Facets) -> [V] {
         let (fromCurveIndex, fromFraction) = pathFractionRange.lowerBound.indexAndFraction(curveCount: curves.count)
         let (toCurveIndex, toFraction) = pathFractionRange.upperBound.indexAndFraction(curveCount: curves.count)
 

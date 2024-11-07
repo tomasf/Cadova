@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Environment {
+public extension EnvironmentValues {
     static private let environmentKey = Key("SwiftSCAD.Transform")
 
     /// Accesses the current affine transformation applied to this environment.
@@ -17,8 +17,8 @@ public extension Environment {
     /// This method allows you to apply a new affine transformation to the geometry, concatenating it with any existing transformations.
     ///
     /// - Parameter newTransform: The `AffineTransform3D` to apply.
-    /// - Returns: A new `Environment` instance with the updated transformation.
-    func applyingTransform(_ newTransform: AffineTransform3D) -> Environment {
+    /// - Returns: A new `EnvironmentValues` instance with the updated transformation.
+    func applyingTransform(_ newTransform: AffineTransform3D) -> EnvironmentValues {
         setting(key: Self.environmentKey, value:newTransform.concatenated(with: transform))
     }
 }

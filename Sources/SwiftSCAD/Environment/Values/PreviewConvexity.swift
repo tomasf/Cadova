@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Environment {
+public extension EnvironmentValues {
     private static let key = Key("SwiftSCAD.PreviewConvexity")
 
     /// The preview convexity currently set in the environment.
@@ -19,13 +19,13 @@ public extension Environment {
     /// Use this method to apply a `previewConvexity` value to the environment, influencing the OpenCSG preview rendering in OpenSCAD.
     ///
     /// - Parameter convexity: An optional `Int` specifying the maximum number of front or back faces a ray might intersect. Pass `nil` to remove the existing convexity setting.
-    /// - Returns: A new `Environment` with the specified preview convexity.
+    /// - Returns: A new `EnvironmentValues` with the specified preview convexity.
     ///
     /// ### Example
     /// ```swift
     /// let environmentWithConvexity = environment.withPreviewConvexity(2)
     /// ```
-    func withPreviewConvexity(_ convexity: Int?) -> Environment {
+    func withPreviewConvexity(_ convexity: Int?) -> EnvironmentValues {
         setting(key: Self.key, value: convexity)
     }
 }

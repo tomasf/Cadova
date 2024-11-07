@@ -1,7 +1,7 @@
 import Foundation
 
 private extension Polyhedron {
-    init(extruding shape: Polygon, along path: [AffineTransform3D], environment: Environment) {
+    init(extruding shape: Polygon, along path: [AffineTransform3D], environment: EnvironmentValues) {
         struct Vertex: Hashable {
             let step: Int
             let pointIndex: Int

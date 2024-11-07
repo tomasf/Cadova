@@ -13,7 +13,7 @@ struct LinearExtrude: ExtrusionGeometry {
         "scale": scale,
     ]}
 
-    func boundary(for boundary2D: Boundary2D, facets: Environment.Facets) -> Boundary3D {
+    func boundary(for boundary2D: Boundary2D, facets: EnvironmentValues.Facets) -> Boundary3D {
         boundary2D.extruded(
             height: height,
             twist: twist ?? 0°,

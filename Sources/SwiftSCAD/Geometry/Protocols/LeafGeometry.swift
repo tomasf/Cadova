@@ -3,11 +3,11 @@ import Foundation
 internal protocol LeafGeometry2D: Geometry2D {
     var moduleName: String { get }
     var moduleParameters: CodeFragment.Parameters { get }
-    func boundary(in environment: Environment) -> Bounds
+    func boundary(in environment: EnvironmentValues) -> Bounds
 }
 
 extension LeafGeometry2D {
-    public func evaluated(in environment: Environment) -> Output {
+    public func evaluated(in environment: EnvironmentValues) -> Output {
         .init(
             moduleName: moduleName,
             moduleParameters: moduleParameters,
@@ -21,12 +21,12 @@ extension LeafGeometry2D {
 internal protocol LeafGeometry3D: Geometry3D {
     var moduleName: String { get }
     var moduleParameters: CodeFragment.Parameters { get }
-    func boundary(in environment: Environment) -> Bounds
+    func boundary(in environment: EnvironmentValues) -> Bounds
     var supportsPreviewConvexity: Bool { get }
 }
 
 extension LeafGeometry3D {
-    public func evaluated(in environment: Environment) -> Output {
+    public func evaluated(in environment: EnvironmentValues) -> Output {
         .init(
             moduleName: moduleName,
             moduleParameters: moduleParameters,

@@ -16,7 +16,7 @@ extension Boundary2D {
         map { Vector3D($0, z: z) }
     }
 
-    func extruded(height: Double, twist: Angle, topScale: Vector2D, facets: Environment.Facets) -> Boundary3D {
+    func extruded(height: Double, twist: Angle, topScale: Vector2D, facets: EnvironmentValues.Facets) -> Boundary3D {
         let hasTwist = abs(twist) > .radians(.ulpOfOne)
         let twistSlices = hasTwist ? extrusionSlices(height: height, twist: twist, scale: topScale, facets: facets) : 1
 
@@ -32,7 +32,7 @@ extension Boundary2D {
         return .points(points)
     }
 
-    func extrusionSlices(height: Double, twist: Angle, scale: Vector2D, facets: Environment.Facets) -> Int {
+    func extrusionSlices(height: Double, twist: Angle, scale: Vector2D, facets: EnvironmentValues.Facets) -> Int {
 
         func helixArcLength(maxSquaredDistance: Double) -> Double {
             let c = height / abs(twist).radians
@@ -68,7 +68,7 @@ extension Boundary2D {
         }
     }
 
-    func extruded(angle fullAngle: Angle, facets: Environment.Facets) -> Boundary3D {
+    func extruded(angle fullAngle: Angle, facets: EnvironmentValues.Facets) -> Boundary3D {
         guard let minX = min(.x), let maxX = max(.x) else { return .empty }
         let radius = Swift.max(maxX, -minX)
         let facetCount = facets.facetCount(circleRadius: radius)
@@ -80,7 +80,7 @@ extension Boundary2D {
         })
     }
 
-    static func circle(radius: Double, facets: Environment.Facets) -> Boundary2D {
+    static func circle(radius: Double, facets: EnvironmentValues.Facets) -> Boundary2D {
         let facetCount = facets.facetCount(circleRadius: radius)
         let points = (0..<facetCount).map {
             let angle = (360° / Double(facetCount)) * Double($0)
@@ -91,7 +91,7 @@ extension Boundary2D {
 }
 
 extension Boundary3D {
-    static func sphere(radius: Double, facets: Environment.Facets) -> Boundary3D {
+    static func sphere(radius: Double, facets: EnvironmentValues.Facets) -> Boundary3D {
         let facetCount = facets.facetCount(circleRadius: radius)
         let layers = (0..<facetCount / 2).map {
             let angle = (360° / Double(facetCount)) * Double($0)

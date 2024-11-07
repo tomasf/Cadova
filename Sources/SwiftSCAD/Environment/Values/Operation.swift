@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Environment {
+public extension EnvironmentValues {
     private static let key = Key("SwiftSCAD.Operation")
 
     /// Represents a geometric operation, specifically for determining if geometries are being added or subtracted.
@@ -25,7 +25,7 @@ public extension Environment {
         self[Self.key] as? Operation ?? .addition
     }
 
-    internal func invertingOperation() -> Environment {
+    internal func invertingOperation() -> EnvironmentValues {
         setting(key: Self.key, value: !operation)
     }
 }
@@ -46,13 +46,13 @@ internal extension Geometry3D {
     }
 }
 
-public func readOperation(@GeometryBuilder2D _ reader: @escaping (Environment.Operation) -> any Geometry2D) -> any Geometry2D {
+public func readOperation(@GeometryBuilder2D _ reader: @escaping (EnvironmentValues.Operation) -> any Geometry2D) -> any Geometry2D {
     readEnvironment { e in
         reader(e.operation)
     }
 }
 
-public func readOperation(@GeometryBuilder3D _ reader: @escaping (Environment.Operation) -> any Geometry3D) -> any Geometry3D {
+public func readOperation(@GeometryBuilder3D _ reader: @escaping (EnvironmentValues.Operation) -> any Geometry3D) -> any Geometry3D {
     readEnvironment { e in
         reader(e.operation)
     }

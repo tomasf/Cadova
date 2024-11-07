@@ -15,7 +15,7 @@ internal protocol TransformedGeometry2D: Geometry2D {
 }
 
 extension TransformedGeometry2D {
-    func evaluated(in environment: Environment) -> Output {
+    func evaluated(in environment: EnvironmentValues) -> Output {
         .init(
             body: body,
             moduleName: moduleName,
@@ -34,7 +34,7 @@ internal protocol TransformedGeometry3D: Geometry3D {
 }
 
 extension TransformedGeometry3D {
-    func evaluated(in environment: Environment) -> Output {
+    func evaluated(in environment: EnvironmentValues) -> Output {
         .init(
             body: body,
             moduleName: moduleName,

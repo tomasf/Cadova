@@ -38,7 +38,7 @@ extension BezierPath {
             }
         }
 
-        func points(in range: Range<Double>, facets: Environment.Facets) -> [V] {
+        func points(in range: Range<Double>, facets: EnvironmentValues.Facets) -> [V] {
             guard controlPoints.count > 2 else {
                 let start = controlPoints[0].point(alongLineTo: controlPoints[1], at: range.lowerBound)
                 let end = controlPoints[0].point(alongLineTo: controlPoints[1], at: range.upperBound)
@@ -64,7 +64,7 @@ extension BezierPath {
             }
         }
 
-        func points(facets: Environment.Facets) -> [V] {
+        func points(facets: EnvironmentValues.Facets) -> [V] {
             guard controlPoints.count > 2 else {
                 return controlPoints
             }

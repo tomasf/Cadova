@@ -22,7 +22,7 @@ public struct Cylinder: LeafGeometry3D {
         }
     }
 
-    public func boundary(in environment: Environment) -> Bounds {
+    public func boundary(in environment: EnvironmentValues) -> Bounds {
         let bottom = Boundary2D.circle(radius: bottomDiameter / 2, facets: environment.facets)
         let top = Boundary2D.circle(radius: (topDiameter ?? bottomDiameter) / 2, facets: environment.facets)
         return .union(

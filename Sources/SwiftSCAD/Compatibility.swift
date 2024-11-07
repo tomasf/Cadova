@@ -84,12 +84,12 @@ public func RoundedBox(_ size: Vector3D, cornerRadius radius: Double) -> any Geo
 }
 
 @available(*, deprecated, message: "Use readEnvironment instead")
-public func EnvironmentReader(@GeometryBuilder2D body: @escaping (Environment) -> any Geometry2D) -> any Geometry2D {
+public func EnvironmentReader(@GeometryBuilder2D body: @escaping (EnvironmentValues) -> any Geometry2D) -> any Geometry2D {
     readEnvironment(body)
 }
 
 @available(*, deprecated, message: "Use readEnvironment instead")
-public func EnvironmentReader(@GeometryBuilder3D body: @escaping (Environment) -> any Geometry3D) -> any Geometry3D {
+public func EnvironmentReader(@GeometryBuilder3D body: @escaping (EnvironmentValues) -> any Geometry3D) -> any Geometry3D {
     readEnvironment(body)
 }
 
@@ -106,6 +106,6 @@ public func Union(@GeometryBuilder3D _ body: () -> any Geometry3D) -> any Geomet
     union(body)
 }
 
-public extension Environment {
+public extension EnvironmentValues {
     @available(*, deprecated, renamed: "Key") typealias ValueKey = Key
 }

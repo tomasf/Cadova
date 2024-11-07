@@ -6,7 +6,7 @@ fileprivate struct _Stack<V: Vector> {
     let spacing: Double
     let alignment: GeometryAlignment<V>
 
-    @EnvironmentValue(\.self) private var environment
+    @Environment private var environment
 
     init(_ items: [V.Geometry], axis: V.Axis, alignment: GeometryAlignment<V>, spacing: Double) {
         self.items = items
@@ -17,7 +17,7 @@ fileprivate struct _Stack<V: Vector> {
 }
 
 extension _Stack<Vector2D>: Geometry2D, Shape2D {
-    func requireBoundingBox(_ geometry: V.Geometry, in environment: Environment) -> BoundingBox<V> {
+    func requireBoundingBox(_ geometry: V.Geometry, in environment: EnvironmentValues) -> BoundingBox<V> {
         guard let box = geometry.evaluated(in: environment).boundary.boundingBox else {
             preconditionFailure("Stack item has empty bounds: \(geometry)")
         }
@@ -36,7 +36,7 @@ extension _Stack<Vector2D>: Geometry2D, Shape2D {
 }
 
 extension _Stack<Vector3D>: Geometry3D, Shape3D {
-    func requireBoundingBox(_ geometry: V.Geometry, in environment: Environment) -> BoundingBox<V> {
+    func requireBoundingBox(_ geometry: V.Geometry, in environment: EnvironmentValues) -> BoundingBox<V> {
         guard let box = geometry.evaluated(in: environment).boundary.boundingBox else {
             preconditionFailure("Stack item has empty bounds: \(geometry)")
         }

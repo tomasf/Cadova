@@ -1,6 +1,6 @@
 import Foundation
 
-fileprivate extension Environment.Facets {
+fileprivate extension EnvironmentValues.Facets {
     var specialVariables: CodeFragment.Parameters {
         switch self {
         case .fixed (let count):
@@ -12,7 +12,7 @@ fileprivate extension Environment.Facets {
 }
 
 public extension Geometry2D {
-    internal func usingFacets(_ facets: Environment.Facets) -> any Geometry2D {
+    internal func usingFacets(_ facets: EnvironmentValues.Facets) -> any Geometry2D {
         SetVariables(body: self, variables: facets.specialVariables)
             .withEnvironment { $0.withFacets(facets) }
     }
@@ -46,7 +46,7 @@ public extension Geometry2D {
 }
 
 public extension Geometry3D {
-    func usingFacets(_ facets: Environment.Facets) -> any Geometry3D {
+    func usingFacets(_ facets: EnvironmentValues.Facets) -> any Geometry3D {
         SetVariables(body: self, variables: facets.specialVariables)
             .withEnvironment { $0.withFacets(facets) }
     }

@@ -19,7 +19,7 @@ public struct Teardrop: Shape2D {
     public let angle: Angle
     public let diameter: Double
 
-    @EnvironmentValue(\.naturalUpDirectionXYAngle) var upAngle
+    @Environment(\.naturalUpDirectionXYAngle) var upAngle
 
     /// Creates a teardrop shape with a specific diameter, angle, and style.
     /// - Parameters:

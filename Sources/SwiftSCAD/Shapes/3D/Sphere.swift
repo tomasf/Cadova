@@ -31,7 +31,7 @@ public struct Sphere: LeafGeometry3D {
         ["d": diameter]
     }
 
-    public func boundary(in environment: Environment) -> Bounds {
+    public func boundary(in environment: EnvironmentValues) -> Bounds {
         .sphere(radius: diameter / 2, facets: environment.facets)
     }
 }

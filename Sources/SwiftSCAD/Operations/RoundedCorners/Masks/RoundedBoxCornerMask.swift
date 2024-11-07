@@ -4,7 +4,7 @@ internal struct RoundedBoxCornerMask: Shape3D {
     let boxSize: Vector3D
     let radius: Double
 
-    @EnvironmentValue(\.facets) var facets
+    @Environment(\.facets) var facets
 
     init(boxSize: Vector3D, radius: Double) {
         precondition(boxSize.x >= radius, "All box dimensions must be >= radius")

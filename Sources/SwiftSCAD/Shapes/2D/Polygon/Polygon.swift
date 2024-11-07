@@ -40,7 +40,7 @@ public struct Polygon: Geometry2D {
         self.init(provider: JoinedPolygonPoints(providers: polygons.map(\.pointsProvider)))
     }
 
-    public func evaluated(in environment: Environment) -> Output2D {
+    public func evaluated(in environment: EnvironmentValues) -> Output2D {
         let points = points(in: environment)
         return .init(
             codeFragment: .init(module: "polygon", parameters:  ["points": points], body: []),

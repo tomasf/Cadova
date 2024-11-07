@@ -20,7 +20,7 @@ public protocol Shape2D: Geometry2D {
 }
 
 public extension Shape2D {
-    func evaluated(in environment: Environment) -> Output {
+    func evaluated(in environment: EnvironmentValues) -> Output {
         whileInjecting(environment: environment, into: self) {
             body.evaluated(in: environment)
         }
@@ -47,7 +47,7 @@ public protocol Shape3D: Geometry3D {
 }
 
 public extension Shape3D {
-    func evaluated(in environment: Environment) -> Output {
+    func evaluated(in environment: EnvironmentValues) -> Output {
         whileInjecting(environment: environment, into: self) {
             body.evaluated(in: environment)
         }

@@ -1,7 +1,7 @@
 import Foundation
 
 public struct AnyGeometry: @unchecked Sendable {
-    private let dataProvider: (Environment) -> (CodeFragment, name: String?, [any OutputFormat])
+    private let dataProvider: (EnvironmentValues) -> (CodeFragment, name: String?, [any OutputFormat])
 
     internal init(_ geometry: any Geometry2D) {
         dataProvider = { environment in
@@ -25,7 +25,7 @@ public struct AnyGeometry: @unchecked Sendable {
         }
     }
 
-    internal func evaluated(in environment: Environment) -> (CodeFragment, name: String?, [any OutputFormat]) {
+    internal func evaluated(in environment: EnvironmentValues) -> (CodeFragment, name: String?, [any OutputFormat]) {
         dataProvider(environment)
     }
 }

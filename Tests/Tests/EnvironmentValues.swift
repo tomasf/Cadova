@@ -17,7 +17,7 @@ struct EnvironmentTest {
 }
 
 fileprivate struct TestShape: Shape3D {
-    @EnvironmentValue(\.testEnvironmentValue) var injectedTestValue
+    @Environment(\.testEnvironmentValue) var injectedTestValue
 
     var body: any Geometry3D {
         // Basic case
@@ -46,14 +46,14 @@ fileprivate struct TestShape: Shape3D {
     }
 }
 
-fileprivate extension Environment {
+fileprivate extension EnvironmentValues {
     private static let key = Key("SwiftSCAD.TestValue")
 
     var testEnvironmentValue: Int {
         self[Self.key] as? Int ?? 0
     }
 
-    func withTestEnvironmentValue(_ value: Int) -> Environment {
+    func withTestEnvironmentValue(_ value: Int) -> EnvironmentValues {
         setting(key: Self.key, value: value)
     }
 }

@@ -4,7 +4,7 @@ fileprivate struct ReadBoundary<V: Vector> {
     let target: V.Geometry
     let builder: (Boundary<V>) -> V.Geometry
 
-    @EnvironmentValue(\.self) var environment
+    @Environment var environment
 }
 
 extension ReadBoundary<Vector2D>: Geometry2D, Shape2D {
@@ -60,10 +60,10 @@ public extension Geometry3D {
     }
 }
 
-public func measureBounds<V>(_ geometry: any Geometry2D, in environment: Environment = .defaultEnvironment, operation: (BoundingBox2D?) -> V) -> V {
+public func measureBounds<V>(_ geometry: any Geometry2D, in environment: EnvironmentValues = .defaultEnvironment, operation: (BoundingBox2D?) -> V) -> V {
     operation(geometry.evaluated(in: environment).boundary.boundingBox)
 }
 
-public func measureBounds<V>(_ geometry: any Geometry3D, in environment: Environment = .defaultEnvironment, operation: (BoundingBox3D?) -> V) -> V {
+public func measureBounds<V>(_ geometry: any Geometry3D, in environment: EnvironmentValues = .defaultEnvironment, operation: (BoundingBox3D?) -> V) -> V {
     operation(geometry.evaluated(in: environment).boundary.boundingBox)
 }

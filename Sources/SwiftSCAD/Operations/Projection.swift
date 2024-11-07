@@ -23,7 +23,7 @@ struct Projection: Geometry2D {
         }
     }
 
-    func evaluated(in environment: Environment) -> Output2D {
+    func evaluated(in environment: EnvironmentValues) -> Output2D {
         let environment = environment.applyingTransform(.scaling(z: 0))
         let bodyOutput = appliedBody.evaluated(in: environment)
         return .init(

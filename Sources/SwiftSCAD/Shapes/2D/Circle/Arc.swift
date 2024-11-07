@@ -12,7 +12,7 @@ public struct Arc: Shape2D {
     public let range: Range<Angle>
     public let radius: Double
     
-    @EnvironmentValue(\.facets) var facets
+    @Environment(\.facets) var facets
 
     /// Creates a new `Arc` instance with the specified range of angles and radius.
     ///
@@ -41,7 +41,7 @@ public struct Arc: Shape2D {
 }
 
 internal extension Polygon {
-    static func circularArc(radius: Double, range: Range<Angle>, facets: Environment.Facets) -> Polygon {
+    static func circularArc(radius: Double, range: Range<Angle>, facets: EnvironmentValues.Facets) -> Polygon {
         let magnitude = range.upperBound - range.lowerBound
         let circleFacets = facets.facetCount(circleRadius: radius)
         let facetCount = max(Int(ceil(Double(circleFacets) * magnitude / 360°)), 2)

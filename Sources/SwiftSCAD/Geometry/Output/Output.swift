@@ -19,7 +19,7 @@ public struct Output<V: Vector> {
         moduleName: String,
         moduleParameters: CodeFragment.Parameters,
         supportsPreviewConvexity: Bool,
-        environment: Environment
+        environment: EnvironmentValues
     ) {
         var moduleParameters = moduleParameters
         if let convexity = environment.previewConvexity, supportsPreviewConvexity {
@@ -41,7 +41,7 @@ public struct Output<V: Vector> {
         moduleParameters: CodeFragment.Parameters,
         boundary: Boundary<V>,
         supportsPreviewConvexity: Bool,
-        environment: Environment
+        environment: EnvironmentValues
     ) {
         var params = moduleParameters
         if let convexity = environment.previewConvexity, supportsPreviewConvexity {
@@ -81,7 +81,7 @@ internal extension Output where V == Vector2D {
         combination: GeometryCombination,
         moduleName: String,
         moduleParameters: CodeFragment.Parameters,
-        environment: Environment
+        environment: EnvironmentValues
     ) {
         self.init(
             childOutputs: children.map { $0.evaluated(in: environment) },
@@ -95,7 +95,7 @@ internal extension Output where V == Vector2D {
     }
 
     // Transformed
-    init(body: Geometry2D, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform2D, environment: Environment) {
+    init(body: Geometry2D, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform2D, environment: EnvironmentValues) {
         let environment = environment.applyingTransform(.init(transform))
         self.init(
             bodyOutput: body.evaluated(in: environment),
@@ -114,7 +114,7 @@ internal extension Output where V == Vector3D {
         moduleName: String,
         moduleParameters: CodeFragment.Parameters,
         supportsPreviewConvexity: Bool,
-        environment: Environment
+        environment: EnvironmentValues
     ) {
         let childEnvironment = supportsPreviewConvexity ? environment.withPreviewConvexity(nil) : environment
         self.init(
@@ -131,10 +131,10 @@ internal extension Output where V == Vector3D {
     // Extrusion
     init(
         child: Geometry2D,
-        boundaryExtrusion: (Boundary2D, Environment.Facets) -> Boundary3D,
+        boundaryExtrusion: (Boundary2D, EnvironmentValues.Facets) -> Boundary3D,
         moduleName: String,
         moduleParameters: CodeFragment.Parameters,
-        environment: Environment
+        environment: EnvironmentValues
     ) {
         let childOutput = child.evaluated(in: environment.withPreviewConvexity(nil))
 
@@ -151,7 +151,7 @@ internal extension Output where V == Vector3D {
     }
 
     // Transformed
-    init(body: Geometry3D, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform3D, environment: Environment) {
+    init(body: Geometry3D, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform3D, environment: EnvironmentValues) {
         let environment = environment.applyingTransform(.init(transform))
         self.init(
             bodyOutput: body.evaluated(in: environment),

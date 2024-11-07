@@ -1,6 +1,6 @@
 import Foundation
 
-internal extension Environment {
+internal extension EnvironmentValues {
     struct TextAttributes: Sendable {
         var fontName: String?
         var fontStyle: String?
@@ -17,13 +17,13 @@ internal extension Environment {
         self[Self.environmentKey] as? TextAttributes ?? .init()
     }
 
-    func settingTextAttribute<V>(_ attribute: WritableKeyPath<TextAttributes, V>, value: V) -> Environment {
+    func settingTextAttribute<V>(_ attribute: WritableKeyPath<TextAttributes, V>, value: V) -> EnvironmentValues {
         var attributes = textAttributes
         attributes[keyPath: attribute] = value
         return setting(key: Self.environmentKey, value: attributes)
     }
 
-    func withFont(name: String?, style: String?, size: Double?) -> Environment {
+    func withFont(name: String?, style: String?, size: Double?) -> EnvironmentValues {
         var e = self
         if let name {
             e = e.settingTextAttribute(\.fontName, value: name)
@@ -37,7 +37,7 @@ internal extension Environment {
         return e
     }
 
-    func withTextAlignment(horizontal: Text.HorizontalAlignment? = nil, vertical: Text.VerticalAlignment? = nil) -> Environment {
+    func withTextAlignment(horizontal: Text.HorizontalAlignment? = nil, vertical: Text.VerticalAlignment? = nil) -> EnvironmentValues {
         var e = self
         if let horizontal {
             e = e.settingTextAttribute(\.horizontalAlignment, value: horizontal)
@@ -49,7 +49,7 @@ internal extension Environment {
     }
 }
 
-public extension Environment {
+public extension EnvironmentValues {
     /// The current font name set in the environment's text attributes.
     ///
     /// This property reflects the font name that will be applied to text geometries within the environment. If `nil`, the default system font is used.
