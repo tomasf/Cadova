@@ -47,7 +47,7 @@ fileprivate struct TestShape: Shape3D {
 }
 
 fileprivate extension Environment {
-    private static let key = ValueKey("SwiftSCAD.TestValue")
+    private static let key = Key("SwiftSCAD.TestValue")
 
     var testEnvironmentValue: Int {
         self[Self.key] as? Int ?? 0
