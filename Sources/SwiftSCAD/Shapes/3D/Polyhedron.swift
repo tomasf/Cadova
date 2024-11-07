@@ -54,4 +54,8 @@ public extension Polyhedron {
             }
         })
     }
+
+    init<Face: Sequence<Vector3D>, FaceList: Sequence<Face>>(faces: FaceList) {
+        self.init(faces: faces, value: \.self)
+    }
 }
