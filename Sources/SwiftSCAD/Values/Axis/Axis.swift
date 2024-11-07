@@ -44,13 +44,13 @@ public enum Axis3D: Int, Axis {
 
 /// A direction along an axis
 public enum AxisDirection: Sendable {
-    /// The positive direction along an axis
+    /// The positive direction along an axis (pointing towards positive infinity)
     case positive
-    /// The negative direction along an axis
+    /// The negative direction along an axis (pointing towards negative infinity)
     case negative
 
-    static let min = negative
-    static let max = positive
+    public static let min = negative
+    public static let max = positive
 
     internal var factor: Double {
         self == .negative ? -1 : 1
