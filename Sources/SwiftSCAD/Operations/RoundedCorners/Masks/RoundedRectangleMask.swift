@@ -1,22 +1,28 @@
 import Foundation
 
 internal struct RoundedRectangleMask: Shape2D {
-    private let radii: RectangleCornerRadii
     let size: Vector2D
-    let cornerStyle: RoundedCornerStyle
+    let radius: Double
+    let corners: Rectangle.Corners
+    let style: RoundedCornerStyle
 
-    internal init(_ size: Vector2D, style cornerStyle: RoundedCornerStyle, radii: RectangleCornerRadii) {
+    @Environment(\.facets) var facets
+
+    init(size: Vector2D, radius: Double, corners: Rectangle.Corners, style: RoundedCornerStyle) {
         self.size = size
-        self.radii = radii
-        self.cornerStyle = cornerStyle
+        self.radius = radius
+        self.corners = corners
+        self.style = style
 
-        radii.validateForSize(size)
+        precondition(size.x >= radius * Double(corners.cornerCountAffecting(.x)), "Rectangle is too small to fit rounded corners")
+        precondition(size.y >= radius * Double(corners.cornerCountAffecting(.y)), "Rectangle is too small to fit rounded corners")
     }
 
-    public var body: any Geometry2D {
-        func corner(radius: Double, posX: Bool, posY: Bool, environment: EnvironmentValues) -> Polygon {
-            var polygon = cornerStyle
-                .polygon(radius: radius, in: environment)
+    var body: any Geometry2D {
+        func corner(radius: Double, posX: Bool, posY: Bool) -> Polygon {
+            print(radius)
+            var polygon = style
+                .polygon(radius: radius, facets: facets)
                 .transformed(.identity
                     .translated([size.x / 2 - radius, size.y / 2 - radius])
                     .scaled(x: posX ? 1 : -1, y: posY ? 1 : -1)
@@ -29,14 +35,12 @@ internal struct RoundedRectangleMask: Shape2D {
             return polygon
         }
 
-        return readEnvironment { e in
-            Polygon([
-                corner(radius: radii.minXmaxY, posX: false, posY: true, environment: e),
-                corner(radius: radii.maxXmaxY, posX: true, posY: true, environment: e),
-                corner(radius: radii.maxXminY, posX: true, posY: false, environment: e),
-                corner(radius: radii.minXminY, posX: false, posY: false, environment: e),
-            ])
-        }
+        return Polygon([
+            corner(radius: corners.contains(.minXmaxY) ? radius : 0, posX: false, posY: true),
+            corner(radius: corners.contains(.maxXmaxY) ? radius : 0, posX: true, posY: true),
+            corner(radius: corners.contains(.maxXminY) ? radius : 0, posX: true, posY: false),
+            corner(radius: corners.contains(.minXminY) ? radius : 0, posX: false, posY: false),
+        ])
     }
 }
 

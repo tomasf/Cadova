@@ -16,17 +16,11 @@ public extension Geometry2D {
     /// It is intended for geometries that are rectangular or similar enough for this approximation to be effective.
 
     func roundingRectangleCorners(_ corners: Rectangle.Corners = .all, radius: Double, style: RoundedCornerStyle = .circular) -> any Geometry2D {
-        roundingRectangleCorners(.init(radius, corners: corners), style: style)
-    }
-}
-
-internal extension Geometry2D {
-    func roundingRectangleCorners(_ radii: RectangleCornerRadii, style: RoundedCornerStyle = .circular) -> any Geometry2D {
         let epsilon = 0.001
         return measuringBounds { child, box in
             let box = box.requireNonNil()
             child.intersecting {
-                RoundedRectangleMask(box.size + 2 * epsilon, style: style, radii: radii)
+                RoundedRectangleMask(size: box.size + 2 * epsilon, radius: radius, corners: corners, style: style)
                     .translated(box.minimum - epsilon)
             }
         }

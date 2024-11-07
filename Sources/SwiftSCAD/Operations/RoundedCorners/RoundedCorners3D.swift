@@ -20,7 +20,21 @@ public extension Geometry3D {
     /// It is intended for geometries that are box-like or similar enough for this approximation to be effective.
 
     func roundingBoxCorners(_ corners: Rectangle.Corners = .all, axis: Axis3D, radius: Double, style: RoundedCornerStyle = .circular) -> any Geometry3D {
-        roundingBoxCorners(axis: axis, .init(radius, corners: corners), style: style)
+        let adjustments = [90°, 0°, 180°]
+
+        return self
+            .rotated(from: axis.direction * -1, to: .up)
+            .rotated(z: adjustments[axis.index])
+            .measuringBounds { body, box in
+                let box = box.requireNonNil()
+                body.intersecting {
+                    RoundedRectangleMask(size: box.size.xy, radius: radius, corners: corners, style: style)
+                        .extruded(height: box.size.z)
+                        .translated(box.minimum)
+                }
+            }
+            .rotated(z: -adjustments[axis.index])
+            .rotated(from: .up, to: axis.direction * -1)
     }
 
     /// Rounds all eight corners of the geometry using its bounding box dimensions.
@@ -125,25 +139,5 @@ public extension Geometry3D {
         corners.reduce(self) {
             $0.roundingBoxCorner($1, radius: radius)
         }
-    }
-}
-
-internal extension Geometry3D {
-    func roundingBoxCorners(axis: Axis3D, _ radii: RectangleCornerRadii, style: RoundedCornerStyle = .circular) -> any Geometry3D {
-        let adjustments = [90°, 0°, 180°]
-
-        return self
-            .rotated(from: axis.direction * -1, to: .up)
-            .rotated(z: adjustments[axis.index])
-            .measuringBounds { body, box in
-                let box = box.requireNonNil()
-                body.intersecting {
-                    RoundedRectangleMask(box.size.xy, style: style, radii: radii)
-                        .extruded(height: box.size.z)
-                        .translated(box.minimum)
-                }
-            }
-            .rotated(z: -adjustments[axis.index])
-            .rotated(from: .up, to: axis.direction * -1)
     }
 }

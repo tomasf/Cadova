@@ -53,8 +53,11 @@ extension Rectangle {
         /// // notTopLeftOrBottomRight contains [.bottomLeft, .topRight]
         /// ```
 
-        public static prefix func ~(_ corners: Self) -> Self {
-            .all.subtracting(corners)
+        internal func cornerCountAffecting(_ axis: Axis2D) -> Int {
+            switch axis {
+            case .x: (isDisjoint(with: Self.minX) ? 0 : 1) + (isDisjoint(with: Self.maxX) ? 0 : 1)
+            case .y: (isDisjoint(with: Self.minY) ? 0 : 1) + (isDisjoint(with: Self.maxY) ? 0 : 1)
+            }
         }
     }
 }

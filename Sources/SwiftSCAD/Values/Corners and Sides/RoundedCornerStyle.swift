@@ -9,10 +9,10 @@ public enum RoundedCornerStyle: Sendable {
 }
 
 internal extension RoundedCornerStyle {
-    func polygon(radius: Double, in environment: EnvironmentValues) -> Polygon {
+    func polygon(radius: Double, facets: EnvironmentValues.Facets) -> Polygon {
         switch self {
-        case .circular: .circularArc(radius: radius, range: 0°..<90°, facets: environment.facets)
-        case .squircular: .squircleCorner(radius: radius, facets: environment.facets)
+        case .circular: .circularArc(radius: radius, range: 0°..<90°, facets: facets)
+        case .squircular: .squircleCorner(radius: radius, facets: facets)
         }
     }
 }
