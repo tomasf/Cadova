@@ -1,18 +1,5 @@
 import Foundation
 
-internal extension Geometry3D {
-    func roundingBoxCorners(radius: Double, mode: RoundedBoxMask3D.Mode) -> any Geometry3D {
-        let epsilon = 0.001
-        return measuringBounds { child, box in
-            child.intersecting {
-                let box = box.requireNonNil()
-                RoundedBoxMask3D(size: box.size + 2 * epsilon, cornerRadius: radius, mode: mode)
-                    .translated(box.center)
-            }
-        }
-    }
-}
-
 public extension Geometry3D {
     /// Rounds the corners of the geometry using its bounding box dimensions along a specified axis.
     ///
@@ -50,7 +37,15 @@ public extension Geometry3D {
     /// The rounding is done in a spherical manner, affecting all eight corners of the bounding box uniformly.
     
     func roundingBoxCorners(radius: Double) -> any Geometry3D {
-        roundingBoxCorners(radius: radius, mode: .full)
+        measuringBounds { child, box in
+            child.intersecting {
+                let box = box.requireNonNil()
+                RoundedBoxCornerMask(boxSize: box.size / 2, radius: radius)
+                    .translated(-box.size / 2)
+                    .symmetry(over: .all)
+                    .translated(box.center)
+            }
+        }
     }
 
     /// Rounds the four corners of the specified side of the geometry.
@@ -68,9 +63,17 @@ public extension Geometry3D {
     ///
     func roundingBoxCorners(side: Box.Side, radius: Double) -> any Geometry3D {
         self
-            .rotated(from: side.direction, to: .up)
-            .roundingBoxCorners(radius: radius, mode: .top)
-            .rotated(from: .up, to: side.direction)
+            .rotated(from: side.direction, to: .down)
+            .measuringBounds { child, box in
+                child.intersecting {
+                    let box = box.requireNonNil()
+                    RoundedBoxCornerMask(boxSize: .init(box.size.x / 2, box.size.y / 2, box.size.z), radius: radius)
+                        .translated(-box.size / 2)
+                        .symmetry(over: .xy)
+                        .translated(box.center)
+                }
+            }
+            .rotated(from: .down, to: side.direction)
     }
 
     /// Rounds the specified corner and its adjacent edges based on the geometry's bounding box dimensions.

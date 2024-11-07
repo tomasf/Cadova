@@ -23,8 +23,8 @@ public extension Box {
         public static let maxXmaxYminZ = Self(x: .max, y: .max, z: .min)
         public static let maxXmaxYmaxZ = Self(x: .max, y: .max, z: .max)
 
-        public static func max(_ maxAxes: Axes3D) {
-            self.init(
+        public static func max(_ maxAxes: Axes3D) -> Self {
+            Self(
                 x: maxAxes ~= .x ? .max : .min,
                 y: maxAxes ~= .y ? .max : .min,
                 z: maxAxes ~= .z ? .max : .min
