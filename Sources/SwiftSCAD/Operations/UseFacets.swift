@@ -43,6 +43,10 @@ public extension Geometry2D {
     func usingDefaultFacets() -> any Geometry2D {
         usingFacets(.defaults)
     }
+
+    internal func declaringFacets() -> any Geometry2D {
+        readEnvironment(\.facets) { usingFacets($0) }
+    }
 }
 
 public extension Geometry3D {
@@ -76,5 +80,9 @@ public extension Geometry3D {
 
     func usingDefaultFacets() -> any Geometry3D {
         usingFacets(.defaults)
+    }
+
+    internal func declaringFacets() -> any Geometry3D {
+        readEnvironment(\.facets) { usingFacets($0) }
     }
 }

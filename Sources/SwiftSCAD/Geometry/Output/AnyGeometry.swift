@@ -5,7 +5,7 @@ public struct AnyGeometry: @unchecked Sendable {
 
     internal init(_ geometry: any Geometry2D) {
         dataProvider = { environment in
-            let output = geometry.evaluated(in: environment)
+            let output = geometry.declaringFacets().evaluated(in: environment)
             return (
                 output.codeFragment,
                 output.elements[GeometryName.self]?.name,
@@ -16,7 +16,7 @@ public struct AnyGeometry: @unchecked Sendable {
 
     internal init(_ geometry: any Geometry3D) {
         dataProvider = { environment in
-            let output = geometry.evaluated(in: environment)
+            let output = geometry.declaringFacets().evaluated(in: environment)
             return (
                 output.codeFragment,
                 output.elements[GeometryName.self]?.name,
