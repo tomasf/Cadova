@@ -11,7 +11,7 @@ public extension Box {
         }
 
         public var direction: Vector3D {
-            axis.direction * axisDirection.factor
+            axis.directionVector(axisDirection)
         }
 
         public static let minX = Self(axis: .x, towards: .negative)

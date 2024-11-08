@@ -32,6 +32,10 @@ public struct Axes2D: Axes {
         self.init(rawValue: 1 << axis.rawValue)
     }
 
+    public init(x: Bool, y: Bool) {
+        self = [x ? .x : [], y ? .y : []]
+    }
+
     /// The axes *not* contained in this set
 
     public var inverted: Axes2D {
@@ -70,6 +74,10 @@ public struct Axes3D: Axes {
 
     public init(axis: Axis3D) {
         self.init(rawValue: 1 << axis.rawValue)
+    }
+
+    public init(x: Bool, y: Bool, z: Bool) {
+        self = [x ? .x : [], y ? .y : [], z ? .z : []]
     }
 
     /// The axes *not* contained in this set
