@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Box {
-    typealias Corner = BoxCorner<Vector3D>
+    typealias Corner = OrthogonalCorner<Vector3D>
     typealias Corners = Set<Corner>
 }
 

@@ -1,6 +1,7 @@
 import Foundation
 
-public struct BoxCorner<V: Vector>: Sendable, Hashable {
+// A corner of a rectangular shape (Rectangle / Box)
+public struct OrthogonalCorner<V: Vector>: Sendable, Hashable {
     let axisDirections: DimensionalValues<AxisDirection, V>
 
     internal init(axisDirections: DimensionalValues<AxisDirection, V>) {

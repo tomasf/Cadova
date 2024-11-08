@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Rectangle {
-    typealias Corner = BoxCorner<Vector2D>
+    typealias Corner = OrthogonalCorner<Vector2D>
     typealias Corners = Set<Corner>
 }
 
