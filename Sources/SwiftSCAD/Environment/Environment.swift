@@ -21,28 +21,10 @@ import Foundation
     }
 }
 
-internal protocol EnvironmentUpdatable {
-    func update(with environment: EnvironmentValues?)
-}
-
-extension Environment: EnvironmentUpdatable {
+extension Environment: EnvironmentInjectable {
     final private class MutableValue { var value: T? }
 
-    func update(with environment: EnvironmentValues?) {
+    func inject(environment: EnvironmentValues?) {
         value.value = environment?[keyPath: keyPath]
     }
-}
-
-
-fileprivate func inject(environment: EnvironmentValues?, into target: Any) {
-    for (_, value) in Mirror(reflecting: target).children {
-        (value as? any EnvironmentUpdatable)?.update(with: environment)
-    }
-}
-
-internal func whileInjecting<T>(environment: EnvironmentValues, into target: Any, actions: () -> T) -> T {
-    inject(environment: environment, into: target)
-    let result = actions()
-    inject(environment: nil, into: target)
-    return result
 }
