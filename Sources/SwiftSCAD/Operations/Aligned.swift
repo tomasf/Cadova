@@ -15,7 +15,9 @@ public extension Geometry2D {
     /// ```
     /// This example centers the square along the X-axis and aligns its bottom edge with the Y=0 line.
     func aligned(at alignment: GeometryAlignment2D...) -> any Geometry2D {
-        Align(content: self, alignment: alignment.merged)
+        measuringBounds { child, box in
+            child.translated(box?.translation(for: alignment.merged) ?? .zero)
+        }
     }
 }
 
@@ -34,6 +36,8 @@ public extension Geometry3D {
     /// ```
     /// This example centers the square along the X-axis and aligns its bottom edge with the Z=0 line.
     func aligned(at alignment: GeometryAlignment3D...) -> any Geometry3D {
-        Align(content: self, alignment: alignment.merged)
+        measuringBounds { child, box in
+            child.translated(box?.translation(for: alignment.merged) ?? .zero)
+        }
     }
 }
