@@ -25,11 +25,9 @@ public enum Axis3D: Int, Axis {
         }
     }
 
-    /// The unit vector pointing in the direction of the axis.
-    ///
-    /// This property returns a `Vector3D` representing the direction of the axis with a magnitude of 1. It is useful for operations that require understanding or manipulating the orientation of geometry in 3D space.
-    var direction: Vector3D {
-        Vector3D(self, value: 1)
+    /// The unit vector pointing along the axis, in either the positive or negative direction.
+    func directionVector(_ direction: AxisDirection) -> Vector3D {
+        Vector3D(self, value: direction.factor)
     }
 
     /// The other two axes that are orthogonal to this axis.
@@ -40,19 +38,4 @@ public enum Axis3D: Int, Axis {
     }
 
     public var index: Int { rawValue }
-}
-
-/// A direction along an axis
-public enum AxisDirection: Sendable, Hashable, CaseIterable {
-    /// The positive direction along an axis (pointing towards positive infinity)
-    case positive
-    /// The negative direction along an axis (pointing towards negative infinity)
-    case negative
-
-    public static let min = negative
-    public static let max = positive
-
-    internal var factor: Double {
-        self == .negative ? -1 : 1
-    }
 }

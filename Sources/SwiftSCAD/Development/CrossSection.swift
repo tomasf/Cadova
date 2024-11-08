@@ -30,7 +30,7 @@ public extension Geometry3D {
     /// - Returns: A cross-sectioned geometry
     @GeometryBuilder3D
     func crossSectioned(axis: Axis3D, offset: Double = 0, cuttingAway axisDirection: AxisDirection = .negative) -> any Geometry3D {
-        let direction = axis.direction * (axisDirection == .positive ? -1 : 1)
+        let direction = axis.directionVector(axisDirection) * -1
         let signedOffset = offset * (axisDirection == .positive ? -1 : 1)
         crossSectioned(axis: direction, offset: signedOffset)
     }

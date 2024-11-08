@@ -23,7 +23,7 @@ public extension Geometry3D {
         let adjustments = [90°, 0°, 180°]
 
         return self
-            .rotated(from: axis.direction * -1, to: .up)
+            .rotated(from: axis.directionVector(.negative), to: .up)
             .rotated(z: adjustments[axis.index])
             .measuringBounds { body, box in
                 let box = box.requireNonNil()
@@ -35,7 +35,7 @@ public extension Geometry3D {
                 }
             }
             .rotated(z: -adjustments[axis.index])
-            .rotated(from: .up, to: axis.direction * -1)
+            .rotated(from: .up, to: axis.directionVector(.negative))
     }
 
     /// Rounds all eight corners of the geometry using its bounding box dimensions.
