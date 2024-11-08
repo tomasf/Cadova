@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Axis: Equatable, CaseIterable, Sendable {
+public protocol Axis: Equatable, Hashable, CaseIterable, Sendable {
     var index: Int { get }
 }
 
@@ -34,7 +34,7 @@ public enum Axis3D: Int, Axis {
     ///
     /// This property returns an `Axes3D` instance excluding the current axis. It's particularly useful when needing to perform operations or transformations that involve the other two axes, not including the axis represented by the current `Axis3D` instance.
     var otherAxes: Axes3D {
-        Axes3D(axis: self).inverted
+        Axes3D([self]).inverted
     }
 
     public var index: Int { rawValue }

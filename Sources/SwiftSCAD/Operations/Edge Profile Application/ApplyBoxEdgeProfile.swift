@@ -56,6 +56,6 @@ fileprivate extension Box.Edge {
 
     var flippedProfileAxes: Axes3D {
         Axes3D(x: x == .max, y: y == .min, z: z == .min)
-            .subtracting(.init(axis: axis))
+            .subtracting([axis])
     }
 }

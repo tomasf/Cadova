@@ -52,11 +52,11 @@ internal extension Boundary {
         map { transform.apply(to: $0) }
     }
 
-    func min(_ axis: V.Axes.Axis) -> Double? {
+    func min(_ axis: V.Axis) -> Double? {
         points.map { $0[axis] }.min()
     }
 
-    func max(_ axis: V.Axes.Axis) -> Double? {
+    func max(_ axis: V.Axis) -> Double? {
         points.map { $0[axis] }.max()
     }
 

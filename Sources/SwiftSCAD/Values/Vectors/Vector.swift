@@ -4,11 +4,11 @@ infix operator ×
 infix operator ⋅
 
 public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where Element == Double {
-    associatedtype Axes: SwiftSCAD.Axes
+    associatedtype Axis: SwiftSCAD.Axis
+    typealias Axes = Set<Axis>
+
     associatedtype Transform: AffineTransform where Transform.V == Self
     associatedtype Geometry
-
-    typealias Axis = Axes.Axis
 
     static var zero: Self { get }
     init(_ single: Double)
@@ -106,6 +106,6 @@ internal extension Vector {
     }
 
     func with(_ axes: Axes, as value: Double) -> Self {
-        .init { axes.contains(axis: $0) ? value : self[$0] }
+        .init { axes.contains($0) ? value : self[$0] }
     }
 }

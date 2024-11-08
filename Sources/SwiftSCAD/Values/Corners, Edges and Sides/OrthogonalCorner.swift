@@ -10,7 +10,7 @@ public struct OrthogonalCorner<V: Vector>: Sendable, Hashable {
 
     public static func max(_ maxAxes: V.Axes) -> Self {
         Self(axisDirections: .init {
-            maxAxes.contains(axis: $0) ? .max : .min
+            maxAxes.contains($0) ? .max : .min
         })
     }
 

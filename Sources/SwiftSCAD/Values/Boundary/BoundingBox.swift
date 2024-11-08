@@ -79,7 +79,7 @@ extension BoundingBox {
     /// - Parameter axis: The axis for which to retrieve the coordinate range.
     /// - Returns: A `Range<Double>` representing the minimum to maximum coordinates along the given axis.
     ///
-    public subscript(_ axis: V.Axes.Axis) -> Range<Double> {
+    public subscript(_ axis: V.Axis) -> Range<Double> {
         .init(minimum[axis], maximum[axis])
     }
 

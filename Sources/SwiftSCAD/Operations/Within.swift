@@ -1,7 +1,7 @@
 import Foundation
 
 fileprivate extension BoundingBox {
-    func partialBox(from: Double?, to: Double?, in axis: V.Axes.Axis) -> BoundingBox {
+    func partialBox(from: Double?, to: Double?, in axis: V.Axis) -> BoundingBox {
         .init(
             minimum: minimum.with(axis, as: from ?? minimum[axis] - 1),
             maximum: maximum.with(axis, as: to ?? maximum[axis] + 1)

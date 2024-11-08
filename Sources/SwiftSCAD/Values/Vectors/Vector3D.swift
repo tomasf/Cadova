@@ -42,7 +42,7 @@ public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable
         self.init(x: arrayLiteral[0], y: arrayLiteral[1], z: arrayLiteral[2])
     }
 
-    public init(_ getter: (Axes.Axis) -> Double) {
+    public init(_ getter: (Axis) -> Double) {
         self.init(x: getter(.x), y: getter(.y), z: getter(.z))
     }
 
@@ -73,7 +73,7 @@ public extension Vector3D {
 
 extension Vector3D: Vector {
     public typealias Transform = AffineTransform3D
-    public typealias Axes = Axes3D
+    public typealias Axis = Axis3D
     public typealias Geometry = any Geometry3D
     public static let elementCount = 3
 

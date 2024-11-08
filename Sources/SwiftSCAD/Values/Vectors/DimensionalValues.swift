@@ -2,7 +2,7 @@ import Foundation
 
 // Container for non-Double values related to dimensions
 internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
-    typealias Axis = V.Axes.Axis
+    typealias Axis = V.Axis
 
     internal enum Value {
         case xy (Element, Element)
@@ -27,7 +27,7 @@ internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
         self.init(Axis.allCases.map { map($0) })
     }
 
-    subscript(_ axis: V.Axes.Axis) -> Element {
+    subscript(_ axis: V.Axis) -> Element {
         switch value {
         case let .xy(x, y): [x, y][axis.index]
         case let .xyz(x, y, z): [x, y, z][axis.index]
@@ -76,10 +76,7 @@ extension DimensionalValues where Element == Double {
 
 extension DimensionalValues where Element == Bool {
     var axes: V.Axes {
-        map { $1 ? $0 : nil }
-            .values.compactMap(\.self)
-            .map(V.Axes.init(axis:))
-            .reduce(.init()) { $0.union($1) }
+        Set(map { $1 ? $0 : nil }.values.compactMap(\.self))
     }
 }
 
