@@ -54,8 +54,6 @@ public struct Angle: Sendable {
 public extension Angle {
     /// Create an angle from a radian value.
     ///
-    /// Provides a static method to create an `Angle` from radians, facilitating readability and use where the context explicitly calls for radians.
-    ///
     /// - Parameter radians: The angle in radians.
     /// - Returns: An `Angle` instance representing the specified angle in radians.
     static func radians(_ radians: Double) -> Angle {
@@ -64,8 +62,6 @@ public extension Angle {
 
     /// Create an angle from a degree value.
     ///
-    /// Provides a static method to create an `Angle` from degrees, supporting use cases or contexts where angles are commonly expressed in degrees.
-    ///
     /// - Parameter degrees: The angle in degrees.
     /// - Returns: An `Angle` instance representing the specified angle in degrees.
     static func degrees(_ degrees: Double) -> Angle {
@@ -73,8 +69,6 @@ public extension Angle {
     }
 
     /// Create an angle from a number of complete turns.
-    ///
-    /// Provides a static method to create an `Angle` from turns, making it easy to express angles as multiples of 360° rotations.
     ///
     /// - Parameter turns: The number of complete turns (360° rotations).
     /// - Returns: An `Angle` instance representing the specified angle in turns.

@@ -1,6 +1,6 @@
 import Foundation
 
-public func save(to directory: URL? = nil, environment: EnvironmentValues? = nil, @AnyGeometryBuilder geometries: () -> [AnyGeometry]) {
+public func save(to directory: URL? = nil, environment: EnvironmentValues? = nil, @GeometryProxyBuilder geometries: () -> [GeometryProxy]) {
     let environment = environment ?? .defaultEnvironment
 
     geometries().concurrentForEach { geometry in
@@ -17,7 +17,7 @@ public func save(to directory: URL? = nil, environment: EnvironmentValues? = nil
     }
 }
 
-public func save(to directory: String?, environment: EnvironmentValues? = nil, @AnyGeometryBuilder geometries: () -> [AnyGeometry]) {
+public func save(to directory: String?, environment: EnvironmentValues? = nil, @GeometryProxyBuilder geometries: () -> [GeometryProxy]) {
     let url = directory.map { URL(expandingFilePath: $0) }
     save(to: url, environment: environment, geometries: geometries)
 }

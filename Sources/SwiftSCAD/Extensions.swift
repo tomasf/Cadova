@@ -79,3 +79,17 @@ extension Comparable {
         max(range.lowerBound, min(range.upperBound, self))
     }
 }
+
+extension Set {
+    init(_ sets: Self...) {
+        self = sets.reduce([]) { $0.union($1) }
+    }
+
+    static func +(lhs: Self, rhs: Element) -> Self {
+        lhs.union([rhs])
+    }
+
+    static func -(lhs: Self, rhs: Element) -> Self {
+        lhs.subtracting([rhs])
+    }
+}

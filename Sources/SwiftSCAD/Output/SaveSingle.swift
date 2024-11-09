@@ -4,7 +4,7 @@ public extension Geometry3D {
     /// Saves the 3D geometry to a specified URL.
     /// - Parameter url: The URL of the file to save the geometry to.
     func save(to url: URL) {
-        AnyGeometry(self.usingDefaultFacets()).save(to: url)
+        GeometryProxy(self.usingDefaultFacets()).save(to: url)
     }
 
     /// Saves the 3D geometry to a specified path.
@@ -18,7 +18,7 @@ public extension Geometry2D {
     /// Saves the 2D geometry to a specified URL.
     /// - Parameter url: The URL of the file to save the geometry to.
     func save(to url: URL) {
-        AnyGeometry(self.usingDefaultFacets()).save(to: url)
+        GeometryProxy(self.usingDefaultFacets()).save(to: url)
     }
 
     /// Saves the 2D geometry to a specified path.
@@ -28,7 +28,7 @@ public extension Geometry2D {
     }
 }
 
-internal extension AnyGeometry {
+internal extension GeometryProxy {
     func save(to url: URL) {
         let environment = EnvironmentValues.defaultEnvironment
         let (codeFragment, _, formats) = evaluated(in: environment)

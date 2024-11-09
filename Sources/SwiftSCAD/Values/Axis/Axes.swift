@@ -5,10 +5,7 @@ public typealias Axes2D = Set<Axis2D>
 
 public extension Axes2D {
     init(x: Bool, y: Bool) {
-        self = Set([
-            x ? .x : nil,
-            y ? .y : nil,
-        ].compactMap { $0 })
+        self.init(x ? .x : [], y ? .y : [])
     }
 
     var inverted: Self {
@@ -28,11 +25,7 @@ public typealias Axes3D = Set<Axis3D>
 
 public extension Axes3D {
     init(x: Bool, y: Bool, z: Bool) {
-        self = Set([
-            x ? .x : nil,
-            y ? .y : nil,
-            z ? .z : nil
-        ].compactMap { $0 })
+        self.init(x ? .x : [], y ? .y : [], z ? .z : [])
     }
 
     var inverted: Self {
