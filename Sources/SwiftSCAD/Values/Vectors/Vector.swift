@@ -6,7 +6,8 @@ infix operator ⋅
 public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where Element == Double {
     associatedtype Axis: SwiftSCAD.Axis
     typealias Axes = Set<Axis>
-
+    typealias Alignment = GeometryAlignment<Self>
+    
     associatedtype Transform: AffineTransform where Transform.V == Self
     associatedtype Geometry
 

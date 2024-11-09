@@ -19,7 +19,7 @@ public struct GeometryAlignment<V: Vector>: Equatable, Sendable {
         values = .init { _ in value }
     }
 
-    fileprivate init(merging alignments: [Self]) {
+    internal init(merging alignments: [Self]) {
         values = .init { index in
             alignments.compactMap { $0[index] }.last
         }
