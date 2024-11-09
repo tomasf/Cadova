@@ -1,17 +1,16 @@
 import Foundation
 
-// Remove underscore once deprecated EnvironmentReader is removed
-struct _EnvironmentReader<Geometry> {
+struct EnvironmentReader<Geometry> {
     let body: (EnvironmentValues) -> Geometry
 }
 
-extension _EnvironmentReader<any Geometry2D>: Geometry2D {
+extension EnvironmentReader<any Geometry2D>: Geometry2D {
     func evaluated(in environment: EnvironmentValues) -> Output2D {
         body(environment).evaluated(in: environment)
     }
 }
 
-extension _EnvironmentReader<any Geometry3D>: Geometry3D {
+extension EnvironmentReader<any Geometry3D>: Geometry3D {
     func evaluated(in environment: EnvironmentValues) -> Output3D {
         body(environment).evaluated(in: environment)
     }
@@ -24,7 +23,7 @@ extension _EnvironmentReader<any Geometry3D>: Geometry3D {
 /// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a new `Geometry2D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
 public func readEnvironment(@GeometryBuilder2D _ body: @escaping (EnvironmentValues) -> any Geometry2D) -> any Geometry2D {
-    _EnvironmentReader(body: body)
+    EnvironmentReader(body: body)
 }
 
 public func readEnvironment<T>(
@@ -64,7 +63,7 @@ public func readEnvironment<T, U, V>(
 /// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a new `Geometry3D` instance based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
 public func readEnvironment(@GeometryBuilder3D _ body: @escaping (EnvironmentValues) -> any Geometry3D) -> any Geometry3D {
-    _EnvironmentReader(body: body)
+    EnvironmentReader(body: body)
 }
 
 public func readEnvironment<T>(

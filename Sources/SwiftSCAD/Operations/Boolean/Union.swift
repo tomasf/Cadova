@@ -1,15 +1,14 @@
 import Foundation
 
-// Remove underscore when deprecated Union global func is removed
-fileprivate struct _Union<V: Vector> {
+fileprivate struct Union<V: Vector> {
     let children: [V.Geometry]
     let moduleName = "union"
     let boundaryMergeStrategy = Boundary<V>.MergeStrategy.union
     let combination = GeometryCombination.union
 }
 
-extension _Union<Vector2D>: Geometry2D, CombinedGeometry2D {}
-extension _Union<Vector3D>: Geometry3D, CombinedGeometry3D {}
+extension Union<Vector2D>: Geometry2D, CombinedGeometry2D {}
+extension Union<Vector3D>: Geometry3D, CombinedGeometry3D {}
 
 /// Form a union to group multiple pieces of geometry together and treat them as one
 ///
@@ -37,7 +36,7 @@ public func union(_ children: [(any Geometry2D)?]) -> any Geometry2D {
     if finalChildren.count == 1 {
         return finalChildren[0]
     } else {
-        return _Union(children: finalChildren)
+        return Union(children: finalChildren)
     }
 }
 
@@ -67,6 +66,6 @@ public func union(_ children: [(any Geometry3D)?]) -> any Geometry3D {
     if finalChildren.count == 1 {
         return finalChildren[0]
     } else {
-        return _Union(children: finalChildren)
+        return Union(children: finalChildren)
     }
 }
