@@ -23,7 +23,7 @@ public extension EnvironmentValues {
         /// Calculates the number of facets for a circle based on its radius and the current facet settings.
         ///
         /// For `dynamic`, it calculates the appropriate number of facets based on the minimum angle and size.
-        /// - Parameter circleRadius: The radius of the circle.
+        /// - Parameter r: The radius of the circle.
         /// - Returns: The calculated number of facets for a full circle.
         public func facetCount(circleRadius r: Double) -> Int {
             switch self {

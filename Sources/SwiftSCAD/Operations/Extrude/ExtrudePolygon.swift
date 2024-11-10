@@ -50,8 +50,9 @@ public extension Polygon {
     /// Extrude the polygon along a circular helix around the Z axis
     ///
     /// - Parameters:
-    ///   - pitch: The Z distance between each turn of the helix
-    ///   - height: The total height of the helix
+    ///  - pitch: The Z distance between each turn of the helix
+    ///  - height: The total height of the helix
+    ///  - offset: An optional closure calculating a varying offset
 
     func extrudedAlongHelix(
         pitch: Double,

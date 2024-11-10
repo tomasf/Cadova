@@ -75,7 +75,7 @@ public extension Geometry2D {
     /// ```
     ///
     /// - Parameters:
-    ///   - with: The other geometry to intersect with this
+    ///   - other: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
     func intersecting(@GeometryBuilder2D _ other: () -> [any Geometry2D]) -> any Geometry2D {
@@ -99,7 +99,7 @@ public extension Geometry3D {
     /// ```
     ///
     /// - Parameters:
-    ///   - with: The other geometry to intersect with this
+    ///   - other: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
     func intersecting(@GeometryBuilder3D _ other: () -> [any Geometry3D]) -> any Geometry3D {

@@ -26,7 +26,7 @@ public extension Geometry2D {
     ///   - anchor: The `Anchor` to define on this geometry.
     ///   - alignment: One or more alignment options specifying where on the geometry the anchor should be located. If no alignment is specified, the origin is used.
     ///   - offset: An optional `Vector2D` used to offset the anchor from the specified alignment position.
-    ///   - rotated: An optional rotation at the specified point
+    ///   - rotation: An optional rotation at the specified point
     /// - Returns: A modified version of the geometry with the defined anchor.
     func definingAnchor(
         _ anchor: Anchor,
@@ -80,8 +80,8 @@ public extension Geometry3D {
     ///   - anchor: The `Anchor` to define on this geometry.
     ///   - alignment: One or more alignment options specifying where on the geometry the anchor should be located. If no alignment is specified, the origin is used.
     ///   - offset: An optional `Vector3D` used to offset the anchor.
-    ///   - pointing: An optional direction vector relative to the current orientation, applied after alignment and offset. This direction becomes the positive Z of this anchor.
-    ///   - rotated: An optional rotation around the direction vector.
+    ///   - direction: An optional direction vector relative to the current orientation, applied after alignment and offset. This direction becomes the positive Z of this anchor.
+    ///   - rotation: An optional rotation around the direction vector.
     /// - Returns: The geometry with a defined anchor.
     func definingAnchor(
         _ anchor: Anchor,

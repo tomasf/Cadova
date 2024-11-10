@@ -48,7 +48,7 @@ public extension Geometry3D {
 
     /// Projects the 3D geometry onto a 2D plane, slicing at a specific Z value.
     /// The slicing at Z creates a 2D cross-section of the geometry at that Z height.
-    /// - Parameter slicingAtZ: The Z value at which the geometry will be sliced when projecting. It defines the height at which the cross-section is taken.
+    /// - Parameter z: The Z value at which the geometry will be sliced when projecting. It defines the height at which the cross-section is taken.
     /// - Returns: A `Geometry2D` representing the projected shape.
     /// - Example:
     ///   ```swift

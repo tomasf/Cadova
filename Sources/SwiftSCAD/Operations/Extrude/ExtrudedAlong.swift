@@ -8,7 +8,8 @@ public extension Geometry2D {
     /// If the path is closed, meaning its start and end points coincide, the extrusion connects the ends of the shape at the point of closure, forming a continuous loop without flat ends.
     ///
     /// - Parameters:
-    ///   - path: A 2D or 3D `BezierPath` representing the path along which to extrude the shape.
+    ///  - path: A 2D or 3D `BezierPath` representing the path along which to extrude the shape.
+    ///  - range: The position range to extrude. Defaults to nil, which extrudes the entire path.
 
     func extruded<V: Vector>(along path: BezierPath<V>, in range: ClosedRange<BezierPath.Position>? = nil) -> any Geometry3D {
         path.readPoints(in: range) { rawPoints in

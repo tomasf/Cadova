@@ -27,7 +27,6 @@ extension Stack<Vector2D>: Geometry2D, Shape2D {
     ///   - spacing: The spacing between stacked geometries. Default is `0`.
     ///   - alignment: The alignment of the stack. Can be merged from multiple alignment options.
     ///   - content: A closure generating geometries to stack.
-    /// - Returns: A stacked 2D geometry.
     public init(
         _ axis: Axis2D,
         spacing: Double = 0,
@@ -63,7 +62,6 @@ extension Stack<Vector3D>: Geometry3D, Shape3D {
     ///   - spacing: The spacing between stacked geometries. Default is `0`.
     ///   - alignment: The alignment of the stack. Can be merged from multiple alignment options.
     ///   - content: A closure generating geometries to stack.
-    /// - Returns: A stacked 3D geometry.
     public init(
         _ axis: Axis3D,
         spacing: Double = 0,

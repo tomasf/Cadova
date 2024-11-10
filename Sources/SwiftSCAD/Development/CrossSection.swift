@@ -26,7 +26,7 @@ public extension Geometry3D {
     /// - Parameters:
     ///   - axis: The axis along which to cut
     ///   - offset: The offset from zero at which to cut
-    ///   - cuttingAway: Which direction to cut. The default, .negative, cuts away towards the negative direction of the axis, leaving the positive part visible.
+    ///   - axisDirection: Which direction to cut. The default, .negative, cuts away towards the negative direction of the axis, leaving the positive part visible.
     /// - Returns: A cross-sectioned geometry
     @GeometryBuilder3D
     func crossSectioned(axis: Axis3D, offset: Double = 0, cuttingAway axisDirection: AxisDirection = .negative) -> any Geometry3D {

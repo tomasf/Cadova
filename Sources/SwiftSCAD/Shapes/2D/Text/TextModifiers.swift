@@ -34,7 +34,7 @@ public extension Geometry2D {
     ///
     /// This method sets the factor by which character spacing is increased or decreased. A value of 1 (the default) results in normal spacing for the font. Values greater than 1 increase the space between characters, effectively spreading them further apart.
     ///
-    /// - Parameter spacing: The character spacing factor. A value greater than 1 causes the characters to be spaced further apart.
+    /// - Parameter spacingFactor: The character spacing factor. A value greater than 1 causes the characters to be spaced further apart.
     /// - Returns: A new `Geometry2D` instance with the updated character spacing.
     func usingCharacterSpacing(_ spacingFactor: Double) -> any Geometry2D {
         withEnvironment {

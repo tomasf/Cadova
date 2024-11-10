@@ -78,7 +78,7 @@ extension Geometry3D {
     
     /// Repeat this geometry at specified offsets
     /// - Parameters:
-    ///   - offsets: The translation offsets to use
+    ///   - points: The translation offsets to use
     /// - Returns: A new geometry with this geometry repeated
     
     @GeometryBuilder3D
@@ -90,7 +90,7 @@ extension Geometry3D {
     
     /// Repeat this geometry at specified offsets
     /// - Parameters:
-    ///   - offsets: The translation offsets to use
+    ///   - points: The translation offsets to use
     /// - Returns: A new geometry with this geometry repeated
     
     @GeometryBuilder3D
