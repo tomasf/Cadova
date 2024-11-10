@@ -15,11 +15,11 @@ public extension Geometry2D {
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
     func adding(@GeometryBuilder2D _ bodies: () -> [any Geometry2D]) -> any Geometry2D {
-        union([self] + bodies())
+        Union([self] + bodies())
     }
 
     func adding(_ bodies: (any Geometry2D)?...) -> any Geometry2D {
-        union([self] + bodies)
+        Union([self] + bodies)
     }
 }
 
@@ -38,10 +38,10 @@ public extension Geometry3D {
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
     func adding(@GeometryBuilder3D _ bodies: () -> [any Geometry3D]) -> any Geometry3D {
-        union([self] + bodies())
+        Union([self] + bodies())
     }
 
     func adding(_ bodies: (any Geometry3D)?...) -> any Geometry3D {
-        union([self] + bodies)
+        Union([self] + bodies)
     }
 }

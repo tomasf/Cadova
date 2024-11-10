@@ -40,7 +40,7 @@ public struct Teardrop: Shape2D {
             .translated(x: -cos(angle) * radius, y: sin(angle) * radius)
 
         Circle(diameter: diameter)
-        intersection {
+        Intersection {
             mask
             mask.flipped(along: .x)
 

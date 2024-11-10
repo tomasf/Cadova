@@ -3,7 +3,7 @@ import Testing
 
 struct Geometry2DTests {
     @Test func basic2D() {
-        let geometry = union {
+        let geometry = Union {
             Rectangle(Vector2D(30, 10))
                 .aligned(at: .centerY)
                 .subtracting {

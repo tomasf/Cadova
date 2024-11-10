@@ -75,6 +75,8 @@ public struct Output<V: Vector> {
 }
 
 internal extension Output where V == Vector2D {
+    // Combined; union, difference, intersection, minkowski
+    // Transparent for single children
     init(
         children: [Geometry2D],
         boundaryMergeStrategy: Boundary<V>.MergeStrategy,
@@ -83,15 +85,19 @@ internal extension Output where V == Vector2D {
         moduleParameters: CodeFragment.Parameters,
         environment: EnvironmentValues
     ) {
-        self.init(
-            childOutputs: children.map { $0.evaluated(in: environment) },
-            boundaryMergeStrategy: boundaryMergeStrategy,
-            combination: combination,
-            moduleName: moduleName,
-            moduleParameters: moduleParameters,
-            supportsPreviewConvexity: false,
-            environment: environment
-        )
+        if children.count == 1 {
+            self = children[0].evaluated(in: environment)
+        } else {
+            self.init(
+                childOutputs: children.map { $0.evaluated(in: environment) },
+                boundaryMergeStrategy: boundaryMergeStrategy,
+                combination: combination,
+                moduleName: moduleName,
+                moduleParameters: moduleParameters,
+                supportsPreviewConvexity: false,
+                environment: environment
+            )
+        }
     }
 
     // Transformed
@@ -107,6 +113,8 @@ internal extension Output where V == Vector2D {
 }
 
 internal extension Output where V == Vector3D {
+    // Combined; union, difference, intersection, minkowski
+    // Transparent for single children
     init(
         children: [Geometry3D],
         boundaryMergeStrategy: Boundary<V>.MergeStrategy,
@@ -116,16 +124,20 @@ internal extension Output where V == Vector3D {
         supportsPreviewConvexity: Bool,
         environment: EnvironmentValues
     ) {
-        let childEnvironment = supportsPreviewConvexity ? environment.withPreviewConvexity(nil) : environment
-        self.init(
-            childOutputs: children.map { $0.evaluated(in: childEnvironment) },
-            boundaryMergeStrategy: boundaryMergeStrategy,
-            combination: combination,
-            moduleName: moduleName,
-            moduleParameters: moduleParameters,
-            supportsPreviewConvexity: supportsPreviewConvexity,
-            environment: environment
-        )
+        if children.count == 1 {
+            self = children[0].evaluated(in: environment)
+        } else {
+            let childEnvironment = supportsPreviewConvexity ? environment.withPreviewConvexity(nil) : environment
+            self.init(
+                childOutputs: children.map { $0.evaluated(in: childEnvironment) },
+                boundaryMergeStrategy: boundaryMergeStrategy,
+                combination: combination,
+                moduleName: moduleName,
+                moduleParameters: moduleParameters,
+                supportsPreviewConvexity: supportsPreviewConvexity,
+                environment: environment
+            )
+        }
     }
 
     // Extrusion

@@ -16,12 +16,12 @@ public extension BoundingBox2D {
     @GeometryBuilder2D
     func visualized(scale: Double = 1.0) -> any Geometry2D {
         let borderWidth = visualizationStandardBorderWidth * scale
-        let half = union {
+        let half = Union {
             Rectangle([maximum.x - minimum.x, borderWidth])
             Rectangle([borderWidth, maximum.y - minimum.y])
         }
             .offset(amount: 0.001, style: .miter)
-        union {
+        Union {
             half.translated(minimum)
             half.flipped(along: .all)
                 .translated(maximum)
@@ -50,7 +50,7 @@ public extension BoundingBox3D {
                 .extruded(height: borderWidth)
         }
 
-        let half = union {
+        let half = Union {
             frame([size.x, size.y])
             frame([size.x, size.z])
                 .rotated(x: 90°)

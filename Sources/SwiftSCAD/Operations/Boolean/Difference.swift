@@ -47,7 +47,7 @@ public extension Geometry2D {
     }
 
     func subtracting(_ negative: (any Geometry2D)?...) -> any Geometry2D {
-        Difference(positive: self, negative: union(negative))
+        Difference(positive: self, negative: Union(negative))
     }
 }
 
@@ -71,6 +71,6 @@ public extension Geometry3D {
     }
 
     func subtracting(_ negative: (any Geometry3D)?...) -> any Geometry3D {
-        Difference(positive: self, negative: union(negative))
+        Difference(positive: self, negative: Union(negative))
     }
 }
