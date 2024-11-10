@@ -6,6 +6,7 @@ internal protocol CombinedGeometry2D: Geometry2D {
     var children: [any Geometry2D] { get }
     var boundaryMergeStrategy: Boundary2D.MergeStrategy { get }
     var combination: GeometryCombination { get }
+    var needsColorDeclaration: Bool { get }
 }
 
 extension CombinedGeometry2D {
@@ -16,11 +17,14 @@ extension CombinedGeometry2D {
             combination: combination,
             moduleName: moduleName,
             moduleParameters: moduleParameters,
+            declaresColor: needsColorDeclaration,
             environment: environment
         )
     }
 
     var moduleParameters: CodeFragment.Parameters { [:] }
+    public var needsColorDeclaration: Bool { false }
+
 }
 
 internal protocol CombinedGeometry3D: Geometry3D {
@@ -30,6 +34,7 @@ internal protocol CombinedGeometry3D: Geometry3D {
     var children: [any Geometry3D] { get }
     var boundaryMergeStrategy: Boundary3D.MergeStrategy { get }
     var combination: GeometryCombination { get }
+    var needsColorDeclaration: Bool { get }
 }
 
 extension CombinedGeometry3D {
@@ -41,12 +46,14 @@ extension CombinedGeometry3D {
             moduleName: moduleName,
             moduleParameters: moduleParameters,
             supportsPreviewConvexity: supportsPreviewConvexity,
+            declaresColor: needsColorDeclaration,
             environment: environment
         )
     }
 
     var moduleParameters: CodeFragment.Parameters { [:] }
     var supportsPreviewConvexity: Bool { false }
+    public var needsColorDeclaration: Bool { false }
 }
 
 public enum GeometryCombination {

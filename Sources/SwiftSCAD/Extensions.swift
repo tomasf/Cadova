@@ -80,6 +80,12 @@ extension Comparable {
     }
 }
 
+extension Double {
+    var unitClamped: Double {
+        clamped(to: 0...1)
+    }
+}
+
 extension Set {
     init(_ sets: Self...) {
         self = sets.reduce([]) { $0.union($1) }

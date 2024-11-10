@@ -1,6 +1,6 @@
 import Foundation
 
-protocol SCADValue: Sendable {
+internal protocol SCADValue: Sendable {
     var scadString: String { get }
 }
 

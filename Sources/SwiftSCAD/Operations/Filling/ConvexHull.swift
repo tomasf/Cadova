@@ -3,6 +3,7 @@ import Foundation
 fileprivate struct ConvexHull<Geometry> {
     let body: Geometry
     let moduleName = "hull"
+    let needsColorDeclaration = true
 }
 
 extension ConvexHull<Geometry2D>: Geometry2D, WrappedGeometry2D {}

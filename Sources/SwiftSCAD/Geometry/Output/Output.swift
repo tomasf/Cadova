@@ -11,7 +11,7 @@ public struct Output<V: Vector> {
         self.elements = elements
     }
 
-    // Combined geometry
+    /// Combined geometry
     fileprivate init(
         childOutputs: [Output<V>],
         boundaryMergeStrategy: Boundary<V>.MergeStrategy,
@@ -19,6 +19,7 @@ public struct Output<V: Vector> {
         moduleName: String,
         moduleParameters: CodeFragment.Parameters,
         supportsPreviewConvexity: Bool,
+        declaresColor: Bool,
         environment: EnvironmentValues
     ) {
         var moduleParameters = moduleParameters
@@ -26,16 +27,24 @@ public struct Output<V: Vector> {
             moduleParameters["convexity"] = convexity
         }
 
-        codeFragment = .init(
-            module: moduleName,
-            parameters: moduleParameters,
-            body: childOutputs.map(\.codeFragment)
+        let output = Self(
+            codeFragment: .init(
+                module: moduleName,
+                parameters: moduleParameters,
+                body: childOutputs.map(\.codeFragment)
+            ),
+            boundary: boundaryMergeStrategy.apply(childOutputs.map(\.boundary)),
+            elements: .init(combining: childOutputs.map(\.elements), operation: combination)
         )
-        boundary = boundaryMergeStrategy.apply(childOutputs.map(\.boundary))
-        elements = .init(combining: childOutputs.map(\.elements), operation: combination)
+
+        if declaresColor {
+            self = output.declaringColorIfNeeded(from: environment)
+        } else {
+            self = output
+        }
     }
 
-    // Leaf
+    /// Leaf
     init(
         moduleName: String,
         moduleParameters: CodeFragment.Parameters,
@@ -48,23 +57,43 @@ public struct Output<V: Vector> {
             params["convexity"] = convexity
         }
 
-        self.init(
+        self = .init(
             codeFragment: .init(module: moduleName, parameters: params, body: []),
             boundary: boundary,
             elements: [:]
+        ).declaringColorIfNeeded(from: environment)
+    }
+
+    private func declaringColorIfNeeded(from environment: EnvironmentValues) -> Self {
+        guard let color = environment.color else {
+            return self
+        }
+
+        return Self(
+            bodyOutput: self,
+            moduleName: "color",
+            moduleParameters: color.moduleParameters,
+            declaresColor: false,
+            environment: environment,
+            boundary: \.self
         )
     }
 
-    // Wrapped
-    init(bodyOutput: Output<V>, moduleName: String, moduleParameters: CodeFragment.Parameters, boundary: (Boundary<V>) -> (Boundary<V>)) {
-        self.init(
+    /// Wrapped
+    init(bodyOutput: Output<V>, moduleName: String, moduleParameters: CodeFragment.Parameters, declaresColor: Bool, environment: EnvironmentValues, boundary: (Boundary<V>) -> (Boundary<V>)) {
+        let output = Self(
             codeFragment: .init(module: moduleName, parameters: moduleParameters, body: [bodyOutput.codeFragment]),
             boundary: boundary(bodyOutput.boundary),
             elements: bodyOutput.elements
         )
+        if declaresColor {
+            self = output.declaringColorIfNeeded(from: environment)
+        } else {
+            self = output
+        }
     }
 
-    // Transformed
+    /// Transformed
     fileprivate init(bodyOutput: Output<V>, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform3D) {
         self.init(
             codeFragment: .init(module: moduleName, parameters: moduleParameters, body: [bodyOutput.codeFragment]),
@@ -75,14 +104,15 @@ public struct Output<V: Vector> {
 }
 
 internal extension Output where V == Vector2D {
-    // Combined; union, difference, intersection, minkowski
-    // Transparent for single children
+    /// Combined; union, difference, intersection, minkowski
+    /// Transparent for single children
     init(
         children: [Geometry2D],
         boundaryMergeStrategy: Boundary<V>.MergeStrategy,
         combination: GeometryCombination,
         moduleName: String,
         moduleParameters: CodeFragment.Parameters,
+        declaresColor: Bool,
         environment: EnvironmentValues
     ) {
         if children.count == 1 {
@@ -95,12 +125,13 @@ internal extension Output where V == Vector2D {
                 moduleName: moduleName,
                 moduleParameters: moduleParameters,
                 supportsPreviewConvexity: false,
+                declaresColor: declaresColor,
                 environment: environment
             )
         }
     }
 
-    // Transformed
+    /// Transformed 2D
     init(body: Geometry2D, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform2D, environment: EnvironmentValues) {
         let environment = environment.applyingTransform(.init(transform))
         self.init(
@@ -110,11 +141,27 @@ internal extension Output where V == Vector2D {
             transform: transform.transform3D
         )
     }
+
+    /// Projection
+    init(
+        child: Geometry3D,
+        moduleName: String,
+        moduleParameters: CodeFragment.Parameters,
+        environment: EnvironmentValues
+    ) {
+        let childOutput = child.evaluated(in: environment)
+
+        self = .init(
+            codeFragment: .init(module: moduleName, parameters: moduleParameters, body: [childOutput.codeFragment]),
+            boundary: childOutput.boundary.map(\.xy),
+            elements: childOutput.elements
+        ).declaringColorIfNeeded(from: environment)
+    }
 }
 
 internal extension Output where V == Vector3D {
-    // Combined; union, difference, intersection, minkowski
-    // Transparent for single children
+    /// Combined; union, difference, intersection, minkowski
+    /// Transparent for single children
     init(
         children: [Geometry3D],
         boundaryMergeStrategy: Boundary<V>.MergeStrategy,
@@ -122,6 +169,7 @@ internal extension Output where V == Vector3D {
         moduleName: String,
         moduleParameters: CodeFragment.Parameters,
         supportsPreviewConvexity: Bool,
+        declaresColor: Bool,
         environment: EnvironmentValues
     ) {
         if children.count == 1 {
@@ -135,12 +183,13 @@ internal extension Output where V == Vector3D {
                 moduleName: moduleName,
                 moduleParameters: moduleParameters,
                 supportsPreviewConvexity: supportsPreviewConvexity,
+                declaresColor: declaresColor,
                 environment: environment
             )
         }
     }
 
-    // Extrusion
+    /// Extrusion
     init(
         child: Geometry2D,
         boundaryExtrusion: (Boundary2D, EnvironmentValues.Facets) -> Boundary3D,
@@ -155,14 +204,14 @@ internal extension Output where V == Vector3D {
             params["convexity"] = convexity
         }
 
-        self.init(
+        self = .init(
             codeFragment: .init(module: moduleName, parameters: params, body: [childOutput.codeFragment]),
             boundary: boundaryExtrusion(childOutput.boundary, environment.facets),
             elements: childOutput.elements
-        )
+        ).declaringColorIfNeeded(from: environment)
     }
 
-    // Transformed
+    /// Transformed
     init(body: Geometry3D, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform3D, environment: EnvironmentValues) {
         let environment = environment.applyingTransform(.init(transform))
         self.init(

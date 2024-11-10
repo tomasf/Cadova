@@ -42,10 +42,13 @@ public struct Polygon: Geometry2D {
 
     public func evaluated(in environment: EnvironmentValues) -> Output2D {
         let points = points(in: environment)
+
         return .init(
-            codeFragment: .init(module: "polygon", parameters:  ["points": points], body: []),
+            moduleName: "polygon",
+            moduleParameters: ["points": points],
             boundary: .points(points),
-            elements: [:]
+            supportsPreviewConvexity: false,
+            environment: environment
         )
     }
 }

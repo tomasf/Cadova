@@ -5,6 +5,7 @@ fileprivate struct MinkowskiSum<V: Vector> {
     let moduleName = "minkowski"
     let boundaryMergeStrategy = Boundary<V>.MergeStrategy.minkowskiSum
     let combination = GeometryCombination.minkowskiSum
+    let needsColorDeclaration = true
 }
 
 extension MinkowskiSum<Vector2D>: Geometry2D, CombinedGeometry2D {}
