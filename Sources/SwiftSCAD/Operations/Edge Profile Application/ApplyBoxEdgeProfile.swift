@@ -17,7 +17,7 @@ public extension Geometry3D {
     func applyingProfile(_ edgeProfile: EdgeProfile, toBoxEdge edge: Box.Edge) -> any Geometry3D {
         measuringBounds { child, box in
             let box = box.requireNonNil()
-            let epsilon = 0.001
+            let epsilon = 0.01
 
             child.subtracting(edgeProfile.shape()
                 .rotated(edge.profileRotation)
