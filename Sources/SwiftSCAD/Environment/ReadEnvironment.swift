@@ -26,6 +26,13 @@ public func readEnvironment(@GeometryBuilder2D _ body: @escaping (EnvironmentVal
     EnvironmentReader(body: body)
 }
 
+/// Creates a 2D geometry that reads a specific environment value and adjusts its geometry accordingly.
+///
+/// This overload reads one specific key path from the environment and uses it within the body to create `Geometry2D`.
+/// - Parameters:
+///   - keyPath1: A key path to the specific value in `EnvironmentValues` used in geometry creation.
+///   - body: A closure that takes the specified environment value and returns a `Geometry2D` instance based on that value.
+/// - Returns: A dynamically created geometry instance that responds to the specified environment value.
 public func readEnvironment<T>(
     _ keyPath1: KeyPath<EnvironmentValues, T>,
     @GeometryBuilder2D _ body: @escaping (T) -> any Geometry2D
@@ -35,6 +42,14 @@ public func readEnvironment<T>(
     }
 }
 
+/// Creates a 2D geometry that reads two specific environment values and adjusts its geometry accordingly.
+///
+/// This overload reads two specific key paths from the environment and uses them to inform the body closure’s geometry creation.
+/// - Parameters:
+///   - keyPath1: A key path to the first specific value in `EnvironmentValues`.
+///   - keyPath2: A key path to the second specific value in `EnvironmentValues`.
+///   - body: A closure that takes the two specified environment values and returns a `Geometry2D` instance based on them.
+/// - Returns: A geometry instance dynamically created based on the specified environment values.
 public func readEnvironment<T, U>(
     _ keyPath1: KeyPath<EnvironmentValues, T>,
     _ keyPath2: KeyPath<EnvironmentValues, U>,
@@ -45,6 +60,15 @@ public func readEnvironment<T, U>(
     }
 }
 
+/// Creates a 2D geometry that reads three specific environment values and adjusts its geometry accordingly.
+///
+/// This overload reads three specific key paths from the environment and uses them to inform the body closure’s geometry creation.
+/// - Parameters:
+///   - keyPath1: A key path to the first specific value in `EnvironmentValues`.
+///   - keyPath2: A key path to the second specific value in `EnvironmentValues`.
+///   - keyPath3: A key path to the third specific value in `EnvironmentValues`.
+///   - body: A closure that takes the three specified environment values and returns a `Geometry2D` instance based on them.
+/// - Returns: A geometry instance dynamically created based on the specified environment values.
 public func readEnvironment<T, U, V>(
     _ keyPath1: KeyPath<EnvironmentValues, T>,
     _ keyPath2: KeyPath<EnvironmentValues, U>,
@@ -66,6 +90,13 @@ public func readEnvironment(@GeometryBuilder3D _ body: @escaping (EnvironmentVal
     EnvironmentReader(body: body)
 }
 
+/// Creates a 3D geometry that reads a specific environment value and adjusts its geometry accordingly.
+///
+/// This overload reads one specific key path from the environment and uses it within the body to create `Geometry3D`.
+/// - Parameters:
+///   - keyPath1: A key path to the specific value in `EnvironmentValues` used in geometry creation.
+///   - body: A closure that takes the specified environment value and returns a `Geometry3D` instance based on that value.
+/// - Returns: A dynamically created geometry instance that responds to the specified environment value.
 public func readEnvironment<T>(
     _ keyPath1: KeyPath<EnvironmentValues, T>,
     @GeometryBuilder3D _ body: @escaping (T) -> any Geometry3D
@@ -75,6 +106,14 @@ public func readEnvironment<T>(
     }
 }
 
+/// Creates a 3D geometry that reads two specific environment values and adjusts its geometry accordingly.
+///
+/// This overload reads two specific key paths from the environment and uses them to inform the body closure’s geometry creation.
+/// - Parameters:
+///   - keyPath1: A key path to the first specific value in `EnvironmentValues`.
+///   - keyPath2: A key path to the second specific value in `EnvironmentValues`.
+///   - body: A closure that takes the two specified environment values and returns a `Geometry3D` instance based on them.
+/// - Returns: A geometry instance dynamically created based on the specified environment values.
 public func readEnvironment<T, U>(
     _ keyPath1: KeyPath<EnvironmentValues, T>,
     _ keyPath2: KeyPath<EnvironmentValues, U>,
@@ -85,6 +124,15 @@ public func readEnvironment<T, U>(
     }
 }
 
+/// Creates a 3D geometry that reads three specific environment values and adjusts its geometry accordingly.
+///
+/// This overload reads three specific key paths from the environment and uses them to inform the body closure’s geometry creation.
+/// - Parameters:
+///   - keyPath1: A key path to the first specific value in `EnvironmentValues`.
+///   - keyPath2: A key path to the second specific value in `EnvironmentValues`.
+///   - keyPath3: A key path to the third specific value in `EnvironmentValues`.
+///   - body: A closure that takes the three specified environment values and returns a `Geometry3D` instance based on them.
+/// - Returns: A geometry instance dynamically created based on the specified environment values.
 public func readEnvironment<T, U, V>(
     _ keyPath1: KeyPath<EnvironmentValues, T>,
     _ keyPath2: KeyPath<EnvironmentValues, U>,
