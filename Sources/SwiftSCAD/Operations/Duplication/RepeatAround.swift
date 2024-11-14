@@ -22,9 +22,11 @@ extension Geometry2D {
 
     @GeometryBuilder2D
     public func repeated(in range: Range<Angle> = 0°..<360°, count: Int) -> any Geometry2D {
-        let step = (range.upperBound - range.lowerBound) / Double(count)
-        for value in stride(from: range.lowerBound.radians, to: range.upperBound.radians, by: step.radians) {
-            rotated(Angle(radians: value))
+        if count > 0 {
+            let step = (range.upperBound - range.lowerBound) / Double(count)
+            for value in stride(from: range.lowerBound.radians, to: range.upperBound.radians, by: step.radians) {
+                rotated(Angle(radians: value))
+            }
         }
     }
 
@@ -36,9 +38,11 @@ extension Geometry2D {
 
     @GeometryBuilder2D
     public func repeated(in range: ClosedRange<Angle>, count: Int) -> any Geometry2D {
-        let step = (range.upperBound - range.lowerBound) / Double(count - 1)
-        for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
-            rotated(value)
+        if count > 0 {
+            let step = (range.upperBound - range.lowerBound) / Double(count - 1)
+            for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
+                rotated(value)
+            }
         }
     }
 }
@@ -67,9 +71,11 @@ extension Geometry3D {
 
     @GeometryBuilder3D
     public func repeated(around axis: Axis3D, in range: Range<Angle> = 0°..<360°, count: Int) -> any Geometry3D {
-        let step = (range.upperBound - range.lowerBound) / Double(count)
-        for value in stride(from: range.lowerBound, to: range.upperBound, by: step) {
-            rotated(angle: value, axis: axis)
+        if count > 0 {
+            let step = (range.upperBound - range.lowerBound) / Double(count)
+            for value in stride(from: range.lowerBound, to: range.upperBound, by: step) {
+                rotated(angle: value, axis: axis)
+            }
         }
     }
 
@@ -82,9 +88,11 @@ extension Geometry3D {
 
     @GeometryBuilder3D
     public func repeated(around axis: Axis3D, in range: ClosedRange<Angle>, count: Int) -> any Geometry3D {
-        let step = (range.upperBound - range.lowerBound) / Double(count - 1)
-        for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
-            rotated(angle: value, axis: axis)
+        if count > 0 {
+            let step = (range.upperBound - range.lowerBound) / Double(count - 1)
+            for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
+                rotated(angle: value, axis: axis)
+            }
         }
     }
 }
