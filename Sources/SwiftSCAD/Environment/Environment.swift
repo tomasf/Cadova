@@ -2,7 +2,6 @@ import Foundation
 
 @propertyWrapper public struct Environment<T> {
     private let keyPath: KeyPath<EnvironmentValues, T>
-    private let value = MutableValue()
 
     public init() where T == EnvironmentValues {
         self.init(\.self)
@@ -13,18 +12,11 @@ import Foundation
     }
 
     public var wrappedValue: T {
-        guard let value = value.value else {
-            logger.error("@Environment value was accessed outside of a Shape's body, which is unsupported. Returning a default value.")
+        guard let environment = EnvironmentValues.current else {
+            logger.error("No active environment to read from. Perhaps you tried to access an @Environment property outside of a Shape's body, which is unsupported. Returning a default value.")
             return EnvironmentValues.defaultEnvironment[keyPath: keyPath]
         }
-        return value
-    }
-}
 
-extension Environment: EnvironmentInjectable {
-    final private class MutableValue { var value: T? }
-
-    func inject(environment: EnvironmentValues?) {
-        value.value = environment?[keyPath: keyPath]
+        return environment[keyPath: keyPath]
     }
 }
