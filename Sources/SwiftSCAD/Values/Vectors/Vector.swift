@@ -1,7 +1,14 @@
 import Foundation
 
-infix operator ×
-infix operator ⋅
+precedencegroup CrossProductPrecedence {
+    associativity: left
+    higherThan: AdditionPrecedence
+    lowerThan: MultiplicationPrecedence
+}
+
+infix operator × : CrossProductPrecedence
+infix operator ⋅ : MultiplicationPrecedence
+infix operator ×= : AssignmentPrecedence
 
 public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where Element == Double {
     associatedtype Axis: SwiftSCAD.Axis
