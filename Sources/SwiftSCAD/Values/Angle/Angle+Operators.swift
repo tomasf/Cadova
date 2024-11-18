@@ -1,7 +1,5 @@
 import Foundation
 
-postfix operator °
-
 public extension Double {
     /// Convenience postfix operator for creating an angle from a value in degrees
     ///
@@ -14,20 +12,18 @@ public extension Double {
     }
 }
 
-extension Angle: AdditiveArithmetic {}
+extension Angle: AdditiveArithmetic {
+    public static let zero = 0°
 
-public extension Angle {
-    static let zero = 0°
-
-    static prefix func -(_ a: Angle) -> Angle {
+    public static prefix func -(_ a: Angle) -> Angle {
         Angle(radians: -a.radians)
     }
 
-    static func +(_ a: Angle, _ b: Angle) -> Angle {
+    public static func +(_ a: Angle, _ b: Angle) -> Angle {
         Angle(radians: a.radians + b.radians)
     }
 
-    static func -(_ a: Angle, _ b: Angle) -> Angle {
+    public static func -(_ a: Angle, _ b: Angle) -> Angle {
         Angle(radians: a.radians - b.radians)
     }
 }
