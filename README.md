@@ -30,7 +30,7 @@ $ swift package init --type executable
 let package = Package(
     name: "thingamajig",
     dependencies: [
-        <b><i>.package(url: "https://github.com/tomasf/SwiftSCAD.git", from: "0.8.1"),</i></b>
+        <b><i>.package(url: "https://github.com/tomasf/SwiftSCAD.git", upToNextMinor(from: "0.9.0")),</i></b>
     ],
     targets: [
         .executableTarget(name: "thingamajig", dependencies: [<b><i>"SwiftSCAD"</i></b>])
@@ -113,11 +113,13 @@ struct Star: Shape2D {
     }
 }
 
-Stack(.x, spacing: 1, alignment: .centerY) {
-    Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-    Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
+save {
+    Stack(.x, spacing: 1, alignment: .centerY) {
+        Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
+        Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
+    }
+    .named("example3")
 }
-.save(to: "example3")
 ```
 
 ## Extruding along a Bezier path
@@ -131,12 +133,14 @@ let path = BezierPath2D(startPoint: .zero)
         end: [60, 40]
     )
 
-Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-    .usingDefaultFacets()
-    .extruded(along: path)
-    .withPreviewConvexity(4)
-    .usingFacets(minAngle: 5°, minSize: 1)
-    .save(to: "example4")
+save {
+    Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
+        .usingDefaultFacets()
+        .extruded(along: path)
+        .withPreviewConvexity(4)
+        .usingFacets(minAngle: 5°, minSize: 1)
+        .named("example4")
+}
 ```
 
 [openscad]: https://openscad.org
