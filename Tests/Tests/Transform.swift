@@ -3,7 +3,7 @@ import Testing
 
 struct TransformTests {
     @Test func affine3D() {
-        let geometry = Box([30, 15, 5])
+        Box([30, 15, 5])
             .transformed(
                 .identity
                     .translated(x: -5)
@@ -12,8 +12,8 @@ struct TransformTests {
                     .sheared(.x, along: .y, angle: 45°)
                     .rotated(x: 90°)
             )
+            .expectCodeEquals(file: "transform3d")
 
-        #expect(geometry.code == scadFile("transform3d"))
         #expect(AffineTransform3D.translation(z: 3).apply(to: .zero).z ≈ 3.0)
     }
 

@@ -2,9 +2,14 @@ import Testing
 import Foundation
 @testable import SwiftSCAD
 
-func scadFile(_ fileName: String) -> String {
-    let url = Bundle.module.url(forResource: fileName, withExtension: "scad", subdirectory: "SCAD")!
-    return try! String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+fileprivate extension URL {
+    static func testSCADFile(named fileName: String) -> URL {
+        Bundle.module.url(forResource: fileName, withExtension: "scad", subdirectory: "SCAD")!
+    }
+
+    static func testSCADFileInSource(named fileName: String) -> URL {
+        URL.homeDirectory.appendingPathComponent("Documents/Projects/SwiftSCAD/Tests/Tests/SCAD/\(fileName).scad")
+    }
 }
 
 extension Geometry2D {
@@ -18,6 +23,15 @@ extension Geometry2D {
 
     var bounds: BoundingBox2D? {
         evaluated(in: .defaultEnvironment).boundary.boundingBox
+    }
+
+    func expectCodeEquals(file fileName: String) {
+        let correctCode = try! String(contentsOf: .testSCADFile(named: fileName), encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+        #expect(code == correctCode)
+    }
+
+    func setAsExpected(name: String) {
+        try! code.write(to: .testSCADFileInSource(named: name), atomically: true, encoding: .utf8)
     }
 }
 
@@ -35,6 +49,11 @@ extension Geometry3D {
         #expect(code1 == code2, "Inconsistent code generation")
         return code1
     }
+    
+    func expectCodeEquals(file fileName: String) {
+        let correctCode = try! String(contentsOf: .testSCADFile(named: fileName), encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+        #expect(code == correctCode)
+    }
 
     var bounds: BoundingBox3D? {
         evaluated(in: .defaultEnvironment).boundary.boundingBox
@@ -42,5 +61,9 @@ extension Geometry3D {
 
     func triggerEvaluation() {
         _ = evaluated(in: .defaultEnvironment)
+    }
+
+    func setAsExpected(name: String) {
+        try! code.write(to: .testSCADFileInSource(named: name), atomically: true, encoding: .utf8)
     }
 }

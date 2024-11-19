@@ -9,7 +9,7 @@ struct ColorTests {
     // around extrusions, projections.
 
     @Test func colors() {
-        let geometry = Rectangle(10) // Declaration here (red)
+        Rectangle(10) // Declaration here (red)
             .translated(x: 2)
             .adding {
                 Circle(radius: 3) // Declaration here (blue). But because we're inside of an extrusion, no blue is actually shown.
@@ -32,7 +32,6 @@ struct ColorTests {
             .adding {
                 Sphere(diameter: 3)
             }
-
-        #expect(geometry.code == scadFile("colors"))
+            .expectCodeEquals(file: "colors")
     }
 }
