@@ -85,6 +85,16 @@ public extension AffineTransform2D {
         return Vector2D(matrixColumn: matrix * point.matrixColumn)
     }
 
+    /// The offset of the transformation, defined as the result of applying the affine transformation to the origin point
+    ///
+    /// This property represents the transformed position of the origin after applying
+    /// the full affine transformation, including translation, rotation, scaling, and other effects.
+    /// It effectively shows where the origin of the coordinate space is mapped in the transformed space.
+    ///
+    var offset: Vector2D {
+        apply(to: .zero)
+    }
+
     /// Creates a new `AffineTransform2D` by converting a 3D affine transformation to 2D, discarding Z components.
     ///
     /// - Parameter transform3d: The 3D affine transformation to convert.

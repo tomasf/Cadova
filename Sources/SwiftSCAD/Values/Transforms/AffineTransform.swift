@@ -7,8 +7,10 @@ public protocol AffineTransform: Sendable {
     static var identity: Self { get }
 
     var inverse: Self { get }
+    var offset: V { get }
     func concatenated(with: Self) -> Self
     func apply(to point: V) -> V
+
     func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> Self
     static func linearInterpolation(_ from: Self, _ to: Self, factor: Double) -> Self
 

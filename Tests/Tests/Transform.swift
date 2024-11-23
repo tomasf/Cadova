@@ -14,7 +14,7 @@ struct TransformTests {
             )
             .expectCodeEquals(file: "transform3d")
 
-        #expect(AffineTransform3D.translation(z: 3).apply(to: .zero).z ≈ 3.0)
+        #expect(AffineTransform3D.translation(z: 3).offset.z ≈ 3.0)
     }
 
     @Test func transform2DTo3D() {

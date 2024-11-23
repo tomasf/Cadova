@@ -31,7 +31,7 @@ internal struct RoundedBoxCornerMask: Shape3D {
                     .translated(x: -corner.radius)
                     .rotated(y: levelAngle - 90°, z: sectorAngle)
                     .translated(.init(corner.radius))
-                    .apply(to: .zero)
+                    .offset
 
                 if sector < 0 {
                     point.y = corner.boxSize.y
