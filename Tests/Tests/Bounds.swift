@@ -1,5 +1,5 @@
 import Testing
-@testable import SwiftSCAD
+@testable import Facet
 
 struct BoundsTests {
     @Test func basicAlignment2D() {

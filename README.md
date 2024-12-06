@@ -1,13 +1,13 @@
-# SwiftSCAD
-SwiftSCAD is a library that allows you to create 3D and 2D CAD models in Swift. It acts as a preprocessor for [OpenSCAD][openscad], generating .scad files that can be previewed and rendered using the OpenSCAD application. This offers a more convenient API, breaking away from the limitations of the OpenSCAD language.
+# Facet
+Facet is a library that allows you to create 3D and 2D CAD models in Swift. It acts as a preprocessor for [OpenSCAD][openscad], generating .scad files that can be previewed and rendered using the OpenSCAD application. This offers a more convenient API, breaking away from the limitations of the OpenSCAD language.
 
-SwiftSCAD runs on macOS, Windows and Linux.
+Facet runs on macOS, Windows and Linux.
 
-[![Swift](https://github.com/tomasf/SwiftSCAD/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/SwiftSCAD/actions/workflows/swift.yml)
+[![Swift](https://github.com/tomasf/Facet/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/Facet/actions/workflows/swift.yml)
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
 
 # Getting Started
-> tl;dr: Create a new executable Swift package, add SwiftSCAD as a dependency, import it in your code, create geometry and use the `save(to:)` method to save it to disk as an OpenSCAD file.
+> tl;dr: Create a new executable Swift package, add Facet as a dependency, import it in your code, create geometry and use the `save(to:)` method to save it to disk as an OpenSCAD file.
 
 ## 1. Install OpenSCAD
 [Install OpenSCAD][openscad-download] in order to preview and render your models. Use a development snapshot version because the stable releases are usually very old.
@@ -24,25 +24,25 @@ $ cd thingamajig
 $ swift package init --type executable
 ```
 
-## 4. Add SwiftSCAD as a dependency for your package in Package.swift:
+## 4. Add Facet as a dependency for your package in Package.swift:
 
 <pre>
 let package = Package(
     name: "thingamajig",
     dependencies: [
-        <b><i>.package(url: "https://github.com/tomasf/SwiftSCAD.git", upToNextMinor(from: "0.9.0")),</i></b>
+        <b><i>.package(url: "https://github.com/tomasf/Facet.git", upToNextMinor(from: "0.9.0")),</i></b>
     ],
     targets: [
-        .executableTarget(name: "thingamajig", dependencies: [<b><i>"SwiftSCAD"</i></b>])
+        .executableTarget(name: "thingamajig", dependencies: [<b><i>"Facet"</i></b>])
     ]
 )
 </pre>
 
-## 5. Use SwiftSCAD
-In `main.swift`, import SwiftSCAD, create geometry and save it:
+## 5. Use Facet
+In `main.swift`, import Facet, create geometry and save it:
 
 ```swift
-import SwiftSCAD
+import Facet
 
 Box([10, 10, 5])
     .subtracting {
@@ -57,13 +57,13 @@ Run your code using `swift run` (or using Xcode/VS Code) to generate the `.scad`
 Open it in OpenSCAD to preview your model. For the best experience, hide the editor view using *View > Hide Editor* and enable *Design > Automatic Reload and Preview*. With this in place, OpenSCAD will reload automatically every time you run your code after making changes to the model.
 
 # Libraries
-* [Helical][helical] - A SwiftSCAD library providing customizable threads, screws, bolts, nuts and related parts.
-* [RichText][richtext] - TextKit-based companion library for SwiftSCAD (macOS only)
+* [Helical][helical] - A Facet library providing customizable threads, screws, bolts, nuts and related parts.
+* [RichText][richtext] - TextKit-based companion library for Facet (macOS only)
 
 # Examples
 
 ## Rotated box
-![Example 1](https://tomasf.se/projects/swiftscad/examples/example1.png)
+![Example 1](https://tomasf.se/projects/Facet/examples/example1.png)
 
 ```swift
 Box(x: 10, y: 20, z: 5)
@@ -73,7 +73,7 @@ Box(x: 10, y: 20, z: 5)
 ```
 
 ## Extruded star with subtraction
-![Example 2](https://tomasf.se/projects/swiftscad/examples/example2.png)
+![Example 2](https://tomasf.se/projects/Facet/examples/example2.png)
 
 ```swift
 Circle(diameter: 10)
@@ -93,7 +93,7 @@ Circle(diameter: 10)
 ```
 
 ## Reusable star shape
-![Example 3](https://tomasf.se/projects/swiftscad/examples/example3.png)
+![Example 3](https://tomasf.se/projects/Facet/examples/example3.png)
 
 ```swift
 struct Star: Shape2D {
@@ -123,7 +123,7 @@ save {
 ```
 
 ## Extruding along a Bezier path
-![Example 4](https://tomasf.se/projects/swiftscad/examples/example4.png)
+![Example 4](https://tomasf.se/projects/Facet/examples/example4.png)
 
 ```swift
 let path = BezierPath2D(startPoint: .zero)

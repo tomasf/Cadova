@@ -1,5 +1,5 @@
 import Testing
-@testable import SwiftSCAD
+@testable import Facet
 
 struct ExampleTests {
     @Test func example1(){

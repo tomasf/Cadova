@@ -1,7 +1,7 @@
 import Foundation
 
 public extension EnvironmentValues {
-    static private let environmentKey = Key("SwiftSCAD.Facets")
+    static private let environmentKey = Key("Facet.Facets")
 
     /// An enumeration representing the method for calculating the number of facets (or segments) used in rendering circular geometries.
     enum Facets: Sendable {
@@ -17,7 +17,7 @@ public extension EnvironmentValues {
         /// The default facet settings in OpenSCAD.
         public static let openSCADDefaults = Facets.dynamic(minAngle: 12°, minSize: 2)
 
-        /// The default facet settings for SwiftSCAD, aiming for higher detail in rendered geometries.
+        /// The default facet settings for Facet, aiming for higher detail in rendered geometries.
         public static let defaults = Facets.dynamic(minAngle: 2°, minSize: 0.15)
 
         /// Calculates the number of facets for a circle based on its radius and the current facet settings.

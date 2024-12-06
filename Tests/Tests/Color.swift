@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-import SwiftSCAD
+import Facet
 
 struct ColorTests {
     // A tree wrapped in a color modifier declares its colors directly

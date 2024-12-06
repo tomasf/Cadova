@@ -1,5 +1,5 @@
 import Testing
-@testable import SwiftSCAD
+@testable import Facet
 
 struct BezierCurveTests {
     @Test func quadraticCurvePoints() {

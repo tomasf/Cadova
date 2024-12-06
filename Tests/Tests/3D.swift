@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import SwiftSCAD
+@testable import Facet
 
 struct Geometry3DTests {
     @Test func basic3D() {
