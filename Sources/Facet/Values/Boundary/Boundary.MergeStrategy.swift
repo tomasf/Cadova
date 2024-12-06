@@ -1,11 +1,3 @@
-//
-//  MergeStrategy.swift
-//  SwiftSCAD
-//
-//  Created by Tomas Wincent Franzén on 2024-11-23.
-//
-
-
 internal extension Boundary {
     enum MergeStrategy {
         case union

@@ -1,7 +1,7 @@
 import Foundation
 
 private class EnvironmentContext {
-    private static let key = "SwiftSCAD.EnvironmentContext"
+    private static let key = "Facet.EnvironmentContext"
     private var stack: [EnvironmentValues] = []
 
     static var threadLocal: EnvironmentContext {

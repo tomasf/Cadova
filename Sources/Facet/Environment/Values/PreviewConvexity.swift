@@ -1,7 +1,7 @@
 import Foundation
 
 public extension EnvironmentValues {
-    private static let key = Key("SwiftSCAD.PreviewConvexity")
+    private static let key = Key("Facet.PreviewConvexity")
 
     /// The preview convexity currently set in the environment.
     ///
@@ -33,7 +33,7 @@ public extension EnvironmentValues {
 public extension Geometry3D {
     /// Applies a preview convexity setting to the geometry.
     ///
-    /// This method sets a `previewConvexity` value, specifying the maximum number of front or back faces a ray might intersect in the geometry during preview rendering. While SwiftSCAD does not use this value directly for geometry creation, OpenSCAD’s OpenCSG preview mode relies on it for accurate previews.
+    /// This method sets a `previewConvexity` value, specifying the maximum number of front or back faces a ray might intersect in the geometry during preview rendering. While Facet does not use this value directly for geometry creation, OpenSCAD’s OpenCSG preview mode relies on it for accurate previews.
     ///
     /// - Parameter convexity: An `Int` specifying the preview convexity.
     /// - Returns: A modified geometry with the specified preview convexity.

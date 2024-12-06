@@ -1,5 +1,5 @@
 import Foundation
-@testable import SwiftSCAD
+@testable import Facet
 
 infix operator ≈: ComparisonPrecedence
 

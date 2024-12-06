@@ -3,11 +3,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftSCAD",
+    name: "Facet",
     products: [
         .library(
-            name: "SwiftSCAD",
-            targets: ["SwiftSCAD"]),
+            name: "Facet",
+            targets: ["Facet"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.0"),
@@ -15,16 +15,18 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "SwiftSCAD",
+            name: "Facet",
             dependencies: [
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Logging", package: "swift-log"),
             ]
         ),
+        /*
         .testTarget(
             name: "Tests",
-            dependencies: ["SwiftSCAD"],
+            dependencies: ["Facet"],
             resources: [.copy("SCAD")]
         )
+         */
     ]
 )

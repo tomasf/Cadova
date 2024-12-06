@@ -1,5 +1,5 @@
 import Testing
-@testable import SwiftSCAD
+@testable import Facet
 
 struct TransformTests {
     @Test func affine3D() {
@@ -27,7 +27,7 @@ struct TransformTests {
                 .rotated(15°)
         ]
 
-        let transforms3D: [SwiftSCAD.AffineTransform3D] = [
+        let transforms3D: [Facet.AffineTransform3D] = [
             .translation(x: 10, y: 3),
             .scaling(x: 3, y: 9),
             .rotation(z: 30°),

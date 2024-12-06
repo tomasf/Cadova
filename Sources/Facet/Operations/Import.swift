@@ -8,7 +8,7 @@ public struct Import2D: LeafGeometry2D {
 
     /// Initializes a new `Import2D` instance for importing 2D geometries.
     ///
-    /// Supported formats are DXF and SVG. Because importing is done by OpenSCAD at rendertime, SwiftSCAD has no knowledge of the resulting geometry and it will have no bounding box. If you need to use it with operations that require a bounding box, you can declare it manually using `settingBounds(_:)`.
+    /// Supported formats are DXF and SVG. Because importing is done by OpenSCAD at rendertime, Facet has no knowledge of the resulting geometry and it will have no bounding box. If you need to use it with operations that require a bounding box, you can declare it manually using `settingBounds(_:)`.
     ///
     /// - Parameters:
     ///   - path: The file path to the 2D geometry to be imported. Paths are resolved relative to the .scad file if not absolute.
@@ -40,7 +40,7 @@ public struct Import3D: LeafGeometry3D {
 
     /// Initializes a new `Import3D` instance for importing 3D models.
     ///
-    /// Supported formats are STL, OFF, AMF and 3MF. Because importing is done by OpenSCAD at rendertime, SwiftSCAD has no knowledge of the resulting geometry and it will have no bounding box. If you need to use it with operations that require a bounding box, you can declare it manually using `settingBounds(_:)`.
+    /// Supported formats are STL, OFF, AMF and 3MF. Because importing is done by OpenSCAD at rendertime, Facet has no knowledge of the resulting geometry and it will have no bounding box. If you need to use it with operations that require a bounding box, you can declare it manually using `settingBounds(_:)`.
     ///
     /// - Parameters:
     ///   - path: The file path to the 3D model to be imported. Paths are resolved relative to the .scad file if not absolute.

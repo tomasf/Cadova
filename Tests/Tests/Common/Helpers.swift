@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import SwiftSCAD
+@testable import Facet
 
 fileprivate extension URL {
     static func testSCADFile(named fileName: String) -> URL {
@@ -8,7 +8,7 @@ fileprivate extension URL {
     }
 
     static func testSCADFileInSource(named fileName: String) -> URL {
-        URL.homeDirectory.appendingPathComponent("Documents/Projects/SwiftSCAD/Tests/Tests/SCAD/\(fileName).scad")
+        URL.homeDirectory.appendingPathComponent("Documents/Projects/Facet/Tests/Tests/SCAD/\(fileName).scad")
     }
 }
 

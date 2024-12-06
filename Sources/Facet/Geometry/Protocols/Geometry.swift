@@ -1,6 +1,6 @@
 import Foundation
 
-// SwiftSCAD Geometry Protocols
+// Facet Geometry Protocols
 // Geometry: Base
 //   LeafGeometry: For concrete geometry without children, e.g. Circle, Box, Text
 //   CombinedGeometry: Geometry containing multiple children, e.g. Union, Difference, MinkowskiSum

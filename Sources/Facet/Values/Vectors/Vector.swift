@@ -1,7 +1,7 @@
 import Foundation
 
 public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where Element == Double {
-    associatedtype Axis: SwiftSCAD.Axis
+    associatedtype Axis: Facet.Axis
     typealias Axes = Set<Axis>
     typealias Alignment = GeometryAlignment<Self>
     
