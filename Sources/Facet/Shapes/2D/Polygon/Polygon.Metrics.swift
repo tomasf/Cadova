@@ -6,7 +6,7 @@ fileprivate extension [Vector2D] {
     }
 
     var area: Double {
-        abs(
+        Swift.abs(
             wrappedPairs()
                 .map { $0.x * $1.y - $0.y * $1.x }
                 .reduce(0, +)

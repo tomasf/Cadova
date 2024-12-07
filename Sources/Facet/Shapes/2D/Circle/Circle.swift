@@ -78,7 +78,7 @@ public extension Circle {
     /// - Precondition: The known coordinate must be within the circle's radius.
     ///
     func correspondingCoordinate(for knownCoordinate: Double) -> Double {
-        precondition(abs(knownCoordinate) <= radius, "The coordinate must be within the circle's radius.")
+        precondition(Swift.abs(knownCoordinate) <= radius, "The coordinate must be within the circle's radius.")
         return sqrt(radius * radius - knownCoordinate * knownCoordinate)
     }
 
