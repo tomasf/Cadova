@@ -44,6 +44,6 @@ public struct Box: Geometry3D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output3D {
-        .init(manifold: .cube(size: size))
+        .init(primitive: .cube(size: size))
     }
 }

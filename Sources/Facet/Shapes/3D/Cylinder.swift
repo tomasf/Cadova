@@ -16,7 +16,7 @@ public struct Cylinder: Geometry3D {
     public func evaluated(in environment: EnvironmentValues) -> Output3D {
         let topDiameter = self.topDiameter ?? bottomDiameter
         let segmentCount = environment.facets.facetCount(circleRadius: max(bottomDiameter, topDiameter) / 2)
-        return .init(manifold: .cylinder(
+        return .init(primitive: .cylinder(
             height: height,
             bottomRadius: bottomDiameter / 2,
             topRadius: topDiameter / 2,

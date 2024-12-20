@@ -2,19 +2,19 @@ import Foundation
 import Manifold
 
 public struct Output<D: Dimensionality> {
-    internal let manifold: D.Primitive
+    internal let primitive: D.Primitive
     internal let elements: ResultElementsByType
 
-    internal init(manifold: D.Primitive, elements: ResultElementsByType) {
-        self.manifold = manifold
+    internal init(primitive: D.Primitive, elements: ResultElementsByType) {
+        self.primitive = primitive
         self.elements = elements
     }
 
-    static var empty: Self { .init(manifold: .empty, elements: [:]) }
+    static var empty: Self { .init(primitive: .empty, elements: [:]) }
 
     /// Leaf
-    init(manifold: D.Primitive) {
-        self.init(manifold: manifold, elements: [:])
+    init(primitive: D.Primitive) {
+        self.init(primitive: primitive, elements: [:])
     }
 
     private func declaringColorIfNeeded(from environment: EnvironmentValues) -> Self {
@@ -23,19 +23,19 @@ public struct Output<D: Dimensionality> {
     }
 
     func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E?) -> E?) -> Self {
-        Self(manifold: manifold, elements: elements.setting(modifier(elements[E.self])))
+        Self(primitive: primitive, elements: elements.setting(modifier(elements[E.self])))
     }
 
     func withElement<E: ResultElement>(_ value: E) -> Self {
-        Self(manifold: manifold, elements: elements.setting(value))
+        Self(primitive: primitive, elements: elements.setting(value))
     }
 
     func modifyingManifold(_ modifier: (D.Primitive) -> D.Primitive) -> Self {
-        Self(manifold: modifier(manifold), elements: elements)
+        Self(primitive: modifier(primitive), elements: elements)
     }
 
-    func withManifold(_ newManifold: D.Primitive) -> Self {
-        Self(manifold: newManifold, elements: elements)
+    func withManifold(_ newPrimitive: D.Primitive) -> Self {
+        Self(primitive: newPrimitive, elements: elements)
     }
 }
 
@@ -54,7 +54,7 @@ internal extension Output where D == Dimensionality2 {
             self = childOutputs[0]
         } else {
             self.init(
-                manifold: transformation(childOutputs.map(\.manifold)),
+                primitive: transformation(childOutputs.map(\.primitive)),
                 elements: .init(combining: childOutputs.map(\.elements), operation: combination)
             )
         }
@@ -67,13 +67,13 @@ internal extension Output where D == Dimensionality2 {
     ) {
         let childOutput = child.evaluated(in: environment)
         self.init(
-            manifold: transformation(childOutput.manifold),
+            primitive: transformation(childOutput.primitive),
             elements: childOutput.elements
         )
     }
 
     var boundingBox: BoundingBox2D {
-        .init(manifold.boundingBox)
+        .init(primitive.boundingBox)
     }
 }
 
@@ -91,7 +91,7 @@ internal extension Output where D == Dimensionality3 {
             self = childOutputs[0]
         } else {
             self.init(
-                manifold: transformation(childOutputs.map(\.manifold)),
+                primitive: transformation(childOutputs.map(\.primitive)),
                 elements: .init(combining: childOutputs.map(\.elements), operation: combination)
             )
         }
@@ -104,7 +104,7 @@ internal extension Output where D == Dimensionality3 {
     ) {
         let childOutput = child.evaluated(in: environment)
         self.init(
-            manifold: transformation(childOutput.manifold),
+            primitive: transformation(childOutput.primitive),
             elements: childOutput.elements
         )
     }
@@ -117,13 +117,13 @@ internal extension Output where D == Dimensionality3 {
     ) {
         let childOutput = child.evaluated(in: environment)
         self.init(
-            manifold: transformation(childOutput.manifold),
+            primitive: transformation(childOutput.primitive),
             elements: childOutput.elements
         )
     }
 
     var boundingBox: BoundingBox3D {
-        .init(manifold.boundingBox)
+        .init(primitive.boundingBox)
     }
 
     /*

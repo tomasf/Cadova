@@ -18,8 +18,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
         for (outputIndex, item) in outputs.enumerated() {
             let output = item.value
             let identifier = item.key
+
+            guard !output.primitive.isEmpty else { continue }
+
             let colorMapping = output.elements[ColorMapping.self]
-            let meshData = output.manifold.meshData()
+            let meshData = output.primitive.meshData()
             let originalIDRanges = meshData.originalIDs
 
             let orderedColorMapping = Array(colorMapping?.mapping ?? [:])
@@ -48,7 +51,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         var metadata = output.elements[MetadataContainer.self]?.metadata ?? []
         if !metadata.contains(where: { $0.name == .application }) {
-            metadata.append(ThreeMF.Metadata(name: .application, value: "Facet"))
+            metadata.append(ThreeMF.Metadata(name: .application, value: "Facet - http://facetcad.org/"))
         }
         if !metadata.contains(where: { $0.name == .creationDate }) {
             metadata.append(ThreeMF.Metadata(name: .creationDate, value: dateFormatter.string(from: Date())))

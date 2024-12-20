@@ -20,7 +20,7 @@ public struct Polyhedron: Geometry3D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output3D {
-        .init(manifold: .empty)
+        .init(primitive: .empty)
     }
 }
 

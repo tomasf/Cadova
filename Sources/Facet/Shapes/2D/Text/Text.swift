@@ -18,7 +18,7 @@ public struct Text: Geometry2D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        return .init(manifold: .empty)
+        return .init(primitive: .empty)
     }
 }
 

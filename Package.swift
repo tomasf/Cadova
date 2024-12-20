@@ -10,8 +10,8 @@ let package = Package(
             targets: ["Facet"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/tomasf/manifold-swift.git", branch: "main"),
-        //.package(path: "../manifold-swift"),
+        //.package(url: "https://github.com/tomasf/manifold-swift.git", branch: "main"),
+        .package(path: "../manifold-swift"),
         .package(url: "https://github.com/tomasf/Zip.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),

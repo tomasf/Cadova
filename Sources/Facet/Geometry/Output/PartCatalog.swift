@@ -27,7 +27,7 @@ struct PartCatalog: ResultElement {
 
     var mergedOutputs: [PartIdentifier: Output3D] {
         parts.mapValues { outputs in
-            Output3D(manifold: .boolean(.union, with: outputs.map(\.manifold)), elements: .init(combining: outputs.map(\.elements), operation: .union))
+            Output3D(primitive: .boolean(.union, with: outputs.map(\.primitive)), elements: .init(combining: outputs.map(\.elements), operation: .union))
         }
     }
 }
