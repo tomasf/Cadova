@@ -8,29 +8,6 @@ extension BoundingBox {
     fileprivate var visualizationStandardBorderWidth: Double { 0.1 }
 }
 
-public extension BoundingBox2D {
-    /// Visualizes the bounding box in 2D space with an optional scale for the border width.
-    ///
-    /// - Parameter scale: A multiplier for the border width, allowing customization of the visualization's thickness. Defaults to 1.0. Adjust this if the scale of the visualization is impractical.
-    /// - Returns: A `Geometry2D` representation of the bounding box border.
-    @GeometryBuilder2D
-    func visualized(scale: Double = 1.0) -> any Geometry2D {
-        let borderWidth = visualizationStandardBorderWidth * scale
-        let half = Union {
-            Rectangle([maximum.x - minimum.x, borderWidth])
-            Rectangle([borderWidth, maximum.y - minimum.y])
-        }
-            .offset(amount: 0.001, style: .miter)
-        Union {
-            half.translated(minimum)
-            half.flipped(along: .all)
-                .translated(maximum)
-        }
-        .colored(visualizationBorderColor)
-        .background()
-    }
-}
-
 public extension BoundingBox3D {
     /// Visualizes the bounding box in 3D space with an optional scale for the border width.
     ///
@@ -68,20 +45,6 @@ public extension BoundingBox3D {
             }
             .colored(visualizationBorderColor)
             .background()
-    }
-}
-
-public extension Geometry2D {
-    /// Adds a visual representation of the bounds and bounding box for 2D geometries.
-    ///
-    /// - Parameter scale: A multiplier for the border width of the bounding box visualization. Defaults to 1.0. Adjust this if the scale of the visualization is impractical.
-    /// - Returns: The original geometry with added visualizations for its bounds and bounding box.
-    func visualizingBounds(scale: Double = 1.0) -> any Geometry2D {
-        readingBoundary { _, boundary in
-            self.adding {
-                boundary.visualized(scale: scale)
-            }
-        }
     }
 }
 
