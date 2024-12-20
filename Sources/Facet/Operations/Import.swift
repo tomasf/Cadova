@@ -1,5 +1,6 @@
 import Foundation
 
+/*
 /// Import 2D content from external files
 public struct Import2D: LeafGeometry2D {
     let path: String
@@ -58,3 +59,4 @@ public struct Import3D: LeafGeometry3D {
     }
     let supportsPreviewConvexity = true
 }
+*/

@@ -36,7 +36,7 @@ internal extension ResultElementsByType {
         set { self[ObjectIdentifier(type)] = newValue }
     }
 
-    func setting<E: ResultElement>(_ type: E.Type, to value: E?) -> Self {
+    func setting<E: ResultElement>(_ value: E?) -> Self {
         var dict = self
         dict[E.self] = value
         return dict

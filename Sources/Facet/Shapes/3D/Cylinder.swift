@@ -8,27 +8,20 @@ import Foundation
 ///     .usingFacets(count: 3)
 /// ```
 
-public struct Cylinder: LeafGeometry3D {
+public struct Cylinder: Geometry3D {
     public let height: Double
     public let bottomDiameter: Double
     public let topDiameter: Double?
 
-    var moduleName: String { "cylinder" }
-    var moduleParameters: CodeFragment.Parameters {
-        if let topDiameter {
-            ["d1": bottomDiameter, "d2": topDiameter, "h": height]
-        } else {
-            ["d": bottomDiameter, "h": height]
-        }
-    }
-
-    public func boundary(in environment: EnvironmentValues) -> Bounds {
-        let bottom = Boundary2D.circle(radius: bottomDiameter / 2, facets: environment.facets)
-        let top = Boundary2D.circle(radius: (topDiameter ?? bottomDiameter) / 2, facets: environment.facets)
-        return .union(
-            bottom.as3D(),
-            top.as3D(z: height)
-        )
+    public func evaluated(in environment: EnvironmentValues) -> Output3D {
+        let topDiameter = self.topDiameter ?? bottomDiameter
+        let segmentCount = environment.facets.facetCount(circleRadius: max(bottomDiameter, topDiameter) / 2)
+        return .init(manifold: .cylinder(
+            height: height,
+            bottomRadius: bottomDiameter / 2,
+            topRadius: topDiameter / 2,
+            segmentCount: segmentCount
+        ))
     }
 }
 

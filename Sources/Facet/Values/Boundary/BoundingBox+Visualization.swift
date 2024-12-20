@@ -80,7 +80,6 @@ public extension Geometry2D {
         readingBoundary { _, boundary in
             self.adding {
                 boundary.visualized(scale: scale)
-                boundary.boundingBox?.visualized(scale: scale)
             }
         }
     }
@@ -95,7 +94,6 @@ public extension Geometry3D {
         readingBoundary { _, boundary in
             self.adding {
                 boundary.visualized(scale: scale)
-                boundary.boundingBox?.visualized(scale: scale)
             }
         }
     }

@@ -1,216 +1,132 @@
 import Foundation
+import Manifold
 
-public struct Output<V: Vector> {
-    internal let codeFragment: CodeFragment
-    internal let boundary: Boundary<V>
+public struct Output<D: Dimensionality> {
+    internal let manifold: D.Primitive
     internal let elements: ResultElementsByType
 
-    init(codeFragment: CodeFragment, boundary: Boundary<V>, elements: ResultElementsByType) {
-        self.codeFragment = codeFragment
-        self.boundary = boundary
+    internal init(manifold: D.Primitive, elements: ResultElementsByType) {
+        self.manifold = manifold
         self.elements = elements
     }
 
-    /// Combined geometry
-    fileprivate init(
-        childOutputs: [Output<V>],
-        boundaryMergeStrategy: Boundary<V>.MergeStrategy,
-        combination: GeometryCombination,
-        moduleName: String,
-        moduleParameters: CodeFragment.Parameters,
-        supportsPreviewConvexity: Bool,
-        declaresColor: Bool,
-        environment: EnvironmentValues
-    ) {
-        var moduleParameters = moduleParameters
-        if let convexity = environment.previewConvexity, supportsPreviewConvexity {
-            moduleParameters["convexity"] = convexity
-        }
-
-        let output = Self(
-            codeFragment: .init(
-                module: moduleName,
-                parameters: moduleParameters,
-                body: childOutputs.map(\.codeFragment)
-            ),
-            boundary: boundaryMergeStrategy.apply(childOutputs.map(\.boundary)),
-            elements: .init(combining: childOutputs.map(\.elements), operation: combination)
-        )
-
-        if declaresColor {
-            self = output.declaringColorIfNeeded(from: environment)
-        } else {
-            self = output
-        }
-    }
+    static var empty: Self { .init(manifold: .empty, elements: [:]) }
 
     /// Leaf
-    init(
-        moduleName: String,
-        moduleParameters: CodeFragment.Parameters,
-        boundary: Boundary<V>,
-        supportsPreviewConvexity: Bool,
-        environment: EnvironmentValues
-    ) {
-        var params = moduleParameters
-        if let convexity = environment.previewConvexity, supportsPreviewConvexity {
-            params["convexity"] = convexity
-        }
-
-        self = .init(
-            codeFragment: .init(module: moduleName, parameters: params, body: []),
-            boundary: boundary,
-            elements: [:]
-        ).declaringColorIfNeeded(from: environment)
+    init(manifold: D.Primitive) {
+        self.init(manifold: manifold, elements: [:])
     }
 
     private func declaringColorIfNeeded(from environment: EnvironmentValues) -> Self {
-        guard let color = environment.color else {
-            return self
-        }
-
-        return Self(
-            bodyOutput: self,
-            moduleName: "color",
-            moduleParameters: color.moduleParameters,
-            declaresColor: false,
-            environment: environment,
-            boundary: \.self
-        )
+        #warning("fix")
+        return self
     }
 
-    /// Wrapped
-    init(bodyOutput: Output<V>, moduleName: String, moduleParameters: CodeFragment.Parameters, declaresColor: Bool, environment: EnvironmentValues, boundary: (Boundary<V>) -> (Boundary<V>)) {
-        let output = Self(
-            codeFragment: .init(module: moduleName, parameters: moduleParameters, body: [bodyOutput.codeFragment]),
-            boundary: boundary(bodyOutput.boundary),
-            elements: bodyOutput.elements
-        )
-        if declaresColor {
-            self = output.declaringColorIfNeeded(from: environment)
-        } else {
-            self = output
-        }
+    func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E?) -> E?) -> Self {
+        Self(manifold: manifold, elements: elements.setting(modifier(elements[E.self])))
     }
 
-    /// Transformed
-    fileprivate init(bodyOutput: Output<V>, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform3D) {
-        self.init(
-            codeFragment: .init(module: moduleName, parameters: moduleParameters, body: [bodyOutput.codeFragment]),
-            boundary: bodyOutput.boundary.transformed(.init(transform)),
-            elements: bodyOutput.elements
-        )
+    func withElement<E: ResultElement>(_ value: E) -> Self {
+        Self(manifold: manifold, elements: elements.setting(value))
+    }
+
+    func modifyingManifold(_ modifier: (D.Primitive) -> D.Primitive) -> Self {
+        Self(manifold: modifier(manifold), elements: elements)
+    }
+
+    func withManifold(_ newManifold: D.Primitive) -> Self {
+        Self(manifold: newManifold, elements: elements)
     }
 }
 
-internal extension Output where V == Vector2D {
+internal extension Output where D == Dimensionality2 {
+
     /// Combined; union, difference, intersection, minkowski
     /// Transparent for single children
     init(
         children: [Geometry2D],
-        boundaryMergeStrategy: Boundary<V>.MergeStrategy,
-        combination: GeometryCombination,
-        moduleName: String,
-        moduleParameters: CodeFragment.Parameters,
-        declaresColor: Bool,
-        environment: EnvironmentValues
+        environment: EnvironmentValues,
+        transformation: ([D.Primitive]) -> D.Primitive,
+        combination: GeometryCombination
     ) {
-        if children.count == 1 {
-            self = children[0].evaluated(in: environment)
+        let childOutputs = children.map { $0.evaluated(in: environment) }
+        if childOutputs.count == 1 {
+            self = childOutputs[0]
         } else {
             self.init(
-                childOutputs: children.map { $0.evaluated(in: environment) },
-                boundaryMergeStrategy: boundaryMergeStrategy,
-                combination: combination,
-                moduleName: moduleName,
-                moduleParameters: moduleParameters,
-                supportsPreviewConvexity: false,
-                declaresColor: declaresColor,
-                environment: environment
+                manifold: transformation(childOutputs.map(\.manifold)),
+                elements: .init(combining: childOutputs.map(\.elements), operation: combination)
             )
         }
     }
 
-    /// Transformed 2D
-    init(body: Geometry2D, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform2D, environment: EnvironmentValues) {
-        let environment = environment.applyingTransform(.init(transform))
+    init(
+        wrapping child: Geometry2D,
+        environment: EnvironmentValues,
+        transformation: (D.Primitive) -> D.Primitive
+    ) {
+        let childOutput = child.evaluated(in: environment)
         self.init(
-            bodyOutput: body.evaluated(in: environment),
-            moduleName: moduleName,
-            moduleParameters: moduleParameters,
-            transform: transform.transform3D
+            manifold: transformation(childOutput.manifold),
+            elements: childOutput.elements
         )
     }
 
-    /// Projection
-    init(
-        child: Geometry3D,
-        moduleName: String,
-        moduleParameters: CodeFragment.Parameters,
-        environment: EnvironmentValues
-    ) {
-        let childOutput = child.evaluated(in: environment)
-
-        self = .init(
-            codeFragment: .init(module: moduleName, parameters: moduleParameters, body: [childOutput.codeFragment]),
-            boundary: childOutput.boundary.map(\.xy),
-            elements: childOutput.elements
-        ).declaringColorIfNeeded(from: environment)
+    var boundingBox: BoundingBox2D {
+        .init(manifold.boundingBox)
     }
 }
 
-internal extension Output where V == Vector3D {
+internal extension Output where D == Dimensionality3 {
     /// Combined; union, difference, intersection, minkowski
     /// Transparent for single children
     init(
         children: [Geometry3D],
-        boundaryMergeStrategy: Boundary<V>.MergeStrategy,
-        combination: GeometryCombination,
-        moduleName: String,
-        moduleParameters: CodeFragment.Parameters,
-        supportsPreviewConvexity: Bool,
-        declaresColor: Bool,
-        environment: EnvironmentValues
+        environment: EnvironmentValues,
+        transformation: ([D.Primitive]) -> D.Primitive,
+        combination: GeometryCombination
     ) {
-        if children.count == 1 {
-            self = children[0].evaluated(in: environment)
+        let childOutputs = children.map { $0.evaluated(in: environment) }
+        if childOutputs.count == 1 {
+            self = childOutputs[0]
         } else {
-            let childEnvironment = supportsPreviewConvexity ? environment.withPreviewConvexity(nil) : environment
             self.init(
-                childOutputs: children.map { $0.evaluated(in: childEnvironment) },
-                boundaryMergeStrategy: boundaryMergeStrategy,
-                combination: combination,
-                moduleName: moduleName,
-                moduleParameters: moduleParameters,
-                supportsPreviewConvexity: supportsPreviewConvexity,
-                declaresColor: declaresColor,
-                environment: environment
+                manifold: transformation(childOutputs.map(\.manifold)),
+                elements: .init(combining: childOutputs.map(\.elements), operation: combination)
             )
         }
+    }
+
+    init(
+        wrapping child: Geometry3D,
+        environment: EnvironmentValues,
+        transformation: (D.Primitive) -> D.Primitive
+    ) {
+        let childOutput = child.evaluated(in: environment)
+        self.init(
+            manifold: transformation(childOutput.manifold),
+            elements: childOutput.elements
+        )
     }
 
     /// Extrusion
     init(
         child: Geometry2D,
-        boundaryExtrusion: (Boundary2D, EnvironmentValues.Facets) -> Boundary3D,
-        moduleName: String,
-        moduleParameters: CodeFragment.Parameters,
-        environment: EnvironmentValues
+        environment: EnvironmentValues,
+        transformation: (CrossSection) -> Mesh
     ) {
-        let childOutput = child.evaluated(in: environment.withPreviewConvexity(nil))
-
-        var params = moduleParameters
-        if let convexity = environment.previewConvexity {
-            params["convexity"] = convexity
-        }
-
-        self = .init(
-            codeFragment: .init(module: moduleName, parameters: params, body: [childOutput.codeFragment]),
-            boundary: boundaryExtrusion(childOutput.boundary, environment.facets),
+        let childOutput = child.evaluated(in: environment)
+        self.init(
+            manifold: transformation(childOutput.manifold),
             elements: childOutput.elements
-        ).declaringColorIfNeeded(from: environment)
+        )
     }
 
+    var boundingBox: BoundingBox3D {
+        .init(manifold.boundingBox)
+    }
+
+    /*
     /// Transformed
     init(body: Geometry3D, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform3D, environment: EnvironmentValues) {
         let environment = environment.applyingTransform(.init(transform))
@@ -221,7 +137,8 @@ internal extension Output where V == Vector3D {
             transform: transform
         )
     }
+     */
 }
 
-public typealias Output2D = Output<Vector2D>
-public typealias Output3D = Output<Vector3D>
+public typealias Output2D = Output<Dimensionality2>
+public typealias Output3D = Output<Dimensionality3>

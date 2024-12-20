@@ -17,18 +17,19 @@ public extension Geometry2D {
     /// - Returns: The extruded 3D geometry.
 
     func extruded(height: Double, topEdge: EdgeProfile?, bottomEdge: EdgeProfile?, method: EdgeProfile.Method) -> any Geometry3D {
-        var shape = extruded(height: height)
-        if let topEdge {
-            shape = shape.intersecting(topEdge.mask(shape: self, extrusionHeight: height, method: method))
-        }
-        if let bottomEdge {
-            shape = shape.intersecting {
-                bottomEdge.mask(shape: self, extrusionHeight: height, method: method)
-                    .flipped(along: .z)
-                    .translated(z: height)
+        statically { staticSelf in
+            staticSelf.extruded(height: height).intersecting {
+                if let topEdge {
+                    topEdge.mask(shape: staticSelf, extrusionHeight: height, method: method)
+                }
+                if let bottomEdge {
+                    bottomEdge.mask(shape: staticSelf, extrusionHeight: height, method: method)
+                        .flipped(along: .z)
+                        .translated(z: height)
+                }
             }
         }
-        return shape
+
     }
 
     /// See ``extruded(height:topEdge:bottomEdge:method:)``

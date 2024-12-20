@@ -1,13 +1,8 @@
 import Foundation
 
-fileprivate struct Translate<V: Vector> where V: SCADValue {
+fileprivate struct Translate<V: Vector> {
     let body: V.Geometry
     let distance: V
-
-    let moduleName = "translate"
-    var moduleParameters: CodeFragment.Parameters {
-        ["v": distance]
-    }
     var bodyTransform: V.Transform { .translation(distance) }
 }
 

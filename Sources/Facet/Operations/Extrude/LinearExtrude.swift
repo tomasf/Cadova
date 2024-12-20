@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 struct LinearExtrude: ExtrusionGeometry {
     let body: any Geometry2D
@@ -6,12 +7,9 @@ struct LinearExtrude: ExtrusionGeometry {
     let twist: Angle?
     let scale: Vector2D
 
-    let moduleName = "linear_extrude"
-    var moduleParameters: CodeFragment.Parameters {[
-        "height": height,
-        "twist": twist.map { -$0 } ?? 0°,
-        "scale": scale,
-    ]}
+    func extrude(_ child: CrossSection) -> Mesh {
+        child.extrude(height: height, divisions: 0, twist: twist?.degrees ?? 0, scaleTop: scale)
+    }
 
     func boundary(for boundary2D: Boundary2D, facets: EnvironmentValues.Facets) -> Boundary3D {
         boundary2D.extruded(

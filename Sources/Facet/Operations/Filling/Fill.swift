@@ -1,5 +1,7 @@
 import Foundation
 
+#warning("implement this. Should be doable by making a new cross section from the polygons using the non-zero fill-rule (or something)")
+/*
 struct Fill: WrappedGeometry2D {
     let body: any Geometry2D
     let moduleName = "fill"
@@ -15,3 +17,4 @@ public extension Geometry2D {
         Fill(body: self)
     }
 }
+*/

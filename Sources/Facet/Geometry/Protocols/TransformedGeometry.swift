@@ -10,37 +10,25 @@ import Foundation
 internal protocol TransformedGeometry2D: Geometry2D {
     var body: any Geometry2D { get }
     var bodyTransform: AffineTransform2D { get }
-    var moduleName: String { get }
-    var moduleParameters: CodeFragment.Parameters { get }
 }
 
 extension TransformedGeometry2D {
     func evaluated(in environment: EnvironmentValues) -> Output {
-        .init(
-            body: body,
-            moduleName: moduleName,
-            moduleParameters: moduleParameters,
-            transform: bodyTransform,
-            environment: environment
-        )
+        let bodyEnvironment = environment.applyingTransform(bodyTransform.transform3D)
+        let bodyOutput = body.evaluated(in: bodyEnvironment)
+        return .init(manifold: bodyOutput.manifold.transform(bodyTransform), elements: bodyOutput.elements)
     }
 }
 
 internal protocol TransformedGeometry3D: Geometry3D {
     var body: any Geometry3D { get }
     var bodyTransform: AffineTransform3D { get }
-    var moduleName: String { get }
-    var moduleParameters: CodeFragment.Parameters { get }
 }
 
 extension TransformedGeometry3D {
     func evaluated(in environment: EnvironmentValues) -> Output {
-        .init(
-            body: body,
-            moduleName: moduleName,
-            moduleParameters: moduleParameters,
-            transform: bodyTransform,
-            environment: environment
-        )
+        let bodyEnvironment = environment.applyingTransform(bodyTransform)
+        let bodyOutput = body.evaluated(in: bodyEnvironment)
+        return .init(manifold: bodyOutput.manifold.transform(bodyTransform), elements: bodyOutput.elements)
     }
 }

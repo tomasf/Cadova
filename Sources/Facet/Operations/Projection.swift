@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 struct Projection: Geometry2D {
     let body: any Geometry3D
@@ -26,11 +27,14 @@ struct Projection: Geometry2D {
     func evaluated(in environment: EnvironmentValues) -> Output2D {
         let environment = environment.applyingTransform(.scaling(z: 0))
         let bodyOutput = appliedBody.evaluated(in: environment)
-        return .init(
-            codeFragment: .init(module: "projection", parameters: parameters, body: [bodyOutput.codeFragment]),
-            boundary: bodyOutput.boundary.map(\.xy),
-            elements: bodyOutput.elements
-        )
+
+        let crossSection: CrossSection
+        switch mode {
+        case .whole: crossSection = bodyOutput.manifold.projection()
+        case .slice(let z): crossSection = bodyOutput.manifold.slice(at: z)
+        }
+
+        return .init(manifold: crossSection, elements: bodyOutput.elements)
     }
 }
 

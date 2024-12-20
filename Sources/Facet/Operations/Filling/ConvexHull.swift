@@ -1,13 +1,21 @@
 import Foundation
+import Manifold
 
 fileprivate struct ConvexHull<Geometry> {
     let body: Geometry
-    let moduleName = "hull"
-    let needsColorDeclaration = true
 }
 
-extension ConvexHull<Geometry2D>: Geometry2D, WrappedGeometry2D {}
-extension ConvexHull<Geometry3D>: Geometry3D, WrappedGeometry3D {}
+extension ConvexHull<Geometry2D>: Geometry2D, WrappedGeometry2D {
+    func process(_ child: CrossSection) -> CrossSection {
+        child.hull()
+    }
+}
+
+extension ConvexHull<Geometry3D>: Geometry3D, WrappedGeometry3D {
+    func process(_ child: Mesh) -> Mesh {
+        child.hull()
+    }
+}
 
 
 public extension Geometry2D {

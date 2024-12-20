@@ -1,5 +1,6 @@
 import Foundation
 
+/*
 public extension Geometry2D {
     private func settingBounds(geometry: any Geometry2D, currentSize: Vector2D, targetSize: Vector2D, alignment: GeometryAlignment2D) -> any Geometry2D {
         let translation = (targetSize - currentSize) * alignment.factors
@@ -100,3 +101,4 @@ public extension Geometry3D {
         }
     }
 }
+*/

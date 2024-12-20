@@ -1,7 +1,8 @@
 import Foundation
 
+
 /// Text as a 2D geometry
-public struct Text: LeafGeometry2D {
+public struct Text: Geometry2D {
     let text: String
 
     /// Initializes a new text geometry with the specified text.
@@ -17,18 +18,7 @@ public struct Text: LeafGeometry2D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        .init(
-            codeFragment: .init(module: "text", parameters: environment.textAttributes.moduleParameters(text: text), body: []),
-            boundary: boundary(in: environment),
-            elements: [:]
-        )
-    }
-
-    let moduleName = "" // Unused
-    var moduleParameters: CodeFragment.Parameters { [:] } // Unused
-
-    func boundary(in environment: EnvironmentValues) -> Bounds {
-        .empty
+        return .init(manifold: .empty)
     }
 }
 
@@ -82,3 +72,4 @@ extension EnvironmentValues.TextAttributes {
         ]
     }
 }
+

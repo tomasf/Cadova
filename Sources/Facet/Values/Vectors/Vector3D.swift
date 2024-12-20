@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 /// A unitless vector representing distances, sizes or scales in three dimensions
 ///
@@ -97,5 +98,11 @@ extension Vector3D: Vector {
 extension Vector3D: CustomDebugStringConvertible {
     public var debugDescription: String {
         String(format: "[%g, %g, %g]", x, y, z)
+    }
+}
+
+internal extension Vector3D {
+    init(_ manifoldVector: any Vector3) {
+        self.init(manifoldVector.x, manifoldVector.y, manifoldVector.z)
     }
 }

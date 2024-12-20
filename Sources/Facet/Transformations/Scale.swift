@@ -1,13 +1,8 @@
 import Foundation
 
-fileprivate struct Scale<V: Vector> where V: SCADValue {
+fileprivate struct Scale<V: Vector> {
     let body: V.Geometry
     let scale: V
-
-    let moduleName = "scale"
-    var moduleParameters: CodeFragment.Parameters {
-        ["v": scale]
-    }
     var bodyTransform: V.Transform { .scaling(scale) }
 }
 

@@ -39,18 +39,11 @@ extension Stack<Vector2D>: Geometry2D, Shape2D {
     public var body: any Geometry2D {
         var offset = 0.0
         for geometry in items {
-            let box = requireBoundingBox(geometry)
+            let box = geometry.evaluated(in: environment).boundingBox
             geometry
                 .translated(box.translation(for: alignment) + .init(axis, value: offset))
             offset += box.size[axis] + spacing
         }
-    }
-
-    private func requireBoundingBox(_ geometry: V.Geometry) -> BoundingBox<V> {
-        guard let box = geometry.evaluated(in: environment).boundary.boundingBox else {
-            preconditionFailure("Stack item has empty bounds: \(geometry)")
-        }
-        return box
     }
 }
 
@@ -74,17 +67,10 @@ extension Stack<Vector3D>: Geometry3D, Shape3D {
     public var body: any Geometry3D {
         var offset = 0.0
         for geometry in items {
-            let box = requireBoundingBox(geometry)
+            let box = geometry.evaluated(in: environment).boundingBox
             geometry
                 .translated(box.translation(for: alignment) + .init(axis, value: offset))
             offset += box.size[axis] + spacing
         }
-    }
-
-    private func requireBoundingBox(_ geometry: V.Geometry) -> BoundingBox<V> {
-        guard let box = geometry.evaluated(in: environment).boundary.boundingBox else {
-            preconditionFailure("Stack item has empty bounds: \(geometry)")
-        }
-        return box
     }
 }

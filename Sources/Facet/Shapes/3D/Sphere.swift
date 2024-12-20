@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The sphere's smoothness and number of faces can be adjusted by configuring the facet settings through the ``Geometry3D/usingFacets(minAngle:minSize:)`` and ``Geometry3D/usingFacets(count:)`` methods, allowing for customized geometric precision and rendering quality.
 
-public struct Sphere: LeafGeometry3D {
+public struct Sphere: Geometry3D {
     /// The diameter of the sphere.
     ///
     /// This property defines the overall size of the sphere from one side to the other through its center.
@@ -26,13 +26,9 @@ public struct Sphere: LeafGeometry3D {
         self.diameter = radius * 2
     }
 
-    let moduleName = "sphere"
-    var moduleParameters: CodeFragment.Parameters {
-        ["d": diameter]
-    }
-
-    public func boundary(in environment: EnvironmentValues) -> Bounds {
-        .sphere(radius: diameter / 2, facets: environment.facets)
+    public func evaluated(in environment: EnvironmentValues) -> Output3D {
+        let segmentCount = environment.facets.facetCount(circleRadius: diameter / 2)
+        return .init(manifold: .sphere(radius: diameter / 2, segmentCount: segmentCount))
     }
 }
 

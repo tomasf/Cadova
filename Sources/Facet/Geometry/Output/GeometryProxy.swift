@@ -1,31 +1,29 @@
 import Foundation
 
 public struct GeometryProxy: @unchecked Sendable {
-    private let outputProvider: (EnvironmentValues) -> (CodeFragment, name: String?, [any OutputFormat])
+    private let outputProvider: (EnvironmentValues) -> (any OutputDataProvider, name: String?)
 
     internal init(_ geometry: any Geometry2D) {
         outputProvider = { environment in
-            let output = geometry.declaringFacets().evaluated(in: environment)
+            let output = geometry.evaluated(in: environment)
             return (
-                output.codeFragment,
-                output.elements[GeometryName.self]?.name,
-                output.elements[OutputFormatSet2D.self]?.formats ?? [.scad]
+                SVGDataProvider(),
+                output.elements[GeometryName.self]?.name
             )
         }
     }
 
     internal init(_ geometry: any Geometry3D) {
         outputProvider = { environment in
-            let output = geometry.declaringFacets().evaluated(in: environment)
+            let output = geometry.evaluated(in: environment)
             return (
-                output.codeFragment,
-                output.elements[GeometryName.self]?.name,
-                output.elements[OutputFormatSet3D.self]?.formats ?? [.scad]
+                ThreeMFDataProvider(output: output),
+                output.elements[GeometryName.self]?.name
             )
         }
     }
 
-    internal func evaluated(in environment: EnvironmentValues) -> (CodeFragment, name: String?, [any OutputFormat]) {
+    internal func evaluated(in environment: EnvironmentValues) -> (any OutputDataProvider, name: String?) {
         outputProvider(environment)
     }
 }

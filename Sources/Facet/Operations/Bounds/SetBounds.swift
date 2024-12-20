@@ -1,5 +1,6 @@
 import Foundation
 
+/*
 internal struct SetBounds<V: Vector> {
     let body: V.Geometry
     let boundary: Boundary<V>
@@ -97,3 +98,4 @@ public extension Geometry3D {
         }
     }
 }
+*/

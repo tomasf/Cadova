@@ -1,5 +1,6 @@
 import Foundation
 
+
 public extension Geometry2D {
     /// Apply a color to the geometry.
     ///
@@ -71,7 +72,7 @@ public extension Geometry3D {
     /// - Parameter color: The `Color` instance to apply.
     /// - Returns: A new colored geometry instance.
     func colored(_ color: Color) -> any Geometry3D {
-        withEnvironment { $0.withColor(color) }
+        ApplyColor(body: self, color: color)
     }
 
     /// Apply a color with transparency to the geometry.
@@ -129,3 +130,4 @@ public extension Geometry3D {
         }
     }
 }
+
