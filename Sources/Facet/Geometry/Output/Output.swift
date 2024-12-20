@@ -17,11 +17,6 @@ public struct Output<D: Dimensionality> {
         self.init(primitive: primitive, elements: [:])
     }
 
-    private func declaringColorIfNeeded(from environment: EnvironmentValues) -> Self {
-        #warning("fix")
-        return self
-    }
-
     func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E?) -> E?) -> Self {
         Self(primitive: primitive, elements: elements.setting(modifier(elements[E.self])))
     }
