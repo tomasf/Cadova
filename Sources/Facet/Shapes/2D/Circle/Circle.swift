@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 /// A `Circle` represents a two-dimensional geometric shape that can be defined by its diameter or radius.
 ///
@@ -7,7 +8,7 @@ import Foundation
 /// let circleWithDiameter = Circle(diameter: 10)
 /// let circleWithRadius = Circle(radius: 5)
 /// ```
-public struct Circle: LeafGeometry2D {
+public struct Circle: Geometry2D {
     /// The diameter of the circle.
     public let diameter: Double
 
@@ -46,13 +47,9 @@ public struct Circle: LeafGeometry2D {
         diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
     }
 
-    let moduleName = "circle"
-    var moduleParameters: CodeFragment.Parameters {
-        ["d": diameter]
-    }
-
-    func boundary(in environment: EnvironmentValues) -> Bounds {
-        .circle(radius: diameter / 2, facets: environment.facets)
+    public func evaluated(in environment: EnvironmentValues) -> Output2D {
+        let segmentCount = environment.facets.facetCount(circleRadius: diameter / 2)
+        return .init(manifold: .circle(radius: diameter / 2, segmentCount: segmentCount))
     }
 }
 

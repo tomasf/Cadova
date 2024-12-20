@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 public typealias BoundingBox2D = BoundingBox<Vector2D>
 public typealias BoundingBox3D = BoundingBox<Vector3D>
@@ -143,5 +144,17 @@ extension BoundingBox3D? {
             preconditionFailure("Bounding box was empty")
         }
         return box
+    }
+}
+
+extension BoundingBox2D {
+    init(_ manifoldPoints: (any Vector2, any Vector2)) {
+        self.init(minimum: .init(manifoldPoints.0), maximum: .init(manifoldPoints.1))
+    }
+}
+
+extension BoundingBox3D {
+    init(_ manifoldPoints: (any Vector3, any Vector3)) {
+        self.init(minimum: .init(manifoldPoints.0), maximum: .init(manifoldPoints.1))
     }
 }

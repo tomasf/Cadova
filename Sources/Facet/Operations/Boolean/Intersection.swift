@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 /// A geometry type that represents the intersection (common overlap) of multiple shapes.
 ///
@@ -35,9 +36,6 @@ import Foundation
 ///
 public struct Intersection<V: Vector> {
     internal let children: [V.Geometry]
-
-    internal let moduleName = "intersection"
-    internal let boundaryMergeStrategy = Boundary<V>.MergeStrategy.boxIntersection
     internal let combination = GeometryCombination.intersection
 }
 
@@ -50,6 +48,10 @@ extension Intersection<Vector2D>: Geometry2D, CombinedGeometry2D {
     public init(@GeometryBuilder2D _ children: () -> [any Geometry2D]) {
         self.init(children: children())
     }
+
+    func combine(_ children: [Dimensionality2.Primitive]) -> Dimensionality2.Primitive {
+        CrossSection.boolean(.intersection, with: children)
+    }
 }
 
 extension Intersection<Vector3D>: Geometry3D, CombinedGeometry3D {
@@ -60,6 +62,10 @@ extension Intersection<Vector3D>: Geometry3D, CombinedGeometry3D {
     /// - Parameter children: A closure providing the geometries to be intersected.
     public init(@GeometryBuilder3D _ children: () -> [any Geometry3D]) {
         self.init(children: children())
+    }
+
+    func combine(_ children: [Dimensionality3.Primitive]) -> Dimensionality3.Primitive {
+        Mesh.boolean(.intersection, with: children)
     }
 }
 

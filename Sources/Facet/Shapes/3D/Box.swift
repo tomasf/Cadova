@@ -1,7 +1,7 @@
 import Foundation
 
 /// A rectangular cuboid shape
-public struct Box: LeafGeometry3D {
+public struct Box: Geometry3D {
     let size: Vector3D
 
     /// Initializes a new box with specific dimensions and centering options.
@@ -43,12 +43,7 @@ public struct Box: LeafGeometry3D {
         self.size = [side, side, side]
     }
 
-    let moduleName = "cube"
-    var moduleParameters: CodeFragment.Parameters {
-        ["size": size]
-    }
-
-    func boundary(in environment: EnvironmentValues) -> Bounds {
-        .box(size)
+    public func evaluated(in environment: EnvironmentValues) -> Output3D {
+        .init(manifold: .cube(size: size))
     }
 }

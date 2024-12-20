@@ -1,12 +1,11 @@
 import Foundation
+import Manifold
 
 fileprivate struct Difference<V: Vector> {
     private let positive: V.Geometry
     private let negative: V.Geometry
 
     var children: [V.Geometry] { [positive, negative] }
-    let moduleName = "difference"
-    let boundaryMergeStrategy = Boundary<V>.MergeStrategy.first
     let combination = GeometryCombination.difference
 }
 
@@ -16,6 +15,10 @@ extension Difference<Vector2D>: Geometry2D, CombinedGeometry2D {
         self.negative = negative
             .invertingOperation()
     }
+
+    func combine(_ children: [Dimensionality2.Primitive]) -> Dimensionality2.Primitive {
+        CrossSection.boolean(.difference, with: children)
+    }
 }
 
 extension Difference<Vector3D>: Geometry3D, CombinedGeometry3D {
@@ -23,6 +26,10 @@ extension Difference<Vector3D>: Geometry3D, CombinedGeometry3D {
         self.positive = positive
         self.negative = negative
             .invertingOperation()
+    }
+
+    func combine(_ children: [Dimensionality3.Primitive]) -> Dimensionality3.Primitive {
+        Mesh.boolean(.difference, with: children)
     }
 }
 

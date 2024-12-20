@@ -11,6 +11,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/tomasf/manifold-swift.git", branch: "main"),
+        //.package(path: "../manifold-swift"),
+        .package(url: "https://github.com/tomasf/Zip.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
     ],
@@ -19,6 +21,7 @@ let package = Package(
             name: "Facet",
             dependencies: [
                 .product(name: "Manifold", package: "manifold-swift"),
+                .product(name: "Zip", package: "Zip"),
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Logging", package: "swift-log"),
             ],

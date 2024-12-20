@@ -1,5 +1,6 @@
 import Foundation
 
+
 internal extension EnvironmentValues {
     struct TextAttributes: Sendable {
         var fontName: String?
@@ -80,3 +81,4 @@ public extension EnvironmentValues {
     /// This property reflects the factor by which character spacing is adjusted for text geometries within the environment. A value of 1 indicates normal spacing, while values greater than 1 increase the spacing. If `nil`, the default spacing is used.
     var characterSpacing: Double? { textAttributes.characterSpacing }
 }
+

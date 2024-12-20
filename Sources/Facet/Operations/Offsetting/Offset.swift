@@ -1,21 +1,13 @@
 import Foundation
+import Manifold
 
 internal struct Offset: WrappedGeometry2D {
     let body: any Geometry2D
     let amount: Double
     let style: LineJoinStyle
 
-    let moduleName = "offset"
-    var moduleParameters: CodeFragment.Parameters {
-        switch style {
-        case .round: ["r": amount]
-        case .miter: ["delta": amount]
-        case .bevel: ["delta": amount, "chamfer": true]
-        }
-    }
-
-    func boundary(bodyBoundary: Bounds) -> Bounds {
-        bodyBoundary.scaleOffset(amount)
+    func process(_ child: CrossSection) -> CrossSection {
+        child.offset(amount: amount, joinType: style.Primitive, miterLimit: 100)
     }
 }
 
@@ -31,6 +23,14 @@ public enum LineJoinStyle {
 
     /// Joins lines by connecting their endpoints with a straight line, resulting in a flat, cut-off corner.
     case bevel
+
+    internal var Primitive: CrossSection.JoinType {
+        switch self {
+        case .round: .round
+        case .miter: .miter
+        case .bevel: .square
+        }
+    }
 }
 
 public extension Geometry2D {

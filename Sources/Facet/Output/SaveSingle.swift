@@ -31,10 +31,10 @@ public extension Geometry2D {
 internal extension GeometryProxy {
     func save(to url: URL) {
         let environment = EnvironmentValues.defaultEnvironment
-        let (codeFragment, _, formats) = evaluated(in: environment)
-        for format in formats {
-            let finalURL = url.withRequiredExtension(format.fileExtension)
-            codeFragment.save(to: finalURL, format: format)
-        }
+        let (dataProvider, _) = evaluated(in: environment)
+
+        let finalURL = url.withRequiredExtension(dataProvider.fileExtension)
+        try! dataProvider.generateOutput().write(to: finalURL, options: .atomic)
+        logger.info("Wrote output to \(finalURL.path)")
     }
 }

@@ -3,11 +3,6 @@ import Foundation
 fileprivate struct Transform<V: Vector> where V.Transform: AffineTransformInternal {
     let body: V.Geometry
     let transform: V.Transform
-
-    let moduleName = "multmatrix"
-    var moduleParameters: CodeFragment.Parameters {
-        ["m": transform.transform3D]
-    }
     var bodyTransform: V.Transform { transform }
 }
 

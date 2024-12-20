@@ -1,11 +1,13 @@
 import Foundation
 import Collections
+import Manifold
 
 /// An arbitrary three-dimensional shape made up of flat faces.
 ///
 /// For more information, see [the OpenSCAD documentation](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Primitive_Solids#polyhedron).
 
-public struct Polyhedron: LeafGeometry3D {
+#warning("implement me!")
+public struct Polyhedron: Geometry3D {
     let points: [Vector3D]
     let faces: [[Array<Vector3D>.Index]]
 
@@ -17,16 +19,9 @@ public struct Polyhedron: LeafGeometry3D {
         self.faces = faces
     }
 
-    let moduleName = "polyhedron"
-    var moduleParameters: CodeFragment.Parameters {
-        ["points": points, "faces": faces]
+    public func evaluated(in environment: EnvironmentValues) -> Output3D {
+        .init(manifold: .empty)
     }
-
-    func boundary(in environment: EnvironmentValues) -> Bounds {
-        .points(points)
-    }
-
-    let supportsPreviewConvexity = true
 }
 
 public extension Polyhedron {
@@ -59,3 +54,4 @@ public extension Polyhedron {
         self.init(faces: faces, value: \.self)
     }
 }
+

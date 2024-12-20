@@ -4,27 +4,13 @@ fileprivate struct Rotate<V: Vector> {
     let body: V.Geometry
     let rotation: V.Transform.Rotation
 
-    let moduleName = "rotate"
-    var bodyTransform: V.Transform { .rotation(rotation) }
-}
-
-extension Rotate<Vector2D>: Geometry2D, TransformedGeometry2D {
-    var moduleParameters: CodeFragment.Parameters {
-        ["a": rotation]
+    var bodyTransform: V.Transform {
+        .rotation(rotation)
     }
 }
 
-extension Rotate<Vector3D>: Geometry3D, TransformedGeometry3D {
-    var moduleParameters: CodeFragment.Parameters {
-        switch rotation.rotation {
-        case .eulerAngles(let x, let y, let z):
-            ["a": [x, y, z]]
-        case .axis(let v, let angle):
-            ["a": angle, "v": [v.x, v.y, v.z]]
-        }
-    }
-}
-
+extension Rotate<Vector2D>: Geometry2D, TransformedGeometry2D {}
+extension Rotate<Vector3D>: Geometry3D, TransformedGeometry3D {}
 
 public extension Geometry2D {
     /// Rotate geometry

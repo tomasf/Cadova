@@ -4,16 +4,15 @@ public func save(to directory: URL? = nil, environment: EnvironmentValues? = nil
     let environment = environment ?? .defaultEnvironment
 
     geometries().concurrentForEach { geometry in
-        let (codeFragment, name, formats) = geometry.evaluated(in: environment)
+        let (dataProvider, name) = geometry.evaluated(in: environment)
         guard let name else {
             logger.warning("Found a geometry without a name. Use .named(_:) to assign names to geometry.")
             return
         }
 
-        for format in formats {
-            let fileURL = URL(expandingFilePath: name, extension: format.fileExtension, relativeTo: directory)
-            codeFragment.save(to: fileURL, format: format)
-        }
+        let fileURL = URL(expandingFilePath: name, extension: dataProvider.fileExtension, relativeTo: directory)
+        try! dataProvider.generateOutput().write(to: fileURL, options: .atomic)
+        logger.info("Wrote output to \(fileURL.path)")
     }
 }
 

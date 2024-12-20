@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 /// A unitless vector representing distances, sizes or scales in two dimensions
 ///
@@ -91,5 +92,11 @@ extension Vector2D: Vector {
 extension Vector2D: CustomDebugStringConvertible {
     public var debugDescription: String {
         String(format: "[%g, %g]", x, y)
+    }
+}
+
+internal extension Vector2D {
+    init(_ manifoldVector: any Vector2) {
+        self.init(manifoldVector.x, manifoldVector.y)
     }
 }

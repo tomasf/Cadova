@@ -14,23 +14,12 @@ fileprivate struct Prefix<Geometry> {
 
 extension Prefix<any Geometry2D>: Geometry2D {
     func evaluated(in environment: EnvironmentValues) -> Output2D {
-        let child = body.evaluated(in: environment)
-        return .init(
-            codeFragment: .init(prefix: prefix, body: child.codeFragment),
-            boundary: isImmaterial ? .empty : child.boundary,
-            elements: child.elements
-        )
+        body.evaluated(in: environment)
     }
 }
-
 extension Prefix<any Geometry3D>: Geometry3D {
     func evaluated(in environment: EnvironmentValues) -> Output3D {
-        let child = body.evaluated(in: environment)
-        return .init(
-            codeFragment: .init(prefix: prefix, body: child.codeFragment),
-            boundary: isImmaterial ? .empty : child.boundary,
-            elements: child.elements
-        )
+        body.evaluated(in: environment)
     }
 }
 
@@ -82,9 +71,9 @@ public extension Geometry3D {
     ///
     /// Highlighting is for debugging and is not visible in final renderings. This is equivalent to the `#` modifier in OpenSCAD.
 
-    func highlighted() -> any Geometry3D {
-        Prefix(prefix: "#", body: self)
-    }
+    //func highlighted() -> any Geometry3D {
+    //    Prefix(prefix: "#", body: self)
+    //}
 
     /// Display only this geometry
     ///
@@ -97,18 +86,9 @@ public extension Geometry3D {
     /// Display this geometry as background
     ///
     /// Background is drawn transparently, isn't part of the actual geometry, and is ignored in final renderings. This is equivalent to the `%` modifier in OpenSCAD.
-
-    func background() -> any Geometry3D {
-        Prefix(prefix: "%", isImmaterial: true, body: self)
-    }
-
     /// Disable this geometry
     ///
     /// Ignore this geometry as if it didn't exist. This is equivalent to the `*` modifier in OpenSCAD.
-
-    func disabled() -> any Geometry3D {
-        Prefix(prefix: "*", isImmaterial: true, body: self)
-    }
 
     /// Hide this geometry
     ///

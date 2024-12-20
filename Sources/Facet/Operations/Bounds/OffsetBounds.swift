@@ -1,5 +1,6 @@
 import Foundation
 
+/*
 public extension Geometry2D {
     /// Offsets the boundary of this geometry, leaving the geometry itself unmodified.
     ///
@@ -52,3 +53,4 @@ public extension Geometry3D {
         offsettingBounds(.init(x: x, y: y, z: z))
     }
 }
+*/

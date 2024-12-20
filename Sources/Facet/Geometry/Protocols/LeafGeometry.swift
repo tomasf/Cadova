@@ -1,5 +1,6 @@
 import Foundation
 
+/*
 internal protocol LeafGeometry2D: Geometry2D {
     var moduleName: String { get }
     var moduleParameters: CodeFragment.Parameters { get }
@@ -38,3 +39,4 @@ extension LeafGeometry3D {
 
     var supportsPreviewConvexity: Bool { false }
 }
+*/

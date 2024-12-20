@@ -41,15 +41,7 @@ public struct Polygon: Geometry2D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        let points = points(in: environment)
-
-        return .init(
-            moduleName: "polygon",
-            moduleParameters: ["points": points],
-            boundary: .points(points),
-            supportsPreviewConvexity: false,
-            environment: environment
-        )
+        .init(manifold: .polygon(points(in: environment)))
     }
 }
 

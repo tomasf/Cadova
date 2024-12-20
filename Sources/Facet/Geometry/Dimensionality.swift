@@ -7,7 +7,7 @@ public protocol Dimensionality {
     associatedtype Axis: Facet.Axis
     associatedtype Axes
     associatedtype Geometry
-    associatedtype ManifoldType
+    associatedtype Primitive: PrimitiveGeometry
 }
 
 public struct Dimensionality2: Dimensionality {
@@ -16,7 +16,7 @@ public struct Dimensionality2: Dimensionality {
     public typealias Axis = Axis2D
     public typealias Axes = Axes2D
     public typealias Geometry = Geometry2D
-    public typealias ManifoldType = CrossSection
+    public typealias Primitive = CrossSection
 
     private init() {}
 }
@@ -27,7 +27,7 @@ public struct Dimensionality3: Dimensionality {
     public typealias Axis = Axis3D
     public typealias Axes = Axes3D
     public typealias Geometry = Geometry3D
-    public typealias ManifoldType = Mesh
+    public typealias Primitive = Mesh
 
     private init() {}
 }

@@ -1,17 +1,14 @@
 import Foundation
+import Manifold
 
 struct RotateExtrude: ExtrusionGeometry {
     let body: any Geometry2D
     let angle: Angle
 
-    let moduleName = "rotate_extrude"
-    var moduleParameters: CodeFragment.Parameters {
-        ["angle": angle]
+    func extrude(_ child: CrossSection) -> Mesh {
+        child.revolve(degrees: angle.degrees)
     }
 
-    func boundary(for boundary2D: Boundary2D, facets: EnvironmentValues.Facets) -> Boundary3D {
-        boundary2D.extruded(angle: angle, facets: facets)
-    }
 }
 
 public extension Geometry2D {

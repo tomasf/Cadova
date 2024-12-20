@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 /// A geometry type that represents the union (combined area or volume) of multiple shapes.
 ///
@@ -49,8 +50,6 @@ import Foundation
 /// 
 public struct Union<V: Vector> {
     let children: [V.Geometry]
-    let moduleName = "union"
-    let boundaryMergeStrategy = Boundary<V>.MergeStrategy.union
     let combination = GeometryCombination.union
 
     internal init(children: [V.Geometry]) {
@@ -83,6 +82,10 @@ extension Union<Vector2D>: Geometry2D, CombinedGeometry2D {
     public init(_ children: [(any Geometry2D)?]) {
         self.init(children: children.compactMap { $0 })
     }
+
+    func combine(_ children: [Dimensionality2.Primitive]) -> Dimensionality2.Primitive {
+        CrossSection.boolean(.union, with: children)
+    }
 }
 
 extension Union<Vector3D>: Geometry3D, CombinedGeometry3D {
@@ -109,5 +112,9 @@ extension Union<Vector3D>: Geometry3D, CombinedGeometry3D {
     /// ```
     public init(_ children: [(any Geometry3D)?]) {
         self.init(children: children.compactMap { $0 })
+    }
+
+    func combine(_ children: [Dimensionality3.Primitive]) -> Dimensionality3.Primitive {
+        Mesh.boolean(.union, with: children)
     }
 }
