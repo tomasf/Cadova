@@ -29,13 +29,13 @@ internal struct ApplyColor: Geometry3D {
 
     func evaluated(in environment: EnvironmentValues) -> Output3D {
         let bodyOutput = body.evaluated(in: environment)
-        let newMesh = bodyOutput.manifold.asOriginal()
+        let newMesh = bodyOutput.primitive.asOriginal()
         var elements = bodyOutput.elements
         guard let originalID = newMesh.originalID else {
             preconditionFailure("Original mesh returned nil originalID")
         }
 
         elements[ColorMapping.self] = ColorMapping(originalID: originalID, color: color)
-        return Output3D(manifold: newMesh, elements: elements)
+        return Output3D(primitive: newMesh, elements: elements)
     }
 }

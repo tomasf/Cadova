@@ -16,7 +16,7 @@ extension TransformedGeometry2D {
     func evaluated(in environment: EnvironmentValues) -> Output {
         let bodyEnvironment = environment.applyingTransform(bodyTransform.transform3D)
         let bodyOutput = body.evaluated(in: bodyEnvironment)
-        return .init(manifold: bodyOutput.manifold.transform(bodyTransform), elements: bodyOutput.elements)
+        return .init(primitive: bodyOutput.primitive.transform(bodyTransform), elements: bodyOutput.elements)
     }
 }
 
@@ -29,6 +29,6 @@ extension TransformedGeometry3D {
     func evaluated(in environment: EnvironmentValues) -> Output {
         let bodyEnvironment = environment.applyingTransform(bodyTransform)
         let bodyOutput = body.evaluated(in: bodyEnvironment)
-        return .init(manifold: bodyOutput.manifold.transform(bodyTransform), elements: bodyOutput.elements)
+        return .init(primitive: bodyOutput.primitive.transform(bodyTransform), elements: bodyOutput.elements)
     }
 }

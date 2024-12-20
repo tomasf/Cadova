@@ -41,7 +41,7 @@ public struct Polygon: Geometry2D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        .init(manifold: .polygon(points(in: environment)))
+        .init(primitive: .polygon(points(in: environment)))
     }
 }
 

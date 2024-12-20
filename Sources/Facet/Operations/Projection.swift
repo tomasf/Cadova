@@ -30,11 +30,11 @@ struct Projection: Geometry2D {
 
         let crossSection: CrossSection
         switch mode {
-        case .whole: crossSection = bodyOutput.manifold.projection()
-        case .slice(let z): crossSection = bodyOutput.manifold.slice(at: z)
+        case .whole: crossSection = bodyOutput.primitive.projection()
+        case .slice(let z): crossSection = bodyOutput.primitive.slice(at: z)
         }
 
-        return .init(manifold: crossSection, elements: bodyOutput.elements)
+        return .init(primitive: crossSection, elements: bodyOutput.elements)
     }
 }
 

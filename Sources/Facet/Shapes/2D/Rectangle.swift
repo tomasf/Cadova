@@ -31,7 +31,7 @@ public struct Rectangle: Geometry2D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        .init(manifold: .square(size: size))
+        .init(primitive: .square(size: size))
     }
 }
 

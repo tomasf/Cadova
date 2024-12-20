@@ -28,7 +28,7 @@ public struct Sphere: Geometry3D {
 
     public func evaluated(in environment: EnvironmentValues) -> Output3D {
         let segmentCount = environment.facets.facetCount(circleRadius: diameter / 2)
-        return .init(manifold: .sphere(radius: diameter / 2, segmentCount: segmentCount))
+        return .init(primitive: .sphere(radius: diameter / 2, segmentCount: segmentCount))
     }
 }
 

@@ -8,7 +8,7 @@ fileprivate struct ReadBoundary<D: Dimensionality> {
 extension ReadBoundary<Dimensionality2>: Geometry2D {
     func evaluated(in environment: EnvironmentValues) -> Output2D {
         let output = target.evaluated(in: environment)
-        return builder(StaticGeometry(output: output), .init(output.manifold.boundingBox))
+        return builder(StaticGeometry(output: output), .init(output.primitive.boundingBox))
             .evaluated(in: environment)
     }
 }
@@ -16,7 +16,7 @@ extension ReadBoundary<Dimensionality2>: Geometry2D {
 extension ReadBoundary<Dimensionality3>: Geometry3D {
     func evaluated(in environment: EnvironmentValues) -> Output3D {
         let output = target.evaluated(in: environment)
-        return builder(StaticGeometry(output: output), .init(output.manifold.boundingBox))
+        return builder(StaticGeometry(output: output), .init(output.primitive.boundingBox))
             .evaluated(in: environment)
     }
 }
@@ -63,9 +63,9 @@ public extension Geometry3D {
 }
 
 public func measureBounds<V>(_ geometry: any Geometry2D, in environment: EnvironmentValues = .defaultEnvironment, operation: (BoundingBox2D?) -> V) -> V {
-    operation(.init(geometry.evaluated(in: environment).manifold.boundingBox))
+    operation(.init(geometry.evaluated(in: environment).primitive.boundingBox))
 }
 
 public func measureBounds<V>(_ geometry: any Geometry3D, in environment: EnvironmentValues = .defaultEnvironment, operation: (BoundingBox3D?) -> V) -> V {
-    operation(.init(geometry.evaluated(in: environment).manifold.boundingBox))
+    operation(.init(geometry.evaluated(in: environment).primitive.boundingBox))
 }
