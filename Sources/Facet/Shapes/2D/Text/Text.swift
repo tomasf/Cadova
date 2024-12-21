@@ -1,6 +1,6 @@
 import Foundation
 
-
+#warning("implement me")
 /// Text as a 2D geometry
 public struct Text: Geometry2D {
     let text: String
@@ -54,22 +54,3 @@ public extension Text {
         case bottom
     }
 }
-
-extension EnvironmentValues.TextAttributes {
-    func moduleParameters(text: String) -> CodeFragment.Parameters {
-        let needsFontParameter = fontName != nil || fontStyle != nil
-        let styleValue = fontStyle.map { ":style=\($0)" } ?? ""
-        let fontValue = needsFontParameter ? (fontName ?? "") + styleValue : nil
-        let size = (fontSize ?? 10.0) * 0.72
-
-        return [
-            "text": text,
-            "font": fontValue,
-            "size": size,
-            "halign": horizontalAlignment?.rawValue,
-            "valign": verticalAlignment?.rawValue,
-            "spacing": characterSpacing
-        ]
-    }
-}
-

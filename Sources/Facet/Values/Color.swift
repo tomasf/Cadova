@@ -36,12 +36,6 @@ public struct Color: Sendable {
     }
 }
 
-internal extension Color {
-    var moduleParameters: CodeFragment.Parameters {
-        ["c": [red, green, blue, alpha]]
-    }
-}
-
 public extension Color {
     /// Blends the current color with another color by a specified amount.
     ///

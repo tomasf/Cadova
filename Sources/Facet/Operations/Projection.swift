@@ -10,13 +10,6 @@ struct Projection: Geometry2D {
         case slice (z: Double)
     }
 
-    private var parameters: CodeFragment.Parameters {
-        switch mode {
-        case .whole: [:]
-        case .slice: ["cut": true]
-        }
-    }
-
     private var appliedBody: any Geometry3D {
         switch mode {
         case .whole: body
