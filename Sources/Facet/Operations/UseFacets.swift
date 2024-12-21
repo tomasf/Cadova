@@ -1,17 +1,6 @@
 import Foundation
 import Manifold
 
-fileprivate extension EnvironmentValues.Facets {
-    var specialVariables: CodeFragment.Parameters {
-        switch self {
-        case .fixed (let count):
-            ["$fn": count]
-        case .dynamic (let minAngle, let minSize):
-            ["$fa": minAngle, "$fs": minSize, "$fn": 0]
-        }
-    }
-}
-
 public extension Geometry2D {
     internal func usingFacets(_ facets: EnvironmentValues.Facets) -> any Geometry2D {
         withEnvironment { $0.withFacets(facets) }
