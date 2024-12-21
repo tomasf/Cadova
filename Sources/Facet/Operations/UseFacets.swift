@@ -14,8 +14,7 @@ fileprivate extension EnvironmentValues.Facets {
 
 public extension Geometry2D {
     internal func usingFacets(_ facets: EnvironmentValues.Facets) -> any Geometry2D {
-        UseFacets(body: self, facets: facets)
-            .withEnvironment { $0.withFacets(facets) }
+        withEnvironment { $0.withFacets(facets) }
     }
 
     /// Set an adaptive facet configuration for this geometry
