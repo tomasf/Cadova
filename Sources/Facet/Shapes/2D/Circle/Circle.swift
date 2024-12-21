@@ -48,8 +48,8 @@ public struct Circle: Geometry2D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        let segmentCount = environment.facets.facetCount(circleRadius: diameter / 2)
-        return .init(primitive: .circle(radius: diameter / 2, segmentCount: segmentCount))
+        let segmentCount = environment.facets.facetCount(circleRadius: radius)
+        return .init(primitive: .circle(radius: radius, segmentCount: segmentCount))
     }
 }
 
