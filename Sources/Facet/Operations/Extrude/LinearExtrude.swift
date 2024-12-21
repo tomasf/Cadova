@@ -10,15 +10,6 @@ struct LinearExtrude: ExtrusionGeometry {
     func extrude(_ child: CrossSection) -> Mesh {
         child.extrude(height: height, divisions: 0, twist: twist?.degrees ?? 0, scaleTop: scale)
     }
-
-    func boundary(for boundary2D: Boundary2D, facets: EnvironmentValues.Facets) -> Boundary3D {
-        boundary2D.extruded(
-            height: height,
-            twist: twist ?? 0°,
-            topScale: scale,
-            facets: facets
-        )
-    }
 }
 
 public extension Geometry2D {
