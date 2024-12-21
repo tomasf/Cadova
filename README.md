@@ -77,7 +77,7 @@ Box(x: 10, y: 20, z: 5)
 
 ```swift
 Circle(diameter: 10)
-    .withFacets(count: 3)
+    .usingFacets(count: 3)
     .translated(x: 2)
     .scaled(x: 2)
     .repeated(in: 0°..<360°, count: 5)

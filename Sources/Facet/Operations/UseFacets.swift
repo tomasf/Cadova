@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 fileprivate extension EnvironmentValues.Facets {
     var specialVariables: CodeFragment.Parameters {
@@ -13,7 +14,7 @@ fileprivate extension EnvironmentValues.Facets {
 
 public extension Geometry2D {
     internal func usingFacets(_ facets: EnvironmentValues.Facets) -> any Geometry2D {
-        SetVariables(body: self, variables: facets.specialVariables)
+        UseFacets(body: self, facets: facets)
             .withEnvironment { $0.withFacets(facets) }
     }
 
@@ -51,8 +52,7 @@ public extension Geometry2D {
 
 public extension Geometry3D {
     func usingFacets(_ facets: EnvironmentValues.Facets) -> any Geometry3D {
-        SetVariables(body: self, variables: facets.specialVariables)
-            .withEnvironment { $0.withFacets(facets) }
+        withEnvironment { $0.withFacets(facets) }
     }
 
     /// Set an adaptive facet configuration for this geometry
