@@ -22,7 +22,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             guard !output.primitive.isEmpty else { continue }
 
             let colorMapping = output.elements[ColorMapping.self]
-            let meshData = output.primitive.meshData()
+            let meshData = output.primitive.meshGL()
             let originalIDRanges = meshData.originalIDs
 
             let orderedColorMapping = Array(colorMapping?.mapping ?? [:])
