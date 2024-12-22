@@ -130,12 +130,6 @@ extension AffineTransform3D: AffineTransformInternal {
     }
 }
 
-extension AffineTransform3D: SCADValue {
-    public var scadString: String {
-        values.scadString
-    }
-}
-
 internal extension Vector3D {
     var matrixColumn: Matrix4x4.Column {
         .init(x, y, z, 1.0)
