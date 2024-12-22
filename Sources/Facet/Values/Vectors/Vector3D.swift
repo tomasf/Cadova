@@ -8,7 +8,7 @@ import Manifold
 /// let v1 = Vector3D(x: 10, y: 15, z: 5)
 /// let v2: Vector3D = [10, 15, 5]
 /// ```
-public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable {
+public struct Vector3D: ExpressibleByArrayLiteral, Hashable, Sendable {
     public var x: Double
     public var y: Double
     public var z: Double
@@ -45,10 +45,6 @@ public struct Vector3D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable
 
     public init(_ getter: (Axis) -> Double) {
         self.init(x: getter(.x), y: getter(.y), z: getter(.z))
-    }
-
-    public var scadString: String {
-        [x, y, z].scadString
     }
 }
 

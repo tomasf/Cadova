@@ -6,21 +6,29 @@ import Manifold
 ///
 /// For more information, see [the OpenSCAD documentation](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Primitive_Solids#polyhedron).
 
-#warning("implement me!")
 public struct Polyhedron: Geometry3D {
-    let points: [Vector3D]
+    let vertices: [Vector3D]
     let faces: [[Array<Vector3D>.Index]]
 
-    internal init(points: [Vector3D], faces: [[Array<Vector3D>.Index]]) {
-        assert(points.count >= 4, "At least four points are needed for a polyhedron")
+    internal init(vertices: [Vector3D], faces: [[Array<Vector3D>.Index]]) {
+        assert(vertices.count >= 4, "At least four points are needed for a polyhedron")
         assert(faces.allSatisfy { $0.count >= 3 }, "Each face must contain at least three points")
 
-        self.points = points
+        self.vertices = vertices
         self.faces = faces
     }
 
+    internal func meshGL() -> MeshGL {
+        let triangulatedShape = triangulated()
+        let triangles = triangulatedShape.faces.map { indices in
+            Triangle(a: .init(indices[0]), b: .init(indices[1]), c: .init(indices[2]))
+        }
+        return MeshGL(vertices: triangulatedShape.vertices, triangles: triangles)
+
+    }
+
     public func evaluated(in environment: EnvironmentValues) -> Output3D {
-        .init(primitive: .empty)
+        .init(primitive: Mesh(meshGL()))
     }
 }
 
@@ -40,7 +48,7 @@ public extension Polyhedron {
             table[key] = pointValues.endIndex - 1
         }
 
-        self.init(points: pointValues, faces: faces.map {
+        self.init(vertices: pointValues, faces: faces.map {
             $0.map {
                 guard let index = keyIndices[$0] else {
                     preconditionFailure("Undefined point key: \($0)")

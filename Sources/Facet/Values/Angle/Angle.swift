@@ -77,12 +77,6 @@ public extension Angle {
     }
 }
 
-extension Angle: SCADValue {
-    public var scadString: String {
-        degrees.scadString
-    }
-}
-
 extension Angle: CustomDebugStringConvertible {
     public var debugDescription: String {
         String(format: "%g°", degrees)

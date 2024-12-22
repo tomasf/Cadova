@@ -9,7 +9,7 @@ import Manifold
 /// let v2: Vector2D = [10, 15]
 /// ```
 ///
-public struct Vector2D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable {
+public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable {
     public var x: Double
     public var y: Double
 
@@ -38,10 +38,6 @@ public struct Vector2D: ExpressibleByArrayLiteral, SCADValue, Hashable, Sendable
 
     public init(_ getter: (Self.Axis) -> Double) {
         self.init(x: getter(.x), y: getter(.y))
-    }
-
-    public var scadString: String {
-        [x, y].scadString
     }
 
     public subscript(_ axis: Axis2D) -> Double {
