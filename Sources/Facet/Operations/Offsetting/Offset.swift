@@ -6,8 +6,13 @@ internal struct Offset: WrappedGeometry2D {
     let amount: Double
     let style: LineJoinStyle
 
-    func process(_ child: CrossSection) -> CrossSection {
-        child.offset(amount: amount, joinType: style.Primitive, miterLimit: 100)
+    func process(_ child: CrossSection, in environment: EnvironmentValues) -> CrossSection {
+        child.offset(
+            amount: amount,
+            joinType: style.primitive,
+            miterLimit: environment.miterLimit,
+            circularSegments: environment.facets.facetCount(circleRadius: Swift.abs(amount))
+        )
     }
 }
 
@@ -18,13 +23,13 @@ public enum LineJoinStyle {
     /// Joins lines with a rounded edge, creating smooth transitions between segments.
     case round
 
-    /// Extends the outer edges of the lines until they meet at a sharp point.
+    /// Extends the outer edges of the lines until they meet at a sharp point, limited by the miter limit set in the environment.
     case miter
 
     /// Joins lines by connecting their endpoints with a straight line, resulting in a flat, cut-off corner.
     case bevel
 
-    internal var Primitive: CrossSection.JoinType {
+    internal var primitive: CrossSection.JoinType {
         switch self {
         case .round: .round
         case .miter: .miter
