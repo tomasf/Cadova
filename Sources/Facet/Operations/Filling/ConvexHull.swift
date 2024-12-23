@@ -6,13 +6,13 @@ fileprivate struct ConvexHull<Geometry> {
 }
 
 extension ConvexHull<Geometry2D>: Geometry2D, WrappedGeometry2D {
-    func process(_ child: CrossSection) -> CrossSection {
+    func process(_ child: CrossSection, in environment: EnvironmentValues) -> CrossSection {
         child.hull()
     }
 }
 
 extension ConvexHull<Geometry3D>: Geometry3D, WrappedGeometry3D {
-    func process(_ child: Mesh) -> Mesh {
+    func process(_ child: Mesh, in environment: EnvironmentValues) -> Mesh {
         child.hull()
     }
 }

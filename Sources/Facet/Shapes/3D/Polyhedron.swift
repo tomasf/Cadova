@@ -28,7 +28,12 @@ public struct Polyhedron: Geometry3D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output3D {
-        .init(primitive: Mesh(meshGL()))
+        do {
+            return .init(primitive: try Mesh(meshGL()))
+        } catch {
+            logger.error("Polyhedron mesh creation failed: \(error)")
+            return .empty
+        }
     }
 }
 
