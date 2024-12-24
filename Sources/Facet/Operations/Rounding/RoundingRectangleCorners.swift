@@ -16,8 +16,8 @@ public extension Geometry2D {
     /// It is intended for geometries that are rectangular or similar enough for this approximation to be effective.
 
     func roundingRectangleCorners(_ corners: Rectangle.Corners = .all, radius: Double, style: RoundedCornerStyle = .circular) -> any Geometry2D {
-        measuringBounds { child, box in
-            let box = box.requireNonNil()
+        measuring { child, measurements in
+            let box = measurements.boundingBox.requireNonNil()
             child.intersecting {
                 RoundedRectangleMask(size: box.size, radius: radius, corners: corners, style: style)
                     .translated(box.center)

@@ -3,10 +3,10 @@ import Foundation
 internal extension Geometry2D {
     func definingAnchor(_ anchor: Anchor, alignment: GeometryAlignment2D, transform: AffineTransform2D) -> any Geometry2D {
         readEnvironment { environment in
-            measuringBounds { _, bounds in
+            measuring { _, measurements in
                 var alignmentTranslation = Vector2D.zero
                 if alignment.hasEffect {
-                    alignmentTranslation = bounds.requireNonNil().translation(for: alignment)
+                    alignmentTranslation = measurements.boundingBox.requireNonNil().translation(for: alignment)
                 }
                 let anchorTransform = AffineTransform3D.identity
                     .concatenated(with: environment.transform.inverse)
@@ -24,10 +24,10 @@ internal extension Geometry2D {
 internal extension Geometry3D {
     func definingAnchor(_ anchor: Anchor, alignment: GeometryAlignment3D, transform: AffineTransform3D) -> any Geometry3D {
         readEnvironment { environment in
-            measuringBounds { _, bounds in
+            measuring { _, measurements in
                 var alignmentTranslation = Vector3D.zero
                 if alignment.hasEffect {
-                    alignmentTranslation = bounds.requireNonNil().translation(for: alignment)
+                    alignmentTranslation = measurements.boundingBox.requireNonNil().translation(for: alignment)
                 }
                 let anchorTransform = AffineTransform3D.identity
                     .concatenated(with: environment.transform.inverse)

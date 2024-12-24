@@ -37,8 +37,8 @@ public extension Geometry2D {
         x: (any RangeExpression<Double>)? = nil,
         y: (any RangeExpression<Double>)? = nil
     ) -> any Geometry2D {
-        measuringBounds { _, measuredBox in
-            var box = measuredBox ?? .universe
+        measuring { _, measurements in
+            var box = measurements.boundingBox ?? .universe
             box = box.partialBox(from: x?.min, to: x?.max, in: .x)
             box = box.partialBox(from: y?.min, to: y?.max, in: .y)
             self.intersecting { box.mask }
@@ -60,8 +60,8 @@ public extension Geometry3D {
         y: (any RangeExpression<Double>)? = nil,
         z: (any RangeExpression<Double>)? = nil
     ) -> any Geometry3D {
-        measuringBounds { _, measuredBox in
-            var box = measuredBox ?? .universe
+        measuring { _, measurements in
+            var box = measurements.boundingBox ?? .universe
             box = box.partialBox(from: x?.min, to: x?.max, in: .x)
             box = box.partialBox(from: y?.min, to: y?.max, in: .y)
             box = box.partialBox(from: z?.min, to: z?.max, in: .z)

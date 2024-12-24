@@ -67,8 +67,8 @@ internal extension Output where D == Dimensionality2 {
         )
     }
 
-    var boundingBox: BoundingBox2D {
-        .init(primitive.boundingBox)
+    var boundingBox: BoundingBox2D? {
+        .init(primitive.bounds)
     }
 }
 
@@ -117,8 +117,8 @@ internal extension Output where D == Dimensionality3 {
         )
     }
 
-    var boundingBox: BoundingBox3D {
-        .init(primitive.boundingBox)
+    var boundingBox: BoundingBox3D? {
+        .init(primitive.bounds)
     }
 
     /*

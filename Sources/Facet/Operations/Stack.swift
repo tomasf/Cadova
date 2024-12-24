@@ -39,7 +39,7 @@ extension Stack<Vector2D>: Geometry2D, Shape2D {
     public var body: any Geometry2D {
         var offset = 0.0
         for geometry in items {
-            let box = geometry.evaluated(in: environment).boundingBox
+            let box = geometry.evaluated(in: environment).boundingBox.requireNonNil()
             geometry
                 .translated(box.translation(for: alignment) + .init(axis, value: offset))
             offset += box.size[axis] + spacing
@@ -67,7 +67,7 @@ extension Stack<Vector3D>: Geometry3D, Shape3D {
     public var body: any Geometry3D {
         var offset = 0.0
         for geometry in items {
-            let box = geometry.evaluated(in: environment).boundingBox
+            let box = geometry.evaluated(in: environment).boundingBox.requireNonNil()
             geometry
                 .translated(box.translation(for: alignment) + .init(axis, value: offset))
             offset += box.size[axis] + spacing

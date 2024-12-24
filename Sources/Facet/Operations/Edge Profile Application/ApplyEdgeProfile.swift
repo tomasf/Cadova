@@ -32,8 +32,8 @@ public extension Geometry3D {
         if let z {
             return applyingTopEdgeProfile(profile: profile, at: z, shape: slice, method: method)
         } else {
-            return measuringBounds { _, box in
-                applyingTopEdgeProfile(profile: profile, at: box.requireNonNil().maximum.z, shape: slice, method: method)
+            return measuring { _, measurements in
+                applyingTopEdgeProfile(profile: profile, at: measurements.boundingBox.requireNonNil().maximum.z, shape: slice, method: method)
             }
         }
     }
@@ -54,8 +54,8 @@ public extension Geometry3D {
                 projection(slicingAtZ: z - 0.01)
             }
         } else {
-            measuringBounds { _, box in
-                let box = box.requireNonNil()
+            measuring { _, measurements in
+                let box = measurements.boundingBox.requireNonNil()
                 applyingTopEdgeProfile(profile, at: box.maximum.z, method: method) {
                     projection(slicingAtZ: box.maximum.z - 0.01)
                 }
@@ -79,8 +79,8 @@ public extension Geometry3D {
         if let z {
             return applyingBottomEdgeProfile(profile: profile, at: z, shape: slice, method: method)
         } else {
-            return measuringBounds { _, box in
-                let box = box.requireNonNil()
+            return measuring { _, measurements in
+                let box = measurements.boundingBox.requireNonNil()
                 return applyingBottomEdgeProfile(profile: profile, at: box.minimum.z, shape: slice, method: method)
             }
         }
@@ -102,8 +102,8 @@ public extension Geometry3D {
                 projection(slicingAtZ: z + 0.01)
             }
         } else {
-            measuringBounds { _, box in
-                let box = box.requireNonNil()
+            measuring { _, measurements in
+                let box = measurements.boundingBox.requireNonNil()
                 applyingBottomEdgeProfile(profile, at: box.minimum.z, method: method) {
                     projection(slicingAtZ: box.minimum.z + 0.01)
                 }

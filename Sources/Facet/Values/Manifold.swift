@@ -23,7 +23,7 @@ public protocol PrimitiveGeometry {
     static var empty: Self { get }
 
     var isEmpty: Bool { get }
-    var boundingBox: (Vector, Vector) { get }
+    var bounds: (Vector, Vector) { get }
     var vertexCount: Int { get }
 
     func transform(_ transform: Matrix) -> Self
