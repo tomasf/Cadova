@@ -149,7 +149,7 @@ extension BoundingBox3D? {
 
 extension BoundingBox2D {
     init?(_ p: (any Vector2, any Vector2)) {
-        guard [p.0.x, p.0.y, p.1.x, p.1.y].contains(where: { $0.isInfinite }) == false else {
+        guard [p.0.x, p.0.y, p.1.x, p.1.y].contains(where: { Swift.abs($0) > 1e100 }) == false else {
             return nil
         }
         self.init(minimum: .init(p.0), maximum: .init(p.1))

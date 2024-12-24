@@ -17,14 +17,6 @@ struct PartAssignment: Geometry3D {
     }
 }
 
-internal struct Empty<D: Dimensionality> {
-    func evaluated(in environment: EnvironmentValues) -> Output<D> { .empty }
-}
-
-extension Empty: Geometry3D where D == Dimensionality3 {}
-extension Empty: Geometry2D where D == Dimensionality2 {}
-
-
 public extension Geometry3D {
     func highlighted() -> any Geometry3D {
         PartAssignment(body: self.colored(.red, alpha: 0.2), isSeparated: false, identifier: .highlight)
