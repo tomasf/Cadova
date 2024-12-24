@@ -1,16 +1,16 @@
 import Foundation
 import Manifold
 
-fileprivate struct Difference<V: Vector> {
-    private let positive: V.Geometry
-    private let negative: V.Geometry
+fileprivate struct Difference<D: Dimensionality> {
+    private let positive: D.Geometry
+    private let negative: D.Geometry
 
-    var children: [V.Geometry] { [positive, negative] }
+    var children: [D.Geometry] { [positive, negative] }
     let combination = GeometryCombination.difference
 }
 
-extension Difference<Vector2D>: Geometry2D, CombinedGeometry2D {
-    init(positive: V.Geometry, negative: V.Geometry) {
+extension Difference<Dimensionality2>: Geometry2D, CombinedGeometry2D {
+    init(positive: D.Geometry, negative: D.Geometry) {
         self.positive = positive
         self.negative = negative
             .invertingOperation()
@@ -21,8 +21,8 @@ extension Difference<Vector2D>: Geometry2D, CombinedGeometry2D {
     }
 }
 
-extension Difference<Vector3D>: Geometry3D, CombinedGeometry3D {
-    init(positive: V.Geometry, negative: V.Geometry) {
+extension Difference<Dimensionality3>: Geometry3D, CombinedGeometry3D {
+    init(positive: D.Geometry, negative: D.Geometry) {
         self.positive = positive
         self.negative = negative
             .invertingOperation()
