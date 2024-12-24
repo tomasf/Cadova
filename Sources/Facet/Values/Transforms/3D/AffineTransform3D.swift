@@ -5,6 +5,7 @@ import simd
 
 /// An `AffineTransform3D` represents a 3D affine transformation using a 4x4 matrix.
 public struct AffineTransform3D: AffineTransform, Equatable, Sendable {
+    public typealias D = Dimensionality3
     private var matrix: Matrix4x4
 
     private init(_ matrix: Matrix4x4) {

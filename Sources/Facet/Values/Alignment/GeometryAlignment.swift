@@ -1,17 +1,17 @@
 import Foundation
 
-public struct GeometryAlignment<V: Vector>: Equatable, Sendable {
-    internal let values: DimensionalValues<AxisAlignment?, V>
+public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
+    internal let values: DimensionalValues<AxisAlignment?, D.Vector>
 
-    private init(_ values: DimensionalValues<AxisAlignment?, V>) {
+    private init(_ values: DimensionalValues<AxisAlignment?, D.Vector>) {
         self.values = values
     }
 
-    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil) where V == Vector2D {
+    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil) where D == Dimensionality2 {
         values = .init(x: x, y: y)
     }
 
-    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil, z: AxisAlignment? = nil) where V == Vector3D {
+    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil, z: AxisAlignment? = nil) where D == Dimensionality3 {
         values = .init(x: x, y: y, z: z)
     }
 
@@ -25,15 +25,15 @@ public struct GeometryAlignment<V: Vector>: Equatable, Sendable {
         }
     }
 
-    public subscript(axis: V.Axis) -> AxisAlignment? {
+    public subscript(axis: D.Axis) -> AxisAlignment? {
         values[axis]
     }
 
-    public func with(axis: V.Axis, as newValue: AxisAlignment) -> Self {
+    public func with(axis: D.Axis, as newValue: AxisAlignment) -> Self {
         .init(values.map { $0 == axis ? newValue : $1 })
     }
 
-    internal var factors: V {
+    internal var factors: D.Vector {
         values.map { $0?.factor ?? 0 }.vector
     }
 
@@ -46,8 +46,8 @@ public struct GeometryAlignment<V: Vector>: Equatable, Sendable {
     }
 }
 
-public typealias GeometryAlignment2D = GeometryAlignment<Vector2D>
-public typealias GeometryAlignment3D = GeometryAlignment<Vector3D>
+public typealias GeometryAlignment2D = GeometryAlignment<Dimensionality2>
+public typealias GeometryAlignment3D = GeometryAlignment<Dimensionality3>
 
 internal extension [GeometryAlignment2D] {
     var merged: GeometryAlignment2D { .init(merging: self) }

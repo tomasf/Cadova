@@ -11,8 +11,20 @@ extension Manifold.Vector2 {
     var vector2D: Vector3D { .init(x: x, y: y) }
 }
 
+internal extension Vector2D {
+    init(_ manifoldVector: any Vector2) {
+        self.init(manifoldVector.x, manifoldVector.y)
+    }
+}
+
 extension Manifold.Vector3 {
     var vector3D: Vector3D { .init(x: x, y: y, z: z) }
+}
+
+internal extension Vector3D {
+    init(_ manifoldVector: any Vector3) {
+        self.init(manifoldVector.x, manifoldVector.y, manifoldVector.z)
+    }
 }
 
 public protocol PrimitiveGeometry {
@@ -52,3 +64,4 @@ extension Mesh: PrimitiveGeometry {
     public typealias Matrix = any Matrix3x4
     public typealias Rotation = any Vector3
 }
+

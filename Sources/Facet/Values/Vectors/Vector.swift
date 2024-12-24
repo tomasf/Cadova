@@ -1,12 +1,13 @@
 import Foundation
 
 public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where Element == Double {
-    associatedtype Axis: Facet.Axis
-    typealias Axes = Set<Axis>
-    typealias Alignment = GeometryAlignment<Self>
-    
-    associatedtype Transform: AffineTransform where Transform.V == Self
-    associatedtype Geometry
+    associatedtype D: Dimensionality where D.Vector == Self
+
+#warning("Transition to Dimensionality instead")
+    typealias Geometry = D.Geometry
+    typealias Transform = D.Transform
+    typealias Axis = D.Axis
+    typealias Axes = D.Axes
 
     static var zero: Self { get }
     init(_ single: Double)
@@ -39,10 +40,10 @@ public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where
     func point(alongLineTo other: Self, at fraction: Double) -> Self
 
     // Access by axis
-    init(_ axis: Axis, value: Double)
-    init(_ getter: (Axis) -> Double)
-    func with(_ axis: Axis, as value: Double) -> Self
-    subscript(_ axis: Axis) -> Double { get }
+    init(_ axis: D.Axis, value: Double)
+    init(_ getter: (D.Axis) -> Double)
+    func with(_ axis: D.Axis, as value: Double) -> Self
+    subscript(_ axis: D.Axis) -> Double { get }
 
     // Access by index
     static var elementCount: Int { get }
@@ -80,7 +81,7 @@ public extension Vector {
     /// - Parameters:
     ///   - axis: The axes to set
     ///   - value: The value to use
-    init(_ axis: Axis, value: Double) {
+    init(_ axis: D.Axis, value: Double) {
         self.init { $0 == axis ? value : 0 }
     }
 
@@ -89,7 +90,7 @@ public extension Vector {
     ///   - axis: The axis to change
     ///   - value: The new value
     /// - Returns: A modified vector
-    func with(_ axis: Axis, as value: Double) -> Self {
+    func with(_ axis: D.Axis, as value: Double) -> Self {
         .init { $0 == axis ? value : self[$0] }
     }
 }

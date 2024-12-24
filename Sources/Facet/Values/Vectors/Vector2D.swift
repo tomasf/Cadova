@@ -10,6 +10,7 @@ import Manifold
 /// ```
 ///
 public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable {
+    public typealias D = Dimensionality2
     public var x: Double
     public var y: Double
 
@@ -36,7 +37,7 @@ public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable {
         self.init(x: arrayLiteral[0], y: arrayLiteral[1])
     }
 
-    public init(_ getter: (Self.Axis) -> Double) {
+    public init(_ getter: (Axis2D) -> Double) {
         self.init(x: getter(.x), y: getter(.y))
     }
 
@@ -63,9 +64,6 @@ public extension Vector2D {
 
 
 extension Vector2D: Vector {
-    public typealias Transform = AffineTransform2D
-    public typealias Axis = Axis2D
-    public typealias Geometry = any Geometry2D
     public static let elementCount = 2
 
     public init(elements e: [Double]) {
@@ -88,11 +86,5 @@ extension Vector2D: Vector {
 extension Vector2D: CustomDebugStringConvertible {
     public var debugDescription: String {
         String(format: "[%g, %g]", x, y)
-    }
-}
-
-internal extension Vector2D {
-    init(_ manifoldVector: any Vector2) {
-        self.init(manifoldVector.x, manifoldVector.y)
     }
 }

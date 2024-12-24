@@ -9,6 +9,8 @@ import Manifold
 /// let v2: Vector3D = [10, 15, 5]
 /// ```
 public struct Vector3D: ExpressibleByArrayLiteral, Hashable, Sendable {
+    public typealias D = Dimensionality3
+
     public var x: Double
     public var y: Double
     public var z: Double
@@ -43,13 +45,13 @@ public struct Vector3D: ExpressibleByArrayLiteral, Hashable, Sendable {
         self.init(x: arrayLiteral[0], y: arrayLiteral[1], z: arrayLiteral[2])
     }
 
-    public init(_ getter: (Axis) -> Double) {
+    public init(_ getter: (Axis3D) -> Double) {
         self.init(x: getter(.x), y: getter(.y), z: getter(.z))
     }
 }
 
 public extension Vector3D {
-    subscript(_ axis: Self.Axis) -> Double {
+    subscript(_ axis: Axis3D) -> Double {
         switch axis {
         case .x: return x
         case .y: return y
@@ -70,8 +72,6 @@ public extension Vector3D {
 
 extension Vector3D: Vector {
     public typealias Transform = AffineTransform3D
-    public typealias Axis = Axis3D
-    public typealias Geometry = any Geometry3D
     public static let elementCount = 3
 
     public subscript(_ index: Int) -> Double {
@@ -97,8 +97,3 @@ extension Vector3D: CustomDebugStringConvertible {
     }
 }
 
-internal extension Vector3D {
-    init(_ manifoldVector: any Vector3) {
-        self.init(manifoldVector.x, manifoldVector.y, manifoldVector.z)
-    }
-}
