@@ -1,9 +1,9 @@
 import Foundation
 
 internal struct PathBuilderVector<V: Vector>: Sendable {
-    private let values: DimensionalValues<PositionedValue, V>
+    private let values: DimensionalValues<PositionedValue, V.D>
 
-    private init(_ values: DimensionalValues<PositionedValue, V>) {
+    private init(_ values: DimensionalValues<PositionedValue, V.D>) {
         self.values = values
     }
 

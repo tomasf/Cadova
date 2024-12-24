@@ -1,9 +1,7 @@
 import Foundation
 
 // Container for non-Double values related to dimensions
-internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
-    typealias Axis = V.Axis
-
+internal struct DimensionalValues<Element: Sendable, D: Dimensionality>: Sendable {
     internal enum Value {
         case xy (Element, Element)
         case xyz (Element, Element, Element)
@@ -12,40 +10,40 @@ internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
     private let value: Value
 
     init(_ elements: [Element]) {
-        precondition(elements.count == V.elementCount)
+        precondition(elements.count == D.Vector.elementCount)
 
-        if V.self == Vector2D.self {
+        if D.self == Dimensionality2.self {
             value = .xy(elements[0], elements[1])
-        } else if V.self == Vector3D.self {
+        } else if D.self == Dimensionality3.self {
             value = .xyz(elements[0], elements[1], elements[2])
         } else {
-            preconditionFailure("Unknown vector type \(V.self)")
+            preconditionFailure("Unknown dimensionality \(D.self)")
         }
     }
 
-    init(_ map: (Axis) -> Element) {
-        self.init(Axis.allCases.map { map($0) })
+    init(_ map: (D.Axis) -> Element) {
+        self.init(D.Axis.allCases.map { map($0) })
     }
 
-    subscript(_ axis: V.Axis) -> Element {
+    subscript(_ axis: D.Axis) -> Element {
         switch value {
         case let .xy(x, y): [x, y][axis.index]
         case let .xyz(x, y, z): [x, y, z][axis.index]
         }
     }
 
-    func map<New>(_ operation: (_ axis: Axis, _ element: Element) -> New) -> DimensionalValues<New, V> {
-        .init(Axis.allCases.map {
+    func map<New>(_ operation: (_ axis: D.Axis, _ element: Element) -> New) -> DimensionalValues<New, D> {
+        .init(D.Axis.allCases.map {
             operation($0, self[$0])
         })
     }
 
-    func map<New>(_ operation: (Element) -> New) -> DimensionalValues<New, V> {
+    func map<New>(_ operation: (Element) -> New) -> DimensionalValues<New, D> {
         map { operation($1) }
     }
 
     func contains(_ predicate: (Element) -> Bool) -> Bool {
-        Axis.allCases.contains {
+        D.Axis.allCases.contains {
             predicate(self[$0])
         }
     }
@@ -59,23 +57,23 @@ internal struct DimensionalValues<Element: Sendable, V: Vector>: Sendable {
 }
 
 extension DimensionalValues {
-    init(x: Element, y: Element) where V == Vector2D {
+    init(x: Element, y: Element) where D == Dimensionality2 {
         value = .xy(x, y)
     }
 
-    init(x: Element, y: Element, z: Element) where V == Vector3D {
+    init(x: Element, y: Element, z: Element) where D == Dimensionality3 {
         value = .xyz(x, y, z)
     }
 }
 
 extension DimensionalValues where Element == Double {
-    var vector: V {
+    var vector: D.Vector {
         .init { self[$0] }
     }
 }
 
 extension DimensionalValues where Element == Bool {
-    var axes: V.Axes {
+    var axes: D.Axes {
         Set(map { $1 ? $0 : nil }.values.compactMap(\.self))
     }
 }
