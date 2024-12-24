@@ -17,8 +17,8 @@ public enum ResizeBehavior {
 
 public extension Geometry2D {
     private func resized(_ alignment: GeometryAlignment2D, _ calculator: @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
-        measuringBounds { geometry, box in
-            let box = box.requireNonNil()
+        measuring { geometry, measurements in
+            let box = measurements.boundingBox.requireNonNil()
             let translation = box.translation(for: alignment)
             geometry
                 .translated(translation)

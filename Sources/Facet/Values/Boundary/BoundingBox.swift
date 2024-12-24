@@ -148,13 +148,19 @@ extension BoundingBox3D? {
 }
 
 extension BoundingBox2D {
-    init(_ manifoldPoints: (any Vector2, any Vector2)) {
-        self.init(minimum: .init(manifoldPoints.0), maximum: .init(manifoldPoints.1))
+    init?(_ p: (any Vector2, any Vector2)) {
+        guard [p.0.x, p.0.y, p.1.x, p.1.y].contains(where: { $0.isInfinite }) == false else {
+            return nil
+        }
+        self.init(minimum: .init(p.0), maximum: .init(p.1))
     }
 }
 
 extension BoundingBox3D {
-    init(_ manifoldPoints: (any Vector3, any Vector3)) {
-        self.init(minimum: .init(manifoldPoints.0), maximum: .init(manifoldPoints.1))
+    init?(_ p: (any Vector3, any Vector3)) {
+        guard [p.0.x, p.0.y, p.1.x, p.1.y].contains(where: { $0.isInfinite }) == false else {
+            return nil
+        }
+        self.init(minimum: .init(p.0), maximum: .init(p.1))
     }
 }

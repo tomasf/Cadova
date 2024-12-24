@@ -22,9 +22,9 @@ public extension Geometry2D {
         _ angle: Angle = 0°,
         around pivot: GeometryAlignment2D...
     ) -> any Geometry2D {
-        measuringBounds { _, box in
+        measuring { _, measurements in
             let alignment = pivot.merged
-            let translation = box.requireNonNil().translation(for: alignment)
+            let translation = measurements.boundingBox.requireNonNil().translation(for: alignment)
             self
                 .translated(translation)
                 .rotated(angle)
@@ -60,9 +60,9 @@ public extension Geometry3D {
         z: Angle = 0°,
         around pivot: GeometryAlignment3D...
     ) -> any Geometry3D {
-        measuringBounds { _, box in
+        measuring { _, measurements in
             let alignment = pivot.merged
-            let translation = box.requireNonNil().translation(for: alignment)
+            let translation = measurements.boundingBox.requireNonNil().translation(for: alignment)
             self
                 .translated(translation)
                 .rotated(x: x, y: y, z: z)

@@ -54,9 +54,9 @@ public extension Geometry3D {
     /// - Parameter scale: A multiplier for the border width of the bounding box visualization. Defaults to 1.0. Adjust this if the scale of the visualization is impractical.
     /// - Returns: The original geometry with added visualizations for its bounds and bounding box.
     func visualizingBounds(scale: Double = 1.0) -> any Geometry3D {
-        readingBoundary { _, boundary in
+        measuring { _, measurements in
             self.adding {
-                boundary.visualized(scale: scale)
+                measurements.boundingBox?.visualized(scale: scale)
             }
         }
     }

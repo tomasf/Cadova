@@ -25,8 +25,8 @@ public extension Geometry3D {
         return self
             .rotated(from: axis.directionVector(.negative), to: .up)
             .rotated(z: adjustments[axis.index])
-            .measuringBounds { body, box in
-                let box = box.requireNonNil()
+            .measuring { body, measurements in
+                let box = measurements.boundingBox.requireNonNil()
                 body.intersecting {
                     RoundedRectangleMask(size: box.size.xy, radius: radius, corners: corners, style: style)
                         .extruded(height: box.size.z)
@@ -52,9 +52,9 @@ public extension Geometry3D {
     /// The rounding is done in a spherical manner, affecting all eight corners of the bounding box uniformly.
     
     func roundingBoxCorners(radius: Double) -> any Geometry3D {
-        measuringBounds { child, box in
+        measuring { child, measurements in
             child.intersecting {
-                let box = box.requireNonNil()
+                let box = measurements.boundingBox.requireNonNil()
                 RoundedBoxCornerMask(boxSize: box.size / 2, radius: radius)
                     .translated(-box.size / 2)
                     .symmetry(over: .all)
@@ -79,9 +79,9 @@ public extension Geometry3D {
     func roundingBoxCorners(side: Box.Side, radius: Double) -> any Geometry3D {
         self
             .rotated(from: side.direction, to: .down)
-            .measuringBounds { child, box in
+            .measuring { child, measurements in
                 child.intersecting {
-                    let box = box.requireNonNil()
+                    let box = measurements.boundingBox.requireNonNil()
                     RoundedBoxCornerMask(boxSize: .init(box.size.x / 2, box.size.y / 2, box.size.z), radius: radius)
                         .translated(-box.size / 2)
                         .symmetry(over: .xy)
@@ -109,9 +109,9 @@ public extension Geometry3D {
     func roundingBoxCorner(_ corner: Box.Corner, radius: Double) -> any Geometry3D {
         self
             .flipped(along: corner.maxAxes)
-            .measuringBounds { child, box in
+            .measuring { child, measurements in
                 child.intersecting {
-                    let box = box.requireNonNil()
+                    let box = measurements.boundingBox.requireNonNil()
                     child.intersecting {
                         RoundedBoxCornerMask(boxSize: box.size, radius: radius)
                             .translated(box.minimum)
