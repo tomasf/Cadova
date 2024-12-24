@@ -2,19 +2,19 @@ import Foundation
 import Manifold
 
 public protocol Dimensionality {
-    associatedtype Vector: Facet.Vector
-    associatedtype Transform: Facet.AffineTransform
+    associatedtype Vector: Facet.Vector where Vector.D == Self
+    associatedtype Transform: Facet.AffineTransform where Transform.D == Self
     associatedtype Axis: Facet.Axis
-    associatedtype Axes
     associatedtype Geometry
     associatedtype Primitive: PrimitiveGeometry
+    typealias Axes = Set<Axis>
+    typealias Alignment = GeometryAlignment<Self>
 }
 
 public struct Dimensionality2: Dimensionality {
     public typealias Vector = Vector2D
     public typealias Transform = AffineTransform2D
     public typealias Axis = Axis2D
-    public typealias Axes = Axes2D
     public typealias Geometry = Geometry2D
     public typealias Primitive = CrossSection
 
@@ -25,7 +25,6 @@ public struct Dimensionality3: Dimensionality {
     public typealias Vector = Vector3D
     public typealias Transform = AffineTransform3D
     public typealias Axis = Axis3D
-    public typealias Axes = Axes3D
     public typealias Geometry = Geometry3D
     public typealias Primitive = Mesh
 

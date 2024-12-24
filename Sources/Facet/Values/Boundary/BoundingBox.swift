@@ -1,21 +1,21 @@
 import Foundation
 import Manifold
 
-public typealias BoundingBox2D = BoundingBox<Vector2D>
-public typealias BoundingBox3D = BoundingBox<Vector3D>
+public typealias BoundingBox2D = BoundingBox<Dimensionality2>
+public typealias BoundingBox3D = BoundingBox<Dimensionality3>
 
 /// An axis-aligned bounding volume defined by its minimum and maximum corners, used to calculate and represent the bounding area or volume of shapes or points in a generic vector space.
-public struct BoundingBox<V: Vector>: Sendable {
+public struct BoundingBox<D: Dimensionality>: Sendable {
     /// The minimum corner point of the bounding volume, typically representing the "lower" corner in geometric space.
-    public let minimum: V
+    public let minimum: D.Vector
     /// The maximum corner point of the bounding volume, typically representing the "upper" corner in geometric space.
-    public let maximum: V
+    public let maximum: D.Vector
 
     /// Initializes a new `BoundingBox` with the specified minimum and maximum points.
     /// - Parameters:
     ///   - minimum: The minimum corner point of the bounding volume.
     ///   - maximum: The maximum corner point of the bounding volume.
-    public init(minimum: V, maximum: V) {
+    public init(minimum: D.Vector, maximum: D.Vector) {
         self.minimum = minimum
         self.maximum = maximum
     }
@@ -24,21 +24,21 @@ public struct BoundingBox<V: Vector>: Sendable {
 
     /// Initializes a new `BoundingBox` enclosing a single point.
     /// - Parameter vector: The vector used for both the minimum and maximum points.
-    public init(_ vector: V) {
+    public init(_ vector: D.Vector) {
         self.init(minimum: vector, maximum: vector)
     }
 
     /// Initializes a `BoundingBox` from a sequence of vectors. It efficiently calculates the minimum and maximum vectors that enclose all vectors in the sequence.
     /// - Parameter sequence: A sequence of vectors.
-    public init<S: Sequence<V>>(_ sequence: S) {
+    public init<S: Sequence<D.Vector>>(_ sequence: S) {
         let points = Array(sequence)
         guard let firstVector = points.first else {
             preconditionFailure("BoundingBox requires at least one vector in the sequence.")
         }
 
         self.init(
-            minimum: points.reduce(firstVector, V.min),
-            maximum: points.reduce(firstVector, V.max)
+            minimum: points.reduce(firstVector, D.Vector.min),
+            maximum: points.reduce(firstVector, D.Vector.max)
         )
     }
 
@@ -49,10 +49,10 @@ public struct BoundingBox<V: Vector>: Sendable {
     /// Expands the bounding volume to include the given vector.
     /// - Parameter vector: The vector point to include in the bounding volume.
     /// - Returns: A new `BoundingBox` that includes the original volume and the specified vector.
-    public func adding(_ vector: V) -> BoundingBox<V> {
+    public func adding(_ vector: D.Vector) -> Self {
         .init(
-            minimum: V(elements: zip(minimum, vector).map(min)),
-            maximum: V(elements: zip(maximum, vector).map(max))
+            minimum: D.Vector(elements: zip(minimum, vector).map(min)),
+            maximum: D.Vector(elements: zip(maximum, vector).map(max))
         )
     }
 }
@@ -61,14 +61,14 @@ extension BoundingBox {
     /// The size of the bounding volume.
     ///
     /// This property calculates the size of the bounding volume as the difference between its maximum and minimum points, representing the volume's dimensions in each axis.
-    public var size: V {
+    public var size: D.Vector {
         maximum - minimum
     }
 
     /// The center point of the bounding volume.
     ///
     /// This property calculates the center of the bounding volume, which is halfway between the minimum and maximum points. It represents the geometric center of the volume.
-    public var center: V {
+    public var center: D.Vector {
         minimum + size / 2.0
     }
 
@@ -80,7 +80,7 @@ extension BoundingBox {
     /// - Parameter axis: The axis for which to retrieve the coordinate range.
     /// - Returns: A `Range<Double>` representing the minimum to maximum coordinates along the given axis.
     ///
-    public subscript(_ axis: V.Axis) -> Range<Double> {
+    public subscript(_ axis: D.Axis) -> Range<Double> {
         .init(minimum[axis], maximum[axis])
     }
 
@@ -96,8 +96,8 @@ extension BoundingBox {
     /// This method returns a new `BoundingBox` representing the volume that is common to both this and another bounding volume. If the bounding volumes do not intersect, the result is a bounding volume with zero size at the point of closest approach.
     /// - Parameter other: The other bounding volume to intersect with.
     /// - Returns: A `BoundingBox` representing the intersection of the two volumes.
-    public func intersection(with other: BoundingBox<V>) -> BoundingBox? {
-        let overlap = BoundingBox(minimum: V.max(minimum, other.minimum), maximum: V.min(maximum, other.maximum))
+    public func intersection(with other: Self) -> BoundingBox? {
+        let overlap = BoundingBox(minimum: D.Vector.max(minimum, other.minimum), maximum: D.Vector.min(maximum, other.maximum))
         return overlap.isValid ? overlap : nil
     }
 
@@ -106,17 +106,17 @@ extension BoundingBox {
     /// This method returns a new `BoundingBox` that has been expanded or contracted by the specified vector. The expansion occurs outward from the center in all dimensions if the vector's components are positive, and inward if they are negative.
     /// - Parameter expansion: The vector by which to expand or contract the bounding volume.
     /// - Returns: A `BoundingBox` that has been offset by the expansion vector.
-    public func offset(_ expansion: V) -> BoundingBox {
+    public func offset(_ expansion: D.Vector) -> BoundingBox {
         .init(minimum: minimum - expansion, maximum: maximum + expansion)
     }
 
-    public func transformed(_ transform: V.Transform) -> BoundingBox {
+    public func transformed(_ transform: D.Transform) -> BoundingBox {
         .init([transform.apply(to: minimum), transform.apply(to: maximum)])
     }
 }
 
 extension BoundingBox {
-    func translation(for alignment: GeometryAlignment<V>) -> V {
+    func translation(for alignment: GeometryAlignment<D>) -> D.Vector {
         alignment.values.map { axis, axisAlignment in
             axisAlignment?.translation(origin: minimum[axis], size: size[axis]) ?? 0
         }.vector

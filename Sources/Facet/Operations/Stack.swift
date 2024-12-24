@@ -1,14 +1,14 @@
 import Foundation
 
-public struct Stack<V: Vector> {
-    private let items: [V.Geometry]
-    private let axis: V.Axis
+public struct Stack<D: Dimensionality> {
+    private let items: [D.Geometry]
+    private let axis: D.Axis
     private let spacing: Double
-    private let alignment: V.Alignment
+    private let alignment: D.Alignment
 
     @Environment private var environment
 
-    fileprivate init(axis: V.Axis, spacing: Double, alignment: [V.Alignment], content: @escaping () -> [V.Geometry]
+    fileprivate init(axis: D.Axis, spacing: Double, alignment: [D.Alignment], content: @escaping () -> [D.Geometry]
     ) {
         self.items = content()
         self.axis = axis
@@ -19,7 +19,7 @@ public struct Stack<V: Vector> {
     }
 }
 
-extension Stack<Vector2D>: Geometry2D, Shape2D {
+extension Stack<Dimensionality2>: Geometry2D, Shape2D {
     /// Creates a stack of 2D geometries aligned along the specified axis with optional spacing and alignment.
     ///
     /// - Parameters:
@@ -47,7 +47,7 @@ extension Stack<Vector2D>: Geometry2D, Shape2D {
     }
 }
 
-extension Stack<Vector3D>: Geometry3D, Shape3D {
+extension Stack<Dimensionality3>: Geometry3D, Shape3D {
     /// Creates a stack of 3D geometries aligned along the specified axis with optional spacing and alignment.
     ///
     /// - Parameters:

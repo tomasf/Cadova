@@ -1,7 +1,8 @@
 import Foundation
 
 public protocol AffineTransform: Sendable {
-    associatedtype V: Vector
+    associatedtype D: Dimensionality
+    typealias V = D.Vector
     associatedtype Rotation
 
     static var identity: Self { get }
