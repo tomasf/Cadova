@@ -44,6 +44,10 @@ public struct Box: Geometry3D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output3D {
-        .init(primitive: .cube(size: size))
+        if size.contains(where: { $0 < .ulpOfOne }) {
+            .empty
+        } else {
+            .init(primitive: .cube(size: size))
+        }
     }
 }

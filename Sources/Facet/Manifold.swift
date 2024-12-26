@@ -11,7 +11,7 @@ extension Manifold.Vector2 {
     var vector2D: Vector3D { .init(x: x, y: y) }
 }
 
-internal extension Vector2D {
+public extension Vector2D {
     init(_ manifoldVector: any Vector2) {
         self.init(manifoldVector.x, manifoldVector.y)
     }
@@ -21,7 +21,7 @@ extension Manifold.Vector3 {
     var vector3D: Vector3D { .init(x: x, y: y, z: z) }
 }
 
-internal extension Vector3D {
+public extension Vector3D {
     init(_ manifoldVector: any Vector3) {
         self.init(manifoldVector.x, manifoldVector.y, manifoldVector.z)
     }
@@ -35,7 +35,7 @@ public protocol PrimitiveGeometry {
     static var empty: Self { get }
 
     var isEmpty: Bool { get }
-    var bounds: (Vector, Vector) { get }
+    var bounds: (min: Vector, max: Vector) { get }
     var vertexCount: Int { get }
 
     func transform(_ transform: Matrix) -> Self

@@ -5,10 +5,14 @@ struct RotateExtrude: ExtrusionGeometry {
     let body: any Geometry2D
     let angle: Angle
 
-    func extrude(_ child: CrossSection) -> Mesh {
-        child.revolve(degrees: angle.degrees)
+    func extrude(_ child: CrossSection, in environment: EnvironmentValues) -> Mesh {
+        let bounds = child.bounds
+        let radius = bounds.min.x < 0 && bounds.max.x <= 0 ? -bounds.min.x : bounds.max.x
+        return child.revolve(
+            degrees: angle.degrees,
+            circularSegments: environment.facets.facetCount(circleRadius: radius)
+        )
     }
-
 }
 
 public extension Geometry2D {

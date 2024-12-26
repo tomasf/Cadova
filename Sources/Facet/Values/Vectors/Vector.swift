@@ -49,6 +49,8 @@ public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where
     static var elementCount: Int { get }
     init(elements: [Double])
     subscript(_ index: Int) -> Double { get }
+
+    init(_ primitive: D.Primitive.Vector)
 }
 
 public extension Vector {

@@ -7,7 +7,7 @@ public struct GeometryProxy: @unchecked Sendable {
         outputProvider = { environment in
             let output = geometry.evaluated(in: environment)
             return (
-                SVGDataProvider(),
+                SVGDataProvider(output: output),
                 output.elements[GeometryName.self]?.name
             )
         }
