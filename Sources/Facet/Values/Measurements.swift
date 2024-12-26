@@ -9,10 +9,15 @@ public struct Measurements<D: Dimensionality> {
     internal let primitive: D.Primitive
 }
 
-public extension Measurements2D {
-    /// The bounding box of the 2D geometry.
-    var boundingBox: BoundingBox2D? { .init(primitive.bounds) }
+public extension Measurements {
+    /// The bounding box of the geometry.
+    var boundingBox: BoundingBox<D>? { .init(primitive.bounds) }
 
+    /// Is this geometry empty?
+    var isEmpty: Bool { .init(primitive.isEmpty) }
+}
+
+public extension Measurements2D {
     /// The total area of the 2D geometry.
     var area: Double { primitive.area }
 
@@ -24,9 +29,6 @@ public extension Measurements2D {
 }
 
 public extension Measurements3D {
-    /// The bounding box of the 3D geometry.
-    var boundingBox: BoundingBox3D? { .init(primitive.bounds) }
-
     /// The total surface area of the 3D geometry.
     var surfaceArea: Double { primitive.surfaceArea }
 

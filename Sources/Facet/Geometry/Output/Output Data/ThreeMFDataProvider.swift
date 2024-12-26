@@ -46,6 +46,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
             colorGroups.append(colorGroup)
         }
 
+        if objects.isEmpty {
+            logger.warning("Model contains no objects. Exporting an empty 3MF file.")
+        }
+
         let dateFormatter = ISO8601DateFormatter()
         dateFormatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
 

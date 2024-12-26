@@ -14,9 +14,6 @@ public extension EnvironmentValues {
         ///   - minSize: The minimum size of a facet.
         case dynamic (minAngle: Angle, minSize: Double)
 
-        /// The default facet settings in OpenSCAD.
-        public static let openSCADDefaults = Facets.dynamic(minAngle: 12°, minSize: 2)
-
         /// The default facet settings for Facet, aiming for higher detail in rendered geometries.
         public static let defaults = Facets.dynamic(minAngle: 2°, minSize: 0.15)
 

@@ -6,6 +6,9 @@ public struct Output<D: Dimensionality> {
     internal let elements: ResultElementsByType
 
     internal init(primitive: D.Primitive, elements: ResultElementsByType) {
+        if let mesh = primitive as? Mesh, mesh.isEmpty, let error = mesh.status {
+            preconditionFailure("Invalid mesh: \(error)")
+        }
         self.primitive = primitive
         self.elements = elements
     }
@@ -35,7 +38,6 @@ public struct Output<D: Dimensionality> {
 }
 
 internal extension Output where D == Dimensionality2 {
-
     /// Combined; union, difference, intersection, minkowski
     /// Transparent for single children
     init(
@@ -120,19 +122,6 @@ internal extension Output where D == Dimensionality3 {
     var boundingBox: BoundingBox3D? {
         .init(primitive.bounds)
     }
-
-    /*
-    /// Transformed
-    init(body: Geometry3D, moduleName: String, moduleParameters: CodeFragment.Parameters, transform: AffineTransform3D, environment: EnvironmentValues) {
-        let environment = environment.applyingTransform(.init(transform))
-        self.init(
-            bodyOutput: body.evaluated(in: environment),
-            moduleName: moduleName,
-            moduleParameters: moduleParameters,
-            transform: transform
-        )
-    }
-     */
 }
 
 public typealias Output2D = Output<Dimensionality2>

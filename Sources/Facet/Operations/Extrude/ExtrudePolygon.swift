@@ -10,16 +10,16 @@ private extension Polyhedron {
         let points = shape.points(in: environment)
         let pointCount = points.count
         let sideFaces = path.indices.paired().flatMap { fromStep, toStep in
-            points.indices.map { pointIndex in [
+            points.indices.map { pointIndex in Array([
                 Vertex(step: fromStep, pointIndex: pointIndex),
                 Vertex(step: toStep, pointIndex: pointIndex),
                 Vertex(step: toStep, pointIndex: (pointIndex + 1) % pointCount),
                 Vertex(step: fromStep, pointIndex: (pointIndex + 1) % pointCount)
-            ]}
+            ].reversed())}
         }
 
-        let startFace = points.indices.map { Vertex(step: 0, pointIndex: $0) }
-        let endFace = points.indices.reversed().map { Vertex(step: path.endIndex - 1, pointIndex: $0) }
+        let startFace = points.indices.reversed().map { Vertex(step: 0, pointIndex: $0) }
+        let endFace = points.indices.map { Vertex(step: path.endIndex - 1, pointIndex: $0) }
 
         self.init(faces: sideFaces + [startFace, endFace]) { vertex in
             path[vertex.step].apply(to: Vector3D(points[vertex.pointIndex]))

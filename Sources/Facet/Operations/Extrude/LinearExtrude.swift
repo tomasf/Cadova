@@ -7,8 +7,9 @@ struct LinearExtrude: ExtrusionGeometry {
     let twist: Angle?
     let scale: Vector2D
 
-    func extrude(_ child: CrossSection) -> Mesh {
-        child.extrude(height: height, divisions: 0, twist: twist?.degrees ?? 0, scaleTop: scale)
+    func extrude(_ child: CrossSection, in environment: EnvironmentValues) -> Mesh {
+        guard !child.isEmpty else { return .empty }
+        return child.extrude(height: height, divisions: 0, twist: twist?.degrees ?? 0, scaleTop: scale)
     }
 }
 

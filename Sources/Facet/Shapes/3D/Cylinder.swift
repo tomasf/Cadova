@@ -10,56 +10,53 @@ import Foundation
 
 public struct Cylinder: Geometry3D {
     public let height: Double
-    public let bottomDiameter: Double
-    public let topDiameter: Double?
+    public let bottomRadius: Double
+    public let topRadius: Double
 
     public func evaluated(in environment: EnvironmentValues) -> Output3D {
-        let topDiameter = self.topDiameter ?? bottomDiameter
-        let segmentCount = environment.facets.facetCount(circleRadius: max(bottomDiameter, topDiameter) / 2)
-        return .init(primitive: .cylinder(
-            height: height,
-            bottomRadius: bottomDiameter / 2,
-            topRadius: topDiameter / 2,
-            segmentCount: segmentCount
-        ))
+        let segmentCount = environment.facets.facetCount(circleRadius: max(bottomRadius, topRadius))
+        let primitive: Dimensionality3.Primitive
+
+        if height < .ulpOfOne {
+            primitive = .empty
+
+        } else if bottomRadius < .ulpOfOne {
+            primitive = .cylinder(
+                height: height,
+                bottomRadius: topRadius,
+                topRadius: bottomRadius,
+                segmentCount: segmentCount
+            )
+            .scale(Vector3D(1, 1, -1))
+            .translate(Vector3D(0, 0, height))
+        } else {
+            primitive = .cylinder(
+                height: height,
+                bottomRadius: bottomRadius,
+                topRadius: topRadius,
+                segmentCount: segmentCount
+            )
+        }
+
+        return .init(primitive: primitive)
     }
+
+    public var topDiameter: Double { topRadius * 2 }
+    public var bottomDiameter: Double { bottomRadius * 2 }
 }
 
 public extension Cylinder {
-    /// Create a right circular cylinder
-    /// - Parameters:
-    ///   - diameter: The diameter of the cylinder
-    ///   - height: The height of the cylinder
-
-    init(diameter: Double, height: Double) {
-        assert(diameter >= 0, "Cylinder diameter must not be negative")
-        assert(height >= 0, "Cylinder height must not be negative")
-        self.bottomDiameter = diameter
-        self.topDiameter = nil
-        self.height = height
-    }
-
-    /// Create a truncated right circular cone (a cylinder with different top and bottom diameters)
-    /// - Parameters:
-    ///   - bottomDiameter: The diameter at the bottom
-    ///   - topDiameter: The diameter at the top
-    ///   - height: The height between the top and the bottom
-
-    init(bottomDiameter: Double, topDiameter: Double, height: Double) {
-        assert(bottomDiameter >= 0 && topDiameter >= 0, "Cylinder diameters must not be negative")
-        assert(height >= 0, "Cylinder height must not be negative")
-        self.bottomDiameter = bottomDiameter
-        self.topDiameter = topDiameter
-        self.height = height
-    }
-
     /// Create a right circular cylinder
     /// - Parameters:
     ///   - radius: The radius (half diameter) of the cylinder
     ///   - height: The height of the cylinder
 
     init(radius: Double, height: Double) {
-        self.init(diameter: radius * 2, height: height)
+        assert(radius > 0, "Cylinder radius must be positive")
+        assert(height >= 0, "Cylinder height must not be negative")
+        self.topRadius = radius
+        self.bottomRadius = radius
+        self.height = height
     }
 
     /// Create a truncated right circular cone (a cylinder with different top and bottom radii)
@@ -69,6 +66,31 @@ public extension Cylinder {
     ///   - height: The height between the top and the bottom
 
     init(bottomRadius: Double, topRadius: Double, height: Double) {
-        self.init(bottomDiameter: bottomRadius * 2, topDiameter: topRadius * 2, height: height)
+        assert(bottomRadius >= 0 && topRadius >= 0, "Cylinder radii must not be negative")
+        assert(bottomRadius > 0 || topRadius > 0, "At least one of the radii must be positive")
+        assert(height >= 0, "Cylinder height must not be negative")
+
+        self.bottomRadius = bottomRadius
+        self.topRadius = topRadius
+        self.height = height
+    }
+
+    /// Create a right circular cylinder
+    /// - Parameters:
+    ///   - diameter: The diameter of the cylinder
+    ///   - height: The height of the cylinder
+
+    init(diameter: Double, height: Double) {
+        self.init(radius: diameter / 2, height: height)
+    }
+
+    /// Create a truncated right circular cone (a cylinder with different top and bottom diameters)
+    /// - Parameters:
+    ///   - bottomDiameter: The diameter at the bottom
+    ///   - topDiameter: The diameter at the top
+    ///   - height: The height between the top and the bottom
+
+    init(bottomDiameter: Double, topDiameter: Double, height: Double) {
+        self.init(bottomRadius: bottomDiameter / 2, topRadius: topDiameter / 2, height: height)
     }
 }
