@@ -11,7 +11,9 @@ public struct Measurements<D: Dimensionality> {
 
 public extension Measurements {
     /// The bounding box of the geometry.
-    var boundingBox: BoundingBox<D>? { .init(primitive.bounds) }
+    var boundingBox: BoundingBox<D>? {
+        isEmpty ? nil : .init(primitive.bounds)
+    }
 
     /// Is this geometry empty?
     var isEmpty: Bool { .init(primitive.isEmpty) }

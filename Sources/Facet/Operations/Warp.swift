@@ -1,22 +1,18 @@
 import Foundation
 
-internal struct ModifyPrimitive<D: Dimensionality> {
-    let body: D.Geometry
-    let modification: (D.Primitive) -> D.Primitive
-}
-
-extension ModifyPrimitive: Geometry3D where D == Dimensionality3 {
-    func evaluated(in environment: EnvironmentValues) -> Output3D {
-        let output = body.evaluated(in: environment)
-        return output.modifyingManifold { mesh in
-            modification(mesh)
+public extension Geometry2D {
+    func warp(_ transform: @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
+        modifyingPrimitive { mesh, _ in
+            mesh.warp { v2 in
+                transform(Vector2D(v2))
+            }
         }
     }
 }
 
 public extension Geometry3D {
     func warp(_ transform: @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
-        ModifyPrimitive(body: self) { mesh in
+        modifyingPrimitive { mesh, _ in
             mesh.warp { v3 in
                 transform(Vector3D(v3))
             }

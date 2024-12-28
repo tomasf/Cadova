@@ -65,3 +65,8 @@ extension Mesh: PrimitiveGeometry {
     public typealias Rotation = any Vector3
 }
 
+extension BoundingBox {
+    init(_ p: (D.Primitive.Vector, D.Primitive.Vector)) {
+        self.init(minimum: .init(p.0), maximum: .init(p.1))
+    }
+}

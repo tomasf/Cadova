@@ -7,7 +7,11 @@ public struct GeometryProxy: @unchecked Sendable {
         outputProvider = { environment in
             let output = geometry.evaluated(in: environment)
             return (
-                SVGDataProvider(output: output),
+                output.primitive.isEmpty ?
+                ThreeMFDataProvider(output: .init(primitive: .empty, elements: output.elements))
+                : ThreeMFDataProvider(output: Output3D(primitive: output.primitive.extrude(height: 0.01), elements: output.elements)),
+                
+               // SVGDataProvider(output: output),
                 output.elements[GeometryName.self]?.name
             )
         }
