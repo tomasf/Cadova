@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:5.9
 
 import PackageDescription
 
@@ -7,7 +7,8 @@ let package = Package(
     products: [
         .library(
             name: "Facet",
-            targets: ["Facet"]),
+            targets: ["Facet"]
+        ),
     ],
     dependencies: [
         //.package(url: "https://github.com/tomasf/manifold-swift.git", branch: "main"),

@@ -56,24 +56,28 @@ public extension Geometry3D {
 }
 
 internal extension Geometry2D {
-    func measureBoundsIfNonEmpty(@GeometryBuilder2D _ builder: @escaping (any Geometry2D, BoundingBox2D) -> any Geometry2D) -> any Geometry2D {
-        measuring { geometry, measurements in
-            if let box = measurements.boundingBox {
-                builder(geometry, box)
-            } else {
-                Empty()
+    func measureBoundsIfNonEmpty(@GeometryBuilder2D _ builder: @escaping (any Geometry2D, EnvironmentValues, BoundingBox2D) -> any Geometry2D) -> any Geometry2D {
+        readEnvironment { environment in
+            measuring { geometry, measurements in
+                if let box = measurements.boundingBox {
+                    builder(geometry, environment, box)
+                } else {
+                    Empty()
+                }
             }
         }
     }
 }
 
 internal extension Geometry3D {
-    func measureBoundsIfNonEmpty(@GeometryBuilder3D _ builder: @escaping (any Geometry3D, BoundingBox3D) -> any Geometry3D) -> any Geometry3D {
-        measuring { geometry, measurements in
-            if let box = measurements.boundingBox {
-                builder(geometry, box)
-            } else {
-                Empty()
+    func measureBoundsIfNonEmpty(@GeometryBuilder3D _ builder: @escaping (any Geometry3D, EnvironmentValues, BoundingBox3D) -> any Geometry3D) -> any Geometry3D {
+        readEnvironment { environment in
+            measuring { geometry, measurements in
+                if let box = measurements.boundingBox {
+                    builder(geometry, environment, box)
+                } else {
+                    Empty()
+                }
             }
         }
     }

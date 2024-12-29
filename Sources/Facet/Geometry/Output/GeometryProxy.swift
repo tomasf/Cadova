@@ -9,7 +9,7 @@ public struct GeometryProxy: @unchecked Sendable {
             return (
                 output.primitive.isEmpty ?
                 ThreeMFDataProvider(output: .init(primitive: .empty, elements: output.elements))
-                : ThreeMFDataProvider(output: Output3D(primitive: output.primitive.extrude(height: 0.01), elements: output.elements)),
+                : ThreeMFDataProvider(output: Output3D(primitive: output.primitive.extrude(height: 0.001), elements: output.elements)),
                 
                // SVGDataProvider(output: output),
                 output.elements[GeometryName.self]?.name

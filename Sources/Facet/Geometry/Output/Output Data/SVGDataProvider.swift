@@ -18,7 +18,7 @@ struct SVGDataProvider: OutputDataProvider {
         let path = XMLElement(name: "path")
         path["fill"] = "black"
         path["d"] = shapePoints.map {
-            "M " + $0.map {
+            "M " + $0.vertices.map {
                 String(format: "%g,%g", $0.x, $0.y)
             }.joined(separator: " ")
         }.joined(separator: " ")

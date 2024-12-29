@@ -5,79 +5,68 @@ import FoundationXML
 
 internal extension ThreeMF.ColorGroup {
     var xmlElement: XMLElement {
-        let element = XMLElement(name: "m:colorgroup")
-        element["id"] = String(id)
-        element.addChildren(colors.map(\.xmlElement))
-        return element
+        XMLElement("m:colorgroup", [
+            "id": String(id)
+        ], children: colors.map(\.xmlElement))
     }
 }
 
 internal extension ThreeMF.Item {
     var xmlElement: XMLElement {
-        let element = XMLElement(name: "item")
-        element["objectid"] = String(objectID)
-        element["printable"] = printable.map { $0 ? "1" : "0" }
-        return element
+        XMLElement("item", [
+            "objectid": String(objectID),
+            "printable": printable.map { $0 ? "1" : "0" }
+        ])
     }
 }
 
 internal extension ThreeMF.Object {
     var xmlElement: XMLElement {
-        let element = XMLElement(name: "object")
-        element["id"] = String(id)
-        element["type"] = type
-        element["name"] = name
-        element.addChild(mesh.xmlElement)
-        return element
+        XMLElement("object", [
+            "id": String(id),
+            "type": type,
+            "name": name
+        ], children: [mesh.xmlElement])
     }
 }
 
 internal extension ThreeMF.Mesh {
     var xmlElement: XMLElement {
-        let mesh = XMLElement(name: "mesh")
-        mesh.addChild(vertices.verticesXMLElement)
-        mesh.addChild(triangles.xmlElement)
-        return mesh
+        XMLElement("mesh", children: [vertices.verticesXMLElement, triangles.xmlElement])
     }
 }
 
 internal extension [Vector3D] {
     var verticesXMLElement: XMLElement {
-        let element = XMLElement(name: "vertices")
-        element.addChildren(map(\.xmlElement))
-        return element
+        XMLElement("vertices", children: map(\.xmlElement))
     }
 }
 
 internal extension Vector3D {
     var xmlElement: XMLElement {
-        let element = XMLElement(name: "vertex")
-        element["x"] = String(format: "%g", x)
-        element["y"] = String(format: "%g", y)
-        element["z"] = String(format: "%g", z)
-        return element
+        XMLElement("vertex", [
+            "x": String(format: "%g", x),
+            "y": String(format: "%g", y),
+            "z": String(format: "%g", z)
+        ])
     }
 }
 
 internal extension [ThreeMF.Mesh.Triangle] {
     var xmlElement: XMLElement {
-        let element = XMLElement(name: "triangles")
-        element.addChildren(map(\.xmlElement))
-        return element
+        XMLElement("triangles", children: map(\.xmlElement))
     }
 }
 
 internal extension ThreeMF.Mesh.Triangle {
     var xmlElement: XMLElement {
-        let element = XMLElement(name: "triangle")
-        element["v1"] = String(v1)
-        element["v2"] = String(v2)
-        element["v3"] = String(v3)
-        if let color {
-            element["pid"] = String(color.group)
-            element["p1"] = String(color.colorIndex)
-        }
-        return element
+        XMLElement("triangle", [
+            "v1": String(v1),
+            "v2": String(v2),
+            "v3": String(v3),
+            "pid": color.map { String($0.group) },
+            "p1": color.map { String($0.colorIndex) }
+        ])
     }
 }
 
@@ -103,6 +92,12 @@ internal extension ThreeMF.Metadata {
 }
 
 internal extension XMLElement {
+    convenience init(_ name: String, _ attributes: [String: String?] = [:], children childElements: [XMLElement] = []) {
+        self.init(name: name)
+        setChildren(childElements)
+        setAttributesWith(attributes.compactMapValues { $0 })
+    }
+
     subscript(attribute: String) -> String? {
         get {
             self.attribute(forName: attribute)?.stringValue

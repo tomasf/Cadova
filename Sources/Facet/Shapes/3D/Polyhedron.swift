@@ -21,7 +21,7 @@ public struct Polyhedron: Geometry3D {
     internal func meshGL() -> MeshGL {
         let triangulatedShape = triangulated()
         let triangles = triangulatedShape.faces.map { indices in
-            Triangle(a: .init(indices[0]), b: .init(indices[1]), c: .init(indices[2]))
+            Triangle(.init(indices[0]), .init(indices[1]), .init(indices[2]))
         }
         return MeshGL(vertices: triangulatedShape.vertices, triangles: triangles)
 
