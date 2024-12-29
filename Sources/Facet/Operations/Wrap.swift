@@ -21,21 +21,19 @@ public extension Geometry3D {
     ///     maximum X extent as one full turn of the circle.
     ///
     func wrappedAroundCylinder(diameter: Double? = nil) -> any Geometry3D {
-        readEnvironment(\.facets) { facets in
-            measureBoundsIfNonEmpty { geometry, bounds in
-                let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
-                let maximumRadius = innerRadius + bounds.maximum.z
-                let segmentLength = (maximumRadius * 2 * .pi) / Double(facets.facetCount(circleRadius: maximumRadius))
-                let innerCircumference = innerRadius * 2 * .pi
+        measureBoundsIfNonEmpty { geometry, e, bounds in
+            let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
+            let maximumRadius = innerRadius + bounds.maximum.z
+            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.facets.facetCount(circleRadius: maximumRadius))
+            let innerCircumference = innerRadius * 2 * .pi
 
-                geometry
-                    .refining(maxEdgeLength: segmentLength)
-                    .warp {
-                        let angle = 360° * $0.x / innerCircumference
-                        let radius = innerRadius + $0.z
-                        return Vector3D(cos(angle) * radius, sin(angle) * radius, $0.y)
-                    }
-            }
+            geometry
+                .refining(maxEdgeLength: segmentLength)
+                .warp {
+                    let angle = 360° * $0.x / innerCircumference
+                    let radius = innerRadius + $0.z
+                    return Vector3D(cos(angle) * radius, sin(angle) * radius, $0.y)
+                }
         }
     }
 }
@@ -59,21 +57,19 @@ public extension Geometry2D {
     ///     maximum X extent as one full turn of the circle.
     ///
     func wrappedAroundCircle(diameter: Double? = nil) -> any Geometry2D {
-        readEnvironment(\.facets) { facets in
-            measureBoundsIfNonEmpty { geometry, bounds in
-                let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
-                let maximumRadius = innerRadius + bounds.maximum.y
-                let segmentLength = (maximumRadius * 2 * .pi) / Double(facets.facetCount(circleRadius: maximumRadius))
-                let innerCircumference = innerRadius * 2 * .pi
+        measureBoundsIfNonEmpty { geometry, e, bounds in
+            let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
+            let maximumRadius = innerRadius + bounds.maximum.y
+            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.facets.facetCount(circleRadius: maximumRadius))
+            let innerCircumference = innerRadius * 2 * .pi
 
-                geometry
-                    .refining(maxSegmentLength: segmentLength)
-                    .warp {
-                        let angle = -360° * $0.x / innerCircumference
-                        let radius = innerRadius + $0.y
-                        return Vector2D(cos(angle) * radius, sin(angle) * radius)
-                    }
-            }
+            geometry
+                .refining(maxSegmentLength: segmentLength)
+                .warp {
+                    let angle = -360° * $0.x / innerCircumference
+                    let radius = innerRadius + $0.y
+                    return Vector2D(cos(angle) * radius, sin(angle) * radius)
+                }
         }
     }
 }

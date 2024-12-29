@@ -1,4 +1,5 @@
 import Foundation
+import Manifold
 
 /// Represents a two-dimensional shape defined by a series of connected points.
 /// It supports initialization from an array of ``Vector2D`` points or a two-dimensional ``BezierPath``.
@@ -41,7 +42,8 @@ public struct Polygon: Geometry2D {
     }
 
     public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        .init(primitive: .polygon(points(in: environment), fillRule: environment.fillRule.primitive))
+        let manifoldPolygon = Manifold.Polygon(vertices: points(in: environment))
+        return .init(primitive: .init(polygons: [manifoldPolygon], fillRule: environment.fillRule.primitive))
     }
 }
 

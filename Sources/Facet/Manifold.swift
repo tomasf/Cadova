@@ -8,7 +8,7 @@ extension AffineTransform2D: Manifold.Matrix2x3 {}
 extension AffineTransform3D: Manifold.Matrix3x4 {}
 
 extension Manifold.Vector2 {
-    var vector2D: Vector3D { .init(x: x, y: y) }
+    var vector2D: Vector2D { .init(x: x, y: y) }
 }
 
 public extension Vector2D {

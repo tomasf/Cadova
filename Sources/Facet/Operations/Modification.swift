@@ -17,6 +17,13 @@ internal extension Geometry2D {
     func modifyingPrimitive(_ action: @escaping (CrossSection, EnvironmentValues) -> CrossSection) -> Geometry2D {
         ModifyPrimitive(body: self, action: action)
     }
+
+    func modifyingPolygons(_ action: @escaping ([[Vector2D]], EnvironmentValues) -> [[Vector2D]]) -> Geometry2D {
+        modifyingPrimitive { crossSection, environment in
+            let newPolygons = action(crossSection.polygons().map { $0.vertices.map(\.vector2D) }, environment)
+            return .init(polygons: newPolygons.map { Manifold.Polygon(vertices: $0) }, fillRule: .evenOdd)
+        }
+    }
 }
 
 internal extension Geometry3D {

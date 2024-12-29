@@ -11,10 +11,8 @@ public extension Geometry3D {
 
 public extension Geometry2D {
     func refining(maxSegmentLength: Double) -> any Geometry2D {
-        modifyingPrimitive { cs, e in
-            let polygons = cs.polygons().map { $0.map(Vector2D.init) }
-
-            let newPolygons = polygons.map { points in
+        modifyingPolygons { polygons, e in
+            return polygons.map { points in
                 [points[0]] + points.paired().flatMap { from, to -> [Vector2D] in
                     let length = from.distance(to: to)
                     let segmentCount = ceil(length / maxSegmentLength)
@@ -24,8 +22,6 @@ public extension Geometry2D {
                     }
                 }
             }
-
-            return CrossSection.polygons(newPolygons, fillRule: .evenOdd)
         }
     }
 }
