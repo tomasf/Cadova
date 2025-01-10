@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 public typealias BoundingBox2D = BoundingBox<D2>
 public typealias BoundingBox3D = BoundingBox<D3>

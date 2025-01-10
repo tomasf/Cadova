@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 public extension Geometry3D {
     func refined(maxEdgeLength: Double) -> any Geometry3D {

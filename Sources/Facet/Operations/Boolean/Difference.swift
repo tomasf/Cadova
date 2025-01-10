@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 fileprivate struct Difference<D: Dimensionality> {
     private let positive: D.Geometry

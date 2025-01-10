@@ -1,6 +1,6 @@
 import Foundation
 import Collections
-import Manifold
+import Manifold3D
 
 /// An arbitrary three-dimensional shape made up of flat faces.
 ///
@@ -29,7 +29,7 @@ public struct Polyhedron: Geometry3D, LeafGeometry {
 
     var body: D3.Primitive {
         do {
-            return try Mesh(meshGL())
+            return try D3.Primitive(meshGL())
         } catch {
             logger.error("Polyhedron mesh creation failed: \(error)")
             return .empty

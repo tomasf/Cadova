@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 internal protocol WrappedGeometry2D: Geometry2D {
     var body: any Geometry2D { get }
@@ -14,7 +14,7 @@ extension WrappedGeometry2D {
 
 internal protocol WrappedGeometry3D: Geometry3D {
     var body: any Geometry3D { get }
-    func process(_ child: Mesh, in environment: EnvironmentValues) -> Mesh
+    func process(_ child: D3.Primitive, in environment: EnvironmentValues) -> D3.Primitive
 }
 
 extension WrappedGeometry3D {

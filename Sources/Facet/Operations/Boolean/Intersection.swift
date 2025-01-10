@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 /// A geometry type that represents the intersection (common overlap) of multiple shapes.
 ///

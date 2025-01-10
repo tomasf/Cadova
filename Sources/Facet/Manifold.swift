@@ -1,13 +1,13 @@
-import Manifold
+import Manifold3D
 import Foundation
 
-extension Vector2D: Manifold.Vector2 {}
-extension Vector3D: Manifold.Vector3 {}
+extension Vector2D: Manifold3D.Vector2 {}
+extension Vector3D: Manifold3D.Vector3 {}
 
-extension AffineTransform2D: Manifold.Matrix2x3 {}
-extension AffineTransform3D: Manifold.Matrix3x4 {}
+extension AffineTransform2D: Manifold3D.Matrix2x3 {}
+extension AffineTransform3D: Manifold3D.Matrix3x4 {}
 
-extension Manifold.Vector2 {
+extension Manifold3D.Vector2 {
     var vector2D: Vector2D { .init(x: x, y: y) }
 }
 
@@ -17,7 +17,7 @@ public extension Vector2D {
     }
 }
 
-extension Manifold.Vector3 {
+extension Manifold3D.Vector3 {
     var vector3D: Vector3D { .init(x: x, y: y, z: z) }
 }
 
@@ -61,7 +61,7 @@ extension CrossSection: PrimitiveGeometry {
     public typealias Rotation = Double
 }
 
-extension Mesh: PrimitiveGeometry {
+extension Manifold: PrimitiveGeometry {
     public typealias Vector = any Vector3
     public typealias Matrix = any Matrix3x4
     public typealias Rotation = any Vector3

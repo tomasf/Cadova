@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 internal protocol LeafGeometry<D> {
     associatedtype D: Dimensionality

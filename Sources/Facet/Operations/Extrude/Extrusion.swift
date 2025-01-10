@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 internal struct Extrusion: Geometry3D {
     var body: any Geometry2D

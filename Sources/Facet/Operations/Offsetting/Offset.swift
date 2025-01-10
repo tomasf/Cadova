@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 /// Describes the style of line joins in geometric shapes.
 ///

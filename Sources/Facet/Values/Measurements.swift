@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 /// Represents a collection of measurements for a geometric structure.
 ///

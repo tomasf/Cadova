@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 /// A geometry type that represents the union (combined area or volume) of multiple shapes.
 ///

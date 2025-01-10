@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 public extension EnvironmentValues {
     static private let environmentKey = Key("Facet.FillRule")

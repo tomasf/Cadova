@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 public protocol Dimensionality {
     associatedtype Vector: Facet.Vector where Vector.D == Self
@@ -26,7 +26,7 @@ public struct D3: Dimensionality {
     public typealias Transform = AffineTransform3D
     public typealias Axis = Axis3D
     public typealias Geometry = Geometry3D
-    public typealias Primitive = Mesh
+    public typealias Primitive = Manifold
 
     private init() {}
 }

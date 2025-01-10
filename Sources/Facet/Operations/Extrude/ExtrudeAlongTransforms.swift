@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 fileprivate struct Vertex: Hashable {
     let step: Int
@@ -47,7 +47,7 @@ internal extension Polyhedron {
     }
 }
 
-fileprivate extension [Manifold.Polygon] {
+fileprivate extension [Manifold3D.Polygon] {
     func vertex(index: Int, pathStep: Int) -> Vertex {
         let pair = locateIndex(index)
         return Vertex(step: pathStep, polygonIndex: pair.polygonIndex, pointIndex: pair.vertexIndex)

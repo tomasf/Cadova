@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 public extension Geometry2D {
     internal func usingFacets(_ facets: EnvironmentValues.Facets) -> any Geometry2D {
