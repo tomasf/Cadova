@@ -29,3 +29,23 @@ struct SVGDataProvider: OutputDataProvider {
         return document.xmlData(options: .nodeCompactEmptyElement)
     }
 }
+
+
+fileprivate extension XMLElement {
+    subscript(attribute: String) -> String? {
+        get {
+            self.attribute(forName: attribute)?.stringValue
+        }
+        set {
+            if let newValue {
+                if let existingAttribute = self.attribute(forName: attribute) {
+                    existingAttribute.stringValue = newValue
+                } else {
+                    addAttribute(XMLNode.attribute(withName: attribute, stringValue: newValue) as! XMLNode)
+                }
+            } else {
+                self.removeAttribute(forName: attribute)
+            }
+        }
+    }
+}

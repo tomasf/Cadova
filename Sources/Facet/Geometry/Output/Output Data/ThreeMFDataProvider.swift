@@ -14,6 +14,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var objects: [ThreeMF.Object] = []
         var items: [ThreeMF.Item] = []
         var colorGroups: [ThreeMF.ColorGroup] = []
+        var nextFreeObjectID = 1
+        func nextObjectID() -> Int {
+            let id = nextFreeObjectID
+            nextFreeObjectID += 1
+            return id
+        }
 
         for (outputIndex, item) in outputs.enumerated() {
             let output = item.value
@@ -26,19 +32,21 @@ struct ThreeMFDataProvider: OutputDataProvider {
             let originalIDRanges = meshData.originalIDs
 
             let orderedColorMapping = Array(colorMapping?.mapping ?? [:])
-            let colorGroup = ThreeMF.ColorGroup(id: outputIndex + 1, colors: orderedColorMapping.map(\.value))
+
+            let colorGroup = ColorGroup(id: nextObjectID(), colors: orderedColorMapping.map(\.value.threeMFColor))
             let colorIndexByOriginalID = Dictionary(orderedColorMapping.enumerated().map { ($1.key, $0) }, uniquingKeysWith: { $1 })
 
             let triangles = meshData.triangles.enumerated().map { index, t in
-                let color = originalIDRanges.key(for: index)
-                    .flatMap { colorIndexByOriginalID[$0] }
-                    .flatMap { (group: colorGroup.id, colorIndex: $0) }
-
-                return ThreeMF.Mesh.Triangle(v1: Int(t.a), v2: Int(t.b), v3: Int(t.c), color: color)
+                let colorIndex = originalIDRanges.key(for: index).flatMap { colorIndexByOriginalID[$0] }
+                return ThreeMF.Mesh.Triangle(
+                    v1: Int(t.a), v2: Int(t.b), v3: Int(t.c),
+                    propertyIndex: colorIndex.map { .uniform($0) },
+                    propertyGroup: colorIndex != nil ? colorGroup.id : nil
+                )
             }
 
-            let mesh = ThreeMF.Mesh(vertices: meshData.vertices.map(\.vector3D), triangles: triangles)
-            let object = ThreeMF.Object(id: outputIndex + 1, type: "model", name: identifier.name, mesh: mesh)
+            let mesh = ThreeMF.Mesh(vertices: meshData.vertices.map(\.threeMFVector), triangles: triangles)
+            let object = ThreeMF.Object(id: nextObjectID(), type: .model, name: identifier.name, content: .mesh(mesh))
             let item = ThreeMF.Item(objectID: object.id, printable: identifier.printable)
 
             objects.append(object)
@@ -61,8 +69,17 @@ struct ThreeMFDataProvider: OutputDataProvider {
             metadata.append(ThreeMF.Metadata(name: .creationDate, value: dateFormatter.string(from: Date())))
         }
 
-        let threeMF = ThreeMF(objects: objects, items: items, colorGroups: colorGroups, metadata: metadata)
-        return try threeMF.generateData()
+        let model = ThreeMF.Model(
+            unit: .millimeter,
+            recommendedExtensionPrefixes: [Extension.materials.prefix],
+            metadata: metadata,
+            resources: objects + colorGroups,
+            buildItems: items
+        )
+
+        let writer = PackageWriter()
+        writer.model = model
+        return try writer.finalize()
     }
 }
 
@@ -75,5 +92,17 @@ fileprivate extension PartIdentifier {
 fileprivate extension Dictionary where Value == IndexSet {
     func key(for index: IndexSet.Element) -> Key? {
         first(where: { $0.value.contains(index) })?.key
+    }
+}
+
+fileprivate extension Color {
+    var threeMFColor: ThreeMF.Color {
+        ThreeMF.Color(red: UInt8(round(red * 255.0)), green: UInt8(round(green * 255.0)), blue: UInt8(round(blue * 255.0)), alpha: UInt8(round(alpha * 255.0)))
+    }
+}
+
+fileprivate extension Manifold.Vector3 {
+    var threeMFVector: ThreeMF.Mesh.Vertex {
+        .init(x: Double(x), y: Double(y), z: Double(z))
     }
 }
