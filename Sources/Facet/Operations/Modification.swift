@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 internal struct ModifyPrimitive <D: Dimensionality> {
     let body: D.Geometry
@@ -25,17 +25,17 @@ internal extension Geometry2D {
     func modifyingPolygons(_ action: @escaping ([[Vector2D]], EnvironmentValues) -> [[Vector2D]]) -> Geometry2D {
         modifyingPrimitive { crossSection, environment in
             let newPolygons = action(crossSection.polygons().map { $0.vertices.map(\.vector2D) }, environment)
-            return .init(polygons: newPolygons.map { Manifold.Polygon(vertices: $0) }, fillRule: .evenOdd)
+            return .init(polygons: newPolygons.map { Manifold3D.Polygon(vertices: $0) }, fillRule: .evenOdd)
         }
     }
 }
 
 internal extension Geometry3D {
-    func modifyingPrimitive(_ action: @escaping (Mesh, EnvironmentValues) -> Mesh) -> Geometry3D {
+    func modifyingPrimitive(_ action: @escaping (D3.Primitive, EnvironmentValues) -> D3.Primitive) -> Geometry3D {
         ModifyPrimitive(body: self, action: action)
     }
 
-    func modifyingPrimitive(_ action: @escaping (Mesh) -> Mesh) -> Geometry3D {
+    func modifyingPrimitive(_ action: @escaping (D3.Primitive) -> D3.Primitive) -> Geometry3D {
         modifyingPrimitive { p, e in action(p) }
     }
 }

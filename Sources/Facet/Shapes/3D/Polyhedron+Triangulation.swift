@@ -1,11 +1,11 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 internal extension Polyhedron {
     func triangulated() -> Polyhedron {
         let newFaces = faces.flatMap { face in
             guard face.count > 3 else { return [face] }
-            let flat = Manifold.Polygon(vertices: face.map { vertices[$0] }.flattenCoplanar())
+            let flat = Manifold3D.Polygon(vertices: face.map { vertices[$0] }.flattenCoplanar())
             return triangulate(polygons: [flat], epsilon: 1e-6).map {
                 [face[$0.a], face[$0.b], face[$0.c]]
             }

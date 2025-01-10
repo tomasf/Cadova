@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 internal struct Projection: Geometry2D {
     var body: any Geometry3D

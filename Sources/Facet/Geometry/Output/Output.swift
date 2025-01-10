@@ -1,12 +1,12 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 public struct Output<D: Dimensionality> {
     internal let primitive: D.Primitive
     internal let elements: ResultElementsByType
 
     internal init(primitive: D.Primitive, elements: ResultElementsByType) {
-        if let mesh = primitive as? Mesh, mesh.isEmpty, let error = mesh.status {
+        if let mesh = primitive as? D3.Primitive, mesh.isEmpty, let error = mesh.status {
             preconditionFailure("Invalid mesh: \(error)")
         }
         self.primitive = primitive
@@ -73,7 +73,7 @@ internal extension Output where D == D2 {
     init(
         child: Geometry3D,
         environment: EnvironmentValues,
-        transformation: (Mesh) -> CrossSection
+        transformation: (D3.Primitive) -> CrossSection
     ) {
         let childOutput = child.evaluated(in: environment)
         self.init(
@@ -123,7 +123,7 @@ internal extension Output where D == D3 {
     init(
         child: Geometry2D,
         environment: EnvironmentValues,
-        transformation: (CrossSection) -> Mesh
+        transformation: (CrossSection) -> D3.Primitive
     ) {
         let childOutput = child.evaluated(in: environment)
         self.init(

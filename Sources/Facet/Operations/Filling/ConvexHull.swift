@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 public extension Geometry2D {
     /// Create a convex hull of this geometry in 2D space.

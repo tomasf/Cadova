@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 /// A unitless vector representing distances, sizes or scales in three dimensions
 ///

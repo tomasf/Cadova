@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 /// A `Circle` represents a two-dimensional geometric shape that can be defined by its diameter or radius.
 ///

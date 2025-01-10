@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 import ThreeMF
 
 struct ThreeMFDataProvider: OutputDataProvider {
@@ -11,15 +11,27 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var outputs = output.elements[PartCatalog.self]?.mergedOutputs ?? [:]
         outputs[.main] = output
 
-        var objects: [ThreeMF.Object] = []
-        var items: [ThreeMF.Item] = []
-        var colorGroups: [ThreeMF.ColorGroup] = []
         var nextFreeObjectID = 1
+
         func nextObjectID() -> Int {
             let id = nextFreeObjectID
             nextFreeObjectID += 1
             return id
         }
+
+        var resources: [any ThreeMF.Resource] = []
+        var objects: [Object] = []
+        var items: [ThreeMF.Item] = []
+
+        var mainColorGroup = ColorGroup(id: nextObjectID())
+
+        var metallicProperties = MetallicDisplayProperties(id: nextObjectID())
+        var metallicColorGroup = ColorGroup(id: nextObjectID(), displayPropertiesID: metallicProperties.id)
+
+        var specularProperties = SpecularDisplayProperties(id: nextObjectID())
+        var specularColorGroup = ColorGroup(id: nextObjectID(), displayPropertiesID: specularProperties.id)
+
+        var objectCount = 0
 
         for (outputIndex, item) in outputs.enumerated() {
             let output = item.value
@@ -27,21 +39,36 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
             guard !output.primitive.isEmpty else { continue }
 
-            let colorMapping = output.elements[ColorMapping.self]
+            let materialMapping = output.elements[MaterialMapping.self]
             let meshData = output.primitive.meshGL()
             let originalIDRanges = meshData.originalIDs
 
-            let orderedColorMapping = Array(colorMapping?.mapping ?? [:])
+            let orderedMaterialMapping = Array(materialMapping?.mapping ?? [:])
 
-            let colorGroup = ColorGroup(id: nextObjectID(), colors: orderedColorMapping.map(\.value.threeMFColor))
-            let colorIndexByOriginalID = Dictionary(orderedColorMapping.enumerated().map { ($1.key, $0) }, uniquingKeysWith: { $1 })
+            let originalIDToPropertyReference = Dictionary(uniqueKeysWithValues: orderedMaterialMapping.map { originalID, material -> (D3.Primitive.OriginalID, PropertyReference) in
+                switch material.properties {
+                case .none:
+                    return (originalID, PropertyReference(groupID: mainColorGroup.id, index: mainColorGroup.addColor(material.baseColor.threeMFColor)))
+                case .metallic (let metallicness, let roughness):
+                    let name = material.name ?? "Metallic \(metallicProperties.metallics.count + 1)"
+                    metallicProperties.addMetallic(.init(name: name, metallicness: metallicness, roughness: roughness))
+                    return (originalID, PropertyReference(groupID: metallicColorGroup.id, index: metallicColorGroup.addColor(material.baseColor.threeMFColor)))
+
+                case .specular (let color, let glossiness):
+                    let name = material.name ?? "Specular \(specularProperties.speculars.count + 1)"
+                    specularProperties.addSpecular(.init(name: name, specularColor: color.threeMFColor, glossiness: glossiness))
+                    return (originalID, PropertyReference(groupID: specularColorGroup.id, index: specularColorGroup.addColor(material.baseColor.threeMFColor)))
+                }
+            })
 
             let triangles = meshData.triangles.enumerated().map { index, t in
-                let colorIndex = originalIDRanges.key(for: index).flatMap { colorIndexByOriginalID[$0] }
+                let originalID = originalIDRanges.key(for: index)
+                let materialProperty = originalID.flatMap { originalIDToPropertyReference[$0] }
+
                 return ThreeMF.Mesh.Triangle(
                     v1: Int(t.a), v2: Int(t.b), v3: Int(t.c),
-                    propertyIndex: colorIndex.map { .uniform($0) },
-                    propertyGroup: colorIndex != nil ? colorGroup.id : nil
+                    propertyIndex: materialProperty.map { .uniform($0.index) },
+                    propertyGroup: materialProperty?.groupID
                 )
             }
 
@@ -51,10 +78,26 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
             objects.append(object)
             items.append(item)
-            colorGroups.append(colorGroup)
+            objectCount += 1
         }
 
-        if objects.isEmpty {
+        if !mainColorGroup.colors.isEmpty {
+            resources.append(mainColorGroup)
+        }
+
+        if !metallicColorGroup.colors.isEmpty {
+            resources.append(metallicProperties)
+            resources.append(metallicColorGroup)
+        }
+
+        if !specularColorGroup.colors.isEmpty {
+            resources.append(specularProperties)
+            resources.append(specularColorGroup)
+        }
+
+        resources.append(contentsOf: objects)
+
+        if objectCount == 0 {
             logger.warning("Model contains no objects. Exporting an empty 3MF file.")
         }
 
@@ -73,7 +116,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             unit: .millimeter,
             recommendedExtensionPrefixes: [Extension.materials.prefix],
             metadata: metadata,
-            resources: objects + colorGroups,
+            resources: resources,
             buildItems: items
         )
 
@@ -101,7 +144,7 @@ fileprivate extension Color {
     }
 }
 
-fileprivate extension Manifold.Vector3 {
+fileprivate extension Manifold3D.Vector3 {
     var threeMFVector: ThreeMF.Mesh.Vertex {
         .init(x: Double(x), y: Double(y), z: Double(z))
     }

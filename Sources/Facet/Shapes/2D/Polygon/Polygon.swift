@@ -1,5 +1,5 @@
 import Foundation
-import Manifold
+import Manifold3D
 
 /// Represents a two-dimensional shape defined by a series of connected points.
 /// It supports initialization from an array of ``Vector2D`` points or a two-dimensional ``BezierPath``.
