@@ -1,4 +1,5 @@
 import Foundation
+import ThreeMF
 
 struct MetadataContainer: ResultElement {
     let metadata: [ThreeMF.Metadata]
