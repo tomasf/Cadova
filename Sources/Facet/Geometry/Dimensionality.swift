@@ -11,7 +11,7 @@ public protocol Dimensionality {
     typealias Alignment = GeometryAlignment<Self>
 }
 
-public struct Dimensionality2: Dimensionality {
+public struct D2: Dimensionality {
     public typealias Vector = Vector2D
     public typealias Transform = AffineTransform2D
     public typealias Axis = Axis2D
@@ -21,7 +21,7 @@ public struct Dimensionality2: Dimensionality {
     private init() {}
 }
 
-public struct Dimensionality3: Dimensionality {
+public struct D3: Dimensionality {
     public typealias Vector = Vector3D
     public typealias Transform = AffineTransform3D
     public typealias Axis = Axis3D

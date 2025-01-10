@@ -13,6 +13,7 @@ import Foundation
 /// Don't conform your types to this protocol directly; instead, use `Shape2D` and implement its `body` property.
 public protocol Geometry2D {
     typealias Output = Output2D
+    typealias D = D2
 
     func evaluated(in environment: EnvironmentValues) -> Output
 }
@@ -21,6 +22,7 @@ public protocol Geometry2D {
 /// Don't conform your types to this protocol directly; instead, use `Shape3D` and implement its `body` property.
 public protocol Geometry3D {
     typealias Output = Output3D
+    typealias D = D3
 
     func evaluated(in environment: EnvironmentValues) -> Output
 }

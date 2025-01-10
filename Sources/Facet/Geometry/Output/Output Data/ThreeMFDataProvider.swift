@@ -1,6 +1,6 @@
 import Foundation
 import Manifold
-import Zip
+import ThreeMF
 
 struct ThreeMFDataProvider: OutputDataProvider {
     let output: Output3D

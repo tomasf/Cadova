@@ -3,7 +3,7 @@ import Foundation
 internal protocol CombinedGeometry2D: Geometry2D {
     var children: [any Geometry2D] { get }
     var combination: GeometryCombination { get }
-    func combine(_ children: [Dimensionality2.Primitive]) -> Dimensionality2.Primitive
+    func combine(_ children: [D2.Primitive], in environment: EnvironmentValues) -> D2.Primitive
 }
 
 extension CombinedGeometry2D {
@@ -11,7 +11,7 @@ extension CombinedGeometry2D {
         .init(
             children: children,
             environment: environment,
-            transformation: combine(_:),
+            transformation: { combine($0, in: environment) },
             combination: combination)
     }
 }
@@ -19,7 +19,7 @@ extension CombinedGeometry2D {
 internal protocol CombinedGeometry3D: Geometry3D {
     var children: [any Geometry3D] { get }
     var combination: GeometryCombination { get }
-    func combine(_ children: [Dimensionality3.Primitive]) -> Dimensionality3.Primitive
+    func combine(_ children: [D3.Primitive], in environment: EnvironmentValues) -> D3.Primitive
 }
 
 extension CombinedGeometry3D {
@@ -27,7 +27,7 @@ extension CombinedGeometry3D {
         .init(
             children: children,
             environment: environment,
-            transformation: combine(_:),
+            transformation: { combine($0, in: environment) },
             combination: combination)
     }
 }

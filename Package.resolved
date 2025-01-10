@@ -1,5 +1,4 @@
 {
-  "originHash" : "5ce38a8f9ab74f5fd992fcc627019ccaf93f549680229a94f2c4f1cf29f11eac",
   "pins" : [
     {
       "identity" : "swift-collections",
@@ -24,10 +23,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/Zip.git",
       "state" : {
-        "revision" : "e802570c6762b45aa14ed3c0897ffc44ef3526a6",
-        "version" : "1.0.0"
+        "revision" : "1ec6920a2b954d505db0d9fe06f1b83d003513dc",
+        "version" : "2.0.1"
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

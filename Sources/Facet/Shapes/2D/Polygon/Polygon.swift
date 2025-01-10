@@ -16,7 +16,7 @@ import Manifold
 ///     let polygonFromBezierPath = Polygon(bezierPath)
 ///     ```
 
-public struct Polygon: Geometry2D {
+public struct Polygon: Geometry2D, LeafGeometry {
     internal let pointsProvider: any PolygonPointsProvider
 
     internal init(provider: any PolygonPointsProvider) {
@@ -41,9 +41,11 @@ public struct Polygon: Geometry2D {
         self.init(provider: JoinedPolygonPoints(providers: polygons.map(\.pointsProvider)))
     }
 
-    public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        let manifoldPolygon = Manifold.Polygon(vertices: points(in: environment))
-        return .init(primitive: .init(polygons: [manifoldPolygon], fillRule: environment.fillRule.primitive))
+    @Environment(\.fillRule) private var fillRule
+    @Environment private var environment
+
+    var body: D2.Primitive {
+        .init(polygons: [.init(vertices: points(in: environment))], fillRule: fillRule.primitive)
     }
 }
 

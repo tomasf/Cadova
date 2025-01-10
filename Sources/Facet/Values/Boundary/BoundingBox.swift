@@ -1,8 +1,8 @@
 import Foundation
 import Manifold
 
-public typealias BoundingBox2D = BoundingBox<Dimensionality2>
-public typealias BoundingBox3D = BoundingBox<Dimensionality3>
+public typealias BoundingBox2D = BoundingBox<D2>
+public typealias BoundingBox3D = BoundingBox<D3>
 
 /// An axis-aligned bounding volume defined by its minimum and maximum corners, used to calculate and represent the bounding area or volume of shapes or points in a generic vector space.
 public struct BoundingBox<D: Dimensionality>: Sendable {

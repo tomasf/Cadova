@@ -9,23 +9,8 @@ extension BezierPath {
     public func visualize(scale: Double = 1, markerRotation: Rotation3D? = [45°, 0°, -45°]) -> any Geometry3D {
         @GeometryBuilder3D
         func makeMarker(at location: V, text: String, transform: AffineTransform3D) -> any Geometry3D {
-            Box([4, 2, 0.1])
-                .roundingBoxCorners(axis: .z, radius: 1)
-                .aligned(at: .center)
-                .colored(.white)
-                .adding {
-                    Text(text)
-                        .usingFont(size: 1)
-                        .usingTextAlignment(horizontal: .center, vertical: .center)
-                        .extruded(height: 0.01)
-                        .translated(z: 0.1)
-                        .colored(.black)
-                }
-                .translated(y: 1)
-                .adding {
-                    Sphere(radius: 0.2)
-                        .colored(.black)
-                }
+            Sphere(radius: 0.2)
+                .colored(.black)
                 .transformed(transform)
                 .translated(location.vector3D)
         }

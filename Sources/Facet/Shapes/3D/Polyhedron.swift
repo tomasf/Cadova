@@ -6,7 +6,7 @@ import Manifold
 ///
 /// For more information, see [the OpenSCAD documentation](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Primitive_Solids#polyhedron).
 
-public struct Polyhedron: Geometry3D {
+public struct Polyhedron: Geometry3D, LeafGeometry {
     let vertices: [Vector3D]
     let faces: [[Array<Vector3D>.Index]]
 
@@ -27,9 +27,9 @@ public struct Polyhedron: Geometry3D {
 
     }
 
-    public func evaluated(in environment: EnvironmentValues) -> Output3D {
+    var body: D3.Primitive {
         do {
-            return .init(primitive: try Mesh(meshGL()))
+            return try Mesh(meshGL())
         } catch {
             logger.error("Polyhedron mesh creation failed: \(error)")
             return .empty

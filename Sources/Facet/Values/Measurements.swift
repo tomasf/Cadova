@@ -47,5 +47,5 @@ public extension Measurements3D {
     var triangleCount: Int { primitive.triangleCount }
 }
 
-public typealias Measurements2D = Measurements<Dimensionality2>
-public typealias Measurements3D = Measurements<Dimensionality3>
+public typealias Measurements2D = Measurements<D2>
+public typealias Measurements3D = Measurements<D3>

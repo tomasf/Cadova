@@ -4,11 +4,11 @@ internal struct StaticGeometry<D: Dimensionality> {
     let output: Output<D>
 }
 
-extension StaticGeometry: Geometry2D where D == Dimensionality2 {
+extension StaticGeometry: Geometry2D where D == D2 {
     func evaluated(in environment: EnvironmentValues) -> Output2D { output }
 }
 
-extension StaticGeometry: Geometry3D where D == Dimensionality3 {
+extension StaticGeometry: Geometry3D where D == D3 {
     func evaluated(in environment: EnvironmentValues) -> Output3D { output }
 }
 

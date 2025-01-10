@@ -2,7 +2,7 @@ import Foundation
 import Manifold
 
 public extension Geometry3D {
-    func refining(maxEdgeLength: Double) -> any Geometry3D {
+    func refined(maxEdgeLength: Double) -> any Geometry3D {
         modifyingPrimitive { mesh, _ in
             mesh.refine(edgeLength: maxEdgeLength)
         }
@@ -10,7 +10,7 @@ public extension Geometry3D {
 }
 
 public extension Geometry2D {
-    func refining(maxSegmentLength: Double) -> any Geometry2D {
+    func refined(maxSegmentLength: Double) -> any Geometry2D {
         modifyingPolygons { polygons, e in
             return polygons.map { points in
                 [points[0]] + points.paired().flatMap { from, to -> [Vector2D] in

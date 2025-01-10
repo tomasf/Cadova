@@ -1,12 +1,5 @@
 import Foundation
 
-#warning("implement this. Should be doable by making a new cross section from the polygons using the non-zero fill-rule (or something)")
-/*
-struct Fill: WrappedGeometry2D {
-    let body: any Geometry2D
-    let moduleName = "fill"
-}
-
 public extension Geometry2D {
     /// Fill a 2D geometry
     ///
@@ -14,7 +7,9 @@ public extension Geometry2D {
     ///
     /// - Returns: A new geometry representing the shape with its holes filled.
     func filled() -> any Geometry2D {
-        Fill(body: self)
+        modifyingPrimitive { .boolean(.union, with: $0.polygons().map {
+            D2.Primitive(polygons: [$0], fillRule: .nonZero)
+        })}
     }
 }
-*/
+

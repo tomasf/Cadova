@@ -2,7 +2,7 @@ import Foundation
 
 /// A `Rectangle` represents a two-dimensional shape with four straight sides and four right angles.
 ///
-public struct Rectangle: Geometry2D {
+public struct Rectangle: Geometry2D, LeafGeometry {
     /// The size of the rectangle represented as a `Vector2D`.
     public let size: Vector2D
 
@@ -30,9 +30,7 @@ public struct Rectangle: Geometry2D {
         self.size = [side, side]
     }
 
-    public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        .init(primitive: .square(size: size))
-    }
+    var body: D2.Primitive { .square(size: size) }
 }
 
 extension Rectangle: Area2D {

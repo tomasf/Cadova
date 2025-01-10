@@ -1,14 +1,5 @@
 import Foundation
 
-fileprivate struct Translate<V: Vector> {
-    let body: V.Geometry
-    let distance: V
-    var bodyTransform: V.Transform { .translation(distance) }
-}
-
-extension Translate<Vector2D>: Geometry2D, TransformedGeometry2D {}
-extension Translate<Vector3D>: Geometry3D, TransformedGeometry3D {}
-
 public extension Geometry2D {
     /// Translate geometry in 2D space.
     ///
@@ -18,7 +9,7 @@ public extension Geometry2D {
     ///   - distance: A `Vector2D` representing the distance to move along the x and y axes.
     /// - Returns: A translated geometry.
     func translated(_ distance: Vector2D) -> any Geometry2D {
-        Translate(body: self, distance: distance)
+        transformed(.translation(distance))
     }
 
     /// Translate geometry in 2D space using individual components.
@@ -43,7 +34,7 @@ public extension Geometry3D {
     ///   - distance: A `Vector3D` representing the distance to move along the x, y, and z axes.
     /// - Returns: A translated geometry.
     func translated(_ distance: Vector3D) -> any Geometry3D {
-        Translate(body: self, distance: distance)
+        transformed(.translation(distance))
     }
 
     /// Translate geometry in 3D space using a 2D vector for the x and y axes and an individual z-axis component.

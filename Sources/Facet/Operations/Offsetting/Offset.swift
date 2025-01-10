@@ -1,21 +1,6 @@
 import Foundation
 import Manifold
 
-internal struct Offset: WrappedGeometry2D {
-    let body: any Geometry2D
-    let amount: Double
-    let style: LineJoinStyle
-
-    func process(_ child: CrossSection, in environment: EnvironmentValues) -> CrossSection {
-        child.offset(
-            amount: amount,
-            joinType: style.primitive,
-            miterLimit: environment.miterLimit,
-            circularSegments: environment.facets.facetCount(circleRadius: Swift.abs(amount))
-        )
-    }
-}
-
 /// Describes the style of line joins in geometric shapes.
 ///
 /// The `LineJoinStyle` enum is used to specify how the joining points between line segments or edges of a geometry should be rendered.
@@ -48,6 +33,13 @@ public extension Geometry2D {
     ///   - style: The line join style of the offset, which can be `.round`, `.miter`, or `.bevel`. Each style affects the shape of the geometry's corners differently.
     /// - Returns: A new geometry object that is the result of the offset operation.
     func offset(amount: Double, style: LineJoinStyle) -> any Geometry2D {
-        Offset(body: self, amount: amount, style: style)
+        modifyingPrimitive { primitive, e in
+            primitive.offset(
+                amount: amount,
+                joinType: style.primitive,
+                miterLimit: e.miterLimit,
+                circularSegments: e.facets.facetCount(circleRadius: Swift.abs(amount))
+            )
+        }
     }
 }

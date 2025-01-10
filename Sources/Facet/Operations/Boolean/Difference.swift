@@ -7,29 +7,25 @@ fileprivate struct Difference<D: Dimensionality> {
 
     var children: [D.Geometry] { [positive, negative] }
     let combination = GeometryCombination.difference
+
+    func combine(_ children: [D.Primitive], in environment: EnvironmentValues) -> D.Primitive {
+        .boolean(.difference, with: children)
+    }
 }
 
-extension Difference<Dimensionality2>: Geometry2D, CombinedGeometry2D {
+extension Difference<D2>: Geometry2D, CombinedGeometry2D {
     init(positive: D.Geometry, negative: D.Geometry) {
         self.positive = positive
         self.negative = negative
             .invertingOperation()
     }
-
-    func combine(_ children: [Dimensionality2.Primitive]) -> Dimensionality2.Primitive {
-        CrossSection.boolean(.difference, with: children)
-    }
 }
 
-extension Difference<Dimensionality3>: Geometry3D, CombinedGeometry3D {
+extension Difference<D3>: Geometry3D, CombinedGeometry3D {
     init(positive: D.Geometry, negative: D.Geometry) {
         self.positive = positive
         self.negative = negative
             .invertingOperation()
-    }
-
-    func combine(_ children: [Dimensionality3.Primitive]) -> Dimensionality3.Primitive {
-        Mesh.boolean(.difference, with: children)
     }
 }
 

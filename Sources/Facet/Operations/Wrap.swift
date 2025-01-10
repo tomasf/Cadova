@@ -28,8 +28,8 @@ public extension Geometry3D {
             let innerCircumference = innerRadius * 2 * .pi
 
             geometry
-                .refining(maxEdgeLength: segmentLength)
-                .warp {
+                .refined(maxEdgeLength: segmentLength)
+                .warped {
                     let angle = 360° * $0.x / innerCircumference
                     let radius = innerRadius + $0.z
                     return Vector3D(cos(angle) * radius, sin(angle) * radius, $0.y)
@@ -64,8 +64,8 @@ public extension Geometry2D {
             let innerCircumference = innerRadius * 2 * .pi
 
             geometry
-                .refining(maxSegmentLength: segmentLength)
-                .warp {
+                .refined(maxSegmentLength: segmentLength)
+                .warped {
                     let angle = -360° * $0.x / innerCircumference
                     let radius = innerRadius + $0.y
                     return Vector2D(cos(angle) * radius, sin(angle) * radius)

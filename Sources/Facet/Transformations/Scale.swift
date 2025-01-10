@@ -1,15 +1,5 @@
 import Foundation
 
-fileprivate struct Scale<V: Vector> {
-    let body: V.Geometry
-    let scale: V
-    var bodyTransform: V.Transform { .scaling(scale) }
-}
-
-extension Scale<Vector2D>: Geometry2D, TransformedGeometry2D {}
-extension Scale<Vector3D>: Geometry3D, TransformedGeometry3D {}
-
-
 public extension Geometry2D {
     /// Scale geometry uniformly or non-uniformly.
     ///
@@ -19,7 +9,7 @@ public extension Geometry2D {
     ///   - scale: A `Vector2D` representing the scaling factors along the x and y axes.
     /// - Returns: A scaled geometry.
     func scaled(_ scale: Vector2D) -> any Geometry2D {
-        Scale(body: self, scale: scale)
+        modifyingPrimitive { p, _ in p.scale(scale) }
     }
 
     /// Scale geometry uniformly.
@@ -66,7 +56,7 @@ public extension Geometry3D {
     ///   - scale: A `Vector3D` representing the scaling factors along the x, y, and z axes.
     /// - Returns: A scaled geometry.
     func scaled(_ scale: Vector3D) -> any Geometry3D {
-        Scale(body: self, scale: scale)
+        modifyingPrimitive { p, _ in p.scale(scale) }
     }
 
     /// Scale geometry uniformly.

@@ -8,7 +8,7 @@ import Manifold
 /// let circleWithDiameter = Circle(diameter: 10)
 /// let circleWithRadius = Circle(radius: 5)
 /// ```
-public struct Circle: Geometry2D {
+public struct Circle: Geometry2D, LeafGeometry {
     /// The diameter of the circle.
     public let diameter: Double
 
@@ -47,9 +47,10 @@ public struct Circle: Geometry2D {
         diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
     }
 
-    public func evaluated(in environment: EnvironmentValues) -> Output2D {
-        let segmentCount = environment.facets.facetCount(circleRadius: radius)
-        return .init(primitive: .circle(radius: radius, segmentCount: segmentCount))
+    @Environment(\.facets) private var facets
+
+    var body: D2.Primitive {
+        .circle(radius: radius, segmentCount: facets.facetCount(circleRadius: radius))
     }
 }
 

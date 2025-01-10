@@ -33,6 +33,8 @@ public protocol PrimitiveGeometry {
     associatedtype Rotation
 
     static var empty: Self { get }
+    init(composing: [Self])
+    func decompose() -> [Self]
 
     var isEmpty: Bool { get }
     var bounds: (min: Vector, max: Vector) { get }

@@ -1,20 +1,11 @@
 import Foundation
 
-fileprivate struct Transform<V: Vector> where V.Transform: AffineTransformInternal {
-    let body: V.Geometry
-    let transform: V.Transform
-    var bodyTransform: V.Transform { transform }
-}
-
-extension Transform<Vector2D>: Geometry2D, TransformedGeometry2D {}
-extension Transform<Vector3D>: Geometry3D, TransformedGeometry3D {}
-
 public extension Geometry2D {
     /// Applies a given affine transformation to the 2D geometry.
     /// - Parameter transform: The transformation to be applied.
     /// - Returns: A transformed `Geometry2D`.
     func transformed(_ transform: AffineTransform2D) -> any Geometry2D {
-        Transform(body: self, transform: transform)
+        modifyingPrimitive { p, _ in p.transform(transform) }
     }
 
     /// Applies a shearing transformation to the 2D geometry.
@@ -41,7 +32,7 @@ public extension Geometry3D {
     /// - Parameter transform: The transformation to be applied.
     /// - Returns: A transformed `Geometry3D`.
     func transformed(_ transform: AffineTransform3D) -> any Geometry3D {
-        Transform(body: self, transform: transform)
+        modifyingPrimitive { p, _ in p.transform(transform) }
     }
 
     /// Applies a shearing transformation to the 3D geometry.

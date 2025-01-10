@@ -8,20 +8,24 @@ import Foundation
 ///     .usingFacets(count: 3)
 /// ```
 
-public struct Cylinder: Geometry3D {
+public struct Cylinder: Geometry3D, LeafGeometry {
     public let height: Double
     public let bottomRadius: Double
     public let topRadius: Double
 
-    public func evaluated(in environment: EnvironmentValues) -> Output3D {
-        let segmentCount = environment.facets.facetCount(circleRadius: max(bottomRadius, topRadius))
-        let primitive: Dimensionality3.Primitive
+    public var topDiameter: Double { topRadius * 2 }
+    public var bottomDiameter: Double { bottomRadius * 2 }
+
+    @Environment(\.facets) private var facets
+
+    var body: D3.Primitive {
+        let segmentCount = facets.facetCount(circleRadius: max(bottomRadius, topRadius))
 
         if height < .ulpOfOne {
-            primitive = .empty
+            return .empty
 
         } else if bottomRadius < .ulpOfOne {
-            primitive = .cylinder(
+            return .cylinder(
                 height: height,
                 bottomRadius: topRadius,
                 topRadius: bottomRadius,
@@ -30,19 +34,14 @@ public struct Cylinder: Geometry3D {
             .scale(Vector3D(1, 1, -1))
             .translate(Vector3D(0, 0, height))
         } else {
-            primitive = .cylinder(
+            return .cylinder(
                 height: height,
                 bottomRadius: bottomRadius,
                 topRadius: topRadius,
                 segmentCount: segmentCount
             )
         }
-
-        return .init(primitive: primitive)
     }
-
-    public var topDiameter: Double { topRadius * 2 }
-    public var bottomDiameter: Double { bottomRadius * 2 }
 }
 
 public extension Cylinder {
