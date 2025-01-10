@@ -37,7 +37,7 @@ public struct Output<D: Dimensionality> {
     }
 }
 
-internal extension Output where D == Dimensionality2 {
+internal extension Output where D == D2 {
     /// Combined; union, difference, intersection, minkowski
     /// Transparent for single children
     init(
@@ -69,12 +69,25 @@ internal extension Output where D == Dimensionality2 {
         )
     }
 
+    /// Projection
+    init(
+        child: Geometry3D,
+        environment: EnvironmentValues,
+        transformation: (Mesh) -> CrossSection
+    ) {
+        let childOutput = child.evaluated(in: environment)
+        self.init(
+            primitive: transformation(childOutput.primitive),
+            elements: childOutput.elements
+        )
+    }
+
     var boundingBox: BoundingBox2D? {
         .init(primitive.bounds)
     }
 }
 
-internal extension Output where D == Dimensionality3 {
+internal extension Output where D == D3 {
     /// Combined; union, difference, intersection, minkowski
     /// Transparent for single children
     init(
@@ -124,5 +137,5 @@ internal extension Output where D == Dimensionality3 {
     }
 }
 
-public typealias Output2D = Output<Dimensionality2>
-public typealias Output3D = Output<Dimensionality3>
+public typealias Output2D = Output<D2>
+public typealias Output3D = Output<D3>

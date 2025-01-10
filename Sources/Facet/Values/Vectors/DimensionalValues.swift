@@ -12,9 +12,9 @@ internal struct DimensionalValues<Element: Sendable, D: Dimensionality>: Sendabl
     init(_ elements: [Element]) {
         precondition(elements.count == D.Vector.elementCount)
 
-        if D.self == Dimensionality2.self {
+        if D.self == D2.self {
             value = .xy(elements[0], elements[1])
-        } else if D.self == Dimensionality3.self {
+        } else if D.self == D3.self {
             value = .xyz(elements[0], elements[1], elements[2])
         } else {
             preconditionFailure("Unknown dimensionality \(D.self)")
@@ -57,11 +57,11 @@ internal struct DimensionalValues<Element: Sendable, D: Dimensionality>: Sendabl
 }
 
 extension DimensionalValues {
-    init(x: Element, y: Element) where D == Dimensionality2 {
+    init(x: Element, y: Element) where D == D2 {
         value = .xy(x, y)
     }
 
-    init(x: Element, y: Element, z: Element) where D == Dimensionality3 {
+    init(x: Element, y: Element, z: Element) where D == D3 {
         value = .xyz(x, y, z)
     }
 }

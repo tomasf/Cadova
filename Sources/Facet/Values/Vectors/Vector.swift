@@ -3,12 +3,6 @@ import Foundation
 public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where Element == Double {
     associatedtype D: Dimensionality where D.Vector == Self
 
-#warning("Transition to Dimensionality instead")
-    typealias Geometry = D.Geometry
-    typealias Transform = D.Transform
-    typealias Axis = D.Axis
-    typealias Axes = D.Axes
-
     static var zero: Self { get }
     init(_ single: Double)
 
@@ -106,7 +100,7 @@ internal extension Vector {
         }
     }
 
-    func with(_ axes: Axes, as value: Double) -> Self {
+    func with(_ axes: D.Axes, as value: Double) -> Self {
         .init { axes.contains($0) ? value : self[$0] }
     }
 }

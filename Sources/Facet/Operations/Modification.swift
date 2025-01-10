@@ -10,12 +10,16 @@ internal struct ModifyPrimitive <D: Dimensionality> {
     }
 }
 
-extension ModifyPrimitive: WrappedGeometry2D, Geometry2D where D == Dimensionality2 {}
-extension ModifyPrimitive: WrappedGeometry3D, Geometry3D where D == Dimensionality3 {}
+extension ModifyPrimitive: WrappedGeometry2D, Geometry2D where D == D2 {}
+extension ModifyPrimitive: WrappedGeometry3D, Geometry3D where D == D3 {}
 
 internal extension Geometry2D {
     func modifyingPrimitive(_ action: @escaping (CrossSection, EnvironmentValues) -> CrossSection) -> Geometry2D {
         ModifyPrimitive(body: self, action: action)
+    }
+
+    func modifyingPrimitive(_ action: @escaping (CrossSection) -> CrossSection) -> Geometry2D {
+        modifyingPrimitive { p, e in action(p) }
     }
 
     func modifyingPolygons(_ action: @escaping ([[Vector2D]], EnvironmentValues) -> [[Vector2D]]) -> Geometry2D {
@@ -29,5 +33,9 @@ internal extension Geometry2D {
 internal extension Geometry3D {
     func modifyingPrimitive(_ action: @escaping (Mesh, EnvironmentValues) -> Mesh) -> Geometry3D {
         ModifyPrimitive(body: self, action: action)
+    }
+
+    func modifyingPrimitive(_ action: @escaping (Mesh) -> Mesh) -> Geometry3D {
+        modifyingPrimitive { p, e in action(p) }
     }
 }

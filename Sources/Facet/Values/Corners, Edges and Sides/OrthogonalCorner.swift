@@ -1,24 +1,24 @@
 import Foundation
 
 // A corner of a rectangular shape (Rectangle / Box)
-public struct OrthogonalCorner<V: Vector>: Sendable, Hashable {
-    let axisDirections: DimensionalValues<AxisDirection, V.D>
+public struct OrthogonalCorner<D: Dimensionality>: Sendable, Hashable {
+    let axisDirections: DimensionalValues<AxisDirection, D>
 
-    internal init(axisDirections: DimensionalValues<AxisDirection, V.D>) {
+    internal init(axisDirections: DimensionalValues<AxisDirection, D>) {
         self.axisDirections = axisDirections
     }
 
-    public static func max(_ maxAxes: V.Axes) -> Self {
+    public static func max(_ maxAxes: D.Axes) -> Self {
         Self(axisDirections: .init {
             maxAxes.contains($0) ? .max : .min
         })
     }
 
-    internal var maxAxes: V.Axes {
+    internal var maxAxes: D.Axes {
         axisDirections.map { $1 == .max }.axes
     }
 
-    internal func point(boxSize: V) -> V {
+    internal func point(boxSize: D.Vector) -> D.Vector {
         axisDirections.map { boxSize[$0] / 2 * $1.factor }.vector
     }
 }

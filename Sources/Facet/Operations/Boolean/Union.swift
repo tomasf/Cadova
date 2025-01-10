@@ -48,16 +48,20 @@ import Manifold
 ///
 /// This will create a union where the cylinder and box are combined into a single geometry.
 /// 
-public struct Union<V: Vector> {
-    let children: [V.Geometry]
+public struct Union<D: Dimensionality> {
+    let children: [D.Geometry]
     let combination = GeometryCombination.union
 
-    internal init(children: [V.Geometry]) {
+    internal init(children: [D.Geometry]) {
         self.children = children
+    }
+
+    func combine(_ children: [D.Primitive], in environment: EnvironmentValues) -> D.Primitive {
+        .boolean(.union, with: children)
     }
 }
 
-extension Union<Vector2D>: Geometry2D, CombinedGeometry2D {
+extension Union<D2>: Geometry2D, CombinedGeometry2D {
     /// Form a union to group multiple pieces of geometry together and treat them as one
     ///
     /// ## Example
@@ -82,13 +86,9 @@ extension Union<Vector2D>: Geometry2D, CombinedGeometry2D {
     public init(_ children: [(any Geometry2D)?]) {
         self.init(children: children.compactMap { $0 })
     }
-
-    func combine(_ children: [Dimensionality2.Primitive]) -> Dimensionality2.Primitive {
-        CrossSection.boolean(.union, with: children)
-    }
 }
 
-extension Union<Vector3D>: Geometry3D, CombinedGeometry3D {
+extension Union<D3>: Geometry3D, CombinedGeometry3D {
     /// Form a union to group multiple pieces of geometry together and treat them as one
     ///
     /// ## Example
@@ -112,9 +112,5 @@ extension Union<Vector3D>: Geometry3D, CombinedGeometry3D {
     /// ```
     public init(_ children: [(any Geometry3D)?]) {
         self.init(children: children.compactMap { $0 })
-    }
-
-    func combine(_ children: [Dimensionality3.Primitive]) -> Dimensionality3.Primitive {
-        Mesh.boolean(.union, with: children)
     }
 }

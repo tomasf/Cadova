@@ -77,7 +77,7 @@ extension BezierPath {
             }
         }
 
-        func transformed<T: AffineTransform>(using transform: T) -> Self where T == V.Transform, T.V == V {
+        func transformed<T: AffineTransform>(using transform: T) -> Self where T == V.D.Transform, T.V == V {
             Self(controlPoints: controlPoints.map { transform.apply(to: $0) })
         }
 

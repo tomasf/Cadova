@@ -19,7 +19,7 @@ public struct Stack<D: Dimensionality> {
     }
 }
 
-extension Stack<Dimensionality2>: Geometry2D, Shape2D {
+extension Stack<D2>: Geometry2D, Shape2D {
     /// Creates a stack of 2D geometries aligned along the specified axis with optional spacing and alignment.
     ///
     /// - Parameters:
@@ -48,7 +48,7 @@ extension Stack<Dimensionality2>: Geometry2D, Shape2D {
     }
 }
 
-extension Stack<Dimensionality3>: Geometry3D, Shape3D {
+extension Stack<D3>: Geometry3D, Shape3D {
     /// Creates a stack of 3D geometries aligned along the specified axis with optional spacing and alignment.
     ///
     /// - Parameters:

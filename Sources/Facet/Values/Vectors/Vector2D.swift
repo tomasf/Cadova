@@ -10,7 +10,7 @@ import Manifold
 /// ```
 ///
 public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable {
-    public typealias D = Dimensionality2
+    public typealias D = D2
     public var x: Double
     public var y: Double
 

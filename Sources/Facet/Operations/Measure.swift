@@ -6,7 +6,7 @@ fileprivate struct Measure<D: Dimensionality> {
     let builder: (D.Geometry, Measurements<D>) -> D.Geometry
 }
 
-extension Measure<Dimensionality2>: Geometry2D {
+extension Measure<D2>: Geometry2D {
     func evaluated(in environment: EnvironmentValues) -> Output2D {
         let output = target.evaluated(in: environment)
         return builder(StaticGeometry(output: output), .init(primitive: output.primitive))
@@ -14,7 +14,7 @@ extension Measure<Dimensionality2>: Geometry2D {
     }
 }
 
-extension Measure<Dimensionality3>: Geometry3D {
+extension Measure<D3>: Geometry3D {
     func evaluated(in environment: EnvironmentValues) -> Output3D {
         let output = target.evaluated(in: environment)
         return builder(StaticGeometry(output: output), .init(primitive: output.primitive))

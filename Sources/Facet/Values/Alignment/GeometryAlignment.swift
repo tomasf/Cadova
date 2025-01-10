@@ -7,11 +7,11 @@ public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
         self.values = values
     }
 
-    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil) where D == Dimensionality2 {
+    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil) where D == D2 {
         values = .init(x: x, y: y)
     }
 
-    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil, z: AxisAlignment? = nil) where D == Dimensionality3 {
+    public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil, z: AxisAlignment? = nil) where D == D3 {
         values = .init(x: x, y: y, z: z)
     }
 
@@ -46,8 +46,8 @@ public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
     }
 }
 
-public typealias GeometryAlignment2D = GeometryAlignment<Dimensionality2>
-public typealias GeometryAlignment3D = GeometryAlignment<Dimensionality3>
+public typealias GeometryAlignment2D = GeometryAlignment<D2>
+public typealias GeometryAlignment3D = GeometryAlignment<D3>
 
 internal extension [GeometryAlignment2D] {
     var merged: GeometryAlignment2D { .init(merging: self) }

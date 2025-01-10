@@ -1,23 +1,6 @@
 import Foundation
 import Manifold
 
-fileprivate struct ConvexHull<Geometry> {
-    let body: Geometry
-}
-
-extension ConvexHull<Geometry2D>: Geometry2D, WrappedGeometry2D {
-    func process(_ child: CrossSection, in environment: EnvironmentValues) -> CrossSection {
-        child.hull()
-    }
-}
-
-extension ConvexHull<Geometry3D>: Geometry3D, WrappedGeometry3D {
-    func process(_ child: Mesh, in environment: EnvironmentValues) -> Mesh {
-        child.hull()
-    }
-}
-
-
 public extension Geometry2D {
     /// Create a convex hull of this geometry in 2D space.
     ///
@@ -25,7 +8,7 @@ public extension Geometry2D {
     ///
     /// - Returns: A new geometry representing the convex hull of the original geometry.
     func convexHull() -> any Geometry2D {
-        ConvexHull(body: self)
+        modifyingPrimitive { $0.hull() }
     }
 }
 
@@ -36,6 +19,6 @@ public extension Geometry3D {
     ///
     /// - Returns: A new geometry representing the convex hull of the original geometry.
     func convexHull() -> any Geometry3D {
-        ConvexHull(body: self)
+        modifyingPrimitive { p, _ in p.hull() }
     }
 }

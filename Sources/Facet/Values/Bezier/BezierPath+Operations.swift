@@ -24,7 +24,7 @@ public extension BezierPath {
     ///
     /// - Parameter transform: The affine transform to apply.
     /// - Returns: A new `BezierPath` instance with the transformed points.
-    func transformed<T: AffineTransform>(using transform: T) -> BezierPath where T.V == V, T == V.Transform {
+    func transformed<T: AffineTransform>(using transform: T) -> BezierPath where T.V == V, T == V.D.Transform {
         BezierPath(
             startPoint: transform.apply(to: startPoint),
             curves: curves.map { $0.transformed(using: transform) }
@@ -40,9 +40,9 @@ public extension BezierPath {
     /// - Parameters:
     ///   - position: The position along the path where the transformation is calculated. This value is of type
     ///   - facets: The desired level of detail for the generated points, affecting the smoothness and accuracy of the path traversal
-    /// - Returns: A `V.Transform` representing the combined rotation and translation needed to move an object along the
+    /// - Returns: A `V.D.Transform` representing the combined rotation and translation needed to move an object along the
     ///   Bézier path to the specified position.
-    func transform(at position: Position, facets: EnvironmentValues.Facets) -> V.Transform {
+    func transform(at position: Position, facets: EnvironmentValues.Facets) -> V.D.Transform {
         guard !curves.isEmpty else { return .translation(startPoint) }
         return .init(
             points(in: 0...position, facets: facets).map(\.vector3D)
@@ -53,13 +53,13 @@ public extension BezierPath {
         )
     }
 
-    func readTransform(at position: Position, @GeometryBuilder2D _ reader: @escaping (V.Transform) -> any Geometry2D) -> any Geometry2D {
+    func readTransform(at position: Position, @GeometryBuilder2D _ reader: @escaping (V.D.Transform) -> any Geometry2D) -> any Geometry2D {
         readEnvironment { e in
             reader(transform(at: position, facets: e.facets))
         }
     }
 
-    func readTransform(at position: Position, @GeometryBuilder3D _ reader: @escaping (V.Transform) -> any Geometry3D) -> any Geometry3D {
+    func readTransform(at position: Position, @GeometryBuilder3D _ reader: @escaping (V.D.Transform) -> any Geometry3D) -> any Geometry3D {
         readEnvironment { e in
             reader(transform(at: position, facets: e.facets))
         }

@@ -1,59 +1,43 @@
 import Foundation
 import Manifold
 
-struct Projection: Geometry2D {
-    let body: any Geometry3D
-    let mode: Mode
-
-    enum Mode {
-        case whole
-        case slice (z: Double)
-    }
-
-    private var appliedBody: any Geometry3D {
-        switch mode {
-        case .whole: body
-        case .slice (let z): body.translated(z: -z)
-        }
-    }
+internal struct Projection: Geometry2D {
+    var body: any Geometry3D
+    var projection: (D3.Primitive, EnvironmentValues) -> D2.Primitive
 
     func evaluated(in environment: EnvironmentValues) -> Output2D {
-        let environment = environment.applyingTransform(.scaling(z: 0))
-        let bodyOutput = appliedBody.evaluated(in: environment)
+        .init(child: body, environment: environment, transformation: { projection($0, environment) })
+    }
+}
 
-        let crossSection: CrossSection
-        switch mode {
-        case .whole: crossSection = bodyOutput.primitive.projection()
-        case .slice(let z): crossSection = bodyOutput.primitive.slice(at: z)
-        }
-
-        return .init(primitive: crossSection, elements: bodyOutput.elements)
+internal extension Geometry3D {
+    func projected(action: @escaping (D3.Primitive, EnvironmentValues) -> D2.Primitive) -> any Geometry2D {
+        Projection(body: self, projection: action)
     }
 }
 
 public extension Geometry3D {
-    /// Projects the 3D geometry onto a 2D plane.
+    /// Projects the 3D geometry onto the 2D plane.
     /// - Returns: A `Geometry2D` representing the projected shape.
     /// - Example:
     ///   ```
-    ///   let sphere = Sphere(radius: 10)
-    ///   let projectedSphere = sphere.projection()
+    ///   let circle = Sphere(radius: 10).projected()
     ///   ```
-    func projection() -> any Geometry2D {
-        Projection(body: self, mode: .whole)
+    func projected() -> any Geometry2D {
+        projected { p, _ in p.projection() }
     }
 
-    /// Projects the 3D geometry onto a 2D plane, slicing at a specific Z value.
+    /// Projects the 3D geometry the a 2D plane, slicing at a specific Z value.
     /// The slicing at Z creates a 2D cross-section of the geometry at that Z height.
     /// - Parameter z: The Z value at which the geometry will be sliced when projecting. It defines the height at which the cross-section is taken.
     /// - Returns: A `Geometry2D` representing the projected shape.
     /// - Example:
     ///   ```swift
     ///   let truncatedCone = Cylinder(bottomDiameter: 10, topDiameter: 5, height: 15)
-    ///   let slicedProjection = truncatedCone.projection(slicingAtZ: 5)
+    ///   let slicedProjection = truncatedCone.sliced(at: 5)
     ///   // The result will be a circle with a diameter that represents the cross-section of the truncated cone at Z = 5.
     ///   ```
-    func projection(slicingAtZ z: Double) -> any Geometry2D {
-        Projection(body: self, mode: .slice(z: z))
+    func sliced(at z: Double) -> any Geometry2D {
+        projected { p, _ in p.slice(at: z) }
     }
 }

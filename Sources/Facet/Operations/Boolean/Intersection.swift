@@ -34,12 +34,16 @@ import Manifold
 ///
 /// This will create an intersection where the box and cylinder overlap.
 ///
-public struct Intersection<V: Vector> {
-    internal let children: [V.Geometry]
+public struct Intersection<D: Dimensionality> {
+    internal let children: [D.Geometry]
     internal let combination = GeometryCombination.intersection
+
+    func combine(_ children: [D.Primitive], in environment: EnvironmentValues) -> D.Primitive {
+        .boolean(.intersection, with: children)
+    }
 }
 
-extension Intersection<Vector2D>: Geometry2D, CombinedGeometry2D {
+extension Intersection<D2>: Geometry2D, CombinedGeometry2D {
     /// Creates a 2D intersection of multiple geometries.
     ///
     /// This initializer takes a closure that provides an array of 2D geometries to intersect.
@@ -48,13 +52,9 @@ extension Intersection<Vector2D>: Geometry2D, CombinedGeometry2D {
     public init(@GeometryBuilder2D _ children: () -> [any Geometry2D]) {
         self.init(children: children())
     }
-
-    func combine(_ children: [Dimensionality2.Primitive]) -> Dimensionality2.Primitive {
-        CrossSection.boolean(.intersection, with: children)
-    }
 }
 
-extension Intersection<Vector3D>: Geometry3D, CombinedGeometry3D {
+extension Intersection<D3>: Geometry3D, CombinedGeometry3D {
     /// Creates a 3D intersection of multiple geometries.
     ///
     /// This initializer takes a closure that provides an array of 3D geometries to intersect.
@@ -62,10 +62,6 @@ extension Intersection<Vector3D>: Geometry3D, CombinedGeometry3D {
     /// - Parameter children: A closure providing the geometries to be intersected.
     public init(@GeometryBuilder3D _ children: () -> [any Geometry3D]) {
         self.init(children: children())
-    }
-
-    func combine(_ children: [Dimensionality3.Primitive]) -> Dimensionality3.Primitive {
-        Mesh.boolean(.intersection, with: children)
     }
 }
 

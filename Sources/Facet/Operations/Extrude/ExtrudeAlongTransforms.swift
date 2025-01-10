@@ -135,8 +135,8 @@ public extension Geometry2D {
 
                 geometry
                     .rotated(y: 90°)
-                    .refining(maxEdgeLength: segmentLength)
-                    .warp {
+                    .refined(maxEdgeLength: segmentLength)
+                    .warped {
                         let turns = $0.x / lengthPerRev
                         let angle = -360° * turns
                         let localRadius = radius + $0.y

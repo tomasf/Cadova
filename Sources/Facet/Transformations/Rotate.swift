@@ -1,17 +1,5 @@
 import Foundation
 
-fileprivate struct Rotate<V: Vector> {
-    let body: V.Geometry
-    let rotation: V.Transform.Rotation
-
-    var bodyTransform: V.Transform {
-        .rotation(rotation)
-    }
-}
-
-extension Rotate<Vector2D>: Geometry2D, TransformedGeometry2D {}
-extension Rotate<Vector3D>: Geometry3D, TransformedGeometry3D {}
-
 public extension Geometry2D {
     /// Rotate geometry
     ///
@@ -19,11 +7,20 @@ public extension Geometry2D {
     ///   - angle: The amount to rotate
     /// - Returns: A rotated geometry
     func rotated(_ angle: Angle) -> any Geometry2D {
-        Rotate(body: self, rotation: angle)
+        transformed(.rotation(angle))
     }
 }
 
 public extension Geometry3D {
+    /// Rotate geometry
+    ///
+    /// - Parameters:
+    ///   - rotation: The rotation
+    /// - Returns: A rotated geometry
+    func rotated(_ rotation: Rotation3D) -> any Geometry3D {
+        transformed(.rotation(rotation))
+    }
+
     /// Rotate geometry
     ///
     /// When using multiple axes, the geometry is rotated around the axes in order (first X, then Y, then Z).
@@ -34,7 +31,7 @@ public extension Geometry3D {
     ///   - z: The amount to rotate around the Z axis
     /// - Returns: A rotated geometry
     func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> any Geometry3D {
-        Rotate(body: self, rotation: .init(x: x, y: y, z: z))
+        rotated(.init(x: x, y: y, z: z))
     }
 
     /// Rotate around a cartesian axis
@@ -60,17 +57,6 @@ public extension Geometry3D {
     ///   - axis: The 3D vector defining the axis of rotation.
     func rotated(angle: Angle, axis: Vector3D) -> any Geometry3D {
         rotated(.init(angle: angle, axis: axis))
-    }
-
-    /// Rotate geometry
-    ///
-    /// When using multiple axes, the geometry is rotated around the axes in order (first X, then Y, then Z).
-    ///
-    /// - Parameters:
-    ///   - rotation: The rotation
-    /// - Returns: A rotated geometry
-    func rotated(_ rotation: Rotation3D) -> any Geometry3D {
-        Rotate(body: self, rotation: rotation)
     }
 
     /// Rotate geometry from one direction vector to another.
