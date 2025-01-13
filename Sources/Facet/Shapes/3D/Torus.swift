@@ -87,7 +87,7 @@ public struct Torus: Shape3D {
 
     public var body: any Geometry3D {
         Circle(radius: minorRadius)
-            .translated(x: majorRadius, y: minorRadius)
+            .translated(x: majorRadius)
             .extruded(angles: 0°..<360°)
     }
 }
