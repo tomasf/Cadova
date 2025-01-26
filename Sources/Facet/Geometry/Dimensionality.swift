@@ -9,6 +9,7 @@ public protocol Dimensionality {
     associatedtype Primitive: PrimitiveGeometry
     typealias Axes = Set<Axis>
     typealias Alignment = GeometryAlignment<Self>
+    typealias Direction = Facet.Direction<Self>
 }
 
 public struct D2: Dimensionality {

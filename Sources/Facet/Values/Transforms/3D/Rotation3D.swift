@@ -6,7 +6,7 @@ public struct Rotation3D: Sendable {
 
     internal enum Rotation: Sendable {
         case eulerAngles (x: Angle, y: Angle, z: Angle)
-        case axis (Vector3D, angle: Angle)
+        case axis (Direction3D, angle: Angle)
     }
 
     /// Creates a `Rotation3D` structure with specified angles for each principal axis (X, Y, and Z).
@@ -42,7 +42,7 @@ public struct Rotation3D: Sendable {
     /// - Parameters:
     ///   - angle: The angle of rotation around the specified axis.
     ///   - axis: The 3D vector defining the axis of rotation.
-    init(angle: Angle, axis: Vector3D) {
+    init(angle: Angle, axis: Direction3D) {
         rotation = .axis(axis, angle: angle)
     }
 

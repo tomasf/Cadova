@@ -10,8 +10,8 @@ public extension Box {
             self.axisDirection = direction
         }
 
-        public var direction: Vector3D {
-            axis.directionVector(axisDirection)
+        public var direction: Direction3D {
+            axis.direction(axisDirection)
         }
 
         public static let minX = Self(axis: .x, towards: .negative)

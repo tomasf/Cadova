@@ -71,4 +71,8 @@ extension BoundingBox {
     init(_ p: (D.Primitive.Vector, D.Primitive.Vector)) {
         self.init(minimum: .init(p.0), maximum: .init(p.1))
     }
+
+    var primitive: (D.Primitive.Vector, D.Primitive.Vector) {
+        (minimum.primitive, maximum.primitive)
+    }
 }

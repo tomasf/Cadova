@@ -48,25 +48,21 @@ public extension Geometry3D {
         }
     }
 
-    /// Rotate around an arbitrary axis defined by a 3D vector and an angle.
-    ///
-    /// This modifier is used for rotating around an axis that is not necessarily aligned with the principal axes.
+    /// Rotate geometry from one direction to another.
     ///
     /// - Parameters:
-    ///   - angle: The angle of rotation around the specified axis.
-    ///   - axis: The 3D vector defining the axis of rotation.
-    func rotated(angle: Angle, axis: Vector3D) -> any Geometry3D {
-        rotated(.init(angle: angle, axis: axis))
+    ///   - from: A `Direction3D` representing the starting orientation.
+    ///   - to: A `Direction3D` representing the desired orientation.
+    func rotated(from: Direction3D = .up, to: Direction3D) -> any Geometry3D {
+        transformed(.rotation(from: from, to: to))
     }
 
-    /// Rotate geometry from one direction vector to another.
+    /// Rotate geometry around an arbitrary axis.
     ///
     /// - Parameters:
-    ///   - from: A `Vector3D` representing the starting orientation of the vector.
-    ///   - to: A `Vector3D` representing the desired orientation of the vector.
-    /// - Returns: An `AffineTransform3D` representing the rotation from the `from` vector to the `to` vector.
-
-    func rotated(from: Vector3D = .up, to: Vector3D) -> any Geometry3D {
-        transformed(.rotation(from: from, to: to))
+    ///   - angle: The angle of rotation.
+    ///   - axis: The axis of rotation, represented as a `Direction`.
+    func rotated(angle: Angle, around axis: Direction3D) -> any Geometry3D {
+        transformed(.rotation(angle: angle, around: axis))
     }
 }

@@ -89,6 +89,8 @@ extension Vector3D: Vector {
     public static func max(_ a: Self, _ b: Self) -> Self {
         Self(x: Swift.max(a.x, b.x), y: Swift.max(a.y, b.y), z: Swift.max(a.z, b.z))
     }
+
+    public var primitive: D.Primitive.Vector { self }
 }
 
 extension Vector3D: CustomDebugStringConvertible {

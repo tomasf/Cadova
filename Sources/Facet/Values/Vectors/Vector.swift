@@ -45,6 +45,7 @@ public protocol Vector: Sendable, CustomDebugStringConvertible, Collection where
     subscript(_ index: Int) -> Double { get }
 
     init(_ primitive: D.Primitive.Vector)
+    var primitive: D.Primitive.Vector { get }
 }
 
 public extension Vector {

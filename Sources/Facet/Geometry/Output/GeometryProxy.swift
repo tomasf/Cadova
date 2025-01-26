@@ -19,10 +19,16 @@ public struct GeometryProxy: @unchecked Sendable {
 
     internal init(_ geometry: any Geometry3D) {
         outputProvider = { environment in
+            let startTime = CFAbsoluteTimeGetCurrent()
             let output = geometry.evaluated(in: environment)
+            let finishTime = CFAbsoluteTimeGetCurrent()
+
+            let name = output.elements[GeometryName.self]?.name
+            print(String(format: "Generated geometry %@ in %g seconds", name ?? "?", finishTime - startTime))
+
             return (
                 ThreeMFDataProvider(output: output),
-                output.elements[GeometryName.self]?.name
+                name
             )
         }
     }

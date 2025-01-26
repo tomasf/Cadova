@@ -46,7 +46,7 @@ public extension BezierPath {
         guard !curves.isEmpty else { return .translation(startPoint) }
         return .init(
             points(in: 0...position, facets: facets).map(\.vector3D)
-                .paired().map(-)
+                .paired().map { Direction3D(from: $1, to: $0) }
                 .paired().map(AffineTransform3D.rotation(from:to:))
                 .reduce(AffineTransform3D.identity) { $0.concatenated(with: $1) }
                 .translated(point(at: position).vector3D)

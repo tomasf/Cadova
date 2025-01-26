@@ -20,6 +20,10 @@ public struct BoundingBox<D: Dimensionality>: Sendable {
         self.maximum = maximum
     }
 
+    public init(centeredSize: D.Vector) {
+        self.init(minimum: -centeredSize / 2, maximum: centeredSize / 2)
+    }
+
     public static var zero: Self { .init(.zero) }
 
     /// Initializes a new `BoundingBox` enclosing a single point.

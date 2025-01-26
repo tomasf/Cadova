@@ -4,7 +4,7 @@ internal extension EnvironmentValues {
     private static let key = Key("Facet.NaturalUpDirection")
 
     struct NaturalUpDirectionData {
-        let direction: Vector3D
+        let direction: Direction3D
         let transform: AffineTransform3D
     }
 
@@ -29,10 +29,10 @@ public extension EnvironmentValues {
     ///
     /// - Returns: A `Vector3D` representing the natural up direction, or `nil` if not set.
     ///
-    var naturalUpDirection: Vector3D? {
+    var naturalUpDirection: Direction3D? {
         naturalUpDirectionData.map { upDirection in
             let upTransform = upDirection.transform.inverse.concatenated(with: transform.inverse)
-            return (upTransform.apply(to: upDirection.direction) - upTransform.offset).normalized
+            return Direction3D(vector: upTransform.apply(to: upDirection.direction.unitVector) - upTransform.offset)
         }
     }
 
@@ -47,7 +47,7 @@ public extension EnvironmentValues {
     ///   in the XY plane, or `nil` if the natural up direction is not set.
     ///
     var naturalUpDirectionXYAngle: Angle? {
-        naturalUpDirection.map { Vector2D.zero.angle(to: $0.xy) }
+        naturalUpDirection.map { Vector2D.zero.angle(to: $0.unitVector.xy) }
     }
 
     /// Sets the natural up direction relative to the environment's local coordinate system.
@@ -60,7 +60,7 @@ public extension EnvironmentValues {
     /// - Parameter direction: A `Vector3D` representing the new natural up direction, or `nil` to remove it.
     /// - Returns: A new `EnvironmentValues` instance with the updated natural up direction.
     ///
-    func settingNaturalUpDirection(_ direction: Vector3D?) -> EnvironmentValues {
+    func settingNaturalUpDirection(_ direction: Direction3D?) -> EnvironmentValues {
         settingNaturalUpDirectionData(direction.map {
             .init(direction: $0, transform: transform)
         })
@@ -76,14 +76,14 @@ public extension Geometry3D {
     /// through `Environment.naturalUpDirection`, where it's been transformed to match that
     /// coordinate system.
     ///
-    /// - Parameter direction: The `Vector3D` representing the up direction in this geometry's
+    /// - Parameter direction: The `Direction3D` representing the up direction in this geometry's
     ///   coordinate system. The default value is `.up`.
     /// - Returns: A new instance of `Geometry3D` with the natural up direction set in its
     ///   environment.
     ///
     /// - See Also: `Teardrop`
     ///
-    func definingNaturalUpDirection(_ direction: Vector3D = .up) -> any Geometry3D {
+    func definingNaturalUpDirection(_ direction: Direction3D = .up) -> any Geometry3D {
         withEnvironment { environment in
             environment.settingNaturalUpDirection(direction)
         }
