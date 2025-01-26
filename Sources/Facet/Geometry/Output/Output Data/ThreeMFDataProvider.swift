@@ -7,7 +7,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     let fileExtension = "3mf"
 
-    func generateOutput() throws -> Data {
+    func makeModel() throws -> ThreeMF.Model {
         var outputs = output.elements[PartCatalog.self]?.mergedOutputs ?? [:]
         outputs[.main] = output
 
@@ -31,9 +31,35 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var specularProperties = SpecularDisplayProperties(id: nextObjectID())
         var specularColorGroup = ColorGroup(id: nextObjectID(), displayPropertiesID: specularProperties.id)
 
+        func addMaterial(_ material: Material) -> PropertyReference {
+            switch material.properties {
+            case .none:
+                let index = mainColorGroup.colors.firstIndex(of: material.baseColor.threeMFColor) ?? mainColorGroup.addColor(material.baseColor.threeMFColor)
+                return PropertyReference(groupID: mainColorGroup.id, index: index)
+
+            case .metallic (let metallicness, let roughness):
+                let name = material.name ?? "Metallic \(metallicProperties.metallics.count + 1)"
+                let metallic = Metallic(name: name, metallicness: metallicness, roughness: roughness)
+                let index = metallicProperties.metallics.firstIndex(of: metallic) ?? {
+                    metallicProperties.addMetallic(metallic)
+                    return metallicColorGroup.addColor(material.baseColor.threeMFColor)
+                }()
+                return PropertyReference(groupID: metallicColorGroup.id, index: index)
+
+            case .specular (let color, let glossiness):
+                let name = material.name ?? "Specular \(specularProperties.speculars.count + 1)"
+                let specular = Specular(name: name, specularColor: color.threeMFColor, glossiness: glossiness)
+                let index = specularProperties.speculars.firstIndex(of: specular) ?? {
+                    specularProperties.addSpecular(specular)
+                    return specularColorGroup.addColor(material.baseColor.threeMFColor)
+                }()
+                return PropertyReference(groupID: specularColorGroup.id, index: index)
+            }
+        }
+
         var objectCount = 0
 
-        for (outputIndex, item) in outputs.enumerated() {
+        for item in outputs {
             let output = item.value
             let identifier = item.key
 
@@ -45,20 +71,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
             let orderedMaterialMapping = Array(materialMapping?.mapping ?? [:])
 
-            let originalIDToPropertyReference = Dictionary(uniqueKeysWithValues: orderedMaterialMapping.map { originalID, material -> (D3.Primitive.OriginalID, PropertyReference) in
-                switch material.properties {
-                case .none:
-                    return (originalID, PropertyReference(groupID: mainColorGroup.id, index: mainColorGroup.addColor(material.baseColor.threeMFColor)))
-                case .metallic (let metallicness, let roughness):
-                    let name = material.name ?? "Metallic \(metallicProperties.metallics.count + 1)"
-                    metallicProperties.addMetallic(.init(name: name, metallicness: metallicness, roughness: roughness))
-                    return (originalID, PropertyReference(groupID: metallicColorGroup.id, index: metallicColorGroup.addColor(material.baseColor.threeMFColor)))
-
-                case .specular (let color, let glossiness):
-                    let name = material.name ?? "Specular \(specularProperties.speculars.count + 1)"
-                    specularProperties.addSpecular(.init(name: name, specularColor: color.threeMFColor, glossiness: glossiness))
-                    return (originalID, PropertyReference(groupID: specularColorGroup.id, index: specularColorGroup.addColor(material.baseColor.threeMFColor)))
-                }
+            let originalIDToPropertyReference = Dictionary(uniqueKeysWithValues: orderedMaterialMapping.map { originalID, material in
+                (originalID, addMaterial(material))
             })
 
             let triangles = meshData.triangles.enumerated().map { index, t in
@@ -72,12 +86,20 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 )
             }
 
+            let defaultProperty = addMaterial(identifier.defaultMaterial)
+
             let mesh = ThreeMF.Mesh(vertices: meshData.vertices.map(\.threeMFVector), triangles: triangles)
-            let object = ThreeMF.Object(id: nextObjectID(), type: .model, name: identifier.name, content: .mesh(mesh))
-            let item = ThreeMF.Item(objectID: object.id, printable: identifier.printable)
+            let object = ThreeMF.Object(
+                id: nextObjectID(),
+                type: .model,
+                name: identifier.name,
+                propertyGroupID: defaultProperty.groupID,
+                propertyIndex: defaultProperty.index,
+                content: .mesh(mesh)
+            )
 
             objects.append(object)
-            items.append(item)
+            items.append(.init(objectID: object.id, printable: identifier.printable))
             objectCount += 1
         }
 
@@ -112,17 +134,37 @@ struct ThreeMFDataProvider: OutputDataProvider {
             metadata.append(ThreeMF.Metadata(name: .creationDate, value: dateFormatter.string(from: Date())))
         }
 
-        let model = ThreeMF.Model(
+        return ThreeMF.Model(
             unit: .millimeter,
             recommendedExtensionPrefixes: [Extension.materials.prefix],
             metadata: metadata,
             resources: resources,
             buildItems: items
         )
+    }
+
+    func generateOutput() throws -> Data {
+        let startTime = CFAbsoluteTimeGetCurrent()
 
         let writer = PackageWriter()
-        writer.model = model
-        return try writer.finalize()
+        writer.model = try makeModel()
+        let data = try writer.finalize()
+
+        let finishTime = CFAbsoluteTimeGetCurrent()
+        print(String(format: "Generated 3MF archive in %g seconds", finishTime - startTime))
+
+        return data
+    }
+
+    func writeOutput(to url: URL) throws {
+        let startTime = CFAbsoluteTimeGetCurrent()
+
+        let writer = try PackageWriter(url: url)
+        writer.model = try makeModel()
+        try writer.finalize()
+
+        let finishTime = CFAbsoluteTimeGetCurrent()
+        print(String(format: "Generated 3MF archive in %g seconds", finishTime - startTime))
     }
 }
 

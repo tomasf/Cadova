@@ -81,6 +81,8 @@ extension Vector2D: Vector {
     public static func max(_ a: Self, _ b: Self) -> Self {
         Self(x: Swift.max(a.x, b.x), y: Swift.max(a.y, b.y))
     }
+
+    public var primitive: D.Primitive.Vector { self }
 }
 
 extension Vector2D: CustomDebugStringConvertible {

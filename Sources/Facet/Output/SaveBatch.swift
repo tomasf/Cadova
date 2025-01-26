@@ -11,7 +11,8 @@ public func save(to directory: URL? = nil, environment: EnvironmentValues? = nil
         }
 
         let fileURL = URL(expandingFilePath: name, extension: dataProvider.fileExtension, relativeTo: directory)
-        try! dataProvider.generateOutput().write(to: fileURL, options: .atomic)
+
+        try! dataProvider.writeOutput(to: fileURL)
         logger.info("Wrote output to \(fileURL.path)")
     }
 }

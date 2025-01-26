@@ -21,6 +21,11 @@ public struct Color: Sendable {
         self.alpha = alpha
     }
 
+    public init(_ red: Double, _ green: Double, _ blue: Double, _ alpha: Double = 1.0) {
+        self.init(red: red, green: green, blue: blue, alpha: alpha)
+    }
+
+
     /// Returns a copy of the color with a modified alpha (transparency) value.
     ///
     /// - Parameter a: The new alpha component, ranging from 0.0 (fully transparent) to 1.0 (fully opaque).

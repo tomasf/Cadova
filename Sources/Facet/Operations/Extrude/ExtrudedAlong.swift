@@ -15,7 +15,7 @@ public extension Geometry2D {
         path.readPoints(in: range) { rawPoints in
             let points = rawPoints.map(\.vector3D)
             let isClosed = points[0].distance(to: points.last!) < 0.0001
-            let rotations = ([.up] + points.paired().map { $1 - $0 })
+            let rotations = ([.up] + points.paired().map { Direction3D(from: $0, to: $1) })
                 .paired().map(AffineTransform3D.rotation(from:to:))
                 .cumulativeCombination { $0.concatenated(with: $1) }
             let lastRotation = rotations.last!

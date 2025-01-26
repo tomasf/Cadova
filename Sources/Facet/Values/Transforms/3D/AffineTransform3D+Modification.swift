@@ -40,8 +40,18 @@ public extension AffineTransform3D {
     ///   - to: A `Vector3D` representing the desired orientation of the vector.
     /// - Returns: An `AffineTransform3D` adding the rotation from the `from` vector to the `to` vector.
 
-    func rotated(from: Vector3D, to: Vector3D) -> AffineTransform3D {
+    func rotated(from: Direction3D, to: Direction3D) -> AffineTransform3D {
         concatenated(with: .rotation(from: from, to: to))
+    }
+
+    /// Creates a new `AffineTransform3D` by concatenating a rotation around an arbitrary axis.
+    ///
+    /// - Parameters:
+    ///   - angle: The angle of rotation.
+    ///   - axis: The axis of rotation, represented as a `Direction`.
+    /// - Returns: An `AffineTransform3D` adding the rotation.
+    func rotated(angle: Angle, around axis: Direction3D) -> AffineTransform3D {
+        concatenated(with: .rotation(angle: angle, around: axis))
     }
 
     /// Creates a new `AffineTransform3D` by concatenating a shearing transformation with this transformation.

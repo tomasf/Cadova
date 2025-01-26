@@ -87,7 +87,7 @@ public extension Geometry3D {
         _ anchor: Anchor,
         at alignment: GeometryAlignment3D...,
         offset: Vector3D = .zero,
-        pointing direction: Vector3D = .up,
+        pointing direction: Direction3D = .up,
         rotated rotation: Angle = 0°
     ) -> any Geometry3D {
         definingAnchor(

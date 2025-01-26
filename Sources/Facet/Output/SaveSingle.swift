@@ -34,7 +34,8 @@ internal extension GeometryProxy {
         let (dataProvider, _) = evaluated(in: environment)
 
         let finalURL = url.withRequiredExtension(dataProvider.fileExtension)
-        try! dataProvider.generateOutput().write(to: finalURL, options: .atomic)
+
+        try! dataProvider.writeOutput(to: finalURL)
         logger.info("Wrote output to \(finalURL.path)")
     }
 }

@@ -23,7 +23,7 @@ public extension Geometry3D {
                 .rotated(edge.profileRotation)
                 .extruded(height: box.size[edge.axis] + 2 * epsilon)
                 .translated(z: -epsilon)
-                .rotated(from: .up, to: edge.axis.directionVector(.positive))
+                .rotated(from: .up, to: edge.axis.direction(.positive))
                 .flipped(along: edge.flippedProfileAxes)
                 .translated(edge.unitOffset * box.size)
                 .translated(box.minimum)

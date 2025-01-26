@@ -46,4 +46,13 @@ internal enum PartIdentifier: Hashable {
         case .named(let name): return name
         }
     }
+
+    var defaultMaterial: Material {
+        switch self {
+        case .main: .init(baseColor: .white)
+        case .highlight: .init(baseColor: .red.withAlphaComponent(0.2))
+        case .background: .init(baseColor: .gray.withAlphaComponent(0.1))
+        case .named(let string): .init(baseColor: .white)
+        }
+    }
 }

@@ -1,14 +1,14 @@
 import Foundation
 import Manifold3D
 
-internal struct Material {
-    let baseColor: Color
+public struct Material {
     let name: String?
+    let baseColor: Color
     let properties: Properties?
 
-    init(baseColor: Color, name: String? = nil, properties: Properties? = nil) {
-        self.baseColor = baseColor
+    init(name: String? = nil, baseColor: Color, properties: Properties? = nil) {
         self.name = name
+        self.baseColor = baseColor
         self.properties = properties
     }
 

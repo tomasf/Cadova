@@ -70,37 +70,13 @@ public extension AffineTransform3D {
         return transform
     }
 
-    static func rotation(axis vector: Vector3D, angle: Angle) -> AffineTransform3D {
-        let axis = vector.normalized
-        var transform = identity
-        let c = cos(angle)
-        let s = sin(angle)
-        let t = 1 - c
-        let x = axis.x, y = axis.y, z = axis.z
-        let nx = t * x, ny = t * y
-
-        transform[0, 0] = c + nx * x
-        transform[0, 1] = nx * y - s * z
-        transform[0, 2] = nx * z + s * y
-
-        transform[1, 0] = ny * x + s * z
-        transform[1, 1] = c + ny * y
-        transform[1, 2] = ny * z - s * x
-
-        transform[2, 0] = t * x * z - s * y
-        transform[2, 1] = t * y * z + s * x
-        transform[2, 2] = c + t * z * z
-
-        return transform
-    }
-
     /// Creates a rotation `AffineTransform3D` using a Rotation3D structure
     static func rotation(_ r: Rotation3D) -> AffineTransform3D {
         switch r.rotation {
         case .eulerAngles (let x, let y, let z):
             return rotation(x: x, y: y, z: z)
         case .axis(let axis, let angle):
-            return rotation(axis: axis, angle: angle)
+            return rotation(angle: angle, around: axis)
         }
     }
 
@@ -113,10 +89,41 @@ public extension AffineTransform3D {
     ///   - to: A `Vector3D` representing the desired orientation of the vector.
     /// - Returns: An `AffineTransform3D` representing the rotation from the `from` vector to the `to` vector.
 
-    static func rotation(from: Vector3D, to: Vector3D) -> AffineTransform3D {
-        let axis = from.normalized × to.normalized
-        let angle: Angle = acos(from.normalized ⋅ to.normalized)
-        return .rotation(axis: axis, angle: angle)
+    static func rotation(from: Direction3D, to: Direction3D) -> AffineTransform3D {
+        let axis = Direction3D(vector: from.unitVector × to.unitVector)
+        let angle: Angle = acos(from.unitVector ⋅ to.unitVector)
+        return .rotation(angle: angle, around: axis)
+    }
+
+    /// Creates a rotation `AffineTransform3D` around an arbitrary axis.
+    ///
+    /// - Parameters:
+    ///   - angle: The angle of rotation.
+    ///   - axis: The axis of rotation, represented as a `Direction`.
+    /// - Returns: An `AffineTransform3D` representing the rotation around the given axis.
+    static func rotation(angle: Angle, around axis: Direction3D) -> AffineTransform3D {
+        let x = axis.unitVector.x
+        let y = axis.unitVector.y
+        let z = axis.unitVector.z
+
+        let c = cos(angle)
+        let s = sin(angle)
+        let t = 1 - c
+
+        var transform = identity
+        transform[0, 0] = c + t * x * x
+        transform[0, 1] = t * x * y - s * z
+        transform[0, 2] = t * x * z + s * y
+
+        transform[1, 0] = t * y * x + s * z
+        transform[1, 1] = c + t * y * y
+        transform[1, 2] = t * y * z - s * x
+
+        transform[2, 0] = t * z * x - s * y
+        transform[2, 1] = t * z * y + s * x
+        transform[2, 2] = c + t * z * z
+
+        return transform
     }
 
     /// Creates a shearing `AffineTransform3D` that skews along one axis with respect to another axis.

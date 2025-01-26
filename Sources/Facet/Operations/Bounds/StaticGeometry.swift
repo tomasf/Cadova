@@ -36,3 +36,15 @@ extension Geometry3D {
         }
     }
 }
+
+extension D2.Primitive {
+    func geometry(with elements: ResultElementsByType) -> any Geometry2D {
+        StaticGeometry(output: Output2D(primitive: self, elements: elements))
+    }
+}
+
+extension D3.Primitive {
+    func geometry(with elements: ResultElementsByType) -> any Geometry3D {
+        StaticGeometry(output: Output3D(primitive: self, elements: elements))
+    }
+}
