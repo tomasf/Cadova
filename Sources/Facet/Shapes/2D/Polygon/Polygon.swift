@@ -45,7 +45,7 @@ public struct Polygon: Geometry2D, LeafGeometry {
     @Environment private var environment
 
     var body: D2.Primitive {
-        .init(polygons: [.init(vertices: points(in: environment))], fillRule: fillRule.primitive)
+        D2.Primitive(polygons: [Manifold3D.Polygon(vertices: points(in: environment))], fillRule: fillRule.primitive)
     }
 }
 

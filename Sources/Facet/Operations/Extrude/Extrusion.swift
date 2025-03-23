@@ -24,7 +24,11 @@ public extension Geometry2D {
     ///   - scale: The final scale at the top of the extruded shape. The geometry is scaled linearly from 1.0 at the bottom.
     func extruded(height: Double, twist: Angle = 0°, scale: Vector2D = [1, 1]) -> any Geometry3D {
         extruded { primitive, _ in
-            primitive.extrude(height: height, divisions: 0, twist: twist.degrees, scaleTop: scale)
+            if primitive.isEmpty {
+                .empty
+            } else {
+                primitive.extrude(height: height, divisions: 0, twist: twist.degrees, scaleTop: scale)
+            }
         }
     }
 

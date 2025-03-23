@@ -20,6 +20,11 @@ public extension Plane {
         self.offset = point1
         self.normal = .init(vector: normalVector)
     }
+
+    init(perpendicularTo axis: Axis3D, at offset: Double = 0) {
+        let direction = Direction(axis, .positive)
+        self.init(offset: direction.unitVector * offset, normal: direction)
+    }
 }
 
 public extension Plane {

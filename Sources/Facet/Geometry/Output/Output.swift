@@ -6,7 +6,7 @@ public struct Output<D: Dimensionality> {
     internal let elements: ResultElementsByType
 
     internal init(primitive: D.Primitive, elements: ResultElementsByType) {
-        if let mesh = primitive as? D3.Primitive, mesh.isEmpty, let error = mesh.status {
+        if let mesh = primitive as? D3.Primitive, let error = mesh.status { //mesh.isEmpty
             preconditionFailure("Invalid mesh: \(error)")
         }
         self.primitive = primitive
@@ -28,12 +28,21 @@ public struct Output<D: Dimensionality> {
         Self(primitive: primitive, elements: elements.setting(value))
     }
 
-    func modifyingManifold(_ modifier: (D.Primitive) -> D.Primitive) -> Self {
+    func modifyingPrimitive(_ modifier: (D.Primitive) -> D.Primitive) -> Self {
         Self(primitive: modifier(primitive), elements: elements)
     }
 
-    func withManifold(_ newPrimitive: D.Primitive) -> Self {
+    func replacingPrimitive(with newPrimitive: D.Primitive) -> Self {
         Self(primitive: newPrimitive, elements: elements)
+    }
+
+    func applyingTransform(_ transform: AffineTransform3D) -> Self {
+        modifyingPrimitive { $0.applyingTransform(transform) }
+            .modifyingElement(PartCatalog.self) { $0?.applyingTransform(.init(transform)) }
+    }
+
+    var asGeometry: StaticGeometry<D> {
+        StaticGeometry(output: self)
     }
 }
 
@@ -133,7 +142,7 @@ internal extension Output where D == D3 {
     }
 
     var boundingBox: BoundingBox3D? {
-        .init(primitive.bounds)
+        primitive.isEmpty ? nil : .init(primitive.bounds)
     }
 }
 

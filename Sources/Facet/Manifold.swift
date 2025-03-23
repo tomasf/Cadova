@@ -53,18 +53,28 @@ public protocol PrimitiveGeometry {
     static func hull(_ points: [Vector]) -> Self
 
     func warp(_ function: @escaping (Vector) -> Vector) -> Self
+
+    func applyingTransform(_ transform: AffineTransform3D) -> Self
 }
 
 extension CrossSection: PrimitiveGeometry {
     public typealias Vector = any Vector2
     public typealias Matrix = any Matrix2x3
     public typealias Rotation = Double
+
+    public func applyingTransform(_ transform3D: AffineTransform3D) -> Self {
+        transform(AffineTransform2D(transform3D))
+    }
 }
 
 extension Manifold: PrimitiveGeometry {
     public typealias Vector = any Vector3
     public typealias Matrix = any Matrix3x4
     public typealias Rotation = any Vector3
+
+    public func applyingTransform(_ transform3D: AffineTransform3D) -> Self {
+        transform(transform3D)
+    }
 }
 
 extension BoundingBox {

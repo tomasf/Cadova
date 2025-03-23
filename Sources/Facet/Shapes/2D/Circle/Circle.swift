@@ -113,6 +113,10 @@ public extension Circle {
 
         return radius - ((radius * radius) - ((chordLength / 2.0) * (chordLength / 2.0))).squareRoot()
     }
+
+    var circumference: Double {
+        diameter * .pi
+    }
 }
 
 extension Circle: Area2D {

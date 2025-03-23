@@ -1,6 +1,6 @@
 import Foundation
 
-struct PartCatalog: ResultElement {
+internal struct PartCatalog: ResultElement {
     var parts: [PartIdentifier: [Output3D]]
 
     init(parts: [PartIdentifier: [Output3D]]) {
@@ -30,6 +30,16 @@ struct PartCatalog: ResultElement {
             Output3D(primitive: .boolean(.union, with: outputs.map(\.primitive)), elements: .init(combining: outputs.map(\.elements), operation: .union))
         }
     }
+
+    func modifyingPrimitives(_ modifier: (D3.Primitive) -> D3.Primitive) -> Self {
+        .init(parts: parts.mapValues {
+            $0.map { $0.modifyingPrimitive(modifier)}
+        })
+    }
+
+    func applyingTransform(_ transform: AffineTransform3D) -> Self {
+        modifyingPrimitives { $0.transform(transform) }
+    }
 }
 
 internal enum PartIdentifier: Hashable {
@@ -43,7 +53,7 @@ internal enum PartIdentifier: Hashable {
         case .main: return "main"
         case .highlight: return "highlight"
         case .background: return "background"
-        case .named(let name): return name
+        case .named (let name): return name
         }
     }
 
@@ -52,7 +62,7 @@ internal enum PartIdentifier: Hashable {
         case .main: .init(baseColor: .white)
         case .highlight: .init(baseColor: .red.withAlphaComponent(0.2))
         case .background: .init(baseColor: .gray.withAlphaComponent(0.1))
-        case .named(let string): .init(baseColor: .white)
+        case .named: .init(baseColor: .white)
         }
     }
 }

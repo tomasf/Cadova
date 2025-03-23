@@ -8,12 +8,9 @@ struct PartAssignment: Geometry3D {
     func evaluated(in environment: EnvironmentValues) -> Output3D {
         let output = body.evaluated(in: environment)
         return output.modifyingElement(PartCatalog.self) { catalog in
-            (catalog ?? .init()).adding(
-                part: output.modifyingManifold { $0.transform(environment.transform) },
-                to: identifier
-            )
+            (catalog ?? .init()).adding(part: output, to: identifier)
         }
-        .modifyingManifold { isSeparated ? .empty : $0 }
+        .modifyingPrimitive { isSeparated ? .empty : $0 }
     }
 }
 
@@ -31,7 +28,7 @@ public extension Geometry3D {
         PartAssignment(body: self, isSeparated: true, identifier: .named(name))
     }
 
-    func disabled() -> any Geometry3D {
+    func hidden() -> any Geometry3D {
         Empty()
     }
 }

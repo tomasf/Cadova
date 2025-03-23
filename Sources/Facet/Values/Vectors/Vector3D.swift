@@ -48,6 +48,10 @@ public struct Vector3D: ExpressibleByArrayLiteral, Hashable, Sendable {
     public init(_ getter: (Axis3D) -> Double) {
         self.init(x: getter(.x), y: getter(.y), z: getter(.z))
     }
+
+    public static func x(_ value: Double) -> Self { Self(x: value) }
+    public static func y(_ value: Double) -> Self { Self(y: value) }
+    public static func z(_ value: Double) -> Self { Self(z: value) }
 }
 
 public extension Vector3D {
