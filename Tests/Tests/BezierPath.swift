@@ -1,5 +1,5 @@
 import Testing
-@testable import Facet
+@testable import Cadova
 
 struct BezierPathTests {
     let linearPoints: [Vector3D] = [[56.2, 64, 2], [25.1, 34, 100], [0, -24, 55]]

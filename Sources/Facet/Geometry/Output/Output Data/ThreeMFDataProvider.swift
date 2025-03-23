@@ -128,7 +128,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         var metadata = output.elements[MetadataContainer.self]?.metadata ?? []
         if !metadata.contains(where: { $0.name == .application }) {
-            metadata.append(ThreeMF.Metadata(name: .application, value: "Facet - http://facetcad.org/"))
+            metadata.append(ThreeMF.Metadata(name: .application, value: "Cadova - http://cadova.org/"))
         }
         if !metadata.contains(where: { $0.name == .creationDate }) {
             metadata.append(ThreeMF.Metadata(name: .creationDate, value: dateFormatter.string(from: Date())))

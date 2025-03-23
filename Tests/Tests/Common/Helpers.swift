@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Facet
+@testable import Cadova
 
 fileprivate extension URL {
     static func testSCADFile(named fileName: String) -> URL {
@@ -8,7 +8,7 @@ fileprivate extension URL {
     }
 
     static func testSCADFileInSource(named fileName: String) -> URL {
-        URL.homeDirectory.appendingPathComponent("Documents/Projects/Facet/Tests/Tests/SCAD/\(fileName).scad")
+        URL.homeDirectory.appendingPathComponent("Documents/Projects/Cadova/Tests/Tests/SCAD/\(fileName).scad")
     }
 }
 

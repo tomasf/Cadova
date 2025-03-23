@@ -1,5 +1,5 @@
 import Testing
-import Facet
+import Cadova
 
 struct EnvironmentTest {
     @Test func injection(){
@@ -47,7 +47,7 @@ fileprivate struct TestShape: Shape3D {
 }
 
 fileprivate extension EnvironmentValues {
-    private static let key = Key("Facet.TestValue")
+    private static let key = Key("Cadova.TestValue")
 
     var testEnvironmentValue: Int {
         self[Self.key] as? Int ?? 0

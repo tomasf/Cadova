@@ -1,5 +1,5 @@
 import Testing
-@testable import Facet
+@testable import Cadova
 
 struct Geometry2DTests {
     @Test func basic2D() {
@@ -49,7 +49,7 @@ struct Geometry2DTests {
     }
 
     @Test func text() {
-        Text("Facet")
+        Text("Cadova")
             .usingFont("Helvetica", size: 14)
             .usingTextAlignment(horizontal: .left, vertical: .bottom)
             .offset(amount: 0.4, style: .miter)

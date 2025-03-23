@@ -2,14 +2,14 @@ import Foundation
 import Manifold3D
 
 public protocol Dimensionality {
-    associatedtype Vector: Facet.Vector where Vector.D == Self
-    associatedtype Transform: Facet.AffineTransform where Transform.D == Self
-    associatedtype Axis: Facet.Axis
+    associatedtype Vector: Cadova.Vector where Vector.D == Self
+    associatedtype Transform: Cadova.AffineTransform where Transform.D == Self
+    associatedtype Axis: Cadova.Axis
     associatedtype Geometry
     associatedtype Primitive: PrimitiveGeometry
     typealias Axes = Set<Axis>
     typealias Alignment = GeometryAlignment<Self>
-    typealias Direction = Facet.Direction<Self>
+    typealias Direction = Cadova.Direction<Self>
 }
 
 public struct D2: Dimensionality {

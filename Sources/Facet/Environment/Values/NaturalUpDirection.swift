@@ -1,7 +1,7 @@
 import Foundation
 
 internal extension EnvironmentValues {
-    private static let key = Key("Facet.NaturalUpDirection")
+    private static let key = Key("Cadova.NaturalUpDirection")
 
     struct NaturalUpDirectionData {
         let direction: Direction3D

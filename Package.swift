@@ -3,9 +3,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "Facet",
+    name: "Cadova",
     products: [
-        .library(name: "Facet", targets: ["Facet"]),
+        .library(name: "Cadova", targets: ["Cadova"]),
     ],
     dependencies: [
         .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "0.1.0")),
@@ -15,7 +15,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Facet",
+            name: "Cadova",
             dependencies: [
                 .product(name: "Manifold", package: "manifold-swift"),
                 .product(name: "ThreeMF", package: "ThreeMF"),
@@ -29,8 +29,7 @@ let package = Package(
         /*
         .testTarget(
             name: "Tests",
-            dependencies: ["Facet"],
-            resources: [.copy("SCAD")]
+            dependencies: ["Cadova"]
         )
          */
     ],

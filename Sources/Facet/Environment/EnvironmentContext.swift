@@ -1,7 +1,7 @@
 import Foundation
 
 private class EnvironmentContext {
-    private static let key = "Facet.EnvironmentContext"
+    private static let key = "Cadova.EnvironmentContext"
     private var stack: [EnvironmentValues] = []
 
     static var threadLocal: EnvironmentContext {

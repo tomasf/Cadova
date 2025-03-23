@@ -1,7 +1,7 @@
 import Foundation
 
 public extension EnvironmentValues {
-    static private let environmentKey = Key("Facet.Facets")
+    static private let environmentKey = Key("Cadova.Facets")
 
     /// An enumeration representing the method for calculating the number of facets (or segments) used in rendering circular geometries.
     enum Facets: Sendable {

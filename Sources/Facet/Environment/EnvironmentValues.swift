@@ -2,7 +2,7 @@ import Foundation
 
 /// `EnvironmentValues` provides a flexible container for environment-specific values influencing the rendering of geometries.
 ///
-/// You can use `EnvironmentValues` to customize settings and attributes that affect child geometries within Facet. Modifiers allow for dynamic adjustments of the environment, which can be applied to geometries to affect their rendering or behavior.
+/// You can use `EnvironmentValues` to customize settings and attributes that affect child geometries within Cadova. Modifiers allow for dynamic adjustments of the environment, which can be applied to geometries to affect their rendering or behavior.
 public struct EnvironmentValues: Sendable {
     private let values: [Key: any Sendable]
 
