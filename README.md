@@ -1,69 +1,64 @@
-# Facet
-Facet is a library that allows you to create 3D and 2D CAD models in Swift. It acts as a preprocessor for [OpenSCAD][openscad], generating .scad files that can be previewed and rendered using the OpenSCAD application. This offers a more convenient API, breaking away from the limitations of the OpenSCAD language.
+# Cadova
+Cadova is a CAD library for Swift that allows you to create models for 3D printing. Cadova runs on macOS, Windows and Linux.
 
-Facet runs on macOS, Windows and Linux.
-
-[![Swift](https://github.com/tomasf/Facet/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/Facet/actions/workflows/swift.yml)
+[![Swift](https://github.com/tomasf/Cadova/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/Cadova/actions/workflows/swift.yml)
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
 
 # Getting Started
-> tl;dr: Create a new executable Swift package, add Facet as a dependency, import it in your code, create geometry and use the `save(to:)` method to save it to disk as an OpenSCAD file.
+> tl;dr: Create a new executable Swift package, add Cadova as a dependency, import it in your code, create geometry and use the `save(to:)` method to save a 3MF file to disk.
 
-## 1. Install OpenSCAD
-[Install OpenSCAD][openscad-download] in order to preview and render your models. Use a development snapshot version because the stable releases are usually very old.
-
-## 2. Install Swift
+## 1. Install Swift
 If you're using macOS, it's easiest to [install the latest version of Xcode][xcode].
 
 For Windows and Linux, [install Swift directly][swift]. I also recommend [installing VS Code][vscode] with the [Swift extension][swift-extension] to make development easier.
 
-## 3. Create a new Swift executable package:
+## 2. Create a new Swift executable package:
 ```
 $ mkdir thingamajig
 $ cd thingamajig
 $ swift package init --type executable
 ```
 
-## 4. Add Facet as a dependency for your package in Package.swift:
+## 3. Add Cadova as a dependency for your package in Package.swift:
 
 <pre>
 let package = Package(
     name: "thingamajig",
     dependencies: [
-        <b><i>.package(url: "https://github.com/tomasf/Facet.git", upToNextMinor(from: "0.9.0")),</i></b>
+        <b><i>.package(url: "https://github.com/tomasf/Cadova.git", upToNextMinor(from: "0.1.0")),</i></b>
     ],
     targets: [
-        .executableTarget(name: "thingamajig", dependencies: [<b><i>"Facet"</i></b>])
+        .executableTarget(name: "thingamajig", dependencies: [<b><i>"Cadova"</i></b>])
     ]
 )
 </pre>
 
-## 5. Use Facet
-In `main.swift`, import Facet, create geometry and save it:
+## 4. Use Cadova
+In `main.swift`, import Cadova, create geometry and save it:
 
 ```swift
-import Facet
+import Cadova
 
 Box([10, 10, 5])
     .subtracting {
         Sphere(diameter: 10)
             .translated(z: 5)
     }
-    .save(to: "gadget.scad")
+    .save(to: "gadget")
 ```
 
-Run your code using `swift run` (or using Xcode/VS Code) to generate the `.scad` file. By default, the files are saved to the current working directory. The full path will be printed in the console.
+Run your code using `swift run` (or using Xcode/VS Code) to generate the 3MF file. By default, the files are saved to the current working directory. The full path will be printed in the console.
 
-Open it in OpenSCAD to preview your model. For the best experience, hide the editor view using *View > Hide Editor* and enable *Design > Automatic Reload and Preview*. With this in place, OpenSCAD will reload automatically every time you run your code after making changes to the model.
+Open it in a viewer to preview your model or in your slicer to prepare for 3D printing.
 
 # Libraries
-* [Helical][helical] - A Facet library providing customizable threads, screws, bolts, nuts and related parts.
-* [RichText][richtext] - TextKit-based companion library for Facet (macOS only)
+* [Helical][helical] - A Cadova library providing customizable threads, screws, bolts, nuts and related parts.
+* [RichText][richtext] - TextKit-based companion library for Cadova (macOS only)
 
 # Examples
 
 ## Rotated box
-![Example 1](https://tomasf.se/projects/Facet/examples/example1.png)
+![Example 1](https://tomasf.se/projects/Cadova/examples/example1.png)
 
 ```swift
 Box(x: 10, y: 20, z: 5)
@@ -73,7 +68,7 @@ Box(x: 10, y: 20, z: 5)
 ```
 
 ## Extruded star with subtraction
-![Example 2](https://tomasf.se/projects/Facet/examples/example2.png)
+![Example 2](https://tomasf.se/projects/Cadova/examples/example2.png)
 
 ```swift
 Circle(diameter: 10)
@@ -93,7 +88,7 @@ Circle(diameter: 10)
 ```
 
 ## Reusable star shape
-![Example 3](https://tomasf.se/projects/Facet/examples/example3.png)
+![Example 3](https://tomasf.se/projects/Cadova/examples/example3.png)
 
 ```swift
 struct Star: Shape2D {
@@ -123,7 +118,7 @@ save {
 ```
 
 ## Extruding along a Bezier path
-![Example 4](https://tomasf.se/projects/Facet/examples/example4.png)
+![Example 4](https://tomasf.se/projects/Cadova/examples/example4.png)
 
 ```swift
 let path = BezierPath2D(startPoint: .zero)

@@ -1,7 +1,7 @@
 import Foundation
 
 public extension EnvironmentValues {
-    private static let key = Key("Facet.Color")
+    private static let key = Key("Cadova.Color")
 
     /// The color value currently set in the environment.
     ///

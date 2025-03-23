@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Facet
+@testable import Cadova
 
 struct Geometry3DTests {
     @Test func basic3D() {

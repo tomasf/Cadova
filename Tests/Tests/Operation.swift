@@ -1,5 +1,5 @@
 import Testing
-@testable import Facet
+@testable import Cadova
 
 struct OperationTests {
     @Test func operations() {

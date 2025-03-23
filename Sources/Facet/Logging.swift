@@ -1,4 +1,4 @@
 import Foundation
 import Logging
 
-internal let logger = Logger(label: "se.tomasf.Facet")
+internal let logger = Logger(label: "se.tomasf.Cadova")

@@ -1,5 +1,5 @@
 import Testing
-@testable import Facet
+@testable import Cadova
 
 #if canImport(simd)
 import simd

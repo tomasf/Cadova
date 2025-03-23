@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-import Facet
+import Cadova
 
 struct ColorTests {
     // A tree wrapped in a color modifier declares its colors directly

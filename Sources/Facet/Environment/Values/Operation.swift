@@ -1,7 +1,7 @@
 import Foundation
 
 public extension EnvironmentValues {
-    private static let key = Key("Facet.Operation")
+    private static let key = Key("Cadova.Operation")
 
     /// Represents a geometric operation, specifically for determining if geometries are being added or subtracted.
     enum Operation: Sendable {
