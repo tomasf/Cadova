@@ -12,18 +12,21 @@ public struct BezierPath <V: Vector>: Sendable {
     let startPoint: V
     let curves: [Curve]
 
-    var endPoint: V {
-        curves.last?.controlPoints.last ?? startPoint
-    }
-
     init(startPoint: V, curves: [Curve]) {
         self.startPoint = startPoint
         self.curves = curves
     }
+}
+
+internal extension BezierPath {
+    typealias Curve = BezierCurve<V>
+
+    var endPoint: V {
+        curves.last?.controlPoints.last ?? startPoint
+    }
 
     func adding(curve: Curve) -> BezierPath {
-        let newCurves = curves + [curve]
-        return BezierPath(startPoint: startPoint, curves: newCurves)
+        BezierPath(startPoint: startPoint, curves: curves + [curve])
     }
 
     func continuousControlPoint(distance: Double) -> V {
@@ -32,6 +35,7 @@ public struct BezierPath <V: Vector>: Sendable {
         }
         return endPoint + previousCurve.endDirection * distance
     }
+
 }
 
 public extension BezierPath {
