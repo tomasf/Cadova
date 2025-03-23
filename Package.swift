@@ -1,19 +1,15 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 
 import PackageDescription
 
 let package = Package(
     name: "Facet",
     products: [
-        .library(
-            name: "Facet",
-            targets: ["Facet"]
-        ),
+        .library(name: "Facet", targets: ["Facet"]),
     ],
     dependencies: [
-        //.package(url: "https://github.com/tomasf/manifold-swift.git", branch: "main"),
-        .package(path: "../manifold-swift"),
-        .package(path: "../ThreeMF"),
+        .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/tomasf/ThreeMF.git", branch: "main"),
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
     ],
@@ -26,7 +22,9 @@ let package = Package(
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Logging", package: "swift-log"),
             ],
-            swiftSettings: [.interoperabilityMode(.Cxx)]
+            swiftSettings: [
+                .interoperabilityMode(.Cxx)
+            ]
         ),
         /*
         .testTarget(
@@ -35,5 +33,6 @@ let package = Package(
             resources: [.copy("SCAD")]
         )
          */
-    ]
+    ],
+    cxxLanguageStandard: .cxx17
 )

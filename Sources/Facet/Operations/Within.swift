@@ -60,12 +60,12 @@ public extension Geometry3D {
         y: (any RangeExpression<Double>)? = nil,
         z: (any RangeExpression<Double>)? = nil
     ) -> any Geometry3D {
-        measuring { _, measurements in
+        measuring { geometry, measurements in
             var box = measurements.boundingBox ?? .universe
             box = box.partialBox(from: x?.min, to: x?.max, in: .x)
             box = box.partialBox(from: y?.min, to: y?.max, in: .y)
             box = box.partialBox(from: z?.min, to: z?.max, in: .z)
-            self.intersecting { box.mask }
+            geometry.intersecting { box.mask }
         }
     }
 }

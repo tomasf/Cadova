@@ -136,7 +136,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         return ThreeMF.Model(
             unit: .millimeter,
-            recommendedExtensionPrefixes: [Extension.materials.prefix],
+            recommendedExtensions: [.materials],
             metadata: metadata,
             resources: resources,
             buildItems: items

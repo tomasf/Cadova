@@ -39,9 +39,9 @@ extension Stack<D2>: Geometry2D, Shape2D {
     public var body: any Geometry2D {
         var offset = 0.0
         for geometry in items {
-            if let box = geometry.evaluated(in: environment).boundingBox {
-                geometry
-                    .translated(box.translation(for: alignment) + .init(axis, value: offset))
+            let output = geometry.evaluated(in: environment)
+            if let box = output.boundingBox {
+                output.asGeometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
                 offset += box.size[axis] + spacing
             }
         }
@@ -68,9 +68,9 @@ extension Stack<D3>: Geometry3D, Shape3D {
     public var body: any Geometry3D {
         var offset = 0.0
         for geometry in items {
-            if let box = geometry.evaluated(in: environment).boundingBox {
-                geometry
-                    .translated(box.translation(for: alignment) + .init(axis, value: offset))
+            let output = geometry.evaluated(in: environment)
+            if let box = output.boundingBox {
+                output.asGeometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
                 offset += box.size[axis] + spacing
             }
         }

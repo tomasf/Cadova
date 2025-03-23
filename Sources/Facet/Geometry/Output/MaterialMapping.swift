@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-public struct Material {
+public struct Material: Sendable {
     let name: String?
     let baseColor: Color
     let properties: Properties?

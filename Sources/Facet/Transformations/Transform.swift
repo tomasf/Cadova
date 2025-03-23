@@ -5,7 +5,7 @@ public extension Geometry2D {
     /// - Parameter transform: The transformation to be applied.
     /// - Returns: A transformed `Geometry2D`.
     func transformed(_ transform: AffineTransform2D) -> any Geometry2D {
-        modifyingPrimitive { p, _ in p.transform(transform) }
+        modifyingOutput { o, _ in o.applyingTransform(.init(transform)) }
     }
 
     /// Applies a shearing transformation to the 2D geometry.
@@ -32,7 +32,7 @@ public extension Geometry3D {
     /// - Parameter transform: The transformation to be applied.
     /// - Returns: A transformed `Geometry3D`.
     func transformed(_ transform: AffineTransform3D) -> any Geometry3D {
-        modifyingPrimitive { p, _ in p.transform(transform) }
+        modifyingOutput { o, _ in o.applyingTransform(transform) }
     }
 
     /// Applies a shearing transformation to the 3D geometry.

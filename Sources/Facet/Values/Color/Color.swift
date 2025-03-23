@@ -25,6 +25,10 @@ public struct Color: Sendable {
         self.init(red: red, green: green, blue: blue, alpha: alpha)
     }
 
+    public init(brightness: Double, alpha: Double = 1.0) {
+        self.init(red: brightness, green: brightness, blue: brightness, alpha: alpha)
+    }
+
 
     /// Returns a copy of the color with a modified alpha (transparency) value.
     ///

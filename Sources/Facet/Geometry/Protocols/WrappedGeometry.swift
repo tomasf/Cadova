@@ -3,22 +3,22 @@ import Manifold3D
 
 internal protocol WrappedGeometry2D: Geometry2D {
     var body: any Geometry2D { get }
-    func process(_ child: CrossSection, in environment: EnvironmentValues) -> CrossSection
+    func process(_ output: Output2D, in environment: EnvironmentValues) -> Output2D
 }
 
 extension WrappedGeometry2D {
     func evaluated(in environment: EnvironmentValues) -> Output {
-        .init(wrapping: body, environment: environment, transformation: { process($0, in: environment) })
+        process(body.evaluated(in: environment), in: environment)
     }
 }
 
 internal protocol WrappedGeometry3D: Geometry3D {
     var body: any Geometry3D { get }
-    func process(_ child: D3.Primitive, in environment: EnvironmentValues) -> D3.Primitive
+    func process(_ output: Output3D, in environment: EnvironmentValues) -> Output3D
 }
 
 extension WrappedGeometry3D {
     func evaluated(in environment: EnvironmentValues) -> Output {
-        .init(wrapping: body, environment: environment, transformation: { process($0, in: environment) })
+        process(body.evaluated(in: environment), in: environment)
     }
 }

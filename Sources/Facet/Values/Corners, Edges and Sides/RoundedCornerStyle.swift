@@ -21,9 +21,10 @@ internal extension Polygon {
     static func squircleCorner(radius: Double, facets: EnvironmentValues.Facets) -> Polygon {
         let facetCount = facets.facetCount(circleRadius: radius)
         let radius4th = pow(radius, 4.0)
+        let multiplier = Double.pi / 2.0 / Double(facetCount)
 
         return Polygon((0...facetCount).map { facet -> Vector2D in
-            let x = cos(.pi / 2.0 / Double(facetCount) * Double(facet)) * radius
+            let x = cos(multiplier * Double(facet)) * radius
             let y = pow(radius4th - pow(x, 4.0), 0.25)
             return Vector2D(x, y)
         })

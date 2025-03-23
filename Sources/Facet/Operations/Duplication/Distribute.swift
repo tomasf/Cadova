@@ -9,8 +9,10 @@ extension Geometry2D {
     
     @GeometryBuilder2D
     public func distributed(at offsets: any Sequence<Double>, along axis: Axis2D) -> any Geometry2D {
-        for offset in offsets {
-            translated(Vector2D(axis, value: offset))
+        statically { item in
+            for offset in offsets {
+                item.translated(Vector2D(axis, value: offset))
+            }
         }
     }
     
@@ -21,8 +23,10 @@ extension Geometry2D {
     
     @GeometryBuilder2D
     public func distributed(at angles: any Sequence<Angle>) -> any Geometry2D {
-        for angle in angles {
-            rotated(angle)
+        statically { item in
+            for angle in angles {
+                item.rotated(angle)
+            }
         }
     }
     
@@ -33,8 +37,10 @@ extension Geometry2D {
     
     @GeometryBuilder2D
     public func distributed(at offsets: any Sequence<Vector2D>) -> any Geometry2D {
-        for offset in offsets {
-            translated(offset)
+        statically { item in
+            for offset in offsets {
+                item.translated(offset)
+            }
         }
     }
     
@@ -58,8 +64,10 @@ extension Geometry3D {
     
     @GeometryBuilder3D
     public func distributed(at offsets: any Sequence<Double>, along axis: Axis3D) -> any Geometry3D {
-        for offset in offsets {
-            translated(Vector3D(axis, value: offset))
+        statically { item in
+            for offset in offsets {
+                item.translated(Vector3D(axis, value: offset))
+            }
         }
     }
     
@@ -71,8 +79,10 @@ extension Geometry3D {
     
     @GeometryBuilder3D
     public func distributed(at angles: any Sequence<Angle>, around axis: Axis3D) -> any Geometry3D {
-        for angle in angles {
-            rotated(angle: angle, axis: axis)
+        statically { item in
+            for angle in angles {
+                item.rotated(angle: angle, axis: axis)
+            }
         }
     }
     
@@ -83,8 +93,10 @@ extension Geometry3D {
     
     @GeometryBuilder3D
     public func distributed(at points: any Sequence<Vector3D>) -> any Geometry3D {
-        for offset in points {
-            translated(offset)
+        statically { item in
+            for offset in points {
+                item.translated(offset)
+            }
         }
     }
     

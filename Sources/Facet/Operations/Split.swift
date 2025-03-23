@@ -26,13 +26,38 @@ public extension Geometry3D {
     func split(
         along plane: Plane,
         arrangingPartsAlong axis: Axis3D,
+        flipped: Bool = false,
         spacing: Double = 3.0
     ) -> any Geometry3D {
         split(along: plane) { a, b in
             Stack(axis, spacing: spacing, alignment: .center, .minZ) {
-                a.rotated(from: plane.normal, to: .up)
-                b.rotated(from: plane.normal, to: .down)
+                a.rotated(from: plane.normal, to: flipped ? .down : .up)
+                b.rotated(from: plane.normal, to: flipped ? .up : .down)
             }
         }
     }
+
+    func split(
+        with mask: any Geometry3D,
+        @GeometryBuilder3D reader: @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
+    ) -> any Geometry3D {
+        self
+            .readingPrimitive { input, _, elements in
+                mask.readingPrimitive { maskPrimitive, _, _ in
+                    let (a, b) = input.split(by: maskPrimitive)
+                    return reader(
+                        a.geometry(with: elements),
+                        b.geometry(with: elements)
+                    )
+                }
+            }
+    }
+
+    func split(
+        @GeometryBuilder3D with mask: @escaping () -> any Geometry3D,
+        @GeometryBuilder3D reader: @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
+    ) -> any Geometry3D {
+        split(with: mask(), reader: reader)
+    }
+
 }
