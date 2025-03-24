@@ -2,7 +2,7 @@ import Foundation
 
 /// A geometric plane in 3D space, defined by an offset point and a normal vector.
 ///
-/// The plane is represented in the form: `a * x + b * y + c * z + d = 0`, where `(a, b, c)` is the normal vector and `d` is derived from the offset point.
+/// The plane is represented in the form: `ax + by + cz + d = 0`, where `(a, b, c)` is the normal vector and `d` is derived from the offset point.
 ///
 /// You can initialize a `Plane` in several ways:
 /// - Using a point and a normal vector.
