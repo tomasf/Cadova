@@ -10,7 +10,7 @@ internal extension Polyhedron {
             for i in 1..<(face.count - 1) {
                 let p1 = vertices[face[i]]
                 let p2 = vertices[face[i + 1]]
-                volume += p0 ⋅ ((p1 × p2))
+                volume += p0 ⋅ (p1 × p2)
             }
         }
         return volume / 6.0

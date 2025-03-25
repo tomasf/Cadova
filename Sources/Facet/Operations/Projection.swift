@@ -1,30 +1,26 @@
 import Foundation
 import Manifold3D
 
-internal struct Projection: Geometry2D {
-    var body: any Geometry3D
-    var projection: (D3.Primitive, EnvironmentValues) -> D2.Primitive
-
-    func evaluated(in environment: EnvironmentValues) -> Output2D {
-        .init(child: body, environment: environment, transformation: { projection($0, environment) })
-    }
-}
-
-internal extension Geometry3D {
-    func projected(action: @escaping (D3.Primitive, EnvironmentValues) -> D2.Primitive) -> any Geometry2D {
-        Projection(body: self, projection: action)
-    }
-}
-
 public extension Geometry3D {
-    /// Projects the 3D geometry onto the 2D plane.
-    /// - Returns: A `Geometry2D` representing the projected shape.
+    /// Projects the 3D geometry orthogonally onto the XY plane, removing depth information.
+    ///
+    /// This method flattens the geometry by projecting all points along the Z-axis onto the XY plane.
+    /// It effectively reduces a 3D shape to its 2D outline or silhouette as seen from above (top-down view),
+    /// discarding the Z-coordinate.
+    ///
+    /// The projection is purely geometric and does not simulate perspective—it's an orthographic projection.
+    ///
+    /// - Returns: A `Geometry2D` representing the 2D projection of the original 3D shape.
+    ///
     /// - Example:
-    ///   ```
+    ///   ```swift
     ///   let circle = Sphere(radius: 10).projected()
     ///   ```
+    ///   This creates a circle in 2D that represents the top-down outline of a 3D sphere.
     func projected() -> any Geometry2D {
-        projected { p, _ in p.projection() }
+        modifyingPrimitive { primitive, _ in
+            primitive.projection()
+        }
     }
 
     /// Projects the 3D geometry the a 2D plane, slicing at a specific Z value.
@@ -38,6 +34,8 @@ public extension Geometry3D {
     ///   // The result will be a circle with a diameter that represents the cross-section of the truncated cone at Z = 5.
     ///   ```
     func sliced(at z: Double) -> any Geometry2D {
-        projected { p, _ in p.slice(at: z) }
+        modifyingPrimitive { primitive, _ in
+            primitive.slice(at: z)
+        }
     }
 }

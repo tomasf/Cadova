@@ -1,21 +1,61 @@
 import Foundation
 import Manifold3D
 
-internal struct ModifyOutput <D: Dimensionality> {
-    let body: D.Geometry
-    let action: (Output<D>, EnvironmentValues) -> Output<D>
+// Modify 2D output into either 2D or 3D output
+internal struct ModifyOutput2D <DO: Dimensionality> {
+    let body: Geometry2D
+    let action: (Output2D, EnvironmentValues) -> Output<DO>
+}
 
-    func process(_ output: Output<D>, in environment: EnvironmentValues) -> Output<D> {
-        action(output, environment)
+extension ModifyOutput2D: Geometry2D where DO == D2 {
+    func evaluated(in environment: EnvironmentValues) -> Output<DO> {
+        action(body.evaluated(in: environment), environment)
     }
 }
 
-extension ModifyOutput: WrappedGeometry2D, Geometry2D where D == D2 {}
-extension ModifyOutput: WrappedGeometry3D, Geometry3D where D == D3 {}
+extension ModifyOutput2D: Geometry3D where DO == D3 {
+    func evaluated(in environment: EnvironmentValues) -> Output<DO> {
+        action(body.evaluated(in: environment), environment)
+    }
+}
+
+// Modify 3D output into either 2D or 3D output
+internal struct ModifyOutput3D <DO: Dimensionality> {
+    let body: Geometry3D
+    let action: (Output3D, EnvironmentValues) -> Output<DO>
+}
+
+extension ModifyOutput3D: Geometry2D where DO == D2 {
+    func evaluated(in environment: EnvironmentValues) -> Output<DO> {
+        action(body.evaluated(in: environment), environment)
+    }
+}
+
+extension ModifyOutput3D: Geometry3D where DO == D3 {
+    func evaluated(in environment: EnvironmentValues) -> Output<DO> {
+        action(body.evaluated(in: environment), environment)
+    }
+}
+
+
 
 internal extension Geometry2D {
     func modifyingOutput(_ action: @escaping (Output2D, EnvironmentValues) -> Output2D) -> any Geometry2D {
-        ModifyOutput(body: self, action: action)
+        ModifyOutput2D(body: self, action: action)
+    }
+
+    func modifyingOutput(_ action: @escaping (Output2D, EnvironmentValues) -> Output3D) -> any Geometry3D {
+        ModifyOutput2D(body: self, action: action)
+    }
+}
+
+internal extension Geometry3D {
+    func modifyingOutput(_ action: @escaping (Output3D, EnvironmentValues) -> Output2D) -> any Geometry2D {
+        ModifyOutput3D(body: self, action: action)
+    }
+
+    func modifyingOutput(_ action: @escaping (Output3D, EnvironmentValues) -> Output3D) -> any Geometry3D {
+        ModifyOutput3D(body: self, action: action)
     }
 }
 
@@ -26,6 +66,10 @@ internal extension Geometry2D {
 
     func modifyingPrimitive(_ action: @escaping (CrossSection) -> CrossSection) -> Geometry2D {
         modifyingPrimitive { p, e in action(p) }
+    }
+
+    func modifyingPrimitive(_ action: @escaping (D2.Primitive, EnvironmentValues) -> D3.Primitive) -> Geometry3D {
+        modifyingOutput { Output3D(primitive: action($0.primitive, $1), elements: $0.elements) }
     }
 
     func modifyingPolygons(_ action: @escaping ([[Vector2D]], EnvironmentValues) -> [[Vector2D]]) -> Geometry2D {
@@ -40,17 +84,15 @@ internal extension Geometry2D {
 
 
 internal extension Geometry3D {
-    func modifyingOutput(_ action: @escaping (Output3D, EnvironmentValues) -> Output3D) -> any Geometry3D {
-        ModifyOutput(body: self, action: action)
-    }
-}
-
-internal extension Geometry3D {
     func modifyingPrimitive(_ action: @escaping (D3.Primitive, EnvironmentValues) -> D3.Primitive) -> Geometry3D {
         modifyingOutput { Output3D(primitive: action($0.primitive, $1), elements: $0.elements) }
     }
 
     func modifyingPrimitive(_ action: @escaping (D3.Primitive) -> D3.Primitive) -> Geometry3D {
         modifyingPrimitive { p, e in action(p) }
+    }
+
+    func modifyingPrimitive(_ action: @escaping (D3.Primitive, EnvironmentValues) -> D2.Primitive) -> Geometry2D {
+        modifyingOutput { Output2D(primitive: action($0.primitive, $1), elements: $0.elements) }
     }
 }
