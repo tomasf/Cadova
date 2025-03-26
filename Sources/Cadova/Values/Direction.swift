@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Direction<D: Dimensionality>: Sendable {
+public struct Direction<D: Dimensionality>: Hashable, Sendable {
     public let unitVector: D.Vector
 
     public init(vector: D.Vector) {
