@@ -41,6 +41,9 @@ public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable {
         self.init(x: getter(.x), y: getter(.y))
     }
 
+    public static func x(_ value: Double) -> Self { Self(x: value) }
+    public static func y(_ value: Double) -> Self { Self(y: value) }
+
     public subscript(_ axis: Axis2D) -> Double {
         switch axis {
         case .x: return x
