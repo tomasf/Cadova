@@ -8,7 +8,7 @@ import Foundation
 /// - Using a point and a normal vector.
 /// - Using three points (non-collinear) lying on the plane.
 /// - Using a plane perpendicular to a specific Cartesian axis at a specified offset.
-public struct Plane {
+public struct Plane: Hashable {
     /// A point lying on the plane.
     public let offset: Vector3D
 
