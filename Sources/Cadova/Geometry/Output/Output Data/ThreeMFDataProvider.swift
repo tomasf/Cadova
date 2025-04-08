@@ -99,7 +99,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             )
 
             objects.append(object)
-            items.append(.init(objectID: object.id, printable: identifier.printable))
+            items.append(.init(objectID: object.id, partNumber: identifier.name, printable: identifier.printable))
             objectCount += 1
         }
 
