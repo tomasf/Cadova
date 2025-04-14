@@ -1,34 +1,40 @@
 import Foundation
 
-/// A structure representing a rotation in 3D space.
+// MARK: - Rotation3D
+
 public struct Rotation3D: Sendable {
-    internal var rotation: Rotation
+    // Internal quaternion components
+    internal var qx: Double
+    internal var qy: Double
+    internal var qz: Double
+    internal var qw: Double
 
-    internal enum Rotation: Sendable {
-        case eulerAngles (x: Angle, y: Angle, z: Angle)
-        case axis (Direction3D, angle: Angle)
-    }
+    /// The identity rotation (no rotation).
+    public static let none = Rotation3D(qx: 0, qy: 0, qz: 0, qw: 1)
 
-    /// Creates a `Rotation3D` structure with specified angles for each principal axis (X, Y, and Z).
-    /// The rotation is applied in order: first around the X axis, then the Y axis, and finally the Z axis.
+    /// Creates a rotation from Euler angles in XYZ order.
     ///
     /// - Parameters:
-    ///   - x: The rotation angle around the X axis. Defaults to 0 degrees if not specified.
-    ///   - y: The rotation angle around the Y axis. Defaults to 0 degrees if not specified.
-    ///   - z: The rotation angle around the Z axis. Defaults to 0 degrees if not specified.
-    init(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) {
-        rotation = .eulerAngles(x: x, y: y, z: z)
+    ///   - x: Rotation around the X axis.
+    ///   - y: Rotation around the Y axis.
+    ///   - z: Rotation around the Z axis.
+    public init(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) {
+        let cx = cos(0.5 * x), sx = sin(0.5 * x)
+        let cy = cos(0.5 * y), sy = sin(0.5 * y)
+        let cz = cos(0.5 * z), sz = sin(0.5 * z)
+
+        self.qx = sx * cy * cz - cx * sy * sz
+        self.qy = cx * sy * cz + sx * cy * sz
+        self.qz = cx * cy * sz - sx * sy * cz
+        self.qw = cx * cy * cz + sx * sy * sz
     }
 
-    /// Creates a `Rotation3D` instance with a specified angle around a specified cartesian axis.
-    ///
-    /// This initializer allows creating a rotation by specifying a single angle and the axis
-    /// around which the rotation is applied. The other two axes will have no rotation.
+    /// Creates a rotation from a rotation around a principal axis.
     ///
     /// - Parameters:
-    ///   - angle: The rotation angle around the specified axis.
-    ///   - axis: The cartesian axis around which the rotation is applied (`Axis3D.x`, `Axis3D.y`, or `Axis3D.z`).
-    init(angle: Angle, axis: Axis3D) {
+    ///   - angle: The angle of rotation.
+    ///   - axis: The principal axis to rotate around.
+    public init(angle: Angle, axis: Axis3D) {
         switch axis {
         case .x: self.init(x: angle)
         case .y: self.init(y: angle)
@@ -36,24 +42,36 @@ public struct Rotation3D: Sendable {
         }
     }
 
-    /// Creates a `Rotation3D` instance with a rotation around an arbitrary axis defined by a 3D vector and an angle.
-    /// This initializer is used for creating a rotation around an axis that is not necessarily aligned with the principal axes.
+    /// Creates a rotation from a rotation around an arbitrary axis.
     ///
     /// - Parameters:
-    ///   - angle: The angle of rotation around the specified axis.
-    ///   - axis: The 3D vector defining the axis of rotation.
-    init(angle: Angle, axis: Direction3D) {
-        rotation = .axis(axis, angle: angle)
+    ///   - angle: The angle of rotation.
+    ///   - axis: A unit direction vector representing the rotation axis.
+    public init(angle: Angle, axis: Direction3D) {
+        let half = 0.5 * angle.radians
+        let s = sin(half)
+        self.qx = axis.x * s
+        self.qy = axis.y * s
+        self.qz = axis.z * s
+        self.qw = cos(half)
     }
 
-    static let none = Rotation3D(x: 0°, y: 0°, z: 0°)
+    /// Creates a rotation from raw quaternion components.
+    ///
+    /// - Parameters:
+    ///   - qx: The X component of the quaternion.
+    ///   - qy: The Y component of the quaternion.
+    ///   - qz: The Z component of the quaternion.
+    ///   - qw: The scalar (real) component of the quaternion.
+    public init(qx: Double, qy: Double, qz: Double, qw: Double) {
+        self.qx = qx
+        self.qy = qy
+        self.qz = qz
+        self.qw = qw
+    }
 }
 
 extension Rotation3D: ExpressibleByArrayLiteral {
-    /// Allows initializing a `Rotation3D` instance using an array literal of three angles.
-    ///
-    /// The array must contain exactly three angles, corresponding to the rotation around the X, Y, and Z axes, respectively.
-    /// - Parameter angles: An array literal containing three angles.
     public init(arrayLiteral angles: Angle...) {
         assert(angles.count == 3, "Rotation3D requires three angles")
         self.init(x: angles[0], y: angles[1], z: angles[2])
