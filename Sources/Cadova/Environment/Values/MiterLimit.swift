@@ -5,7 +5,8 @@ public extension EnvironmentValues {
     static private let minimum = 2.0
 
     var miterLimit: Double {
-        self[Self.environmentKey] as? Double ?? Self.minimum
+        get { self[Self.environmentKey] as? Double ?? Self.minimum }
+        set { self[Self.environmentKey] = max(newValue, Self.minimum) }
     }
 
     func withMiterLimit(_ limit: Double) -> EnvironmentValues {

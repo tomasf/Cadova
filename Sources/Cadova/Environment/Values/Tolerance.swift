@@ -9,7 +9,8 @@ public extension EnvironmentValues {
     ///
     /// - Returns: The current tolerance value as a `Double`.
     var tolerance: Double {
-        self[Self.key] as? Double ?? 0
+        get { self[Self.key] as? Double ?? 0 }
+        set { self[Self.key] = newValue }
     }
 
     /// Set the tolerance value
