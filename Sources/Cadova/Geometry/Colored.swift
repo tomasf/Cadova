@@ -61,5 +61,5 @@ public extension Material {
 
     static let steel = Self(name: "Steel", baseColor: Color(0.37, 0.38, 0.39), metallicness: 0.99, roughness: 0.145)
 
-    static let visualizedPlane = Self(name: "Plane", baseColor: Color(0.3, 0.3, 0.3, 0.2), metallicness: 0.5, roughness: 0.2)
+    static let visualizedPlane = Self(name: "Plane", baseColor: Color(0.3, 0.3, 0.5, 0.2), metallicness: 0.5, roughness: 0.2)
 }
