@@ -33,9 +33,28 @@ public extension Geometry3D {
     ///   let slicedProjection = truncatedCone.sliced(at: 5)
     ///   // The result will be a circle with a diameter that represents the cross-section of the truncated cone at Z = 5.
     ///   ```
-    func sliced(at z: Double) -> any Geometry2D {
+    func sliced(atZ z: Double) -> any Geometry2D {
         modifyingPrimitive { primitive, _ in
             primitive.slice(at: z)
         }
+    }
+
+    /// Creates a 2D cross-section of the geometry where it intersects with a given plane.
+    ///
+    /// This method returns the shape formed by slicing the 3D geometry along an arbitrary plane.
+    /// The result is a flat 2D outline of the intersection.
+    ///
+    /// - Parameter plane: The plane along which the geometry will be sliced.
+    /// - Returns: A `Geometry2D` representing the flat cross-section along the specified plane.
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let angledPlane = Plane(z: 6).rotated(y: 30°)
+    ///   let coneSlice = Cylinder(bottomDiameter: 10, topDiameter: 0, height: 15)
+    ///       .sliced(along: angledPlane)
+    ///   // coneSlice is a 2D shape where the cone intersects with the slanted plane.
+    ///   ```
+    func sliced(along plane: Plane) -> any Geometry2D {
+        transformed(plane.transform.inverse).sliced(atZ: 0)
     }
 }
