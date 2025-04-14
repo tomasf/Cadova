@@ -5,7 +5,8 @@ public extension EnvironmentValues {
     static private let environmentKey = Key("Cadova.FillRule")
 
     var fillRule: FillRule {
-        self[Self.environmentKey] as? FillRule ?? .default
+        get { self[Self.environmentKey] as? FillRule ?? .default }
+        set { self[Self.environmentKey] = newValue }
     }
 
     func withFillRule(_ fillRule: FillRule) -> EnvironmentValues {

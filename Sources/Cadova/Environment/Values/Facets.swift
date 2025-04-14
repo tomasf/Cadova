@@ -52,7 +52,16 @@ public extension EnvironmentValues {
 
     /// Accesses the current facets setting from the environment.
     var facets: Facets {
-        self[Self.environmentKey] as? Facets ?? .defaults
+        get { self[Self.environmentKey] as? Facets ?? .defaults }
+        set { self[Self.environmentKey] = newValue }
+    }
+
+    mutating func setFacets(minAngle: Angle, minSize: Double) {
+        facets = .dynamic(minAngle: minAngle, minSize: minSize)
+    }
+
+    mutating func setFacets(count: Int) {
+        facets = .fixed(count)
     }
 
     /// Returns a new environment with the specified facets settings applied.

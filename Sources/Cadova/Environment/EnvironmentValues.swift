@@ -4,7 +4,7 @@ import Foundation
 ///
 /// You can use `EnvironmentValues` to customize settings and attributes that affect child geometries within Cadova. Modifiers allow for dynamic adjustments of the environment, which can be applied to geometries to affect their rendering or behavior.
 public struct EnvironmentValues: Sendable {
-    private let values: [Key: any Sendable]
+    private var values: [Key: any Sendable]
 
     public init() {
         self.init(values: [:])
@@ -39,7 +39,8 @@ public struct EnvironmentValues: Sendable {
     /// - Parameter key: The key of the value to access.
     /// - Returns: The value associated with `key` if it exists; otherwise, `nil`.
     public subscript(key: Key) -> (any Sendable)? {
-        values[key]
+        get { values[key] }
+        set { values[key] = newValue }
     }
 }
 
