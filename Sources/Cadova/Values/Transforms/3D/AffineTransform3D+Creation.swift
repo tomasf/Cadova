@@ -71,13 +71,33 @@ public extension AffineTransform3D {
     }
 
     /// Creates a rotation `AffineTransform3D` using a Rotation3D structure
+    ///
+    /// - Parameter r: The `Rotation3D` describing the desired 3D rotation.
+    /// - Returns: An `AffineTransform3D` representing the corresponding rotation.
     static func rotation(_ r: Rotation3D) -> AffineTransform3D {
-        switch r.rotation {
-        case .eulerAngles (let x, let y, let z):
-            return rotation(x: x, y: y, z: z)
-        case .axis(let axis, let angle):
-            return rotation(angle: angle, around: axis)
-        }
+        let x = r.qx, y = r.qy, z = r.qz, w = r.qw
+
+        let xx = x * x
+        let yy = y * y
+        let zz = z * z
+        let xy = x * y
+        let xz = x * z
+        let yz = y * z
+        let wx = w * x
+        let wy = w * y
+        let wz = w * z
+
+        var transform = identity
+        transform[0, 0] = 1 - 2 * (yy + zz)
+        transform[0, 1] = 2 * (xy - wz)
+        transform[0, 2] = 2 * (xz + wy)
+        transform[1, 0] = 2 * (xy + wz)
+        transform[1, 1] = 1 - 2 * (xx + zz)
+        transform[1, 2] = 2 * (yz - wx)
+        transform[2, 0] = 2 * (xz - wy)
+        transform[2, 1] = 2 * (yz + wx)
+        transform[2, 2] = 1 - 2 * (xx + yy)
+        return transform
     }
 
     /// Creates a rotation `AffineTransform3D` that aligns one vector to another in 3D space.
