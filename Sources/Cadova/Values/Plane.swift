@@ -13,7 +13,7 @@ public struct Plane: Hashable {
     public let offset: Vector3D
 
     /// The unit normal vector of the plane.
-    public let normal: D3.Direction
+    public let normal: Direction3D
 
     /// Creates a plane from an offset point and a normal vector.
     /// - Parameters:
@@ -59,13 +59,19 @@ public extension Plane {
     }
 
     /// Creates a plane perpendicular to the X-axis.
-    static func x(_ offset: Double = 0) -> Plane { Plane(perpendicularTo: .x, at: offset) }
+    init(x offset: Double) {
+        self.init(perpendicularTo: .x, at: offset)
+    }
 
     /// Creates a plane perpendicular to the Y-axis.
-    static func y(_ offset: Double = 0) -> Plane { Plane(perpendicularTo: .y, at: offset) }
+    init(y offset: Double) {
+        self.init(perpendicularTo: .y, at: offset)
+    }
 
     /// Creates a plane perpendicular to the Z-axis.
-    static func z(_ offset: Double = 0) -> Plane { Plane(perpendicularTo: .z, at: offset) }
+    init(z offset: Double) {
+        self.init(perpendicularTo: .z, at: offset)
+    }
 }
 
 public extension Plane {
@@ -90,6 +96,11 @@ public extension Plane {
     func project(point: Vector3D) -> Vector3D {
         let distanceToPlane = distance(to: point)
         return point - normal.unitVector * distanceToPlane
+    }
+
+    /// Returns a transformation that aligns the plane with the XY plane.
+    var transform: AffineTransform3D {
+        .rotation(from: .positiveZ, to: normal).translated(offset)
     }
 }
 
