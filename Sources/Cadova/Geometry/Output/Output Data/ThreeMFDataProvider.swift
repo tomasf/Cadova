@@ -58,11 +58,9 @@ struct ThreeMFDataProvider: OutputDataProvider {
         }
 
         var objectCount = 0
+        var uniqueIdentifiers: Set<String> = []
 
-        for item in outputs {
-            let output = item.value
-            let identifier = item.key
-
+        for (identifier, output) in outputs.sorted(by: { $0.key.hashValue < $1.key.hashValue }) {
             guard !output.primitive.isEmpty else { continue }
 
             let materialMapping = output.elements[MaterialMapping.self]
@@ -98,8 +96,16 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 content: .mesh(mesh)
             )
 
+            var uniqueID = identifier.name
+            var nameIndex = 1
+            while uniqueIdentifiers.contains(uniqueID) {
+                nameIndex += 1
+                uniqueID = identifier.name + "_\(nameIndex)"
+            }
+            uniqueIdentifiers.insert(uniqueID)
+
             objects.append(object)
-            items.append(.init(objectID: object.id, partNumber: identifier.name, printable: identifier.printable))
+            items.append(.init(objectID: object.id, partNumber: uniqueID, printable: identifier.printable))
             objectCount += 1
         }
 
@@ -170,7 +176,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
 fileprivate extension PartIdentifier {
     var printable: Bool? {
-        self == .highlight || self == .background ? false : nil
+        type == .solid
     }
 }
 

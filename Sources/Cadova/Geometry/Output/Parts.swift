@@ -42,27 +42,21 @@ internal struct PartCatalog: ResultElement {
     }
 }
 
-internal enum PartIdentifier: Hashable {
-    case main
-    case highlight
-    case background
-    case named (String)
+public enum PartType: Hashable {
+    case solid
+    case visual
+}
 
-    var name: String {
-        switch self {
-        case .main: return "main"
-        case .highlight: return "highlight"
-        case .background: return "background"
-        case .named (let name): return name
-        }
-    }
+internal struct PartIdentifier: Hashable {
+    let name: String
+    let type: PartType
+    let defaultMaterial: Material
 
-    var defaultMaterial: Material {
-        switch self {
-        case .main: .init(baseColor: .white)
-        case .highlight: .init(baseColor: .red.withAlphaComponent(0.2))
-        case .background: .init(baseColor: .gray.withAlphaComponent(0.1))
-        case .named: .init(baseColor: .white)
-        }
+    static var main: PartIdentifier { .init(name: "Model", type: .solid, defaultMaterial: .plain(.white)) }
+    static var highlight: PartIdentifier { .init(name: "Highlighted", type: .visual, defaultMaterial: .plain(.red, alpha: 0.2)) }
+    static var background: PartIdentifier { .init(name: "Background", type: .visual, defaultMaterial: .plain(.gray, alpha: 0.1)) }
+
+    static func named(_ name: String, type: PartType) -> PartIdentifier {
+        .init(name: name, type: type, defaultMaterial: .plain(.white))
     }
 }

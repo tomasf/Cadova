@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Color: Sendable {
+public struct Color: Hashable, Sendable {
     public let red: Double
     public let green: Double
     public let blue: Double
