@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AffineTransform: Sendable {
+public protocol AffineTransform: Sendable, Hashable {
     associatedtype D: Dimensionality
     typealias V = D.Vector
     associatedtype Rotation

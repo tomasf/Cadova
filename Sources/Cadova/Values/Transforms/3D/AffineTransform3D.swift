@@ -4,7 +4,7 @@ import simd
 #endif
 
 /// An `AffineTransform3D` represents a 3D affine transformation using a 4x4 matrix.
-public struct AffineTransform3D: AffineTransform, Equatable, Sendable {
+public struct AffineTransform3D: AffineTransform {
     public typealias D = D3
     private var matrix: Matrix4x4
 
@@ -81,6 +81,14 @@ public struct AffineTransform3D: AffineTransform, Equatable, Sendable {
                 }
             }
         )
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        for row in (0...3) {
+            for column in (0...3) {
+                hasher.combine(self[row, column])
+            }
+        }
     }
 }
 
