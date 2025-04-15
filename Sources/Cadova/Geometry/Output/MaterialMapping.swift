@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-public struct Material: Sendable {
+public struct Material: Hashable, Sendable {
     let name: String?
     let baseColor: Color
     let properties: Properties?
@@ -12,9 +12,13 @@ public struct Material: Sendable {
         self.properties = properties
     }
 
-    enum Properties {
+    enum Properties: Hashable {
         case metallic (metallicness: Double, roughness: Double)
         case specular (color: Color, glossiness: Double)
+    }
+
+    static func plain(_ color: Color, alpha: Double? = nil) -> Material {
+        return .init(baseColor: color.withAlphaComponent(alpha ?? color.alpha))
     }
 }
 

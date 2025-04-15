@@ -12,6 +12,7 @@ public protocol Dimensionality {
     typealias Direction = Cadova.Direction<Self>
 }
 
+// 2D-related types
 public struct D2: Dimensionality {
     public typealias Vector = Vector2D
     public typealias Transform = AffineTransform2D
@@ -22,6 +23,7 @@ public struct D2: Dimensionality {
     private init() {}
 }
 
+// 3D-related types
 public struct D3: Dimensionality {
     public typealias Vector = Vector3D
     public typealias Transform = AffineTransform3D

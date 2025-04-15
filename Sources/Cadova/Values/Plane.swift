@@ -115,6 +115,6 @@ public extension Plane {
             .rotated(from: .up, to: normal)
             .translated(offset)
             .withMaterial(.visualizedPlane)
-            .background()
+            .inPart(named: "Visualized Plane", type: .visual)
     }
 }
