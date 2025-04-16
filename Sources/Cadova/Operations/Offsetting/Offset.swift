@@ -4,7 +4,7 @@ import Manifold3D
 /// Describes the style of line joins in geometric shapes.
 ///
 /// The `LineJoinStyle` enum is used to specify how the joining points between line segments or edges of a geometry should be rendered.
-public enum LineJoinStyle {
+public enum LineJoinStyle: Hashable, Sendable, Codable {
     /// Joins lines with a rounded edge, creating smooth transitions between segments.
     case round
 
@@ -14,7 +14,7 @@ public enum LineJoinStyle {
     /// Joins lines by connecting their endpoints with a straight line, resulting in a flat, cut-off corner.
     case bevel
 
-    internal var primitive: CrossSection.JoinType {
+    internal var manifoldRepresentation: CrossSection.JoinType {
         switch self {
         case .round: .round
         case .miter: .miter
@@ -36,7 +36,7 @@ public extension Geometry2D {
         modifyingPrimitive { primitive, e in
             primitive.offset(
                 amount: amount,
-                joinType: style.primitive,
+                joinType: style.manifoldRepresentation,
                 miterLimit: e.miterLimit,
                 circularSegments: e.facets.facetCount(circleRadius: Swift.abs(amount))
             )

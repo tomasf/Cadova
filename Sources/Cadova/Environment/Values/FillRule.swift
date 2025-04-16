@@ -14,7 +14,7 @@ public extension EnvironmentValues {
     }
 }
 
-public enum FillRule: Hashable, Sendable {
+public enum FillRule: Hashable, Sendable, Codable {
     case nonZero
     case evenOdd
     case positive
