@@ -1,12 +1,13 @@
 {
+  "originHash" : "08f598be97bb677039f21e97ba25df999a2e80836e1d018c4f334b586c033065",
   "pins" : [
     {
       "identity" : "manifold-swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/manifold-swift.git",
       "state" : {
-        "revision" : "056c37b870f4c5ffc19648f8b08a2ba34bc5d859",
-        "version" : "0.1.0"
+        "revision" : "385578452d64d10858727e687f0326f44bb9e940",
+        "version" : "0.1.1"
       }
     },
     {
@@ -55,5 +56,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

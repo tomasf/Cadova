@@ -170,7 +170,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         try writer.finalize()
 
         let finishTime = CFAbsoluteTimeGetCurrent()
-        print(String(format: "Generated 3MF archive in %g seconds", finishTime - startTime))
+        print(String(format: "Generated 3MF archive \(url.lastPathComponent) with \(output.primitive.triangleCount) triangles in %g seconds", finishTime - startTime))
     }
 }
 
