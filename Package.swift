@@ -23,16 +23,13 @@ let package = Package(
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Logging", package: "swift-log"),
             ],
-            swiftSettings: [
-                .interoperabilityMode(.Cxx)
-            ]
+            swiftSettings: [ .interoperabilityMode(.Cxx) ]
         ),
-        /*
         .testTarget(
             name: "Tests",
-            dependencies: ["Cadova"]
+            dependencies: ["Cadova"],
+            swiftSettings: [ .interoperabilityMode(.Cxx) ]
         )
-         */
     ],
     cxxLanguageStandard: .cxx17
 )

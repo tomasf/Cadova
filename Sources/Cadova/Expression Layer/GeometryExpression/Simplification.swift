@@ -31,12 +31,19 @@ extension GeometryExpression2D {
                 return .empty
             }
 
+            var children = children.map { $0.simplified() }
+
             if operation == .intersection {
                 guard !children.contains(where: { $0.isEmpty }) else {
                     return .empty
                 }
             } else {
-                let children = children.filter { !$0.isEmpty }
+                guard children.count > 0 else { return .empty }
+                if operation == .difference {
+                    guard children[0].isEmpty == false else { return .empty }
+                }
+                
+                children = children.filter { !$0.isEmpty }
                 if children.count == 0 {
                     return .empty
                 } else if children.count == 1 {
@@ -46,17 +53,21 @@ extension GeometryExpression2D {
                 }
             }
 
-        case .transform (let expression, _):
+        case .transform (let expression, let type):
             guard !expression.isEmpty else { return .empty }
+            return .transform(expression.simplified(), transform: type)
 
         case .convexHull (let expression):
             guard !expression.isEmpty else { return .empty }
+            return .convexHull(expression.simplified())
 
-        case .offset (let expression, _, _, _, _):
+        case .offset (let expression, let amount, let joinStyle, let miterLimit, let segmentCount):
             guard !expression.isEmpty else { return .empty }
+            return .offset(expression.simplified(), amount: amount, joinStyle: joinStyle, miterLimit: miterLimit, segmentCount: segmentCount)
 
-        case .projection (let expression, _):
+        case .projection (let expression, let type):
             guard !expression.isEmpty else { return .empty }
+            return .projection(expression.simplified(), type: type)
 
         case .empty, .raw: break
         }
@@ -102,12 +113,19 @@ extension GeometryExpression3D {
                 return .empty
             }
 
+            var children = children.map { $0.simplified() }
+
             if operation == .intersection {
                 guard !children.contains(where: { $0.isEmpty }) else {
                     return .empty
                 }
             } else {
-                let children = children.filter { !$0.isEmpty }
+                guard children.count > 0 else { return .empty }
+                if operation == .difference {
+                    guard children[0].isEmpty == false else { return .empty }
+                }
+
+                children = children.filter { !$0.isEmpty }
                 if children.count == 0 {
                     return .empty
                 } else if children.count == 1 {
@@ -117,11 +135,13 @@ extension GeometryExpression3D {
                 }
             }
 
-        case .transform (let expression, _):
+        case .transform (let expression, let transform):
             guard !expression.isEmpty else { return .empty }
+            return .transform(expression.simplified(), transform: transform)
 
         case .convexHull (let expression):
             guard !expression.isEmpty else { return .empty }
+            return .convexHull(expression.simplified())
 
         case .extrusion (let expression, let extrusion):
             guard !expression.isEmpty else { return .empty }
@@ -134,6 +154,7 @@ extension GeometryExpression3D {
                 guard angle > 0° else { return .empty }
             }
 
+            return .extrusion(expression.simplified(), type: extrusion)
         case .empty, .raw, .material: break
         }
 

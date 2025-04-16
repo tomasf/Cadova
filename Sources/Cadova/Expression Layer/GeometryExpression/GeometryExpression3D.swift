@@ -7,7 +7,7 @@ indirect enum GeometryExpression3D: Sendable {
     case boolean ([GeometryExpression3D], type: BooleanOperationType)
     case transform (GeometryExpression3D, transform: AffineTransform3D)
     case convexHull (GeometryExpression3D)
-    case extrusion (GeometryExpression2D, kind: Extrusion)
+    case extrusion (GeometryExpression2D, type: Extrusion)
     case material (GeometryExpression3D, material: Material)
     case raw (Manifold)
 

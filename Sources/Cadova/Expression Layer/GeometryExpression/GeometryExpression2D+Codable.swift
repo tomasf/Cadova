@@ -3,9 +3,9 @@ import Manifold3D
 
 extension GeometryExpression2D: Codable {
     enum CodingKeys: String, CodingKey {
-        case kind
+        case kind // Which geometry kind?
+        case type // Local type within kind
         case primitive
-        case type
         case children
         case body
         case transform
@@ -13,7 +13,6 @@ extension GeometryExpression2D: Codable {
         case joinStyle
         case miterLimit
         case segmentCount
-        case projectionKind
         case crossSection
     }
 
@@ -28,7 +27,7 @@ extension GeometryExpression2D: Codable {
             try container.encode(Kind.shape, forKey: .kind)
             try container.encode(primitive, forKey: .primitive)
 
-        case .boolean(let type, let children):
+        case .boolean(let children, let type):
             try container.encode(Kind.boolean, forKey: .kind)
             try container.encode(type, forKey: .type)
             try container.encode(children, forKey: .children)
@@ -50,10 +49,10 @@ extension GeometryExpression2D: Codable {
             try container.encode(miterLimit, forKey: .miterLimit)
             try container.encode(segmentCount, forKey: .segmentCount)
 
-        case .projection(let body, let kind):
+        case .projection(let body, let type):
             try container.encode(Kind.projection, forKey: .kind)
             try container.encode(body, forKey: .body)
-            try container.encode(kind, forKey: .projectionKind)
+            try container.encode(type, forKey: .type)
 
         case .raw(let crossSection):
             try container.encode(Kind.raw, forKey: .kind)
@@ -91,8 +90,8 @@ extension GeometryExpression2D: Codable {
             )
         case .projection:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
-            let kind = try container.decode(Projection.self, forKey: .projectionKind)
-            self = .projection(body, kind: kind)
+            let type = try container.decode(Projection.self, forKey: .type)
+            self = .projection(body, type: type)
         case .raw:
             let polygons = try container.decode([Manifold3D.Polygon].self, forKey: .crossSection)
             self = .raw(CrossSection(polygons: polygons, fillRule: .nonZero))
