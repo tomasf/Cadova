@@ -47,7 +47,7 @@ public struct Output<D: Dimensionality> {
 }
 
 internal extension Output where D == D2 {
-    /// Combined; union, difference, intersection, minkowski
+    /// Combined; union, difference, intersection
     /// Transparent for single children
     init(
         children: [Geometry2D],
@@ -97,7 +97,7 @@ internal extension Output where D == D2 {
 }
 
 internal extension Output where D == D3 {
-    /// Combined; union, difference, intersection, minkowski
+    /// Combined; union, difference, intersection
     /// Transparent for single children
     init(
         children: [Geometry3D],

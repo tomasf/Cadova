@@ -36,5 +36,4 @@ public enum GeometryCombination {
     case union
     case intersection
     case difference
-    case minkowskiSum
 }
