@@ -8,6 +8,8 @@ public struct AffineTransform3D: AffineTransform {
     public typealias D = D3
     private var matrix: Matrix4x4
 
+    public static let size: (rows: Int, columns: Int) = (4, 4)
+
     private init(_ matrix: Matrix4x4) {
         self.matrix = matrix
     }
@@ -38,15 +40,6 @@ public struct AffineTransform3D: AffineTransform {
             assert((0...3).contains(row), "Row index out of range")
             assert((0...3).contains(column), "Column index out of range")
             matrix[column, row] = newValue
-        }
-    }
-
-    /// A 2D array representing the values of the affine transformation.
-    public var values: [[Double]] {
-        (0...3).map { row in
-            (0...3).map { column in
-                self[row, column]
-            }
         }
     }
 
@@ -81,14 +74,6 @@ public struct AffineTransform3D: AffineTransform {
                 }
             }
         )
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        for row in (0...3) {
-            for column in (0...3) {
-                hasher.combine(self[row, column])
-            }
-        }
     }
 }
 

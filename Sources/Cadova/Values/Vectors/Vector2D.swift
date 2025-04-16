@@ -9,7 +9,7 @@ import Manifold3D
 /// let v2: Vector2D = [10, 15]
 /// ```
 ///
-public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable {
+public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable, Codable {
     public typealias D = D2
     public var x: Double
     public var y: Double

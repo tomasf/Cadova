@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AffineTransform: Sendable, Hashable {
+public protocol AffineTransform: Sendable, Hashable, Codable {
     associatedtype D: Dimensionality
     typealias V = D.Vector
     associatedtype Rotation
@@ -26,10 +26,20 @@ public protocol AffineTransform: Sendable, Hashable {
     func scaled(_ v: V) -> Self
     func rotated(_ rotation: Rotation) -> Self
 
+    static var size: (rows: Int, columns: Int) { get }
     init(_ transform3D: AffineTransform3D)
 }
 
 public extension AffineTransform {
+    /// A 2D array representing the values of the affine transformation.
+    var values: [[Double]] {
+        (0..<Self.size.rows).map { row in
+            (0..<Self.size.columns).map { column in
+                self[row, column]
+            }
+        }
+    }
+
     /// Performs linear interpolation between two affine transformations.
     ///
     /// - Parameters:
@@ -62,6 +72,25 @@ public extension AffineTransform {
     /// - Parameter r: The rotation to apply
     func rotated(_ r: Rotation) -> Self {
         concatenated(with: .rotation(r))
+    }
+}
+
+public extension AffineTransform {
+    func hash(into hasher: inout Hasher) {
+        for row in (0..<Self.size.rows) {
+            for column in (0..<Self.size.columns) {
+                hasher.combine(self[row, column])
+            }
+        }
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(values)
+    }
+
+    init(from decoder: any Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode([[Double]].self))
     }
 }
 

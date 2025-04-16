@@ -8,6 +8,8 @@ public struct AffineTransform2D: AffineTransform {
     public typealias D = D2
     private var matrix: Matrix3x3
 
+    public static let size: (rows: Int, columns: Int) = (3, 3)
+
     internal init(_ matrix: Matrix3x3) {
         self.matrix = matrix
     }
@@ -74,14 +76,6 @@ public struct AffineTransform2D: AffineTransform {
                 }
             }
         )
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        for row in (0...2) {
-            for column in (0...2) {
-                hasher.combine(self[row, column])
-            }
-        }
     }
 }
 
