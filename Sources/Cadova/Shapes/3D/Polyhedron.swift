@@ -6,9 +6,9 @@ import Manifold3D
 ///
 /// For more information, see [the OpenSCAD documentation](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Primitive_Solids#polyhedron).
 
-public struct Polyhedron: Geometry3D, LeafGeometry {
+public struct Polyhedron: Geometry3D, LeafGeometry, Sendable, Hashable, Codable {
     let vertices: [Vector3D]
-    let faces: [[Array<Vector3D>.Index]]
+    let faces: [[[Vector3D].Index]]
 
     internal init(vertices: [Vector3D], faces: [[Array<Vector3D>.Index]]) {
         assert(vertices.count >= 4, "At least four points are needed for a polyhedron")
