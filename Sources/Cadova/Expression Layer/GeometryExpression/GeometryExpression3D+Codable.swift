@@ -3,14 +3,13 @@ import Manifold3D
 
 extension GeometryExpression3D: Codable {
     enum CodingKeys: String, CodingKey {
-        case kind
+        case kind // Which geometry kind?
+        case type // Local type within kind
         case primitive
-        case type
         case children
         case body
         case transform
         case crossSection
-        case extrusionKind
         case mesh
         case material
     }
@@ -26,7 +25,7 @@ extension GeometryExpression3D: Codable {
             try container.encode(Kind.shape, forKey: .kind)
             try container.encode(primitive, forKey: .primitive)
 
-        case .boolean(let type, let children):
+        case .boolean(let children, let type):
             try container.encode(Kind.boolean, forKey: .kind)
             try container.encode(type, forKey: .type)
             try container.encode(children, forKey: .children)
@@ -45,10 +44,10 @@ extension GeometryExpression3D: Codable {
             try container.encode(body, forKey: .body)
             try container.encode(material, forKey: .material)
 
-        case .extrusion(let body, let kind):
+        case .extrusion(let body, let type):
             try container.encode(Kind.extrusion, forKey: .kind)
             try container.encode(body, forKey: .crossSection)
-            try container.encode(kind, forKey: .extrusionKind)
+            try container.encode(type, forKey: .type)
 
         case .raw(let manifold):
             try container.encode(Kind.raw, forKey: .kind)
@@ -82,8 +81,8 @@ extension GeometryExpression3D: Codable {
             self = .material(body, material: material)
         case .extrusion:
             let body = try container.decode(GeometryExpression2D.self, forKey: .crossSection)
-            let kind = try container.decode(Extrusion.self, forKey: .extrusionKind)
-            self = .extrusion(body, kind: kind)
+            let type = try container.decode(Extrusion.self, forKey: .type)
+            self = .extrusion(body, type: type)
         case .raw:
             let meshGL = try container.decode(MeshGL.self, forKey: .mesh)
             self = .raw(try Manifold(meshGL))

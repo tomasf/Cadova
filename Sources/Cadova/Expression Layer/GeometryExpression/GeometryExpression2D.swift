@@ -8,7 +8,7 @@ indirect enum GeometryExpression2D: Sendable {
     case transform (GeometryExpression2D, transform: AffineTransform2D)
     case convexHull (GeometryExpression2D)
     case offset (GeometryExpression2D, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int)
-    case projection (GeometryExpression3D, kind: Projection)
+    case projection (GeometryExpression3D, type: Projection)
     case raw (CrossSection)
 
     enum PrimitiveShape: Hashable, Sendable, Codable {
