@@ -1,6 +1,7 @@
 import Foundation
 import Manifold3D
 import ThreeMF
+import CoreFoundation
 
 struct ThreeMFDataProvider: OutputDataProvider {
     let output: Output3D
