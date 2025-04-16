@@ -1,7 +1,7 @@
 import Foundation
 
 /// A value representing a geometric angle
-public struct Angle: Sendable, Hashable {
+public struct Angle: Sendable, Hashable, Codable {
     /// The angle expressed in radians
     public let radians: Double
 
