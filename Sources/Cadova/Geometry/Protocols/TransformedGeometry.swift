@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Tomas Wincent Franzén on 2024-09-30.
-//
-
 import Foundation
 
 internal protocol TransformedGeometry2D: Geometry2D {
