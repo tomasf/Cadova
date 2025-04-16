@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Tomas Wincent Franzén on 2024-09-27.
-//
-
 import Foundation
 
 public protocol ResultElement {
