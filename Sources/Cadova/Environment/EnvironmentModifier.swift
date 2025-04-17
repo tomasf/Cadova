@@ -10,13 +10,13 @@ struct EnvironmentModifier<Geometry> {
 }
 
 extension EnvironmentModifier<any Geometry2D>: Geometry2D {
-    func evaluated(in environment: EnvironmentValues) -> Output2D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult2D {
         body.evaluated(in: modifiedEnvironment(environment))
     }
 }
 
 extension EnvironmentModifier<any Geometry3D>: Geometry3D {
-    func evaluated(in environment: EnvironmentValues) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
         body.evaluated(in: modifiedEnvironment(environment))
     }
 }

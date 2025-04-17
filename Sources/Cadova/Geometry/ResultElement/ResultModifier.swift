@@ -6,7 +6,7 @@ struct ResultModifier<Geometry> {
 }
 
 extension ResultModifier<any Geometry2D>: Geometry2D {
-    func evaluated(in environment: EnvironmentValues) -> Output2D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult2D {
         let bodyOutput = body.evaluated(in: environment)
         return .init(
             primitive: bodyOutput.primitive,
@@ -16,7 +16,7 @@ extension ResultModifier<any Geometry2D>: Geometry2D {
 }
 
 extension ResultModifier<any Geometry3D>: Geometry3D {
-    func evaluated(in environment: EnvironmentValues) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
         let bodyOutput = body.evaluated(in: environment)
         return .init(
             primitive: bodyOutput.primitive,

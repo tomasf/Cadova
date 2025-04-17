@@ -1,9 +1,9 @@
 import Foundation
 
 internal struct PartCatalog: ResultElement {
-    var parts: [PartIdentifier: [Output3D]]
+    var parts: [PartIdentifier: [GeometryResult3D]]
 
-    init(parts: [PartIdentifier: [Output3D]]) {
+    init(parts: [PartIdentifier: [GeometryResult3D]]) {
         self.parts = parts
     }
 
@@ -11,7 +11,7 @@ internal struct PartCatalog: ResultElement {
         self.init(parts: [:])
     }
 
-    func adding(part: Output3D, to identifier: PartIdentifier) -> PartCatalog {
+    func adding(part: GeometryResult3D, to identifier: PartIdentifier) -> PartCatalog {
         Self.combining(catalogs: [self, .init(parts: [identifier: [part]])])
     }
 
@@ -25,9 +25,9 @@ internal struct PartCatalog: ResultElement {
         .combining(catalogs: elements)
     }
 
-    var mergedOutputs: [PartIdentifier: Output3D] {
+    var mergedOutputs: [PartIdentifier: GeometryResult3D] {
         parts.mapValues { outputs in
-            Output3D(primitive: .boolean(.union, with: outputs.map(\.primitive)), elements: .init(combining: outputs.map(\.elements), operation: .union))
+            GeometryResult3D(primitive: .boolean(.union, with: outputs.map(\.primitive)), elements: .init(combining: outputs.map(\.elements), operation: .union))
         }
     }
 

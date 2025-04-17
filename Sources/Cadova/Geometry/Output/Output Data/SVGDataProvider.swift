@@ -2,7 +2,7 @@ import Foundation
 import Nodal
 
 struct SVGDataProvider: OutputDataProvider {
-    let output: Output2D
+    let output: GeometryResult2D
     let fileExtension = "svg"
 
     func generateOutput() throws -> Data {

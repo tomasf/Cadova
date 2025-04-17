@@ -41,7 +41,7 @@ public func Model(
     environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
 ) {
     saveModel(to: name, environmentBuilder: environmentBuilder) { environment in
-        let output3D = content().extruded(height: 0.001).evaluated(in: environment)
-        return ThreeMFDataProvider(output: output3D)
+        let GeometryResult3D = content().extruded(height: 0.001).evaluated(in: environment)
+        return ThreeMFDataProvider(output: GeometryResult3D)
     }
 }

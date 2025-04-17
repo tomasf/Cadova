@@ -6,14 +6,14 @@ internal struct ResultReader<Geometry> {
 }
 
 extension ResultReader<any Geometry2D>: Geometry2D {
-    func evaluated(in environment: EnvironmentValues) -> Output2D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult2D {
         let bodyOutput = body.evaluated(in: environment)
         return generator(bodyOutput.elements).evaluated(in: environment)
     }
 }
 
 extension ResultReader<any Geometry3D>: Geometry3D {
-    func evaluated(in environment: EnvironmentValues) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
         let bodyOutput = body.evaluated(in: environment)
         return generator(bodyOutput.elements).evaluated(in: environment)
     }

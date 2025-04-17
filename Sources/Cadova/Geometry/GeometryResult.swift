@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-public struct Output<D: Dimensionality> {
+public struct GeometryResult<D: Dimensionality> {
     internal let primitive: D.Primitive
     internal let elements: ResultElementsByType
 
@@ -46,7 +46,7 @@ public struct Output<D: Dimensionality> {
     }
 }
 
-internal extension Output where D == D2 {
+internal extension GeometryResult where D == D2 {
     /// Combined; union, difference, intersection
     /// Transparent for single children
     init(
@@ -96,7 +96,7 @@ internal extension Output where D == D2 {
     }
 }
 
-internal extension Output where D == D3 {
+internal extension GeometryResult where D == D3 {
     /// Combined; union, difference, intersection
     /// Transparent for single children
     init(
@@ -146,5 +146,5 @@ internal extension Output where D == D3 {
     }
 }
 
-public typealias Output2D = Output<D2>
-public typealias Output3D = Output<D3>
+public typealias GeometryResult2D = GeometryResult<D2>
+public typealias GeometryResult3D = GeometryResult<D3>

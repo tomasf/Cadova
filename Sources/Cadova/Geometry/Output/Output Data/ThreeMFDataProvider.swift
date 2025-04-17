@@ -3,7 +3,7 @@ import Manifold3D
 import ThreeMF
 
 struct ThreeMFDataProvider: OutputDataProvider {
-    let output: Output3D
+    let output: GeometryResult3D
 
     let fileExtension = "3mf"
 

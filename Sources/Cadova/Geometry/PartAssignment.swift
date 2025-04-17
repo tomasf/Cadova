@@ -5,7 +5,7 @@ struct PartAssignment: Geometry3D {
     let isSeparated: Bool
     let identifier: PartIdentifier
 
-    func evaluated(in environment: EnvironmentValues) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
         let output = body.evaluated(in: environment)
         return output.modifyingElement(PartCatalog.self) { catalog in
             (catalog ?? .init()).adding(part: output, to: identifier)

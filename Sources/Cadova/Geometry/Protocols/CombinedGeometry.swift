@@ -7,7 +7,7 @@ internal protocol CombinedGeometry2D: Geometry2D {
 }
 
 extension CombinedGeometry2D {
-    public func evaluated(in environment: EnvironmentValues) -> Output2D {
+    public func evaluated(in environment: EnvironmentValues) -> GeometryResult2D {
         .init(
             children: children,
             environment: environment,
@@ -23,7 +23,7 @@ internal protocol CombinedGeometry3D: Geometry3D {
 }
 
 extension CombinedGeometry3D {
-    public func evaluated(in environment: EnvironmentValues) -> Output3D {
+    public func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
         .init(
             children: children,
             environment: environment,

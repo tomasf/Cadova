@@ -1,15 +1,15 @@
 import Foundation
 
 internal struct StaticGeometry<D: Dimensionality> {
-    let output: Output<D>
+    let output: GeometryResult<D>
 }
 
 extension StaticGeometry: Geometry2D where D == D2 {
-    func evaluated(in environment: EnvironmentValues) -> Output2D { output }
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult2D { output }
 }
 
 extension StaticGeometry: Geometry3D where D == D3 {
-    func evaluated(in environment: EnvironmentValues) -> Output3D { output }
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D { output }
 }
 
 extension Geometry2D {
@@ -39,12 +39,12 @@ extension Geometry3D {
 
 extension D2.Primitive {
     func geometry(with elements: ResultElementsByType) -> any Geometry2D {
-        StaticGeometry(output: Output2D(primitive: self, elements: elements))
+        StaticGeometry(output: GeometryResult2D(primitive: self, elements: elements))
     }
 }
 
 extension D3.Primitive {
     func geometry(with elements: ResultElementsByType) -> any Geometry3D {
-        StaticGeometry(output: Output3D(primitive: self, elements: elements))
+        StaticGeometry(output: GeometryResult3D(primitive: self, elements: elements))
     }
 }
