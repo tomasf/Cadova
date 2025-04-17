@@ -1,12 +1,13 @@
 import Foundation
 import Manifold3D
 
-protocol GeometryExpression {
+protocol GeometryExpression: Sendable {
     associatedtype PrimitiveShape
     associatedtype D: Dimensionality
 
     func evaluate(in context: EvaluationContext) async -> D.Primitive
     var isCacheable: Bool { get }
+    var isEmpty: Bool { get }
 
     static var empty: Self { get }
     static func shape(_ shape: PrimitiveShape) -> Self

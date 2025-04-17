@@ -45,6 +45,10 @@ extension GeometryExpression3D {
         }
     }
 
+    var isEmpty: Bool {
+        if case .empty = self { true } else { false }
+    }
+
     func evaluate(in context: EvaluationContext) async -> Manifold {
         switch self {
         case .empty:
