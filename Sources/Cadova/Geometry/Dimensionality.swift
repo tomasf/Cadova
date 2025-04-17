@@ -7,6 +7,7 @@ public protocol Dimensionality {
     associatedtype Axis: Cadova.Axis
     associatedtype Geometry
     associatedtype Primitive: PrimitiveGeometry
+    associatedtype Expression: GeometryExpression where Expression.D == Self
     typealias Axes = Set<Axis>
     typealias Alignment = GeometryAlignment<Self>
     typealias Direction = Cadova.Direction<Self>
@@ -19,6 +20,7 @@ public struct D2: Dimensionality {
     public typealias Axis = Axis2D
     public typealias Geometry = Geometry2D
     public typealias Primitive = CrossSection
+    public typealias Expression = GeometryExpression2D
 
     private init() {}
 }
@@ -30,6 +32,7 @@ public struct D3: Dimensionality {
     public typealias Axis = Axis3D
     public typealias Geometry = Geometry3D
     public typealias Primitive = Manifold
+    public typealias Expression = GeometryExpression3D
 
     private init() {}
 }

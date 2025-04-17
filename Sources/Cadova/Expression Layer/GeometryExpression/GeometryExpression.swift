@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-protocol GeometryExpression: Sendable, Hashable {
+public protocol GeometryExpression: Sendable, Hashable {
     associatedtype PrimitiveShape
     associatedtype D: Dimensionality
 
@@ -17,12 +17,12 @@ protocol GeometryExpression: Sendable, Hashable {
     static func raw(_ body: D.Primitive, key: ExpressionKey?) -> Self
 }
 
-enum BooleanOperationType: String, Hashable, Sendable, Codable {
+public enum BooleanOperationType: String, Hashable, Sendable, Codable {
     case union
     case difference
     case intersection
 
-    var manifoldRepresentation: Manifold3D.BooleanOperation {
+    internal var manifoldRepresentation: Manifold3D.BooleanOperation {
         switch self {
         case .union: .union
         case .difference: .difference
