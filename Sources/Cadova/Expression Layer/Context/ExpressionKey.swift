@@ -5,18 +5,18 @@ fileprivate protocol ExpressionKeyValue: Hashable, Sendable {
     func isEqual(to other: any ExpressionKeyValue) -> Bool
 }
 
-struct ExpressionKey: Hashable, Sendable {
+public struct ExpressionKey: Hashable, Sendable {
     private let wrapper: any ExpressionKeyValue
 
-    init<T: Hashable & Sendable>(_ object: T) {
+    internal init<T: Hashable & Sendable>(_ object: T) {
         wrapper = WrappedValue(value: object)
     }
 
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(wrapper)
     }
 
-    static func ==(_ lhs: ExpressionKey, _ rhs: ExpressionKey) -> Bool {
+    public static func ==(_ lhs: ExpressionKey, _ rhs: ExpressionKey) -> Bool {
         lhs.wrapper.isEqual(to: rhs.wrapper)
     }
 

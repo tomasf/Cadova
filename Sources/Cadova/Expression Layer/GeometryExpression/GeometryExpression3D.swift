@@ -1,8 +1,8 @@
 import Foundation
 import Manifold3D
 
-indirect enum GeometryExpression3D: GeometryExpression, Sendable {
-    typealias D = D3
+public indirect enum GeometryExpression3D: GeometryExpression, Sendable {
+    public typealias D = D3
 
     case empty
     case shape (PrimitiveShape)
@@ -13,7 +13,7 @@ indirect enum GeometryExpression3D: GeometryExpression, Sendable {
     case extrusion (GeometryExpression2D, type: Extrusion)
     case material (GeometryExpression3D, material: Material)
 
-    enum PrimitiveShape: Hashable, Sendable, Codable {
+    public enum PrimitiveShape: Hashable, Sendable, Codable {
         case box (size: Vector3D)
         case sphere (radius: Double, segmentCount: Int)
         case cylinder (bottomRadius: Double, topRadius: Double, height: Double, segmentCount: Int)
@@ -21,7 +21,7 @@ indirect enum GeometryExpression3D: GeometryExpression, Sendable {
         case polyhedron (Polyhedron)
     }
 
-    enum Extrusion: Hashable, Sendable, Codable {
+    public enum Extrusion: Hashable, Sendable, Codable {
         case linear (height: Double, twist: Angle, divisions: Int, scaleTop: Vector2D)
         case rotational (angle: Angle, segments: Int)
     }
@@ -37,7 +37,7 @@ extension GeometryExpression3D {
         }
     }
 
-    var isCacheable: Bool {
+    public var isCacheable: Bool {
         switch self {
         case .empty, .shape: true
         case .raw (_, let key): key != nil
@@ -45,11 +45,11 @@ extension GeometryExpression3D {
         }
     }
 
-    var isEmpty: Bool {
+    public var isEmpty: Bool {
         if case .empty = self { true } else { false }
     }
 
-    func evaluate(in context: EvaluationContext) async -> Manifold {
+    public func evaluate(in context: EvaluationContext) async -> Manifold {
         switch self {
         case .empty:
             return .empty

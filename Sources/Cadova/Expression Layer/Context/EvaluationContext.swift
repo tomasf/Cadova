@@ -1,11 +1,11 @@
 import Foundation
 import Manifold3D
 
-struct EvaluationContext {
-    let cache: GeometryCache
-    let materials: MaterialRegistry
+public struct EvaluationContext: Sendable {
+    internal let cache: GeometryCache
+    internal let materials: MaterialRegistry
 
-    init(cache: GeometryCache, materials: MaterialRegistry) {
+    internal init(cache: GeometryCache, materials: MaterialRegistry) {
         self.cache = cache
         self.materials = materials
     }

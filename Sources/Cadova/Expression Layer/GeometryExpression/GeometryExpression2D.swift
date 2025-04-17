@@ -1,8 +1,8 @@
 import Foundation
 import Manifold3D
 
-indirect enum GeometryExpression2D: GeometryExpression, Sendable {
-    typealias D = D2
+public indirect enum GeometryExpression2D: GeometryExpression, Sendable {
+    public typealias D = D2
 
     case empty
     case shape (PrimitiveShape)
@@ -13,13 +13,13 @@ indirect enum GeometryExpression2D: GeometryExpression, Sendable {
     case offset (GeometryExpression2D, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int)
     case projection (GeometryExpression3D, type: Projection)
 
-    enum PrimitiveShape: Hashable, Sendable, Codable {
+    public enum PrimitiveShape: Hashable, Sendable, Codable {
         case rectangle (size: Vector2D)
         case circle (radius: Double, segmentCount: Int)
         case polygon (points: [Vector2D], fillRule: FillRule)
     }
 
-    enum Projection: Hashable, Sendable, Codable {
+    public enum Projection: Hashable, Sendable, Codable {
         case full
         case slice (z: Double)
     }
@@ -35,7 +35,7 @@ extension GeometryExpression2D {
         }
     }
 
-    var isCacheable: Bool {
+    public var isCacheable: Bool {
         switch self {
         case .empty, .shape: true
         case .raw (_, let key): key != nil
@@ -43,11 +43,11 @@ extension GeometryExpression2D {
         }
     }
 
-    var isEmpty: Bool {
+    public var isEmpty: Bool {
         if case .empty = self { true } else { false }
     }
 
-    func evaluate(in context: EvaluationContext) async -> CrossSection {
+    public func evaluate(in context: EvaluationContext) async -> CrossSection {
         switch self {
         case .empty:
             .empty
