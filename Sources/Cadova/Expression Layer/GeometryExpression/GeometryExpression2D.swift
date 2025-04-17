@@ -42,7 +42,11 @@ extension GeometryExpression2D {
         default: children.allSatisfy(\.isCacheable)
         }
     }
-    
+
+    var isEmpty: Bool {
+        if case .empty = self { true } else { false }
+    }
+
     func evaluate(in context: EvaluationContext) async -> CrossSection {
         switch self {
         case .empty:

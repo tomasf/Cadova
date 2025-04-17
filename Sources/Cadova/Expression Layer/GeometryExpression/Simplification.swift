@@ -2,10 +2,6 @@ import Foundation
 import Manifold3D
 
 extension GeometryExpression2D {
-    var isEmpty: Bool {
-        if case .empty = self { true } else { false }
-    }
-
     func simplified() -> Self {
         switch self {
         case .shape (let shape):
@@ -77,10 +73,6 @@ extension GeometryExpression2D {
 }
 
 extension GeometryExpression3D {
-    var isEmpty: Bool {
-        if case .empty = self { true } else { false }
-    }
-
     func simplified() -> Self {
         switch self {
         case .shape (let shape):
