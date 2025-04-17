@@ -1,15 +1,17 @@
 import Foundation
 import Manifold3D
 
-indirect enum GeometryExpression3D: Sendable {
+indirect enum GeometryExpression3D: GeometryExpression, Sendable {
+    typealias D = D3
+
     case empty
     case shape (PrimitiveShape)
     case boolean ([GeometryExpression3D], type: BooleanOperationType)
     case transform (GeometryExpression3D, transform: AffineTransform3D)
     case convexHull (GeometryExpression3D)
+    case raw (Manifold)
     case extrusion (GeometryExpression2D, type: Extrusion)
     case material (GeometryExpression3D, material: Material)
-    case raw (Manifold)
 
     enum PrimitiveShape: Hashable, Sendable, Codable {
         case box (size: Vector3D)
@@ -26,22 +28,20 @@ indirect enum GeometryExpression3D: Sendable {
 }
 
 extension GeometryExpression3D {
+    var children: [any GeometryExpression] {
+        switch self {
+        case .boolean(let children, _): children
+        case .transform(let body, _), .convexHull(let body), .material(let body, _): [body]
+        case .extrusion(let body, _): [body]
+        case .empty, .shape, .raw: []
+        }
+    }
+
     var isCacheable: Bool {
         switch self {
-        case .empty, .shape:
-            return true
-
-        case .raw:
-            return false
-
-        case .boolean(let children, _):
-            return children.allSatisfy(\.isCacheable)
-
-        case .transform(let body, _), .convexHull(let body), .material(let body, _):
-            return body.isCacheable
-
-        case .extrusion(let body, _):
-            return body.isCacheable
+        case .empty, .shape: true
+        case .raw: false
+        default: children.allSatisfy(\.isCacheable)
         }
     }
 
@@ -104,73 +104,6 @@ extension GeometryExpression3D.PrimitiveShape {
                 logger.error("Polyhedron mesh creation failed: \(error)")
                 return .empty
             }
-        }
-    }
-}
-
-extension GeometryExpression3D {
-    enum Kind: String, Codable, Hashable {
-        case empty
-        case shape
-        case boolean
-        case transform
-        case convexHull
-        case material
-        case extrusion
-        case raw
-    }
-}
-
-extension GeometryExpression3D: Hashable {
-    func hash(into hasher: inout Hasher) {
-        switch self {
-        case .empty:
-            hasher.combine(Kind.empty)
-
-        case .shape(let primitive):
-            hasher.combine(Kind.shape)
-            hasher.combine(primitive)
-
-        case .boolean(let type, let children):
-            hasher.combine(Kind.boolean)
-            hasher.combine(type)
-            hasher.combine(children)
-
-        case .transform(let body, let transform):
-            hasher.combine(Kind.transform)
-            hasher.combine(body)
-            hasher.combine(transform)
-
-        case .convexHull(let body):
-            hasher.combine(Kind.convexHull)
-            hasher.combine(body)
-
-        case .material(let body, let material):
-            hasher.combine(Kind.material)
-            hasher.combine(body)
-            hasher.combine(material)
-
-        case .extrusion(let body, let kind):
-            hasher.combine(Kind.extrusion)
-            hasher.combine(body)
-            hasher.combine(kind)
-
-        case .raw:
-            hasher.combine(Kind.raw)
-        }
-    }
-
-    static func == (lhs: GeometryExpression3D, rhs: GeometryExpression3D) -> Bool {
-        switch (lhs, rhs) {
-        case (.empty, .empty): return true
-        case let (.shape(a), .shape(b)): return a == b
-        case let (.boolean(ta, ca), .boolean(tb, cb)): return ta == tb && ca == cb
-        case let (.transform(a1, t1), .transform(a2, t2)): return a1 == a2 && t1 == t2
-        case let (.convexHull(a), .convexHull(b)): return a == b
-        case let (.material(a1, m1), .material(a2, m2)): return a1 == a2 && m1 == m2
-        case let (.extrusion(a1, k1), .extrusion(a2, k2)): return a1 == a2 && k1 == k2
-        case (.raw, .raw): return false
-        default: return false
         }
     }
 }
