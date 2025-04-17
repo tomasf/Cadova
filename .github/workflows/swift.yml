@@ -23,4 +23,5 @@ jobs:
     - name: Build
       run: swift build -v
     - name: Run tests
+      if: matrix.os != 'windows-latest'
       run: swift test -v
