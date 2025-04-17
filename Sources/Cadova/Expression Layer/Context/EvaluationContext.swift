@@ -18,6 +18,20 @@ extension EvaluationContext {
 }
 
 extension EvaluationContext {
+    func cachedRawGeometry<Key: Hashable & Sendable>(for key: Key) async -> GeometryExpression2D? {
+        let wrappedKey = ExpressionKey(key)
+        let expression = GeometryExpression2D.raw(.empty, key: wrappedKey)
+        guard let primitive = await cache.cachedGeometry(for: expression) else { return nil }
+        return .raw(primitive, key: wrappedKey)
+    }
+
+    func cachedRawGeometry<Key: Hashable & Sendable>(for key: Key) async -> GeometryExpression3D? {
+        let wrappedKey = ExpressionKey(key)
+        let expression = GeometryExpression3D.raw(.empty, key: wrappedKey)
+        guard let primitive = await cache.cachedGeometry(for: expression) else { return nil }
+        return .raw(primitive, key: wrappedKey)
+    }
+
     func geometry(for expression: GeometryExpression2D) async -> CrossSection {
         await cache.geometry(for: expression, in: self)
     }
