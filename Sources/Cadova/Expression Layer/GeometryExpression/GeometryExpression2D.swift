@@ -9,7 +9,7 @@ indirect enum GeometryExpression2D: GeometryExpression, Sendable {
     case boolean ([GeometryExpression2D], type: BooleanOperationType)
     case transform (GeometryExpression2D, transform: AffineTransform2D)
     case convexHull (GeometryExpression2D)
-    case raw (CrossSection)
+    case raw (CrossSection, key: ExpressionKey?)
     case offset (GeometryExpression2D, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int)
     case projection (GeometryExpression3D, type: Projection)
 
@@ -38,7 +38,7 @@ extension GeometryExpression2D {
     var isCacheable: Bool {
         switch self {
         case .empty, .shape: true
-        case .raw: false
+        case .raw (_, let key): key != nil
         default: children.allSatisfy(\.isCacheable)
         }
     }
@@ -76,7 +76,7 @@ extension GeometryExpression2D {
                 await context.geometry(for: expression).slice(at: z)
             }
 
-        case .raw (let crossSection):
+        case .raw (let crossSection, _):
             crossSection
         }
     }

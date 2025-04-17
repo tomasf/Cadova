@@ -49,7 +49,7 @@ extension GeometryExpression3D: Codable {
             try container.encode(body, forKey: .crossSection)
             try container.encode(type, forKey: .type)
 
-        case .raw(let manifold):
+        case .raw(let manifold, _):
             try container.encode(Kind.raw, forKey: .kind)
             try container.encode(manifold.meshGL(), forKey: .mesh)
         }
@@ -85,7 +85,7 @@ extension GeometryExpression3D: Codable {
             self = .extrusion(body, type: type)
         case .raw:
             let meshGL = try container.decode(MeshGL.self, forKey: .mesh)
-            self = .raw(try Manifold(meshGL))
+            self = .raw(try Manifold(meshGL), key: nil)
         }
     }
 }
