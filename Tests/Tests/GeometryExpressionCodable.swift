@@ -1,8 +1,9 @@
-import XCTest
+import Testing
+import Foundation
 @testable import Cadova
 
-final class GeometryExpressionCodableTests: XCTestCase {
-    func testCodableRoundTrip2D() throws {
+struct GeometryExpressionCodableTests {
+    @Test func testCodableRoundTrip2D() throws {
         let expression: GeometryExpression2D = .boolean([
             .shape(.rectangle(size: .init(x: 10, y: 5))),
             .transform(
@@ -22,9 +23,10 @@ final class GeometryExpressionCodableTests: XCTestCase {
 
         let encoded = try JSONEncoder().encode(expression)
         let decoded = try JSONDecoder().decode(GeometryExpression2D.self, from: encoded)
-        XCTAssertEqual(decoded, expression)
+        #expect(decoded == expression)
     }
 
+    @Test
     func testCodableRoundTrip3D() throws {
         let expression: GeometryExpression3D = .boolean([
             .shape(.box(size: .init(x: 5, y: 5, z: 1))),
@@ -43,6 +45,6 @@ final class GeometryExpressionCodableTests: XCTestCase {
 
         let encoded = try JSONEncoder().encode(expression)
         let decoded = try JSONDecoder().decode(GeometryExpression3D.self, from: encoded)
-        XCTAssertEqual(decoded, expression)
+        #expect(decoded == expression)
     }
 }
