@@ -7,14 +7,14 @@ internal struct ReadPrimitive <D: Dimensionality> {
 }
 
 extension ReadPrimitive: Geometry2D where D == D2 {
-    func evaluated(in environment: EnvironmentValues) -> Output<D> {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult<D> {
         let bodyOutput = body.evaluated(in: environment)
         return action(bodyOutput.primitive, environment, bodyOutput.elements).evaluated(in: environment)
     }
 }
 
 extension ReadPrimitive: Geometry3D where D == D3 {
-    func evaluated(in environment: EnvironmentValues) -> Output<D> {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult<D> {
         let bodyOutput = body.evaluated(in: environment)
         return action(bodyOutput.primitive, environment, bodyOutput.elements).evaluated(in: environment)
     }

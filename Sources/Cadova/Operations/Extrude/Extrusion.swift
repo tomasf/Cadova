@@ -5,7 +5,7 @@ internal struct Extrusion: Geometry3D {
     var body: any Geometry2D
     var extrusion: (D2.Primitive, EnvironmentValues) -> D3.Primitive
 
-    func evaluated(in environment: EnvironmentValues) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
         .init(child: body, environment: environment, transformation: { extrusion($0, environment) })
     }
 }

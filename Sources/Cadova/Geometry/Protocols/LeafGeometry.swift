@@ -7,9 +7,9 @@ internal protocol LeafGeometry<D> {
 }
 
 extension LeafGeometry {
-    public func evaluated(in environment: EnvironmentValues) -> Output<D> {
+    public func evaluated(in environment: EnvironmentValues) -> GeometryResult<D> {
         environment.whileCurrent {
-            Output(primitive: body)
+            GeometryResult(primitive: body)
         }
     }
 }

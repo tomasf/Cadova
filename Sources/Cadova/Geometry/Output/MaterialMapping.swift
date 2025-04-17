@@ -48,7 +48,7 @@ internal struct ApplyMaterial: Geometry3D {
     let body: any Geometry3D
     let material: Material
 
-    func evaluated(in environment: EnvironmentValues) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
         let bodyOutput = body.evaluated(in: environment)
         let newMesh = bodyOutput.primitive.asOriginal()
         var elements = bodyOutput.elements
@@ -57,6 +57,6 @@ internal struct ApplyMaterial: Geometry3D {
         }
 
         elements[MaterialMapping.self] = MaterialMapping(originalID: originalID, material: material)
-        return Output3D(primitive: newMesh, elements: elements)
+        return GeometryResult3D(primitive: newMesh, elements: elements)
     }
 }

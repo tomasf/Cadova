@@ -43,7 +43,7 @@ public struct Box: Geometry3D {
         self.size = [side, side, side]
     }
 
-    public func evaluated(in environment: EnvironmentValues) -> Output3D {
+    public func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
         if size.contains(where: { $0 < .ulpOfOne }) {
             .empty
         } else {

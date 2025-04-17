@@ -5,13 +5,13 @@ struct EnvironmentReader<Geometry> {
 }
 
 extension EnvironmentReader<any Geometry2D>: Geometry2D {
-    func evaluated(in environment: EnvironmentValues) -> Output2D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult2D {
         body(environment).evaluated(in: environment)
     }
 }
 
 extension EnvironmentReader<any Geometry3D>: Geometry3D {
-    func evaluated(in environment: EnvironmentValues) -> Output3D {
+    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
         body(environment).evaluated(in: environment)
     }
 }
