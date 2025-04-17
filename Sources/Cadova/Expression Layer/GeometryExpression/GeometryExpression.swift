@@ -14,7 +14,7 @@ protocol GeometryExpression: Sendable {
     static func boolean(_ children: [Self], type: BooleanOperationType) -> Self
     static func transform(_ body: Self, transform: D.Transform) -> Self
     static func convexHull(_ body: Self) -> Self
-    static func raw(_ body: D.Primitive) -> Self
+    static func raw(_ body: D.Primitive, key: ExpressionKey?) -> Self
 }
 
 enum BooleanOperationType: String, Hashable, Sendable, Codable {

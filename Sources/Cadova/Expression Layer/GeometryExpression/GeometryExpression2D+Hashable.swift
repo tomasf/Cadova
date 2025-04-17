@@ -18,20 +18,25 @@ extension GeometryExpression2D: Hashable {
         switch self {
         case .empty:
             hasher.combine(Kind.empty)
+
         case .shape(let primitive):
             hasher.combine(Kind.shape)
             hasher.combine(primitive)
+
         case .boolean(let type, let children):
             hasher.combine(Kind.boolean)
             hasher.combine(type)
             hasher.combine(children)
+
         case .transform(let body, let transform):
             hasher.combine(Kind.transform)
             hasher.combine(body)
             hasher.combine(transform)
+
         case .convexHull(let body):
             hasher.combine(Kind.convexHull)
             hasher.combine(body)
+
         case .offset(let body, let amount, let joinStyle, let miterLimit, let segmentCount):
             hasher.combine(Kind.offset)
             hasher.combine(body)
@@ -39,12 +44,15 @@ extension GeometryExpression2D: Hashable {
             hasher.combine(joinStyle)
             hasher.combine(miterLimit)
             hasher.combine(segmentCount)
+
         case .projection(let body, let kind):
             hasher.combine(Kind.projection)
             hasher.combine(body)
             hasher.combine(kind)
-        case .raw:
+
+        case .raw (_, let key):
             hasher.combine(Kind.raw)
+            hasher.combine(key)
         }
     }
 
@@ -58,7 +66,7 @@ extension GeometryExpression2D: Hashable {
         case let (.offset(a1, aa, aj, am, asc), .offset(a2, ba, bj, bm, bsc)):
             a1 == a2 && aa == ba && aj == bj && am == bm && asc == bsc
         case let (.projection(a1, k1), .projection(a2, k2)): a1 == a2 && k1 == k2
-        case (.raw, .raw): false
+        case let (.raw(_, keyA), .raw(_, keyB)): keyA != nil && keyB != nil && keyA == keyB
 
         case (.empty, _), (.shape, _), (.boolean, _), (.transform, _),
             (.convexHull, _), (.offset, _), (.projection, _), (.raw, _):

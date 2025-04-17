@@ -9,7 +9,7 @@ indirect enum GeometryExpression3D: GeometryExpression, Sendable {
     case boolean ([GeometryExpression3D], type: BooleanOperationType)
     case transform (GeometryExpression3D, transform: AffineTransform3D)
     case convexHull (GeometryExpression3D)
-    case raw (Manifold)
+    case raw (Manifold, key: ExpressionKey?)
     case extrusion (GeometryExpression2D, type: Extrusion)
     case material (GeometryExpression3D, material: Material)
 
@@ -40,7 +40,7 @@ extension GeometryExpression3D {
     var isCacheable: Bool {
         switch self {
         case .empty, .shape: true
-        case .raw: false
+        case .raw (_, let key): key != nil
         default: children.allSatisfy(\.isCacheable)
         }
     }
@@ -77,14 +77,14 @@ extension GeometryExpression3D {
         case .extrusion (let expression, let extrusion):
             let geometry = await context.geometry(for: expression)
             return switch extrusion {
-            case .linear(let height, let twist, let divisions, let scaleTop):
+            case .linear (let height, let twist, let divisions, let scaleTop):
                 geometry.extrude(height: height, divisions: divisions, twist: twist.degrees, scaleTop: scaleTop)
 
-            case .rotational(let angle, let segmentCount):
+            case .rotational (let angle, let segmentCount):
                 geometry.revolve(degrees: angle.degrees, circularSegments: segmentCount)
             }
 
-        case .raw (let manifold):
+        case .raw (let manifold, _):
             return manifold
         }
     }
