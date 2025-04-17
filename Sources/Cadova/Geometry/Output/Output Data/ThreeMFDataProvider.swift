@@ -1,7 +1,6 @@
 import Foundation
 import Manifold3D
 import ThreeMF
-import CoreFoundation
 
 struct ThreeMFDataProvider: OutputDataProvider {
     let output: Output3D
@@ -151,27 +150,24 @@ struct ThreeMFDataProvider: OutputDataProvider {
     }
 
     func generateOutput() throws -> Data {
-        let startTime = CFAbsoluteTimeGetCurrent()
+        var data: Data = Data()
+        let duration = try ContinuousClock().measure {
+            let writer = PackageWriter()
+            writer.model = try makeModel()
+            data = try writer.finalize()
+        }
 
-        let writer = PackageWriter()
-        writer.model = try makeModel()
-        let data = try writer.finalize()
-
-        let finishTime = CFAbsoluteTimeGetCurrent()
-        print(String(format: "Generated 3MF archive in %g seconds", finishTime - startTime))
-
+        print(String(format: "Generated 3MF archive in %@", duration.formatted()))
         return data
     }
 
     func writeOutput(to url: URL) throws {
-        let startTime = CFAbsoluteTimeGetCurrent()
-
-        let writer = try PackageWriter(url: url)
-        writer.model = try makeModel()
-        try writer.finalize()
-
-        let finishTime = CFAbsoluteTimeGetCurrent()
-        print(String(format: "Generated 3MF archive \(url.lastPathComponent) with \(output.primitive.triangleCount) triangles in %g seconds", finishTime - startTime))
+        let duration = try ContinuousClock().measure {
+            let writer = try PackageWriter(url: url)
+            writer.model = try makeModel()
+            try writer.finalize()
+        }
+        print(String(format: "Generated 3MF archive \(url.lastPathComponent) with \(output.primitive.triangleCount) triangles in %@", duration.formatted()))
     }
 }
 
