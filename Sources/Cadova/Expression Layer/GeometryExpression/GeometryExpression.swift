@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-protocol GeometryExpression: Sendable {
+protocol GeometryExpression: Sendable, Hashable {
     associatedtype PrimitiveShape
     associatedtype D: Dimensionality
 
