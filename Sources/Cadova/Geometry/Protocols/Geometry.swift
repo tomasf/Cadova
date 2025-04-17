@@ -9,8 +9,8 @@ import Foundation
 /// Two-dimensional geometry.
 /// Don't conform your types to this protocol directly; instead, use `Shape2D` and implement its `body` property.
 public protocol Geometry2D {
-    typealias Output = Output2D
     typealias D = D2
+    typealias Output = Cadova.Output<D>
 
     func evaluated(in environment: EnvironmentValues) -> Output
 }
@@ -18,8 +18,8 @@ public protocol Geometry2D {
 /// Three-dimensional geometry
 /// Don't conform your types to this protocol directly; instead, use `Shape3D` and implement its `body` property.
 public protocol Geometry3D {
-    typealias Output = Output3D
     typealias D = D3
+    typealias Output = Cadova.Output<D>
 
     func evaluated(in environment: EnvironmentValues) -> Output
 }

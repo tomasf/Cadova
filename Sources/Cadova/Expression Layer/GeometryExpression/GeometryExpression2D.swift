@@ -1,15 +1,17 @@
 import Foundation
 import Manifold3D
 
-indirect enum GeometryExpression2D: Sendable {
+indirect enum GeometryExpression2D: GeometryExpression, Sendable {
+    typealias D = D2
+
     case empty
     case shape (PrimitiveShape)
     case boolean ([GeometryExpression2D], type: BooleanOperationType)
     case transform (GeometryExpression2D, transform: AffineTransform2D)
     case convexHull (GeometryExpression2D)
+    case raw (CrossSection)
     case offset (GeometryExpression2D, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int)
     case projection (GeometryExpression3D, type: Projection)
-    case raw (CrossSection)
 
     enum PrimitiveShape: Hashable, Sendable, Codable {
         case rectangle (size: Vector2D)
@@ -24,22 +26,20 @@ indirect enum GeometryExpression2D: Sendable {
 }
 
 extension GeometryExpression2D {
+    var children: [any GeometryExpression] {
+        switch self {
+        case .boolean(let children, _): children
+        case .transform(let body, _), .convexHull(let body), .offset(let body, _, _, _, _): [body]
+        case .projection(let body, _): [body]
+        case .empty, .shape, .raw: []
+        }
+    }
+
     var isCacheable: Bool {
         switch self {
-        case .empty, .shape:
-            return true
-
-        case .raw:
-            return false
-
-        case .boolean(let children, _):
-            return children.allSatisfy(\.isCacheable)
-
-        case .transform(let body, _), .convexHull(let body), .offset(let body, _, _, _, _):
-            return body.isCacheable
-
-        case .projection(let body, _):
-            return body.isCacheable
+        case .empty, .shape: true
+        case .raw: false
+        default: children.allSatisfy(\.isCacheable)
         }
     }
     
@@ -87,70 +87,6 @@ extension GeometryExpression2D.PrimitiveShape {
             CrossSection.circle(radius: radius, segmentCount: segmentCount)
         case .polygon (let points, let fillRule):
             CrossSection(polygons: [Manifold3D.Polygon(vertices: points)], fillRule: fillRule.primitive)
-        }
-    }
-}
-
-extension GeometryExpression2D {
-    enum Kind: String, Codable, Hashable {
-        case empty
-        case shape
-        case boolean
-        case transform
-        case convexHull
-        case offset
-        case projection
-        case raw
-    }
-}
-
-extension GeometryExpression2D: Hashable {
-    func hash(into hasher: inout Hasher) {
-        switch self {
-        case .empty:
-            hasher.combine(Kind.empty)
-        case .shape(let primitive):
-            hasher.combine(Kind.shape)
-            hasher.combine(primitive)
-        case .boolean(let type, let children):
-            hasher.combine(Kind.boolean)
-            hasher.combine(type)
-            hasher.combine(children)
-        case .transform(let body, let transform):
-            hasher.combine(Kind.transform)
-            hasher.combine(body)
-            hasher.combine(transform)
-        case .convexHull(let body):
-            hasher.combine(Kind.convexHull)
-            hasher.combine(body)
-        case .offset(let body, let amount, let joinStyle, let miterLimit, let segmentCount):
-            hasher.combine(Kind.offset)
-            hasher.combine(body)
-            hasher.combine(amount)
-            hasher.combine(joinStyle)
-            hasher.combine(miterLimit)
-            hasher.combine(segmentCount)
-        case .projection(let body, let kind):
-            hasher.combine(Kind.projection)
-            hasher.combine(body)
-            hasher.combine(kind)
-        case .raw:
-            hasher.combine(Kind.raw)
-        }
-    }
-
-    static func == (lhs: GeometryExpression2D, rhs: GeometryExpression2D) -> Bool {
-        switch (lhs, rhs) {
-        case (.empty, .empty): return true
-        case let (.shape(a), .shape(b)): return a == b
-        case let (.boolean(ta, ca), .boolean(tb, cb)): return ta == tb && ca == cb
-        case let (.transform(a1, t1), .transform(a2, t2)): return a1 == a2 && t1 == t2
-        case let (.convexHull(a), .convexHull(b)): return a == b
-        case let (.offset(a1, aa, aj, am, asc), .offset(a2, ba, bj, bm, bsc)):
-            return a1 == a2 && aa == ba && aj == bj && am == bm && asc == bsc
-        case let (.projection(a1, k1), .projection(a2, k2)): return a1 == a2 && k1 == k2
-        case (.raw, .raw): return false
-        default: return false
         }
     }
 }
