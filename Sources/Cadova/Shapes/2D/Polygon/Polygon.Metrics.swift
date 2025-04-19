@@ -67,7 +67,7 @@ public extension Polygon {
     /// further geometry processing in a 2D environment.
     /// - Parameter reader: A closure receiving `Metrics` of the polygon and returning a 2D geometry.
     /// - Returns: A 2D geometry result from the reader closure.
-    func readMetrics(@GeometryBuilder2D _ reader: @escaping (Metrics) -> any Geometry2D) -> any Geometry2D {
+    func readMetrics(@GeometryBuilder2D _ reader: @Sendable @escaping (Metrics) -> any Geometry2D) -> any Geometry2D {
         readEnvironment { e in
             reader(Metrics(points: points(in: e)))
         }
@@ -77,7 +77,7 @@ public extension Polygon {
     /// further geometry processing in a 3D environment.
     /// - Parameter reader: A closure receiving `Metrics` of the polygon and returning a 3D geometry.
     /// - Returns: A 3D geometry result from the reader closure.
-    func readMetrics(@GeometryBuilder3D _ reader: @escaping (Metrics) -> any Geometry3D) -> any Geometry3D {
+    func readMetrics(@GeometryBuilder3D _ reader: @Sendable @escaping (Metrics) -> any Geometry3D) -> any Geometry3D {
         readEnvironment { e in
             reader(Metrics(points: points(in: e)))
         }

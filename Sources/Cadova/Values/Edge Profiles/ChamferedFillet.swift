@@ -49,9 +49,9 @@ internal struct ChamferedFillet: EdgeProfileShape {
             let facetsPerRev = environment.facets.facetCount(circleRadius: radius)
             let facetCount = max(Int(ceil(Double(facetsPerRev) / (360° / overhang))), 1)
 
-            (0...facetCount).map { f in
+            (0...facetCount).mapUnion { f in
                 let angle = (Double(f) / Double(facetCount)) * overhang
-                return shape.offset(amount: (cos(angle) - 1) * radius, style: .round)
+                shape.offset(amount: (cos(angle) - 1) * radius, style: .round)
                     .extruded(height: extrusionHeight - radius + sin(angle) * radius)
             }
             .adding {

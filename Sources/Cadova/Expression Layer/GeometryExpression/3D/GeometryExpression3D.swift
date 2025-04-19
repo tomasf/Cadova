@@ -9,7 +9,7 @@ public indirect enum GeometryExpression3D: GeometryExpression, Sendable {
     case boolean ([GeometryExpression3D], type: BooleanOperationType)
     case transform (GeometryExpression3D, transform: AffineTransform3D)
     case convexHull (GeometryExpression3D)
-    case raw (Manifold, key: ExpressionKey?)
+    case raw (Manifold, source: GeometryExpression3D?, cacheKey: ExpressionKey)
     case extrusion (GeometryExpression2D, type: Extrusion)
     case material (GeometryExpression3D, material: Material)
 
@@ -18,6 +18,7 @@ public indirect enum GeometryExpression3D: GeometryExpression, Sendable {
         case sphere (radius: Double, segmentCount: Int)
         case cylinder (bottomRadius: Double, topRadius: Double, height: Double, segmentCount: Int)
         case convexHull (points: [Vector3D])
+        #warning("This should use something better than Polyhedron")
         case polyhedron (Polyhedron)
     }
 
@@ -28,23 +29,6 @@ public indirect enum GeometryExpression3D: GeometryExpression, Sendable {
 }
 
 extension GeometryExpression3D {
-    var children: [any GeometryExpression] {
-        switch self {
-        case .boolean(let children, _): children
-        case .transform(let body, _), .convexHull(let body), .material(let body, _): [body]
-        case .extrusion(let body, _): [body]
-        case .empty, .shape, .raw: []
-        }
-    }
-
-    public var isCacheable: Bool {
-        switch self {
-        case .empty, .shape: true
-        case .raw (_, let key): key != nil
-        default: children.allSatisfy(\.isCacheable)
-        }
-    }
-
     public var isEmpty: Bool {
         if case .empty = self { true } else { false }
     }
@@ -84,7 +68,7 @@ extension GeometryExpression3D {
                 geometry.revolve(degrees: angle.degrees, circularSegments: segmentCount)
             }
 
-        case .raw (let manifold, _):
+        case .raw (let manifold, _, _):
             return manifold
         }
     }
@@ -94,13 +78,21 @@ extension GeometryExpression3D.PrimitiveShape {
     func evaluate() -> Manifold {
         switch self {
         case .box (let size):
+            guard size.x > 0, size.y > 0, size.z > 0 else { return .empty }
             return Manifold.cube(size: size)
+
         case .sphere (let radius, let segmentCount):
+            guard radius >= 0 else { return .empty }
             return Manifold.sphere(radius: radius, segmentCount: segmentCount)
+
         case .cylinder (let bottomRadius, let topRadius, let height, let segmentCount):
+            guard height >= 0, (bottomRadius >= 0 || topRadius >= 0) else { return .empty }
             return Manifold.cylinder(height: height, bottomRadius: bottomRadius, topRadius: topRadius, segmentCount: segmentCount)
+
         case .convexHull (let points):
+            guard points.count >= 4 else { return .empty }
             return Manifold.hull(points)
+
         case .polyhedron (let polyhedron):
             do {
                 return try Manifold(polyhedron.meshGL())

@@ -1,34 +1,19 @@
 import Foundation
 
-internal struct ResultReader<Geometry> {
-    let body: Geometry
-    let generator: (ResultElementsByType) -> Geometry
-}
+internal struct ResultReader<Input: Dimensionality, Output: Dimensionality>: Geometry {
+    let body: Input.Geometry
+    let generator: @Sendable (ResultElementsByType) -> Output.Geometry
 
-extension ResultReader<any Geometry2D>: Geometry2D {
-    func evaluated(in environment: EnvironmentValues) -> GeometryResult2D {
-        let bodyOutput = body.evaluated(in: environment)
-        return generator(bodyOutput.elements).evaluated(in: environment)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> Output.Result {
+        let bodyResult = await body.build(in: environment, context: context)
+        return await generator(bodyResult.elements).build(in: environment, context: context)
     }
 }
 
-extension ResultReader<any Geometry3D>: Geometry3D {
-    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
-        let bodyOutput = body.evaluated(in: environment)
-        return generator(bodyOutput.elements).evaluated(in: environment)
-    }
-}
-
-public extension Geometry2D {
-    func readingResult<E: ResultElement>(_ type: E.Type, @GeometryBuilder2D generator: @escaping (_ body: any Geometry2D, _ value: E?) -> any Geometry2D) -> any Geometry2D {
-        ResultReader(body: self) { elements in
-            generator(self, elements[type])
-        }
-    }
-}
-
-public extension Geometry3D {
-    func readingResult<E: ResultElement>(_ type: E.Type, @GeometryBuilder3D generator: @escaping (_ body: any Geometry3D, _ value: E?) -> any Geometry3D) -> any Geometry3D {
+public extension Geometry {
+    func readingResult<E: ResultElement, Output: Dimensionality>(
+        _ type: E.Type, @GeometryBuilder<Output> generator: @Sendable @escaping (D.Geometry, E?) -> Output.Geometry
+    ) -> Output.Geometry {
         ResultReader(body: self) { elements in
             generator(self, elements[type])
         }

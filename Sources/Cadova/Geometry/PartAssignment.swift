@@ -1,16 +1,19 @@
 import Foundation
 
-struct PartAssignment: Geometry3D {
+struct PartAssignment: Geometry {
     let body: any Geometry3D
     let isSeparated: Bool
     let identifier: PartIdentifier
 
-    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
-        let output = body.evaluated(in: environment)
-        return output.modifyingElement(PartCatalog.self) { catalog in
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D3.Result {
+        let output = await body.build(in: environment, context: context)
+        var newOutput = output.modifyingElement(PartCatalog.self) { catalog in
             (catalog ?? .init()).adding(part: output, to: identifier)
         }
-        .modifyingPrimitive { isSeparated ? .empty : $0 }
+        if isSeparated {
+            newOutput = newOutput.replacing(expression: .empty)
+        }
+        return newOutput
     }
 }
 

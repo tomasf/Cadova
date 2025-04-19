@@ -84,7 +84,7 @@ public extension EdgeProfile {
 
 public extension EdgeProfile {
     /// Methods for building an extruded shape with modified edges
-    enum Method {
+    enum Method: Sendable {
         /// Divide the extrusion into distinct layers with a given thickness. While less elegant and more expensive to render, it is suitable for non-convex shapes. Layers work well for 3D printing, as the printing process inherently occurs in layers.
         case layered (height: Double)
         /// Create a smooth, non-layered shape. It is often computationally less intensive and results in a more aesthetically pleasing form but only works as expected for convex shapes.

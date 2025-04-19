@@ -19,8 +19,8 @@ public struct Stack<D: Dimensionality> {
     }
 }
 
-extension Stack<D2>: Geometry2D, Shape2D {
-    /// Creates a stack of 2D geometries aligned along the specified axis with optional spacing and alignment.
+extension Stack: Geometry {
+    /// Creates a stack of geometries aligned along the specified axis with optional spacing and alignment.
     ///
     /// - Parameters:
     ///   - axis: The axis along which the geometries are stacked.
@@ -28,51 +28,24 @@ extension Stack<D2>: Geometry2D, Shape2D {
     ///   - alignment: The alignment of the stack. Can be merged from multiple alignment options.
     ///   - content: A closure generating geometries to stack.
     public init(
-        _ axis: Axis2D,
+        _ axis: D.Axis,
         spacing: Double = 0,
-        alignment: GeometryAlignment2D...,
-        @GeometryBuilder2D content: @escaping () -> [Geometry2D]
+        alignment: D.Alignment...,
+        @SequenceBuilder<D> content: @escaping () -> [D.Geometry]
     ) {
         self.init(axis: axis, spacing: spacing, alignment: alignment, content: content)
     }
 
-    public var body: any Geometry2D {
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
         var offset = 0.0
-        for geometry in items {
-            let output = geometry.evaluated(in: environment)
-            if let box = output.boundingBox {
-                output.asGeometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
+        return await Union {
+            for geometry in items {
+                let result = await geometry.build(in: environment, context: context)
+                let primitive = await context.geometry(for: result.expression)
+                let box = D.BoundingBox(primitive.bounds)
+                geometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
                 offset += box.size[axis] + spacing
             }
-        }
-    }
+        }.build(in: environment, context: context)
 }
-
-extension Stack<D3>: Geometry3D, Shape3D {
-    /// Creates a stack of 3D geometries aligned along the specified axis with optional spacing and alignment.
-    ///
-    /// - Parameters:
-    ///   - axis: The axis along which the geometries are stacked.
-    ///   - spacing: The spacing between stacked geometries. Default is `0`.
-    ///   - alignment: The alignment of the stack. Can be merged from multiple alignment options.
-    ///   - content: A closure generating geometries to stack.
-    public init(
-        _ axis: Axis3D,
-        spacing: Double = 0,
-        alignment: GeometryAlignment3D...,
-        @GeometryBuilder3D content: @escaping () -> [Geometry3D]
-    ) {
-        self.init(axis: axis, spacing: spacing, alignment: alignment, content: content)
-    }
-
-    public var body: any Geometry3D {
-        var offset = 0.0
-        for geometry in items {
-            let output = geometry.evaluated(in: environment)
-            if let box = output.boundingBox {
-                output.asGeometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
-                offset += box.size[axis] + spacing
-            }
-        }
-    }
 }

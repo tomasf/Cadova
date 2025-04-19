@@ -25,6 +25,10 @@ internal extension BoundingBox3D {
     }
 }
 
+public extension Geometry {
+    typealias WithinRange = RangeExpression<Double> & Sendable
+}
+
 public extension Geometry2D {
     /// Returns a geometry sliced within the specified x and y ranges.
     ///
@@ -34,8 +38,8 @@ public extension Geometry2D {
     /// - Returns: A new geometry representing the original geometry constrained within the specified ranges.
     ///
     func within(
-        x: (any RangeExpression<Double>)? = nil,
-        y: (any RangeExpression<Double>)? = nil
+        x: (any WithinRange)? = nil,
+        y: (any WithinRange)? = nil
     ) -> any Geometry2D {
         measuring { _, measurements in
             var box = measurements.boundingBox ?? .universe
@@ -56,9 +60,9 @@ public extension Geometry3D {
     /// - Returns: A new geometry representing the original geometry constrained within the specified ranges.
     ///
     func within(
-        x: (any RangeExpression<Double>)? = nil,
-        y: (any RangeExpression<Double>)? = nil,
-        z: (any RangeExpression<Double>)? = nil
+        x: (any WithinRange)? = nil,
+        y: (any WithinRange)? = nil,
+        z: (any WithinRange)? = nil
     ) -> any Geometry3D {
         measuring { geometry, measurements in
             var box = measurements.boundingBox ?? .universe

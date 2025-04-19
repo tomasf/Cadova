@@ -1,12 +1,19 @@
 import Foundation
 
-public extension Geometry2D {
-    /// Applies a given affine transformation to the 2D geometry.
+public extension Geometry {
+    /// Applies a given affine transformation to the geometry.
     /// - Parameter transform: The transformation to be applied.
-    /// - Returns: A transformed `Geometry2D`.
-    func transformed(_ transform: AffineTransform2D) -> any Geometry2D {
-        modifyingOutput { o, _ in o.applyingTransform(.init(transform)) }
+    /// - Returns: A transformed `Geometry`.
+    func transformed(_ transform: D.Transform) -> D.Geometry {
+        GeometryExpressionTransformer(body: self) {
+            .transform($0, transform: transform)
+        } environment: {
+            $0.applyingTransform(transform.transform3D)
+        }
     }
+}
+
+public extension Geometry2D {
 
     /// Applies a shearing transformation to the 2D geometry.
     /// - Parameters:
@@ -28,13 +35,6 @@ public extension Geometry2D {
 }
 
 public extension Geometry3D {
-    /// Applies a given affine transformation to the 3D geometry.
-    /// - Parameter transform: The transformation to be applied.
-    /// - Returns: A transformed `Geometry3D`.
-    func transformed(_ transform: AffineTransform3D) -> any Geometry3D {
-        modifyingOutput { o, _ in o.applyingTransform(transform) }
-    }
-
     /// Applies a shearing transformation to the 3D geometry.
     /// - Parameters:
     ///   - axis: The primary axis that will be affected by the shear.

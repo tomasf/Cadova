@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Geometry2D {
+public extension Geometry {
     /// Form a union with other geometry to group them together and treat them as one
     ///
     /// ## Example
@@ -14,34 +14,11 @@ public extension Geometry2D {
     ///
     /// - Parameter bodies: The additional geometry
     /// - Returns: A union of this geometry and `bodies`
-    func adding(@GeometryBuilder2D _ bodies: () -> [any Geometry2D]) -> any Geometry2D {
-        Union([self] + bodies())
+    func adding(@GeometryBuilder<D> _ bodies: () -> D.Geometry) -> D.Geometry {
+        bodies()
     }
 
-    func adding(_ bodies: (any Geometry2D)?...) -> any Geometry2D {
-        Union([self] + bodies)
-    }
-}
-
-public extension Geometry3D {
-    /// Form a union with other geometry to group them together and treat them as one
-    ///
-    /// ## Example
-    /// ```swift
-    /// Box([10, 10, 3])
-    ///     .adding {
-    ///         Cylinder(diameter: 5)
-    ///     }
-    ///     .translate(x: 10)
-    /// ```
-    ///
-    /// - Parameter bodies: The additional geometry
-    /// - Returns: A union of this geometry and `bodies`
-    func adding(@GeometryBuilder3D _ bodies: () -> [any Geometry3D]) -> any Geometry3D {
-        Union([self] + bodies())
-    }
-
-    func adding(_ bodies: (any Geometry3D)?...) -> any Geometry3D {
+    func adding(_ bodies: D.Geometry?...) -> D.Geometry {
         Union([self] + bodies)
     }
 }

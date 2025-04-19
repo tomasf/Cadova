@@ -1,12 +1,12 @@
 import Foundation
 import Manifold3D
 
-public protocol GeometryExpression: Sendable, Hashable {
-    associatedtype PrimitiveShape
+public protocol GeometryExpression: Sendable, Hashable, Codable, CustomDebugStringConvertible {
+    associatedtype PrimitiveShape: Sendable
     associatedtype D: Dimensionality
 
     func evaluate(in context: EvaluationContext) async -> D.Primitive
-    var isCacheable: Bool { get }
+    func simplified() -> Self
     var isEmpty: Bool { get }
 
     static var empty: Self { get }
@@ -14,7 +14,7 @@ public protocol GeometryExpression: Sendable, Hashable {
     static func boolean(_ children: [Self], type: BooleanOperationType) -> Self
     static func transform(_ body: Self, transform: D.Transform) -> Self
     static func convexHull(_ body: Self) -> Self
-    static func raw(_ body: D.Primitive, key: ExpressionKey?) -> Self
+    static func raw(_ body: D.Primitive, source: Self?, cacheKey: ExpressionKey) -> Self
 }
 
 public enum BooleanOperationType: String, Hashable, Sendable, Codable {

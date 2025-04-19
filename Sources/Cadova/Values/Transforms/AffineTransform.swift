@@ -28,6 +28,7 @@ public protocol AffineTransform: Sendable, Hashable, Codable {
 
     static var size: (rows: Int, columns: Int) { get }
     init(_ transform3D: AffineTransform3D)
+    var transform3D: AffineTransform3D { get }
 }
 
 public extension AffineTransform {
@@ -92,8 +93,4 @@ public extension AffineTransform {
     init(from decoder: any Decoder) throws {
         self.init(try decoder.singleValueContainer().decode([[Double]].self))
     }
-}
-
-internal protocol AffineTransformInternal {
-    var transform3D: AffineTransform3D { get }
 }

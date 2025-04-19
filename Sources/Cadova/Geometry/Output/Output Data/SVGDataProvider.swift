@@ -2,11 +2,13 @@ import Foundation
 import Nodal
 
 struct SVGDataProvider: OutputDataProvider {
-    let output: GeometryResult2D
+    let result: GeometryResult2D
     let fileExtension = "svg"
 
-    func generateOutput() throws -> Data {
-        let primitive = output.primitive.scale(Vector2D(1, -1))
+    func generateOutput(context: EvaluationContext) async throws -> Data {
+        let expression = GeometryExpression2D.transform(result.expression, transform: .scaling(x: 1, y: -1))
+        let primitive = await context.geometry(for: expression)
+
         let bounds = primitive.bounds
         let shapePoints = primitive.polygons()
 

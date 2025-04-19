@@ -4,7 +4,9 @@ import Foundation
 ///
 /// The sphere's smoothness and number of faces can be adjusted by configuring the facet settings through the ``Geometry3D/usingFacets(minAngle:minSize:)`` and ``Geometry3D/usingFacets(count:)`` methods, allowing for customized geometric precision and rendering quality.
 
-public struct Sphere: Geometry3D, LeafGeometry {
+public struct Sphere: GeometryContainer {
+    public typealias D = D3
+
     /// The diameter of the sphere.
     ///
     /// This property defines the overall size of the sphere from one side to the other through its center.
@@ -33,8 +35,11 @@ public struct Sphere: Geometry3D, LeafGeometry {
 
     @Environment(\.facets) private var facets
 
-    var body: D3.Primitive {
-        .sphere(radius: radius, segmentCount: facets.facetCount(circleRadius: diameter / 2))
+    public var body: D3.Geometry {
+        PrimitiveShape(shape: .sphere(
+            radius: radius,
+            segmentCount: facets.facetCount(circleRadius: diameter / 2)
+        ))
     }
 }
 

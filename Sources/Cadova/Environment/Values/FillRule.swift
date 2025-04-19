@@ -22,7 +22,7 @@ public enum FillRule: Hashable, Sendable, Codable {
 
     static var `default`: FillRule { .nonZero }
 
-    internal var primitive: CrossSection.FillRule {
+    internal var manifoldRepresentation: CrossSection.FillRule {
         switch self {
         case .nonZero: return .nonZero
         case .evenOdd: return .evenOdd
@@ -33,13 +33,13 @@ public enum FillRule: Hashable, Sendable, Codable {
 }
 
 public extension Geometry2D {
-    func usingFillRule(_ fillRule: FillRule) -> Geometry2D {
+    func usingFillRule(_ fillRule: FillRule) -> any Geometry2D {
         withEnvironment { $0.withFillRule(fillRule) }
     }
 }
 
 public extension Geometry3D {
-    func usingFillRule(_ fillRule: FillRule) -> Geometry3D {
+    func usingFillRule(_ fillRule: FillRule) -> any Geometry3D {
         withEnvironment { $0.withFillRule(fillRule) }
     }
 }

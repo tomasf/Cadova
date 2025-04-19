@@ -137,8 +137,6 @@ save {
 }
 ```
 
-[openscad]: https://openscad.org
-[openscad-download]: https://openscad.org/downloads.html#snapshots
 [xcode]: https://developer.apple.com/download/all/?q=xcode
 [swift]: https://www.swift.org/install
 [vscode]: https://code.visualstudio.com/Download

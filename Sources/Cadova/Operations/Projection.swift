@@ -18,8 +18,8 @@ public extension Geometry3D {
     ///   ```
     ///   This creates a circle in 2D that represents the top-down outline of a 3D sphere.
     func projected() -> any Geometry2D {
-        modifyingPrimitive { primitive, _ in
-            primitive.projection()
+        GeometryExpressionTransformer(body: self) {
+            .projection($0, type: .full)
         }
     }
 
@@ -34,8 +34,8 @@ public extension Geometry3D {
     ///   // The result will be a circle with a diameter that represents the cross-section of the truncated cone at Z = 5.
     ///   ```
     func sliced(atZ z: Double) -> any Geometry2D {
-        modifyingPrimitive { primitive, _ in
-            primitive.slice(at: z)
+        GeometryExpressionTransformer(body: self) {
+            .projection($0, type: .slice(z: z))
         }
     }
 

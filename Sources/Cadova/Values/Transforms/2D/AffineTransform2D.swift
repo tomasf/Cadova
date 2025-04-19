@@ -114,8 +114,8 @@ public extension AffineTransform2D {
     }
 }
 
-extension AffineTransform2D: AffineTransformInternal {
-    var transform3D: AffineTransform3D {
+extension AffineTransform2D {
+    public var transform3D: AffineTransform3D {
         .init(self)
     }
 }

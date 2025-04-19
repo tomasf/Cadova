@@ -21,33 +21,33 @@ internal struct PartCatalog: ResultElement {
         })
     }
 
-    static func combine(elements: [PartCatalog], for operation: GeometryCombination) -> PartCatalog? {
+    static func combine(elements: [PartCatalog]) -> PartCatalog? {
         .combining(catalogs: elements)
     }
 
     var mergedOutputs: [PartIdentifier: GeometryResult3D] {
         parts.mapValues { outputs in
-            GeometryResult3D(primitive: .boolean(.union, with: outputs.map(\.primitive)), elements: .init(combining: outputs.map(\.elements), operation: .union))
+            GeometryResult3D(combining: outputs, operationType: .union)
         }
     }
 
-    func modifyingPrimitives(_ modifier: (D3.Primitive) -> D3.Primitive) -> Self {
+    func modifyingExpressions(_ modifier: (D3.Expression) -> D3.Expression) -> Self {
         .init(parts: parts.mapValues {
-            $0.map { $0.modifyingPrimitive(modifier)}
+            $0.map { $0.replacing(expression: modifier($0.expression)) }
         })
     }
 
     func applyingTransform(_ transform: AffineTransform3D) -> Self {
-        modifyingPrimitives { $0.transform(transform) }
+        modifyingExpressions { .transform($0, transform: transform) }
     }
 }
 
-public enum PartType: Hashable {
+public enum PartType: Hashable, Sendable {
     case solid
     case visual
 }
 
-internal struct PartIdentifier: Hashable {
+internal struct PartIdentifier: Hashable, Sendable {
     let name: String
     let type: PartType
     let defaultMaterial: Material

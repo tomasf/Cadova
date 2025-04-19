@@ -5,7 +5,7 @@ import Manifold3D
 ///
 /// This type encapsulates various metrics like bounding boxes, areas, and vertex counts,
 /// tailored to either 2D or 3D geometries based on the specified dimensionality.
-public struct Measurements<D: Dimensionality> {
+public struct Measurements<D: Dimensionality>: Sendable {
     internal let primitive: D.Primitive
 }
 

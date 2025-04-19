@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Anchor: Hashable {
+public struct Anchor: Hashable, Sendable {
     internal let id = UUID()
     public init() {}
 }

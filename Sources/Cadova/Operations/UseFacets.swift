@@ -8,7 +8,6 @@ public extension Geometry2D {
 
     /// Set an adaptive facet configuration for this geometry
     ///
-    /// This is equivalent to setting `$fa` and `$fs` in OpenSCAD.
     /// - Parameters:
     ///   - minAngle: The minimum angle of each facet
     ///   - minSize: The minimum size of each facet
@@ -19,7 +18,6 @@ public extension Geometry2D {
 
     /// Set a fixed facet configuration for this geometry
     ///
-    /// This is equivalent to setting `$fn` OpenSCAD.
     /// - Parameters:
     ///   - count: The number of facets to use per revolution.
 
@@ -45,7 +43,6 @@ public extension Geometry3D {
 
     /// Set an adaptive facet configuration for this geometry
     ///
-    /// This is equivalent to setting `$fa` and `$fs` in OpenSCAD.
     /// - Parameters:
     ///   - minAngle: The minimum angle of each facet
     ///   - minSize: The minimum size of each facet
@@ -56,7 +53,6 @@ public extension Geometry3D {
 
     /// Set a fixed facet configuration for this geometry
     ///
-    /// This is equivalent to setting `$fn` OpenSCAD.
     /// - Parameters:
     ///   - count: The number of facets to use per revolution.
 

@@ -53,7 +53,7 @@ public struct Teardrop: Shape2D {
     }
 
     /// Defines the style of a teardrop shape.
-    public enum Style {
+    public enum Style: Sendable {
         /// A complete teardrop shape where steep overhangs need to be avoided.
         case full
         /// A teardrop shape with a "bridge" at the top of the originally intended circle, creating a more circle-like appearance while keeping it printable.

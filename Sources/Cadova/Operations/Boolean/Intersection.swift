@@ -34,38 +34,28 @@ import Manifold3D
 ///
 /// This will create an intersection where the box and cylinder overlap.
 ///
-public struct Intersection<D: Dimensionality> {
+public struct Intersection<D: Dimensionality>: GeometryContainer {
     internal let children: [D.Geometry]
-    internal let combination = GeometryCombination.intersection
 
-    func combine(_ children: [D.Primitive], in environment: EnvironmentValues) -> D.Primitive {
-        .boolean(.intersection, with: children)
+    internal init(children: [D.Geometry]) {
+        self.children = children
     }
-}
 
-extension Intersection<D2>: Geometry2D, CombinedGeometry2D {
-    /// Creates a 2D intersection of multiple geometries.
+    public var body: D.Geometry {
+        BooleanGeometry(children: children, type: .intersection)
+    }
+
+    /// Creates a intersection of multiple geometries.
     ///
-    /// This initializer takes a closure that provides an array of 2D geometries to intersect.
+    /// This initializer takes a closure that provides an array of geometries to intersect.
     ///
     /// - Parameter children: A closure providing the geometries to be intersected.
-    public init(@GeometryBuilder2D _ children: () -> [any Geometry2D]) {
+    public init(@ArrayBuilder<D.Geometry> _ children: () -> [D.Geometry]) {
         self.init(children: children())
     }
 }
 
-extension Intersection<D3>: Geometry3D, CombinedGeometry3D {
-    /// Creates a 3D intersection of multiple geometries.
-    ///
-    /// This initializer takes a closure that provides an array of 3D geometries to intersect.
-    ///
-    /// - Parameter children: A closure providing the geometries to be intersected.
-    public init(@GeometryBuilder3D _ children: () -> [any Geometry3D]) {
-        self.init(children: children())
-    }
-}
-
-public extension Geometry2D {
+public extension Geometry {
     /// Intersect this geometry with other geometry
     ///
     /// ## Example
@@ -75,24 +65,6 @@ public extension Geometry2D {
     ///        Circle(diameter: 4)
     ///     }
     /// ```
-    ///
-    /// - Parameters:
-    ///   - other: The other geometry to intersect with this
-    /// - Returns: The intersection (overlap) of this geometry and the input
-
-    func intersecting(@GeometryBuilder2D _ other: () -> [any Geometry2D]) -> any Geometry2D {
-        Intersection(children: [self] + other())
-    }
-
-    func intersecting(_ other: any Geometry2D...) -> any Geometry2D {
-        Intersection(children: [self] + other)
-    }
-}
-
-public extension Geometry3D {
-    /// Intersect this geometry with other geometry
-    ///
-    /// ## Example
     /// ```swift
     /// Box([10, 10, 5])
     ///     .intersecting {
@@ -104,21 +76,19 @@ public extension Geometry3D {
     ///   - other: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
-    func intersecting(@GeometryBuilder3D _ other: () -> [any Geometry3D]) -> any Geometry3D {
+    func intersecting(@ArrayBuilder<D.Geometry> _ other: () -> [D.Geometry]) -> D.Geometry {
         Intersection(children: [self] + other())
     }
 
-    func intersecting(_ other: any Geometry3D...) -> any Geometry3D {
+    func intersecting(_ other: D.Geometry...) -> D.Geometry {
         Intersection(children: [self] + other)
     }
 }
 
 public extension Sequence {
-    func mapIntersection(@GeometryBuilder3D _ transform: (Element) throws -> any Geometry3D) rethrows -> any Geometry3D {
-        Intersection(children: try map(transform))
-    }
-    
-    func mapIntersection(@GeometryBuilder2D _ transform: (Element) throws -> any Geometry2D) rethrows -> any Geometry2D {
+    func mapIntersection<D: Dimensionality>(
+        @GeometryBuilder<D> _ transform: (Element) throws -> D.Geometry
+    ) rethrows -> D.Geometry {
         Intersection(children: try map(transform))
     }
 }

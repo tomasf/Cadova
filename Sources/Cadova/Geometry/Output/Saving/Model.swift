@@ -3,12 +3,13 @@ import Foundation
 private func saveModel(
     to name: String,
     environmentBuilder: ((inout EnvironmentValues) -> Void)?,
-    providerBuilder: (EnvironmentValues) -> any OutputDataProvider,
-) {
+    providerBuilder: (EnvironmentValues, EvaluationContext) async -> any OutputDataProvider,
+) async {
     var environment = OutputContext.current?.environmentValues ?? .defaultEnvironment
     environmentBuilder?(&environment)
 
-    let provider = providerBuilder(environment)
+    let context = OutputContext.current?.evaluationContext ?? .init()
+    let provider = await providerBuilder(environment, context)
 
     let url: URL
     if let parent = OutputContext.current?.directory {
@@ -18,30 +19,32 @@ private func saveModel(
     }
 
     do {
-        try provider.writeOutput(to: url)
+        try await provider.writeOutput(to: url, context: context)
         logger.info("Wrote output to \(url.path)")
     } catch {
         logger.error("Failed to save model file to \(url.path): \(error)")
     }
 }
 
-public func Model(
-    _ name: String,
-    @GeometryBuilder3D content: @escaping () -> any Geometry3D,
-    environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
-) {
-    saveModel(to: name, environmentBuilder: environmentBuilder) { environment in
-        ThreeMFDataProvider(output: content().evaluated(in: environment))
+fileprivate extension Geometry {
+    var preparedFor3DExport: any Geometry3D {
+        if let geometry3D = self as? any Geometry3D {
+            return geometry3D
+        } else if let geometry2D = self as? any Geometry2D {
+            return geometry2D.extruded(height: 0.001)
+        } else {
+            fatalError("Unsupported geometry type")
+        }
     }
 }
 
-public func Model(
+public func Model<D: Dimensionality>(
     _ name: String,
-    @GeometryBuilder2D content: @escaping () -> any Geometry2D,
+    @GeometryBuilder<D> content: @escaping () -> D.Geometry,
     environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
-) {
-    saveModel(to: name, environmentBuilder: environmentBuilder) { environment in
-        let GeometryResult3D = content().extruded(height: 0.001).evaluated(in: environment)
-        return ThreeMFDataProvider(output: GeometryResult3D)
+) async {
+    await saveModel(to: name, environmentBuilder: environmentBuilder) { environment, context in
+        let result = await content().preparedFor3DExport.build(in: environment, context: context)
+        return ThreeMFDataProvider(result: result)
     }
 }

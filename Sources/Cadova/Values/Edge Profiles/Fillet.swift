@@ -26,11 +26,11 @@ internal struct Fillet: EdgeProfileShape {
             let facetCount = max(Int(ceil(Double(facetsPerRev) / 4.0)), 1)
             let angleIncrement = 90° / Double(facetCount)
 
-            (0...facetCount).map { f in
+            (0...facetCount).mapUnion { f in
                 let angle = Double(f) * angleIncrement
                 let inset = (cos(angle) - 1) * width
                 let zOffset = sin(angle) * height
-                return shape.offset(amount: inset, style: .round)
+                shape.offset(amount: inset, style: .round)
                     .extruded(height: extrusionHeight - height + zOffset)
             }.convexHull()
         }

@@ -1,6 +1,9 @@
 import Foundation
 import ThreeMF
 
+#warning("Fix in ThreeMF")
+extension ThreeMF.Metadata: @retroactive @unchecked Sendable {}
+
 struct MetadataContainer: ResultElement {
     let metadata: [ThreeMF.Metadata]
 
@@ -16,7 +19,7 @@ struct MetadataContainer: ResultElement {
         MetadataContainer(metadata: metadata + [.init(name: name, value: value)])
     }
 
-    static func combine(elements: [Self], for operation: GeometryCombination) -> Self? {
+    static func combine(elements: [Self]) -> Self? {
         MetadataContainer(metadata: Array(elements.map(\.metadata).joined()))
     }
 }

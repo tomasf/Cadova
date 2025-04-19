@@ -12,7 +12,7 @@ public func Project(
         try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
     }
 
-    let context = OutputContext(directory: url, environmentValues: environment)
+    let context = OutputContext(directory: url, environmentValues: environment, evaluationContext: .init())
     context.whileCurrent {
         content()
     }

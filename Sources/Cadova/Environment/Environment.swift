@@ -16,7 +16,7 @@ import Foundation
 /// - Parameters:
 ///   - keyPath: A key path to the value in `EnvironmentValues`, which determines the specific value to read.
 ///
-@propertyWrapper public struct Environment<T> {
+@propertyWrapper public struct Environment<T>: Sendable {
     private let keyPath: KeyPath<EnvironmentValues, T>
 
     public init() where T == EnvironmentValues {

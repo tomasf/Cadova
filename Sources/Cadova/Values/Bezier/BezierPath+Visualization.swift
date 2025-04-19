@@ -7,7 +7,7 @@ extension BezierPath {
     ///   - markerRotation: The rotation to use for markers. Set to nil to hide them.
 
     public func visualize(scale: Double = 1, markerRotation: Rotation3D? = [45°, 0°, -45°]) -> any Geometry3D {
-        @GeometryBuilder3D
+        @Sendable @GeometryBuilder3D
         func makeMarker(at location: V, text: String, transform: AffineTransform3D) -> any Geometry3D {
             Sphere(radius: 0.2)
                 .colored(.black)
@@ -15,11 +15,11 @@ extension BezierPath {
                 .translated(location.vector3D)
         }
 
-        func makeMarker(at location: V, curveIndex: Int, pointIndex: Int, transform: AffineTransform3D) -> any Geometry3D {
+        @Sendable func makeMarker(at location: V, curveIndex: Int, pointIndex: Int, transform: AffineTransform3D) -> any Geometry3D {
             makeMarker(at: location, text: "c\(curveIndex + 1)p\(pointIndex + 1)", transform: transform)
         }
 
-        func makeLine(from: V, to: V, thickness: Double) -> any Geometry3D {
+        @Sendable func makeLine(from: V, to: V, thickness: Double) -> any Geometry3D {
             Sphere(radius: thickness)
                 .translated(from.vector3D)
                 .adding {

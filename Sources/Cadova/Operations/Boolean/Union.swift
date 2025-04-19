@@ -48,20 +48,19 @@ import Manifold3D
 ///
 /// This will create a union where the cylinder and box are combined into a single geometry.
 /// 
-public struct Union<D: Dimensionality> {
+public struct Union<D: Dimensionality>: GeometryContainer {
     let children: [D.Geometry]
-    let combination = GeometryCombination.union
 
     internal init(children: [D.Geometry]) {
         self.children = children
     }
 
-    func combine(_ children: [D.Primitive], in environment: EnvironmentValues) -> D.Primitive {
-        .boolean(.union, with: children)
+    public var body: D.Geometry {
+        BooleanGeometry(children: children, type: .union)
     }
 }
 
-extension Union<D2>: Geometry2D, CombinedGeometry2D {
+extension Union {
     /// Form a union to group multiple pieces of geometry together and treat them as one
     ///
     /// ## Example
@@ -72,8 +71,12 @@ extension Union<D2>: Geometry2D, CombinedGeometry2D {
     /// }
     /// .translate(x: 10)
     /// ```
-    public init(@GeometryBuilder2D _ body: () -> [any Geometry2D]) {
+    public init(@ArrayBuilder<D.Geometry> _ body: () -> [D.Geometry]) {
         self.init(children: body())
+    }
+
+    public init(@ArrayBuilder<D.Geometry> _ body: () async -> [D.Geometry]) async {
+        self.init(children: await body())
     }
 
     /// Form a union to group multiple pieces of geometry together and treat them as one
@@ -83,34 +86,24 @@ extension Union<D2>: Geometry2D, CombinedGeometry2D {
     /// Union([Circle(diameter: 4), Rectangle([10, 10]))
     ///     .translate(x: 10)
     /// ```
-    public init(_ children: [(any Geometry2D)?]) {
+    public init<S: Sequence<D.Geometry?>>(_ children: S) {
         self.init(children: children.compactMap { $0 })
     }
 }
 
-extension Union<D3>: Geometry3D, CombinedGeometry3D {
-    /// Form a union to group multiple pieces of geometry together and treat them as one
-    ///
-    /// ## Example
-    /// ```swift
-    /// Union {
-    ///     Cylinder(diameter: 4, height: 10)
-    ///     Box([10, 10, 3])
-    /// }
-    /// .translate(x: 10)
-    /// ```
-    public init(@GeometryBuilder3D _ body: () -> [any Geometry3D]) {
-        self.init(children: body())
+public extension Collection {
+    func mapUnion<D: Dimensionality>(
+        @GeometryBuilder<D> _ transform: (Element) throws -> D.Geometry
+    ) rethrows -> D.Geometry {
+        Union(children: try map(transform))
+    }
+}
+
+public extension Collection where Element: Sendable {
+    func mapUnion<D: Dimensionality>(
+        @GeometryBuilder<D> _ transform: @Sendable @escaping (Element) async -> D.Geometry
+    ) async -> D.Geometry {
+        Union(children: await asyncMap(transform))
     }
 
-    /// Form a union to group multiple pieces of geometry together and treat them as one
-    ///
-    /// ## Example
-    /// ```swift
-    /// Union([Cylinder(diameter: 4, height: 10), Box([10, 10, 3]))
-    ///     .translate(x: 10)
-    /// ```
-    public init(_ children: [(any Geometry3D)?]) {
-        self.init(children: children.compactMap { $0 })
-    }
 }

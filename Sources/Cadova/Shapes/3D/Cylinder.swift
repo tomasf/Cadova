@@ -8,7 +8,7 @@ import Foundation
 ///     .usingFacets(count: 3)
 /// ```
 
-public struct Cylinder: Geometry3D, LeafGeometry {
+public struct Cylinder: Shape3D {
     public let height: Double
     public let bottomRadius: Double
     public let topRadius: Double
@@ -18,28 +18,28 @@ public struct Cylinder: Geometry3D, LeafGeometry {
 
     @Environment(\.facets) private var facets
 
-    var body: D3.Primitive {
+    public var body: any Geometry3D {
         let segmentCount = facets.facetCount(circleRadius: max(bottomRadius, topRadius))
 
         if height < .ulpOfOne {
-            return .empty
+            return Empty()
 
         } else if bottomRadius < .ulpOfOne {
-            return .cylinder(
-                height: height,
+            return PrimitiveShape<D3>(shape: .cylinder(
                 bottomRadius: topRadius,
                 topRadius: bottomRadius,
-                segmentCount: segmentCount
-            )
-            .scale(Vector3D(1, 1, -1))
-            .translate(Vector3D(0, 0, height))
-        } else {
-            return .cylinder(
                 height: height,
+                segmentCount: segmentCount
+            ))
+            .scaled(z: -1)
+            .translated(z: height)
+        } else {
+            return PrimitiveShape<D3>(shape: .cylinder(
                 bottomRadius: bottomRadius,
                 topRadius: topRadius,
+                height: height,
                 segmentCount: segmentCount
-            )
+            ))
         }
     }
 }

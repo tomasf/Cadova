@@ -3,7 +3,7 @@ import Foundation
 public extension Box {
     /// Represents an edge of a 3D box along a specified axis, defined by
     /// positions along the two remaining axes.
-    struct Edge: Hashable {
+    struct Edge: Hashable, Sendable {
         /// The primary axis along which the edge runs (X, Y, or Z).
         public let axis: Axis3D
 

@@ -11,8 +11,8 @@ extension Manifold3D.Vector2 {
     var vector2D: Vector2D { .init(x: x, y: y) }
 }
 
-public extension Vector2D {
-    init(_ manifoldVector: any Vector2) {
+extension Vector2D {
+    public init(_ manifoldVector: any Vector2) {
         self.init(manifoldVector.x, manifoldVector.y)
     }
 }
@@ -21,13 +21,14 @@ extension Manifold3D.Vector3 {
     var vector3D: Vector3D { .init(x: x, y: y, z: z) }
 }
 
-public extension Vector3D {
-    init(_ manifoldVector: any Vector3) {
+extension Vector3D {
+    public init(_ manifoldVector: any Vector3) {
         self.init(manifoldVector.x, manifoldVector.y, manifoldVector.z)
     }
 }
 
-public protocol PrimitiveGeometry {
+public protocol PrimitiveGeometry: Sendable {
+    associatedtype D: Dimensionality
     associatedtype Vector
     associatedtype Matrix
     associatedtype Rotation
@@ -52,28 +53,38 @@ public protocol PrimitiveGeometry {
     static func hull(_ children: [Self]) -> Self
     static func hull(_ points: [Vector]) -> Self
 
-    func warp(_ function: @escaping (Vector) -> Vector) -> Self
+    func warp(_ function: @escaping (D.Vector) -> D.Vector) -> Self
 
     func applyingTransform(_ transform: AffineTransform3D) -> Self
 }
 
 extension CrossSection: PrimitiveGeometry {
-    public typealias Vector = any Vector2
+    public typealias D = D2
     public typealias Matrix = any Matrix2x3
     public typealias Rotation = Double
+    public typealias Vector = any Vector2
 
     public func applyingTransform(_ transform3D: AffineTransform3D) -> Self {
         transform(AffineTransform2D(transform3D))
     }
+
+    public func warp(_ function: @escaping (D.Vector) -> D.Vector) -> Self {
+        warp { v -> any Vector2 in function(.init(v)) }
+    }
 }
 
 extension Manifold: PrimitiveGeometry {
+    public typealias D = D3
     public typealias Vector = any Vector3
     public typealias Matrix = any Matrix3x4
     public typealias Rotation = any Vector3
 
     public func applyingTransform(_ transform3D: AffineTransform3D) -> Self {
         transform(transform3D)
+    }
+
+    public func warp(_ function: @escaping (D.Vector) -> D.Vector) -> Self {
+        warp { v -> any Vector3 in function(.init(v)) }
     }
 }
 
