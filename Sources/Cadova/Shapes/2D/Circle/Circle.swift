@@ -50,7 +50,7 @@ public struct Circle {
     @Environment(\.facets) private var facets
 }
 
-extension Circle: GeometryContainer {
+extension Circle: CompositeGeometry {
     public typealias D = D2
 
     public var body: any Geometry2D {

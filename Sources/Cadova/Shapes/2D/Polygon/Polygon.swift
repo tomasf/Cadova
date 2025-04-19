@@ -16,7 +16,7 @@ import Manifold3D
 ///     let polygonFromBezierPath = Polygon(bezierPath)
 ///     ```
 
-public struct Polygon: GeometryContainer {
+public struct Polygon: CompositeGeometry {
     public typealias D = D2
     internal let pointsProvider: any PolygonPointsProvider
 

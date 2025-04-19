@@ -25,7 +25,7 @@ public struct Polyhedron: Sendable, Hashable, Codable {
     }
 }
 
-extension Polyhedron: GeometryContainer {
+extension Polyhedron: CompositeGeometry {
     public typealias D = D3
 
     public var body: any Geometry3D {

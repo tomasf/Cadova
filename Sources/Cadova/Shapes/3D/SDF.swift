@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-public struct LevelSet: GeometryContainer {
+public struct LevelSet: CompositeGeometry {
     public typealias D = D3
 
     let function: @Sendable (Vector3D) -> Double

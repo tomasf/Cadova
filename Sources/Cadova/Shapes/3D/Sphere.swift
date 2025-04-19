@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The sphere's smoothness and number of faces can be adjusted by configuring the facet settings through the ``Geometry3D/usingFacets(minAngle:minSize:)`` and ``Geometry3D/usingFacets(count:)`` methods, allowing for customized geometric precision and rendering quality.
 
-public struct Sphere: GeometryContainer {
+public struct Sphere: CompositeGeometry {
     public typealias D = D3
 
     /// The diameter of the sphere.

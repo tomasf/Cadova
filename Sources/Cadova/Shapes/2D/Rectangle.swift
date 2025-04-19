@@ -31,7 +31,7 @@ public struct Rectangle {
     }
 }
 
-extension Rectangle: GeometryContainer {
+extension Rectangle: CompositeGeometry {
     public typealias D = D2
 
     public var body: any Geometry2D {

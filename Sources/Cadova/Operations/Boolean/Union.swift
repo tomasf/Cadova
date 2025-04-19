@@ -48,7 +48,7 @@ import Manifold3D
 ///
 /// This will create a union where the cylinder and box are combined into a single geometry.
 /// 
-public struct Union<D: Dimensionality>: GeometryContainer {
+public struct Union<D: Dimensionality>: CompositeGeometry {
     let children: [D.Geometry]
 
     internal init(children: [D.Geometry]) {
