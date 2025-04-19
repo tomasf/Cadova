@@ -1,10 +1,10 @@
 import Foundation
 
-internal struct NamedCacheKey: Hashable, Sendable {
+internal struct NamedCacheKey: CacheKey {
     let operationName: String
     let parameters: [ExpressionKey]
 
-    init(operationName: String, parameters: [any Hashable & Sendable]) {
+    init(operationName: String, parameters: [any Hashable & Sendable & Codable]) {
         self.operationName = operationName
         self.parameters = parameters.map { ExpressionKey($0) }
     }
@@ -42,7 +42,7 @@ public extension Geometry {
     ///
     func warped(
         operationName name: String,
-        cacheParameters params: any Hashable & Sendable...,
+        cacheParameters params: any Hashable & Sendable & Codable...,
         transform: @Sendable @escaping (D.Vector) -> D.Vector
     ) -> D.Geometry {
         CachingPrimitiveTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {

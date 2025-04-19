@@ -17,8 +17,10 @@ extension EvaluationContext {
     }
 }
 
+public typealias CacheKey = Hashable & Sendable & Codable
+
 extension EvaluationContext {
-    func cachedRawGeometry<E: GeometryExpression, Key: Hashable & Sendable>(for source: E?, key: Key) async -> E? {
+    func cachedRawGeometry<E: GeometryExpression, Key: CacheKey>(for source: E?, key: Key) async -> E? {
         let wrappedKey = ExpressionKey(key)
         let expression = E.raw(.empty, source: source, cacheKey: wrappedKey)
 

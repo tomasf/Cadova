@@ -1,12 +1,12 @@
 import Foundation
 import Manifold3D
 
-fileprivate struct PlaneSplitPartParameters: Hashable, Sendable {
+fileprivate struct PlaneSplitPartParameters: CacheKey {
     let plane: Plane
     let isFirst: Bool
 }
 
-fileprivate struct MaskSplitPartParameters: Hashable, Sendable {
+fileprivate struct MaskSplitPartParameters: CacheKey {
     let mask: GeometryExpression3D
     let isFirst: Bool
 }

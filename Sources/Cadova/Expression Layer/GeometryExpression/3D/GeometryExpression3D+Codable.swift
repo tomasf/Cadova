@@ -12,6 +12,8 @@ extension GeometryExpression3D: Codable {
         case crossSection
         case mesh
         case material
+        case source
+        case cacheKey
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -49,9 +51,12 @@ extension GeometryExpression3D: Codable {
             try container.encode(body, forKey: .crossSection)
             try container.encode(type, forKey: .type)
 
-        case .raw(let manifold, let source, _):
+        case .raw(let manifold, let source, let cacheKey):
             try container.encode(Kind.raw, forKey: .kind)
             try container.encode(manifold.meshGL(), forKey: .mesh)
+            try container.encode(source, forKey: .source)
+            try container.encode(cacheKey, forKey: .cacheKey)
+
         }
     }
 
@@ -85,8 +90,9 @@ extension GeometryExpression3D: Codable {
             self = .extrusion(body, type: type)
         case .raw:
             let meshGL = try container.decode(MeshGL.self, forKey: .mesh)
-            #warning("fix")
-            self = .raw(try Manifold(meshGL), source: nil, cacheKey: .init(0))
+            let source = try container.decode(GeometryExpression3D.self, forKey: .source)
+            let cacheKey = try container.decode(ExpressionKey.self, forKey: .cacheKey)
+            self = .raw(try Manifold(meshGL), source: source, cacheKey: cacheKey)
         }
     }
 }

@@ -14,6 +14,8 @@ extension GeometryExpression2D: Codable {
         case miterLimit
         case segmentCount
         case crossSection
+        case cacheKey
+        case source
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -54,9 +56,11 @@ extension GeometryExpression2D: Codable {
             try container.encode(body, forKey: .body)
             try container.encode(type, forKey: .type)
 
-        case .raw(let crossSection, _, _):
+        case .raw(let crossSection, let source, let cacheKey):
             try container.encode(Kind.raw, forKey: .kind)
             try container.encode(crossSection.polygons(), forKey: .crossSection)
+            try container.encode(source, forKey: .source)
+            try container.encode(cacheKey, forKey: .cacheKey)
         }
     }
 
@@ -94,8 +98,11 @@ extension GeometryExpression2D: Codable {
             self = .projection(body, type: type)
         case .raw:
             let polygons = try container.decode([Manifold3D.Polygon].self, forKey: .crossSection)
-            #warning("fix")
-            self = .raw(CrossSection(polygons: polygons, fillRule: .nonZero), source: nil, cacheKey: .init(0))
+            let source = try container.decode(GeometryExpression2D.self, forKey: .source)
+            let cacheKey = try container.decode(ExpressionKey.self, forKey: .cacheKey)
+            self = .raw(
+                CrossSection(polygons: polygons, fillRule: .nonZero), source: source, cacheKey: cacheKey
+            )
         }
     }
 }

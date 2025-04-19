@@ -17,10 +17,12 @@ actor GeometryCache {
         guard !expression.isEmpty else { return .empty }
 
         if let cached = await cachedGeometry(for: expression) {
+            print("2D cache hit")
             return cached
         }
         let task = Task { await expression.evaluate(in: context) }
         cache2D[expression] = task
+        print("Cache miss, added to 2D cache with \(cache2D.count) entries")
         return await task.value
     }
 
@@ -28,10 +30,12 @@ actor GeometryCache {
         guard !expression.isEmpty else { return .empty }
 
         if let cached = await cachedGeometry(for: expression) {
+            print("3D cache hit")
             return cached
         }
         let task = Task { await expression.evaluate(in: context) }
         cache3D[expression] = task
+        print("Cache miss, added to 3D cache with \(cache3D.count) entries")
         return await task.value
     }
 }
