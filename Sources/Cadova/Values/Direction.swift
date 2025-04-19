@@ -2,7 +2,7 @@
 ///
 /// `Direction` represents only the orientation of a vector, not its magnitude.
 /// All directions are normalized upon creation.
-public struct Direction<D: Dimensionality>: Hashable, Sendable {
+public struct Direction<D: Dimensionality>: Hashable, Sendable, Codable {
     /// The normalized vector representing the direction.
     public let unitVector: D.Vector
 

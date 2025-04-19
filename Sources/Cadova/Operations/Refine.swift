@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-fileprivate struct RefineCacheKey: Hashable, Sendable {
+fileprivate struct RefineCacheKey: CacheKey {
     let maxEdgeLength: Double
 }
 

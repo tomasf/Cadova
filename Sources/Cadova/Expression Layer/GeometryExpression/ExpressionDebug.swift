@@ -19,8 +19,9 @@ extension GeometryExpression2D {
             "transform(...) {\n\(body.debugDescription.indented)\n}"
         case .convexHull (let body):
             "convexHull {\n\(body.debugDescription.indented)\n}"
-        case .raw (_, let source, let key):
-            String(format: "raw(2D, key: %@) {\n%@\n}",
+        case .raw (let primitive, let source, let key):
+            String(format: "raw(2D: %d vertices, key: %@) {\n%@\n}",
+                   primitive.vertexCount,
                    String(describing: key),
                    source.debugDescription.indented
             )
@@ -69,8 +70,9 @@ extension GeometryExpression3D {
             "transform(...) {\n\(body.debugDescription.indented)\n}"
         case .convexHull (let body):
             "convexHull {\n\(body.debugDescription.indented)\n}"
-        case .raw (_, let source, let key):
-            String(format: "raw(3D, key: %@) {\n%@\n}",
+        case .raw (let primitive, let source, let key):
+            String(format: "raw(3D: %d vertices, key: %@) {\n%@\n}",
+                   primitive.vertexCount,
                    String(describing: key),
                    source.debugDescription.indented
             )

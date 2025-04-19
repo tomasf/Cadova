@@ -17,7 +17,7 @@ public struct LevelSet: GeometryContainer {
         level: Double = 0,
         tolerance: Double? = nil,
         name: String,
-        cacheParameters: any Hashable & Sendable...,
+        cacheParameters: any Hashable & Sendable & Codable...,
         sdf: @Sendable @escaping (Vector3D) -> Double
     ) {
         self.function = sdf

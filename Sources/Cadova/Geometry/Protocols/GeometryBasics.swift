@@ -83,7 +83,7 @@ struct BooleanGeometry<D: Dimensionality>: Geometry {
     }
 }
 
-struct CachingPrimitive<D: Dimensionality, Key: Hashable & Sendable>: Geometry {
+struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
     let key: Key
     let primitive: D.Primitive
 
@@ -98,7 +98,7 @@ struct CachingPrimitive<D: Dimensionality, Key: Hashable & Sendable>: Geometry {
 
 // Apply an arbitrary transformation to a body's primitive.
 
-struct CachingPrimitiveTransformer<D: Dimensionality, Key: Hashable & Sendable>: Geometry {
+struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
     let key: Key
     let generator: @Sendable (D.Primitive) -> D.Primitive
@@ -118,13 +118,13 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: Hashable & Sendable>:
     }
 }
 
-struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: Hashable & Sendable>: Geometry {
+struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
     let keys: [Key]
     let generator: @Sendable (D.Primitive) -> [D.Primitive]
     let resultHandler: @Sendable ([D.Geometry]) -> D.Geometry
 
-    private struct CacheKey: Hashable, Sendable {
+    private struct CacheKey: Cadova.CacheKey {
         let body: D.Expression
         let parameters: Key
     }
