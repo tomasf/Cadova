@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-fileprivate struct Difference<D: Dimensionality>: GeometryContainer {
+fileprivate struct Difference<D: Dimensionality>: CompositeGeometry {
     let positive: D.Geometry
     let negative: D.Geometry
 

@@ -58,13 +58,11 @@ extension ExpressionTransforming {
     }
 }
 
-
-#warning("rename me to CompositeGeometry or something")
-public protocol GeometryContainer: Geometry {
+public protocol CompositeGeometry: Geometry {
     var body: D.Geometry { get }
 }
 
-extension GeometryContainer {
+extension CompositeGeometry {
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
         await environment.whileCurrent {
             await body.build(in: environment, context: context)
