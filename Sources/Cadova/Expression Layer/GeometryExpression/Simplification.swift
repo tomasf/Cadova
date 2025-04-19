@@ -2,7 +2,7 @@ import Foundation
 import Manifold3D
 
 extension GeometryExpression2D {
-    func simplified() -> Self {
+    public func simplified() -> Self {
         switch self {
         case .shape (let shape):
             switch shape {
@@ -73,7 +73,7 @@ extension GeometryExpression2D {
 }
 
 extension GeometryExpression3D {
-    func simplified() -> Self {
+    public func simplified() -> Self {
         switch self {
         case .shape (let shape):
             switch shape {

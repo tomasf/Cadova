@@ -1,28 +1,18 @@
 import Foundation
 
-// Cadova Geometry Protocols
-// Geometry: Base
-//   LeafGeometry: For concrete geometry without children, e.g. Circle, Box, Text
-//   CombinedGeometry: Geometry containing multiple children, e.g. Union, Difference
-//   Shape: User-facing
+public protocol Geometry<D>: Sendable {
+    associatedtype D: Dimensionality
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result
+}
 
 /// Two-dimensional geometry.
 /// Don't conform your types to this protocol directly; instead, use `Shape2D` and implement its `body` property.
-public protocol Geometry2D {
-    typealias D = D2
-    typealias Output = Cadova.GeometryResult<D>
-
-    func evaluated(in environment: EnvironmentValues) -> Output
-}
+public typealias Geometry2D = Geometry<D2>
 
 /// Three-dimensional geometry
 /// Don't conform your types to this protocol directly; instead, use `Shape3D` and implement its `body` property.
-public protocol Geometry3D {
-    typealias D = D3
-    typealias Output = Cadova.GeometryResult<D>
+public typealias Geometry3D = Geometry<D3>
 
-    func evaluated(in environment: EnvironmentValues) -> Output
-}
 
-public typealias GeometryBuilder3D = ArrayBuilder<any Geometry3D>
-public typealias GeometryBuilder2D = ArrayBuilder<any Geometry2D>
+public typealias GeometryBuilder2D = GeometryBuilder<D2>
+public typealias GeometryBuilder3D = GeometryBuilder<D3>

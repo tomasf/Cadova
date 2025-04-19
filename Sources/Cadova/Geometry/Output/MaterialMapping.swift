@@ -39,24 +39,18 @@ struct MaterialMapping: ResultElement {
         })
     }
 
-    static func combine(elements: [MaterialMapping], for operation: GeometryCombination) -> MaterialMapping? {
+    static func combine(elements: [MaterialMapping]) -> MaterialMapping? {
         .combining(mappings: elements)
     }
 }
 
-internal struct ApplyMaterial: Geometry3D {
+internal struct ApplyMaterial: ExpressionTransforming {
+    typealias D = D3
+    
     let body: any Geometry3D
     let material: Material
 
-    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
-        let bodyOutput = body.evaluated(in: environment)
-        let newMesh = bodyOutput.primitive.asOriginal()
-        var elements = bodyOutput.elements
-        guard let originalID = newMesh.originalID else {
-            preconditionFailure("Original mesh returned nil originalID")
-        }
-
-        elements[MaterialMapping.self] = MaterialMapping(originalID: originalID, material: material)
-        return GeometryResult3D(primitive: newMesh, elements: elements)
+    func transform(expression: D3.Expression) -> D3.Expression {
+        .material(expression, material: material)
     }
 }

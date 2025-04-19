@@ -3,13 +3,12 @@ import Manifold3D
 import ThreeMF
 
 struct ThreeMFDataProvider: OutputDataProvider {
-    let output: GeometryResult3D
-
+    let result: GeometryResult3D
     let fileExtension = "3mf"
 
-    func makeModel() throws -> ThreeMF.Model {
-        var outputs = output.elements[PartCatalog.self]?.mergedOutputs ?? [:]
-        outputs[.main] = output
+    func makeModel(context: EvaluationContext) async throws -> ThreeMF.Model {
+        var outputs = result.elements[PartCatalog.self]?.mergedOutputs ?? [:]
+        outputs[.main] = result
 
         var nextFreeObjectID = 1
 
@@ -61,10 +60,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var uniqueIdentifiers: Set<String> = []
 
         for (identifier, output) in outputs.sorted(by: { $0.key.hashValue < $1.key.hashValue }) {
-            guard !output.primitive.isEmpty else { continue }
+            guard !output.expression.isEmpty else { continue }
 
             let materialMapping = output.elements[MaterialMapping.self]
-            let meshData = output.primitive.meshGL()
+            let meshData = await context.geometry(for: output.expression).meshGL()
             let originalIDRanges = meshData.originalIDs
 
             let orderedMaterialMapping = Array(materialMapping?.mapping ?? [:])
@@ -132,7 +131,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let dateFormatter = ISO8601DateFormatter()
         dateFormatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
 
-        var metadata = output.elements[MetadataContainer.self]?.metadata ?? []
+        var metadata = result.elements[MetadataContainer.self]?.metadata ?? []
         if !metadata.contains(where: { $0.name == .application }) {
             metadata.append(ThreeMF.Metadata(name: .application, value: "Cadova - http://cadova.org/"))
         }
@@ -149,11 +148,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
         )
     }
 
-    func generateOutput() throws -> Data {
+    func generateOutput(context: EvaluationContext) async throws -> Data {
         var data: Data = Data()
-        let duration = try ContinuousClock().measure {
+        let duration = try await ContinuousClock().measure {
             let writer = PackageWriter()
-            writer.model = try makeModel()
+            writer.model = try await makeModel(context: context)
             data = try writer.finalize()
         }
 
@@ -161,13 +160,14 @@ struct ThreeMFDataProvider: OutputDataProvider {
         return data
     }
 
-    func writeOutput(to url: URL) throws {
-        let duration = try ContinuousClock().measure {
+    func writeOutput(to url: URL, context: EvaluationContext) async throws {
+        let duration = try await ContinuousClock().measure {
             let writer = try PackageWriter(url: url)
-            writer.model = try makeModel()
+            writer.model = try await makeModel(context: context)
             try writer.finalize()
         }
-        print(String(format: "Generated 3MF archive \(url.lastPathComponent) with \(output.primitive.triangleCount) triangles in %@", duration.formatted()))
+
+        print(String(format: "Generated 3MF archive \(url.lastPathComponent) in %@", duration.formatted()))
     }
 }
 

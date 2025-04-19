@@ -9,7 +9,7 @@ public indirect enum GeometryExpression2D: GeometryExpression, Sendable {
     case boolean ([GeometryExpression2D], type: BooleanOperationType)
     case transform (GeometryExpression2D, transform: AffineTransform2D)
     case convexHull (GeometryExpression2D)
-    case raw (CrossSection, key: ExpressionKey?)
+    case raw (CrossSection, source: GeometryExpression2D?, cacheKey: ExpressionKey)
     case offset (GeometryExpression2D, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int)
     case projection (GeometryExpression3D, type: Projection)
 
@@ -26,23 +26,6 @@ public indirect enum GeometryExpression2D: GeometryExpression, Sendable {
 }
 
 extension GeometryExpression2D {
-    var children: [any GeometryExpression] {
-        switch self {
-        case .boolean(let children, _): children
-        case .transform(let body, _), .convexHull(let body), .offset(let body, _, _, _, _): [body]
-        case .projection(let body, _): [body]
-        case .empty, .shape, .raw: []
-        }
-    }
-
-    public var isCacheable: Bool {
-        switch self {
-        case .empty, .shape: true
-        case .raw (_, let key): key != nil
-        default: children.allSatisfy(\.isCacheable)
-        }
-    }
-
     public var isEmpty: Bool {
         if case .empty = self { true } else { false }
     }
@@ -76,7 +59,7 @@ extension GeometryExpression2D {
                 await context.geometry(for: expression).slice(at: z)
             }
 
-        case .raw (let crossSection, _):
+        case .raw (let crossSection, _, _):
             crossSection
         }
     }
@@ -86,11 +69,17 @@ extension GeometryExpression2D.PrimitiveShape {
     func evaluate() -> CrossSection {
         switch self {
         case .rectangle (let size):
-            CrossSection.square(size: size)
+            guard size.x > 0, size.y > 0 else { return .empty }
+            return CrossSection.square(size: size)
+
         case .circle (let radius, let segmentCount):
-            CrossSection.circle(radius: radius, segmentCount: segmentCount)
+            guard radius >= 0 else { return .empty }
+            return CrossSection.circle(radius: radius, segmentCount: segmentCount)
+
         case .polygon (let points, let fillRule):
-            CrossSection(polygons: [Manifold3D.Polygon(vertices: points)], fillRule: fillRule.primitive)
+            guard points.count >= 3 else { return .empty }
+            return CrossSection(polygons: [Manifold3D.Polygon(vertices: points)], fillRule: fillRule.manifoldRepresentation)
         }
     }
 }
+

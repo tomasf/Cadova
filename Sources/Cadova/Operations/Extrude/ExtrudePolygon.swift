@@ -43,7 +43,9 @@ public extension Polygon {
                 (1...steps).map { .linearInterpolation(t1, t2, factor: 1.0 / Double(steps) * Double($0)) }
             }
 
-            Polyhedron(extruding: self, along: expandedPath, environment: environment)
+            readingPrimitive { crossSection in
+                Polyhedron(extruding: crossSection.polygons(), along: expandedPath, environment: environment)
+            }
         }
     }
 
@@ -57,7 +59,7 @@ public extension Polygon {
     func extrudedAlongHelix(
         pitch: Double,
         height: Double,
-        offset: ((Double) -> Double)? = nil
+        offset: (@Sendable (Double) -> Double)? = nil
     ) -> any Geometry3D {
         readEnvironment { environment in
             let radius = boundingRect(in: environment).maximum.x

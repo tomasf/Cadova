@@ -29,7 +29,7 @@ public extension Geometry3D {
 
             geometry
                 .refined(maxEdgeLength: segmentLength)
-                .warped {
+                .warped(operationName: "wrapAroundCylinder", cacheParameters: innerCircumference, innerRadius) {
                     let angle = 360° * $0.x / innerCircumference
                     let radius = innerRadius + $0.z
                     return Vector3D(cos(angle) * radius, sin(angle) * radius, $0.y)
@@ -38,6 +38,8 @@ public extension Geometry3D {
     }
 }
 
+#warning("fix this")
+/*
 public extension Geometry2D {
     /// Wraps the current geometry around the origin, effectively creating
     /// a circular shape from the original geometry.
@@ -73,3 +75,4 @@ public extension Geometry2D {
         }
     }
 }
+*/

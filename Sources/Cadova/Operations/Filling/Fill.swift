@@ -7,9 +7,11 @@ public extension Geometry2D {
     ///
     /// - Returns: A new geometry representing the shape with its holes filled.
     func filled() -> any Geometry2D {
-        modifyingPrimitive { .boolean(.union, with: $0.polygons().map {
-            D2.Primitive(polygons: [$0], fillRule: .nonZero)
-        })}
+        CachingPrimitiveTransformer(body: self, key: "filled") {
+            .boolean(.union, with: $0.polygons().map {
+                D2.Primitive(polygons: [$0], fillRule: .nonZero)
+            })
+        }
     }
 }
 

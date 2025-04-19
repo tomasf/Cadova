@@ -8,9 +8,7 @@ fileprivate struct Vertex: Hashable {
 }
 
 internal extension Polyhedron {
-    init(extruding shape: any Geometry2D, along path: [AffineTransform3D], environment: EnvironmentValues) {
-        let polygons = shape.evaluated(in: environment).primitive.polygons()
-
+    init(extruding polygons: [Manifold3D.Polygon], along path: [AffineTransform3D], environment: EnvironmentValues) {
         let sideFaces = polygons.map { $0.vertices.map(Vector2D.init) }.enumerated().flatMap { polygonIndex, points in
             let pointCount = points.count
             return path.indices.paired().flatMap { fromStep, toStep in
@@ -78,12 +76,14 @@ public extension Geometry2D {
     ///
     /// - Note: The `path` array must contain at least two transforms, and `steps` must be at least 1.
     func extruded(along path: [AffineTransform3D], steps: Int = 1) -> any Geometry3D {
-        readEnvironment { environment in
-            let expandedPath = [path[0]] + path.paired().flatMap { t1, t2 in
-                (1...steps).map { .linearInterpolation(t1, t2, factor: 1.0 / Double(steps) * Double($0)) }
-            }
+        let expandedPath = [path[0]] + path.paired().flatMap { t1, t2 in
+            (1...steps).map { .linearInterpolation(t1, t2, factor: 1.0 / Double(steps) * Double($0)) }
+        }
 
-            Polyhedron(extruding: self, along: expandedPath, environment: environment)
+        return readEnvironment { environment in
+            readingPrimitive { crossSection in
+                Polyhedron(extruding: crossSection.polygons(), along: expandedPath, environment: environment)
+            }
         }
     }
 
@@ -136,7 +136,7 @@ public extension Geometry2D {
                 geometry
                     .rotated(y: 90°)
                     .refined(maxEdgeLength: segmentLength)
-                    .warped {
+                    .warped(operationName: "extrudeAlongHelix", cacheParameters: lengthPerRev, radius, pitch) {
                         let turns = $0.x / lengthPerRev
                         let angle = -360° * turns
                         let localRadius = radius + $0.y

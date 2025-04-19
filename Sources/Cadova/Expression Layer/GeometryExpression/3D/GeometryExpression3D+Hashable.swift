@@ -47,9 +47,10 @@ extension GeometryExpression3D: Hashable {
             hasher.combine(body)
             hasher.combine(kind)
 
-        case .raw (_, let key):
+        case .raw (_, let source, let cacheKey):
             hasher.combine(Kind.raw)
-            hasher.combine(key)
+            hasher.combine(source)
+            hasher.combine(cacheKey)
         }
     }
 
@@ -62,7 +63,7 @@ extension GeometryExpression3D: Hashable {
         case let (.convexHull(a), .convexHull(b)): a == b
         case let (.material(a1, m1), .material(a2, m2)): a1 == a2 && m1 == m2
         case let (.extrusion(a1, k1), .extrusion(a2, k2)): a1 == a2 && k1 == k2
-        case let (.raw(_, keyA), .raw(_, keyB)): keyA != nil && keyB != nil && keyA == keyB
+        case let (.raw(_, sa, keyA), .raw(_, sb, keyB)): keyA == keyB && sa == sb
 
         case (.empty, _), (.shape, _), (.boolean, _), (.transform, _),
             (.convexHull, _), (.material, _), (.extrusion, _), (.raw, _): false

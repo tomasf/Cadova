@@ -1,26 +1,26 @@
 import Foundation
 
-public protocol ResultElement {
-    static func combine(elements: [Self], for operation: GeometryCombination) -> Self?
+public protocol ResultElement: Sendable {
+    static func combine(elements: [Self]) -> Self?
 }
 
 internal extension ResultElement {
-    static func combine(anyElements elements: [any ResultElement], for operation: GeometryCombination) -> Self? {
-        combine(elements: elements as! [Self], for: operation)
+    static func combine(anyElements elements: [any ResultElement]) -> Self? {
+        combine(elements: elements as! [Self])
     }
 }
 
 internal typealias ResultElementsByType = [ObjectIdentifier: any ResultElement]
 
 internal extension ResultElementsByType {
-    init(combining elements: [Self], operation: GeometryCombination) {
+    init(combining elements: [Self]) {
         self = elements.reduce(into: [ObjectIdentifier: [any ResultElement]]()) {
             for (key, value) in $1 {
                 $0[key, default: []].append(value)
             }
         }
         .compactMapValues {
-            $0.count > 1 ? type(of: $0[0]).combine(anyElements: $0, for: operation) : $0[0]
+            $0.count > 1 ? type(of: $0[0]).combine(anyElements: $0) : $0[0]
         }
     }
 

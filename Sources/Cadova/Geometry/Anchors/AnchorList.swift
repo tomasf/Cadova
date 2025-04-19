@@ -11,7 +11,7 @@ internal struct AnchorList: ResultElement {
         .init(anchors.setting(anchor, to: transform))
     }
 
-    static func combine(elements: [AnchorList], for operation: GeometryCombination) -> AnchorList? {
+    static func combine(elements: [AnchorList]) -> AnchorList? {
         .init(elements.reduce(into: [Anchor: AffineTransform3D]()) { result, anchors in
             result.merge(anchors.anchors) { $1 }
         })

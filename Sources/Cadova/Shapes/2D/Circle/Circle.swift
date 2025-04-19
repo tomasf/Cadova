@@ -8,7 +8,7 @@ import Manifold3D
 /// let circleWithDiameter = Circle(diameter: 10)
 /// let circleWithRadius = Circle(radius: 5)
 /// ```
-public struct Circle: Geometry2D, LeafGeometry {
+public struct Circle {
     /// The diameter of the circle.
     public let diameter: Double
 
@@ -48,9 +48,13 @@ public struct Circle: Geometry2D, LeafGeometry {
     }
 
     @Environment(\.facets) private var facets
+}
 
-    var body: D2.Primitive {
-        .circle(radius: radius, segmentCount: facets.facetCount(circleRadius: radius))
+extension Circle: GeometryContainer {
+    public typealias D = D2
+
+    public var body: any Geometry2D {
+        PrimitiveShape(shape: .circle(radius: radius, segmentCount: facets.facetCount(circleRadius: radius)))
     }
 }
 

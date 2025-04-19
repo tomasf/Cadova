@@ -17,7 +17,8 @@ public func Group(
 
     try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
 
-    let context = OutputContext(directory: url, environmentValues: environment)
+    let evalContext = OutputContext.current?.evaluationContext ?? .init()
+    let context = OutputContext(directory: url, environmentValues: environment, evaluationContext: evalContext)
     context.whileCurrent {
         content()
     }

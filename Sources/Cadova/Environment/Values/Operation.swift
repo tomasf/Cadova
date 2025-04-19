@@ -30,29 +30,21 @@ public extension EnvironmentValues {
     }
 }
 
-internal extension Geometry2D {
-    func invertingOperation() -> any Geometry2D {
+internal extension Geometry {
+    func invertingOperation() -> D.Geometry {
         withEnvironment { environment in
             environment.invertingOperation()
         }
     }
 }
 
-internal extension Geometry3D {
-    func invertingOperation() -> any Geometry3D {
-        withEnvironment { environment in
-            environment.invertingOperation()
-        }
-    }
-}
-
-public func readOperation(@GeometryBuilder2D _ reader: @escaping (EnvironmentValues.Operation) -> any Geometry2D) -> any Geometry2D {
+public func readOperation(@GeometryBuilder2D _ reader: @Sendable @escaping (EnvironmentValues.Operation) -> any Geometry2D) -> any Geometry2D {
     readEnvironment { e in
         reader(e.operation)
     }
 }
 
-public func readOperation(@GeometryBuilder3D _ reader: @escaping (EnvironmentValues.Operation) -> any Geometry3D) -> any Geometry3D {
+public func readOperation(@GeometryBuilder3D _ reader: @Sendable @escaping (EnvironmentValues.Operation) -> any Geometry3D) -> any Geometry3D {
     readEnvironment { e in
         reader(e.operation)
     }

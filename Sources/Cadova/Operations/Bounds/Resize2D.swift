@@ -1,7 +1,7 @@
 import Foundation
 
 /// Describes how a geometry's dimensions should be adjusted during a resize operation.
-public enum ResizeBehavior {
+public enum ResizeBehavior: Sendable {
     /// Maintains the current dimension value unchanged, regardless of other resizing factors.
     case fixed
     /// Adjusts the dimension proportionally based on the ratio of the target size to the original size.
@@ -16,7 +16,7 @@ public enum ResizeBehavior {
 }
 
 public extension Geometry2D {
-    private func resized(_ alignment: GeometryAlignment2D, _ calculator: @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
+    private func resized(_ alignment: GeometryAlignment2D, _ calculator: @Sendable @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
         measuring { geometry, measurements in
             let box = measurements.boundingBox.requireNonNil()
             let translation = box.translation(for: alignment)
@@ -70,7 +70,7 @@ public extension Geometry2D {
     ///   - calculator: A closure that accepts the current bounding box and returns the new size
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
-    func resized(alignment: GeometryAlignment2D..., calculator: @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
+    func resized(alignment: GeometryAlignment2D..., calculator: @Sendable @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
         resized(alignment.merged.defaultingToOrigin(), calculator)
     }
 }

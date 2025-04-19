@@ -1,7 +1,7 @@
 import Foundation
 
 /// A rectangular cuboid shape
-public struct Box: Geometry3D {
+public struct Box: Shape3D {
     let size: Vector3D
 
     /// Initializes a new box with specific dimensions and centering options.
@@ -43,11 +43,7 @@ public struct Box: Geometry3D {
         self.size = [side, side, side]
     }
 
-    public func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
-        if size.contains(where: { $0 < .ulpOfOne }) {
-            .empty
-        } else {
-            .init(primitive: .cube(size: size))
-        }
+    public var body: any Geometry3D {
+        PrimitiveShape<D3>(shape: .box(size: size))
     }
 }

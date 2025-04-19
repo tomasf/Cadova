@@ -1,22 +1,38 @@
 import Foundation
 import Manifold3D
 
+fileprivate struct PlaneSplitPartParameters: Hashable, Sendable {
+    let plane: Plane
+    let isFirst: Bool
+}
+
+fileprivate struct MaskSplitPartParameters: Hashable, Sendable {
+    let mask: GeometryExpression3D
+    let isFirst: Bool
+}
+
 public extension Geometry3D {
     // Split the geometry into two parts along a specified plane, at a specified point
 
     func split(
         along plane: Plane,
-        @GeometryBuilder3D reader: @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
+        @GeometryBuilder3D reader: @Sendable @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        self
-            .translated(-plane.offset)
-            .readingPrimitive { input, _, elements in
-                let (a, b) = input.split(by: plane.normal.unitVector, originOffset: 0)
-                return reader(
-                    a.geometry(with: elements).translated(plane.offset),
-                    b.geometry(with: elements).translated(plane.offset)
-                )
-            }
+        let keys = [
+            PlaneSplitPartParameters(plane: plane, isFirst: true),
+            PlaneSplitPartParameters(plane: plane, isFirst: false)
+        ]
+
+        return CachingPrimitiveArrayTransformer(body: self, keys: keys) { input in
+            let (a, b) = input.split(by: plane.normal.unitVector, originOffset: 0)
+            return [a, b]
+        } resultHandler: { geometries in
+            precondition(geometries.count == 2, "Split result should contain exactly two geometries")
+            return reader(
+                geometries[0].translated(plane.offset),
+                geometries[1].translated(plane.offset)
+            )
+        }
     }
 
     // Split the geometry into two parts along a specified plane, at a specified point,
@@ -39,25 +55,28 @@ public extension Geometry3D {
 
     func split(
         with mask: any Geometry3D,
-        @GeometryBuilder3D reader: @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
+        @GeometryBuilder3D reader: @Sendable @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        self
-            .readingPrimitive { input, _, elements in
-                mask.readingPrimitive { maskPrimitive, _, _ in
-                    let (a, b) = input.split(by: maskPrimitive)
-                    return reader(
-                        a.geometry(with: elements),
-                        b.geometry(with: elements)
-                    )
-                }
+        mask.readingPrimitive { maskPrimitive, maskExpression in
+            let keys = [
+                MaskSplitPartParameters(mask: maskExpression, isFirst: true),
+                MaskSplitPartParameters(mask: maskExpression, isFirst: false)
+            ]
+
+            return CachingPrimitiveArrayTransformer(body: self, keys: keys) { input in
+                let (a, b) = input.split(by: maskPrimitive)
+                return [a, b]
+            } resultHandler: { geometries in
+                precondition(geometries.count == 2, "Split result should contain exactly two geometries")
+                return reader(geometries[0], geometries[1])
             }
+        }
     }
 
     func split(
         @GeometryBuilder3D with mask: @escaping () -> any Geometry3D,
-        @GeometryBuilder3D reader: @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
+        @GeometryBuilder3D reader: @Sendable @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
         split(with: mask(), reader: reader)
     }
-
 }

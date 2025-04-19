@@ -119,3 +119,6 @@ extension Set {
         lhs.subtracting([rhs])
     }
 }
+
+// Hack until we have a better solution
+extension KeyPath: @unchecked @retroactive Sendable {}

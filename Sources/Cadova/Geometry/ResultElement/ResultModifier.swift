@@ -1,53 +1,23 @@
 import Foundation
 
-struct ResultModifier<Geometry> {
-    let body: Geometry
-    let modifier: (ResultElementsByType) -> ResultElementsByType
-}
+struct ResultModifier<D: Dimensionality>: Geometry {
+    let body: D.Geometry
+    let modifier: @Sendable (ResultElementsByType) -> ResultElementsByType
 
-extension ResultModifier<any Geometry2D>: Geometry2D {
-    func evaluated(in environment: EnvironmentValues) -> GeometryResult2D {
-        let bodyOutput = body.evaluated(in: environment)
-        return .init(
-            primitive: bodyOutput.primitive,
-            elements: modifier(bodyOutput.elements)
-        )
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
+        let bodyResult = await body.build(in: environment, context: context)
+        return bodyResult.replacing(elements: modifier(bodyResult.elements))
     }
 }
 
-extension ResultModifier<any Geometry3D>: Geometry3D {
-    func evaluated(in environment: EnvironmentValues) -> GeometryResult3D {
-        let bodyOutput = body.evaluated(in: environment)
-        return .init(
-            primitive: bodyOutput.primitive,
-            elements: modifier(bodyOutput.elements)
-        )
-    }
-}
-
-
-public extension Geometry2D {
-    func withResult<E: ResultElement>(_ value: E) -> any Geometry2D {
+public extension Geometry {
+    func withResult<E: ResultElement>(_ value: E) -> D.Geometry {
         ResultModifier(body: self) { elements in
             elements.setting(value)
         }
     }
 
-    func modifyingResult<E: ResultElement>(_ type: E.Type, modification: @escaping (E?) -> E?) -> any Geometry2D {
-        ResultModifier(body: self) { elements in
-            elements.setting(modification(elements[E.self]))
-        }
-    }
-}
-
-public extension Geometry3D {
-    func withResult<E: ResultElement>(_ value: E) -> any Geometry3D {
-        ResultModifier(body: self) { elements in
-            elements.setting(value)
-        }
-    }
-
-    func modifyingResult<E: ResultElement>(_ type: E.Type, modification: @escaping (E?) -> E?) -> any Geometry3D {
+    func modifyingResult<E: ResultElement>(_ type: E.Type, modification: @Sendable @escaping (E?) -> E?) -> D.Geometry {
         ResultModifier(body: self) { elements in
             elements.setting(modification(elements[E.self]))
         }

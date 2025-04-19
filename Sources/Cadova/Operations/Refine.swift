@@ -1,14 +1,20 @@
 import Foundation
 import Manifold3D
 
+fileprivate struct RefineCacheKey: Hashable, Sendable {
+    let maxEdgeLength: Double
+}
+
 public extension Geometry3D {
     func refined(maxEdgeLength: Double) -> any Geometry3D {
-        modifyingPrimitive { mesh, _ in
-            mesh.refine(edgeLength: maxEdgeLength)
+        return CachingPrimitiveTransformer(body: self, key: RefineCacheKey(maxEdgeLength: maxEdgeLength)) {
+            $0.refine(edgeLength: maxEdgeLength)
         }
     }
 }
 
+#warning("fix this")
+/*
 public extension Geometry2D {
     func refined(maxSegmentLength: Double) -> any Geometry2D {
         modifyingPolygons { polygons, e in
@@ -25,3 +31,4 @@ public extension Geometry2D {
         }
     }
 }
+*/

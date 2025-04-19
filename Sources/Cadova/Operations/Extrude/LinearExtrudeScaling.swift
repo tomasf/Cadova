@@ -9,7 +9,7 @@ public extension Geometry2D {
     ///
     /// - Returns: A 3D geometry created by extruding the 2D geometry with customized scaling applied at each Z position, allowing for flexible shaping along the extrusion path.
     ///
-    func extruded(height: Double, scaling: @escaping (_ z: Double) -> Double) -> any Geometry3D {
+    func extruded(height: Double, scaling: @Sendable @escaping (_ z: Double) -> Double) -> any Geometry3D {
         extruded(height: height) {
             Vector2D.init(scaling($0))
         }
@@ -24,7 +24,7 @@ public extension Geometry2D {
     /// - Returns: A 3D geometry created by extruding the 2D geometry with customized scaling applied at each Z position, allowing for flexible shaping along the extrusion path.
     ///
     @GeometryBuilder3D
-    func extruded(height: Double, scaling: @escaping (_ z: Double) -> Vector2D) -> any Geometry3D {
+    func extruded(height: Double, scaling: @Sendable @escaping (_ z: Double) -> Vector2D) -> any Geometry3D {
         readEnvironment { e in
             let sliceCount = e.facets.facetCount(length: height)
             let sliceHeight = height / Double(sliceCount)

@@ -16,7 +16,8 @@ import Manifold3D
 ///     let polygonFromBezierPath = Polygon(bezierPath)
 ///     ```
 
-public struct Polygon: Geometry2D, LeafGeometry {
+public struct Polygon: GeometryContainer {
+    public typealias D = D2
     internal let pointsProvider: any PolygonPointsProvider
 
     internal init(provider: any PolygonPointsProvider) {
@@ -44,8 +45,8 @@ public struct Polygon: Geometry2D, LeafGeometry {
     @Environment(\.fillRule) private var fillRule
     @Environment private var environment
 
-    var body: D2.Primitive {
-        D2.Primitive(polygons: [Manifold3D.Polygon(vertices: points(in: environment))], fillRule: fillRule.primitive)
+    public var body: any Geometry2D {
+        PrimitiveShape(shape: .polygon(points: points(in: environment), fillRule: fillRule))
     }
 }
 
@@ -53,7 +54,7 @@ public extension Polygon {
     /// Applies a transformation function to each vertex of the polygon.
     /// - Parameter transformation: A closure that takes a `Vector2D` and returns a transformed `Vector2D`.
     /// - Returns: A new `Polygon` instance with transformed vertices.
-    func applying(_ transformation: @escaping (Vector2D) -> Vector2D) -> Polygon {
+    func applying(_ transformation: @Sendable @escaping (Vector2D) -> Vector2D) -> Polygon {
         Polygon(provider: TransformedPolygonPoints(innerProvider: pointsProvider, transformation: transformation))
     }
 

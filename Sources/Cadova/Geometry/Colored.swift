@@ -6,7 +6,7 @@ public extension Geometry3D {
     /// - Parameter color: The `Color` instance to apply.
     /// - Returns: A new colored geometry instance.
     func colored(_ color: Color) -> any Geometry3D {
-        ApplyMaterial(body: self, material: .init(baseColor: color, properties: nil))
+        withMaterial(.init(baseColor: color, properties: nil))
     }
 
     /// Apply a color with transparency to the geometry.
@@ -33,15 +33,23 @@ public extension Geometry3D {
 
 public extension Geometry3D {
     func withMaterial(color: Color, metallicness: Double, roughness: Double, name: String? = nil) -> any Geometry3D {
-        ApplyMaterial(body: self, material: .init(name: name, baseColor: color, properties: .metallic(metallicness: metallicness, roughness: roughness)))
+        withMaterial(.init(
+            name: name,
+            baseColor: color,
+            properties: .metallic(metallicness: metallicness, roughness: roughness)
+        ))
     }
 
     func withMaterial(color: Color, specular: Color, glossiness: Double, name: String? = nil) -> any Geometry3D {
-        ApplyMaterial(body: self, material: .init(name: name, baseColor: color, properties: .specular(color: specular, glossiness: glossiness)))
+        withMaterial(.init(
+            name: name,
+            baseColor: color,
+            properties: .specular(color: specular, glossiness: glossiness)
+        ))
     }
 
     func withMaterial(_ material: Material) -> any Geometry3D {
-        ApplyMaterial(body: self, material: material)
+        GeometryExpressionTransformer(body: self) { .material($0, material: material) }
     }
 }
 

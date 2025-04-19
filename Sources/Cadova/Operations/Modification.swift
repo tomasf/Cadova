@@ -1,6 +1,8 @@
 import Foundation
 import Manifold3D
 
+/*
+
 // Modify 2D output into either 2D or 3D output
 internal struct ModifyGeometryResult2D <DO: Dimensionality> {
     let body: Geometry2D
@@ -96,3 +98,5 @@ internal extension Geometry3D {
         modifyingOutput { GeometryResult2D(primitive: action($0.primitive, $1), elements: $0.elements) }
     }
 }
+
+*/

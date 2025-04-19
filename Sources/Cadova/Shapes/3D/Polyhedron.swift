@@ -3,10 +3,8 @@ import Collections
 import Manifold3D
 
 /// An arbitrary three-dimensional shape made up of flat faces.
-///
-/// For more information, see [the OpenSCAD documentation](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Primitive_Solids#polyhedron).
 
-public struct Polyhedron: Geometry3D, LeafGeometry, Sendable, Hashable, Codable {
+public struct Polyhedron: Sendable, Hashable, Codable {
     let vertices: [Vector3D]
     let faces: [[[Vector3D].Index]]
 
@@ -24,16 +22,14 @@ public struct Polyhedron: Geometry3D, LeafGeometry, Sendable, Hashable, Codable 
             Triangle(.init(indices[0]), .init(indices[1]), .init(indices[2]))
         }
         return MeshGL(vertices: triangulatedShape.vertices, triangles: triangles)
-
     }
+}
 
-    var body: D3.Primitive {
-        do {
-            return try D3.Primitive(meshGL())
-        } catch {
-            logger.error("Polyhedron mesh creation failed: \(error)")
-            return .empty
-        }
+extension Polyhedron: GeometryContainer {
+    public typealias D = D3
+
+    public var body: any Geometry3D {
+        PrimitiveShape(shape: .polyhedron(self))
     }
 }
 

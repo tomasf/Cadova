@@ -118,8 +118,8 @@ public extension AffineTransform3D {
     }
 }
 
-extension AffineTransform3D: AffineTransformInternal {
-    var transform3D: AffineTransform3D {
+extension AffineTransform3D {
+    public var transform3D: AffineTransform3D {
         self
     }
 }

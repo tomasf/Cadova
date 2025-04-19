@@ -1,6 +1,6 @@
 import Foundation
 
-protocol PolygonPointsProvider {
+protocol PolygonPointsProvider: Sendable {
     func points(in environment: EnvironmentValues) -> [Vector2D]
 }
 
@@ -18,7 +18,7 @@ extension BezierPath2D: PolygonPointsProvider {
 
 internal struct TransformedPolygonPoints: PolygonPointsProvider {
     let innerProvider: any PolygonPointsProvider
-    let transformation: (Vector2D) -> Vector2D
+    let transformation: @Sendable (Vector2D) -> Vector2D
 
     func points(in environment: EnvironmentValues) -> [Vector2D] {
         innerProvider.points(in: environment)

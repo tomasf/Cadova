@@ -20,13 +20,13 @@ public protocol Shape2D: Geometry2D {
 }
 
 public extension Shape2D {
-    func evaluated(in environment: EnvironmentValues) -> Output {
-        environment.whileCurrent {
-            body.evaluated(in: environment)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
+        await environment.whileCurrent {
+            await body.build(in: environment, context: context)
         }
     }
 
-    func inCurrentEnvironment(@GeometryBuilder2D _ contents: @escaping () -> any Geometry2D) -> any Geometry2D {
+    func inCurrentEnvironment(@GeometryBuilder2D _ contents: @Sendable @escaping () -> any Geometry2D) -> any Geometry2D {
         readEnvironment { environment in
             environment.whileCurrent {
                 contents()
@@ -55,13 +55,13 @@ public protocol Shape3D: Geometry3D {
 }
 
 public extension Shape3D {
-    func evaluated(in environment: EnvironmentValues) -> Output {
-        environment.whileCurrent {
-            body.evaluated(in: environment)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
+        await environment.whileCurrent {
+            await body.build(in: environment, context: context)
         }
     }
 
-    func inCurrentEnvironment(@GeometryBuilder3D _ contents: @escaping () -> any Geometry3D) -> any Geometry3D {
+    func inCurrentEnvironment(@GeometryBuilder3D _ contents: @Sendable @escaping () -> any Geometry3D) -> any Geometry3D {
         readEnvironment { environment in
             environment.whileCurrent {
                 contents()

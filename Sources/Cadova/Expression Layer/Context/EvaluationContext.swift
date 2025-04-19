@@ -18,33 +18,34 @@ extension EvaluationContext {
 }
 
 extension EvaluationContext {
-    func cachedRawGeometry<Key: Hashable & Sendable>(for key: Key) async -> GeometryExpression2D? {
+    func cachedRawGeometry<E: GeometryExpression, Key: Hashable & Sendable>(for source: E?, key: Key) async -> E? {
         let wrappedKey = ExpressionKey(key)
-        let expression = GeometryExpression2D.raw(.empty, key: wrappedKey)
-        guard let primitive = await cache.cachedGeometry(for: expression) else { return nil }
-        return .raw(primitive, key: wrappedKey)
+        let expression = E.raw(.empty, source: source, cacheKey: wrappedKey)
+
+        if let expression = expression as? GeometryExpression2D {
+            guard let primitive = await cache.cachedGeometry(for: expression) else { return nil }
+            return .raw(primitive as! E.D.Primitive, source: source, cacheKey: wrappedKey)
+
+        } else if let expression = expression as? GeometryExpression3D {
+            guard let primitive = await cache.cachedGeometry(for: expression) else { return nil }
+            return .raw(primitive as! E.D.Primitive, source: source, cacheKey: wrappedKey)
+
+        } else {
+            preconditionFailure("Unknown geometry type")
+        }
     }
 
-    func cachedRawGeometry<Key: Hashable & Sendable>(for key: Key) async -> GeometryExpression3D? {
-        let wrappedKey = ExpressionKey(key)
-        let expression = GeometryExpression3D.raw(.empty, key: wrappedKey)
-        guard let primitive = await cache.cachedGeometry(for: expression) else { return nil }
-        return .raw(primitive, key: wrappedKey)
+    func geometry<Expression: GeometryExpression>(for expression: Expression) async -> Expression.D.Primitive {
+        if let expression = expression as? GeometryExpression2D {
+            return await cache.geometry(for: expression, in: self) as! Expression.D.Primitive
+        } else if let expression = expression as? GeometryExpression3D {
+            return await cache.geometry(for: expression, in: self) as! Expression.D.Primitive
+        } else {
+            preconditionFailure("Unknown geometry type")
+        }
     }
 
-    func geometry(for expression: GeometryExpression2D) async -> CrossSection {
-        await cache.geometry(for: expression, in: self)
-    }
-
-    func geometry(for expression: GeometryExpression3D) async -> Manifold {
-        await cache.geometry(for: expression, in: self)
-    }
-
-    func geometries(for expressions: [GeometryExpression2D]) async -> [CrossSection] {
-        await expressions.asyncMap { await self.geometry(for: $0) }
-    }
-
-    func geometries(for expressions: [GeometryExpression3D]) async -> [Manifold] {
+    func geometries<E: GeometryExpression>(for expressions: [E]) async -> [E.D.Primitive] {
         await expressions.asyncMap { await self.geometry(for: $0) }
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Geometry3D {
-    private func resized(_ alignment: GeometryAlignment3D, _ calculator: @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
+    private func resized(_ alignment: GeometryAlignment3D, _ calculator: @Sendable @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
         return measuring { geometry, measurements in
             let box = measurements.boundingBox.requireNonNil()
             let translation = box.translation(for: alignment)
@@ -84,7 +84,7 @@ public extension Geometry3D {
     ///   - calculator: A closure that accepts the current bounding box and returns the new size
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
-    func resized(alignment: GeometryAlignment3D..., calculator: @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
+    func resized(alignment: GeometryAlignment3D..., calculator: @Sendable @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
         resized(alignment.merged.defaultingToOrigin(), calculator)
     }
 }
