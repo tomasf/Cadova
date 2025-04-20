@@ -62,6 +62,6 @@ public extension EnvironmentValues {
 public extension EnvironmentValues {
     static var defaultEnvironment: EnvironmentValues {
         EnvironmentValues()
-            .withFacets(.defaults)
+            .withSegmentation(.defaults)
     }
 }

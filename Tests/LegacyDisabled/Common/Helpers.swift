@@ -14,7 +14,7 @@ fileprivate extension URL {
 
 extension Geometry2D {
     var code: String {
-        usingDefaultFacets().evaluated(in: .defaultEnvironment).codeFragment.scadCode
+        usingDefaultSegments().evaluated(in: .defaultEnvironment).codeFragment.scadCode
     }
 
     func triggerEvaluation() {
@@ -44,8 +44,8 @@ extension Geometry3D {
     }
 
     var code: String {
-        let code1 = usingDefaultFacets().evaluated(in: .defaultEnvironment).codeFragment.scadCode
-        let code2 = usingDefaultFacets().evaluated(in: .defaultEnvironment).codeFragment.scadCode
+        let code1 = usingDefaultSegments().evaluated(in: .defaultEnvironment).codeFragment.scadCode
+        let code2 = usingDefaultSegments().evaluated(in: .defaultEnvironment).codeFragment.scadCode
         #expect(code1 == code2, "Inconsistent code generation")
         return code1
     }

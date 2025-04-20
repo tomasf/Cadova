@@ -12,7 +12,7 @@ extension [Vector2D]: PolygonPointsProvider {
 
 extension BezierPath2D: PolygonPointsProvider {
     func points(in environment: EnvironmentValues) -> [Vector2D] {
-        points(facets: environment.facets)
+        points(segmentation: environment.segmentation)
     }
 }
 
@@ -47,6 +47,6 @@ internal struct BezierPathRange: PolygonPointsProvider {
     let range: ClosedRange<BezierPath.Position>
 
     func points(in environment: EnvironmentValues) -> [Vector2D] {
-        bezierPath.points(in: range, facets: environment.facets)
+        bezierPath.points(in: range, segmentation: environment.segmentation)
     }
 }

@@ -26,7 +26,7 @@ public extension Geometry2D {
     @GeometryBuilder3D
     func extruded(height: Double, scaling: @Sendable @escaping (_ z: Double) -> Vector2D) -> any Geometry3D {
         readEnvironment { e in
-            let sliceCount = e.facets.facetCount(length: height)
+            let sliceCount = e.segmentation.segmentCount(length: height)
             let sliceHeight = height / Double(sliceCount)
             let safe: (Vector2D) -> Vector2D = { .max($0, [0.0001, 0.0001]) }
 

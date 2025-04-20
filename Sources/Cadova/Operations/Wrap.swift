@@ -24,7 +24,7 @@ public extension Geometry3D {
         measureBoundsIfNonEmpty { geometry, e, bounds in
             let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
             let maximumRadius = innerRadius + bounds.maximum.z
-            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.facets.facetCount(circleRadius: maximumRadius))
+            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.segmentation.segmentCount(circleRadius: maximumRadius))
             let innerCircumference = innerRadius * 2 * .pi
 
             geometry
@@ -62,7 +62,7 @@ public extension Geometry2D {
         measureBoundsIfNonEmpty { geometry, e, bounds in
             let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
             let maximumRadius = innerRadius + bounds.maximum.y
-            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.facets.facetCount(circleRadius: maximumRadius))
+            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.segments.segmentCount(circleRadius: maximumRadius))
             let innerCircumference = innerRadius * 2 * .pi
 
             geometry

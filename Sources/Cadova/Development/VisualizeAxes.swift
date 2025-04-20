@@ -33,7 +33,7 @@ public extension Geometry3D {
                         .colored(.blue)
                 }
                 .scaled(scale)
-                .usingFacets(count: 8)
+                .withSegmentation(count: 8)
                 .background()
         }
     }

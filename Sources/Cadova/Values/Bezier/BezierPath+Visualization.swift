@@ -27,7 +27,7 @@ extension BezierPath {
                         .translated(to.vector3D)
                 }
                 .convexHull()
-                .usingFacets(count: 3)
+                .withSegmentation(count: 3)
         }
 
         return readEnvironment { environment -> any Geometry3D in
@@ -50,7 +50,7 @@ extension BezierPath {
             }
 
             // Curves
-            for (v1, v2) in points(facets: environment.facets).paired() {
+            for (v1, v2) in points(segmentation: environment.segmentation).paired() {
                 makeLine(from: v1, to: v2, thickness: 0.1 * scale)
                     .colored(.blue)
             }

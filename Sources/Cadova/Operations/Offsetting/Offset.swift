@@ -33,11 +33,11 @@ public extension Geometry2D {
     ///   - style: The line join style of the offset, which can be `.round`, `.miter`, or `.bevel`. Each style affects the shape of the geometry's corners differently.
     /// - Returns: A new geometry object that is the result of the offset operation.
     func offset(amount: Double, style: LineJoinStyle) -> any Geometry2D {
-        readEnvironment(\.miterLimit, \.facets) { miterLimit, facets in
+        readEnvironment(\.miterLimit, \.segmentation) { miterLimit, segmentation in
             GeometryExpressionTransformer(body: self) {
                 GeometryExpression2D.offset(
                     $0, amount: amount, joinStyle: style, miterLimit: miterLimit,
-                    segmentCount: facets.facetCount(circleRadius: Swift.abs(amount))
+                    segmentCount: segmentation.segmentCount(circleRadius: Swift.abs(amount))
                 )
             }
         }

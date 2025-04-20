@@ -2,10 +2,10 @@ import Foundation
 
 /// A right circular cylinder or a truncated right circular cone
 ///
-/// The number of faces on the side of a Cylinder is controlled by the facet configuration. See ``Geometry3D/usingFacets(minAngle:minSize:)`` and ``Geometry3D/usingFacets(count:)``. For example, this code creates a right triangular prism:
+/// The number of faces on the side of a Cylinder is controlled by the segmentation. See ``Geometry/withSegmentation(minAngle:minSize:)`` and ``Geometry/withSegmentation(count:)``. For example, this code creates a right triangular prism:
 /// ```swift
 /// Cylinder(diameter: 10, height: 5)
-///     .usingFacets(count: 3)
+///     .withSegmentation(count: 3)
 /// ```
 
 public struct Cylinder: Shape3D {
@@ -16,10 +16,10 @@ public struct Cylinder: Shape3D {
     public var topDiameter: Double { topRadius * 2 }
     public var bottomDiameter: Double { bottomRadius * 2 }
 
-    @Environment(\.facets) private var facets
+    @Environment(\.segmentation) private var segmentation
 
     public var body: any Geometry3D {
-        let segmentCount = facets.facetCount(circleRadius: max(bottomRadius, topRadius))
+        let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
         if height < .ulpOfOne {
             return Empty()

@@ -102,7 +102,7 @@ public extension Geometry2D {
         measureBoundsIfNonEmpty { geometry, boundingBox in
             readEnvironment { environment in
                 let radius = boundingBox.maximum.x
-                let stepsPerRev = Double(environment.facets.facetCount(circleRadius: radius))
+                let stepsPerRev = Double(environment.segmentation.segmentCount(circleRadius: radius))
                 let steps = Int(ceil(stepsPerRev * height / pitch))
 
                 let path = (0...steps).map { step -> AffineTransform3D in
@@ -130,7 +130,7 @@ public extension Geometry2D {
             .extruded(height: length)
             .measureBoundsIfNonEmpty { geometry, environment, boundingBox in
                 let outerRadius = radius + boundingBox.maximum.y
-                let segmentCount = Double(environment.facets.facetCount(circleRadius: outerRadius)) * revolutions
+                let segmentCount = Double(environment.segmentation.segmentCount(circleRadius: outerRadius)) * revolutions
                 let segmentLength = length / segmentCount
 
                 geometry

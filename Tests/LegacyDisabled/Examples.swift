@@ -11,7 +11,7 @@ struct ExampleTests {
 
     @Test func example2() {
         Circle(diameter: 10)
-            .usingFacets(count: 3)
+            .usingSegments(count: 3)
             .translated(x: 2)
             .scaled(x: 2)
             .repeated(in: 0°..<360°, count: 5)
@@ -56,10 +56,10 @@ struct ExampleTests {
             .addingCubicCurve(controlPoint1: [10, 65], controlPoint2: [55, -20], end: [60, 40])
 
         Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-            .usingDefaultFacets()
+            .usingDefaultSegments()
             .extruded(along: path)
             .withPreviewConvexity(4)
-            .usingFacets(minAngle: 5°, minSize: 1)
+            .usingSegments(minAngle: 5°, minSize: 1)
             .expectCodeEquals(file: "examples/example4")
     }
 }

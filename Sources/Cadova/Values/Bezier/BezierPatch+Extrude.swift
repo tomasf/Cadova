@@ -35,8 +35,8 @@ public extension BezierPatch {
         case offset (Vector3D)
     }
 
-    private func extrusion(_ mode: ExtrusionMode, facets: EnvironmentValues.Facets) -> any Geometry3D {
-        let points = points(facets: facets)
+    private func extrusion(_ mode: ExtrusionMode, segmentation: EnvironmentValues.Segmentation) -> any Geometry3D {
+        let points = points(segmentation: segmentation)
         let lastRow = points.count - 1
         let lastColumn = points[0].count - 1
 
@@ -119,20 +119,20 @@ public extension BezierPatch {
 
 
     func extruded(to plane: Plane) -> any Geometry3D {
-        readEnvironment(\.facets) { facets in
-            extrusion(.plane(plane), facets: facets)
+        readEnvironment(\.segmentation) { segments in
+            extrusion(.plane(plane), segmentation: segments)
         }
     }
 
     func extruded(to point: Vector3D) -> any Geometry3D {
-        readEnvironment(\.facets) { facets in
-            extrusion(.point(point), facets: facets)
+        readEnvironment(\.segmentation) { segments in
+            extrusion(.point(point), segmentation: segments)
         }
     }
 
     func extruded(offset: Vector3D) -> any Geometry3D {
-        readEnvironment(\.facets) { facets in
-            extrusion(.offset(offset), facets: facets)
+        readEnvironment(\.segmentation) { segments in
+            extrusion(.offset(offset), segmentation: segments)
         }
     }
 }

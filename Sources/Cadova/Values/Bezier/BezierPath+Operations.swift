@@ -39,13 +39,13 @@ public extension BezierPath {
     ///
     /// - Parameters:
     ///   - position: The position along the path where the transformation is calculated. This value is of type
-    ///   - facets: The desired level of detail for the generated points, affecting the smoothness and accuracy of the path traversal
+    ///   - segments: The desired level of detail for the generated points, affecting the smoothness and accuracy of the path traversal
     /// - Returns: A `V.D.Transform` representing the combined rotation and translation needed to move an object along the
     ///   Bézier path to the specified position.
-    func transform(at position: Position, facets: EnvironmentValues.Facets) -> V.D.Transform {
+    func transform(at position: Position, segmentation: EnvironmentValues.Segmentation) -> V.D.Transform {
         guard !curves.isEmpty else { return .translation(startPoint) }
         return .init(
-            points(in: 0...position, facets: facets).map(\.vector3D)
+            points(in: 0...position, segmentation: segmentation).map(\.vector3D)
                 .paired().map { Direction3D(from: $1, to: $0) }
                 .paired().map(AffineTransform3D.rotation(from:to:))
                 .reduce(AffineTransform3D.identity) { $0.concatenated(with: $1) }
@@ -55,13 +55,13 @@ public extension BezierPath {
 
     func readTransform(at position: Position, @GeometryBuilder2D _ reader: @Sendable @escaping (V.D.Transform) -> any Geometry2D) -> any Geometry2D {
         readEnvironment { e in
-            reader(transform(at: position, facets: e.facets))
+            reader(transform(at: position, segmentation: e.segmentation))
         }
     }
 
     func readTransform(at position: Position, @GeometryBuilder3D _ reader: @Sendable @escaping (V.D.Transform) -> any Geometry3D) -> any Geometry3D {
         readEnvironment { e in
-            reader(transform(at: position, facets: e.facets))
+            reader(transform(at: position, segmentation: e.segmentation))
         }
     }
 }
@@ -69,22 +69,22 @@ public extension BezierPath {
 public extension BezierPath {
     /// Generates a sequence of points representing the path.
     ///
-    /// - Parameter facets: The desired level of detail for the generated points, affecting the smoothness of curves.
+    /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
     /// - Returns: An array of points that approximate the Bezier path.
-    func points(facets: EnvironmentValues.Facets) -> [V] {
+    func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
         return [startPoint] + curves.flatMap {
-            $0.points(facets: facets)[1...]
+            $0.points(segmentation: segmentation)[1...]
         }
     }
 
     /// Calculates the total length of the Bézier path.
     ///
-    /// - Parameter facets: The desired level of detail for the generated points, which influences the accuracy
-    ///   of the length calculation. More detailed facet values result in more points being generated, leading to a more
+    /// - Parameter segmentation: The desired level of detail for the generated points, which influences the accuracy
+    ///   of the length calculation. More detailed segmentation results in more points being generated, leading to a more
     ///   accurate length approximation.
     /// - Returns: A `Double` value representing the total length of the Bézier path.
-    func length(facets: EnvironmentValues.Facets) -> Double {
-        points(facets: facets)
+    func length(segmentation: EnvironmentValues.Segmentation) -> Double {
+        points(segmentation: segmentation)
             .paired()
             .map { $0.distance(to: $1) }
             .reduce(0, +)
@@ -100,7 +100,7 @@ public extension BezierPath {
         return curves[curveIndex].point(at: fraction)
     }
 
-    func points(in pathFractionRange: ClosedRange<Position>, facets: EnvironmentValues.Facets) -> [V] {
+    func points(in pathFractionRange: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [V] {
         let (fromCurveIndex, fromFraction) = pathFractionRange.lowerBound.indexAndFraction(curveCount: curves.count)
         let (toCurveIndex, toFraction) = pathFractionRange.upperBound.indexAndFraction(curveCount: curves.count)
 
@@ -108,19 +108,19 @@ public extension BezierPath {
             let startFraction = (index == fromCurveIndex) ? fromFraction : 0.0
             let endFraction = (index == toCurveIndex) ? toFraction : 1.0
             let skipFirst = index > fromCurveIndex
-            return curve.points(in: startFraction..<endFraction, facets: facets)[(skipFirst ? 1 : 0)...]
+            return curve.points(in: startFraction..<endFraction, segmentation: segmentation)[(skipFirst ? 1 : 0)...]
         }
     }
 
     func readPoints(in range: ClosedRange<Position>? = nil, @GeometryBuilder2D _ reader: @Sendable @escaping ([V]) -> any Geometry2D) -> any Geometry2D {
         readEnvironment { e in
-            reader(points(in: range ?? positionRange, facets: e.facets))
+            reader(points(in: range ?? positionRange, segmentation: e.segmentation))
         }
     }
 
     func readPoints(in range: ClosedRange<Position>? = nil, @GeometryBuilder3D _ reader: @Sendable @escaping ([V]) -> any Geometry3D) -> any Geometry3D {
         readEnvironment { e in
-            reader(points(in: range ?? positionRange, facets: e.facets))
+            reader(points(in: range ?? positionRange, segmentation: e.segmentation))
         }
     }
 }

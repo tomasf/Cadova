@@ -6,7 +6,7 @@ internal struct RoundedRectangleMask: Shape2D {
     let corners: Rectangle.Corners
     let style: RoundedCornerStyle
 
-    @Environment(\.facets) var facets
+    @Environment(\.segmentation) var segmentation
 
     init(size: Vector2D, radius: Double, corners: Rectangle.Corners, style: RoundedCornerStyle) {
         self.size = size
@@ -21,7 +21,7 @@ internal struct RoundedRectangleMask: Shape2D {
     var body: any Geometry2D {
         func corner(_ corner: Rectangle.Corner) -> Polygon {
             if corners.contains(corner) {
-                style.polygon(radius: radius, facets: facets)
+                style.polygon(radius: radius, segmentation: segmentation)
                     .transformed(.identity
                         .translated(.init(-radius))
                         .rotated(corner.rotation)
