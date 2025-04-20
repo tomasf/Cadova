@@ -3,27 +3,38 @@ import Foundation
 public extension EnvironmentValues {
     static private let environmentKey = Key("Cadova.Segmentation")
 
-    /// An enumeration representing the method for calculating the number of segments (facets) used in rendering circular and curved geometries.
+    /// Defines how many segments are used to approximate circular and curved geometries.
+    ///
+    /// Cadova uses segments (sometimes called facets) to approximate curves and circles.
+    /// The segmentation can be either fixed or adaptive, depending on your precision and performance needs.
 
     enum Segmentation: Sendable {
-        /// Specifies a fixed number of segments for circles, regardless of size.
+        /// Uses a fixed number of segments for all circular or curved geometries, regardless of size.
+        ///
+        /// - Parameter count: The number of segments to use (minimum 3).
         case fixed (Int)
 
-        /// Specifies a dynamic calculation of segments based on the minimum angle and minimum size.
+        /// Uses an adaptive segmentation strategy based on angular and linear thresholds.
+        ///
+        /// This option dynamically adjusts the number of segments depending on the size and curvature
+        /// of the geometry. It aims to balance detail and performance.
+        ///
         /// - Parameters:
-        ///   - minAngle: The minimum angle (in degrees) between segments.
-        ///   - minSize: The minimum size of a segment.
+        ///   - minAngle: The minimum angle (in degrees) per segment.
+        ///   - minSize: The minimum segment length.
         case adaptive (minAngle: Angle, minSize: Double)
 
-        /// The default segmentation for Cadova, aiming for higher detail in rendered geometries.
+        /// The default segmentation strategy used in Cadova.
+        ///
+        /// This value is an adaptive strategy with a reasonable balance
+        /// between performance and visual quality.
         public static let defaults = Segmentation.adaptive(minAngle: 2°, minSize: 0.15)
 
-        /// Calculates the number of segments for a circle based on its radius
+        /// Computes the number of segments required to approximate a circle of the given radius.
         ///
-        /// For `adaptive`, it calculates the appropriate number of segments based on the minimum angle and size.
         /// - Parameter r: The radius of the circle.
-        /// - Returns: The calculated number of segments for a full circle.
-        ///
+        /// - Returns: The computed segment count, ensuring a minimum of 5 segments.
+
         public func segmentCount(circleRadius r: Double) -> Int {
             switch self {
             case .fixed (let count):
@@ -36,12 +47,11 @@ public extension EnvironmentValues {
             }
         }
 
-        /// Calculates the number of segments for an item based on its length
+        /// Computes the number of segments needed to approximate a curve of the given length.
         ///
-        /// For `adaptive`, it calculates the appropriate number of segments based on the minimum size
-        /// - Parameter length: The total length
-        /// - Returns: The calculated number of segments
-        ///
+        /// - Parameter length: The total arc length or curve length.
+        /// - Returns: The computed number of segments
+
         public func segmentCount(length: Double) -> Int {
             switch self {
             case .fixed (let count):
@@ -54,25 +64,34 @@ public extension EnvironmentValues {
     }
 
     /// Accesses the current segmentation settings from the environment.
+    ///
+    /// If not explicitly set, this defaults to `Segmentation.defaults`.
     var segmentation: Segmentation {
         get { self[Self.environmentKey] as? Segmentation ?? .defaults }
         set { self[Self.environmentKey] = newValue }
     }
 
+    /// Returns a modified environment with the specified segmentation strategy.
+    ///
+    /// - Parameter segmentation: The `Segmentation` value to apply.
+    /// - Returns: A new environment with the updated segmentation configuration.
+    func withSegmentation(_ segmentation: Segmentation) -> EnvironmentValues {
+        setting(key: Self.environmentKey, value: segmentation)
+    }
+
+    /// Sets an adaptive segmentation strategy in the environment.
+    ///
+    /// - Parameters:
+    ///   - minAngle: The minimum angle (in degrees) per segment.
+    ///   - minSize: The minimum segment length.
     mutating func setSegmentation(minAngle: Angle, minSize: Double) {
         segmentation = .adaptive(minAngle: minAngle, minSize: minSize)
     }
 
+    /// Sets a fixed segmentation strategy in the environment.
+    ///
+    /// - Parameter count: The number of segments to use (minimum 3).
     mutating func setSegmentation(count: Int) {
         segmentation = .fixed(count)
-    }
-
-    /// Returns a new environment with the specified segmentation applied.
-    ///
-    /// This method allows for precise control over the resolution of circular and curved geometries.
-    /// - Parameter segmentation: The `Segmentation` setting to apply to the environment.
-    /// - Returns: A new `EnvironmentValues` with the updated segmentation.
-    func withSegmentation(_ segmentation: Segmentation) -> EnvironmentValues {
-        setting(key: Self.environmentKey, value: segmentation)
     }
 }
