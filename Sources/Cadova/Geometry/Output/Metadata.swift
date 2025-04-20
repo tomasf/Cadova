@@ -24,8 +24,14 @@ struct MetadataContainer: ResultElement {
     }
 }
 
-// Adds metadata to the resulting 3MF file
-public extension Geometry3D {
+/// Attaches metadata to the resulting 3MF file generated from this geometry.
+///
+/// Use this method to embed descriptive and attributional metadata in the 3MF output, such as the model's title,
+/// author, license, or creation date. This metadata is stored in the 3MF file's metadata section and is readable
+/// by slicers and 3D modeling tools that support 3MF metadata.
+///
+/// Any parameter that is `nil` will be ignored. This allows partial metadata without affecting other existing values.
+public extension Geometry {
     func addingMetadata(
         title: String? = nil,
         designer: String? = nil,
@@ -36,7 +42,7 @@ public extension Geometry3D {
         creationDate: String? = nil,
         modificationDate: String? = nil,
         application: String? = nil
-    ) -> any Geometry3D {
+    ) -> D.Geometry {
         modifyingResult(MetadataContainer.self) {
             var container = $0 ?? .init(metadata: [])
             if let title { container = container.adding(.title, value: title) }

@@ -84,11 +84,3 @@ public extension Geometry {
         Intersection(children: [self] + other)
     }
 }
-
-public extension Sequence {
-    func mapIntersection<D: Dimensionality>(
-        @GeometryBuilder<D> _ transform: (Element) throws -> D.Geometry
-    ) rethrows -> D.Geometry {
-        Intersection(children: try map(transform))
-    }
-}

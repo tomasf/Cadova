@@ -11,4 +11,8 @@ actor MaterialRegistry {
     func material(for id: Manifold.OriginalID) -> Material? {
         table[id]
     }
+
+    var mapping: [Manifold.OriginalID: Material] {
+        table
+    }
 }
