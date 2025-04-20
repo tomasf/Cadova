@@ -73,7 +73,7 @@ internal struct RoundedBoxCornerMask: Shape3D {
             [.innerUpper] + (-1...segmentCount + 1).reversed().map { .outer(sector: $0, level: segmentCount + 1) }   // Z
         ]
 
-        return Polyhedron(faces: curvedSurface + bottom + walls) {
+        return Mesh(faces: curvedSurface + bottom + walls) {
             $0.point(corner: self, segmentCount: segmentCount)
         }
     }

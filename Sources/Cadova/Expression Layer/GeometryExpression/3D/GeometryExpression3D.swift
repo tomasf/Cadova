@@ -18,8 +18,8 @@ public indirect enum GeometryExpression3D: GeometryExpression, Sendable {
         case sphere (radius: Double, segmentCount: Int)
         case cylinder (bottomRadius: Double, topRadius: Double, height: Double, segmentCount: Int)
         case convexHull (points: [Vector3D])
-        #warning("This should use something better than Polyhedron")
-        case polyhedron (Polyhedron)
+        #warning("This should use something better than Mesh")
+        case mesh (Mesh)
     }
 
     public enum Extrusion: Hashable, Sendable, Codable {
@@ -89,11 +89,11 @@ extension GeometryExpression3D.PrimitiveShape {
             guard points.count >= 4 else { return .empty }
             return Manifold.hull(points)
 
-        case .polyhedron (let polyhedron):
+        case .mesh (let mesh):
             do {
-                return try Manifold(polyhedron.meshGL())
+                return try Manifold(mesh.meshGL())
             } catch {
-                logger.error("Polyhedron mesh creation failed: \(error)")
+                logger.error("Mesh creation failed: \(error)")
                 return .empty
             }
         }

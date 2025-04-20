@@ -97,7 +97,7 @@ extension GeometryExpression3D {
                     return .empty
                 }
 
-            case .polyhedron: break
+            case .mesh: break
             }
 
         case .boolean (let children, let operation):

@@ -1,7 +1,7 @@
 import Foundation
 
-public extension Polyhedron {
-    /// Returns a visual debugging version of the polyhedron
+public extension Mesh {
+    /// Returns a visual debugging version of the mesh
     /// built from thin extruded faces without requiring manifold correctness.
     /// Inward faces are colored pink.
     @GeometryBuilder3D
