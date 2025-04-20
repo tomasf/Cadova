@@ -46,18 +46,6 @@ struct GeometryExpressionTransformer<Input: Dimensionality, D: Dimensionality>: 
     }
 }
 
-public protocol ExpressionTransforming: Geometry {
-    var body: D.Geometry { get }
-    func transform(expression: D.Expression) -> D.Expression
-}
-
-extension ExpressionTransforming {
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
-        let bodyResult = await body.build(in: environment, context: context)
-        return bodyResult.replacing(expression: transform(expression: bodyResult.expression))
-    }
-}
-
 public protocol CompositeGeometry: Geometry {
     var body: D.Geometry { get }
 }

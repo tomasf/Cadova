@@ -21,36 +21,3 @@ public struct Material: Hashable, Sendable, Codable {
         return .init(baseColor: color.withAlphaComponent(alpha ?? color.alpha))
     }
 }
-
-struct MaterialMapping: ResultElement {
-    let mapping: [D3.Primitive.OriginalID: Material]
-
-    private init(mapping: [D3.Primitive.OriginalID: Material]) {
-        self.mapping = mapping
-    }
-
-    init(originalID: D3.Primitive.OriginalID, material: Material) {
-        self.init(mapping: [originalID: material])
-    }
-
-    static func combining(mappings: [MaterialMapping]) -> MaterialMapping {
-        .init(mapping: mappings.reduce(into: [:]) { result, mapping in
-            result.merge(mapping.mapping) { $1 }
-        })
-    }
-
-    static func combine(elements: [MaterialMapping]) -> MaterialMapping? {
-        .combining(mappings: elements)
-    }
-}
-
-internal struct ApplyMaterial: ExpressionTransforming {
-    typealias D = D3
-    
-    let body: any Geometry3D
-    let material: Material
-
-    func transform(expression: D3.Expression) -> D3.Expression {
-        .material(expression, material: material)
-    }
-}

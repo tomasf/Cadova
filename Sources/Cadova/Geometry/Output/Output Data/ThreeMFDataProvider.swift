@@ -62,11 +62,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
         for (identifier, output) in outputs.sorted(by: { $0.key.hashValue < $1.key.hashValue }) {
             guard !output.expression.isEmpty else { continue }
 
-            let materialMapping = output.elements[MaterialMapping.self]
+            let materialMapping = context.materials
             let meshData = await context.geometry(for: output.expression).meshGL()
             let originalIDRanges = meshData.originalIDs
 
-            let orderedMaterialMapping = Array(materialMapping?.mapping ?? [:])
+            let orderedMaterialMapping = await Array(materialMapping.mapping)
 
             let originalIDToPropertyReference = Dictionary(uniqueKeysWithValues: orderedMaterialMapping.map { originalID, material in
                 (originalID, addMaterial(material))

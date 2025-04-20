@@ -9,28 +9,11 @@ import Manifold3D
 ///
 /// ## Note
 /// While you can use `Union` directly, it is generally more convenient to use
-/// the `.adding` method available on `Geometry2D` and `Geometry3D`. The `.adding`
-/// method allows you to create unions in a more concise and readable way by chaining
-/// it directly to an existing geometry, making it the preferred approach in most cases.
+/// the `.adding` method available on `Geometry` The `.adding`  method allows you to create
+/// unions in a more concise and readable way by chaining it directly to an existing
+/// geometry, making it the preferred approach in most cases.
 ///
 /// ## Examples
-/// ### 2D Union
-/// ```swift
-/// Union {
-///     Circle(diameter: 4)
-///     Rectangle([10, 10])
-/// }
-/// ```
-///
-/// ### Using .adding (Preferred)
-/// ```swift
-/// Circle(diameter: 4)
-///     .adding {
-///         Rectangle([10, 10])
-///     }
-/// ```
-///
-/// ### 3D Union
 /// ```swift
 /// Union {
 ///     Cylinder(diameter: 4, height: 10)
@@ -38,7 +21,7 @@ import Manifold3D
 /// }
 /// ```
 ///
-/// ### Using .adding (Preferred)
+/// ### Using .adding (preferred)
 /// ```swift
 /// Cylinder(diameter: 4, height: 10)
 ///     .adding {
@@ -46,8 +29,8 @@ import Manifold3D
 ///     }
 /// ```
 ///
-/// This will create a union where the cylinder and box are combined into a single geometry.
-/// 
+/// Both examples create a union where the cylinder and box are combined into a single geometry.
+///
 public struct Union<D: Dimensionality>: CompositeGeometry {
     let children: [D.Geometry]
 
@@ -91,19 +74,40 @@ extension Union {
     }
 }
 
-public extension Collection {
-    func mapUnion<D: Dimensionality>(
-        @GeometryBuilder<D> _ transform: (Element) throws -> D.Geometry
-    ) rethrows -> D.Geometry {
-        Union(children: try map(transform))
+public extension Geometry {
+    /// Groups this geometry with additional geometry, forming a union that is treated as a single shape.
+    ///
+    /// This method combines the current geometry with one or more additional geometries using a union operation. The result is a composite shape where all parts are merged into one. This is
+    /// especially useful when positioning or transforming a group of objects as a whole.
+    ///
+    /// ## Example
+    /// ```swift
+    /// Rectangle([10, 10])
+    ///     .adding {
+    ///         Circle(diameter: 5)
+    ///         Rectangle([2, 2]).translated(x: 6)
+    ///     }
+    ///     .translated(x: 10)
+    /// ```
+    /// In this example, the circle and small rectangle are grouped with the base rectangle, and the entire group is then translated.
+    ///
+    /// - Parameter bodies: A closure returning one or more geometries to be combined.
+    /// - Returns: A new geometry that is the union of the current geometry and the provided geometries.
+    func adding(@SequenceBuilder<D> _ bodies: () -> [D.Geometry]) -> D.Geometry {
+        Union([self] + bodies())
     }
-}
 
-public extension Collection where Element: Sendable {
-    func mapUnion<D: Dimensionality>(
-        @GeometryBuilder<D> _ transform: @Sendable @escaping (Element) async -> D.Geometry
-    ) async -> D.Geometry {
-        Union(children: await asyncMap(transform))
+    /// Groups this geometry with additional geometry, forming a union that is treated as a single shape.
+    ///
+    /// This method combines the current geometry with one or more additional geometries using a union operation. The result is a composite shape where all parts are merged into one. This is
+    /// especially useful when positioning or transforming a group of objects as a whole.
+    ///
+    /// This overload accepts a variadic list of optional geometries, allowing convenient conditional inclusion without needing to use builders or unwrap values manually.
+    ///
+    /// - Parameter bodies: A closure returning one or more geometries to be combined.
+    /// - Returns: A new geometry that is the union of the current geometry and the provided geometries.
+    ///
+    func adding(_ bodies: D.Geometry?...) -> D.Geometry {
+        Union([self] + bodies)
     }
-
 }

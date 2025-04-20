@@ -11,6 +11,7 @@ public indirect enum GeometryExpression3D: GeometryExpression, Sendable {
     case convexHull (GeometryExpression3D)
     case raw (Manifold, source: GeometryExpression3D?, cacheKey: ExpressionKey)
     case extrusion (GeometryExpression2D, type: Extrusion)
+    #warning("get rid of this? hmm, maybe not")
     case material (GeometryExpression3D, material: Material)
 
     public enum PrimitiveShape: Hashable, Sendable, Codable {
