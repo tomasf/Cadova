@@ -49,7 +49,14 @@ public extension Geometry3D {
     }
 
     func withMaterial(_ material: Material) -> any Geometry3D {
-        GeometryExpressionTransformer(body: self) { .material($0, material: material) }
+        return GeometryExpressionTransformer(body: self) {
+            .tag($0, key: .init(material))
+        }
+        .modifyingResult(MaterialRecord.self) { mapping in
+            var mapping = mapping ?? .init()
+            mapping.add(material)
+            return mapping
+        }
     }
 }
 

@@ -3,17 +3,17 @@ import Manifold3D
 
 public struct EvaluationContext: Sendable {
     internal let cache: GeometryCache
-    internal let materials: MaterialRegistry
+    internal let taggedGeometry: TaggedGeometryRegistry
 
-    internal init(cache: GeometryCache, materials: MaterialRegistry) {
+    internal init(cache: GeometryCache, taggedGeometry: TaggedGeometryRegistry) {
         self.cache = cache
-        self.materials = materials
+        self.taggedGeometry = taggedGeometry
     }
 }
 
 extension EvaluationContext {
     init() {
-        self.init(cache: .init(), materials: .init())
+        self.init(cache: .init(), taggedGeometry: .init())
     }
 }
 
@@ -49,11 +49,5 @@ extension EvaluationContext {
 
     func geometries<E: GeometryExpression>(for expressions: [E]) async -> [E.D.Primitive] {
         await expressions.asyncMap { await self.geometry(for: $0) }
-    }
-}
-
-extension EvaluationContext {
-    func assign(_ material: Material, to originalID: Manifold.OriginalID) async {
-        await materials.register(material, for: originalID)
     }
 }

@@ -4,14 +4,14 @@ import Manifold3D
 extension GeometryExpression3D: Codable {
     enum CodingKeys: String, CodingKey {
         case kind // Which geometry kind?
-        case type // Local type within kind
+        case type // Subtype within kind
         case primitive
         case children
         case body
         case transform
         case crossSection
         case mesh
-        case material
+        case key
         case source
         case cacheKey
     }
@@ -41,11 +41,6 @@ extension GeometryExpression3D: Codable {
             try container.encode(Kind.convexHull, forKey: .kind)
             try container.encode(body, forKey: .body)
 
-        case .material (let body, let material):
-            try container.encode(Kind.material, forKey: .kind)
-            try container.encode(body, forKey: .body)
-            try container.encode(material, forKey: .material)
-
         case .extrusion(let body, let type):
             try container.encode(Kind.extrusion, forKey: .kind)
             try container.encode(body, forKey: .crossSection)
@@ -57,6 +52,10 @@ extension GeometryExpression3D: Codable {
             try container.encode(source, forKey: .source)
             try container.encode(cacheKey, forKey: .cacheKey)
 
+        case .tag (let body, let key):
+            try container.encode(Kind.tag, forKey: .kind)
+            try container.encode(body, forKey: .body)
+            try container.encode(key, forKey: .key)
         }
     }
 
@@ -80,10 +79,6 @@ extension GeometryExpression3D: Codable {
         case .convexHull:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
             self = .convexHull(body)
-        case .material:
-            let body = try container.decode(GeometryExpression3D.self, forKey: .body)
-            let material = try container.decode(Material.self, forKey: .material)
-            self = .material(body, material: material)
         case .extrusion:
             let body = try container.decode(GeometryExpression2D.self, forKey: .crossSection)
             let type = try container.decode(Extrusion.self, forKey: .type)
@@ -93,6 +88,10 @@ extension GeometryExpression3D: Codable {
             let source = try container.decode(GeometryExpression3D.self, forKey: .source)
             let cacheKey = try container.decode(ExpressionKey.self, forKey: .cacheKey)
             self = .raw(try Manifold(meshGL), source: source, cacheKey: cacheKey)
+        case .tag:
+            let body = try container.decode(GeometryExpression3D.self, forKey: .body)
+            let key = try container.decode(ExpressionKey.self, forKey: .key)
+            self = .tag(body, key: key)
         }
     }
 }

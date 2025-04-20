@@ -147,7 +147,7 @@ extension GeometryExpression3D {
             }
 
             return .extrusion(expression.simplified(), type: extrusion)
-        case .empty, .raw, .material: break
+        case .empty, .raw, .tag: break
         }
 
         return self
