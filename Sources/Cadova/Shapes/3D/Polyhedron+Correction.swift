@@ -1,7 +1,7 @@
 import Foundation
 
-internal extension Polyhedron {
-    // Calculates the signed volume of the polyhedron. A positive volume indicates that the faces are consistently outward-facing. A negative volume indicates that the faces are inward-facing (inside out). This assumes the polyhedron is closed and manifold.
+internal extension Mesh {
+    // Calculates the signed volume of the mesh. A positive volume indicates that the faces are consistently outward-facing. A negative volume indicates that the faces are inward-facing (inside out). This assumes the mesh is closed and manifold.
     var signedVolume: Double {
         var volume = 0.0
         for face in faces {
@@ -16,19 +16,19 @@ internal extension Polyhedron {
         return volume / 6.0
     }
 
-    func flipped() -> Polyhedron {
-        Polyhedron(vertices: vertices, faces: faces.map { $0.reversed() })
+    func flipped() -> Mesh {
+        Mesh(vertices: vertices, faces: faces.map { $0.reversed() })
     }
 }
 
-public extension Polyhedron {
-    /// Returns a new polyhedron with corrected face winding based on volume orientation.
+public extension Mesh {
+    /// Returns a new mesh with corrected face winding based on volume orientation.
     ///
-    /// If the polyhedron's signed volume is negative (indicating inward-facing normals),
+    /// If the mesh's signed volume is negative (indicating inward-facing normals),
     /// the face windings are flipped to ensure outward orientation.
     ///
-    /// - Returns: A polyhedron with outward-facing normals.
-    func correctingFaceWinding() -> Polyhedron {
+    /// - Returns: A mesh with outward-facing normals.
+    func correctingFaceWinding() -> Mesh {
         signedVolume < 0 ? flipped() : self
     }
 }

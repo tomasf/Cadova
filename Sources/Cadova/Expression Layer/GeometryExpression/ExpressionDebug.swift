@@ -102,8 +102,8 @@ extension GeometryExpression3D.PrimitiveShape {
             String(format: "sphere(radius: %g, segments: %d)", radius, segmentCount)
         case .cylinder (let bottomRadius, let topRadius, let height, let segmentCount):
             String(format: "cylinder(bottom R: %g, top R: %g, height: %g, segments: %d)", bottomRadius, topRadius, height, segmentCount)
-        case .polyhedron:
-            "polyhedron(...)"
+        case .mesh:
+            "mesh(...)"
         case .convexHull (let points):
             String(format: "hull { %@ }", points.map {
                 String(format: "[%g, %g]", $0.x, $0.y)

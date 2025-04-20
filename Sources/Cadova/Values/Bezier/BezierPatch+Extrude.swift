@@ -108,7 +108,7 @@ public extension BezierPatch {
             allFaces = surfaceFaces + rowSideFaces + columnSideFaces + bottomFaces
         }
 
-        return Polyhedron(faces: allFaces) { vertex in
+        return Mesh(faces: allFaces) { vertex in
             return switch vertex.kind {
             case .surface (let offset): points[vertex.row][vertex.column] + offset
             case .plane (let plane): plane.project(point: points[vertex.row][vertex.column])

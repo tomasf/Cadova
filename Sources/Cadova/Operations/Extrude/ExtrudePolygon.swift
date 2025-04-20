@@ -1,6 +1,6 @@
 import Foundation
 
-private extension Polyhedron {
+private extension Mesh {
     init(extruding shape: Polygon, along path: [AffineTransform3D], environment: EnvironmentValues) {
         struct Vertex: Hashable {
             let step: Int
@@ -44,7 +44,7 @@ public extension Polygon {
             }
 
             readingPrimitive { crossSection in
-                Polyhedron(extruding: crossSection.polygons(), along: expandedPath, environment: environment)
+                Mesh(extruding: crossSection.polygons(), along: expandedPath, environment: environment)
             }
         }
     }

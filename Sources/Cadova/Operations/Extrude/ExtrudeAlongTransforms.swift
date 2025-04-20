@@ -7,7 +7,7 @@ fileprivate struct Vertex: Hashable {
     let pointIndex: Int
 }
 
-internal extension Polyhedron {
+internal extension Mesh {
     init(extruding polygons: [Manifold3D.Polygon], along path: [AffineTransform3D], environment: EnvironmentValues) {
         let sideFaces = polygons.map { $0.vertices.map(Vector2D.init) }.enumerated().flatMap { polygonIndex, points in
             let pointCount = points.count
@@ -39,7 +39,7 @@ internal extension Polyhedron {
        // let startFace = indexPairs.reversed().map { Vertex(step: 0, polygonIndex: $0.polygonIndex pointIndex: $0.pointIndex) }
         //let endFace = points.indices.map { Vertex(step: path.endIndex - 1, pointIndex: $0) }
 
-        self = Polyhedron(faces: sideFaces + startFaces + endFaces) {
+        self = Mesh(faces: sideFaces + startFaces + endFaces) {
             path[$0.step].apply(to: Vector3D(Vector2D(polygons[$0.polygonIndex].vertices[$0.pointIndex])))
         }
     }
@@ -82,7 +82,7 @@ public extension Geometry2D {
 
         return readEnvironment { environment in
             readingPrimitive { crossSection in
-                Polyhedron(extruding: crossSection.polygons(), along: expandedPath, environment: environment)
+                Mesh(extruding: crossSection.polygons(), along: expandedPath, environment: environment)
             }
         }
     }

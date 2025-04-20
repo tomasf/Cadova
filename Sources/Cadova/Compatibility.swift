@@ -14,3 +14,5 @@ public extension Geometry2D {
     }
 }
 
+@available(*, deprecated, message: "Use Mesh instead of Polyhedron.")
+public typealias Polyhedron = Mesh
