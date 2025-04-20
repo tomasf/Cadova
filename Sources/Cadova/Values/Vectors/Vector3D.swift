@@ -95,6 +95,7 @@ extension Vector3D: Vector {
     }
 
     public var primitive: D.Primitive.Vector { self }
+    public var vector3D: Vector3D { self }
 }
 
 extension Vector3D: CustomDebugStringConvertible {
