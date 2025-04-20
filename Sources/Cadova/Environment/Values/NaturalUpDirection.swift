@@ -88,24 +88,9 @@ public extension Geometry3D {
             environment.settingNaturalUpDirection(direction)
         }
     }
-
-    /// Removes the natural up direction for the geometry.
-    ///
-    /// This method undefines the previously set natural up direction.
-    /// This is useful if you want to remove any specific orientation
-    /// considerations and revert to a state where the natural up
-    /// direction is undefined.
-    ///
-    /// - Returns: A new instance of `Geometry3D` with the natural up direction unset.
-    ///
-    func clearingNaturalUpDirection() -> any Geometry3D {
-        withEnvironment { environment in
-            environment.settingNaturalUpDirection(nil)
-        }
-    }
 }
 
-public extension Geometry2D {
+extension Geometry {
     /// Removes the natural up direction for the geometry.
     ///
     /// This method undefines the previously set natural up direction.
@@ -113,9 +98,9 @@ public extension Geometry2D {
     /// considerations and revert to a state where the natural up
     /// direction is undefined.
     ///
-    /// - Returns: A new instance of `Geometry2D` with the natural up direction unset.
+    /// - Returns: A new geometry with the natural up direction unset.
     ///
-    func clearingNaturalUpDirection() -> any Geometry2D {
+    func clearingNaturalUpDirection() -> D.Geometry {
         withEnvironment { environment in
             environment.settingNaturalUpDirection(nil)
         }
