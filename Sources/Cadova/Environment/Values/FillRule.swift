@@ -32,14 +32,8 @@ public enum FillRule: Hashable, Sendable, Codable {
     }
 }
 
-public extension Geometry2D {
-    func usingFillRule(_ fillRule: FillRule) -> any Geometry2D {
-        withEnvironment { $0.withFillRule(fillRule) }
-    }
-}
-
-public extension Geometry3D {
-    func usingFillRule(_ fillRule: FillRule) -> any Geometry3D {
+public extension Geometry {
+    func usingFillRule(_ fillRule: FillRule) -> D.Geometry {
         withEnvironment { $0.withFillRule(fillRule) }
     }
 }

@@ -14,17 +14,20 @@ public extension EnvironmentValues {
     }
 }
 
-public extension Geometry2D {
-    // When using `Geometry2D.offset` with the `LineJoinStyle.miter` style, this value sets
-    // the maximum in multiples of the offset amount that vertices can be extended from their
-    // original positions before a square shape is applied.
-    func usingMiterLimit(_ limit: Double) -> any Geometry2D {
-        withEnvironment { $0.withMiterLimit(limit) }
-    }
-}
-
-public extension Geometry3D {
-    func usingMiterLimit(_ limit: Double) -> any Geometry3D {
+public extension Geometry {
+    /// Sets the miter limit for offset operations using mitered joins.
+    ///
+    /// When applying an offset with `.miter` as the `LineJoinStyle`, sharp corners may be extended
+    /// significantly, especially at narrow angles. The miter limit constrains how far those corners
+    /// can protrude by capping the extension to a multiple of the offset distance.
+    ///
+    /// If the miter limit is exceeded, the join style will fall back to a beveled corner (effectively
+    /// creating a flat cut-off).
+    ///
+    /// - Parameter limit: The maximum allowed extension, expressed as a multiple of the offset amount.
+    ///   For example, a limit of `2.0` means corners can extend up to twice the offset distance.
+    /// - Returns: A modified geometry that uses the specified miter limit during offset operations.
+    func usingMiterLimit(_ limit: Double) -> D.Geometry {
         withEnvironment { $0.withMiterLimit(limit) }
     }
 }
