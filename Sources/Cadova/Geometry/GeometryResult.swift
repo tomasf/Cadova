@@ -32,7 +32,9 @@ internal extension GeometryResult {
         .init(expression: expression, elements: elements)
     }
 
-    func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E?) -> E?) -> Self {
-        replacing(elements: elements.setting(modifier(elements[E.self])))
+    func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (inout E) -> Void) -> Self {
+        var element = elements[E.self]
+        modifier(&element)
+        return replacing(elements: elements.setting(element))
     }
 }

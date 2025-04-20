@@ -50,12 +50,10 @@ public extension Geometry3D {
 
     func withMaterial(_ material: Material) -> any Geometry3D {
         return GeometryExpressionTransformer(body: self) {
-            .tag($0, key: .init(material))
+            .tag($0, key: ExpressionKey(material))
         }
-        .modifyingResult(MaterialRecord.self) { mapping in
-            var mapping = mapping ?? .init()
-            mapping.add(material)
-            return mapping
+        .modifyingResult(MaterialRecord.self) {
+            $0.add(material)
         }
     }
 }

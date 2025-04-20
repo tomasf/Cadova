@@ -23,26 +23,31 @@ public struct Material: Hashable, Sendable, Codable {
 }
 
 struct MaterialRecord: ResultElement {
-    var materials: Set<Material> = []
+    var materials: Set<Material>
 
     init(materials: Set<Material>) {
         self.materials = materials
     }
 
-    init() {}
+    init() {
+        self.init(materials: [])
+    }
 
-    static func combining(mappings: [MaterialRecord]) -> MaterialRecord {
-        .init(materials: mappings.reduce(into: Set<Material>()) { result, record in
+    init(combining records: [MaterialRecord]) {
+        self.init(materials: records.reduce(into: Set<Material>()) { result, record in
             result.formUnion(record.materials)
         })
     }
 
-    static func combine(elements: [MaterialRecord]) -> MaterialRecord? {
-        .combining(mappings: elements)
-    }
-
     mutating func add(_ material: Material) {
         materials.insert(material)
+    }
+
+    func originalIDMapping(from context: EvaluationContext) async -> [Manifold.OriginalID: Material] {
+        Dictionary(uniqueKeysWithValues: await materials.asyncCompactMap { material in
+            let originalID = await context.taggedGeometry[material]
+            return originalID.map { ($0, material) }
+        })
     }
 }
 

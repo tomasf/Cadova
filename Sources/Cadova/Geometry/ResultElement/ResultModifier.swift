@@ -17,9 +17,14 @@ public extension Geometry {
         }
     }
 
-    func modifyingResult<E: ResultElement>(_ type: E.Type, modification: @Sendable @escaping (E?) -> E?) -> D.Geometry {
+    func modifyingResult<E: ResultElement>(
+        _ type: E.Type,
+        modifier: @Sendable @escaping (inout E) -> Void
+    ) -> D.Geometry {
         ResultModifier(body: self) { elements in
-            elements.setting(modification(elements[E.self]))
+            var element = elements[E.self]
+            modifier(&element)
+            return elements.setting(element)
         }
     }
 }

@@ -1,12 +1,13 @@
 import Foundation
 
 public protocol ResultElement: Sendable {
-    static func combine(elements: [Self]) -> Self?
+    init()
+    init(combining: [Self])
 }
 
 internal extension ResultElement {
     static func combine(anyElements elements: [any ResultElement]) -> Self? {
-        combine(elements: elements as! [Self])
+        Self(combining: elements as! [Self])
     }
 }
 
@@ -24,12 +25,18 @@ internal extension ResultElementsByType {
         }
     }
 
-    subscript<E: ResultElement>(_ type: E.Type) -> E? {
-        get { self[ObjectIdentifier(type)] as? E }
+    subscript<E: ResultElement>(_ type: E.Type) -> E {
+        get {
+            if let match = self[ObjectIdentifier(type)] {
+                return match as! E
+            } else {
+                return E()
+            }
+        }
         set { self[ObjectIdentifier(type)] = newValue }
     }
 
-    func setting<E: ResultElement>(_ value: E?) -> Self {
+    func setting<E: ResultElement>(_ value: E) -> Self {
         var dict = self
         dict[E.self] = value
         return dict

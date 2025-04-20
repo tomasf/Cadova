@@ -5,22 +5,26 @@ import ThreeMF
 extension ThreeMF.Metadata: @retroactive @unchecked Sendable {}
 
 struct MetadataContainer: ResultElement {
-    let metadata: [ThreeMF.Metadata]
+    private(set) var metadata: [ThreeMF.Metadata]
 
     init(metadata: [ThreeMF.Metadata] = []) {
         self.metadata = metadata
     }
 
-    init(name: ThreeMF.Metadata.Name, value: String) {
-        self.init(metadata: [.init(name: name, value: value)])
+    init() {
+        self.init(metadata: [])
     }
 
-    func adding(_ name: ThreeMF.Metadata.Name, value: String) -> Self {
-        MetadataContainer(metadata: metadata + [.init(name: name, value: value)])
+    init(combining containers: [MetadataContainer]) {
+        self.init(metadata: Array(containers.map(\.metadata).joined()))
     }
 
-    static func combine(elements: [Self]) -> Self? {
-        MetadataContainer(metadata: Array(elements.map(\.metadata).joined()))
+    mutating func add(_ name: ThreeMF.Metadata.Name, value: String) {
+        metadata.append(.init(name: name, value: value))
+    }
+
+    func contains(_ name: ThreeMF.Metadata.Name) -> Bool {
+        metadata.contains(where: { $0.name == name })
     }
 }
 
@@ -44,17 +48,15 @@ public extension Geometry {
         application: String? = nil
     ) -> D.Geometry {
         modifyingResult(MetadataContainer.self) {
-            var container = $0 ?? .init(metadata: [])
-            if let title { container = container.adding(.title, value: title) }
-            if let designer { container = container.adding(.designer, value: designer) }
-            if let description { container = container.adding(.description, value: description) }
-            if let copyright { container = container.adding(.copyright, value: copyright) }
-            if let licenseTerms { container = container.adding(.licenseTerms, value: licenseTerms) }
-            if let rating { container = container.adding(.rating, value: rating) }
-            if let creationDate { container = container.adding(.creationDate, value: creationDate) }
-            if let modificationDate { container = container.adding(.modificationDate, value: modificationDate) }
-            if let application { container = container.adding(.application, value: application) }
-            return container
+            if let title { $0.add(.title, value: title) }
+            if let designer { $0.add(.designer, value: designer) }
+            if let description { $0.add(.description, value: description) }
+            if let copyright { $0.add(.copyright, value: copyright) }
+            if let licenseTerms { $0.add(.licenseTerms, value: licenseTerms) }
+            if let rating { $0.add(.rating, value: rating) }
+            if let creationDate { $0.add(.creationDate, value: creationDate) }
+            if let modificationDate { $0.add(.modificationDate, value: modificationDate) }
+            if let application { $0.add(.application, value: application) }
         }
     }
 }
