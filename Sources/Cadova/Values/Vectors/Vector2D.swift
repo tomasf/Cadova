@@ -86,6 +86,7 @@ extension Vector2D: Vector {
     }
 
     public var primitive: D.Primitive.Vector { self }
+    public var vector3D: Vector3D { Vector3D(self) }
 }
 
 extension Vector2D: CustomDebugStringConvertible {

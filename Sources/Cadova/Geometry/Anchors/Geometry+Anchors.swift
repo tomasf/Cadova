@@ -1,38 +1,17 @@
 import Foundation
 
-internal extension Geometry2D {
-    func definingAnchor(_ anchor: Anchor, alignment: GeometryAlignment2D, transform: AffineTransform2D) -> any Geometry2D {
+internal extension Geometry {
+    func definingAnchor(_ anchor: Anchor, alignment: D.Alignment, transform: D.Transform) -> D.Geometry {
         readEnvironment { environment in
             measuring { _, measurements in
-                var alignmentTranslation = Vector2D.zero
+                var alignmentTranslation = D.Vector.zero
                 if alignment.hasEffect {
-                    alignmentTranslation = measurements.boundingBox.requireNonNil().translation(for: alignment)
+                    alignmentTranslation = (measurements.boundingBox ?? .zero).translation(for: alignment)
                 }
                 let anchorTransform = AffineTransform3D.identity
                     .concatenated(with: environment.transform.inverse)
-                    .translated(.init(alignmentTranslation))
-                    .concatenated(with: .init(transform.inverse))
-
-                modifyingResult(AnchorList.self) {
-                    $0.add(anchor, at: anchorTransform)
-                }
-            }
-        }
-    }
-}
-
-internal extension Geometry3D {
-    func definingAnchor(_ anchor: Anchor, alignment: GeometryAlignment3D, transform: AffineTransform3D) -> any Geometry3D {
-        readEnvironment { environment in
-            measuring { _, measurements in
-                var alignmentTranslation = Vector3D.zero
-                if alignment.hasEffect {
-                    alignmentTranslation = measurements.boundingBox.requireNonNil().translation(for: alignment)
-                }
-                let anchorTransform = AffineTransform3D.identity
-                    .concatenated(with: environment.transform.inverse)
-                    .translated(alignmentTranslation)
-                    .concatenated(with: transform.inverse)
+                    .translated(alignmentTranslation.vector3D)
+                    .concatenated(with: transform.inverse.transform3D)
 
                 modifyingResult(AnchorList.self) {
                     $0.add(anchor, at: anchorTransform)

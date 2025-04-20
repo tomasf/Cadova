@@ -46,6 +46,7 @@ public protocol Vector: Hashable, Sendable, Codable, CustomDebugStringConvertibl
 
     init(_ primitive: D.Primitive.Vector)
     var primitive: D.Primitive.Vector { get }
+    var vector3D: Vector3D { get }
 }
 
 public extension Vector {
