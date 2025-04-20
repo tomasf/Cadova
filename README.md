@@ -72,7 +72,7 @@ Box(x: 10, y: 20, z: 5)
 
 ```swift
 Circle(diameter: 10)
-    .usingFacets(count: 3)
+    .withSegments(count: 3)
     .translated(x: 2)
     .scaled(x: 2)
     .repeated(in: 0°..<360°, count: 5)
@@ -130,9 +130,9 @@ let path = BezierPath2D(startPoint: .zero)
 
 save {
     Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-        .usingDefaultFacets()
+        .withDefaultSegmentation()
         .extruded(along: path)
-        .usingFacets(minAngle: 5°, minSize: 1)
+        .withSegments(minAngle: 5°, minSize: 1)
         .named("example4")
 }
 ```

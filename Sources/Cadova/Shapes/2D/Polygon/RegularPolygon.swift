@@ -60,7 +60,7 @@ public struct RegularPolygon: Shape2D {
     /// The geometry representation of the polygon.
     public var body: any Geometry2D {
         Circle(radius: circumradius)
-            .usingFacets(count: sideCount)
+            .withSegmentation(count: sideCount)
     }
 }
 

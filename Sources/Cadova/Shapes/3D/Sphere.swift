@@ -2,7 +2,7 @@ import Foundation
 
 /// A geometric representation of a sphere.
 ///
-/// The sphere's smoothness and number of faces can be adjusted by configuring the facet settings through the ``Geometry3D/usingFacets(minAngle:minSize:)`` and ``Geometry3D/usingFacets(count:)`` methods, allowing for customized geometric precision and rendering quality.
+/// The sphere's smoothness and number of faces can be adjusted by configuring the segmentation through the ``Geometry/withSegmentation(minAngle:minSize:)`` and ``Geometry/withSegmentation(count:)`` methods, allowing for customized geometric precision and rendering quality.
 
 public struct Sphere: CompositeGeometry {
     public typealias D = D3
@@ -33,12 +33,12 @@ public struct Sphere: CompositeGeometry {
         self.radius = radius
     }
 
-    @Environment(\.facets) private var facets
+    @Environment(\.segmentation) private var segmentation
 
     public var body: D3.Geometry {
         PrimitiveShape(shape: .sphere(
             radius: radius,
-            segmentCount: facets.facetCount(circleRadius: diameter / 2)
+            segmentCount: segmentation.segmentCount(circleRadius: diameter / 2)
         ))
     }
 }

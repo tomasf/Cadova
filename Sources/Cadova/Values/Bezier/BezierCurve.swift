@@ -37,17 +37,17 @@ internal struct BezierCurve<V: Vector>: Sendable {
         }
     }
 
-    func points(in range: Range<Double>, facets: EnvironmentValues.Facets) -> [V] {
+    func points(in range: Range<Double>, segmentation: EnvironmentValues.Segmentation) -> [V] {
         guard controlPoints.count > 2 else {
             let start = controlPoints[0].point(alongLineTo: controlPoints[1], at: range.lowerBound)
             let end = controlPoints[0].point(alongLineTo: controlPoints[1], at: range.upperBound)
             return [start, end]
         }
 
-        switch facets {
+        switch segmentation {
         case .fixed (let count):
             return points(in: range, segmentCount: count)
-        case .dynamic(_, let minSize):
+        case .adaptive(_, let minSize):
             return points(in: range, segmentLength: minSize)
         }
     }
@@ -63,15 +63,15 @@ internal struct BezierCurve<V: Vector>: Sendable {
         }
     }
 
-    func points(facets: EnvironmentValues.Facets) -> [V] {
+    func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
         guard controlPoints.count > 2 else {
             return controlPoints
         }
 
-        switch facets {
+        switch segmentation {
         case .fixed (let count):
             return points(segmentCount: count)
-        case .dynamic(_, let minSize):
+        case .adaptive(_, let minSize):
             return points(segmentLength: minSize)
         }
     }

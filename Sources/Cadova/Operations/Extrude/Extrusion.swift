@@ -19,7 +19,7 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - angles: The angle range in which to extrude. The resulting shape is formed around the Z axis in this range.
     func extruded(angles: Range<Angle> = 0°..<360°) -> any Geometry3D {
-        readEnvironment(\.facets) { facets in
+        readEnvironment(\.segmentation) { segmentation in
             self.measuring { geometry, measurements in
                 let bounds = measurements.boundingBox ?? .zero
                 let radius = bounds.minimum.x < 0 && bounds.maximum.x <= 0 ? -bounds.minimum.x : bounds.maximum.x
@@ -27,7 +27,7 @@ public extension Geometry2D {
                 GeometryExpressionTransformer(body: geometry) {
                     GeometryExpression3D.extrusion($0, type: .rotational(
                         angle: (angles.upperBound - angles.lowerBound),
-                        segments: facets.facetCount(circleRadius: radius)
+                        segments: segmentation.segmentCount(circleRadius: radius)
                     ))
                 }
                 .rotated(z: angles.lowerBound)

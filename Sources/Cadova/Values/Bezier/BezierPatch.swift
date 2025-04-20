@@ -23,9 +23,9 @@ public struct BezierPatch: Sendable {
     }
 
     /// Generates a grid of sampled points across the surface
-    internal func points(uFacets: Int, vFacets: Int) -> [[Vector3D]] {
-        let uSteps = (0...uFacets).map { Double($0) / Double(uFacets) }
-        let vSteps = (0...vFacets).map { Double($0) / Double(vFacets) }
+    internal func points(uSegments: Int, vSegments: Int) -> [[Vector3D]] {
+        let uSteps = (0...uSegments).map { Double($0) / Double(uSegments) }
+        let vSteps = (0...vSegments).map { Double($0) / Double(vSegments) }
 
         return uSteps.map { u in
             vSteps.map { v in
@@ -52,11 +52,11 @@ extension BezierPatch: CustomDebugStringConvertible {
 }
 
 public extension BezierPatch {
-    func points(facets: EnvironmentValues.Facets) -> [[Vector3D]] {
-        switch facets {
+    func points(segmentation: EnvironmentValues.Segmentation) -> [[Vector3D]] {
+        switch segmentation {
         case .fixed(let count):
             return uniformGrid(uCount: count, vCount: count)
-        case .dynamic(_, let minSize):
+        case .adaptive(_, let minSize):
             return adaptiveGrid(minSize: minSize)
         }
     }

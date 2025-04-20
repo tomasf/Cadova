@@ -46,11 +46,11 @@ internal struct ChamferedFillet: EdgeProfileShape {
 
     func convexMask(shape: any Geometry2D, extrusionHeight: Double) -> any Geometry3D {
         readEnvironment { environment in
-            let facetsPerRev = environment.facets.facetCount(circleRadius: radius)
-            let facetCount = max(Int(ceil(Double(facetsPerRev) / (360° / overhang))), 1)
+            let segmentsPerRev = environment.segmentation.segmentCount(circleRadius: radius)
+            let segmentCount = max(Int(ceil(Double(segmentsPerRev) / (360° / overhang))), 1)
 
-            (0...facetCount).mapUnion { f in
-                let angle = (Double(f) / Double(facetCount)) * overhang
+            (0...segmentCount).mapUnion { f in
+                let angle = (Double(f) / Double(segmentCount)) * overhang
                 shape.offset(amount: (cos(angle) - 1) * radius, style: .round)
                     .extruded(height: extrusionHeight - radius + sin(angle) * radius)
             }

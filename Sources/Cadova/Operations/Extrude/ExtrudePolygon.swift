@@ -63,7 +63,7 @@ public extension Polygon {
     ) -> any Geometry3D {
         readEnvironment { environment in
             let radius = boundingRect(in: environment).maximum.x
-            let stepsPerRev = Double(environment.facets.facetCount(circleRadius: radius))
+            let stepsPerRev = Double(environment.segmentation.segmentCount(circleRadius: radius))
             let steps = Int(ceil(stepsPerRev * height / pitch))
 
             let path = (0...steps).map { step -> AffineTransform3D in

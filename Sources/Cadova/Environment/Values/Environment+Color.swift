@@ -5,7 +5,7 @@ public extension EnvironmentValues {
 
     /// The color value currently set in the environment.
     ///
-    /// This property retrieves the optional color setting from the environment. If a color has not been explicitly set, this property will return `nil`. Color can be applied to geometry instances to visually represent or differentiate them. While the color value itself does not directly influence geometry creation in Facet, it can be used by models to adjust rendering or style based on the specified color.
+    /// This property retrieves the optional color setting from the environment. If a color has not been explicitly set, this property will return `nil`. Color can be applied to geometry instances to visually represent or differentiate them. While the color value itself does not directly influence geometry creation in Cadova, it can be used by models to adjust rendering or style based on the specified color.
     ///
     /// - Returns: The current color value as an optional `Color`.
     var color: Color? {

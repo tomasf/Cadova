@@ -12,7 +12,7 @@ public struct Arc: Shape2D {
     public let range: Range<Angle>
     public let radius: Double
     
-    @Environment(\.facets) var facets
+    @Environment(\.segmentation) var segmentation
 
     /// Creates a new `Arc` instance with the specified range of angles and radius.
     ///
@@ -32,7 +32,7 @@ public struct Arc: Shape2D {
     }
 
     public var body: any Geometry2D {
-        Polygon([.zero]) + .circularArc(radius: radius, range: range, facets: facets)
+        Polygon([.zero]) + .circularArc(radius: radius, range: range, segmentation: segmentation)
     }
 
     public var angularDistance: Angle {
@@ -41,13 +41,13 @@ public struct Arc: Shape2D {
 }
 
 internal extension Polygon {
-    static func circularArc(radius: Double, range: Range<Angle>, facets: EnvironmentValues.Facets) -> Polygon {
+    static func circularArc(radius: Double, range: Range<Angle>, segmentation: EnvironmentValues.Segmentation) -> Polygon {
         let magnitude = range.upperBound - range.lowerBound
-        let circleFacets = facets.facetCount(circleRadius: radius)
-        let facetCount = max(Int(ceil(Double(circleFacets) * magnitude / 360°)), 2)
+        let circleSegments = segmentation.segmentCount(circleRadius: radius)
+        let segmentCount = max(Int(ceil(Double(circleSegments) * magnitude / 360°)), 2)
 
-        return Polygon((0...facetCount).map { i -> Vector2D in
-            let angle = range.lowerBound + (Double(i) / Double(facetCount)) * magnitude
+        return Polygon((0...segmentCount).map { i -> Vector2D in
+            let angle = range.lowerBound + (Double(i) / Double(segmentCount)) * magnitude
             return Vector2D(
                 x: cos(angle) * radius,
                 y: sin(angle) * radius

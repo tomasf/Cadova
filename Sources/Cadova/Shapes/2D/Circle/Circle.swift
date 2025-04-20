@@ -47,14 +47,14 @@ public struct Circle {
         diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
     }
 
-    @Environment(\.facets) private var facets
+    @Environment(\.segmentation) private var segmentation
 }
 
 extension Circle: CompositeGeometry {
     public typealias D = D2
 
     public var body: any Geometry2D {
-        PrimitiveShape(shape: .circle(radius: radius, segmentCount: facets.facetCount(circleRadius: radius)))
+        PrimitiveShape(shape: .circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius)))
     }
 }
 
