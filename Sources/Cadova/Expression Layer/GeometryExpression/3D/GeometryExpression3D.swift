@@ -9,10 +9,9 @@ public indirect enum GeometryExpression3D: GeometryExpression, Sendable {
     case boolean ([GeometryExpression3D], type: BooleanOperationType)
     case transform (GeometryExpression3D, transform: AffineTransform3D)
     case convexHull (GeometryExpression3D)
-    case raw (Manifold, source: GeometryExpression3D?, cacheKey: ExpressionKey)
     case extrusion (GeometryExpression2D, type: Extrusion)
-    #warning("get rid of this? hmm, maybe not")
-    case material (GeometryExpression3D, material: Material)
+    case raw (Manifold, source: GeometryExpression3D?, cacheKey: ExpressionKey)
+    case tag (GeometryExpression3D, key: ExpressionKey)
 
     public enum PrimitiveShape: Hashable, Sendable, Codable {
         case box (size: Vector3D)
@@ -51,13 +50,9 @@ extension GeometryExpression3D {
         case .convexHull (let expression):
             return await context.geometry(for: expression).hull()
 
-        case .material (let expression, let material):
-            let geometry = await context.geometry(for: expression).asOriginal()
-            guard let originalID = geometry.originalID else {
-                preconditionFailure("Original geometry should always have an ID")
-            }
-            await context.assign(material, to: originalID)
-            return geometry
+        case .tag (let expression, let key):
+            let primitive = await context.geometry(for: expression)
+            return await context.taggedGeometry.tag(primitive, with: key)
 
         case .extrusion (let expression, let extrusion):
             let geometry = await context.geometry(for: expression)

@@ -7,9 +7,9 @@ extension GeometryExpression3D {
         case boolean
         case transform
         case convexHull
-        case material
         case extrusion
         case raw
+        case tag
     }
 }
 
@@ -37,11 +37,6 @@ extension GeometryExpression3D: Hashable {
             hasher.combine(Kind.convexHull)
             hasher.combine(body)
 
-        case .material(let body, let material):
-            hasher.combine(Kind.material)
-            hasher.combine(body)
-            hasher.combine(material)
-
         case .extrusion(let body, let kind):
             hasher.combine(Kind.extrusion)
             hasher.combine(body)
@@ -51,6 +46,11 @@ extension GeometryExpression3D: Hashable {
             hasher.combine(Kind.raw)
             hasher.combine(source)
             hasher.combine(cacheKey)
+
+        case .tag(let body, let key):
+            hasher.combine(Kind.tag)
+            hasher.combine(body)
+            hasher.combine(key)
         }
     }
 
@@ -61,12 +61,12 @@ extension GeometryExpression3D: Hashable {
         case let (.boolean(ta, ca), .boolean(tb, cb)): ta == tb && ca == cb
         case let (.transform(a1, t1), .transform(a2, t2)): a1 == a2 && t1 == t2
         case let (.convexHull(a), .convexHull(b)): a == b
-        case let (.material(a1, m1), .material(a2, m2)): a1 == a2 && m1 == m2
         case let (.extrusion(a1, k1), .extrusion(a2, k2)): a1 == a2 && k1 == k2
         case let (.raw(_, sa, keyA), .raw(_, sb, keyB)): keyA == keyB && sa == sb
+        case let (.tag(ba, ua), .tag(bb, ub)): ba == bb && ua == ub
 
         case (.empty, _), (.shape, _), (.boolean, _), (.transform, _),
-            (.convexHull, _), (.material, _), (.extrusion, _), (.raw, _): false
+            (.convexHull, _), (.tag, _), (.extrusion, _), (.raw, _): false
         }
     }
 }

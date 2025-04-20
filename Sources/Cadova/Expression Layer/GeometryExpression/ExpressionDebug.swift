@@ -87,8 +87,8 @@ extension GeometryExpression3D {
             case let .rotational(angle, segments):
                 String(format: "extrude(rotated, angle: %@, segments: %d)", angle.debugDescription, segments)
             }
-        case let .material(body, _):
-            "material(...) {\n\(body.debugDescription.indented)\n}"
+        case let .tag(body, key):
+            "tag(\(key)) {\n\(body.debugDescription.indented)\n}"
         }
     }
 }

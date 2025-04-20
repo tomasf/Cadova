@@ -21,3 +21,28 @@ public struct Material: Hashable, Sendable, Codable {
         return .init(baseColor: color.withAlphaComponent(alpha ?? color.alpha))
     }
 }
+
+struct MaterialRecord: ResultElement {
+    var materials: Set<Material> = []
+
+    init(materials: Set<Material>) {
+        self.materials = materials
+    }
+
+    init() {}
+
+    static func combining(mappings: [MaterialRecord]) -> MaterialRecord {
+        .init(materials: mappings.reduce(into: Set<Material>()) { result, record in
+            result.formUnion(record.materials)
+        })
+    }
+
+    static func combine(elements: [MaterialRecord]) -> MaterialRecord? {
+        .combining(mappings: elements)
+    }
+
+    mutating func add(_ material: Material) {
+        materials.insert(material)
+    }
+}
+
