@@ -11,18 +11,14 @@ internal struct PartCatalog: ResultElement {
         self.init(parts: [:])
     }
 
-    func adding(part: GeometryResult3D, to identifier: PartIdentifier) -> PartCatalog {
-        Self.combining(catalogs: [self, .init(parts: [identifier: [part]])])
-    }
-
-    static func combining(catalogs: [PartCatalog]) -> PartCatalog {
-        .init(parts: catalogs.reduce(into: [:]) { result, catalog in
+    init(combining catalogs: [PartCatalog]) {
+        self.init(parts: catalogs.reduce(into: [:]) { result, catalog in
             result.merge(catalog.parts, uniquingKeysWith: +)
         })
     }
 
-    static func combine(elements: [PartCatalog]) -> PartCatalog? {
-        .combining(catalogs: elements)
+    mutating func add(part: GeometryResult3D, to identifier: PartIdentifier) {
+        parts[identifier, default: []].append(part)
     }
 
     var mergedOutputs: [PartIdentifier: GeometryResult3D] {

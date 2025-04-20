@@ -46,7 +46,7 @@ public extension Geometry2D {
     func anchored(to anchor: Anchor) -> any Geometry2D {
         readEnvironment { environment in
             readingResult(AnchorList.self) { body, anchorList in
-                if let transform = anchorList?.anchors[anchor] {
+                if let transform = anchorList.anchors[anchor] {
                     self.transformed(.init(AffineTransform3D.identity
                         .concatenated(with: environment.transform)
                         .concatenated(with: transform)
@@ -109,7 +109,7 @@ public extension Geometry3D {
     func anchored(to anchor: Anchor) -> any Geometry3D {
         readEnvironment { environment in
             readingResult(AnchorList.self) { body, anchorList in
-                if let transform = anchorList?.anchors[anchor] {
+                if let transform = anchorList.anchors[anchor] {
                     self.transformed(AffineTransform3D.identity
                         .concatenated(with: environment.transform)
                         .concatenated(with: transform)

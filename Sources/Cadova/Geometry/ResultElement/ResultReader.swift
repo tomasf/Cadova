@@ -12,7 +12,8 @@ internal struct ResultReader<Input: Dimensionality, Output: Dimensionality>: Geo
 
 public extension Geometry {
     func readingResult<E: ResultElement, Output: Dimensionality>(
-        _ type: E.Type, @GeometryBuilder<Output> generator: @Sendable @escaping (D.Geometry, E?) -> Output.Geometry
+        _ type: E.Type,
+        @GeometryBuilder<Output> generator: @Sendable @escaping (D.Geometry, E) -> Output.Geometry
     ) -> Output.Geometry {
         ResultReader(body: self) { elements in
             generator(self, elements[type])

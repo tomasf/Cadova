@@ -7,7 +7,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
     let fileExtension = "3mf"
 
     func makeModel(context: EvaluationContext) async throws -> ThreeMF.Model {
-        var outputs = result.elements[PartCatalog.self]?.mergedOutputs ?? [:]
+        var outputs = result.elements[PartCatalog.self].mergedOutputs
         outputs[.main] = result
 
         var nextFreeObjectID = 1
@@ -63,21 +63,15 @@ struct ThreeMFDataProvider: OutputDataProvider {
             guard !output.expression.isEmpty else { continue }
 
             let meshData = await context.geometry(for: output.expression).meshGL()
-            let originalIDRanges = meshData.originalIDs
+            let triangleOIDs = TriangleOIDMapping(indexSets: meshData.originalIDs)
 
-            let materials = (output.elements[MaterialRecord.self] ?? .init()).materials
-            let materialsByOriginalID = await materials.asyncCompactMap { material in
-                let originalID = await context.taggedGeometry[material]
-                return originalID.map { ($0, material) }
-            }
-
-            let originalIDToPropertyReference = Dictionary(uniqueKeysWithValues: materialsByOriginalID.map { originalID, material in
-                (originalID, addMaterial(material))
-            })
+            let propertyReferencesByOID = await output.elements[MaterialRecord.self]
+                .originalIDMapping(from: context)
+                .mapValues(addMaterial)
 
             let triangles = meshData.triangles.enumerated().map { index, t in
-                let originalID = originalIDRanges.key(for: index)
-                let materialProperty = originalID.flatMap { originalIDToPropertyReference[$0] }
+                let originalID = triangleOIDs.originalID(for: index)
+                let materialProperty = originalID.flatMap { propertyReferencesByOID[$0] }
 
                 return ThreeMF.Mesh.Triangle(
                     v1: Int(t.a), v2: Int(t.b), v3: Int(t.c),
@@ -131,24 +125,27 @@ struct ThreeMFDataProvider: OutputDataProvider {
             logger.warning("Model contains no objects. Exporting an empty 3MF file.")
         }
 
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-
-        var metadata = result.elements[MetadataContainer.self]?.metadata ?? []
-        if !metadata.contains(where: { $0.name == .application }) {
-            metadata.append(ThreeMF.Metadata(name: .application, value: "Cadova - http://cadova.org/"))
-        }
-        if !metadata.contains(where: { $0.name == .creationDate }) {
-            metadata.append(ThreeMF.Metadata(name: .creationDate, value: dateFormatter.string(from: Date())))
-        }
-
         return ThreeMF.Model(
             unit: .millimeter,
             recommendedExtensions: [.materials],
-            metadata: metadata,
+            metadata: prepareMetadata(),
             resources: resources,
             buildItems: items
         )
+    }
+
+    private func prepareMetadata() -> [ThreeMF.Metadata] {
+        var metadata = result.elements[MetadataContainer.self]
+
+        if !metadata.contains(.application) {
+            metadata.add(.application, value: "Cadova - http://cadova.org/")
+        }
+        if !metadata.contains(.creationDate) {
+            let dateFormatter = ISO8601DateFormatter()
+            dateFormatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
+            metadata.add(.creationDate, value: dateFormatter.string(from: Date()))
+        }
+        return metadata.metadata
     }
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
@@ -196,4 +193,33 @@ fileprivate extension Manifold3D.Vector3 {
     var threeMFVector: ThreeMF.Mesh.Vertex {
         .init(x: Double(x), y: Double(y), z: Double(z))
     }
+}
+
+struct TriangleOIDMapping {
+    private typealias Entry = (range: Range<Int>, originalID: Manifold.OriginalID)
+    private let sortedEntries: [Entry]
+
+    init(indexSets: [Manifold.OriginalID: IndexSet]) {
+        var entries: [Entry] = []
+        for (originalID, indexSet) in indexSets {
+            for range in indexSet.rangeView {
+                entries.append((range, originalID))
+            }
+        }
+        entries.sort(by: { $0.range.lowerBound < $1.range.lowerBound })
+        self.sortedEntries = entries
+    }
+
+    func originalID(for triangleIndex: Int) -> Manifold.OriginalID? {
+        for (range, originalID) in sortedEntries {
+            if range.lowerBound > triangleIndex {
+                return nil
+            }
+            if range.upperBound > triangleIndex {
+                return originalID
+            }
+        }
+        return nil
+    }
+
 }

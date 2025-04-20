@@ -13,8 +13,8 @@ internal extension Geometry2D {
                     .translated(.init(alignmentTranslation))
                     .concatenated(with: .init(transform.inverse))
 
-                modifyingResult(AnchorList.self) { anchorList in
-                    (anchorList ?? .init()).adding(anchor, at: anchorTransform)
+                modifyingResult(AnchorList.self) {
+                    $0.add(anchor, at: anchorTransform)
                 }
             }
         }
@@ -34,8 +34,8 @@ internal extension Geometry3D {
                     .translated(alignmentTranslation)
                     .concatenated(with: transform.inverse)
 
-                modifyingResult(AnchorList.self) { anchorList in
-                    (anchorList ?? .init()).adding(anchor, at: anchorTransform)
+                modifyingResult(AnchorList.self) {
+                    $0.add(anchor, at: anchorTransform)
                 }
             }
         }

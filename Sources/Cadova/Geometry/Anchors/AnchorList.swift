@@ -1,19 +1,23 @@
 import Foundation
 
 internal struct AnchorList: ResultElement {
-    let anchors: [Anchor: AffineTransform3D]
+    var anchors: [Anchor: AffineTransform3D]
 
     init(_ anchors: [Anchor: AffineTransform3D] = [:]) {
         self.anchors = anchors
     }
 
-    func adding(_ anchor: Anchor, at transform: AffineTransform3D) -> AnchorList {
-        .init(anchors.setting(anchor, to: transform))
+    init() {
+        self.init([:])
     }
 
-    static func combine(elements: [AnchorList]) -> AnchorList? {
-        .init(elements.reduce(into: [Anchor: AffineTransform3D]()) { result, anchors in
+    init(combining elements: [AnchorList]) {
+        self.init(elements.reduce(into: [Anchor: AffineTransform3D]()) { result, anchors in
             result.merge(anchors.anchors) { $1 }
         })
+    }
+
+    mutating func add(_ anchor: Anchor, at transform: AffineTransform3D) {
+        anchors[anchor] = transform
     }
 }
