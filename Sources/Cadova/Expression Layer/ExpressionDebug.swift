@@ -15,8 +15,11 @@ extension GeometryExpression2D {
             primitiveShape.debugDescription
         case .boolean (let array, let type):
             "\(String.init(describing: type)) {\n\(array.map(\.debugDescription).joined(separator: "\n").indented)\n}"
-        case .transform (let body, _):
-            "transform(...) {\n\(body.debugDescription.indented)\n}"
+        case .transform (let body, let transform):
+            String(format: "transform(%@) {\n%@\n}",
+                   String(describing: transform.values),
+                   body.debugDescription.indented
+            )
         case .convexHull (let body):
             "convexHull {\n\(body.debugDescription.indented)\n}"
         case .raw (let primitive, let source, let key):
@@ -66,8 +69,11 @@ extension GeometryExpression3D {
             primitiveShape.debugDescription
         case .boolean (let array, let type):
             "\(String.init(describing: type)) {\n\(array.map(\.debugDescription).joined(separator: "\n").indented)\n}"
-        case .transform (let body, _):
-            "transform(...) {\n\(body.debugDescription.indented)\n}"
+        case .transform (let body, let transform):
+            String(format: "transform(%@) {\n%@\n}",
+                   String(describing: transform.values),
+                   body.debugDescription.indented
+            )
         case .convexHull (let body):
             "convexHull {\n\(body.debugDescription.indented)\n}"
         case .raw (let primitive, let source, let key):
