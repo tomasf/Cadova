@@ -37,41 +37,7 @@ public extension GeometryExpression2D {
     var isEmpty: Bool {
         if case .empty = contents { true } else { false }
     }
-
-    static var empty: GeometryExpression2D {
-        Self(.empty)
-    }
-
-    static func boolean(_ children: [GeometryExpression2D], type: BooleanOperationType) -> GeometryExpression2D {
-        Self(.boolean(children, type: type))
-    }
     
-    static func convexHull(_ body: GeometryExpression2D) -> GeometryExpression2D {
-        Self(.convexHull(body))
-    }
-
-    static func shape(_ shape: PrimitiveShape) -> GeometryExpression2D {
-        Self(.shape(shape))
-    }
-
-    static func transform(_ body: GeometryExpression2D, transform: AffineTransform2D) -> GeometryExpression2D {
-        Self(.transform(body, transform: transform))
-    }
-
-    static func raw(_ body: Manifold3D.CrossSection, source: GeometryExpression2D?, cacheKey: ExpressionKey) -> GeometryExpression2D {
-        Self(.raw(body, source: source, cacheKey: cacheKey))
-    }
-
-    static func offset(_ body: GeometryExpression2D, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int) -> GeometryExpression2D {
-        Self(.offset(body, amount: amount, joinStyle: joinStyle, miterLimit: miterLimit, segmentCount: segmentCount))
-    }
-
-    static func projection(_ body: GeometryExpression3D, type: Projection) -> GeometryExpression2D {
-        Self(.projection(body, type: type))
-    }
-}
-
-public extension GeometryExpression2D {
     func evaluate(in context: EvaluationContext) async -> CrossSection {
         switch contents {
         case .empty:

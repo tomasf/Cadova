@@ -33,48 +33,21 @@ public struct GeometryExpression3D: GeometryExpression, Sendable {
     public enum Extrusion: Hashable, Sendable, Codable {
         case linear (height: Double, twist: Angle, divisions: Int, scaleTop: Vector2D)
         case rotational (angle: Angle, segments: Int)
-    }
-}
 
-public extension GeometryExpression3D {
-    var isEmpty: Bool {
-        if case .empty = contents { true } else { false }
-    }
-
-    static var empty: GeometryExpression3D {
-        Self(.empty)
-    }
-
-    static func boolean(_ children: [GeometryExpression3D], type: BooleanOperationType) -> GeometryExpression3D {
-        Self(.boolean(children, type: type))
-    }
-
-    static func convexHull(_ body: GeometryExpression3D) -> GeometryExpression3D {
-        Self(.convexHull(body))
-    }
-
-    static func shape(_ shape: PrimitiveShape) -> GeometryExpression3D {
-        Self(.shape(shape))
-    }
-
-    static func transform(_ body: GeometryExpression3D, transform: AffineTransform3D) -> GeometryExpression3D {
-        Self(.transform(body, transform: transform))
-    }
-
-    static func raw(_ body: Manifold3D.Manifold, source: GeometryExpression3D?, cacheKey: ExpressionKey) -> GeometryExpression3D {
-        Self(.raw(body, source: source, cacheKey: cacheKey))
-    }
-
-    static func extrusion(_ body: GeometryExpression2D, type: Extrusion) -> GeometryExpression3D {
-        Self(.extrusion(body, type: type))
-    }
-
-    static func tag(_ body: GeometryExpression3D, key: ExpressionKey) -> GeometryExpression3D {
-        Self(.tag(body, key: key))
+        var isEmpty: Bool {
+            switch self {
+            case .linear (let height, _, _, _): height <= 0
+            case .rotational (let angle, _): angle <= 0°
+            }
+        }
     }
 }
 
 extension GeometryExpression3D {
+    public var isEmpty: Bool {
+        if case .empty = contents { true } else { false }
+    }
+
     public func evaluate(in context: EvaluationContext) async -> Manifold {
         switch contents {
         case .empty:
