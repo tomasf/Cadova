@@ -31,7 +31,13 @@ extension Geometry {
 
     func expectEquals(goldenFile name: String) async throws {
         let goldenExpression = try D.Expression(goldenFile: name)
+        let computedExpression = await expression
         #expect(await expression == goldenExpression)
+
+        if computedExpression != goldenExpression {
+            logger.error("Expected: \(goldenExpression.debugDescription)")
+            logger.error("Got: \(computedExpression.debugDescription)")
+        }
     }
 }
 
