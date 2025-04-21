@@ -2,16 +2,16 @@ import Testing
 @testable import Cadova
 
 struct ExampleTests {
-    @Test func example1(){
-        Box([10, 20, 5])
+    @Test func example1() async throws {
+        try await Box([10, 20, 5])
             .aligned(at: .centerY)
             .rotated(y: -20°, z: 45°)
-            .expectCodeEquals(file: "examples/example1")
+            .expectEquals(goldenFile: "examples/example1")
     }
 
-    @Test func example2() {
-        Circle(diameter: 10)
-            .usingSegments(count: 3)
+    @Test func example2() async throws {
+        try await Circle(diameter: 10)
+            .withSegmentation(count: 3)
             .translated(x: 2)
             .scaled(x: 2)
             .repeated(in: 0°..<360°, count: 5)
@@ -23,7 +23,7 @@ struct ExampleTests {
                     .rotated(x: 20°)
                     .highlighted()
             }
-            .expectCodeEquals(file: "examples/example2")
+            .expectEquals(goldenFile: "examples/example2")
     }
 
     struct Star: Shape2D {
@@ -43,23 +43,22 @@ struct ExampleTests {
         }
     }
 
-    @Test func example3() {
-        Stack(.x, spacing: 1, alignment: .centerY) {
+    @Test func example3() async throws {
+        try await Stack(.x, spacing: 1, alignment: .centerY) {
             Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
             Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
         }
-        .expectCodeEquals(file: "examples/example3")
+        .expectEquals(goldenFile: "examples/example3")
     }
 
-    @Test func example4() {
+    @Test func example4() async throws {
         let path = BezierPath2D(startPoint: .zero)
             .addingCubicCurve(controlPoint1: [10, 65], controlPoint2: [55, -20], end: [60, 40])
 
-        Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-            .usingDefaultSegments()
+        try await Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
+            .withDefaultSegmentation()
             .extruded(along: path)
-            .withPreviewConvexity(4)
-            .usingSegments(minAngle: 5°, minSize: 1)
-            .expectCodeEquals(file: "examples/example4")
+            .withSegmentation(minAngle: 5°, minSize: 1)
+            .expectEquals(goldenFile: "examples/example4")
     }
 }

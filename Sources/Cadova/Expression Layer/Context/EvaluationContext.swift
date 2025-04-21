@@ -21,7 +21,7 @@ public typealias CacheKey = Hashable & Sendable & Codable
 
 extension EvaluationContext {
     func cachedRawGeometry<E: GeometryExpression, Key: CacheKey>(for source: E?, key: Key) async -> E? {
-        let wrappedKey = ExpressionKey(key)
+        let wrappedKey = OpaqueKey(key)
         let expression = E.raw(.empty, source: source, cacheKey: wrappedKey)
 
         if let expression = expression as? GeometryExpression2D {

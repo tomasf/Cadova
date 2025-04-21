@@ -16,7 +16,7 @@ public struct GeometryExpression2D: GeometryExpression, Sendable {
         case boolean ([GeometryExpression2D], type: BooleanOperationType)
         case transform (GeometryExpression2D, transform: AffineTransform2D)
         case convexHull (GeometryExpression2D)
-        case raw (CrossSection, source: GeometryExpression2D?, cacheKey: ExpressionKey)
+        case raw (CrossSection, source: GeometryExpression2D?, cacheKey: OpaqueKey)
         case offset (GeometryExpression2D, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int)
         case projection (GeometryExpression3D, type: Projection)
     }

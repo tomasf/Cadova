@@ -28,4 +28,17 @@ extension Geometry {
             return self
         }
     }
+
+    func expectEquals(goldenFile name: String) async throws {
+        let goldenExpression = try D.Expression(goldenFile: name)
+        #expect(await expression == goldenExpression)
+    }
+}
+
+extension Geometry {
+    func saveTo(goldenFile name: String) async throws {
+        let expression = await self.expression
+        let url = URL(filePath: "/Users/tomasf/Documents/Projects/Cadova/Tests/Tests/golden", directoryHint: .isDirectory).appending(component: name).appendingPathExtension("json")
+        try expression.jsonData.write(to: url)
+    }
 }
