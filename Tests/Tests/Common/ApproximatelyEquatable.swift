@@ -9,7 +9,7 @@ protocol ApproximatelyEquatable {
 
 extension Double: ApproximatelyEquatable {
     static func ≈(lhs: Self, rhs: Self) -> Bool {
-        abs(lhs - rhs) < 0.001
+        Swift.abs(lhs - rhs) < 0.001
     }
 }
 
@@ -60,7 +60,7 @@ extension BezierPath: ApproximatelyEquatable where V: ApproximatelyEquatable {
     }
 }
 
-extension BezierPath.Curve: ApproximatelyEquatable where V: ApproximatelyEquatable {
+extension BezierCurve: ApproximatelyEquatable where V: ApproximatelyEquatable {
     static func ≈(lhs: Self, rhs: Self) -> Bool {
         lhs.controlPoints ≈ rhs.controlPoints
     }
