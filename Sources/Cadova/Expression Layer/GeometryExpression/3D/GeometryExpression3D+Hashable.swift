@@ -15,7 +15,7 @@ extension GeometryExpression3D {
 
 extension GeometryExpression3D: Hashable {
     public func hash(into hasher: inout Hasher) {
-        switch self {
+        switch contents {
         case .empty:
             hasher.combine(Kind.empty)
 
@@ -55,7 +55,7 @@ extension GeometryExpression3D: Hashable {
     }
 
     public static func == (lhs: GeometryExpression3D, rhs: GeometryExpression3D) -> Bool {
-        switch (lhs, rhs) {
+        switch (lhs.contents, rhs.contents) {
         case (.empty, .empty): true
         case let (.shape(a), .shape(b)): a == b
         case let (.boolean(ta, ca), .boolean(tb, cb)): ta == tb && ca == cb

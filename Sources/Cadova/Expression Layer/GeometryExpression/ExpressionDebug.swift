@@ -59,7 +59,7 @@ extension GeometryExpression2D.PrimitiveShape {
 
 extension GeometryExpression3D {
     public var debugDescription: String {
-        switch self {
+        switch contents {
         case .empty:
             "empty"
         case .shape (let primitiveShape):

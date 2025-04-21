@@ -74,7 +74,7 @@ extension GeometryExpression2D {
 
 extension GeometryExpression3D {
     public func simplified() -> Self {
-        switch self {
+        switch contents {
         case .shape (let shape):
             switch shape {
             case .box (let size):
