@@ -106,3 +106,56 @@ extension GeometryExpression2D: Codable {
         }
     }
 }
+
+extension GeometryExpression2D.PrimitiveShape {
+    enum Kind: String, Codable, Hashable {
+        case rectangle
+        case circle
+        case polygon
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case kind
+        case size
+        case radius
+        case segmentCount
+        case points
+        case fillRule
+    }
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let kind = try container.decode(Kind.self, forKey: .kind)
+
+        switch kind {
+        case .rectangle:
+            let size = try container.decode(Vector2D.self, forKey: .size)
+            self = .rectangle(size: size)
+        case .circle:
+            let radius = try container.decode(Double.self, forKey: .radius)
+            let segmentCount = try container.decode(Int.self, forKey: .segmentCount)
+            self = .circle(radius: radius, segmentCount: segmentCount)
+        case .polygon:
+            let points = try container.decode([Vector2D].self, forKey: .points)
+            let fillRule = try container.decode(FillRule.self, forKey: .fillRule)
+            self = .polygon(points: points, fillRule: fillRule)
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        switch self {
+        case .rectangle(let size):
+            try container.encode(Kind.rectangle, forKey: .kind)
+            try container.encode(size, forKey: .size)
+        case .circle(let radius, let segmentCount):
+            try container.encode(Kind.circle, forKey: .kind)
+            try container.encode(radius, forKey: .radius)
+            try container.encode(segmentCount, forKey: .segmentCount)
+        case .polygon(let points, let fillRule):
+            try container.encode(Kind.polygon, forKey: .kind)
+            try container.encode(points, forKey: .points)
+            try container.encode(fillRule, forKey: .fillRule)
+        }
+    }
+}
