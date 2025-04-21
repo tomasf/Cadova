@@ -95,3 +95,86 @@ extension GeometryExpression3D: Codable {
         }
     }
 }
+
+extension GeometryExpression3D.PrimitiveShape {
+    enum Kind: String, Codable, Hashable {
+        case box
+        case sphere
+        case cylinder
+        case convexHull
+        case mesh
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case kind
+        case size
+        case radius
+        case segmentCount
+        case bottomRadius
+        case topRadius
+        case height
+        case points
+        case mesh
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let kind = try container.decode(Kind.self, forKey: .kind)
+
+        switch kind {
+        case .box:
+            let size = try container.decode(Vector3D.self, forKey: .size)
+            self = .box(size: size)
+
+        case .sphere:
+            let radius = try container.decode(Double.self, forKey: .radius)
+            let segmentCount = try container.decode(Int.self, forKey: .segmentCount)
+            self = .sphere(radius: radius, segmentCount: segmentCount)
+
+        case .cylinder:
+            let bottomRadius = try container.decode(Double.self, forKey: .bottomRadius)
+            let topRadius = try container.decode(Double.self, forKey: .topRadius)
+            let height = try container.decode(Double.self, forKey: .height)
+            let segmentCount = try container.decode(Int.self, forKey: .segmentCount)
+            self = .cylinder(bottomRadius: bottomRadius, topRadius: topRadius, height: height, segmentCount: segmentCount)
+
+        case .convexHull:
+            let points = try container.decode([Vector3D].self, forKey: .points)
+            self = .convexHull(points: points)
+
+        case .mesh:
+            let mesh = try container.decode(Mesh.self, forKey: .mesh)
+            self = .mesh(mesh)
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        switch self {
+        case .box(let size):
+            try container.encode(Kind.box, forKey: .kind)
+            try container.encode(size, forKey: .size)
+
+        case .sphere(let radius, let segmentCount):
+            try container.encode(Kind.sphere, forKey: .kind)
+            try container.encode(radius, forKey: .radius)
+            try container.encode(segmentCount, forKey: .segmentCount)
+
+        case .cylinder(let bottomRadius, let topRadius, let height, let segmentCount):
+            try container.encode(Kind.cylinder, forKey: .kind)
+            try container.encode(bottomRadius, forKey: .bottomRadius)
+            try container.encode(topRadius, forKey: .topRadius)
+            try container.encode(height, forKey: .height)
+            try container.encode(segmentCount, forKey: .segmentCount)
+
+        case .convexHull(let points):
+            try container.encode(Kind.convexHull, forKey: .kind)
+            try container.encode(points, forKey: .points)
+
+        case .mesh(let mesh):
+            try container.encode(Kind.mesh, forKey: .kind)
+            try container.encode(mesh, forKey: .mesh)
+        }
+    }
+}
