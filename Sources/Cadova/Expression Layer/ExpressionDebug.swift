@@ -28,10 +28,10 @@ extension GeometryExpression2D {
         case .offset (let body, let amount, let joinStyle, let miterLimit, let segmentCount):
             String(format: "offset(%g, style: %@, miterLimit: %g, segments: %d) {\n%@\n}",
                    amount,
-                   body.debugDescription.indented,
                    String(describing: joinStyle),
                    miterLimit,
-                   segmentCount
+                   segmentCount,
+                   body.debugDescription.indented
             )
         case .projection (let body, let type):
             switch type {
