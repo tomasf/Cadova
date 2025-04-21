@@ -26,7 +26,7 @@ public extension GeometryExpression3D {
         if filteredChildren.count == 0 {
             return .empty
         } else if filteredChildren.count == 1 {
-            return children[0]
+            return filteredChildren[0]
         } else {
             return Self(.boolean(filteredChildren, type: type))
         }
