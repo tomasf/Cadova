@@ -6,7 +6,6 @@ public protocol GeometryExpression: Sendable, Hashable, Codable, CustomDebugStri
     associatedtype D: Dimensionality
 
     func evaluate(in context: EvaluationContext) async -> D.Primitive
-    func simplified() -> Self
     var isEmpty: Bool { get }
 
     static var empty: Self { get }
