@@ -86,11 +86,11 @@ extension GeometryExpression3D: Codable {
         case .raw:
             let meshGL = try container.decode(MeshGL.self, forKey: .mesh)
             let source = try container.decode(GeometryExpression3D.self, forKey: .source)
-            let cacheKey = try container.decode(ExpressionKey.self, forKey: .cacheKey)
+            let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
             self.init(.raw(try Manifold(meshGL), source: source, cacheKey: cacheKey))
         case .tag:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
-            let key = try container.decode(ExpressionKey.self, forKey: .key)
+            let key = try container.decode(OpaqueKey.self, forKey: .key)
             self.init(.tag(body, key: key))
         }
     }

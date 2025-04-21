@@ -50,7 +50,7 @@ public extension Geometry3D {
 
     func withMaterial(_ material: Material) -> any Geometry3D {
         return GeometryExpressionTransformer(body: self) {
-            .tag($0, key: ExpressionKey(material))
+            .tag($0, key: OpaqueKey(material))
         }
         .modifyingResult(MaterialRecord.self) {
             $0.add(material)

@@ -17,8 +17,8 @@ public struct GeometryExpression3D: GeometryExpression, Sendable {
         case transform (GeometryExpression3D, transform: AffineTransform3D)
         case convexHull (GeometryExpression3D)
         case extrusion (GeometryExpression2D, type: Extrusion)
-        case raw (Manifold, source: GeometryExpression3D?, cacheKey: ExpressionKey)
-        case tag (GeometryExpression3D, key: ExpressionKey)
+        case raw (Manifold, source: GeometryExpression3D?, cacheKey: OpaqueKey)
+        case tag (GeometryExpression3D, key: OpaqueKey)
     }
 
     public enum PrimitiveShape: Hashable, Sendable, Codable {

@@ -77,7 +77,7 @@ struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
         if let cachedRawExpression: D.Expression = await context.cachedRawGeometry(for: nil, key: key) {
             return D.Result(cachedRawExpression)
         } else {
-            return D.Result(.raw(primitive, source: nil, cacheKey: ExpressionKey(key)))
+            return D.Result(.raw(primitive, source: nil, cacheKey: OpaqueKey(key)))
         }
     }
 }
@@ -98,7 +98,7 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
         } else {
             let bodyPrimitive = await context.geometry(for: bodyResult.expression)
             return bodyResult.replacing(
-                expression: .raw(generator(bodyPrimitive), source: bodyResult.expression, cacheKey: ExpressionKey(key))
+                expression: .raw(generator(bodyPrimitive), source: bodyResult.expression, cacheKey: OpaqueKey(key))
             )
         }
     }
