@@ -21,7 +21,7 @@ extension GeometryExpression2D: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        switch self {
+        switch contents {
         case .empty:
             try container.encode(Kind.empty, forKey: .kind)
 
@@ -70,39 +70,39 @@ extension GeometryExpression2D: Codable {
 
         switch kind {
         case .empty:
-            self = .empty
+            self.init(.empty)
         case .shape:
-            self = .shape(try container.decode(PrimitiveShape.self, forKey: .primitive))
+            self.init(.shape(try container.decode(PrimitiveShape.self, forKey: .primitive)))
         case .boolean:
             let type = try container.decode(BooleanOperationType.self, forKey: .type)
             let children = try container.decode([GeometryExpression2D].self, forKey: .children)
-            self = .boolean(children, type: type)
+            self.init(.boolean(children, type: type))
         case .transform:
             let body = try container.decode(GeometryExpression2D.self, forKey: .body)
             let transform = try container.decode(AffineTransform2D.self, forKey: .transform)
-            self = .transform(body, transform: transform)
+            self.init(.transform(body, transform: transform))
         case .convexHull:
             let body = try container.decode(GeometryExpression2D.self, forKey: .body)
-            self = .convexHull(body)
+            self.init(.convexHull(body))
         case .offset:
-            self = .offset(
+            self.init(.offset(
                 try container.decode(GeometryExpression2D.self, forKey: .body),
                 amount: try container.decode(Double.self, forKey: .amount),
                 joinStyle: try container.decode(LineJoinStyle.self, forKey: .joinStyle),
                 miterLimit: try container.decode(Double.self, forKey: .miterLimit),
                 segmentCount: try container.decode(Int.self, forKey: .segmentCount)
-            )
+            ))
         case .projection:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
             let type = try container.decode(Projection.self, forKey: .type)
-            self = .projection(body, type: type)
+            self.init(.projection(body, type: type))
         case .raw:
             let polygons = try container.decode([Manifold3D.Polygon].self, forKey: .crossSection)
             let source = try container.decode(GeometryExpression2D.self, forKey: .source)
             let cacheKey = try container.decode(ExpressionKey.self, forKey: .cacheKey)
-            self = .raw(
+            self.init(.raw(
                 CrossSection(polygons: polygons, fillRule: .nonZero), source: source, cacheKey: cacheKey
-            )
+            ))
         }
     }
 }

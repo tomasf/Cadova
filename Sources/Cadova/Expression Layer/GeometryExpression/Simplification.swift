@@ -3,7 +3,7 @@ import Manifold3D
 
 extension GeometryExpression2D {
     public func simplified() -> Self {
-        switch self {
+        switch contents {
         case .shape (let shape):
             switch shape {
             case .rectangle (let size):
