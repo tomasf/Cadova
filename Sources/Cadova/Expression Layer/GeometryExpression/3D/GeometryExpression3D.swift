@@ -1,17 +1,25 @@
 import Foundation
 import Manifold3D
 
-public indirect enum GeometryExpression3D: GeometryExpression, Sendable {
+public struct GeometryExpression3D: GeometryExpression, Sendable {
     public typealias D = D3
 
-    case empty
-    case shape (PrimitiveShape)
-    case boolean ([GeometryExpression3D], type: BooleanOperationType)
-    case transform (GeometryExpression3D, transform: AffineTransform3D)
-    case convexHull (GeometryExpression3D)
-    case extrusion (GeometryExpression2D, type: Extrusion)
-    case raw (Manifold, source: GeometryExpression3D?, cacheKey: ExpressionKey)
-    case tag (GeometryExpression3D, key: ExpressionKey)
+    internal let contents: Contents
+
+    internal init(_ contents: Contents) {
+        self.contents = contents
+    }
+
+    indirect enum Contents {
+        case empty
+        case shape (PrimitiveShape)
+        case boolean ([GeometryExpression3D], type: BooleanOperationType)
+        case transform (GeometryExpression3D, transform: AffineTransform3D)
+        case convexHull (GeometryExpression3D)
+        case extrusion (GeometryExpression2D, type: Extrusion)
+        case raw (Manifold, source: GeometryExpression3D?, cacheKey: ExpressionKey)
+        case tag (GeometryExpression3D, key: ExpressionKey)
+    }
 
     public enum PrimitiveShape: Hashable, Sendable, Codable {
         case box (size: Vector3D)
@@ -28,13 +36,47 @@ public indirect enum GeometryExpression3D: GeometryExpression, Sendable {
     }
 }
 
-extension GeometryExpression3D {
-    public var isEmpty: Bool {
-        if case .empty = self { true } else { false }
+public extension GeometryExpression3D {
+    var isEmpty: Bool {
+        if case .empty = contents { true } else { false }
     }
 
+    static var empty: GeometryExpression3D {
+        Self(.empty)
+    }
+
+    static func boolean(_ children: [GeometryExpression3D], type: BooleanOperationType) -> GeometryExpression3D {
+        Self(.boolean(children, type: type))
+    }
+
+    static func convexHull(_ body: GeometryExpression3D) -> GeometryExpression3D {
+        Self(.convexHull(body))
+    }
+
+    static func shape(_ shape: PrimitiveShape) -> GeometryExpression3D {
+        Self(.shape(shape))
+    }
+
+    static func transform(_ body: GeometryExpression3D, transform: AffineTransform3D) -> GeometryExpression3D {
+        Self(.transform(body, transform: transform))
+    }
+
+    static func raw(_ body: Manifold3D.Manifold, source: GeometryExpression3D?, cacheKey: ExpressionKey) -> GeometryExpression3D {
+        Self(.raw(body, source: source, cacheKey: cacheKey))
+    }
+
+    static func extrusion(_ body: GeometryExpression2D, type: Extrusion) -> GeometryExpression3D {
+        Self(.extrusion(body, type: type))
+    }
+
+    static func tag(_ body: GeometryExpression3D, key: ExpressionKey) -> GeometryExpression3D {
+        Self(.tag(body, key: key))
+    }
+}
+
+extension GeometryExpression3D {
     public func evaluate(in context: EvaluationContext) async -> Manifold {
-        switch self {
+        switch contents {
         case .empty:
             return .empty
 

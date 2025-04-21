@@ -19,7 +19,7 @@ extension GeometryExpression3D: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        switch self {
+        switch contents {
         case .empty:
             try container.encode(Kind.empty, forKey: .kind)
 
@@ -65,33 +65,33 @@ extension GeometryExpression3D: Codable {
 
         switch kind {
         case .empty:
-            self = .empty
+            self.init(.empty)
         case .shape:
-            self = .shape(try container.decode(PrimitiveShape.self, forKey: .primitive))
+            self.init(.shape(try container.decode(PrimitiveShape.self, forKey: .primitive)))
         case .boolean:
             let type = try container.decode(BooleanOperationType.self, forKey: .type)
             let children = try container.decode([GeometryExpression3D].self, forKey: .children)
-            self = .boolean(children, type: type)
+            self.init(.boolean(children, type: type))
         case .transform:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
             let transform = try container.decode(AffineTransform3D.self, forKey: .transform)
-            self = .transform(body, transform: transform)
+            self.init(.transform(body, transform: transform))
         case .convexHull:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
-            self = .convexHull(body)
+            self.init(.convexHull(body))
         case .extrusion:
             let body = try container.decode(GeometryExpression2D.self, forKey: .crossSection)
             let type = try container.decode(Extrusion.self, forKey: .type)
-            self = .extrusion(body, type: type)
+            self.init(.extrusion(body, type: type))
         case .raw:
             let meshGL = try container.decode(MeshGL.self, forKey: .mesh)
             let source = try container.decode(GeometryExpression3D.self, forKey: .source)
             let cacheKey = try container.decode(ExpressionKey.self, forKey: .cacheKey)
-            self = .raw(try Manifold(meshGL), source: source, cacheKey: cacheKey)
+            self.init(.raw(try Manifold(meshGL), source: source, cacheKey: cacheKey))
         case .tag:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
             let key = try container.decode(ExpressionKey.self, forKey: .key)
-            self = .tag(body, key: key)
+            self.init(.tag(body, key: key))
         }
     }
 }
