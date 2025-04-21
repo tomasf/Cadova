@@ -8,7 +8,7 @@ extension String {
 
 extension GeometryExpression2D {
     public var debugDescription: String {
-        switch self {
+        switch contents {
         case .empty:
             "empty"
         case .shape (let primitiveShape):

@@ -15,7 +15,7 @@ extension GeometryExpression2D {
 
 extension GeometryExpression2D: Hashable {
     public func hash(into hasher: inout Hasher) {
-        switch self {
+        switch contents {
         case .empty:
             hasher.combine(Kind.empty)
 
@@ -58,7 +58,7 @@ extension GeometryExpression2D: Hashable {
     }
 
     public static func == (lhs: GeometryExpression2D, rhs: GeometryExpression2D) -> Bool {
-        switch (lhs, rhs) {
+        switch (lhs.contents, rhs.contents) {
         case (.empty, .empty): true
         case let (.shape(a), .shape(b)): a == b
         case let (.boolean(ta, ca), .boolean(tb, cb)): ta == tb && ca == cb
