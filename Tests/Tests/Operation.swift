@@ -2,14 +2,14 @@ import Testing
 @testable import Cadova
 
 struct OperationTests {
-    @Test func operations() {
-        Box([1,2,3])
+    @Test func operations() async {
+        await Box(1)
             .readingOperation { #expect($0 == .addition) }
             .subtracting {
                 Sphere(diameter: 3)
                     .readingOperation { #expect($0 == .subtraction) }
                     .subtracting {
-                        Box([1,2,3])
+                        Box(2)
                             .readingOperation { #expect($0 == .addition) }
                     }
                     .readingOperation { #expect($0 == .subtraction) }

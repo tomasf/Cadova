@@ -2,21 +2,21 @@ import Testing
 @testable import Cadova
 
 struct BoundsTests {
-    @Test func basicAlignment2D() {
+    @Test func basicAlignment2D() async {
         let geometry = Rectangle([10, 4])
             .aligned(at: .centerX, .top)
 
-        #expect(geometry.bounds ≈ .init(minimum: [-5, -4], maximum: [5, 0]))
+        #expect(await geometry.bounds ≈ .init(minimum: [-5, -4], maximum: [5, 0]))
     }
 
-    @Test func conflictingAlignment() {
+    @Test func conflictingAlignment() async {
         let geometry = Rectangle([50, 20])
             .aligned(at: .minX, .centerX, .centerY, .maxX)
 
-        #expect(geometry.bounds ≈ .init(minimum: [-50, -10], maximum: [0, 10]))
+        #expect(await geometry.bounds ≈ .init(minimum: [-50, -10], maximum: [0, 10]))
     }
 
-    @Test func repeatedAlignment() {
+    @Test func repeatedAlignment() async {
        let geometry = Box([10, 8, 12])
             .aligned(at: .minX)
             .aligned(at: .maxY)
@@ -24,10 +24,10 @@ struct BoundsTests {
             .aligned(at: .maxX)
             .aligned(at: .centerXY)
 
-        #expect(geometry.bounds ≈ .init(minimum: [-5, -4, 0], maximum: [5, 4, 12]))
+        #expect(await geometry.bounds ≈ .init(minimum: [-5, -4, 0], maximum: [5, 4, 12]))
     }
 
-    @Test func transformedBounds() {
+    @Test func transformedBounds() async {
         let base = Box([10, 8, 12])
             .rotated(x: 90°)
             .translated(y: 12)
@@ -36,11 +36,11 @@ struct BoundsTests {
             .scaled(z: 1.25)
             .sheared(.x, along: .y, factor: 1.5)
 
-        #expect(base.bounds ≈ Box([10, 12, 8]).bounds)
-        #expect(extended.bounds ≈ .init(minimum: .zero, maximum: [28, 12, 10]))
+        #expect(await base.bounds ≈ Box([10, 12, 8]).bounds)
+        #expect(await extended.bounds ≈ .init(minimum: .zero, maximum: [28, 12, 10]))
     }
 
-    @Test func stack() {
+    @Test func stack() async {
         let geometry = Stack(.x, spacing: 1) {
             Box([10, 8, 12])
             RegularPolygon(sideCount: 8, apothem: 3)
@@ -51,10 +51,10 @@ struct BoundsTests {
                 .extruded(height: 3)
         }
 
-        #expect(geometry.bounds ≈ .init(minimum: .zero, maximum: [22, 8, 12]))
+        #expect(await geometry.bounds ≈ .init(minimum: .zero, maximum: [22, 8, 12]))
     }
 
-    @Test func anchors() {
+    @Test func anchors() async {
         let top = Anchor()
         let side = Anchor()
         let base = Box([8,6,4])
@@ -70,7 +70,7 @@ struct BoundsTests {
 
         let extended = base.anchored(to: top)
 
-        #expect(base.bounds ≈ .init(minimum: [-2, -3, -8], maximum: [3, 3, 0]))
-        #expect(extended.bounds ≈ .init(minimum: [-4, -3, -5], maximum: [4, 3, 0]))
+        #expect(await base.bounds ≈ .init(minimum: [-2, -3, -8], maximum: [3, 3, 0]))
+        #expect(await extended.bounds ≈ .init(minimum: [-4, -3, -5], maximum: [4, 3, 0]))
     }
 }

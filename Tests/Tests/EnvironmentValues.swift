@@ -2,12 +2,12 @@ import Testing
 import Cadova
 
 struct EnvironmentTest {
-    @Test func injection(){
+    @Test func injection() async {
         let shape = TestShape()
         // Injected environment values are only valid inside body
         #expect(shape.injectedTestValue == 0)
 
-        shape
+        await shape
             .withTestEnvironmentValue(381)
             .triggerEvaluation()
 
@@ -59,7 +59,7 @@ fileprivate extension EnvironmentValues {
 }
 
 fileprivate extension Geometry3D {
-    func withTestEnvironmentValue(_ value: Int) -> Geometry3D {
+    func withTestEnvironmentValue(_ value: Int) -> any Geometry3D {
         withEnvironment { $0.withTestEnvironmentValue(value) }
     }
 }

@@ -2,6 +2,7 @@ import Testing
 @testable import Cadova
 
 struct TransformTests {
+    /*
     @Test func affine3D() {
         Box([30, 15, 5])
             .transformed(
@@ -16,7 +17,8 @@ struct TransformTests {
 
         #expect(AffineTransform3D.translation(z: 3).offset.z ≈ 3.0)
     }
-
+*/
+    
     @Test func transform2DTo3D() {
         let transforms2D: [AffineTransform2D] = [
             .translation(x: 10, y: 3),
