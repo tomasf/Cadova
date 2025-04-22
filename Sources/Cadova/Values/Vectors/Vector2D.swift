@@ -94,3 +94,15 @@ extension Vector2D: CustomDebugStringConvertible {
         String(format: "[%g, %g]", x, y)
     }
 }
+
+extension Vector2D {
+    public func hash(into hasher: inout Hasher) {
+        x.roundedForHash.hash(into: &hasher)
+        y.roundedForHash.hash(into: &hasher)
+    }
+
+    public static func ==(_ lhs: Vector2D, _ rhs: Vector2D) -> Bool {
+        lhs.x.roundedForHash == rhs.x.roundedForHash &&
+        lhs.y.roundedForHash == rhs.y.roundedForHash
+    }
+}
