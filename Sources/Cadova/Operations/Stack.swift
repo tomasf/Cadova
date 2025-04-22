@@ -42,9 +42,11 @@ extension Stack: Geometry {
             for geometry in items {
                 let result = await geometry.build(in: environment, context: context)
                 let primitive = await context.geometry(for: result.expression)
-                let box = D.BoundingBox(primitive.bounds)
-                geometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
-                offset += box.size[axis] + spacing
+                if !primitive.isEmpty {
+                    let box = D.BoundingBox(primitive.bounds)
+                    geometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
+                    offset += box.size[axis] + spacing
+                }
             }
         }.build(in: environment, context: context)
 }
