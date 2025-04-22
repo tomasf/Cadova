@@ -40,9 +40,9 @@ extension GeometryExpression2D: Hashable {
         case .offset(let body, let amount, let joinStyle, let miterLimit, let segmentCount):
             hasher.combine(Kind.offset)
             hasher.combine(body)
-            hasher.combine(amount)
+            hasher.combine(amount.roundedForHash)
             hasher.combine(joinStyle)
-            hasher.combine(miterLimit)
+            hasher.combine(miterLimit.roundedForHash)
             hasher.combine(segmentCount)
 
         case .projection(let body, let kind):
@@ -75,4 +75,68 @@ extension GeometryExpression2D: Hashable {
             false
         }
     }
+}
+
+extension GeometryExpression2D.PrimitiveShape {
+    public func hash(into hasher: inout Hasher) {
+        switch self {
+        case .rectangle(let size):
+            hasher.combine(Kind.rectangle)
+            hasher.combine(size)
+
+        case .circle(let radius, let segmentCount):
+            hasher.combine(Kind.circle)
+            hasher.combine(radius.roundedForHash)
+            hasher.combine(segmentCount)
+
+        case .polygon(let points, let fillRule):
+            hasher.combine(Kind.polygon)
+            hasher.combine(points)
+            hasher.combine(fillRule)
+        }
+    }
+
+    public static func ==(_ lhs: Self, _ rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case let (.rectangle(a), .rectangle(b)):
+            a == b
+
+        case let (.circle(ra, sa), .circle(rb, sb)):
+            ra.roundedForHash == rb.roundedForHash && sa == sb
+
+        case let (.polygon(pa, fa), .polygon(pb, fb)):
+            pa == pb && fa == fb
+
+        case (.rectangle, _), (.circle, _), (.polygon, _):
+            false
+        }
+    }
+}
+
+extension GeometryExpression2D.Projection {
+    private enum Kind: Int {
+        case full, slice
+    }
+
+    public static func ==(lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.full, .full):
+            true
+        case let (.slice(z1), .slice(z2)):
+            z1.roundedForHash == z2.roundedForHash
+        case (.full, _), (.slice, _):
+            false
+        }
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        switch self {
+        case .full:
+            hasher.combine(Kind.full)
+        case .slice(let z):
+            hasher.combine(Kind.slice)
+            hasher.combine(z.roundedForHash)
+        }
+    }
+
 }

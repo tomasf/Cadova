@@ -40,8 +40,7 @@ public extension GeometryExpression2D {
     
     func evaluate(in context: EvaluationContext) async -> CrossSection {
         switch contents {
-        case .empty:
-                .empty
+        case .empty: .empty
 
         case .shape (let shape):
             shape.evaluate()
