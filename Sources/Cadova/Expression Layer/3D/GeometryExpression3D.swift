@@ -107,6 +107,20 @@ extension GeometryExpression3D.PrimitiveShape {
         case .mesh (let mesh):
             do {
                 return try Manifold(mesh.meshGL())
+            } catch Manifold.Error.notManifold {
+                logger.error("""
+Mesh creation failed: The mesh is not manifold.
+
+This means some edges or vertices are shared in a way that makes the shape ambiguous or invalid for solid geometry. 
+Common causes include:
+- Holes or missing faces
+- Edges shared by more than two faces
+- Non-contiguous face loops
+- Duplicate or misordered vertices
+
+Ensure that your mesh defines a closed, watertight surface where every edge is shared by exactly two faces, and all faces have consistent winding. Try visualizedForDebugging() to visualize the faces of a mesh without requiring it to be manifold.
+""")
+                return .empty
             } catch {
                 logger.error("Mesh creation failed: \(error)")
                 return .empty
