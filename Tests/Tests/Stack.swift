@@ -2,13 +2,13 @@ import Testing
 @testable import Cadova
 
 struct StackTests {
-    @Test func stackZ() {
+    @Test func ignoreAlignmentOfStackAxis() async throws {
         // The Z part of the alignment should be ignored
-        Stack(.z, alignment: .center) {
+        try await Stack(.z, alignment: .center) {
             Cylinder(diameter: 1, height: 1)
             Cylinder(bottomDiameter: 0, topDiameter: 3, height: 1)
             Cylinder(diameter: 3, height: 2)
         }
-        .expectCodeEquals(file: "zstack")
+        .expectEquals(goldenFile: "zstack")
     }
 }
