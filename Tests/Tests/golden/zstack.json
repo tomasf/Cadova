@@ -1,0 +1,123 @@
+{
+  "children" : [
+    {
+      "body" : {
+        "kind" : "shape",
+        "primitive" : {
+          "bottomRadius" : 0.5,
+          "height" : 1,
+          "kind" : "cylinder",
+          "segmentCount" : 20,
+          "topRadius" : 0.5
+        }
+      },
+      "kind" : "transform",
+      "transform" : [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "body" : {
+        "kind" : "shape",
+        "primitive" : {
+          "bottomRadius" : 1.5,
+          "height" : 1,
+          "kind" : "cylinder",
+          "segmentCount" : 62,
+          "topRadius" : 0
+        }
+      },
+      "kind" : "transform",
+      "transform" : [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -1,
+          2
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "body" : {
+        "kind" : "shape",
+        "primitive" : {
+          "bottomRadius" : 1.5,
+          "height" : 2,
+          "kind" : "cylinder",
+          "segmentCount" : 62,
+          "topRadius" : 1.5
+        }
+      },
+      "kind" : "transform",
+      "transform" : [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          2
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    }
+  ],
+  "kind" : "boolean",
+  "type" : "union"
+}

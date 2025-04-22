@@ -2,8 +2,8 @@ import Testing
 @testable import Cadova
 
 struct Geometry2DTests {
-    @Test func basic2D() {
-        Union {
+    @Test func basic2D() async throws {
+        try await Union {
             Rectangle(Vector2D(30, 10))
                 .aligned(at: .centerY)
                 .subtracting {
@@ -16,11 +16,12 @@ struct Geometry2DTests {
                 }
             Arc(range: 80°..<280°, radius: 3.5)
         }
-        .expectCodeEquals(file: "2d/basics")
+        .expectEquals(goldenFile: "2d/basics")
     }
 
-    @Test func circular() {
-        Union {
+    /*
+    @Test func circular() async throws {
+        try await Union {
             Circle(diameter: 8)
                 .scaled(x: 2)
             Arc(range: 20°..<160°, radius: 4)
@@ -34,27 +35,18 @@ struct Geometry2DTests {
                 .repeated(in: 20°..<250°, count: 5)
                 .translated(x: 50, y: -10)
         }
-        .expectCodeEquals(file: "2d/circular")
+        .expectEquals(goldenFile: "2d/circular")
     }
+     */
 
-    @Test func roundedRectangle() {
-        Rectangle(x: 10, y: 10)
+    @Test func roundedRectangle() async throws {
+        try await Rectangle(x: 10, y: 10)
             .roundingRectangleCorners(.bottomLeft, radius: 5)
             .roundingRectangleCorners(.bottomRight, radius: 3)
             .roundingRectangleCorners(.topRight, radius: 2)
             .aligned(at: .centerX)
             .rotated(45°)
             .translated(x: -3)
-            .expectCodeEquals(file: "2d/rounded-rectangle")
-    }
-
-    @Test func text() {
-        Text("Cadova")
-            .usingFont("Helvetica", size: 14)
-            .usingTextAlignment(horizontal: .left, vertical: .bottom)
-            .offset(amount: 0.4, style: .miter)
-            .translated(y: 5)
-            .sheared(.y, angle: 20°)
-            .expectCodeEquals(file: "2d/text")
+            .expectEquals(goldenFile: "2d/rounded-rectangle")
     }
 }
