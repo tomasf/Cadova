@@ -51,11 +51,12 @@ public protocol PrimitiveGeometry: Sendable {
 
     func hull() -> Self
     static func hull(_ children: [Self]) -> Self
-    static func hull(_ points: [Vector]) -> Self
+    static func hull(_ points: [D.Vector]) -> Self
 
     func warp(_ function: @escaping (D.Vector) -> D.Vector) -> Self
 
     func applyingTransform(_ transform: AffineTransform3D) -> Self
+    func allVertices() -> [D.Vector]
 }
 
 extension CrossSection: PrimitiveGeometry {
@@ -71,6 +72,14 @@ extension CrossSection: PrimitiveGeometry {
     public func warp(_ function: @escaping (D.Vector) -> D.Vector) -> Self {
         warp { v -> any Vector2 in function(.init(v)) }
     }
+
+    public static func hull(_ points: [D.Vector]) -> Self {
+        hull(points as [Vector])
+    }
+
+    public func allVertices() -> [D.Vector] {
+        polygons().flatMap(\.vertices).map(Vector2D.init)
+    }
 }
 
 extension Manifold: PrimitiveGeometry {
@@ -85,6 +94,14 @@ extension Manifold: PrimitiveGeometry {
 
     public func warp(_ function: @escaping (D.Vector) -> D.Vector) -> Self {
         warp { v -> any Vector3 in function(.init(v)) }
+    }
+
+    public static func hull(_ points: [D.Vector]) -> Self {
+        hull(points as [Vector])
+    }
+
+    public func allVertices() -> [D.Vector] {
+        meshGL().vertices.map(Vector3D.init)
     }
 }
 
