@@ -19,7 +19,9 @@ extension GeometryExpression {
 
     var jsonData: Data {
         get throws {
-            try JSONEncoder().encode(self)
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+            return try encoder.encode(self)
         }
     }
 }
