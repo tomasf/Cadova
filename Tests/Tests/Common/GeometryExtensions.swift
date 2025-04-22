@@ -29,9 +29,28 @@ extension Geometry {
         }
     }
 
+    func writeGoldenFile(_ name: String) async throws {
+        let context = EvaluationContext()
+        let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
+
+        let goldenRoot = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appending(path: "golden")
+        let goldenURL = goldenRoot.appending(component: name).appendingPathExtension("json")
+        try result.expression.jsonData.write(to: goldenURL)
+
+        let verificationURL = goldenRoot.appending(component: name).appendingPathExtension("3mf")
+        let provider = ThreeMFDataProvider(result: result.for3MFVerification)
+        try await provider.writeOutput(to: verificationURL, context: context)
+    }
+
     func expectEquals(goldenFile name: String) async throws {
-        let goldenExpression = try D.Expression(goldenFile: name)
+        if inGenerationMode {
+            try await writeGoldenFile(name)
+            return
+        }
+
         let computedExpression = await expression
+        let goldenExpression = try D.Expression(goldenFile: name)
+
         #expect(await expression == goldenExpression)
 
         if computedExpression != goldenExpression {
@@ -41,10 +60,14 @@ extension Geometry {
     }
 }
 
-extension Geometry {
-    func saveTo(goldenFile name: String) async throws {
-        let expression = await self.expression
-        let url = URL(filePath: "/Users/tomasf/Documents/Projects/Cadova/Tests/Tests/golden", directoryHint: .isDirectory).appending(component: name).appendingPathExtension("json")
-        try expression.jsonData.write(to: url)
+extension GeometryResult {
+    var for3MFVerification: GeometryResult<D3> {
+        if let d3 = self as? GeometryResult<D3> {
+            return d3
+        } else if let d2 = self as? GeometryResult<D2> {
+            return replacing(expression: GeometryExpression3D.extrusion(d2.expression, type: .linear(height: 0.001, twist: 0°, divisions: 0, scaleTop: Vector2D(1, 1))))
+        } else {
+            return replacing(expression: .empty)
+        }
     }
 }
