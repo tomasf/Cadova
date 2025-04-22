@@ -84,7 +84,7 @@ extension Angle: CustomDebugStringConvertible {
 }
 
 extension Angle {
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(radians.rounded())
     }
 
