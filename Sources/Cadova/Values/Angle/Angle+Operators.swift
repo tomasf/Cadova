@@ -51,10 +51,6 @@ public extension Angle {
     static func <(_ a: Angle, _ b: Angle) -> Bool {
         a.radians < b.radians
     }
-
-    static func ==(_ a: Angle, _ b: Angle) -> Bool {
-        a.radians == b.radians
-    }
 }
 
 // To support stride, we'd ideally conform Angle to Strideable. However, that requires that Angle conforms

@@ -122,6 +122,10 @@ extension Double {
     var unitClamped: Double {
         clamped(to: 0...1)
     }
+
+    var roundedForHash: Int {
+        Int((self * 1000000000.0).rounded())
+    }
 }
 
 extension Set {

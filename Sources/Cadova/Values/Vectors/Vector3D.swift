@@ -104,3 +104,16 @@ extension Vector3D: CustomDebugStringConvertible {
     }
 }
 
+extension Vector3D {
+    public func hash(into hasher: inout Hasher) {
+        x.roundedForHash.hash(into: &hasher)
+        y.roundedForHash.hash(into: &hasher)
+        z.roundedForHash.hash(into: &hasher)
+    }
+
+    public static func ==(_ lhs: Vector3D, _ rhs: Vector3D) -> Bool {
+        lhs.x.roundedForHash == rhs.x.roundedForHash &&
+        lhs.y.roundedForHash == rhs.y.roundedForHash &&
+        lhs.z.roundedForHash == rhs.z.roundedForHash
+    }
+}

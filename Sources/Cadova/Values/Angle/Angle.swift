@@ -83,3 +83,13 @@ extension Angle: CustomDebugStringConvertible {
     }
 }
 
+extension Angle {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(radians.rounded())
+    }
+
+    public static func ==(lhs: Self, rhs: Self) -> Bool {
+        lhs.radians.roundedForHash == rhs.radians.roundedForHash
+    }
+}
+
