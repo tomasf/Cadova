@@ -43,7 +43,7 @@ extension Geometry {
     }
 
     func expectEquals(goldenFile name: String) async throws {
-        if inGenerationMode {
+        if ProcessInfo.processInfo.environment["CADOVA_TESTS_GENERATE_OUTPUT"] == "1" {
             try await writeGoldenFile(name)
             return
         }
