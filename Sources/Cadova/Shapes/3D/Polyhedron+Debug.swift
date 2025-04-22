@@ -1,11 +1,19 @@
 import Foundation
 
 public extension Mesh {
-    /// Returns a visual debugging version of the mesh
-    /// built from thin extruded faces without requiring manifold correctness.
-    /// Inward faces are colored pink.
+    /// Generates a 3D visualization of the mesh for debugging purposes.
+    ///
+    /// This method constructs thin extrusions for each face in the mesh, allowing you to
+    /// inspect face orientation, layout, and normals without requiring the mesh to be manifold.
+    /// Inward-facing polygons (with incorrect winding) are visually distinguished by being colored pink.
+    ///
+    /// > Important: This is a heavy operation intended primarily for visual inspection during development.
+    /// It performs a full projection and extrusion of every face individually and is not optimized for performance.
+    /// Use only with relatively simple meshes or subsets of geometry.
+    ///
+    /// - Returns: A composite geometry consisting of extruded versions of each face in the mesh.
     @GeometryBuilder3D
-    func debugVisualization() -> any Geometry3D {
+    func visualizedForDebugging() -> any Geometry3D {
         for face in faces {
             visualizeFace(face.map { vertices[$0] })
         }
