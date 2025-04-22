@@ -13,12 +13,12 @@ public extension Geometry3D {
     }
 }
 
-#warning("fix this")
-/*
 public extension Geometry2D {
     func refined(maxSegmentLength: Double) -> any Geometry2D {
-        modifyingPolygons { polygons, e in
-            return polygons.map { points in
+        CachingPrimitiveTransformer(body: self, key: RefineCacheKey(maxEdgeLength: maxSegmentLength)) {
+            let inputPoints: [[Vector2D]] = $0.polygons().map { $0.vertices.map(\.vector2D) }
+
+            let newPoints = inputPoints.map { points in
                 [points[0]] + points.paired().flatMap { from, to -> [Vector2D] in
                     let length = from.distance(to: to)
                     let segmentCount = ceil(length / maxSegmentLength)
@@ -28,7 +28,7 @@ public extension Geometry2D {
                     }
                 }
             }
+            return .init(polygons: newPoints.map { Manifold3D.Polygon(vertices: $0) }, fillRule: .nonZero)
         }
     }
 }
-*/
