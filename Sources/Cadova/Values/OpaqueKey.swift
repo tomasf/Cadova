@@ -37,7 +37,7 @@ extension OpaqueKey {
         try container.encode(content, forKey: .value)
 
         guard let mangledString = _mangledTypeName(type(of: content)), _typeByName(mangledString) != nil else {
-            print("Encoding a mangled type name that can't be interpreted!")
+            logger.error("Encoding a mangled type name that can't be interpreted!")
             return
         }
     }
