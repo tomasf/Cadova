@@ -45,6 +45,7 @@ public extension Polygon {
 
             readingPrimitive { crossSection in
                 Mesh(extruding: crossSection.polygons(), along: expandedPath, environment: environment)
+                    .correctingFaceWinding()
             }
         }
     }
