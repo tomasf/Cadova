@@ -144,3 +144,13 @@ extension Set {
 
 // Hack until we have a better solution
 extension KeyPath: @unchecked @retroactive Sendable {}
+
+extension Clock {
+    func measure<T>(work: () async throws -> T, results: (Instant.Duration) -> Void) async rethrows -> T {
+        var result: T?
+        results(try await measure {
+            result = try await work()
+        })
+        return result!
+    }
+}

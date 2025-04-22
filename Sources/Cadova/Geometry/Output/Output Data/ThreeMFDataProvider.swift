@@ -2,14 +2,19 @@ import Foundation
 import Manifold3D
 import ThreeMF
 
+extension MeshGL: @retroactive @unchecked Sendable {}
+
 struct ThreeMFDataProvider: OutputDataProvider {
     let result: GeometryResult3D
     let fileExtension = "3mf"
 
-    func makeModel(context: EvaluationContext) async throws -> ThreeMF.Model {
-        var outputs = result.elements[PartCatalog.self].mergedOutputs
-        outputs[.main] = result
+    private struct PartData {
+        let id: PartIdentifier
+        let mesh: MeshGL
+        let materials: [Manifold.OriginalID: Material]
+    }
 
+    private func makeModel(_ parts: [PartData]) -> ThreeMF.Model {
         var nextFreeObjectID = 1
 
         func nextObjectID() -> Int {
@@ -59,17 +64,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var objectCount = 0
         var uniqueIdentifiers: Set<String> = []
 
-        for (identifier, output) in outputs.sorted(by: { $0.key.hashValue < $1.key.hashValue }) {
-            guard !output.expression.isEmpty else { continue }
+        for part in parts {
+            let triangleOIDs = TriangleOIDMapping(indexSets: part.mesh.originalIDs)
+            let propertyReferencesByOID = part.materials.mapValues(addMaterial)
 
-            let meshData = await context.geometry(for: output.expression).meshGL()
-            let triangleOIDs = TriangleOIDMapping(indexSets: meshData.originalIDs)
-
-            let propertyReferencesByOID = await output.elements[MaterialRecord.self]
-                .originalIDMapping(from: context)
-                .mapValues(addMaterial)
-
-            let triangles = meshData.triangles.enumerated().map { index, t in
+            let triangles = part.mesh.triangles.enumerated().map { index, t in
                 let originalID = triangleOIDs.originalID(for: index)
                 let materialProperty = originalID.flatMap { propertyReferencesByOID[$0] }
 
@@ -80,28 +79,28 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 )
             }
 
-            let defaultProperty = addMaterial(identifier.defaultMaterial)
+            let defaultProperty = addMaterial(part.id.defaultMaterial)
 
-            let mesh = ThreeMF.Mesh(vertices: meshData.vertices.map(\.threeMFVector), triangles: triangles)
+            let mesh = ThreeMF.Mesh(vertices: part.mesh.vertices.map(\.threeMFVector), triangles: triangles)
             let object = ThreeMF.Object(
                 id: nextObjectID(),
                 type: .model,
-                name: identifier.name,
+                name: part.id.name,
                 propertyGroupID: defaultProperty.groupID,
                 propertyIndex: defaultProperty.index,
                 content: .mesh(mesh)
             )
 
-            var uniqueID = identifier.name
+            var uniqueID = part.id.name
             var nameIndex = 1
             while uniqueIdentifiers.contains(uniqueID) {
                 nameIndex += 1
-                uniqueID = identifier.name + "_\(nameIndex)"
+                uniqueID = part.id.name + "_\(nameIndex)"
             }
             uniqueIdentifiers.insert(uniqueID)
 
             objects.append(object)
-            items.append(.init(objectID: object.id, partNumber: uniqueID, printable: identifier.printable))
+            items.append(.init(objectID: object.id, partNumber: uniqueID, printable: part.id.printable))
             objectCount += 1
         }
 
@@ -134,6 +133,31 @@ struct ThreeMFDataProvider: OutputDataProvider {
         )
     }
 
+    private func makeModel(context: EvaluationContext) async throws -> ThreeMF.Model {
+        var outputs = result.elements[PartCatalog.self].mergedOutputs
+        outputs[.main] = result
+
+        let parts = await ContinuousClock().measure {
+            await outputs.asyncCompactMap { partIdentifier, result -> PartData? in
+                guard !result.expression.isEmpty else { return nil }
+                return PartData(
+                    id: partIdentifier,
+                    mesh: await context.geometry(for: result.expression).meshGL(),
+                    materials: await result.elements[MaterialRecord.self].originalIDMapping(from: context)
+                )
+            }
+            .sorted(by: { $0.id.hashValue < $1.id.hashValue })
+        } results: {
+            logger.info("Built meshes in \($0)")
+        }
+
+        return await ContinuousClock().measure {
+            makeModel(parts)
+        } results: {
+            logger.info("Built 3MF structure in \($0)")
+        }
+    }
+
     private func prepareMetadata() -> [ThreeMF.Metadata] {
         var metadata = result.elements[MetadataContainer.self]
 
@@ -149,25 +173,26 @@ struct ThreeMFDataProvider: OutputDataProvider {
     }
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
-        var data: Data = Data()
-        let duration = try await ContinuousClock().measure {
-            let writer = PackageWriter()
-            writer.model = try await makeModel(context: context)
-            data = try writer.finalize()
+        let writer = PackageWriter()
+        writer.compressionLevel = .best
+        writer.model = try await makeModel(context: context)
+
+        let data = try await ContinuousClock().measure {
+            try writer.finalize()
+        } results: {
+            logger.info("Generated 3MF archive in \($0)")
         }
 
-        print(String(format: "Generated 3MF archive in %@", duration.formatted()))
         return data
     }
 
     func writeOutput(to url: URL, context: EvaluationContext) async throws {
-        let duration = try await ContinuousClock().measure {
-            let writer = try PackageWriter(url: url)
-            writer.model = try await makeModel(context: context)
+        let writer = try PackageWriter(url: url)
+        writer.model = try await makeModel(context: context)
+        let duration = try ContinuousClock().measure {
             try writer.finalize()
         }
-
-        print(String(format: "Generated 3MF archive \(url.lastPathComponent) in %@", duration.formatted()))
+        logger.info("Generated 3MF archive in \(duration)")
     }
 }
 

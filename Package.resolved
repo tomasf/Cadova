@@ -1,5 +1,5 @@
 {
-  "originHash" : "08f598be97bb677039f21e97ba25df999a2e80836e1d018c4f334b586c033065",
+  "originHash" : "80bc93341d9e9f73e36a45e0a62870bfb624853f08725750d549e27833966bcb",
   "pins" : [
     {
       "identity" : "manifold-swift",
@@ -43,7 +43,7 @@
       "location" : "https://github.com/tomasf/ThreeMF.git",
       "state" : {
         "branch" : "main",
-        "revision" : "dcb9d8e493bd1281675c9f16857b6f1501738ae1"
+        "revision" : "ebe87894f8e31061ae8d2eca59664e0779c2e430"
       }
     },
     {

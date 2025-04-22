@@ -1,9 +1,6 @@
 import Foundation
 import ThreeMF
 
-#warning("Fix in ThreeMF")
-extension ThreeMF.Metadata: @retroactive @unchecked Sendable {}
-
 struct MetadataContainer: ResultElement {
     private(set) var metadata: [ThreeMF.Metadata]
 

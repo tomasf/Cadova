@@ -44,7 +44,12 @@ public func Model<D: Dimensionality>(
     environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
 ) async {
     await saveModel(to: name, environmentBuilder: environmentBuilder) { environment, context in
-        let result = await content().preparedFor3DExport.build(in: environment, context: context)
+        let result = await ContinuousClock().measure {
+            await content().preparedFor3DExport.build(in: environment, context: context)
+        } results: {
+            logger.info("Built expression tree in \($0)")
+        }
+
         return ThreeMFDataProvider(result: result)
     }
 }
