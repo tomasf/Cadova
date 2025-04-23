@@ -20,7 +20,7 @@ private func saveModel(
 
     do {
         try await provider.writeOutput(to: url, context: context)
-        logger.info("Wrote output to \(url.path)")
+        logger.info("Wrote model to \(url.path)")
     } catch {
         logger.error("Failed to save model file to \(url.path): \(error)")
     }
@@ -47,7 +47,7 @@ public func Model<D: Dimensionality>(
         let result = await ContinuousClock().measure {
             await content().preparedFor3DExport.build(in: environment, context: context)
         } results: {
-            logger.info("Built expression tree in \($0)")
+            logger.debug("Built expression tree in \($0)")
         }
 
         return ThreeMFDataProvider(result: result)
