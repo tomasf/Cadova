@@ -36,29 +36,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var specularColorGroup = ColorGroup(id: nextObjectID(), displayPropertiesID: specularProperties.id)
 
         func addMaterial(_ material: Material) -> PropertyReference {
-            switch material.properties {
-            case .none:
-                let index = mainColorGroup.colors.firstIndex(of: material.baseColor.threeMFColor) ?? mainColorGroup.addColor(material.baseColor.threeMFColor)
-                return PropertyReference(groupID: mainColorGroup.id, index: index)
-
-            case .metallic (let metallicness, let roughness):
-                let name = material.name ?? "Metallic \(metallicProperties.metallics.count + 1)"
-                let metallic = Metallic(name: name, metallicness: metallicness, roughness: roughness)
-                let index = metallicProperties.metallics.firstIndex(of: metallic) ?? {
-                    metallicProperties.addMetallic(metallic)
-                    return metallicColorGroup.addColor(material.baseColor.threeMFColor)
-                }()
-                return PropertyReference(groupID: metallicColorGroup.id, index: index)
-
-            case .specular (let color, let glossiness):
-                let name = material.name ?? "Specular \(specularProperties.speculars.count + 1)"
-                let specular = Specular(name: name, specularColor: color.threeMFColor, glossiness: glossiness)
-                let index = specularProperties.speculars.firstIndex(of: specular) ?? {
-                    specularProperties.addSpecular(specular)
-                    return specularColorGroup.addColor(material.baseColor.threeMFColor)
-                }()
-                return PropertyReference(groupID: specularColorGroup.id, index: index)
-            }
+            .addMaterial(material, mainColorGroup: &mainColorGroup, metallicColorGroup: &metallicColorGroup, specularColorGroup: &specularColorGroup, metallicProperties: &metallicProperties, specularProperties: &specularProperties)
         }
 
         var objectCount = 0
@@ -148,13 +126,13 @@ struct ThreeMFDataProvider: OutputDataProvider {
             }
             .sorted(by: { $0.id.hashValue < $1.id.hashValue })
         } results: {
-            logger.info("Built meshes in \($0)")
+            logger.debug("Built meshes in \($0)")
         }
 
         return await ContinuousClock().measure {
             makeModel(parts)
         } results: {
-            logger.info("Built 3MF structure in \($0)")
+            logger.debug("Built 3MF structure in \($0)")
         }
     }
 
@@ -180,7 +158,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let data = try await ContinuousClock().measure {
             try writer.finalize()
         } results: {
-            logger.info("Generated 3MF archive in \($0)")
+            logger.debug("Generated 3MF archive in \($0)")
         }
 
         return data
@@ -188,11 +166,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     func writeOutput(to url: URL, context: EvaluationContext) async throws {
         let writer = try PackageWriter(url: url)
+        writer.compressionLevel = .fastest
         writer.model = try await makeModel(context: context)
         let duration = try ContinuousClock().measure {
             try writer.finalize()
         }
-        logger.info("Generated 3MF archive in \(duration)")
+        logger.debug("Generated 3MF archive in \(duration)")
     }
 }
 
@@ -246,5 +225,59 @@ struct TriangleOIDMapping {
         }
         return nil
     }
+}
 
+extension PropertyReference {
+    static func addColor(_ color: Color, to colorGroup: inout ColorGroup) -> PropertyReference {
+        let threeMFColor = color.threeMFColor
+        if let index = colorGroup.colors.firstIndex(of: threeMFColor) {
+            return PropertyReference(groupID: colorGroup.id, index: index)
+        } else {
+            let index = colorGroup.addColor(threeMFColor)
+            return PropertyReference(groupID: colorGroup.id, index: index)
+        }
+    }
+
+    static func addMetallic(
+        baseColor: Color, name: String?, metallicness: Double, roughness: Double,
+        to properties: inout MetallicDisplayProperties, colorGroup: inout ColorGroup
+    ) -> PropertyReference {
+        let name = name ?? "Metallic \(properties.metallics.count + 1)"
+        let metallic = Metallic(name: name, metallicness: metallicness, roughness: roughness)
+        let index = properties.metallics.firstIndex(of: metallic) ?? {
+            properties.addMetallic(metallic)
+            return colorGroup.addColor(baseColor.threeMFColor)
+        }()
+        return PropertyReference(groupID: colorGroup.id, index: index)
+    }
+
+    static func addSpecular(
+        name: String?, baseColor: Color, specularColor: Color, glossiness: Double,
+        to properties: inout SpecularDisplayProperties, colorGroup: inout ColorGroup
+    ) -> PropertyReference {
+        let name = name ?? "Specular \(properties.speculars.count + 1)"
+        let specular = Specular(name: name, specularColor: specularColor.threeMFColor, glossiness: glossiness)
+        let index = properties.speculars.firstIndex(of: specular) ?? {
+            properties.addSpecular(specular)
+            return colorGroup.addColor(baseColor.threeMFColor)
+        }()
+        return PropertyReference(groupID: colorGroup.id, index: index)
+    }
+
+    static func addMaterial(
+        _ material: Material,
+        mainColorGroup: inout ColorGroup, metallicColorGroup: inout ColorGroup, specularColorGroup: inout ColorGroup,
+        metallicProperties: inout MetallicDisplayProperties, specularProperties: inout SpecularDisplayProperties
+    ) -> PropertyReference {
+        switch material.properties {
+        case .none:
+            return addColor(material.baseColor, to: &mainColorGroup)
+
+        case .metallic (let metallicness, let roughness):
+            return addMetallic(baseColor: material.baseColor, name: material.name, metallicness: metallicness, roughness: roughness, to: &metallicProperties, colorGroup: &metallicColorGroup)
+
+        case .specular (let color, let glossiness):
+            return addSpecular(name: material.name, baseColor: material.baseColor, specularColor: color, glossiness: glossiness, to: &specularProperties, colorGroup: &specularColorGroup)
+        }
+    }
 }
