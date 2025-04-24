@@ -10,6 +10,9 @@ public extension Geometry {
         } environment: {
             $0.applyingTransform(transform.transform3D)
         }
+        .modifyingResult(PartCatalog.self) {
+            $0 = $0.applyingTransform(transform.transform3D)
+        }
     }
 }
 
