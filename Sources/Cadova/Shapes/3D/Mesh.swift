@@ -11,32 +11,24 @@ import Manifold3D
 /// Use this type when importing or constructing complex geometry manually, such as converting from external
 /// sources, procedural generation, or custom geometry definitions.
 
-public struct Mesh: Sendable, Hashable, Codable {
-    let vertices: [Vector3D]
-    let faces: [[[Vector3D].Index]]
+public struct Mesh: CompositeGeometry {
+    public typealias D = D3
 
-    internal init(vertices: [Vector3D], faces: [[Array<Vector3D>.Index]]) {
+    let meshData: MeshData
+
+    internal init(_ meshData: MeshData) {
+        self.meshData = meshData
+    }
+
+    internal init(vertices: [Vector3D], faces: [MeshData.Face]) {
         assert(vertices.count >= 4, "At least four points are needed for a Mesh")
         assert(faces.allSatisfy { $0.count >= 3 }, "Each face must contain at least three points")
 
-        self.vertices = vertices
-        self.faces = faces
+        self.init(MeshData(vertices: vertices, faces: faces))
     }
-
-    internal func meshGL() -> MeshGL {
-        let triangulatedShape = triangulated()
-        let triangles = triangulatedShape.faces.map { indices in
-            Triangle(.init(indices[0]), .init(indices[1]), .init(indices[2]))
-        }
-        return MeshGL(vertices: triangulatedShape.vertices, triangles: triangles)
-    }
-}
-
-extension Mesh: CompositeGeometry {
-    public typealias D = D3
 
     public var body: any Geometry3D {
-        PrimitiveShape(shape: .mesh(self))
+        PrimitiveShape(shape: .mesh(meshData))
     }
 }
 
@@ -118,3 +110,14 @@ public extension Mesh {
     }
 }
 
+public extension Mesh {
+    /// Returns a new mesh with corrected face winding based on volume orientation.
+    ///
+    /// If the mesh's signed volume is negative (indicating inward-facing normals),
+    /// the face windings are flipped to ensure outward orientation.
+    ///
+    /// - Returns: A mesh with outward-facing normals.
+    func correctingFaceWinding() -> Mesh {
+        meshData.signedVolume < 0 ? Self(meshData.flipped()) : self
+    }
+}

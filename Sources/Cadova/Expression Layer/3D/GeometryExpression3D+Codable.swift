@@ -143,7 +143,7 @@ extension GeometryExpression3D.PrimitiveShape {
             self = .convexHull(points: points)
 
         case .mesh:
-            let mesh = try container.decode(Mesh.self, forKey: .mesh)
+            let mesh = try container.decode(MeshData.self, forKey: .mesh)
             self = .mesh(mesh)
         }
     }

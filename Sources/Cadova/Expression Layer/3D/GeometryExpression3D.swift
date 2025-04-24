@@ -26,8 +26,7 @@ public struct GeometryExpression3D: GeometryExpression, Sendable {
         case sphere (radius: Double, segmentCount: Int)
         case cylinder (bottomRadius: Double, topRadius: Double, height: Double, segmentCount: Int)
         case convexHull (points: [Vector3D])
-        #warning("This should use something better than Mesh")
-        case mesh (Mesh)
+        case mesh (MeshData)
     }
 
     public enum Extrusion: Hashable, Sendable, Codable {
@@ -104,9 +103,9 @@ extension GeometryExpression3D.PrimitiveShape {
             guard points.count >= 4 else { return .empty }
             return Manifold.hull(points)
 
-        case .mesh (let mesh):
+        case .mesh (let meshData):
             do {
-                return try Manifold(mesh.meshGL())
+                return try Manifold(meshData.meshGL())
             } catch Manifold.Error.notManifold {
                 logger.error("""
 Mesh creation failed: The mesh is not manifold.
