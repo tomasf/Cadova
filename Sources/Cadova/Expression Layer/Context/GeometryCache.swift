@@ -34,4 +34,8 @@ actor GeometryCache {
         cache3D[expression] = task
         return await task.value
     }
+
+    // For testing
+    internal var cachedCount2D: Int { cache2D.count }
+    internal var cachedCount3D: Int { cache3D.count }
 }
