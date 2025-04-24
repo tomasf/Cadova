@@ -38,8 +38,6 @@ public extension Geometry3D {
     }
 }
 
-#warning("fix this")
-/*
 public extension Geometry2D {
     /// Wraps the current geometry around the origin, effectively creating
     /// a circular shape from the original geometry.
@@ -62,12 +60,12 @@ public extension Geometry2D {
         measureBoundsIfNonEmpty { geometry, e, bounds in
             let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
             let maximumRadius = innerRadius + bounds.maximum.y
-            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.segments.segmentCount(circleRadius: maximumRadius))
+            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.segmentation.segmentCount(circleRadius: maximumRadius))
             let innerCircumference = innerRadius * 2 * .pi
 
             geometry
                 .refined(maxSegmentLength: segmentLength)
-                .warped {
+                .warped(operationName: "wrapAroundCircle", cacheParameters: diameter) {
                     let angle = -360° * $0.x / innerCircumference
                     let radius = innerRadius + $0.y
                     return Vector2D(cos(angle) * radius, sin(angle) * radius)
@@ -75,4 +73,3 @@ public extension Geometry2D {
         }
     }
 }
-*/
