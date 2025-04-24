@@ -103,41 +103,47 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     }
 }
 
+internal struct IndexedCacheKey<Key: CacheKey>: CacheKey {
+    let base: Key
+    let index: Int
+}
+
 struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
-    let keys: [Key]
+    let key: Key
     let generator: @Sendable (D.Primitive) -> [D.Primitive]
     let resultHandler: @Sendable ([D.Geometry]) -> D.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
         let bodyResult = await body.build(in: environment, context: context)
 
-        let cachedRawExpressions = await keys.asyncCompactMap { cacheKey in
-            await context.cachedRawGeometry(for: bodyResult.expression, key: cacheKey) as D.Expression?
-        }
-        let wasFoundInCache = (cachedRawExpressions.count == keys.count)
+        let firstKey = IndexedCacheKey(base: key, index: 0)
+        let firstPart = await context.cachedRawGeometry(for: bodyResult.expression, key: firstKey)
+        let geometries: [D.Geometry]
 
-        if wasFoundInCache {
-            let geometries = cachedRawExpressions.map {
-                ResultGeometry(result: bodyResult.replacing(expression: $0)) as D.Geometry
+        if let firstPart {
+            var parts: [D.Expression] = [firstPart]
+            for i in 1... {
+                let indexedKey = IndexedCacheKey(base: key, index: i)
+                guard let part = await context.cachedRawGeometry(for: bodyResult.expression, key: indexedKey) else {
+                    break
+                }
+                parts.append(part)
             }
 
-            return await resultHandler(geometries).build(in: environment, context: context)
+            geometries = parts.map { ResultGeometry(result: bodyResult.replacing(expression: $0)) as D.Geometry }
+
         } else {
-            if cachedRawExpressions.count > 0 {
-                logger.warning("CachingPrimitiveArrayTransformer found *some* cached pieces, but not all.")
-            }
-
             let bodyPrimitive = await context.geometry(for: bodyResult.expression)
             let primitives = generator(bodyPrimitive)
-            precondition(primitives.count == keys.count, "Generated primitive count must match key count")
 
-            let geometries = await Array(zip(primitives, keys)).asyncMap { primitive, cacheKey in
-                let expression = await context.storeRawGeometry(primitive, for: bodyResult.expression, key: cacheKey)
+            geometries = await Array(primitives.enumerated()).asyncMap { index, primitive in
+                let indexedKey = IndexedCacheKey(base: key, index: index)
+                let expression = await context.storeRawGeometry(primitive, for: bodyResult.expression, key: indexedKey)
                 return ResultGeometry(result: bodyResult.replacing(expression: expression)) as D.Geometry
             }
-
-            return await resultHandler(geometries).build(in: environment, context: context)
         }
+
+        return await resultHandler(geometries).build(in: environment, context: context)
     }
 }

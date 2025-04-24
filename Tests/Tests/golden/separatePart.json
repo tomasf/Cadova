@@ -1,0 +1,105 @@
+{
+  "parts" : [
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 1,
+          "blue" : 1,
+          "green" : 1,
+          "red" : 1
+        }
+      },
+      "name" : "separate",
+      "type" : "solid"
+    },
+    {
+      "body" : {
+        "kind" : "shape",
+        "primitive" : {
+          "kind" : "sphere",
+          "radius" : 2.5,
+          "segmentCount" : 104
+        }
+      },
+      "kind" : "transform",
+      "transform" : [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          10
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 1,
+          "blue" : 1,
+          "green" : 1,
+          "red" : 1
+        }
+      },
+      "name" : "Model",
+      "type" : "solid"
+    },
+    {
+      "body" : {
+        "kind" : "shape",
+        "primitive" : {
+          "kind" : "box",
+          "size" : {
+            "x" : 10,
+            "y" : 10,
+            "z" : 10
+          }
+        }
+      },
+      "kind" : "transform",
+      "transform" : [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          10
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    }
+  ]
+}
