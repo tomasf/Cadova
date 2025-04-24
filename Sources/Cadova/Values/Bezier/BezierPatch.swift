@@ -14,21 +14,15 @@ import Foundation
 /// To create a Bézier patch, provide a 2D array of control points:
 ///
 /// ```swift
-/// let patch = BezierPatch(controlPoints: [
-///     [Vector3D(x: 0, y: 0, z: 0), Vector3D(x: 1, y: 0, z: 1), Vector3D(x: 2, y: 0, z: 0)],
-///     [Vector3D(x: 0, y: 1, z: 1), Vector3D(x: 1, y: 1, z: 2), Vector3D(x: 2, y: 1, z: 1)],
-///     [Vector3D(x: 0, y: 2, z: 0), Vector3D(x: 1, y: 2, z: 1), Vector3D(x: 2, y: 2, z: 0)]
+/// BezierPatch(controlPoints: [
+///     [ [0, 0, 0],   [1, 0, 0.8],   [2, 0, -0.2],  [3, 0, 0] ],
+///     [ [0, 1, 0.5], [1, 1, 1.5],   [2, 1, 0.3],   [3, 1, -0.4] ],
+///     [ [0, 2, 0.4], [1, 2, 1.2],   [2, 2, 1],     [3, 2, 0.2] ],
+///     [ [0, 3, 0],   [1, 3, 0.4],   [2, 3, 0.1],   [3, 3, 1.2] ]
 /// ])
+/// .extruded(to: Plane(z: -0.5))
+/// .aligned(at: .bottom)
 /// ```
-///
-/// You can then evaluate the surface at any point `(u, v)` in the range `0...1`:
-///
-/// ```swift
-/// let point = patch.point(at: 0.5, v: 0.5)
-/// ```
-///
-/// You can also generate a grid of sampled points using either fixed segmentation or adaptive refinement,
-/// or extrude the patch to form a solid geometry using `.extruded(...)`.
 ///
 /// ### Applications
 ///
@@ -53,12 +47,12 @@ public struct BezierPatch: Sendable {
 
     /// Evaluate the point on the surface at parameters (u, v), both in 0...1 range
     internal func point(at u: Double, v: Double) -> Vector3D {
-        // Step 1: Evaluate Bézier curves in v-direction (columns)
+        // V direction (columns)
         let intermediatePoints: [Vector3D] = controlPoints.map { row in
             BezierCurve(controlPoints: row).point(at: v)
         }
 
-        // Step 2: Evaluate Bézier curve in u-direction (rows)
+        // U direction (rows)
         return BezierCurve(controlPoints: intermediatePoints).point(at: u)
     }
 
@@ -164,7 +158,6 @@ public extension BezierPatch {
             }
         }
 
-        // Final grid
         return uSteps.map { u in
             vSteps.map { v in
                 point(at: u, v: v)
@@ -181,7 +174,7 @@ public extension BezierPatch {
                 newSteps.append(mid)
             }
         }
-        newSteps.append(steps.last!) // Add final point
+        newSteps.append(steps.last!)
         return newSteps.sorted()
     }
 }
