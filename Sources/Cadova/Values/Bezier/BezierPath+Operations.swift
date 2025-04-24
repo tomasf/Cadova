@@ -39,7 +39,7 @@ public extension BezierPath {
     ///
     /// - Parameters:
     ///   - position: The position along the path where the transformation is calculated. This value is of type
-    ///   - segments: The desired level of detail for the generated points, affecting the smoothness and accuracy of the path traversal
+    ///   - segmentation: The desired level of detail for the generated points, affecting the smoothness and accuracy of the path traversal
     /// - Returns: A `V.D.Transform` representing the combined rotation and translation needed to move an object along the
     ///   Bézier path to the specified position.
     func transform(at position: Position, segmentation: EnvironmentValues.Segmentation) -> V.D.Transform {

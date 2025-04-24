@@ -11,11 +11,29 @@ internal struct MaskSplitParameters: CacheKey {
 }
 
 public extension Geometry3D {
-    // Split the geometry into two parts along a specified plane, at a specified point
-
+    /// Splits the geometry into two parts along the specified plane.
+    ///
+    /// This method slices the geometry in two using a given plane and passes the resulting parts
+    /// to a closure for further transformation or arrangement.
+    ///
+    /// - Parameters:
+    ///   - plane: The `Plane` used to split the geometry.
+    ///   - reader: A closure that receives the two resulting geometry parts (on opposite sides of the plane)
+    ///             and returns a new composed geometry.
+    ///
+    /// - Returns: A new geometry resulting from the closure.
+    ///
+    /// ## Example
+    /// ```swift
+    /// Sphere(diameter: 5)
+    ///     .split(along: Plane(z: 3)) { a, b in
+    ///         a.colored(.red)
+    ///         b.colored(.blue)
+    ///     }
+    /// ```
     func split(
         along plane: Plane,
-        @GeometryBuilder3D reader: @Sendable @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
+        @GeometryBuilder3D reader: @Sendable @escaping (_ over: any Geometry3D, _ under: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
         CachingPrimitiveArrayTransformer(body: self, key: PlaneSplitParameters(plane: plane)) { input in
             let (a, b) = input.split(by: plane.normal.unitVector, originOffset: 0)
@@ -29,10 +47,23 @@ public extension Geometry3D {
         }
     }
 
-    // Split the geometry into two parts along a specified plane, at a specified point,
-    // arranging them plane-side down next to each other. This is useful for 3D printing where
-    // a part is split into two for easier printing
-
+    /// Splits the geometry into two parts along the specified plane and arranges them side-by-side.
+    ///
+    /// This variant is useful for preparing a model to be 3D printed in two halves. It aligns the split
+    /// faces downward (or upward, if `flipped` is true), and places the parts next to each other along the chosen axis.
+    ///
+    /// - Parameters:
+    ///   - plane: The `Plane` used to split the geometry.
+    ///   - axis: The axis along which the two parts will be arranged.
+    ///   - flipped: Whether to invert the default face-up orientation. Defaults to `false`.
+    ///   - spacing: The distance between the arranged parts. Defaults to `3.0` mm.
+    ///
+    /// - Returns: A new geometry containing the arranged parts
+    ///
+    /// ## Example
+    /// ```swift
+    /// model.split(along: Plane(x: 10), arrangingPartsAlong: .y)
+    ///
     func split(
         along plane: Plane,
         arrangingPartsAlong axis: Axis3D,
@@ -47,26 +78,37 @@ public extension Geometry3D {
         }
     }
 
+    /// Splits the geometry using a mask geometry and passes the results to a closure.
+    ///
+    /// This variant uses a mask volume to determine the split boundary. The result consists of the
+    /// parts of the original geometry that are inside and outside the mask, respectively.
+    ///
+    /// - Parameters:
+    ///   - mask: A closure that builds the mask geometry.
+    ///   - result: A closure that receives the two resulting geometries (inside and outside the mask).
+    ///
+    /// - Returns: A new geometry composed from the parts returned by the `result` closure.
+    ///
+    /// ## Example
+    /// ```swift
+    /// model.split(with: { CuttingBlock() }) { inside, outside in
+    ///     inside.colored(.green)
+    ///     outside.colored(.gray)
+    /// }
+    /// ```
     func split(
-        with mask: any Geometry3D,
-        @GeometryBuilder3D reader: @Sendable @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
+        @GeometryBuilder3D with mask: @escaping () -> any Geometry3D,
+        @GeometryBuilder3D result: @Sendable @escaping (_ inside: any Geometry3D, _ outside: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        mask.readingPrimitive { maskPrimitive, maskExpression in
+        mask().readingPrimitive { maskPrimitive, maskExpression in
             CachingPrimitiveArrayTransformer(body: self, key: MaskSplitParameters(mask: maskExpression)) { input in
                 let (a, b) = input.split(by: maskPrimitive)
                 return [a, b]
             } resultHandler: { geometries in
                 precondition(geometries.count == 2, "Split result should contain exactly two geometries")
-                return reader(geometries[0], geometries[1])
+                return result(geometries[0], geometries[1])
             }
         }
-    }
-
-    func split(
-        @GeometryBuilder3D with mask: @escaping () -> any Geometry3D,
-        @GeometryBuilder3D reader: @Sendable @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
-    ) -> any Geometry3D {
-        split(with: mask(), reader: reader)
     }
 }
 
