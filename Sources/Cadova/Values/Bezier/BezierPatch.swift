@@ -1,5 +1,45 @@
 import Foundation
 
+/// A smooth curved surface defined by a two-dimensional grid of Bézier curves.
+///
+/// `BezierPatch` represents a bicubic Bézier surface, a common construct in computer graphics
+/// and 3D modeling used to describe smooth, continuous surfaces such as car bodies, furniture, and other organic forms.
+///
+/// A Bézier patch is built from a rectangular grid of control points. Each row and column of control points
+/// defines a Bézier curve, and the surface itself is constructed by interpolating first across one axis (typically `v`)
+/// and then across the other (`u`). The patch provides a smooth surface bounded by the convex hull of its control points.
+///
+/// ### Usage
+///
+/// To create a Bézier patch, provide a 2D array of control points:
+///
+/// ```swift
+/// let patch = BezierPatch(controlPoints: [
+///     [Vector3D(x: 0, y: 0, z: 0), Vector3D(x: 1, y: 0, z: 1), Vector3D(x: 2, y: 0, z: 0)],
+///     [Vector3D(x: 0, y: 1, z: 1), Vector3D(x: 1, y: 1, z: 2), Vector3D(x: 2, y: 1, z: 1)],
+///     [Vector3D(x: 0, y: 2, z: 0), Vector3D(x: 1, y: 2, z: 1), Vector3D(x: 2, y: 2, z: 0)]
+/// ])
+/// ```
+///
+/// You can then evaluate the surface at any point `(u, v)` in the range `0...1`:
+///
+/// ```swift
+/// let point = patch.point(at: 0.5, v: 0.5)
+/// ```
+///
+/// You can also generate a grid of sampled points using either fixed segmentation or adaptive refinement,
+/// or extrude the patch to form a solid geometry using `.extruded(...)`.
+///
+/// ### Applications
+///
+/// Bézier patches are ideal for:
+/// - Sculpted surfaces and smooth organic shapes
+/// - Parametric modeling
+/// - Surface lofting and extrusion
+/// - Transitioning between arbitrary curves
+///
+/// - SeeAlso: `BezierPatch.extruded(to:)`
+///
 public struct BezierPatch: Sendable {
     let controlPoints: [[Vector3D]] // rows × columns
 

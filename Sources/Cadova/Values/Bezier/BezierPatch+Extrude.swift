@@ -28,7 +28,7 @@ fileprivate struct Vertex: Hashable {
     }
 }
 
-public extension BezierPatch {
+fileprivate extension BezierPatch {
     private enum ExtrusionMode {
         case plane (Plane)
         case point (Vector3D)
@@ -117,7 +117,9 @@ public extension BezierPatch {
         }.correctingFaceWinding()
     }
 
+}
 
+public extension BezierPatch {
     func extruded(to plane: Plane) -> any Geometry3D {
         readEnvironment(\.segmentation) { segments in
             extrusion(.plane(plane), segmentation: segments)

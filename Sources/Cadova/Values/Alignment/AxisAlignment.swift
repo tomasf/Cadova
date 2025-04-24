@@ -1,9 +1,7 @@
 import Foundation
 
-public enum AxisAlignment: Equatable, Sendable {
-    case min
-    case mid
-    case max
+public enum AxisAlignment: Equatable, Hashable, Sendable {
+    case min, mid, max
 
     internal var factor: Double {
         switch self {

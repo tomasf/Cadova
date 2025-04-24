@@ -1,6 +1,21 @@
 import Foundation
 
-/// A value representing a geometric angle
+/// A value representing a geometric angle.
+///
+/// `Angle` encapsulates the concept of an angle without being tied to any specific unit.
+/// Internally, angles are stored in radians, but you can easily create or inspect angles in degrees,
+/// arcminutes, arcseconds, or even full turns.
+///
+/// You can think of `Angle` as a semantic wrapper for angular values—mathematically unitless in storage,
+/// but meaningfully constructed and interpreted in various units.
+///
+/// The most ergonomic way to create an angle is by using the suffix operator `°`, which converts a
+/// `Double` into an `Angle` expressed in degrees:
+///
+/// ```swift
+/// let rightAngle = 90°
+/// let quarterTurn = Angle(turns: 0.25)
+/// ```
 public struct Angle: Sendable, Hashable, Codable {
     /// The angle expressed in radians
     public let radians: Double
@@ -45,7 +60,7 @@ public struct Angle: Sendable, Hashable, Codable {
         radians / (.pi / 180.0)
     }
 
-    /// The angle expressed in complete turns
+    /// The angle expressed in full turns (360°).
     public var turns: Double {
         radians / (2 * .pi)
     }

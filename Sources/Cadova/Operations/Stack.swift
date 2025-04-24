@@ -1,12 +1,22 @@
 import Foundation
 
+/// A layout container that arranges geometries along a specific axis.
+///
+/// `Stack` positions geometries one after another along a given axis with optional spacing,
+/// while also allowing alignment relative to the origin in the remaining axes.
+///
+/// Each item is translated based on its bounds to avoid overlap, and alignment is used to determine
+/// how items are positioned on the axes *not* used for stacking.
+///
+/// - Important: The alignment only affects the axes that are not used for stacking. For example,
+///   when stacking along the `.z` axis, alignment controls how items are positioned along `.x` and `.y`
+///   relative to the origin.
+///
 public struct Stack<D: Dimensionality> {
     private let items: [D.Geometry]
     private let axis: D.Axis
     private let spacing: Double
     private let alignment: D.Alignment
-
-    @Environment private var environment
 
     fileprivate init(axis: D.Axis, spacing: Double, alignment: [D.Alignment], content: @escaping () -> [D.Geometry]
     ) {
@@ -20,13 +30,28 @@ public struct Stack<D: Dimensionality> {
 }
 
 extension Stack: Geometry {
-    /// Creates a stack of geometries aligned along the specified axis with optional spacing and alignment.
+    /// Initializes a new stack layout along the specified axis.
+    ///
+    /// This initializer creates a stack of geometries with optional spacing between them,
+    /// and alignment relative to the origin on non-stacking axes.
     ///
     /// - Parameters:
-    ///   - axis: The axis along which the geometries are stacked.
-    ///   - spacing: The spacing between stacked geometries. Default is `0`.
-    ///   - alignment: The alignment of the stack. Can be merged from multiple alignment options.
-    ///   - content: A closure generating geometries to stack.
+    ///   - axis: The axis to stack along (`.x`, `.y`, or `.z` depending on dimensionality).
+    ///   - spacing: The spacing in millimeters between items. Defaults to `0`.
+    ///   - alignment: One or more alignment values for the *non-stacking* axes.
+    ///     For example, in a `.z` stack, `.centerX` and `.centerY` will center items in the XY plane.
+    ///   - content: A closure that returns the geometries to be stacked.
+    ///
+    /// ## Example
+    /// ```swift
+    /// Stack(.z, spacing: 2, alignment: .centerX, .minY) {
+    ///     Cylinder(radius: 5, height: 1)
+    ///     Box([10, 10, 3])
+    /// }
+    /// ```
+    ///
+    /// This stacks a cylinder and a box along the Z-axis, centers them along the X-axis,
+    /// and aligns them to the bottom on the Y-axis.
     public init(
         _ axis: D.Axis,
         spacing: Double = 0,
@@ -48,6 +73,7 @@ extension Stack: Geometry {
                     offset += box.size[axis] + spacing
                 }
             }
-        }.build(in: environment, context: context)
-}
+        }
+        .build(in: environment, context: context)
+    }
 }

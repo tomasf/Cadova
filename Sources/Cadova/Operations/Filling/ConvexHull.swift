@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-fileprivate struct HullParameters<D: Dimensionality>: CacheKey {
+internal struct HullParameters<D: Dimensionality>: CacheKey {
     let points: [D.Vector]
 }
 
