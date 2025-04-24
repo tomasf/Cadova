@@ -47,4 +47,15 @@ struct GeometryCacheTests {
         _ = await context.primitive(for: warp2)
         await #expect(context.cache.cachedCount3D == 2)
     }
+
+    @Test func split() async throws {
+        await #expect(context.cache.cachedCount3D == 0)
+
+        let split1 = box.split(along: .init(z: 2).rotated(x: 10°)) { g1, g2 in
+            g1.adding(g2)
+        }
+
+        _ = await context.primitive(for: split1)
+        await #expect(context.cache.cachedCount3D == 6) // box, 2x splits, 2x translated splits, split union
+    }
 }

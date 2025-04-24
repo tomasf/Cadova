@@ -1,6 +1,6 @@
 import Foundation
 
-public struct OpaqueKey: Hashable & Sendable & Codable {
+public struct OpaqueKey: Hashable, Sendable, Codable, CustomDebugStringConvertible {
     private let content: any Hashable & Sendable & Codable
 
     internal init<T: Hashable & Sendable & Codable>(_ item: T) {
@@ -22,6 +22,10 @@ public struct OpaqueKey: Hashable & Sendable & Codable {
             }
         }
         return compare(lhs: left.content, rhs: right.content)
+    }
+
+    public var debugDescription: String {
+        String(describing: content)
     }
 }
 
