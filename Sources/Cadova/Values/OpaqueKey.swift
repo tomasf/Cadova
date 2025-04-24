@@ -37,11 +37,13 @@ extension OpaqueKey {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(_mangledTypeName(type(of: content)), forKey: .type)
+
+        let mangledType = _mangledTypeName(type(of: content))
+        try container.encode(mangledType, forKey: .type)
         try container.encode(content, forKey: .value)
 
-        guard let mangledString = _mangledTypeName(type(of: content)), _typeByName(mangledString) != nil else {
-            logger.error("Encoding a mangled type name that can't be interpreted!")
+        guard let mangledType, _typeByName(mangledType) != nil else {
+            logger.error("Encoding a mangled type name that can't be interpreted: \(mangledType ?? "nil")")
             return
         }
     }
