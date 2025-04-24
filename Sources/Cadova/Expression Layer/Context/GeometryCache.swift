@@ -38,4 +38,9 @@ actor GeometryCache {
     // For testing
     internal var cachedCount2D: Int { cache2D.count }
     internal var cachedCount3D: Int { cache3D.count }
+    internal func printExpressions() {
+        for key in cache3D.keys {
+            print(key.debugDescription)
+        }
+    }
 }

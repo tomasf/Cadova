@@ -25,6 +25,12 @@ public struct Plane: Hashable, Sendable, Codable {
     }
 }
 
+extension Plane: CustomStringConvertible {
+    public var description: String {
+        String(format: "Plane(offset: [%g, %g, %g], normal: [%g, %g, %g])", offset.x, offset.y, offset.z, normal.x, normal.y, normal.z)
+    }
+}
+
 internal extension Plane {
     private var equation: (a: Double, b: Double, c: Double, d: Double) {
         let d = -(normal.x * offset.x + normal.y * offset.y + normal.z * offset.z)
