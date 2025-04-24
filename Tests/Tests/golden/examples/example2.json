@@ -1,159 +1,191 @@
 {
-  "children" : [
+  "parts" : [
     {
-      "crossSection" : {
-        "amount" : -1,
-        "body" : {
-          "amount" : 1,
-          "body" : {
-            "amount" : 1,
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 1,
+          "blue" : 1,
+          "green" : 1,
+          "red" : 1
+        }
+      },
+      "name" : "Model",
+      "type" : "solid"
+    },
+    {
+      "children" : [
+        {
+          "crossSection" : {
+            "amount" : -1,
             "body" : {
-              "amount" : -1,
+              "amount" : 1,
               "body" : {
-                "children" : [
-                  {
-                    "body" : {
-                      "kind" : "shape",
-                      "primitive" : {
-                        "kind" : "circle",
-                        "radius" : 5,
-                        "segmentCount" : 3
+                "amount" : 1,
+                "body" : {
+                  "amount" : -1,
+                  "body" : {
+                    "children" : [
+                      {
+                        "body" : {
+                          "kind" : "shape",
+                          "primitive" : {
+                            "kind" : "circle",
+                            "radius" : 5,
+                            "segmentCount" : 3
+                          }
+                        },
+                        "kind" : "transform",
+                        "transform" : [
+                          [
+                            2,
+                            0,
+                            4
+                          ],
+                          [
+                            0,
+                            1,
+                            0
+                          ],
+                          [
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
+                      },
+                      {
+                        "body" : {
+                          "kind" : "shape",
+                          "primitive" : {
+                            "kind" : "circle",
+                            "radius" : 5,
+                            "segmentCount" : 3
+                          }
+                        },
+                        "kind" : "transform",
+                        "transform" : [
+                          [
+                            0.6180339887498949,
+                            -0.9510565162951535,
+                            1.2360679774997898
+                          ],
+                          [
+                            1.902113032590307,
+                            0.30901699437494745,
+                            3.804226065180614
+                          ],
+                          [
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
+                      },
+                      {
+                        "body" : {
+                          "kind" : "shape",
+                          "primitive" : {
+                            "kind" : "circle",
+                            "radius" : 5,
+                            "segmentCount" : 3
+                          }
+                        },
+                        "kind" : "transform",
+                        "transform" : [
+                          [
+                            -1.6180339887498947,
+                            -0.5877852522924732,
+                            -3.2360679774997894
+                          ],
+                          [
+                            1.1755705045849465,
+                            -0.8090169943749473,
+                            2.351141009169893
+                          ],
+                          [
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
+                      },
+                      {
+                        "body" : {
+                          "kind" : "shape",
+                          "primitive" : {
+                            "kind" : "circle",
+                            "radius" : 5,
+                            "segmentCount" : 3
+                          }
+                        },
+                        "kind" : "transform",
+                        "transform" : [
+                          [
+                            -1.618033988749895,
+                            0.587785252292473,
+                            -3.23606797749979
+                          ],
+                          [
+                            -1.175570504584946,
+                            -0.8090169943749475,
+                            -2.351141009169892
+                          ],
+                          [
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
+                      },
+                      {
+                        "body" : {
+                          "kind" : "shape",
+                          "primitive" : {
+                            "kind" : "circle",
+                            "radius" : 5,
+                            "segmentCount" : 3
+                          }
+                        },
+                        "kind" : "transform",
+                        "transform" : [
+                          [
+                            0.6180339887498945,
+                            0.9510565162951536,
+                            1.236067977499789
+                          ],
+                          [
+                            -1.9021130325903073,
+                            0.30901699437494723,
+                            -3.8042260651806146
+                          ],
+                          [
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
                       }
-                    },
-                    "kind" : "transform",
-                    "transform" : [
-                      [
-                        2,
-                        0,
-                        4
-                      ],
-                      [
-                        0,
-                        1,
-                        0
-                      ],
-                      [
-                        0,
-                        0,
-                        1
-                      ]
-                    ]
+                    ],
+                    "kind" : "boolean",
+                    "type" : "union"
                   },
-                  {
-                    "body" : {
-                      "kind" : "shape",
-                      "primitive" : {
-                        "kind" : "circle",
-                        "radius" : 5,
-                        "segmentCount" : 3
-                      }
-                    },
-                    "kind" : "transform",
-                    "transform" : [
-                      [
-                        0.6180339887498949,
-                        -0.9510565162951535,
-                        1.2360679774997898
-                      ],
-                      [
-                        1.902113032590307,
-                        0.30901699437494745,
-                        3.804226065180614
-                      ],
-                      [
-                        0,
-                        0,
-                        1
-                      ]
-                    ]
+                  "joinStyle" : {
+                    "miter" : {
+
+                    }
                   },
-                  {
-                    "body" : {
-                      "kind" : "shape",
-                      "primitive" : {
-                        "kind" : "circle",
-                        "radius" : 5,
-                        "segmentCount" : 3
-                      }
-                    },
-                    "kind" : "transform",
-                    "transform" : [
-                      [
-                        -1.6180339887498947,
-                        -0.5877852522924732,
-                        -3.2360679774997894
-                      ],
-                      [
-                        1.1755705045849465,
-                        -0.8090169943749473,
-                        2.351141009169893
-                      ],
-                      [
-                        0,
-                        0,
-                        1
-                      ]
-                    ]
-                  },
-                  {
-                    "body" : {
-                      "kind" : "shape",
-                      "primitive" : {
-                        "kind" : "circle",
-                        "radius" : 5,
-                        "segmentCount" : 3
-                      }
-                    },
-                    "kind" : "transform",
-                    "transform" : [
-                      [
-                        -1.618033988749895,
-                        0.587785252292473,
-                        -3.23606797749979
-                      ],
-                      [
-                        -1.175570504584946,
-                        -0.8090169943749475,
-                        -2.351141009169892
-                      ],
-                      [
-                        0,
-                        0,
-                        1
-                      ]
-                    ]
-                  },
-                  {
-                    "body" : {
-                      "kind" : "shape",
-                      "primitive" : {
-                        "kind" : "circle",
-                        "radius" : 5,
-                        "segmentCount" : 3
-                      }
-                    },
-                    "kind" : "transform",
-                    "transform" : [
-                      [
-                        0.6180339887498945,
-                        0.9510565162951536,
-                        1.236067977499789
-                      ],
-                      [
-                        -1.9021130325903073,
-                        0.30901699437494723,
-                        -3.8042260651806146
-                      ],
-                      [
-                        0,
-                        0,
-                        1
-                      ]
-                    ]
+                  "kind" : "offset",
+                  "miterLimit" : 2,
+                  "segmentCount" : 41
+                },
+                "joinStyle" : {
+                  "round" : {
+
                   }
-                ],
-                "kind" : "boolean",
-                "type" : "union"
+                },
+                "kind" : "offset",
+                "miterLimit" : 2,
+                "segmentCount" : 41
               },
               "joinStyle" : {
                 "miter" : {
@@ -173,93 +205,128 @@
             "miterLimit" : 2,
             "segmentCount" : 41
           },
-          "joinStyle" : {
-            "miter" : {
-
+          "kind" : "extrusion",
+          "type" : {
+            "linear" : {
+              "divisions" : 0,
+              "height" : 5,
+              "scaleTop" : {
+                "x" : 1,
+                "y" : 1
+              },
+              "twist" : {
+                "radians" : -0.3490658503988659
+              }
+            }
+          }
+        },
+        {
+          "body" : {
+            "body" : {
+              "kind" : "shape",
+              "primitive" : {
+                "bottomRadius" : 0.5,
+                "height" : 20,
+                "kind" : "cylinder",
+                "segmentCount" : 104,
+                "topRadius" : 2.5
+              }
+            },
+            "kind" : "transform",
+            "transform" : [
+              [
+                1,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0.9396926207859084,
+                -0.34202014332566866,
+                4.273526244851498
+              ],
+              [
+                0,
+                0.34202014332566866,
+                0.9396926207859084,
+                -5.893808058850022
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "key" : {
+            "type" : "6Cadova8MaterialV",
+            "value" : {
+              "baseColor" : {
+                "alpha" : 0,
+                "blue" : 0,
+                "green" : 0,
+                "red" : 0
+              }
             }
           },
-          "kind" : "offset",
-          "miterLimit" : 2,
-          "segmentCount" : 41
-        },
-        "joinStyle" : {
-          "round" : {
-
-          }
-        },
-        "kind" : "offset",
-        "miterLimit" : 2,
-        "segmentCount" : 41
-      },
-      "kind" : "extrusion",
-      "type" : {
-        "linear" : {
-          "divisions" : 0,
-          "height" : 5,
-          "scaleTop" : {
-            "x" : 1,
-            "y" : 1
-          },
-          "twist" : {
-            "radians" : -0.3490658503988659
-          }
+          "kind" : "tag"
         }
-      }
+      ],
+      "kind" : "boolean",
+      "type" : "difference"
+    },
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 0.2,
+          "blue" : 0,
+          "green" : 0,
+          "red" : 1
+        }
+      },
+      "name" : "Highlighted",
+      "type" : "visual"
     },
     {
       "body" : {
-        "body" : {
-          "kind" : "shape",
-          "primitive" : {
-            "bottomRadius" : 0.5,
-            "height" : 20,
-            "kind" : "cylinder",
-            "segmentCount" : 104,
-            "topRadius" : 2.5
-          }
-        },
-        "kind" : "transform",
-        "transform" : [
-          [
-            1,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0.9396926207859084,
-            -0.34202014332566866,
-            4.273526244851498
-          ],
-          [
-            0,
-            0.34202014332566866,
-            0.9396926207859084,
-            -5.893808058850022
-          ],
-          [
-            0,
-            0,
-            0,
-            1
-          ]
-        ]
-      },
-      "key" : {
-        "type" : "6Cadova8MaterialV",
-        "value" : {
-          "baseColor" : {
-            "alpha" : 0,
-            "blue" : 0,
-            "green" : 0,
-            "red" : 0
-          }
+        "kind" : "shape",
+        "primitive" : {
+          "bottomRadius" : 0.5,
+          "height" : 20,
+          "kind" : "cylinder",
+          "segmentCount" : 104,
+          "topRadius" : 2.5
         }
       },
-      "kind" : "tag"
+      "kind" : "transform",
+      "transform" : [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0.9396926207859084,
+          -0.34202014332566866,
+          4.273526244851498
+        ],
+        [
+          0,
+          0.34202014332566866,
+          0.9396926207859084,
+          -5.893808058850022
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
     }
-  ],
-  "kind" : "boolean",
-  "type" : "difference"
+  ]
 }

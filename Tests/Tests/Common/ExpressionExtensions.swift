@@ -11,21 +11,6 @@ extension URL {
     }
 }
 
-extension GeometryExpression {
-    init(goldenFile fileName: String) throws {
-        let data = try Data(contentsOf: URL(goldenFileNamed: fileName, extension: "json"))
-        self = try JSONDecoder().decode(Self.self, from: data)
-    }
-
-    var jsonData: Data {
-        get throws {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-            return try encoder.encode(self)
-        }
-    }
-}
-
 extension EvaluationContext {
     func primitive<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues = .defaultEnvironment) async -> D.Primitive {
         await self.geometry(for: geometry.build(in: environment, context: self).expression)
