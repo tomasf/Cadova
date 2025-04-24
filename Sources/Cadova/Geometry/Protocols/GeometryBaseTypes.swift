@@ -118,9 +118,9 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
         let bodyResult = await body.build(in: environment, context: context)
         let combinedKeys = keys.map { CacheKey(body: bodyResult.expression, parameters: $0) }
 
-        let cachedRawExpressions = await combinedKeys.asyncMap { cacheKey in
+        let cachedRawExpressions = await combinedKeys.asyncCompactMap { cacheKey in
             await context.cachedRawGeometry(for: bodyResult.expression, key: cacheKey) as D.Expression?
-        }.compactMap { $0 }
+        }
         let wasFoundInCache = (cachedRawExpressions.count == combinedKeys.count)
 
         if wasFoundInCache {
@@ -138,8 +138,8 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
             let primitives = generator(bodyPrimitive)
             precondition(primitives.count == combinedKeys.count, "Generated primitive count must match key count")
 
-            let geometries = zip(primitives, combinedKeys).map { primitive, cacheKey in
-                let expression = D.Expression.raw(primitive, source: bodyResult.expression, cacheKey: .init(cacheKey))
+            let geometries = await Array(zip(primitives, combinedKeys)).asyncMap { primitive, cacheKey in
+                let expression = await context.storeRawGeometry(primitive, for: bodyResult.expression, key: cacheKey)
                 return ResultGeometry(result: bodyResult.replacing(expression: expression)) as D.Geometry
             }
 
