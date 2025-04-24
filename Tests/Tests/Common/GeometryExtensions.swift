@@ -55,6 +55,13 @@ extension Geometry {
         }
     }
 
+    func readingSeparatedParts(_ reader: @Sendable @escaping ([D.Geometry]) -> Void) -> D.Geometry {
+        separated { components in
+            reader(components)
+            return self
+        }
+    }
+
     func expectEquals(goldenFile name: String) async throws {
         if let types = TestGeneratedOutputType.fromEnvironment {
             try await writeOutputFiles(name, types: types)

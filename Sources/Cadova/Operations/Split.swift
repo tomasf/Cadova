@@ -69,3 +69,35 @@ public extension Geometry3D {
         split(with: mask(), reader: reader)
     }
 }
+
+public extension Geometry {
+    /// Splits the geometry into its disconnected components and passes them to a reader closure.
+    ///
+    /// This method identifies and extracts all topologically disconnected parts of the geometry,
+    /// such as individual shells or pieces that do not touch each other. The resulting components
+    /// are passed to a closure, allowing you to process, rearrange, or visualize them as desired.
+    ///
+    /// - Parameter reader: A closure that takes the array of separated components and returns a new geometry.
+    /// - Returns: A new geometry built from the components returned by the `reader` closure.
+    ///
+    /// ## Example
+    /// ```swift
+    /// model.separated { components in
+    ///     Stack(.x, spacing: 1) {
+    ///         for component in components {
+    ///             component
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// In this example, each disconnected part of the model is extracted and displayed side-by-side
+    /// along the X axis with a spacing of 1 mm.
+    func separated(@GeometryBuilder<D> reader: @Sendable @escaping (_ components: [D.Geometry]) -> D.Geometry) -> D.Geometry {
+        CachingPrimitiveArrayTransformer(body: self, key: "separated") {
+            $0.decompose()
+        } resultHandler: {
+            reader($0)
+        }
+    }
+}
