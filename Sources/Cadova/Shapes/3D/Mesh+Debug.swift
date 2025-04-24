@@ -14,8 +14,8 @@ public extension Mesh {
     /// - Returns: A composite geometry consisting of extruded versions of each face in the mesh.
     @GeometryBuilder3D
     func visualizedForDebugging() -> any Geometry3D {
-        for face in faces {
-            visualizeFace(face.map { vertices[$0] })
+        for face in meshData.faces {
+            visualizeFace(face.map { meshData.vertices[$0] })
         }
     }
 

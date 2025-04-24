@@ -12,4 +12,3 @@ internal let logger: Logger = {
     }
     return Logger(label: "se.tomasf.Cadova")
 }()
-
