@@ -38,12 +38,12 @@ internal struct PartCatalog: ResultElement {
     }
 }
 
-public enum PartType: Hashable, Sendable {
+public enum PartType: String, Hashable, Sendable, Codable {
     case solid
     case visual
 }
 
-internal struct PartIdentifier: Hashable, Sendable {
+internal struct PartIdentifier: Hashable, Sendable, Codable {
     let name: String
     let type: PartType
     let defaultMaterial: Material

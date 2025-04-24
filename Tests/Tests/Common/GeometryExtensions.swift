@@ -2,6 +2,16 @@ import Testing
 import Foundation
 @testable import Cadova
 
+enum TestGeneratedOutputType: String, Hashable {
+    case expression, model
+
+    static var fromEnvironment: Set<Self>? {
+        let strings = ProcessInfo.processInfo.environment["CADOVA_TESTS_OUTPUT_TYPES"]?.split(separator: ",") ?? []
+        let values = strings.compactMap { TestGeneratedOutputType(rawValue: String($0)) }
+        return values.isEmpty ? nil : Set(values)
+    }
+}
+
 extension Geometry {
     var expression: D.Expression {
         get async {
@@ -29,33 +39,37 @@ extension Geometry {
         }
     }
 
-    func writeGoldenFile(_ name: String) async throws {
+    func writeOutputFiles(_ name: String, types: Set<TestGeneratedOutputType>) async throws {
         let context = EvaluationContext()
         let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
 
         let goldenRoot = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appending(path: "golden")
-        let goldenURL = goldenRoot.appending(component: name).appendingPathExtension("json")
-        try result.expression.jsonData.write(to: goldenURL)
-
-        let verificationURL = goldenRoot.appending(component: name).appendingPathExtension("3mf")
-        let provider = ThreeMFDataProvider(result: result.for3MFVerification)
-        try await provider.writeOutput(to: verificationURL, context: context)
+        if types.contains(.expression) {
+            let goldenURL = goldenRoot.appending(component: name).appendingPathExtension("json")
+            try GoldenRecord(result: result).write(to: goldenURL)
+        }
+        if types.contains(.model) {
+            let verificationURL = goldenRoot.appending(component: name).appendingPathExtension("3mf")
+            let provider = ThreeMFDataProvider(result: result.for3MFVerification)
+            try await provider.writeOutput(to: verificationURL, context: context)
+        }
     }
 
     func expectEquals(goldenFile name: String) async throws {
-        if ProcessInfo.processInfo.environment["CADOVA_TESTS_GENERATE_OUTPUT"] == "1" {
-            try await writeGoldenFile(name)
+        if let types = TestGeneratedOutputType.fromEnvironment {
+            try await writeOutputFiles(name, types: types)
             return
         }
 
-        let computedExpression = await expression
-        let goldenExpression = try D.Expression(goldenFile: name)
+        let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: .init())
+        let computedGoldenRecord = GoldenRecord(result: result)
+        let goldenRecord = try GoldenRecord<D>(url: URL(goldenFileNamed: name, extension: "json"))
 
-        #expect(await expression == goldenExpression)
+        #expect(computedGoldenRecord == goldenRecord)
 
-        if computedExpression != goldenExpression {
-            logger.error("Expected: \(goldenExpression.debugDescription)")
-            logger.error("Got: \(computedExpression.debugDescription)")
+        if computedGoldenRecord != goldenRecord {
+            logger.error("Expected: \(goldenRecord)")
+            logger.error("Got: \(computedGoldenRecord)")
         }
     }
 }
