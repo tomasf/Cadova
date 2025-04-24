@@ -25,3 +25,9 @@ extension GeometryExpression {
         }
     }
 }
+
+extension EvaluationContext {
+    func primitive<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues = .defaultEnvironment) async -> D.Primitive {
+        await self.geometry(for: geometry.build(in: environment, context: self).expression)
+    }
+}

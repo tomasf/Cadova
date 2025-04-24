@@ -37,6 +37,22 @@ extension EvaluationContext {
         }
     }
 
+    func storeRawGeometry<E: GeometryExpression, Key: CacheKey>(_ geometry: E.D.Primitive, for source: E?, key: Key) async -> E {
+        let wrappedKey = OpaqueKey(key)
+        let expression = E.raw(geometry, source: source, cacheKey: wrappedKey)
+
+        if let expression = expression as? GeometryExpression2D {
+            _ = await cache.geometry(for: expression, in: self)
+
+        } else if let expression = expression as? GeometryExpression3D {
+            _ = await cache.geometry(for: expression, in: self)
+
+        } else {
+            preconditionFailure("Unknown geometry type")
+        }
+        return expression
+    }
+
     func geometry<Expression: GeometryExpression>(for expression: Expression) async -> Expression.D.Primitive {
         if let expression = expression as? GeometryExpression2D {
             return await cache.geometry(for: expression, in: self) as! Expression.D.Primitive
