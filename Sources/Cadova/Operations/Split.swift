@@ -1,12 +1,13 @@
 import Foundation
 import Manifold3D
 
-fileprivate struct PlaneSplitPartParameters: CacheKey {
+// Don't make CacheKeys fileprivate; type demangling won't work
+internal struct PlaneSplitPartParameters: CacheKey {
     let plane: Plane
     let isFirst: Bool
 }
 
-fileprivate struct MaskSplitPartParameters: CacheKey {
+internal struct MaskSplitPartParameters: CacheKey {
     let mask: GeometryExpression3D
     let isFirst: Bool
 }
