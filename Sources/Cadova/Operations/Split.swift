@@ -2,14 +2,12 @@ import Foundation
 import Manifold3D
 
 // Don't make CacheKeys fileprivate; type demangling won't work
-internal struct PlaneSplitPartParameters: CacheKey {
+internal struct PlaneSplitParameters: CacheKey {
     let plane: Plane
-    let isFirst: Bool
 }
 
-internal struct MaskSplitPartParameters: CacheKey {
+internal struct MaskSplitParameters: CacheKey {
     let mask: GeometryExpression3D
-    let isFirst: Bool
 }
 
 public extension Geometry3D {
@@ -19,12 +17,7 @@ public extension Geometry3D {
         along plane: Plane,
         @GeometryBuilder3D reader: @Sendable @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        let keys = [
-            PlaneSplitPartParameters(plane: plane, isFirst: true),
-            PlaneSplitPartParameters(plane: plane, isFirst: false)
-        ]
-
-        return CachingPrimitiveArrayTransformer(body: self, keys: keys) { input in
+        CachingPrimitiveArrayTransformer(body: self, key: PlaneSplitParameters(plane: plane)) { input in
             let (a, b) = input.split(by: plane.normal.unitVector, originOffset: 0)
             return [a, b]
         } resultHandler: { geometries in
@@ -59,12 +52,7 @@ public extension Geometry3D {
         @GeometryBuilder3D reader: @Sendable @escaping (any Geometry3D, any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
         mask.readingPrimitive { maskPrimitive, maskExpression in
-            let keys = [
-                MaskSplitPartParameters(mask: maskExpression, isFirst: true),
-                MaskSplitPartParameters(mask: maskExpression, isFirst: false)
-            ]
-
-            return CachingPrimitiveArrayTransformer(body: self, keys: keys) { input in
+            CachingPrimitiveArrayTransformer(body: self, key: MaskSplitParameters(mask: maskExpression)) { input in
                 let (a, b) = input.split(by: maskPrimitive)
                 return [a, b]
             } resultHandler: { geometries in

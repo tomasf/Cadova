@@ -18,23 +18,25 @@
           "body" : {
             "body" : {
               "cacheKey" : {
-                "type" : "6Cadova24PlaneSplitPartParametersV",
+                "type" : "6Cadova15IndexedCacheKeyVyAA20PlaneSplitParametersVG",
                 "value" : {
-                  "isFirst" : true,
-                  "plane" : {
-                    "normal" : {
-                      "unitVector" : {
+                  "base" : {
+                    "plane" : {
+                      "normal" : {
+                        "unitVector" : {
+                          "x" : 0,
+                          "y" : -0.3420201433256687,
+                          "z" : 0.9396926207859084
+                        }
+                      },
+                      "offset" : {
                         "x" : 0,
-                        "y" : -0.3420201433256687,
-                        "z" : 0.9396926207859084
+                        "y" : 0,
+                        "z" : 0
                       }
-                    },
-                    "offset" : {
-                      "x" : 0,
-                      "y" : 0,
-                      "z" : 0
                     }
-                  }
+                  },
+                  "index" : 0
                 }
               },
               "kind" : "raw",
@@ -245,23 +247,25 @@
           "body" : {
             "body" : {
               "cacheKey" : {
-                "type" : "6Cadova24PlaneSplitPartParametersV",
+                "type" : "6Cadova15IndexedCacheKeyVyAA20PlaneSplitParametersVG",
                 "value" : {
-                  "isFirst" : false,
-                  "plane" : {
-                    "normal" : {
-                      "unitVector" : {
+                  "base" : {
+                    "plane" : {
+                      "normal" : {
+                        "unitVector" : {
+                          "x" : 0,
+                          "y" : -0.3420201433256687,
+                          "z" : 0.9396926207859084
+                        }
+                      },
+                      "offset" : {
                         "x" : 0,
-                        "y" : -0.3420201433256687,
-                        "z" : 0.9396926207859084
+                        "y" : 0,
+                        "z" : 0
                       }
-                    },
-                    "offset" : {
-                      "x" : 0,
-                      "y" : 0,
-                      "z" : 0
                     }
-                  }
+                  },
+                  "index" : 1
                 }
               },
               "kind" : "raw",
