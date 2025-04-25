@@ -71,13 +71,13 @@ struct BooleanGeometry<D: Dimensionality>: Geometry {
 
 struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
     let key: Key
-    let primitive: D.Primitive
+    let generator: @Sendable () -> D.Primitive
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
         if let cachedRawExpression: D.Expression = await context.cachedRawGeometry(for: nil, key: key) {
             return D.Result(cachedRawExpression)
         } else {
-            return D.Result(.raw(primitive, source: nil, cacheKey: OpaqueKey(key)))
+            return D.Result(.raw(generator(), source: nil, cacheKey: OpaqueKey(key)))
         }
     }
 }

@@ -52,11 +52,13 @@ public struct LevelSet: CompositeGeometry {
     }
 
     public var body: D3.Geometry {
-        CachingPrimitive(key: cacheKey, primitive: .levelSet(
-            bounds: bounds.primitive,
-            edgeLength: edgeLength,
-            level: level,
-            tolerance: tolerance ?? -1
-        ){ function($0.vector3D) })
+        CachingPrimitive(key: cacheKey) {
+            .levelSet(
+                bounds: bounds.primitive,
+                edgeLength: edgeLength,
+                level: level,
+                tolerance: tolerance ?? -1
+            ){ function($0.vector3D) }
+        }
     }
 }
