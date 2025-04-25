@@ -69,6 +69,27 @@ struct BooleanGeometry<D: Dimensionality>: Geometry {
     }
 }
 
+struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey>: Geometry {
+    let key: Key
+    let generator: @Sendable () -> D.Geometry
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
+        if let cachedRawExpression: D.Expression = await context.cachedRawGeometry(key: key) {
+            let resultElements = await context.resultElements(for: key) ?? [:]
+            return D.Result(expression: cachedRawExpression, elements: resultElements)
+        } else {
+            let results = await generator().build(in: environment, context: context)
+            let primitive = await context.geometry(for: results.expression)
+            await context.setResultElements(results.elements, for: key)
+
+            return await D.Result(
+                expression: context.storeRawGeometry(primitive, key: key),
+                elements: results.elements
+            )
+        }
+    }
+}
+
 struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
     let key: Key
     let generator: @Sendable () -> D.Primitive
@@ -77,7 +98,7 @@ struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
         if let cachedRawExpression: D.Expression = await context.cachedRawGeometry(key: key) {
             return D.Result(cachedRawExpression)
         } else {
-            return D.Result(.raw(generator(), cacheKey: OpaqueKey(key)))
+            return await D.Result(context.storeRawGeometry(generator(), key: key))
         }
     }
 }

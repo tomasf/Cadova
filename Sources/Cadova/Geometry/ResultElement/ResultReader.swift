@@ -2,7 +2,7 @@ import Foundation
 
 internal struct ResultReader<Input: Dimensionality, Output: Dimensionality>: Geometry {
     let body: Input.Geometry
-    let generator: @Sendable (ResultElementsByType) -> Output.Geometry
+    let generator: @Sendable (ResultElements) -> Output.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> Output.Result {
         let bodyResult = await body.build(in: environment, context: context)

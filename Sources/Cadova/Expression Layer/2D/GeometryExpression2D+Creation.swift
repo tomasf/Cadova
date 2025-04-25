@@ -54,7 +54,6 @@ public extension GeometryExpression2D {
     }
 
     static func raw(_ body: Manifold3D.CrossSection, cacheKey: OpaqueKey) -> GeometryExpression2D {
-        guard body.isEmpty == false else { return .empty }
         return Self(.raw(body, cacheKey: cacheKey))
     }
 

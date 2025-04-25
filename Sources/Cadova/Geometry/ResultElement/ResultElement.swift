@@ -11,9 +11,9 @@ internal extension ResultElement {
     }
 }
 
-internal typealias ResultElementsByType = [ObjectIdentifier: any ResultElement]
+internal typealias ResultElements = [ObjectIdentifier: any ResultElement]
 
-internal extension ResultElementsByType {
+internal extension ResultElements {
     init(combining elements: [Self]) {
         self = elements.reduce(into: [ObjectIdentifier: [any ResultElement]]()) {
             for (key, value) in $1 {

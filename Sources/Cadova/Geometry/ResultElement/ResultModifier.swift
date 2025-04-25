@@ -2,7 +2,7 @@ import Foundation
 
 struct ResultModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
-    let modifier: @Sendable (ResultElementsByType) -> ResultElementsByType
+    let modifier: @Sendable (ResultElements) -> ResultElements
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
         let bodyResult = await body.build(in: environment, context: context)
