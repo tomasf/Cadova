@@ -73,3 +73,51 @@ public func readEnvironment<D: Dimensionality, T, U, V>(
         body($0[keyPath: keyPath1], $0[keyPath: keyPath2], $0[keyPath: keyPath3])
     }
 }
+
+extension Geometry {
+    /// Modifies this geometry by reading the current environment values.
+    ///
+    /// Use this modifier when you want to adjust an existing geometry in response to the environment.
+    /// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a modified version of this geometry.
+    /// - Returns: A new geometry modified according to the environment.
+    public func readingEnvironment(
+        @GeometryBuilder<D> _ body: @Sendable @escaping (D.Geometry, EnvironmentValues) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment { env in
+            body(self, env)
+        }
+    }
+
+    /// Modifies this geometry by reading one specific environment value.
+    public func readingEnvironment<T>(
+        _ keyPath: KeyPath<EnvironmentValues, T>,
+        @GeometryBuilder<D> _ body: @Sendable @escaping (D.Geometry, T) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment(keyPath) { value in
+            body(self, value)
+        }
+    }
+
+    /// Modifies this geometry by reading two specific environment values.
+    public func readingEnvironment<T, U>(
+        _ keyPath1: KeyPath<EnvironmentValues, T>,
+        _ keyPath2: KeyPath<EnvironmentValues, U>,
+        @GeometryBuilder<D> _ body: @Sendable @escaping (D.Geometry, T, U) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment(keyPath1, keyPath2) { v1, v2 in
+            body(self, v1, v2)
+        }
+    }
+
+    /// Modifies this geometry by reading three specific environment values.
+    public func readingEnvironment<T, U, V>(
+        _ keyPath1: KeyPath<EnvironmentValues, T>,
+        _ keyPath2: KeyPath<EnvironmentValues, U>,
+        _ keyPath3: KeyPath<EnvironmentValues, V>,
+        @GeometryBuilder<D> _ body: @Sendable @escaping (D.Geometry, T, U, V) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment(keyPath1, keyPath2, keyPath3) { v1, v2, v3 in
+            body(self, v1, v2, v3)
+        }
+    }
+}
