@@ -53,9 +53,9 @@ public extension GeometryExpression3D {
         return Self(.transform(body, transform: transform))
     }
 
-    static func raw(_ body: Manifold3D.Manifold, source: GeometryExpression3D?, cacheKey: OpaqueKey) -> GeometryExpression3D {
+    static func raw(_ body: Manifold3D.Manifold, cacheKey: OpaqueKey) -> GeometryExpression3D {
         guard body.isEmpty == false else { return .empty }
-        return Self(.raw(body, source: source, cacheKey: cacheKey))
+        return Self(.raw(body, cacheKey: cacheKey))
     }
 
     static func extrusion(_ body: GeometryExpression2D, type: Extrusion) -> GeometryExpression3D {

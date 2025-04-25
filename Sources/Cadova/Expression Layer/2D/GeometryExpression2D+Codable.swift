@@ -56,10 +56,9 @@ extension GeometryExpression2D: Codable {
             try container.encode(body, forKey: .body)
             try container.encode(type, forKey: .type)
 
-        case .raw(let crossSection, let source, let cacheKey):
+        case .raw(let crossSection, let cacheKey):
             try container.encode(Kind.raw, forKey: .kind)
             try container.encode(crossSection.polygons(), forKey: .crossSection)
-            try container.encode(source, forKey: .source)
             try container.encode(cacheKey, forKey: .cacheKey)
         }
     }
@@ -98,10 +97,9 @@ extension GeometryExpression2D: Codable {
             self.init(.projection(body, type: type))
         case .raw:
             let polygons = try container.decode([Manifold3D.Polygon].self, forKey: .crossSection)
-            let source = try container.decode(GeometryExpression2D.self, forKey: .source)
             let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
             self.init(.raw(
-                CrossSection(polygons: polygons, fillRule: .nonZero), source: source, cacheKey: cacheKey
+                CrossSection(polygons: polygons, fillRule: .nonZero), cacheKey: cacheKey
             ))
         }
     }
