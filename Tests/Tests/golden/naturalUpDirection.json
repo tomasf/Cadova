@@ -1,0 +1,926 @@
+{
+  "parts" : [
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 1,
+          "blue" : 1,
+          "green" : 1,
+          "red" : 1
+        }
+      },
+      "name" : "Model",
+      "type" : "solid"
+    },
+    {
+      "children" : [
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 0.5,
+                    "height" : 5,
+                    "kind" : "cylinder",
+                    "segmentCount" : 20,
+                    "topRadius" : 0.5
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 1,
+                    "height" : 2,
+                    "kind" : "cylinder",
+                    "segmentCount" : 41,
+                    "topRadius" : 0
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.001467099408129724
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    5
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              7
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 0.5,
+                    "height" : 5,
+                    "kind" : "cylinder",
+                    "segmentCount" : 20,
+                    "topRadius" : 0.5
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 1,
+                    "height" : 2,
+                    "kind" : "cylinder",
+                    "segmentCount" : 41,
+                    "topRadius" : 0
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.001467099408129724
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    5
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0.9999999999999999,
+              -4.47411937370028e-16,
+              -4.949747468305833
+            ],
+            [
+              0,
+              4.677050100851671e-16,
+              1,
+              4.949747468305832
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 0.5,
+                    "height" : 5,
+                    "kind" : "cylinder",
+                    "segmentCount" : 20,
+                    "topRadius" : 0.5
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 1,
+                    "height" : 2,
+                    "kind" : "cylinder",
+                    "segmentCount" : 41,
+                    "topRadius" : 0
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.001467099408129724
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    5
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              1.6081226496766364e-16,
+              -7
+            ],
+            [
+              0,
+              -1.6081226496766364e-16,
+              1,
+              1.5543122344752192e-15
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 0.5,
+                    "height" : 5,
+                    "kind" : "cylinder",
+                    "segmentCount" : 20,
+                    "topRadius" : 0.5
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 1,
+                    "height" : 2,
+                    "kind" : "cylinder",
+                    "segmentCount" : 41,
+                    "topRadius" : 0
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.001467099408129724
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    5
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              0.9999999999999999,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              -3.892003871509784e-16,
+              -4.949747468305834
+            ],
+            [
+              0,
+              3.919007861387702e-16,
+              1,
+              -4.949747468305832
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 0.5,
+                    "height" : 5,
+                    "kind" : "cylinder",
+                    "segmentCount" : 20,
+                    "topRadius" : 0.5
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 1,
+                    "height" : 2,
+                    "kind" : "cylinder",
+                    "segmentCount" : 41,
+                    "topRadius" : 0
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.001467099408129724
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    5
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              -8.572527594031472e-16
+            ],
+            [
+              0,
+              0,
+              1,
+              -7
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 0.5,
+                    "height" : 5,
+                    "kind" : "cylinder",
+                    "segmentCount" : 20,
+                    "topRadius" : 0.5
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 1,
+                    "height" : 2,
+                    "kind" : "cylinder",
+                    "segmentCount" : 41,
+                    "topRadius" : 0
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.001467099408129724
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    5
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0.9999999999999999,
+              -3.6890731443583927e-16,
+              4.949747468305832
+            ],
+            [
+              0,
+              3.566827076226514e-16,
+              0.9999999999999999,
+              -4.949747468305832
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 0.5,
+                    "height" : 5,
+                    "kind" : "cylinder",
+                    "segmentCount" : 20,
+                    "topRadius" : 0.5
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 1,
+                    "height" : 2,
+                    "kind" : "cylinder",
+                    "segmentCount" : 41,
+                    "topRadius" : 0
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.001467099408129724
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    5
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              2.83276944882399e-16,
+              7
+            ],
+            [
+              0,
+              -2.83276944882399e-16,
+              1,
+              -1.5543122344752192e-15
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 0.5,
+                    "height" : 5,
+                    "kind" : "cylinder",
+                    "segmentCount" : 20,
+                    "topRadius" : 0.5
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape",
+                  "primitive" : {
+                    "bottomRadius" : 1,
+                    "height" : 2,
+                    "kind" : "cylinder",
+                    "segmentCount" : 41,
+                    "topRadius" : 0
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.001467099408129724
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    5
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              -2.781780846884627e-16,
+              4.949747468305834
+            ],
+            [
+              0,
+              3.133961632045814e-16,
+              0.9999999999999999,
+              4.949747468305832
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        }
+      ],
+      "kind" : "boolean",
+      "type" : "union"
+    }
+  ]
+}
