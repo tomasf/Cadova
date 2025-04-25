@@ -2,10 +2,10 @@ import Foundation
 import Manifold3D
 
 public struct EvaluationContext: Sendable {
-    internal let cache2D: GeometryCache<D2> = .init()
-    internal let cache3D: GeometryCache<D3> = .init()
-    internal let taggedGeometry: TaggedGeometryRegistry = .init()
-
+    internal let cache2D = GeometryCache<D2>()
+    internal let cache3D = GeometryCache<D3>()
+    internal let taggedGeometry = TaggedGeometryRegistry()
+    internal let resultElementCache = ResultElementCache()
     internal init() {}
 }
 
@@ -42,6 +42,7 @@ internal extension EvaluationContext {
         } else {
             preconditionFailure("Unknown geometry type")
         }
+
         return expression
     }
 
@@ -57,5 +58,13 @@ internal extension EvaluationContext {
 
     func geometries<E: GeometryExpression>(for expressions: [E]) async -> [E.D.Primitive] {
         await expressions.asyncMap { await self.geometry(for: $0) }
+    }
+
+    func resultElements(for cacheKey: any CacheKey) async -> ResultElements? {
+        await resultElementCache.entries[OpaqueKey(cacheKey)]
+    }
+
+    func setResultElements(_ elements: ResultElements?, for cacheKey: any CacheKey) async {
+        await resultElementCache.setResultElements(elements, for: .init(cacheKey))
     }
 }

@@ -54,7 +54,6 @@ public extension GeometryExpression3D {
     }
 
     static func raw(_ body: Manifold3D.Manifold, cacheKey: OpaqueKey) -> GeometryExpression3D {
-        guard body.isEmpty == false else { return .empty }
         return Self(.raw(body, cacheKey: cacheKey))
     }
 

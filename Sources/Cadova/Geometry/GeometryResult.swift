@@ -3,9 +3,9 @@ import Manifold3D
 
 public struct GeometryResult<D: Dimensionality>: Sendable {
     internal let expression: D.Expression
-    internal let elements: ResultElementsByType
+    internal let elements: ResultElements
 
-    internal init(expression: D.Expression, elements: ResultElementsByType) {
+    internal init(expression: D.Expression, elements: ResultElements) {
         self.expression = expression
         self.elements = elements
     }
@@ -28,7 +28,7 @@ internal extension GeometryResult {
         .init(expression: expression, elements: elements)
     }
 
-    func replacing(elements: ResultElementsByType) -> Self {
+    func replacing(elements: ResultElements) -> Self {
         .init(expression: expression, elements: elements)
     }
 

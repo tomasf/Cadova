@@ -58,4 +58,61 @@ struct GeometryCacheTests {
         _ = await context.primitive(for: split1)
         await #expect(context.cache3D.count == 6) // box, 2x splits, 2x translated splits, split union
     }
+
+    @Test func raw() async throws {
+        let cacheKey = 12
+
+        await #expect(context.cachedRawGeometry(key: cacheKey) as D3.Expression? == nil)
+        _ = await context.storeRawGeometry(.sphere(radius: 1, segmentCount: 10), key: cacheKey) as D3.Expression
+        await #expect(context.cachedRawGeometry(key: cacheKey) as D3.Expression? != nil)
+    }
+
+    @Test func boxed() async throws {
+        let counter = AsyncCounter()
+
+        // Plain geometry
+        let g = CallbackGeometry {
+            await counter.increment()
+        }
+        await g.triggerEvaluation()
+        await #expect(counter.value == 1)
+
+        // Measuring evaluates twice
+        await counter.reset()
+        let measuredG = g.measuring { input, _ in
+            input
+        }
+        await measuredG.triggerEvaluation()
+        await #expect(counter.value == 2)
+
+        // Boxing caches evaluation
+        await counter.reset()
+        let boxedG = g.cached(as: "test", parameters: 1)
+        let measuredBoxedG = boxedG.measuring { input, _ in
+            input
+        }
+        await measuredBoxedG.triggerEvaluation()
+        await #expect(counter.value == 1)
+    }
+}
+
+fileprivate struct CallbackGeometry: Geometry {
+    typealias D = D3
+
+    let callback: @Sendable () async -> ()
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D3.Result {
+        await callback()
+        return .init(.empty)
+    }
+}
+
+actor AsyncCounter {
+    var value = 0
+    func increment() async {
+        value += 1
+    }
+    func reset() async {
+        value = 0
+    }
 }
