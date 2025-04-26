@@ -53,7 +53,7 @@ public extension GeometryExpression2D {
         return Self(.transform(body, transform: transform))
     }
 
-    static func raw(_ body: Manifold3D.CrossSection, cacheKey: OpaqueKey) -> GeometryExpression2D {
+    static func raw(_ body: CrossSection, cacheKey: OpaqueKey) -> GeometryExpression2D {
         return Self(.raw(body, cacheKey: cacheKey))
     }
 

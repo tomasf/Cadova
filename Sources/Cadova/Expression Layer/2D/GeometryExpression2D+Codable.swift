@@ -96,7 +96,7 @@ extension GeometryExpression2D: Codable {
             let type = try container.decode(Projection.self, forKey: .type)
             self.init(.projection(body, type: type))
         case .raw:
-            let polygons = try container.decode([Manifold3D.Polygon].self, forKey: .crossSection)
+            let polygons = try container.decode([ManifoldPolygon].self, forKey: .crossSection)
             let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
             self.init(.raw(
                 CrossSection(polygons: polygons, fillRule: .nonZero), cacheKey: cacheKey

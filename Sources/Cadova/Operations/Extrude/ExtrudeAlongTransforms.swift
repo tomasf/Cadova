@@ -8,7 +8,7 @@ fileprivate struct Vertex: Hashable {
 }
 
 internal extension Mesh {
-    init(extruding polygons: [Manifold3D.Polygon], along path: [AffineTransform3D], environment: EnvironmentValues) {
+    init(extruding polygons: [ManifoldPolygon], along path: [AffineTransform3D], environment: EnvironmentValues) {
         let sideFaces = polygons.map { $0.vertices.map(Vector2D.init) }.enumerated().flatMap { polygonIndex, points in
             let pointCount = points.count
             return path.indices.paired().flatMap { fromStep, toStep in
@@ -21,7 +21,7 @@ internal extension Mesh {
             }
         }
 
-        let triangles = triangulate(polygons: polygons, epsilon: 1e-6)
+        let triangles = ManifoldPolygon.triangulate(polygons, epsilon: 1e-6)
 
         let startFaces = triangles.map {
             let v1 = polygons.vertex(index: $0.a, pathStep: 0)
@@ -45,7 +45,7 @@ internal extension Mesh {
     }
 }
 
-fileprivate extension [Manifold3D.Polygon] {
+fileprivate extension [ManifoldPolygon] {
     func vertex(index: Int, pathStep: Int) -> Vertex {
         let pair = locateIndex(index)
         return Vertex(step: pathStep, polygonIndex: pair.polygonIndex, pointIndex: pair.vertexIndex)

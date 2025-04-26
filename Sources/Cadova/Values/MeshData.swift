@@ -23,7 +23,7 @@ public struct MeshData: Sendable, Hashable, Codable {
         return faces.flatMap { face in
             guard face.count > 3 else { return [face] }
             let flat = Manifold3D.Polygon(vertices: face.map { vertices[$0] }.flattenCoplanar())
-            return triangulate(polygons: [flat], epsilon: 1e-6).map {
+            return flat.triangulate(epsilon: 1e-6).map {
                 [face[$0.a], face[$0.b], face[$0.c]]
             }
         }

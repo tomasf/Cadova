@@ -1,15 +1,6 @@
 import Foundation
 import Manifold3D
 
-// Don't make CacheKeys fileprivate; type demangling won't work
-internal struct PlaneSplitParameters: CacheKey {
-    let plane: Plane
-}
-
-internal struct MaskSplitParameters: CacheKey {
-    let mask: GeometryExpression3D
-}
-
 public extension Geometry3D {
     /// Splits the geometry into two parts along the specified plane.
     ///
@@ -35,7 +26,7 @@ public extension Geometry3D {
         along plane: Plane,
         @GeometryBuilder3D reader: @Sendable @escaping (_ over: any Geometry3D, _ under: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        CachingPrimitiveArrayTransformer(body: self, key: PlaneSplitParameters(plane: plane)) { input in
+        CachingPrimitiveArrayTransformer(body: self, name: "Cadova.SplitAlongPlane", parameters: plane) { input in
             let (a, b) = input.split(by: plane.normal.unitVector, originOffset: 0)
             return [a, b]
         } resultHandler: { geometries in
@@ -100,9 +91,9 @@ public extension Geometry3D {
         @GeometryBuilder3D with mask: @escaping () -> any Geometry3D,
         @GeometryBuilder3D result: @Sendable @escaping (_ inside: any Geometry3D, _ outside: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        mask().readingPrimitive { maskPrimitive, maskExpression in
-            CachingPrimitiveArrayTransformer(body: self, key: MaskSplitParameters(mask: maskExpression)) { input in
-                let (a, b) = input.split(by: maskPrimitive)
+        mask().readingPrimitive { primitive, expression in
+            CachingPrimitiveArrayTransformer(body: self, name: "Cadova.SplitWithMask", parameters: expression) { input in
+                let (a, b) = input.split(by: primitive)
                 return [a, b]
             } resultHandler: { geometries in
                 precondition(geometries.count == 2, "Split result should contain exactly two geometries")
@@ -136,7 +127,7 @@ public extension Geometry {
     /// In this example, each disconnected part of the model is extracted and displayed side-by-side
     /// along the X axis with a spacing of 1 mm.
     func separated(@GeometryBuilder<D> reader: @Sendable @escaping (_ components: [D.Geometry]) -> D.Geometry) -> D.Geometry {
-        CachingPrimitiveArrayTransformer(body: self, key: "separated") {
+        CachingPrimitiveArrayTransformer(body: self, name: "Cadova.Separate") {
             $0.decompose()
         } resultHandler: {
             reader($0)

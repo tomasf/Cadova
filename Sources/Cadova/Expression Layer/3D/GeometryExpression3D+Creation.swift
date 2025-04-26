@@ -53,7 +53,7 @@ public extension GeometryExpression3D {
         return Self(.transform(body, transform: transform))
     }
 
-    static func raw(_ body: Manifold3D.Manifold, cacheKey: OpaqueKey) -> GeometryExpression3D {
+    static func raw(_ body: Manifold, cacheKey: OpaqueKey) -> GeometryExpression3D {
         return Self(.raw(body, cacheKey: cacheKey))
     }
 

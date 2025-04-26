@@ -1,6 +1,11 @@
 import Manifold3D
 import Foundation
 
+public typealias Manifold = Manifold3D.Manifold<Vector3D>
+public typealias CrossSection = Manifold3D.CrossSection<Vector2D>
+public typealias ManifoldPolygon = Manifold3D.Polygon<Vector2D>
+public typealias MeshGL = Manifold3D.MeshGL<Vector3D>
+
 extension Vector2D: Manifold3D.Vector2 {}
 extension Vector3D: Manifold3D.Vector3 {}
 
@@ -27,10 +32,9 @@ extension Vector3D {
     }
 }
 
-public protocol PrimitiveGeometry: Sendable {
-    associatedtype D: Dimensionality
-    associatedtype Vector
-    associatedtype Matrix
+public protocol PrimitiveGeometry<V>: Sendable {
+    associatedtype V: Vector
+    associatedtype D: Dimensionality where D.Vector == V
     associatedtype Rotation
 
     static var empty: Self { get }
@@ -38,12 +42,12 @@ public protocol PrimitiveGeometry: Sendable {
     func decompose() -> [Self]
 
     var isEmpty: Bool { get }
-    var bounds: (min: Vector, max: Vector) { get }
+    var bounds: (min: V, max: V) { get }
     var vertexCount: Int { get }
 
-    func transform(_ transform: Matrix) -> Self
-    func translate(_ translation: Vector) -> Self
-    func scale(_ scale: Vector) -> Self
+    func transform(_ transform: D.Transform) -> Self
+    func translate(_ translation: V) -> Self
+    func scale(_ scale: V) -> Self
     func rotate(_ rotation: Rotation) -> Self
 
     func boolean(_ op: BooleanOperation, with other: Self) -> Self
@@ -51,66 +55,28 @@ public protocol PrimitiveGeometry: Sendable {
 
     func hull() -> Self
     static func hull(_ children: [Self]) -> Self
-    static func hull(_ points: [D.Vector]) -> Self
+    static func hull(_ points: [V]) -> Self
 
-    func warp(_ function: @escaping (D.Vector) -> D.Vector) -> Self
+    func warp(_ function: @escaping (V) -> V) -> Self
+    func simplify(epsilon: Double) -> Self
 
-    func applyingTransform(_ transform: AffineTransform3D) -> Self
-    func allVertices() -> [D.Vector]
+    func allVertices() -> [V]
 }
 
 extension CrossSection: PrimitiveGeometry {
     public typealias D = D2
-    public typealias Matrix = any Matrix2x3
     public typealias Rotation = Double
-    public typealias Vector = any Vector2
 
-    public func applyingTransform(_ transform3D: AffineTransform3D) -> Self {
-        transform(AffineTransform2D(transform3D))
-    }
-
-    public func warp(_ function: @escaping (D.Vector) -> D.Vector) -> Self {
-        warp { v -> any Vector2 in function(.init(v)) }
-    }
-
-    public static func hull(_ points: [D.Vector]) -> Self {
-        hull(points as [Vector])
-    }
-
-    public func allVertices() -> [D.Vector] {
-        polygons().flatMap(\.vertices).map(Vector2D.init)
+    public func allVertices() -> [V] {
+        polygons().flatMap(\.vertices)
     }
 }
 
 extension Manifold: PrimitiveGeometry {
     public typealias D = D3
-    public typealias Vector = any Vector3
-    public typealias Matrix = any Matrix3x4
-    public typealias Rotation = any Vector3
+    public typealias Rotation = Vector3D
 
-    public func applyingTransform(_ transform3D: AffineTransform3D) -> Self {
-        transform(transform3D)
-    }
-
-    public func warp(_ function: @escaping (D.Vector) -> D.Vector) -> Self {
-        warp { v -> any Vector3 in function(.init(v)) }
-    }
-
-    public static func hull(_ points: [D.Vector]) -> Self {
-        hull(points as [Vector])
-    }
-
-    public func allVertices() -> [D.Vector] {
-        meshGL().vertices.map(Vector3D.init)
-    }
-}
-
-extension BoundingBox {
-    init(_ p: (D.Primitive.Vector, D.Primitive.Vector)) {
-        self.init(minimum: .init(p.0), maximum: .init(p.1))
-    }
-
-    var primitive: (D.Primitive.Vector, D.Primitive.Vector) {
-        (minimum.primitive, maximum.primitive)
+    public func allVertices() -> [V] {
+        meshGL().vertices
     }
 }

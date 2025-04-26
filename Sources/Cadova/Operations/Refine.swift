@@ -1,21 +1,35 @@
 import Foundation
 import Manifold3D
 
-internal struct RefineCacheKey: CacheKey {
-    let maxEdgeLength: Double
-}
-
 public extension Geometry3D {
+    /// Refines the geometry by subdividing edges to ensure no edge exceeds the specified maximum length.
+    ///
+    /// This operation increases the density of the geometry by subdividing long edges or faces,
+    /// ensuring that no edge is longer than the specified `maxEdgeLength`.
+    /// It is useful for preparing geometry that needs higher resolution for operations like warping, wrapping, or other non-linear transformations.
+    ///
+    /// - Parameter maxEdgeLength: The maximum allowed length of any edge after refinement.
+    /// - Returns: A new geometry with refined resolution.
+    ///
     func refined(maxEdgeLength: Double) -> any Geometry3D {
-        return CachingPrimitiveTransformer(body: self, key: RefineCacheKey(maxEdgeLength: maxEdgeLength)) {
+        return CachingPrimitiveTransformer(body: self, name: "Cadova.Refine", parameters: maxEdgeLength) {
             $0.refine(edgeLength: maxEdgeLength)
         }
     }
 }
 
 public extension Geometry2D {
+    /// Refines the 2D geometry by subdividing segments to ensure no segment exceeds the specified maximum length.
+    ///
+    /// This operation increases the point density of 2D shapes by adding intermediate points
+    /// along segments that are longer than `maxSegmentLength`. This is particularly useful
+    /// for preparing 2D geometries for operations like wrapping, offsetting, or detailed transformations.
+    ///
+    /// - Parameter maxSegmentLength: The maximum allowed length of any line segment after refinement.
+    /// - Returns: A new, refined 2D geometry with uniformly shorter segments.
+    ///
     func refined(maxSegmentLength: Double) -> any Geometry2D {
-        CachingPrimitiveTransformer(body: self, key: RefineCacheKey(maxEdgeLength: maxSegmentLength)) {
+        CachingPrimitiveTransformer(body: self, name: "Cadova.Refine", parameters: maxSegmentLength) {
             let inputPoints: [[Vector2D]] = $0.polygons().map { $0.vertices.map(\.vector2D) }
 
             let newPoints = inputPoints.map { points in
@@ -31,10 +45,6 @@ public extension Geometry2D {
             return .init(polygons: newPoints.map { Manifold3D.Polygon(vertices: $0) }, fillRule: .nonZero)
         }
     }
-}
-
-internal struct SimplifyCacheKey: CacheKey {
-    let epsilon: Double
 }
 
 public extension Geometry {
@@ -53,7 +63,7 @@ public extension Geometry {
     ///   A new, simplified geometry instance.
     ///
     func simplified(tolerance: Double) -> D.Geometry {
-        CachingPrimitiveTransformer(body: self, key: SimplifyCacheKey(epsilon: tolerance)) { primitive in
+        CachingPrimitiveTransformer(body: self, name: "Cadova.Simplify", parameters: tolerance) { primitive in
             primitive.simplify(epsilon: tolerance)
         }
     }

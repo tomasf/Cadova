@@ -35,7 +35,7 @@ extension Triangle: Codable {
     }
 }
 
-extension Manifold3D.Polygon: Codable {
+extension ManifoldPolygon: Codable {
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(vertices.map { Vector2D($0) })
