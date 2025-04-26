@@ -54,7 +54,7 @@ public struct LevelSet: CompositeGeometry {
     public var body: D3.Geometry {
         CachingPrimitive(key: cacheKey) {
             .levelSet(
-                bounds: bounds.primitive,
+                bounds: (bounds.minimum, bounds.maximum),
                 edgeLength: edgeLength,
                 level: level,
                 tolerance: tolerance ?? -1

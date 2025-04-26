@@ -44,8 +44,6 @@ public protocol Vector: Hashable, Sendable, Codable, CustomDebugStringConvertibl
     init(elements: [Double])
     subscript(_ index: Int) -> Double { get }
 
-    init(_ primitive: D.Primitive.Vector)
-    var primitive: D.Primitive.Vector { get }
     var vector3D: Vector3D { get }
 }
 

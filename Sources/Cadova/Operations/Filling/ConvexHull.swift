@@ -1,10 +1,6 @@
 import Foundation
 import Manifold3D
 
-internal struct HullParameters<D: Dimensionality>: CacheKey {
-    let points: [D.Vector]
-}
-
 public extension Geometry {
     /// Returns the convex hull of this geometry.
     ///
@@ -29,7 +25,7 @@ public extension Geometry {
     /// - Returns: A new geometry representing the convex hull of the combined shape and points.
     ///
     func convexHull(adding points: [D.Vector]) -> D.Geometry {
-        CachingPrimitiveTransformer(body: self, key: HullParameters<D>(points: points)) {
+        CachingPrimitiveTransformer(body: self, name: "Cadova.Hull", parameters: points) {
             .hull($0.allVertices() + points)
         }
     }

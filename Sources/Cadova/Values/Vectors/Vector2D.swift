@@ -85,7 +85,6 @@ extension Vector2D: Vector {
         Self(x: Swift.max(a.x, b.x), y: Swift.max(a.y, b.y))
     }
 
-    public var primitive: D.Primitive.Vector { self }
     public var vector3D: Vector3D { Vector3D(self) }
 }
 

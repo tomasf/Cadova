@@ -94,7 +94,6 @@ extension Vector3D: Vector {
         Self(x: Swift.max(a.x, b.x), y: Swift.max(a.y, b.y), z: Swift.max(a.z, b.z))
     }
 
-    public var primitive: D.Primitive.Vector { self }
     public var vector3D: Vector3D { self }
 }
 

@@ -18,23 +18,29 @@
           "body" : {
             "body" : {
               "cacheKey" : {
-                "type" : "6Cadova15IndexedCacheKeyVyAA20PlaneSplitParametersVG",
+                "type" : "6Cadova15IndexedCacheKeyVyAA05NamedcD0VG",
                 "value" : {
                   "base" : {
-                    "plane" : {
-                      "normal" : {
-                        "unitVector" : {
-                          "x" : 0,
-                          "y" : -0.3420201433256687,
-                          "z" : 0.9396926207859084
+                    "operationName" : "Cadova.SplitAlongPlane",
+                    "parameters" : [
+                      {
+                        "type" : "6Cadova5PlaneV",
+                        "value" : {
+                          "normal" : {
+                            "unitVector" : {
+                              "x" : 0,
+                              "y" : -0.3420201433256687,
+                              "z" : 0.9396926207859084
+                            }
+                          },
+                          "offset" : {
+                            "x" : 0,
+                            "y" : 0,
+                            "z" : 0
+                          }
                         }
-                      },
-                      "offset" : {
-                        "x" : 0,
-                        "y" : 0,
-                        "z" : 0
                       }
-                    }
+                    ]
                   },
                   "index" : 0
                 }
@@ -53,19 +59,19 @@
                     0
                   ],
                   [
-                    3,
                     1,
-                    5
-                  ],
-                  [
-                    0,
-                    3,
-                    2
-                  ],
-                  [
-                    8,
-                    2,
+                    5,
                     3
+                  ],
+                  [
+                    3,
+                    2,
+                    0
+                  ],
+                  [
+                    3,
+                    7,
+                    2
                   ],
                   [
                     1,
@@ -78,38 +84,28 @@
                     6
                   ],
                   [
-                    8,
                     3,
-                    5
+                    5,
+                    7
                   ],
                   [
-                    2,
-                    8,
-                    7
+                    7,
+                    6,
+                    2
                   ],
                   [
                     5,
                     6,
-                    8
-                  ],
-                  [
-                    6,
-                    7,
-                    8
-                  ],
-                  [
-                    6,
-                    0,
-                    2
-                  ],
-                  [
-                    6,
-                    4,
-                    0
+                    7
                   ],
                   [
                     2,
-                    7,
+                    6,
+                    0
+                  ],
+                  [
+                    4,
+                    0,
                     6
                   ]
                 ],
@@ -146,11 +142,6 @@
                   },
                   {
                     "x" : 5,
-                    "y" : 4.698463103929543,
-                    "z" : 1.7101007166283435
-                  },
-                  {
-                    "x" : 5,
                     "y" : 5,
                     "z" : 1.8198511713310115
                   },
@@ -159,46 +150,6 @@
                     "y" : 5,
                     "z" : 5
                   }
-                ]
-              },
-              "source" : {
-                "body" : {
-                  "kind" : "shape",
-                  "primitive" : {
-                    "kind" : "box",
-                    "size" : {
-                      "x" : 10,
-                      "y" : 10,
-                      "z" : 10
-                    }
-                  }
-                },
-                "kind" : "transform",
-                "transform" : [
-                  [
-                    1,
-                    0,
-                    0,
-                    -5
-                  ],
-                  [
-                    0,
-                    1,
-                    0,
-                    -5
-                  ],
-                  [
-                    0,
-                    0,
-                    1,
-                    -5
-                  ],
-                  [
-                    0,
-                    0,
-                    0,
-                    1
-                  ]
                 ]
               }
             },
@@ -247,23 +198,29 @@
           "body" : {
             "body" : {
               "cacheKey" : {
-                "type" : "6Cadova15IndexedCacheKeyVyAA20PlaneSplitParametersVG",
+                "type" : "6Cadova15IndexedCacheKeyVyAA05NamedcD0VG",
                 "value" : {
                   "base" : {
-                    "plane" : {
-                      "normal" : {
-                        "unitVector" : {
-                          "x" : 0,
-                          "y" : -0.3420201433256687,
-                          "z" : 0.9396926207859084
+                    "operationName" : "Cadova.SplitAlongPlane",
+                    "parameters" : [
+                      {
+                        "type" : "6Cadova5PlaneV",
+                        "value" : {
+                          "normal" : {
+                            "unitVector" : {
+                              "x" : 0,
+                              "y" : -0.3420201433256687,
+                              "z" : 0.9396926207859084
+                            }
+                          },
+                          "offset" : {
+                            "x" : 0,
+                            "y" : 0,
+                            "z" : 0
+                          }
                         }
-                      },
-                      "offset" : {
-                        "x" : 0,
-                        "y" : 0,
-                        "z" : 0
                       }
-                    }
+                    ]
                   },
                   "index" : 1
                 }
@@ -277,14 +234,14 @@
                     3
                   ],
                   [
+                    0,
                     4,
-                    1,
-                    0
+                    1
                   ],
                   [
-                    4,
                     0,
-                    2
+                    2,
+                    4
                   ],
                   [
                     0,
@@ -297,19 +254,19 @@
                     7
                   ],
                   [
-                    1,
                     4,
+                    5,
+                    1
+                  ],
+                  [
+                    4,
+                    6,
                     5
                   ],
                   [
-                    6,
-                    5,
-                    4
-                  ],
-                  [
-                    4,
                     2,
-                    6
+                    6,
+                    4
                   ],
                   [
                     2,
@@ -317,14 +274,14 @@
                     6
                   ],
                   [
-                    5,
                     6,
-                    7
+                    7,
+                    5
                   ],
                   [
-                    3,
                     1,
-                    5
+                    5,
+                    3
                   ],
                   [
                     7,
@@ -373,46 +330,6 @@
                     "y" : 5,
                     "z" : 1.8198511713310115
                   }
-                ]
-              },
-              "source" : {
-                "body" : {
-                  "kind" : "shape",
-                  "primitive" : {
-                    "kind" : "box",
-                    "size" : {
-                      "x" : 10,
-                      "y" : 10,
-                      "z" : 10
-                    }
-                  }
-                },
-                "kind" : "transform",
-                "transform" : [
-                  [
-                    1,
-                    0,
-                    0,
-                    -5
-                  ],
-                  [
-                    0,
-                    1,
-                    0,
-                    -5
-                  ],
-                  [
-                    0,
-                    0,
-                    1,
-                    -5
-                  ],
-                  [
-                    0,
-                    0,
-                    0,
-                    1
-                  ]
                 ]
               }
             },

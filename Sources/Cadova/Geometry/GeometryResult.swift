@@ -38,3 +38,9 @@ internal extension GeometryResult {
         return replacing(elements: elements.setting(element))
     }
 }
+
+extension GeometryResult: Geometry {
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
+        self
+    }
+}

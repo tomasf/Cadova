@@ -20,6 +20,10 @@ public struct BoundingBox<D: Dimensionality>: Sendable {
         self.maximum = maximum
     }
 
+    init(_ tuple: (min: D.Vector, max: D.Vector)) {
+        self.init(minimum: tuple.min, maximum: tuple.max)
+    }
+
     public init(centeredSize: D.Vector) {
         self.init(minimum: -centeredSize / 2, maximum: centeredSize / 2)
     }
