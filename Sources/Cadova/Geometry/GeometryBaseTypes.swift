@@ -119,7 +119,7 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
 
         } else {
             let bodyPrimitive = await context.geometry(for: bodyResult.expression)
-            let expression = await context.storeRawGeometry(bodyPrimitive, key: bakedKey) as D.Expression
+            let expression = await context.storeRawGeometry(generator(bodyPrimitive), key: bakedKey) as D.Expression
             return bodyResult.replacing(expression: expression)
         }
     }
