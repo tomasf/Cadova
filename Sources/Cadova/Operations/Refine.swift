@@ -32,3 +32,29 @@ public extension Geometry2D {
         }
     }
 }
+
+internal struct SimplifyCacheKey: CacheKey {
+    let epsilon: Double
+}
+
+public extension Geometry {
+    /// Returns a simplified version of the geometry by reducing unnecessary detail.
+    ///
+    /// This operation removes redundant vertices or triangles from the geometry, based on the specified `epsilon` threshold.
+    /// Vertices that are closer together than `epsilon`, or that are nearly collinear with their neighbors, are candidates for removal.
+    /// Increasing the `epsilon` value makes the simplification more aggressive, potentially removing more features at the cost of fidelity.
+    ///
+    /// Applying simplification can significantly improve performance for subsequent operations by reducing complexity without noticeably altering the shape.
+    ///
+    /// - Parameters:
+    ///   - tolerance: The minimum distance threshold for simplification. Smaller values preserve more detail; larger values produce simpler geometry.
+    ///
+    /// - Returns:
+    ///   A new, simplified geometry instance.
+    ///
+    func simplified(tolerance: Double) -> D.Geometry {
+        CachingPrimitiveTransformer(body: self, key: SimplifyCacheKey(epsilon: tolerance)) { primitive in
+            primitive.simplify(epsilon: tolerance)
+        }
+    }
+}
