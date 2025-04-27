@@ -30,7 +30,9 @@ public extension Geometry {
 }
 
 internal extension Geometry {
-    func measureBoundsIfNonEmpty(@GeometryBuilder<D> _ builder: @Sendable @escaping (D.Geometry, EnvironmentValues, D.BoundingBox) -> D.Geometry) -> D.Geometry {
+    func measureBoundsIfNonEmpty<Output: Dimensionality>(
+        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, EnvironmentValues, D.BoundingBox) -> Output.Geometry
+    ) -> Output.Geometry {
         readEnvironment { environment in
             measuring { geometry, measurements in
                 if let box = measurements.boundingBox {

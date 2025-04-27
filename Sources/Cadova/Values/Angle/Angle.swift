@@ -64,6 +64,11 @@ public struct Angle: Sendable, Hashable, Codable {
     public var turns: Double {
         radians / (2 * .pi)
     }
+
+    /// Returns `true` if the angle is effectively zero, within floating-point precision.
+    public var isZero: Bool {
+        Swift.abs(radians) < .ulpOfOne
+    }
 }
 
 public extension Angle {
