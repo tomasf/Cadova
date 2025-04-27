@@ -124,7 +124,7 @@ public extension Geometry3D {
             let baseRadius = circumference / .pi / 2.0
             let maximumRadius = baseRadius + bounds.maximum.z
 
-            let sphereSegmentLength = maximumRadius * 2 * .pi / Double(e.segmentation.segmentCount(circleRadius: maximumRadius))
+            let sphereSegmentLength = maximumRadius * 2 * .pi / Double(e.segmentation.segmentCount(circleRadius: maximumRadius)) / circumferenceScale
 
             geometry
                 .refined(maxEdgeLength: sphereSegmentLength)
@@ -141,6 +141,7 @@ public extension Geometry3D {
                         radius * sin(latitude)
                     )
                 }
+                .simplified(tolerance: 0.01)
         }
     }
 }
