@@ -20,7 +20,7 @@ public struct GeometryResult<D: Dimensionality>: Sendable {
     }
 
     internal init<Key: CacheKey>(cacheKey key: Key, elements: ResultElements) {
-        self.init(expression: .raw(cacheKey: OpaqueKey(key)), elements: elements)
+        self.init(expression: .materialized(cacheKey: OpaqueKey(key)), elements: elements)
     }
 }
 
@@ -33,7 +33,7 @@ internal extension GeometryResult {
     }
 
     func replacing<New: Dimensionality, Key: CacheKey>(cacheKey: Key) -> New.Result {
-        .init(expression: .raw(cacheKey: OpaqueKey(cacheKey)), elements: elements)
+        .init(expression: .materialized(cacheKey: OpaqueKey(cacheKey)), elements: elements)
     }
 
     func replacing(elements: ResultElements) -> Self {

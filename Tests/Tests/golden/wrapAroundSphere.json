@@ -1738,15 +1738,15 @@
                       }
                     }
                   },
-                  "kind" : "raw"
+                  "kind" : "materialized"
                 }
               }
             },
-            "kind" : "raw"
+            "kind" : "materialized"
           }
         }
       },
-      "kind" : "raw"
+      "kind" : "materialized"
     }
   ]
 }

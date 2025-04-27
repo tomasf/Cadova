@@ -22,8 +22,8 @@ extension GeometryExpression2D {
             )
         case .convexHull (let body):
             "convexHull {\n\(body.debugDescription.indented)\n}"
-        case .raw (let key):
-            String(format: "raw: %@", key.debugDescription)
+        case .materialized (let key):
+            String(format: "materialized: %@", key.debugDescription)
         case .offset (let body, let amount, let joinStyle, let miterLimit, let segmentCount):
             String(format: "offset(%g, style: %@, miterLimit: %g, segments: %d) {\n%@\n}",
                    amount,
@@ -72,8 +72,9 @@ extension GeometryExpression3D {
             )
         case .convexHull (let body):
             "convexHull {\n\(body.debugDescription.indented)\n}"
-        case .raw (let key):
-            String(format: "raw: %@", key.debugDescription)
+        case .materialized (let key):
+            String(format: "materialized: %@", key.debugDescription)
+
         case .extrusion (let body, let type):
             switch type {
             case let .linear(height, twist, divisions, scaleTop):

@@ -13,7 +13,7 @@ public protocol GeometryExpression: Sendable, Hashable, Codable, CustomDebugStri
     static func boolean(_ children: [Self], type: BooleanOperationType) -> Self
     static func transform(_ body: Self, transform: D.Transform) -> Self
     static func convexHull(_ body: Self) -> Self
-    static func raw(cacheKey: OpaqueKey) -> Self
+    static func materialized(cacheKey: OpaqueKey) -> Self
 }
 
 public enum BooleanOperationType: String, Hashable, Sendable, Codable {

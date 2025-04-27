@@ -55,8 +55,8 @@ extension GeometryExpression2D: Codable {
             try container.encode(body, forKey: .body)
             try container.encode(type, forKey: .type)
 
-        case .raw(let cacheKey):
-            try container.encode(Kind.raw, forKey: .kind)
+        case .materialized(let cacheKey):
+            try container.encode(Kind.materialized, forKey: .kind)
             try container.encode(cacheKey, forKey: .cacheKey)
         }
     }
@@ -93,9 +93,9 @@ extension GeometryExpression2D: Codable {
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
             let type = try container.decode(Projection.self, forKey: .type)
             self.init(.projection(body, type: type))
-        case .raw:
+        case .materialized:
             let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
-            self.init(.raw(cacheKey: cacheKey))
+            self.init(.materialized(cacheKey: cacheKey))
         }
     }
 }
