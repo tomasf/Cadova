@@ -69,6 +69,10 @@ extension Range {
     }
 }
 
+extension Range where Bound: AdditiveArithmetic {
+    var length: Bound { upperBound - lowerBound }
+}
+
 extension URL {
     init(expandingFilePath path: String, extension requiredExtension: String? = nil, relativeTo: URL? = nil) {
         var url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath, relativeTo: relativeTo)

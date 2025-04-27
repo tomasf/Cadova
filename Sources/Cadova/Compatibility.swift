@@ -16,3 +16,10 @@ public extension Geometry2D {
 
 @available(*, deprecated, message: "Use Mesh instead of Polyhedron.")
 public typealias Polyhedron = Mesh
+
+extension Geometry2D {
+    @available(*, deprecated, renamed: "revolved(in:)")
+    func extruded(angles: Range<Angle> = 0°..<360°) -> any Geometry3D {
+        revolved(in: angles)
+    }
+}
