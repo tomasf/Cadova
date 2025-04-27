@@ -64,7 +64,7 @@ public extension Geometry2D {
             let innerCircumference = innerRadius * 2 * .pi
 
             geometry
-                .refined(maxSegmentLength: segmentLength)
+                .refined(maxEdgeLength: segmentLength)
                 .warped(operationName: "wrapAroundCircle", cacheParameters: diameter) {
                     let angle = -360° * $0.x / innerCircumference
                     let radius = innerRadius + $0.y

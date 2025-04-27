@@ -3,7 +3,7 @@ import Manifold3D
 
 public protocol Dimensionality {
     associatedtype Expression: GeometryExpression where Expression.D == Self
-    associatedtype Primitive: PrimitiveGeometry where Primitive.D == Self
+    associatedtype Primitive: Manifold3D.Geometry, PrimitiveGeometry where Primitive.D == Self
     associatedtype Vector: Cadova.Vector where Vector.D == Self
     associatedtype Transform: Cadova.AffineTransform where Transform.D == Self
     associatedtype Axis: Cadova.Axis
