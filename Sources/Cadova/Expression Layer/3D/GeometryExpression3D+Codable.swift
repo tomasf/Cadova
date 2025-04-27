@@ -52,6 +52,10 @@ extension GeometryExpression3D: Codable {
             try container.encode(Kind.tag, forKey: .kind)
             try container.encode(body, forKey: .body)
             try container.encode(key, forKey: .key)
+
+        case .lazyUnion(let children):
+            try container.encode(Kind.lazyUnion, forKey: .kind)
+            try container.encode(children, forKey: .children)
         }
     }
 
@@ -86,6 +90,9 @@ extension GeometryExpression3D: Codable {
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
             let key = try container.decode(OpaqueKey.self, forKey: .key)
             self.init(.tag(body, key: key))
+        case .lazyUnion:
+            let children = try container.decode([GeometryExpression3D].self, forKey: .children)
+            self.init(.lazyUnion(children))
         }
     }
 }

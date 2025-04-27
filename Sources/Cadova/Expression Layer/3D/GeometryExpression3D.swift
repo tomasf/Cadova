@@ -16,9 +16,10 @@ public struct GeometryExpression3D: GeometryExpression, Sendable {
         case boolean ([GeometryExpression3D], type: BooleanOperationType)
         case transform (GeometryExpression3D, transform: AffineTransform3D)
         case convexHull (GeometryExpression3D)
-        case extrusion (GeometryExpression2D, type: Extrusion)
         case materialized (cacheKey: OpaqueKey)
         case tag (GeometryExpression3D, key: OpaqueKey)
+        case extrusion (GeometryExpression2D, type: Extrusion)
+        case lazyUnion ([GeometryExpression3D])
     }
 
     public enum PrimitiveShape: Hashable, Sendable, Codable {
@@ -68,6 +69,10 @@ extension GeometryExpression3D {
             let primitive = await context.geometry(for: expression)
             return await context.taggedGeometry.tag(primitive, with: key)
 
+        case .materialized (_):
+            preconditionFailure("Materialized geometry expressions are pre-cached and cannot be evaluated")
+
+
         case .extrusion (let expression, let extrusion):
             let geometry = await context.geometry(for: expression)
             return switch extrusion {
@@ -78,8 +83,8 @@ extension GeometryExpression3D {
                 geometry.revolve(degrees: angle.degrees, circularSegments: segmentCount)
             }
 
-        case .materialized (_):
-            preconditionFailure("Materialized geometry expressions are pre-cached and cannot be evaluated")
+        case .lazyUnion (let members):
+            return .init(composing: await context.geometries(for: members))
         }
     }
 }

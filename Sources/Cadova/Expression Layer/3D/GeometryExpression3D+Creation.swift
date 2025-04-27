@@ -67,6 +67,17 @@ public extension GeometryExpression3D {
         guard body.isEmpty == false else { return .empty }
         return Self(.tag(body, key: key))
     }
+
+    static func lazyUnion(_ children: [GeometryExpression3D]) -> GeometryExpression3D {
+        let filteredChildren = children.filter { !$0.isEmpty }
+        if filteredChildren.count == 0 {
+            return .empty
+        } else if filteredChildren.count == 1 {
+            return filteredChildren[0]
+        } else {
+            return Self(.lazyUnion(filteredChildren))
+        }
+    }
 }
 
 extension GeometryExpression3D.PrimitiveShape {
