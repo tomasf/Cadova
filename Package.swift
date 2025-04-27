@@ -10,7 +10,6 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/tomasf/manifold-swift.git", branch: "dev"), //.upToNextMinor(from: "0.2.0")
-        //.package(path: "../manifold-swift"),
         .package(url: "https://github.com/tomasf/ThreeMF.git", branch: "main"),
         //.package(path: "../ThreeMF"),
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.0"),
