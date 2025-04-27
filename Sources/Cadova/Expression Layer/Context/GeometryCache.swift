@@ -8,6 +8,10 @@ actor GeometryCache<D: Dimensionality> {
         await entries[expression]?.value
     }
 
+    func setCachedGeometry(_ primitive: D.Primitive, for expression: D.Expression) {
+        entries[expression] = Task { primitive }
+    }
+
     func geometry(for expression: D.Expression, in context: EvaluationContext) async -> D.Primitive {
         guard !expression.isEmpty else { return .empty }
 

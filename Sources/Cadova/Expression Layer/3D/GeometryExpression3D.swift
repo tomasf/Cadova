@@ -17,7 +17,7 @@ public struct GeometryExpression3D: GeometryExpression, Sendable {
         case transform (GeometryExpression3D, transform: AffineTransform3D)
         case convexHull (GeometryExpression3D)
         case extrusion (GeometryExpression2D, type: Extrusion)
-        case raw (Manifold, cacheKey: OpaqueKey)
+        case raw (cacheKey: OpaqueKey)
         case tag (GeometryExpression3D, key: OpaqueKey)
     }
 
@@ -78,8 +78,8 @@ extension GeometryExpression3D {
                 geometry.revolve(degrees: angle.degrees, circularSegments: segmentCount)
             }
 
-        case .raw (let manifold, _):
-            return manifold
+        case .raw (_):
+            preconditionFailure("Raw geometry expressions should always be pre-cached and not be evaluated")
         }
     }
 }

@@ -53,8 +53,8 @@ public extension GeometryExpression2D {
         return Self(.transform(body, transform: transform))
     }
 
-    static func raw(_ body: CrossSection, cacheKey: OpaqueKey) -> GeometryExpression2D {
-        return Self(.raw(body, cacheKey: cacheKey))
+    static func raw(cacheKey: OpaqueKey) -> GeometryExpression2D {
+        return Self(.raw(cacheKey: cacheKey))
     }
 
     static func offset(_ body: GeometryExpression2D, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int) -> GeometryExpression2D {

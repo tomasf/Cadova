@@ -50,7 +50,7 @@ extension GeometryExpression2D: Hashable {
             hasher.combine(body)
             hasher.combine(kind)
 
-        case .raw (_, let cacheKey):
+        case .raw (let cacheKey):
             hasher.combine(Kind.raw)
             hasher.combine(cacheKey)
         }
@@ -66,7 +66,7 @@ extension GeometryExpression2D: Hashable {
         case let (.offset(a1, aa, aj, am, asc), .offset(a2, ba, bj, bm, bsc)):
             a1 == a2 && aa == ba && aj == bj && am == bm && asc == bsc
         case let (.projection(a1, k1), .projection(a2, k2)): a1 == a2 && k1 == k2
-        case let (.raw(_, keyA), .raw(_, keyB)): keyA == keyB
+        case let (.raw(keyA), .raw(keyB)): keyA == keyB
 
         case (.empty, _), (.shape, _), (.boolean, _), (.transform, _),
             (.convexHull, _), (.offset, _), (.projection, _), (.raw, _):

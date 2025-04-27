@@ -10,7 +10,6 @@ extension GeometryExpression3D: Codable {
         case body
         case transform
         case crossSection
-        case mesh
         case key
         case cacheKey
     }
@@ -45,9 +44,8 @@ extension GeometryExpression3D: Codable {
             try container.encode(body, forKey: .crossSection)
             try container.encode(type, forKey: .type)
 
-        case .raw(let manifold, let cacheKey):
+        case .raw(let cacheKey):
             try container.encode(Kind.raw, forKey: .kind)
-            try container.encode(manifold.meshGL(), forKey: .mesh)
             try container.encode(cacheKey, forKey: .cacheKey)
 
         case .tag (let body, let key):
@@ -82,9 +80,8 @@ extension GeometryExpression3D: Codable {
             let type = try container.decode(Extrusion.self, forKey: .type)
             self.init(.extrusion(body, type: type))
         case .raw:
-            let meshGL = try container.decode(MeshGL.self, forKey: .mesh)
             let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
-            self.init(.raw(try Manifold(meshGL), cacheKey: cacheKey))
+            self.init(.raw(cacheKey: cacheKey))
         case .tag:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
             let key = try container.decode(OpaqueKey.self, forKey: .key)
