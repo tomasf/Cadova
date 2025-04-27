@@ -58,7 +58,7 @@ public extension EnvironmentValues {
                 return max(count, 3)
 
             case .adaptive(_, let minSize):
-                return Int(ceil(min(length / minSize, 5)))
+                return Int(ceil(max(length / minSize, 5)))
             }
         }
     }
