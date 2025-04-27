@@ -32,51 +32,42 @@ extension Vector3D {
     }
 }
 
-public protocol PrimitiveGeometry<V>: Sendable {
-    associatedtype V: Vector
-    associatedtype D: Dimensionality where D.Vector == V
-    associatedtype Rotation
+public protocol PrimitiveGeometry {
+    associatedtype Vector
+    associatedtype D: Dimensionality where D.Vector == Vector
 
-    static var empty: Self { get }
-    init(composing: [Self])
-    func decompose() -> [Self]
-
-    var isEmpty: Bool { get }
-    var bounds: (min: V, max: V) { get }
-    var vertexCount: Int { get }
-
-    func transform(_ transform: D.Transform) -> Self
-    func translate(_ translation: V) -> Self
-    func scale(_ scale: V) -> Self
-    func rotate(_ rotation: Rotation) -> Self
-
-    func boolean(_ op: BooleanOperation, with other: Self) -> Self
-    static func boolean(_ op: BooleanOperation, with children: [Self]) -> Self
-
-    func hull() -> Self
-    static func hull(_ children: [Self]) -> Self
-    static func hull(_ points: [V]) -> Self
-
-    func warp(_ function: @escaping (V) -> V) -> Self
-    func simplify(epsilon: Double) -> Self
-
-    func allVertices() -> [V]
+    func refine(edgeLength: Double) -> Self
+    func allVertices() -> [Vector]
 }
 
 extension CrossSection: PrimitiveGeometry {
     public typealias D = D2
-    public typealias Rotation = Double
 
-    public func allVertices() -> [V] {
+    public func allVertices() -> [Vector] {
         polygons().flatMap(\.vertices)
+    }
+
+    public func refine(edgeLength: Double) -> Self {
+        let inputPoints: [[Vector2D]] = polygons().map { $0.vertices.map(\.vector2D) }
+
+        let newPoints = inputPoints.map { points in
+            [points[0]] + points.paired().flatMap { from, to -> [Vector2D] in
+                let length = from.distance(to: to)
+                let segmentCount = ceil(length / edgeLength)
+                guard segmentCount > 1 else { return [to] }
+                return (1...Int(segmentCount)).map { i in
+                    from.point(alongLineTo: to, at: Double(i) / Double(segmentCount))
+                }
+            }
+        }
+        return .init(polygons: newPoints.map { Manifold3D.Polygon(vertices: $0) }, fillRule: .nonZero)
     }
 }
 
 extension Manifold: PrimitiveGeometry {
     public typealias D = D3
-    public typealias Rotation = Vector3D
 
-    public func allVertices() -> [V] {
+    public func allVertices() -> [Vector] {
         meshGL().vertices
     }
 }
