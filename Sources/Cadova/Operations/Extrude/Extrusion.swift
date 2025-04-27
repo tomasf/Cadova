@@ -11,19 +11,16 @@ public extension Geometry2D {
         if twist.isZero {
             extruded(height: height, twist: twist, scale: scale, divisions: 0)
         } else {
-            measureBoundsIfNonEmpty { _, environment, bounds in
+            measureBoundsIfNonEmpty { _, e, bounds in
                 let numRevolutions = twist / 360°
-                let maxRadius = Vector2D(
-                    x: max(-bounds.minimum.x, bounds.maximum.x),
-                    y: max(-bounds.minimum.y, bounds.maximum.y)
-                ).magnitude
+                let maxRadius = bounds.maximumDistanceToOrigin
 
                 let pitch = height / numRevolutions
                 let helixLength = sqrt(pow(maxRadius * 2 * .pi, 2) + pow(pitch, 2)) * numRevolutions
 
-                let segmentsPerRevolution = environment.segmentation.segmentCount(circleRadius: maxRadius)
+                let segmentsPerRevolution = e.segmentation.segmentCount(circleRadius: maxRadius)
                 let twistSegments = Int(Double(segmentsPerRevolution) * numRevolutions)
-                let lengthSegments = environment.segmentation.segmentCount(length: helixLength)
+                let lengthSegments = e.segmentation.segmentCount(length: helixLength)
                 extruded(height: height, twist: twist, scale: scale, divisions: max(twistSegments, lengthSegments))
             }
         }

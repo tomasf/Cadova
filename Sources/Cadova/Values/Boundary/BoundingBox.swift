@@ -63,6 +63,10 @@ public struct BoundingBox<D: Dimensionality>: Sendable {
             maximum: D.Vector(elements: zip(maximum, vector).map(max))
         )
     }
+
+    public var maximumDistanceToOrigin: Double {
+        D.Vector(elements: (0..<D.Vector.elementCount).map { max((-minimum)[$0], maximum[$0]) }).magnitude
+    }
 }
 
 extension BoundingBox {
@@ -143,6 +147,12 @@ extension BoundingBox2D? {
             preconditionFailure("Bounding box was empty")
         }
         return box
+    }
+}
+
+extension BoundingBox3D {
+    var bounds2D: BoundingBox2D {
+        .init(minimum: minimum.xy, maximum: maximum.xy)
     }
 }
 
