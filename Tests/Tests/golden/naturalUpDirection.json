@@ -96,8 +96,7 @@
                 ]
               }
             ],
-            "kind" : "boolean",
-            "type" : "union"
+            "kind" : "lazyUnion"
           },
           "kind" : "transform",
           "transform" : [
@@ -209,8 +208,7 @@
                 ]
               }
             ],
-            "kind" : "boolean",
-            "type" : "union"
+            "kind" : "lazyUnion"
           },
           "kind" : "transform",
           "transform" : [
@@ -322,8 +320,7 @@
                 ]
               }
             ],
-            "kind" : "boolean",
-            "type" : "union"
+            "kind" : "lazyUnion"
           },
           "kind" : "transform",
           "transform" : [
@@ -435,8 +432,7 @@
                 ]
               }
             ],
-            "kind" : "boolean",
-            "type" : "union"
+            "kind" : "lazyUnion"
           },
           "kind" : "transform",
           "transform" : [
@@ -548,8 +544,7 @@
                 ]
               }
             ],
-            "kind" : "boolean",
-            "type" : "union"
+            "kind" : "lazyUnion"
           },
           "kind" : "transform",
           "transform" : [
@@ -661,8 +656,7 @@
                 ]
               }
             ],
-            "kind" : "boolean",
-            "type" : "union"
+            "kind" : "lazyUnion"
           },
           "kind" : "transform",
           "transform" : [
@@ -774,8 +768,7 @@
                 ]
               }
             ],
-            "kind" : "boolean",
-            "type" : "union"
+            "kind" : "lazyUnion"
           },
           "kind" : "transform",
           "transform" : [
@@ -887,8 +880,7 @@
                 ]
               }
             ],
-            "kind" : "boolean",
-            "type" : "union"
+            "kind" : "lazyUnion"
           },
           "kind" : "transform",
           "transform" : [

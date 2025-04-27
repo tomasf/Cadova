@@ -103,8 +103,7 @@
           ]
         }
       ],
-      "kind" : "boolean",
-      "type" : "union"
+      "kind" : "lazyUnion"
     }
   ]
 }
