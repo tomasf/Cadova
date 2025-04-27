@@ -13,7 +13,6 @@ extension GeometryExpression2D: Codable {
         case joinStyle
         case miterLimit
         case segmentCount
-        case crossSection
         case cacheKey
         case source
     }
@@ -56,9 +55,8 @@ extension GeometryExpression2D: Codable {
             try container.encode(body, forKey: .body)
             try container.encode(type, forKey: .type)
 
-        case .raw(let crossSection, let cacheKey):
+        case .raw(let cacheKey):
             try container.encode(Kind.raw, forKey: .kind)
-            try container.encode(crossSection.polygons(), forKey: .crossSection)
             try container.encode(cacheKey, forKey: .cacheKey)
         }
     }
@@ -96,11 +94,8 @@ extension GeometryExpression2D: Codable {
             let type = try container.decode(Projection.self, forKey: .type)
             self.init(.projection(body, type: type))
         case .raw:
-            let polygons = try container.decode([ManifoldPolygon].self, forKey: .crossSection)
             let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
-            self.init(.raw(
-                CrossSection(polygons: polygons, fillRule: .nonZero), cacheKey: cacheKey
-            ))
+            self.init(.raw(cacheKey: cacheKey))
         }
     }
 }

@@ -18,6 +18,10 @@ public struct GeometryResult<D: Dimensionality>: Sendable {
     internal init(_ expression: D.Expression) {
         self.init(expression: expression, elements: [:])
     }
+
+    internal init<Key: CacheKey>(cacheKey key: Key, elements: ResultElements) {
+        self.init(expression: .raw(cacheKey: OpaqueKey(key)), elements: elements)
+    }
 }
 
 public typealias GeometryResult2D = GeometryResult<D2>
@@ -26,6 +30,10 @@ public typealias GeometryResult3D = GeometryResult<D3>
 internal extension GeometryResult {
     func replacing<New: Dimensionality>(expression: New.Expression) -> New.Result {
         .init(expression: expression, elements: elements)
+    }
+
+    func replacing<New: Dimensionality, Key: CacheKey>(cacheKey: Key) -> New.Result {
+        .init(expression: .raw(cacheKey: OpaqueKey(cacheKey)), elements: elements)
     }
 
     func replacing(elements: ResultElements) -> Self {

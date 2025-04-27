@@ -18,18 +18,14 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey>: Geometry {
     let generator: @Sendable () -> D.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
-        if let cachedRawExpression: D.Expression = await context.cachedRawGeometry(key: key) {
+        if await context.hasCachedGeometry(for: key, with: D.self) {
             let resultElements = await context.resultElements(for: key) ?? [:]
-            return D.Result(expression: cachedRawExpression, elements: resultElements)
+            return D.Result(cacheKey: key, elements: resultElements)
         } else {
             let results = await generator().build(in: environment, context: context)
             let primitive = await context.geometry(for: results.expression)
             await context.setResultElements(results.elements, for: key)
-
-            return await D.Result(
-                expression: context.storeRawGeometry(primitive, key: key),
-                elements: results.elements
-            )
+            return await results.replacing(expression: context.storeRawGeometry(primitive, key: key))
         }
     }
 }
@@ -41,10 +37,10 @@ struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
     let generator: @Sendable () -> D.Primitive
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
-        if let cachedRawExpression: D.Expression = await context.cachedRawGeometry(key: key) {
-            return D.Result(cachedRawExpression)
+        if await context.hasCachedGeometry(for: key, with: D.self) {
+            D.Result(cacheKey: key, elements: [:])
         } else {
-            return await D.Result(context.storeRawGeometry(generator(), key: key))
+            await D.Result(context.storeRawGeometry(generator(), key: key))
         }
     }
 }
@@ -74,8 +70,8 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
         let bodyResult = await body.build(in: environment, context: context)
         let bakedKey = GeometryCacheKey(base: key, expression: bodyResult.expression)
 
-        if let cachedRawExpression: D.Expression = await context.cachedRawGeometry(key: bakedKey) {
-            return bodyResult.replacing(expression: cachedRawExpression)
+        if await context.hasCachedGeometry(for: bakedKey, with: D.self) {
+            return bodyResult.replacing(cacheKey: bakedKey)
 
         } else {
             let bodyPrimitive = await context.geometry(for: bodyResult.expression)
@@ -125,20 +121,20 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
 
         let bakedKey = GeometryCacheKey(base: key, expression: bodyResult.expression)
         let firstKey = IndexedCacheKey(base: bakedKey, index: 0)
-        let firstPart = await context.cachedRawGeometry(key: firstKey) as D.Expression?
         let geometries: [D.Geometry]
 
-        if let firstPart {
-            var parts: [D.Expression] = [firstPart]
+        if await context.hasCachedGeometry(for: firstKey, with: D.self) {
+            var parts: [IndexedCacheKey] = [firstKey]
             for i in 1... {
                 let indexedKey = IndexedCacheKey(base: bakedKey, index: i)
-                guard let part: D.Expression = await context.cachedRawGeometry(key: indexedKey) else {
+
+                guard await context.hasCachedGeometry(for: indexedKey, with: D.self) else {
                     break
                 }
-                parts.append(part)
+                parts.append(indexedKey)
             }
 
-            geometries = parts.map { bodyResult.replacing(expression: $0) }
+            geometries = parts.map { bodyResult.replacing(cacheKey: $0) }
 
         } else {
             let bodyPrimitive = await context.geometry(for: bodyResult.expression)

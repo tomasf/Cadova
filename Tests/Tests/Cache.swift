@@ -62,9 +62,9 @@ struct GeometryCacheTests {
     @Test func raw() async throws {
         let cacheKey = 12
 
-        await #expect(context.cachedRawGeometry(key: cacheKey) as D3.Expression? == nil)
+        await #expect(context.hasCachedGeometry(for: cacheKey, with: D3.self) == false)
         _ = await context.storeRawGeometry(.sphere(radius: 1, segmentCount: 10), key: cacheKey) as D3.Expression
-        await #expect(context.cachedRawGeometry(key: cacheKey) as D3.Expression? != nil)
+        await #expect(context.hasCachedGeometry(for: cacheKey, with: D3.self) == true)
     }
 
     @Test func boxed() async throws {

@@ -12,32 +12,34 @@ public struct EvaluationContext: Sendable {
 public typealias CacheKey = Hashable & Sendable & Codable
 
 internal extension EvaluationContext {
-    func cachedRawGeometry<E: GeometryExpression, Key: CacheKey>(key: Key) async -> E? {
+    func cachedRawGeometry<P: PrimitiveGeometry, Key: CacheKey>(key: Key) async -> P? {
         let wrappedKey = OpaqueKey(key)
-        let expression = E.raw(.empty, cacheKey: wrappedKey)
+        let expression = P.D.Expression.raw(cacheKey: wrappedKey)
 
         if let expression = expression as? GeometryExpression2D {
-            guard let primitive = await cache2D.cachedGeometry(for: expression) else { return nil }
-            return .raw(primitive as! E.D.Primitive, cacheKey: wrappedKey)
+            return await cache2D.cachedGeometry(for: expression) as! P?
 
         } else if let expression = expression as? GeometryExpression3D {
-            guard let primitive = await cache3D.cachedGeometry(for: expression) else { return nil }
-            return .raw(primitive as! E.D.Primitive, cacheKey: wrappedKey)
+            return await cache3D.cachedGeometry(for: expression) as! P?
 
         } else {
             preconditionFailure("Unknown geometry type")
         }
     }
 
-    func storeRawGeometry<E: GeometryExpression, Key: CacheKey>(_ geometry: E.D.Primitive, key: Key) async -> E {
+    func hasCachedGeometry<D: Dimensionality>(for key: any CacheKey, with dimensionality: D.Type) async -> Bool {
+        (await cachedRawGeometry(key: key) as D.Primitive?) != nil
+    }
+
+    func storeRawGeometry<E: GeometryExpression, Key: CacheKey>(_ primitive: E.D.Primitive, key: Key) async -> E {
         let wrappedKey = OpaqueKey(key)
-        let expression = E.raw(geometry, cacheKey: wrappedKey)
+        let expression = E.raw(cacheKey: wrappedKey)
 
         if let expression = expression as? GeometryExpression2D {
-            _ = await cache2D.geometry(for: expression, in: self)
+            await cache2D.setCachedGeometry(primitive as! D2.Primitive, for: expression)
 
         } else if let expression = expression as? GeometryExpression3D {
-            _ = await cache3D.geometry(for: expression, in: self)
+            await cache3D.setCachedGeometry(primitive as! D3.Primitive, for: expression)
 
         } else {
             preconditionFailure("Unknown geometry type")
