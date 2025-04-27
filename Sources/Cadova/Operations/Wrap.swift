@@ -34,6 +34,7 @@ public extension Geometry3D {
                     let radius = innerRadius + $0.z
                     return Vector3D(cos(angle) * radius, sin(angle) * radius, $0.y)
                 }
+                .simplified(tolerance: 0.01)
         }
     }
 }
@@ -70,6 +71,7 @@ public extension Geometry2D {
                     let radius = innerRadius + $0.y
                     return Vector2D(cos(angle) * radius, sin(angle) * radius)
                 }
+                .simplified(tolerance: 0.01)
         }
     }
 }

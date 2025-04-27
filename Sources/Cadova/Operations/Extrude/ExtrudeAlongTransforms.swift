@@ -142,6 +142,7 @@ public extension Geometry2D {
                         let localRadius = radius + $0.y
                         return Vector3D(cos(angle) * localRadius, sin(angle) * localRadius, $0.z + turns * pitch)
                     }
+                    .simplified(tolerance: 0.01)
             }
     }
 }
