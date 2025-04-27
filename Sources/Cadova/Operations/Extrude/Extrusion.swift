@@ -15,22 +15,35 @@ public extension Geometry2D {
         }
     }
 
-    /// Extrude two-dimensional geometry around the Z axis, creating three-dimensional geometry
-    /// - Parameters:
-    ///   - angles: The angle range in which to extrude. The resulting shape is formed around the Z axis in this range.
-    func extruded(angles: Range<Angle> = 0°..<360°) -> any Geometry3D {
+    /// Revolves a two-dimensional geometry around the Z-axis to create three-dimensional solid geometry.
+    ///
+    /// This operation takes the portion of the 2D shape lying on or to the right of the X=0 line (positive X-axis)
+    /// and sweeps it around the Z-axis to form a solid. Any parts of the shape with negative X-coordinates
+    /// are ignored during the revolution.
+    ///
+    /// - Parameter range: The angular range over which the geometry is revolved, specified as a `Range<Angle>`.
+    ///   By default, the geometry is rotated a full circle (0°..<360°). Specifying a smaller range
+    ///   creates partial revolutions, useful for generating open structures or segments.
+    ///
+    /// - Returns: A new 3D solid formed by revolving the original shape within the given angle range.
+    ///
+    /// - Example:
+    /// ```swift
+    /// let hemisphere = Circle(radius: 10).revolved(in: 0°..<180°)
+    /// ```
+    func revolved(in range: Range<Angle> = 0°..<360°) -> any Geometry3D {
         readEnvironment(\.segmentation) { segmentation in
             self.measuring { geometry, measurements in
                 let bounds = measurements.boundingBox ?? .zero
-                let radius = bounds.minimum.x < 0 && bounds.maximum.x <= 0 ? -bounds.minimum.x : bounds.maximum.x
+                let radius = max(bounds.maximum.x, 0)
 
                 GeometryExpressionTransformer(body: geometry) {
                     GeometryExpression3D.extrusion($0, type: .rotational(
-                        angle: (angles.upperBound - angles.lowerBound),
+                        angle: range.length,
                         segments: segmentation.segmentCount(circleRadius: radius)
                     ))
                 }
-                .rotated(z: angles.lowerBound)
+                .rotated(z: range.lowerBound)
             }
         }
     }
