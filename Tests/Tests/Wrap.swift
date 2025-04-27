@@ -21,7 +21,6 @@ struct WrapTests {
                     .within(x: 0...)
                     .colored(.red)
             }
-            .translated(x: -5)
             .wrappedAroundSphere(diameter: 30)
             .expectEquals(goldenFile: "wrapAroundSphere")
     }
