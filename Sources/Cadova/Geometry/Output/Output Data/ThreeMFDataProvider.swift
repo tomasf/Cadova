@@ -125,14 +125,15 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 )
             }
             .sorted(by: { $0.id.hashValue < $1.id.hashValue })
-        } results: {
-            logger.debug("Built meshes in \($0)")
+        } results: { duration, meshData in
+            let triangleCount = meshData.map { $0.mesh.triangleCount }.reduce(0, +)
+            logger.debug("Built meshes with \(triangleCount) triangles in \(duration)")
         }
 
         return await ContinuousClock().measure {
             makeModel(parts)
-        } results: {
-            logger.debug("Built 3MF structure in \($0)")
+        } results: { duration, _ in
+            logger.debug("Built 3MF structure in \(duration)")
         }
     }
 
@@ -157,8 +158,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         let data = try await ContinuousClock().measure {
             try writer.finalize()
-        } results: {
-            logger.debug("Generated 3MF archive in \($0)")
+        } results: { duration, _ in
+            logger.debug("Generated 3MF archive in \(duration)")
         }
 
         return data

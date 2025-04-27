@@ -46,8 +46,8 @@ public func Model<D: Dimensionality>(
     await saveModel(to: name, environmentBuilder: environmentBuilder) { environment, context in
         let result = await ContinuousClock().measure {
             await content().preparedFor3DExport.build(in: environment, context: context)
-        } results: {
-            logger.debug("Built expression tree in \($0)")
+        } results: { duration, _ in
+            logger.debug("Built expression tree in \(duration)")
         }
 
         return ThreeMFDataProvider(result: result)
