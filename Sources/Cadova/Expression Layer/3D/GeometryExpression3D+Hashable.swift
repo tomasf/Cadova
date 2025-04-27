@@ -8,7 +8,7 @@ extension GeometryExpression3D {
         case transform
         case convexHull
         case extrusion
-        case raw
+        case materialized
         case tag
     }
 }
@@ -42,8 +42,8 @@ extension GeometryExpression3D: Hashable {
             hasher.combine(body)
             hasher.combine(kind)
 
-        case .raw (let cacheKey):
-            hasher.combine(Kind.raw)
+        case .materialized (let cacheKey):
+            hasher.combine(Kind.materialized)
             hasher.combine(cacheKey)
 
         case .tag(let body, let key):
@@ -61,11 +61,11 @@ extension GeometryExpression3D: Hashable {
         case let (.transform(a1, t1), .transform(a2, t2)): a1 == a2 && t1 == t2
         case let (.convexHull(a), .convexHull(b)): a == b
         case let (.extrusion(a1, k1), .extrusion(a2, k2)): a1 == a2 && k1 == k2
-        case let (.raw(keyA), .raw(keyB)): keyA == keyB
+        case let (.materialized(keyA), .materialized(keyB)): keyA == keyB
         case let (.tag(ba, ua), .tag(bb, ub)): ba == bb && ua == ub
 
         case (.empty, _), (.shape, _), (.boolean, _), (.transform, _),
-            (.convexHull, _), (.tag, _), (.extrusion, _), (.raw, _): false
+            (.convexHull, _), (.tag, _), (.extrusion, _), (.materialized, _): false
         }
     }
 }

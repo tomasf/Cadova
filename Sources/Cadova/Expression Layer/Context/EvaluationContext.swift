@@ -12,9 +12,9 @@ public struct EvaluationContext: Sendable {
 public typealias CacheKey = Hashable & Sendable & Codable
 
 internal extension EvaluationContext {
-    func cachedRawGeometry<P: PrimitiveGeometry, Key: CacheKey>(key: Key) async -> P? {
+    func cachedMaterializedGeometry<P: PrimitiveGeometry, Key: CacheKey>(key: Key) async -> P? {
         let wrappedKey = OpaqueKey(key)
-        let expression = P.D.Expression.raw(cacheKey: wrappedKey)
+        let expression = P.D.Expression.materialized(cacheKey: wrappedKey)
 
         if let expression = expression as? GeometryExpression2D {
             return await cache2D.cachedGeometry(for: expression) as! P?
@@ -28,12 +28,12 @@ internal extension EvaluationContext {
     }
 
     func hasCachedGeometry<D: Dimensionality>(for key: any CacheKey, with dimensionality: D.Type) async -> Bool {
-        (await cachedRawGeometry(key: key) as D.Primitive?) != nil
+        (await cachedMaterializedGeometry(key: key) as D.Primitive?) != nil
     }
 
-    func storeRawGeometry<E: GeometryExpression, Key: CacheKey>(_ primitive: E.D.Primitive, key: Key) async -> E {
+    func storeMaterializedGeometry<E: GeometryExpression, Key: CacheKey>(_ primitive: E.D.Primitive, key: Key) async -> E {
         let wrappedKey = OpaqueKey(key)
-        let expression = E.raw(cacheKey: wrappedKey)
+        let expression = E.materialized(cacheKey: wrappedKey)
 
         if let expression = expression as? GeometryExpression2D {
             await cache2D.setCachedGeometry(primitive as! D2.Primitive, for: expression)

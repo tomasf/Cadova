@@ -44,8 +44,8 @@ extension GeometryExpression3D: Codable {
             try container.encode(body, forKey: .crossSection)
             try container.encode(type, forKey: .type)
 
-        case .raw(let cacheKey):
-            try container.encode(Kind.raw, forKey: .kind)
+        case .materialized(let cacheKey):
+            try container.encode(Kind.materialized, forKey: .kind)
             try container.encode(cacheKey, forKey: .cacheKey)
 
         case .tag (let body, let key):
@@ -79,9 +79,9 @@ extension GeometryExpression3D: Codable {
             let body = try container.decode(GeometryExpression2D.self, forKey: .crossSection)
             let type = try container.decode(Extrusion.self, forKey: .type)
             self.init(.extrusion(body, type: type))
-        case .raw:
+        case .materialized:
             let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
-            self.init(.raw(cacheKey: cacheKey))
+            self.init(.materialized(cacheKey: cacheKey))
         case .tag:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
             let key = try container.decode(OpaqueKey.self, forKey: .key)

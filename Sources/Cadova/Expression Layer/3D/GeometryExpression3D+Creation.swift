@@ -53,8 +53,8 @@ public extension GeometryExpression3D {
         return Self(.transform(body, transform: transform))
     }
 
-    static func raw(cacheKey: OpaqueKey) -> GeometryExpression3D {
-        return Self(.raw(cacheKey: cacheKey))
+    static func materialized(cacheKey: OpaqueKey) -> GeometryExpression3D {
+        return Self(.materialized(cacheKey: cacheKey))
     }
 
     static func extrusion(_ body: GeometryExpression2D, type: Extrusion) -> GeometryExpression3D {

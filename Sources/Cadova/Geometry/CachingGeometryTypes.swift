@@ -25,7 +25,7 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey>: Geometry {
             let results = await generator().build(in: environment, context: context)
             let primitive = await context.geometry(for: results.expression)
             await context.setResultElements(results.elements, for: key)
-            return await results.replacing(expression: context.storeRawGeometry(primitive, key: key))
+            return await results.replacing(expression: context.storeMaterializedGeometry(primitive, key: key))
         }
     }
 }
@@ -40,7 +40,7 @@ struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
         if await context.hasCachedGeometry(for: key, with: D.self) {
             D.Result(cacheKey: key, elements: [:])
         } else {
-            await D.Result(context.storeRawGeometry(generator(), key: key))
+            await D.Result(context.storeMaterializedGeometry(generator(), key: key))
         }
     }
 }
@@ -75,7 +75,7 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
 
         } else {
             let bodyPrimitive = await context.geometry(for: bodyResult.expression)
-            let expression = await context.storeRawGeometry(generator(bodyPrimitive), key: bakedKey) as D.Expression
+            let expression = await context.storeMaterializedGeometry(generator(bodyPrimitive), key: bakedKey) as D.Expression
             return bodyResult.replacing(expression: expression)
         }
     }
@@ -142,7 +142,7 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
 
             geometries = await Array(primitives.enumerated()).asyncMap { index, primitive in
                 let indexedKey = IndexedCacheKey(base: key, index: index)
-                let expression: D.Expression = await context.storeRawGeometry(primitive, key: indexedKey)
+                let expression: D.Expression = await context.storeMaterializedGeometry(primitive, key: indexedKey)
                 return bodyResult.replacing(expression: expression)
             }
         }
