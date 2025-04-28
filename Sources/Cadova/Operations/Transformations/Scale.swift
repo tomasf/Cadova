@@ -23,14 +23,14 @@ public extension Geometry {
         scaled(D.Vector(factor))
     }
 
-    /// Flip geometry along specified axes.
+    /// Flips the geometry across the specified axes.
     ///
-    /// This method flips the geometry along the axes specified.
+    /// This method reflects the geometry across the given axes by negating the coordinate values along them.
+    /// It can be used to create mirrored versions of a shape or invert geometry across one or more axes.
     ///
-    /// - Parameters:
-    ///   - axes: The axes along which to flip the geometry.
-    /// - Returns: A flipped geometry.
-    func flipped(along axes: D.Axes) -> D.Geometry {
+    /// - Parameter axes: The axes across which to flip the geometry.
+    /// - Returns: A new geometry instance that is mirrored across the specified axes.
+    func flipped(across axes: D.Axes) -> D.Geometry {
         scaled(D.Vector(1).with(axes, as: -1))
     }
 }

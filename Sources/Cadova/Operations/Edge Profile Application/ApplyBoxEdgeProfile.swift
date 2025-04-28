@@ -24,7 +24,7 @@ public extension Geometry3D {
                 .extruded(height: box.size[edge.axis] + 2 * epsilon)
                 .translated(z: -epsilon)
                 .rotated(from: .up, to: edge.axis.direction(.positive))
-                .flipped(along: edge.flippedProfileAxes)
+                .flipped(across: edge.flippedProfileAxes)
                 .translated(edge.unitOffset * box.size)
                 .translated(box.minimum)
             )

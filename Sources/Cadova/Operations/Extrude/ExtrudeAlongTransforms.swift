@@ -119,7 +119,7 @@ public extension Geometry2D {
 
             extruded(height: lengthPerRev * revolutions, divisions: totalSegments)
                 .rotated(x: -90°)
-                .flipped(along: .z)
+                .flipped(across: .z)
                 .warped(operationName: "extrudeAlongHelix", cacheParameters: pitch) {
                     let turns = $0.y / lengthPerRev
                     let angle = Angle(turns: turns)

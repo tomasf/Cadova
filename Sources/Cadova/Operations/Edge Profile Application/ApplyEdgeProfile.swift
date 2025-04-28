@@ -9,7 +9,7 @@ internal extension Geometry3D {
 
     func applyingBottomEdgeProfile(profile: EdgeProfile, at z: Double, shape: any Geometry2D, method: EdgeProfile.Method) -> any Geometry3D {
         let subtraction = profile.negativeMask(shape: shape, method: method)
-            .flipped(along: .z)
+            .flipped(across: .z)
             .translated(z: z)
         return subtracting(subtraction)
     }
