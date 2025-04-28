@@ -38,18 +38,50 @@ fileprivate extension Geometry {
     }
 }
 
-public func Model<D: Dimensionality>(
-    _ name: String,
-    @GeometryBuilder<D> content: @escaping () -> D.Geometry,
-    environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
-) async {
-    await saveModel(to: name, environmentBuilder: environmentBuilder) { environment, context in
-        let result = await ContinuousClock().measure {
-            await content().preparedFor3DExport.build(in: environment, context: context)
-        } results: { duration, _ in
-            logger.debug("Built expression tree in \(duration)")
+public struct Model: Sendable {
+    let name: String
+    let writer: @Sendable (EvaluationContext) async -> ()
+
+    @discardableResult
+    public init<D: Dimensionality>(
+        _ name: String,
+        @GeometryBuilder<D> content: @Sendable @escaping () -> D.Geometry,
+        environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
+    ) async {
+        self.name = name
+
+        var mutatingEnvironment = OutputContext.current?.environmentValues ?? .defaultEnvironment
+        environmentBuilder?(&mutatingEnvironment)
+        let environment = mutatingEnvironment
+
+        let baseURL: URL
+        if let parent = OutputContext.current?.directory {
+            baseURL = parent.appendingPathComponent(name, isDirectory: false)
+        } else {
+            baseURL = URL(expandingFilePath: name)
         }
 
-        return ThreeMFDataProvider(result: result)
+        writer = { context in
+            let result = await ContinuousClock().measure {
+                await content().preparedFor3DExport.build(in: environment, context: context)
+            } results: { duration, _ in
+                logger.debug("Built expression tree in \(duration)")
+            }
+
+            let provider = ThreeMFDataProvider(result: result)
+            let url = baseURL.appendingPathExtension(provider.fileExtension)
+
+            do {
+                try await provider.writeOutput(to: url, context: context)
+                logger.info("Wrote model to \(url.path)")
+            } catch {
+                logger.error("Failed to save model file to \(url.path): \(error)")
+            }
+        }
+
+        if OutputContext.current == nil {
+            let context = EvaluationContext()
+            await writer(context)
+        }
     }
 }

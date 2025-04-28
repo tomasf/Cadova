@@ -60,6 +60,22 @@ extension Collection where Element: Sendable {
     }
 }
 
+extension Sequence where Element: Sendable {
+    @inlinable
+    public func concurrentAsyncForEach(
+        _ operation: @Sendable @escaping (Element) async throws -> Void
+    ) async rethrows {
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for element in self {
+                group.addTask {
+                    try await operation(element)
+                }
+            }
+            try await group.waitForAll()
+        }
+    }
+}
+
 extension Range {
     init(_ first: Bound, _ second: Bound) {
         self.init(uncheckedBounds: (
