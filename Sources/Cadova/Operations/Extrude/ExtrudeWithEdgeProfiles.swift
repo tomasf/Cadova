@@ -23,7 +23,7 @@ public extension Geometry2D {
             }
             if let bottomEdge {
                 bottomEdge.mask(shape: self, extrusionHeight: height, method: method)
-                    .flipped(along: .z)
+                    .flipped(across: .z)
                     .translated(z: height)
             }
         }

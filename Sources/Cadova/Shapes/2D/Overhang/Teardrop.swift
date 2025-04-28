@@ -42,7 +42,7 @@ public struct Teardrop: Shape2D {
         Circle(diameter: diameter)
         Intersection {
             mask
-            mask.flipped(along: .x)
+            mask.flipped(across: .x)
 
             if style == .bridged {
                 Rectangle(diameter)

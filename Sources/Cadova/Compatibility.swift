@@ -23,3 +23,10 @@ extension Geometry2D {
         revolved(in: angles)
     }
 }
+
+extension Geometry {
+    @available(*, deprecated, renamed: "flipped(across:)")
+    func flipped(along axes: D.Axes) -> D.Geometry {
+        flipped(across: axes)
+    }
+}
