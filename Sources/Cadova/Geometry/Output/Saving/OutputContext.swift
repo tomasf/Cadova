@@ -9,9 +9,15 @@ internal struct OutputContext {
 extension OutputContext {
     @TaskLocal static var current: OutputContext? = nil
 
-    func whileCurrent(_ actions: () -> Void) {
+    func whileCurrent<T>(_ actions: () -> T) -> T {
         Self.$current.withValue(self) {
             actions()
+        }
+    }
+
+    func whileCurrent<T>(_ actions: () async -> T) async -> T {
+        await Self.$current.withValue(self) {
+            await actions()
         }
     }
 }

@@ -2,9 +2,9 @@ import Foundation
 
 public func Project(
     root url: URL?,
-    content: @escaping () -> Void,
+    @ArrayBuilder<Model> content: @escaping () async -> [Model],
     environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
-) {
+) async {
     var environment = EnvironmentValues.defaultEnvironment
     environmentBuilder?(&environment)
 
@@ -12,16 +12,22 @@ public func Project(
         try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
     }
 
-    let context = OutputContext(directory: url, environmentValues: environment, evaluationContext: .init())
-    context.whileCurrent {
-        content()
+    let outputContext = OutputContext(directory: url, environmentValues: environment, evaluationContext: .init())
+    let models = await outputContext.whileCurrent {
+        await content()
+    }
+    guard models.isEmpty == false else { return }
+    let context = EvaluationContext()
+
+    await models.concurrentAsyncForEach { model in
+        await model.writer(context)
     }
 }
 
 public func Project(
     root: String? = nil,
-    content: @escaping () -> Void,
+    @ArrayBuilder<Model> content: @escaping () async -> [Model],
     environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
-) {
-    Project(root: root.map { URL(expandingFilePath: $0) }, content: content, environment: environmentBuilder)
+) async {
+    await Project(root: root.map { URL(expandingFilePath: $0) }, content: content, environment: environmentBuilder)
 }
