@@ -30,7 +30,7 @@ public extension Geometry3D {
                     let sinA = sin(angle)
                     return Vector3D(point.x * cosA - point.y * sinA,  point.x * sinA + point.y * cosA,  point.z)
                 }
-                .simplified(tolerance: 0.01)
+                .simplified()
         }
     }
 }

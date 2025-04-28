@@ -31,14 +31,34 @@ public extension Geometry {
     /// Applying simplification can significantly improve performance for subsequent operations by reducing complexity without noticeably altering the shape.
     ///
     /// - Parameters:
-    ///   - tolerance: The minimum distance threshold for simplification. Smaller values preserve more detail; larger values produce simpler geometry.
+    ///   - threshold: The minimum distance threshold for simplification. Smaller values preserve more detail; larger values produce simpler geometry.
     ///
     /// - Returns:
     ///   A new, simplified geometry instance.
     ///
-    func simplified(tolerance: Double) -> D.Geometry {
-        CachingPrimitiveTransformer(body: self, name: "Cadova.Simplify", parameters: tolerance) { primitive in
-            primitive.simplify(epsilon: tolerance)
+    func simplified(threshold: Double) -> D.Geometry {
+        CachingPrimitiveTransformer(body: self, name: "Cadova.Simplify", parameters: threshold) { primitive in
+            primitive.simplify(epsilon: threshold)
+        }
+    }
+
+    /// Returns a simplified version of the geometry based on the current environment’s simplification threshold.
+    ///
+    /// This method uses the `simplificationThreshold` value from the environment and uses it to reduce unnecessary
+    /// detail in the geometry. If the threshold is greater than zero, the geometry is simplified accordingly; otherwise,
+    /// no simplification is applied.
+    ///
+    /// Simplification can improve performance by reducing geometric complexity, at the cost of slight visual degradation.
+    ///
+    /// - Returns: A new, simplified geometry based on the threshold set in the environment.
+    ///
+    func simplified() -> D.Geometry {
+        readEnvironment(\.simplificationThreshold) { threshold in
+            if threshold > .ulpOfOne {
+                simplified(threshold: threshold)
+            } else {
+                self
+            }
         }
     }
 }
