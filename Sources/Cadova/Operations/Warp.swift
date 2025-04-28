@@ -10,6 +10,18 @@ internal struct NamedCacheKey: CacheKey {
     }
 }
 
+internal extension Geometry {
+    func warped(
+        operationName name: String,
+        cacheParameters params: [any Hashable & Sendable & Codable],
+        transform: @Sendable @escaping (D.Vector) -> D.Vector
+    ) -> D.Geometry {
+        CachingPrimitiveTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
+            $0.warp(transform)
+        }
+    }
+}
+
 public extension Geometry {
     /// Returns a new geometry by applying a custom point-wise transformation to the geometry.
     ///
@@ -45,8 +57,6 @@ public extension Geometry {
         cacheParameters params: any Hashable & Sendable & Codable...,
         transform: @Sendable @escaping (D.Vector) -> D.Vector
     ) -> D.Geometry {
-        CachingPrimitiveTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
-            $0.warp(transform)
-        }
+        warped(operationName: name, cacheParameters: params, transform: transform)
     }
 }

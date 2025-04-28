@@ -125,7 +125,7 @@ public extension Geometry2D {
                     let angle = Angle(turns: turns)
                     return Vector3D(cos(angle) * $0.x, sin(angle) * $0.x, $0.z + turns * pitch)
                 }
-                .simplified(tolerance: 0.005)
+                .simplified()
         }
     }
 }
