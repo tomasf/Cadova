@@ -7,7 +7,8 @@ public extension Geometry3D {
     /// Each axis arrow is shown with a default length and is scaled based on the specified `scale`.
     /// The X-axis is represented in red, the Y-axis in green, and the Z-axis in blue.
     ///
-    /// This feature is intended to assist in understanding the orientation and scaling of the geometry during development.
+    /// This feature is intended to assist in understanding the orientation and scaling of local coordinate systems
+    /// during development.
     ///
     /// - Parameters:
     ///   - scale: A scaling factor applied to the axes visualizations. Default is `1`.
