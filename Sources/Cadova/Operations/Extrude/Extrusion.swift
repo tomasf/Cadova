@@ -26,7 +26,7 @@ public extension Geometry2D {
         }
     }
 
-    internal func extruded(height: Double, twist: Angle, scale: Vector2D, divisions: Int) -> any Geometry3D {
+    internal func extruded(height: Double, twist: Angle = 0°, scale: Vector2D = [1,1], divisions: Int) -> any Geometry3D {
         GeometryExpressionTransformer(body: self) {
             GeometryExpression3D.extrusion($0, type: .linear(
                 height: height, twist: twist, divisions: divisions, scaleTop: scale
