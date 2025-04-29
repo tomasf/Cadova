@@ -5,7 +5,9 @@ public protocol GeometryExpression: Sendable, Hashable, Codable, CustomDebugStri
     associatedtype PrimitiveShape: Sendable
     associatedtype D: Dimensionality
 
-    func evaluate(in context: EvaluationContext) async -> D.Primitive
+    typealias Result = ExpressionResult<D>
+
+    func evaluate(in context: EvaluationContext) async -> Result
     var isEmpty: Bool { get }
 
     static var empty: Self { get }

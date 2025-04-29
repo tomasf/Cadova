@@ -17,7 +17,7 @@ public struct GeometryExpression3D: GeometryExpression, Sendable {
         case transform (GeometryExpression3D, transform: AffineTransform3D)
         case convexHull (GeometryExpression3D)
         case materialized (cacheKey: OpaqueKey)
-        case tag (GeometryExpression3D, key: OpaqueKey)
+        case applyMaterial (GeometryExpression3D, MaterialApplication)
         case extrusion (GeometryExpression2D, type: Extrusion)
         case lazyUnion ([GeometryExpression3D])
     }
@@ -28,6 +28,24 @@ public struct GeometryExpression3D: GeometryExpression, Sendable {
         case cylinder (bottomRadius: Double, topRadius: Double, height: Double, segmentCount: Int)
         case convexHull (points: [Vector3D])
         case mesh (MeshData)
+    }
+
+    public struct MaterialApplication: Hashable, Sendable, Codable {
+        let material: Material
+        let behavior: Behavior
+
+        enum Behavior: String, Sendable, Hashable, Codable {
+            case replace
+            case makeDefault
+        }
+
+        internal static func replacement(_ material: Material) -> Self {
+            .init(material: material, behavior: .replace)
+        }
+
+        internal static func `default`(_ material: Material) -> Self {
+            .init(material: material, behavior: .makeDefault)
+        }
     }
 
     public enum Extrusion: Hashable, Sendable, Codable {
@@ -48,43 +66,43 @@ extension GeometryExpression3D {
         if case .empty = contents { true } else { false }
     }
 
-    public func evaluate(in context: EvaluationContext) async -> Manifold {
+    public func evaluate(in context: EvaluationContext) async -> ExpressionResult<D> {
         switch contents {
         case .empty:
             return .empty
 
         case .shape (let shape):
-            return shape.evaluate()
+            return Result(original: shape.evaluate())
 
         case .boolean (let members, let booleanOperation):
-            return await .boolean(booleanOperation.manifoldRepresentation, with: context.geometries(for: members))
+            let results = await context.geometries(for: members)
+            return Result(product: .boolean(booleanOperation.manifoldRepresentation, with: results.map(\.primitive)), results: results)
 
         case .transform (let expression, let transform):
-            return await context.geometry(for: expression).transform(transform)
+            return await context.geometry(for: expression).modified { $0.transform(transform) }
 
         case .convexHull (let expression):
-            return await context.geometry(for: expression).hull()
+            return await context.geometry(for: expression).modified { $0.hull() }
 
-        case .tag (let expression, let key):
-            let primitive = await context.geometry(for: expression)
-            return await context.taggedGeometry.tag(primitive, with: key)
+        case .applyMaterial (let expression, let application):
+            return await context.geometry(for: expression).applyingMaterial(application)
 
         case .materialized (_):
             preconditionFailure("Materialized geometry expressions are pre-cached and cannot be evaluated")
 
-
         case .extrusion (let expression, let extrusion):
-            let geometry = await context.geometry(for: expression)
+            let result = await context.geometry(for: expression)
             return switch extrusion {
             case .linear (let height, let twist, let divisions, let scaleTop):
-                geometry.extrude(height: height, divisions: divisions, twist: twist.degrees, scaleTop: scaleTop)
+                Result(original: result.primitive.extrude(height: height, divisions: divisions, twist: twist.degrees, scaleTop: scaleTop))
 
             case .rotational (let angle, let segmentCount):
-                geometry.revolve(degrees: angle.degrees, circularSegments: segmentCount)
+                Result(original: result.primitive.revolve(degrees: angle.degrees, circularSegments: segmentCount))
             }
 
         case .lazyUnion (let members):
-            return .init(composing: await context.geometries(for: members))
+            let results = await context.geometries(for: members)
+            return Result(product: .init(composing: results.map(\.primitive)), results: results)
         }
     }
 }

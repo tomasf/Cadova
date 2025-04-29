@@ -2,17 +2,17 @@ import Foundation
 import Manifold3D
 
 actor GeometryCache<D: Dimensionality> {
-    private var entries: [D.Expression: Task<D.Primitive, Never>] = [:]
+    private var entries: [D.Expression: Task<D.Expression.Result, Never>] = [:]
 
-    func cachedGeometry(for expression: D.Expression) async -> D.Primitive? {
+    func cachedGeometry(for expression: D.Expression) async -> D.Expression.Result? {
         await entries[expression]?.value
     }
 
-    func setCachedGeometry(_ primitive: D.Primitive, for expression: D.Expression) {
+    func setCachedGeometry(_ primitive: D.Expression.Result, for expression: D.Expression) {
         entries[expression] = Task { primitive }
     }
 
-    func geometry(for expression: D.Expression, in context: EvaluationContext) async -> D.Primitive {
+    func geometry(for expression: D.Expression, in context: EvaluationContext) async -> D.Expression.Result {
         guard !expression.isEmpty else { return .empty }
 
         if let cached = await cachedGeometry(for: expression) {

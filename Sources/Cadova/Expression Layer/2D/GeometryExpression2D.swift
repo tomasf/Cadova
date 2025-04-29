@@ -37,7 +37,11 @@ public extension GeometryExpression2D {
     var isEmpty: Bool {
         if case .empty = contents { true } else { false }
     }
-    
+
+    func evaluate(in context: EvaluationContext) async -> Self.Result {
+        Result(await evaluate(in: context))
+    }
+
     func evaluate(in context: EvaluationContext) async -> CrossSection {
         switch contents {
         case .empty: .empty
@@ -46,24 +50,24 @@ public extension GeometryExpression2D {
             shape.evaluate()
 
         case .boolean (let members, let type):
-            await CrossSection.boolean(type.manifoldRepresentation, with: context.geometries(for: members))
+            await CrossSection.boolean(type.manifoldRepresentation, with: context.geometries(for: members).map(\.primitive))
 
         case .transform (let expression, let transform):
-            await context.geometry(for: expression).transform(transform)
+            await context.geometry(for: expression).primitive.transform(transform)
 
         case .convexHull (let expression):
-            await context.geometry(for: expression).hull()
+            await context.geometry(for: expression).primitive.hull()
 
         case .offset (let expression, let amount, let joinStyle, let miterLimit, let segmentCount):
-            await context.geometry(for: expression)
+            await context.geometry(for: expression).primitive
                 .offset(amount: amount, joinType: joinStyle.manifoldRepresentation, miterLimit: miterLimit, circularSegments: segmentCount)
 
         case .projection (let expression, let projection):
             switch projection {
             case .full:
-                await context.geometry(for: expression).projection()
+                await context.geometry(for: expression).primitive.projection()
             case .slice (let z):
-                await context.geometry(for: expression).slice(at: z)
+                await context.geometry(for: expression).primitive.slice(at: z)
             }
 
         case .materialized (_):

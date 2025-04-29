@@ -9,7 +9,7 @@ extension GeometryExpression3D {
         case convexHull
         case extrusion
         case materialized
-        case tag
+        case applyMaterial
         case lazyUnion
     }
 }
@@ -47,10 +47,10 @@ extension GeometryExpression3D: Hashable {
             hasher.combine(Kind.materialized)
             hasher.combine(cacheKey)
 
-        case .tag(let body, let key):
-            hasher.combine(Kind.tag)
+        case .applyMaterial(let body, let application):
+            hasher.combine(Kind.applyMaterial)
             hasher.combine(body)
-            hasher.combine(key)
+            hasher.combine(application)
 
         case .lazyUnion(let children):
             hasher.combine(Kind.lazyUnion)
@@ -67,11 +67,11 @@ extension GeometryExpression3D: Hashable {
         case let (.convexHull(a), .convexHull(b)): a == b
         case let (.extrusion(a1, k1), .extrusion(a2, k2)): a1 == a2 && k1 == k2
         case let (.materialized(keyA), .materialized(keyB)): keyA == keyB
-        case let (.tag(ba, ua), .tag(bb, ub)): ba == bb && ua == ub
+        case let (.applyMaterial(ba, aa), .applyMaterial(bb, ab)): ba == bb && aa == ab
         case let (.lazyUnion(ca), .lazyUnion(cb)): ca == cb
 
         case (.empty, _), (.shape, _), (.boolean, _), (.transform, _), (.lazyUnion, _),
-            (.convexHull, _), (.tag, _), (.extrusion, _), (.materialized, _): false
+            (.convexHull, _), (.applyMaterial, _), (.extrusion, _), (.materialized, _): false
         }
     }
 }
