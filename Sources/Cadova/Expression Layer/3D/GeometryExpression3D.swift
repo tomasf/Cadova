@@ -110,7 +110,7 @@ extension GeometryExpression3D.PrimitiveShape {
 
         case .mesh (let meshData):
             do {
-                return try Manifold(meshData.meshGL())
+                return try Manifold(meshData.meshGL()).asOriginal()
             } catch ManifoldError.notManifold {
                 logger.error("""
 Mesh creation failed: The mesh is not manifold.

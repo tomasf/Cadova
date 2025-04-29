@@ -62,9 +62,12 @@ struct GeometryCacheTests {
     @Test func materialized() async throws {
         let cacheKey = 12
 
-        await #expect(context.hasCachedGeometry(for: cacheKey, with: D3.self) == false)
-        _ = await context.storeMaterializedGeometry(.sphere(radius: 1, segmentCount: 10), key: cacheKey) as D3.Expression
-        await #expect(context.hasCachedGeometry(for: cacheKey, with: D3.self) == true)
+        await #expect(context.hasCachedResult(for: cacheKey, with: D3.self) == false)
+        _ = await context.storeMaterializedResult(
+            D3.Expression.Result(original: .sphere(radius: 1, segmentCount: 10)),
+            key: cacheKey
+        ) as D3.Expression
+        await #expect(context.hasCachedResult(for: cacheKey, with: D3.self) == true)
     }
 
     @Test func boxed() async throws {
