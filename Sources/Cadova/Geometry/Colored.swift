@@ -50,7 +50,7 @@ public extension Geometry3D {
 
     func withMaterial(_ material: Material) -> any Geometry3D {
         GeometryExpressionTransformer(body: self) {
-            .applyMaterial($0, application: .default(material))
+            .applyMaterial($0, material: material)
         }
     }
 }

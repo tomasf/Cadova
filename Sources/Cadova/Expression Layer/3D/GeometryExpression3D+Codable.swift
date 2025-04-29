@@ -10,7 +10,7 @@ extension GeometryExpression3D: Codable {
         case body
         case transform
         case crossSection
-        case application
+        case material
         case cacheKey
     }
 
@@ -48,10 +48,10 @@ extension GeometryExpression3D: Codable {
             try container.encode(Kind.materialized, forKey: .kind)
             try container.encode(cacheKey, forKey: .cacheKey)
 
-        case .applyMaterial (let body, let application):
+        case .applyMaterial (let body, let material):
             try container.encode(Kind.applyMaterial, forKey: .kind)
             try container.encode(body, forKey: .body)
-            try container.encode(application, forKey: .application)
+            try container.encode(material, forKey: .material)
 
         case .lazyUnion(let children):
             try container.encode(Kind.lazyUnion, forKey: .kind)
@@ -88,8 +88,8 @@ extension GeometryExpression3D: Codable {
             self.init(.materialized(cacheKey: cacheKey))
         case .applyMaterial:
             let body = try container.decode(GeometryExpression3D.self, forKey: .body)
-            let application = try container.decode(MaterialApplication.self, forKey: .application)
-            self.init(.applyMaterial(body, application))
+            let material = try container.decode(Material.self, forKey: .material)
+            self.init(.applyMaterial(body, material))
         case .lazyUnion:
             let children = try container.decode([GeometryExpression3D].self, forKey: .children)
             self.init(.lazyUnion(children))

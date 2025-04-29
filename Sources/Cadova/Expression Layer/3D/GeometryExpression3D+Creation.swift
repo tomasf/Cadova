@@ -63,9 +63,9 @@ public extension GeometryExpression3D {
         return Self(.extrusion(body, type: type))
     }
 
-    static func applyMaterial(_ body: GeometryExpression3D, application: MaterialApplication) -> GeometryExpression3D {
+    static func applyMaterial(_ body: GeometryExpression3D, material: Material) -> GeometryExpression3D {
         guard body.isEmpty == false else { return .empty }
-        return Self(.applyMaterial(body, application))
+        return Self(.applyMaterial(body, material))
     }
 
     static func lazyUnion(_ children: [GeometryExpression3D]) -> GeometryExpression3D {
