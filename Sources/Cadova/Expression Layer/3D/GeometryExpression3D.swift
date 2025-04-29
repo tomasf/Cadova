@@ -17,7 +17,7 @@ public struct GeometryExpression3D: GeometryExpression, Sendable {
         case transform (GeometryExpression3D, transform: AffineTransform3D)
         case convexHull (GeometryExpression3D)
         case materialized (cacheKey: OpaqueKey)
-        case applyMaterial (GeometryExpression3D, MaterialApplication)
+        case applyMaterial (GeometryExpression3D, Material)
         case extrusion (GeometryExpression2D, type: Extrusion)
         case lazyUnion ([GeometryExpression3D])
     }
@@ -28,24 +28,6 @@ public struct GeometryExpression3D: GeometryExpression, Sendable {
         case cylinder (bottomRadius: Double, topRadius: Double, height: Double, segmentCount: Int)
         case convexHull (points: [Vector3D])
         case mesh (MeshData)
-    }
-
-    public struct MaterialApplication: Hashable, Sendable, Codable {
-        let material: Material
-        let behavior: Behavior
-
-        enum Behavior: String, Sendable, Hashable, Codable {
-            case replace
-            case makeDefault
-        }
-
-        internal static func replacement(_ material: Material) -> Self {
-            .init(material: material, behavior: .replace)
-        }
-
-        internal static func `default`(_ material: Material) -> Self {
-            .init(material: material, behavior: .makeDefault)
-        }
     }
 
     public enum Extrusion: Hashable, Sendable, Codable {
@@ -84,8 +66,8 @@ extension GeometryExpression3D {
         case .convexHull (let expression):
             return await context.geometry(for: expression).modified { $0.hull() }
 
-        case .applyMaterial (let expression, let application):
-            return await context.geometry(for: expression).applyingMaterial(application)
+        case .applyMaterial (let expression, let material):
+            return await context.geometry(for: expression).applyingMaterial(material)
 
         case .materialized (_):
             preconditionFailure("Materialized geometry expressions are pre-cached and cannot be evaluated")

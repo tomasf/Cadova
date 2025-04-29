@@ -47,10 +47,10 @@ extension GeometryExpression3D: Hashable {
             hasher.combine(Kind.materialized)
             hasher.combine(cacheKey)
 
-        case .applyMaterial(let body, let application):
+        case .applyMaterial(let body, let material):
             hasher.combine(Kind.applyMaterial)
             hasher.combine(body)
-            hasher.combine(application)
+            hasher.combine(material)
 
         case .lazyUnion(let children):
             hasher.combine(Kind.lazyUnion)

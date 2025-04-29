@@ -52,24 +52,13 @@ public struct ExpressionResult<D: Dimensionality>: Sendable {
         .init(primitive: action(primitive), materialMapping: materialMapping)
     }
 
-    func applyingMaterial(_ application: GeometryExpression3D.MaterialApplication) -> Self where D == D3 {
-        if application.behavior == .replace {
-            let original = primitive.asOriginal()
-            let originalID = original.originalID
-            guard let originalID else {
-                logger.error("Failed to assign an original ID to geometry")
-                return self
-            }
-            return .init(primitive: original, materialMapping: [application.material: [originalID]])
-
-        } else {
-            var mapping = materialMapping
-            if let plain = mapping[nil] {
-                mapping[application.material, default: []].formUnion(plain)
-                mapping[nil] = nil
-            }
-            return .init(primitive: primitive, materialMapping: mapping)
+    func applyingMaterial(_ material: Material) -> Self where D == D3 {
+        let original = primitive.asOriginal()
+        guard let originalID = original.originalID else {
+            logger.error("Failed to assign an original ID to geometry")
+            return self
         }
+        return .init(primitive: original, materialMapping: [material: [originalID]])
     }
 
     internal static var empty: Self { .init(primitive: .empty, materialMapping: [:]) }
