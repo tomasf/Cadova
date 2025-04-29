@@ -11,34 +11,50 @@ public struct EvaluationContext: Sendable {
 public typealias CacheKey = Hashable & Sendable & Codable
 
 internal extension EvaluationContext {
-    func cachedMaterializedGeometry<P: PrimitiveGeometry, Key: CacheKey>(key: Key) async -> P? {
+    func result<Expression: GeometryExpression>(for expression: Expression) async -> Expression.Result {
+        if let expression = expression as? GeometryExpression2D {
+            return await cache2D.result(for: expression, in: self) as! Expression.Result
+        } else if let expression = expression as? GeometryExpression3D {
+            return await cache3D.result(for: expression, in: self) as! Expression.Result
+        } else {
+            preconditionFailure("Unknown geometry type")
+        }
+    }
+
+    func results<E: GeometryExpression>(for expressions: [E]) async -> [E.Result] {
+        await expressions.asyncMap { await self.result(for: $0) }
+    }
+
+    // MARK: - Materialized results
+
+    func cachedMaterializedResult<D: Dimensionality, Key: CacheKey>(key: Key) async -> ExpressionResult<D>? {
         let wrappedKey = OpaqueKey(key)
-        let expression = P.D.Expression.materialized(cacheKey: wrappedKey)
+        let expression = D.Expression.materialized(cacheKey: wrappedKey)
 
         if let expression = expression as? GeometryExpression2D {
-            return await cache2D.cachedGeometry(for: expression) as! P?
+            return await cache2D.cachedResult(for: expression) as! ExpressionResult<D>?
 
         } else if let expression = expression as? GeometryExpression3D {
-            return await cache3D.cachedGeometry(for: expression) as! P?
+            return await cache3D.cachedResult(for: expression) as! ExpressionResult<D>?
 
         } else {
             preconditionFailure("Unknown geometry type")
         }
     }
 
-    func hasCachedGeometry<D: Dimensionality>(for key: any CacheKey, with dimensionality: D.Type) async -> Bool {
-        (await cachedMaterializedGeometry(key: key) as D.Primitive?) != nil
+    func hasCachedResult<D: Dimensionality>(for key: any CacheKey, with dimensionality: D.Type) async -> Bool {
+        (await cachedMaterializedResult(key: key) as D.Expression.Result?) != nil
     }
 
-    func storeMaterializedGeometry<E: GeometryExpression, Key: CacheKey>(_ primitive: E.Result, key: Key) async -> E {
+    func storeMaterializedResult<E: GeometryExpression, Key: CacheKey>(_ result: E.Result, key: Key) async -> E {
         let wrappedKey = OpaqueKey(key)
         let expression = E.materialized(cacheKey: wrappedKey)
 
         if let expression = expression as? GeometryExpression2D {
-            await cache2D.setCachedGeometry(primitive as! D2.Expression.Result, for: expression)
+            await cache2D.setCachedResult(result as! D2.Expression.Result, for: expression)
 
         } else if let expression = expression as? GeometryExpression3D {
-            await cache3D.setCachedGeometry(primitive as! D3.Expression.Result, for: expression)
+            await cache3D.setCachedResult(result as! D3.Expression.Result, for: expression)
 
         } else {
             preconditionFailure("Unknown geometry type")
@@ -47,19 +63,7 @@ internal extension EvaluationContext {
         return expression
     }
 
-    func geometry<Expression: GeometryExpression>(for expression: Expression) async -> Expression.Result {
-        if let expression = expression as? GeometryExpression2D {
-            return await cache2D.geometry(for: expression, in: self) as! Expression.Result
-        } else if let expression = expression as? GeometryExpression3D {
-            return await cache3D.geometry(for: expression, in: self) as! Expression.Result
-        } else {
-            preconditionFailure("Unknown geometry type")
-        }
-    }
-
-    func geometries<E: GeometryExpression>(for expressions: [E]) async -> [E.Result] {
-        await expressions.asyncMap { await self.geometry(for: $0) }
-    }
+    // MARK: - Result elements
 
     func resultElements(for cacheKey: any CacheKey) async -> ResultElements? {
         await resultElementCache.entries[OpaqueKey(cacheKey)]

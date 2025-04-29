@@ -18,14 +18,14 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey>: Geometry {
     let generator: @Sendable () -> D.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
-        if await context.hasCachedGeometry(for: key, with: D.self) {
+        if await context.hasCachedResult(for: key, with: D.self) {
             let resultElements = await context.resultElements(for: key) ?? [:]
             return D.Result(cacheKey: key, elements: resultElements)
         } else {
             let results = await generator().build(in: environment, context: context)
-            let expressionResults = await context.geometry(for: results.expression)
+            let expressionResults = await context.result(for: results.expression)
             await context.setResultElements(results.elements, for: key)
-            return await results.replacing(expression: context.storeMaterializedGeometry(expressionResults, key: key))
+            return await results.replacing(expression: context.storeMaterializedResult(expressionResults, key: key))
         }
     }
 }
@@ -37,10 +37,10 @@ struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
     let generator: @Sendable () -> D.Primitive
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
-        if await context.hasCachedGeometry(for: key, with: D.self) {
+        if await context.hasCachedResult(for: key, with: D.self) {
             D.Result(cacheKey: key, elements: [:])
         } else {
-            await D.Result(context.storeMaterializedGeometry(D.Expression.Result(original: generator()), key: key))
+            await D.Result(context.storeMaterializedResult(D.Expression.Result(original: generator()), key: key))
         }
     }
 }
@@ -70,14 +70,14 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
         let bodyResult = await body.build(in: environment, context: context)
         let bakedKey = GeometryCacheKey(base: key, expression: bodyResult.expression)
 
-        if await context.hasCachedGeometry(for: bakedKey, with: D.self) {
+        if await context.hasCachedResult(for: bakedKey, with: D.self) {
             return bodyResult.replacing(cacheKey: bakedKey)
 
         } else {
-            let expressionResult = await context.geometry(for: bodyResult.expression)
+            let expressionResult = await context.result(for: bodyResult.expression)
             let newResult = expressionResult.modified(generator)
 
-            let expression = await context.storeMaterializedGeometry(newResult, key: bakedKey) as D.Expression
+            let expression = await context.storeMaterializedResult(newResult, key: bakedKey) as D.Expression
             return bodyResult.replacing(expression: expression)
         }
     }
@@ -125,12 +125,12 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
         let firstKey = IndexedCacheKey(base: bakedKey, index: 0)
         let geometries: [D.Geometry]
 
-        if await context.hasCachedGeometry(for: firstKey, with: D.self) {
+        if await context.hasCachedResult(for: firstKey, with: D.self) {
             var parts: [IndexedCacheKey] = [firstKey]
             for i in 1... {
                 let indexedKey = IndexedCacheKey(base: bakedKey, index: i)
 
-                guard await context.hasCachedGeometry(for: indexedKey, with: D.self) else {
+                guard await context.hasCachedResult(for: indexedKey, with: D.self) else {
                     break
                 }
                 parts.append(indexedKey)
@@ -139,12 +139,12 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
             geometries = parts.map { bodyResult.replacing(cacheKey: $0) }
 
         } else {
-            let expressionResult = await context.geometry(for: bodyResult.expression)
+            let expressionResult = await context.result(for: bodyResult.expression)
             let primitives = generator(expressionResult.primitive)
 
             geometries = await Array(primitives.enumerated()).asyncMap { index, primitive in
                 let indexedKey = IndexedCacheKey(base: key, index: index)
-                let expression: D.Expression = await context.storeMaterializedGeometry(expressionResult.modified { _ in primitive }, key: indexedKey)
+                let expression: D.Expression = await context.storeMaterializedResult(expressionResult.modified { _ in primitive }, key: indexedKey)
                 return bodyResult.replacing(expression: expression)
             }
         }

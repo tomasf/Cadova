@@ -7,7 +7,7 @@ struct SVGDataProvider: OutputDataProvider {
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
         let expression = GeometryExpression2D.transform(result.expression, transform: .scaling(x: 1, y: -1))
-        let expressionResult = await context.geometry(for: expression)
+        let expressionResult = await context.result(for: expression)
 
         let bounds = expressionResult.primitive.bounds
         let shapePoints = expressionResult.primitive.polygons()
