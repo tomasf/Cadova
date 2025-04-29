@@ -7,7 +7,7 @@ internal struct ReadPrimitive<Input: Dimensionality, Output: Dimensionality>: Ge
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> Output.Result {
         let bodyResult = await body.build(in: environment, context: context)
-        let expressionResult = await context.geometry(for: bodyResult.expression)
+        let expressionResult = await context.result(for: bodyResult.expression)
         return await action(expressionResult.primitive, bodyResult).build(in: environment, context: context)
     }
 }

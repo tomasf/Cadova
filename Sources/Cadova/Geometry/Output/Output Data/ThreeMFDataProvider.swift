@@ -118,7 +118,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let parts = await ContinuousClock().measure {
             await outputs.asyncCompactMap { partIdentifier, result -> PartData? in
                 guard !result.expression.isEmpty else { return nil }
-                let expressionResult = await context.geometry(for: result.expression)
+                let expressionResult = await context.result(for: result.expression)
 
                 return PartData(
                     id: partIdentifier,

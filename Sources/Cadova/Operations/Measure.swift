@@ -7,7 +7,7 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.Result {
         let targetResult = await target.build(in: environment, context: context)
-        let expressionResult = await context.geometry(for: targetResult.expression)
+        let expressionResult = await context.result(for: targetResult.expression)
         let generatedGeometry = builder(target, .init(primitive: expressionResult.primitive))
         return await generatedGeometry.build(in: environment, context: context)
     }

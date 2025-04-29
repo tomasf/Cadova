@@ -57,23 +57,23 @@ extension GeometryExpression3D {
             return Result(original: shape.evaluate())
 
         case .boolean (let members, let booleanOperation):
-            let results = await context.geometries(for: members)
+            let results = await context.results(for: members)
             return Result(product: .boolean(booleanOperation.manifoldRepresentation, with: results.map(\.primitive)), results: results)
 
         case .transform (let expression, let transform):
-            return await context.geometry(for: expression).modified { $0.transform(transform) }
+            return await context.result(for: expression).modified { $0.transform(transform) }
 
         case .convexHull (let expression):
-            return await context.geometry(for: expression).modified { $0.hull() }
+            return await context.result(for: expression).modified { $0.hull() }
 
         case .applyMaterial (let expression, let material):
-            return await context.geometry(for: expression).applyingMaterial(material)
+            return await context.result(for: expression).applyingMaterial(material)
 
         case .materialized (_):
             preconditionFailure("Materialized geometry expressions are pre-cached and cannot be evaluated")
 
         case .extrusion (let expression, let extrusion):
-            let result = await context.geometry(for: expression)
+            let result = await context.result(for: expression)
             return switch extrusion {
             case .linear (let height, let twist, let divisions, let scaleTop):
                 Result(original: result.primitive.extrude(height: height, divisions: divisions, twist: twist.degrees, scaleTop: scaleTop))
@@ -83,7 +83,7 @@ extension GeometryExpression3D {
             }
 
         case .lazyUnion (let members):
-            let results = await context.geometries(for: members)
+            let results = await context.results(for: members)
             return Result(product: .init(composing: results.map(\.primitive)), results: results)
         }
     }

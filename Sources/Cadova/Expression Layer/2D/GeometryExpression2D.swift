@@ -50,24 +50,24 @@ public extension GeometryExpression2D {
             shape.evaluate()
 
         case .boolean (let members, let type):
-            await CrossSection.boolean(type.manifoldRepresentation, with: context.geometries(for: members).map(\.primitive))
+            await CrossSection.boolean(type.manifoldRepresentation, with: context.results(for: members).map(\.primitive))
 
         case .transform (let expression, let transform):
-            await context.geometry(for: expression).primitive.transform(transform)
+            await context.result(for: expression).primitive.transform(transform)
 
         case .convexHull (let expression):
-            await context.geometry(for: expression).primitive.hull()
+            await context.result(for: expression).primitive.hull()
 
         case .offset (let expression, let amount, let joinStyle, let miterLimit, let segmentCount):
-            await context.geometry(for: expression).primitive
+            await context.result(for: expression).primitive
                 .offset(amount: amount, joinType: joinStyle.manifoldRepresentation, miterLimit: miterLimit, circularSegments: segmentCount)
 
         case .projection (let expression, let projection):
             switch projection {
             case .full:
-                await context.geometry(for: expression).primitive.projection()
+                await context.result(for: expression).primitive.projection()
             case .slice (let z):
-                await context.geometry(for: expression).primitive.slice(at: z)
+                await context.result(for: expression).primitive.slice(at: z)
             }
 
         case .materialized (_):
