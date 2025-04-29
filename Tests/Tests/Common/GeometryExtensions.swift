@@ -27,8 +27,8 @@ extension Geometry {
         get async {
             let context = EvaluationContext()
             let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
-            let geometry = await context.geometry(for: result.expression)
-            return D.BoundingBox(geometry.bounds)
+            let expressionResult = await context.result(for: result.expression)
+            return D.BoundingBox(expressionResult.primitive.bounds)
         }
     }
 

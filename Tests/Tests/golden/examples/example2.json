@@ -311,18 +311,15 @@
               ]
             ]
           },
-          "key" : {
-            "type" : "6Cadova8MaterialV",
-            "value" : {
-              "baseColor" : {
-                "alpha" : 0,
-                "blue" : 0,
-                "green" : 0,
-                "red" : 0
-              }
+          "kind" : "applyMaterial",
+          "material" : {
+            "baseColor" : {
+              "alpha" : 0,
+              "blue" : 0,
+              "green" : 0,
+              "red" : 0
             }
-          },
-          "kind" : "tag"
+          }
         }
       ],
       "kind" : "boolean",

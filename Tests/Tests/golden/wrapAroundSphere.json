@@ -21,7 +21,7 @@
             "parameters" : [
               {
                 "type" : "Sd",
-                "value" : 0.01
+                "value" : 0.005
               }
             ]
           },
@@ -1719,18 +1719,15 @@
                               "kind" : "boolean",
                               "type" : "intersection"
                             },
-                            "key" : {
-                              "type" : "6Cadova8MaterialV",
-                              "value" : {
-                                "baseColor" : {
-                                  "alpha" : 1,
-                                  "blue" : 0,
-                                  "green" : 0,
-                                  "red" : 1
-                                }
+                            "kind" : "applyMaterial",
+                            "material" : {
+                              "baseColor" : {
+                                "alpha" : 1,
+                                "blue" : 0,
+                                "green" : 0,
+                                "red" : 1
                               }
-                            },
-                            "kind" : "tag"
+                            }
                           }
                         ],
                         "kind" : "boolean",

@@ -75,18 +75,15 @@
               ]
             ]
           },
-          "key" : {
-            "type" : "6Cadova8MaterialV",
-            "value" : {
-              "baseColor" : {
-                "alpha" : 1,
-                "blue" : 0,
-                "green" : 0,
-                "red" : 1
-              }
+          "kind" : "applyMaterial",
+          "material" : {
+            "baseColor" : {
+              "alpha" : 1,
+              "blue" : 0,
+              "green" : 0,
+              "red" : 1
             }
-          },
-          "kind" : "tag"
+          }
         },
         {
           "body" : {
@@ -149,18 +146,15 @@
               ]
             ]
           },
-          "key" : {
-            "type" : "6Cadova8MaterialV",
-            "value" : {
-              "baseColor" : {
-                "alpha" : 1,
-                "blue" : 1,
-                "green" : 0,
-                "red" : 0
-              }
+          "kind" : "applyMaterial",
+          "material" : {
+            "baseColor" : {
+              "alpha" : 1,
+              "blue" : 1,
+              "green" : 0,
+              "red" : 0
             }
-          },
-          "kind" : "tag"
+          }
         }
       ],
       "kind" : "boolean",
