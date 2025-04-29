@@ -45,9 +45,9 @@ struct MaterialRecord: ResultElement {
 
     func originalIDMapping(from context: EvaluationContext) async -> [Manifold.OriginalID: Material] {
         Dictionary(uniqueKeysWithValues: await materials.asyncCompactMap { material in
-            let originalID = await context.taggedGeometry[material]
-            return originalID.map { ($0, material) }
-        })
+            let originalIDs = await context.taggedGeometry[material]
+            return originalIDs.map { ($0, material) }
+        }.flatMap { $0 })
     }
 }
 
