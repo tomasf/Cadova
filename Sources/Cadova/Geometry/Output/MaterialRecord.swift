@@ -21,33 +21,3 @@ public struct Material: Hashable, Sendable, Codable {
         return .init(baseColor: color.withAlphaComponent(alpha ?? color.alpha))
     }
 }
-
-struct MaterialRecord: ResultElement {
-    var materials: Set<Material>
-
-    init(materials: Set<Material>) {
-        self.materials = materials
-    }
-
-    init() {
-        self.init(materials: [])
-    }
-
-    init(combining records: [MaterialRecord]) {
-        self.init(materials: records.reduce(into: Set<Material>()) { result, record in
-            result.formUnion(record.materials)
-        })
-    }
-
-    mutating func add(_ material: Material) {
-        materials.insert(material)
-    }
-
-    func originalIDMapping(from context: EvaluationContext) async -> [Manifold.OriginalID: Material] {
-        Dictionary(uniqueKeysWithValues: await materials.asyncCompactMap { material in
-            let originalIDs = await context.taggedGeometry[material]
-            return originalIDs.map { ($0, material) }
-        }.flatMap { $0 })
-    }
-}
-

@@ -4,7 +4,6 @@ import Manifold3D
 public struct EvaluationContext: Sendable {
     internal let cache2D = GeometryCache<D2>()
     internal let cache3D = GeometryCache<D3>()
-    internal let taggedGeometry = TaggedGeometryRegistry()
     internal let resultElementCache = ResultElementCache()
     internal init() {}
 }
@@ -31,15 +30,15 @@ internal extension EvaluationContext {
         (await cachedMaterializedGeometry(key: key) as D.Primitive?) != nil
     }
 
-    func storeMaterializedGeometry<E: GeometryExpression, Key: CacheKey>(_ primitive: E.D.Primitive, key: Key) async -> E {
+    func storeMaterializedGeometry<E: GeometryExpression, Key: CacheKey>(_ primitive: E.Result, key: Key) async -> E {
         let wrappedKey = OpaqueKey(key)
         let expression = E.materialized(cacheKey: wrappedKey)
 
         if let expression = expression as? GeometryExpression2D {
-            await cache2D.setCachedGeometry(primitive as! D2.Primitive, for: expression)
+            await cache2D.setCachedGeometry(primitive as! D2.Expression.Result, for: expression)
 
         } else if let expression = expression as? GeometryExpression3D {
-            await cache3D.setCachedGeometry(primitive as! D3.Primitive, for: expression)
+            await cache3D.setCachedGeometry(primitive as! D3.Expression.Result, for: expression)
 
         } else {
             preconditionFailure("Unknown geometry type")
@@ -48,17 +47,17 @@ internal extension EvaluationContext {
         return expression
     }
 
-    func geometry<Expression: GeometryExpression>(for expression: Expression) async -> Expression.D.Primitive {
+    func geometry<Expression: GeometryExpression>(for expression: Expression) async -> Expression.Result {
         if let expression = expression as? GeometryExpression2D {
-            return await cache2D.geometry(for: expression, in: self) as! Expression.D.Primitive
+            return await cache2D.geometry(for: expression, in: self) as! Expression.Result
         } else if let expression = expression as? GeometryExpression3D {
-            return await cache3D.geometry(for: expression, in: self) as! Expression.D.Primitive
+            return await cache3D.geometry(for: expression, in: self) as! Expression.Result
         } else {
             preconditionFailure("Unknown geometry type")
         }
     }
 
-    func geometries<E: GeometryExpression>(for expressions: [E]) async -> [E.D.Primitive] {
+    func geometries<E: GeometryExpression>(for expressions: [E]) async -> [E.Result] {
         await expressions.asyncMap { await self.geometry(for: $0) }
     }
 

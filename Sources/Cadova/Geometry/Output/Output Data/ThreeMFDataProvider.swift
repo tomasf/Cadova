@@ -118,10 +118,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let parts = await ContinuousClock().measure {
             await outputs.asyncCompactMap { partIdentifier, result -> PartData? in
                 guard !result.expression.isEmpty else { return nil }
+                let expressionResult = await context.geometry(for: result.expression)
+
                 return PartData(
                     id: partIdentifier,
-                    mesh: await context.geometry(for: result.expression).meshGL(),
-                    materials: await result.elements[MaterialRecord.self].originalIDMapping(from: context)
+                    mesh: expressionResult.primitive.meshGL(),
+                    materials: expressionResult.materialsByOriginalID
                 )
             }
             .sorted(by: { $0.id.hashValue < $1.id.hashValue })

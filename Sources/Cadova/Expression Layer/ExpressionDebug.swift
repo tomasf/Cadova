@@ -86,8 +86,8 @@ extension GeometryExpression3D {
             case let .rotational(angle, segments):
                 String(format: "extrude(rotated, angle: %@, segments: %d)", angle.debugDescription, segments)
             }
-        case let .tag(body, key):
-            "tag(\(key)) {\n\(body.debugDescription.indented)\n}"
+        case let .applyMaterial(body, application):
+            "applyMaterial (\(application)) {\n\(body.debugDescription.indented)\n}"
         case let .lazyUnion(children):
             "lazyUnion {\n\(children.map(\.debugDescription).joined(separator: "\n").indented)\n}"
         }

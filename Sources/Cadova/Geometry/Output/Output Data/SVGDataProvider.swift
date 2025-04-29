@@ -7,10 +7,10 @@ struct SVGDataProvider: OutputDataProvider {
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
         let expression = GeometryExpression2D.transform(result.expression, transform: .scaling(x: 1, y: -1))
-        let primitive = await context.geometry(for: expression)
+        let expressionResult = await context.geometry(for: expression)
 
-        let bounds = primitive.bounds
-        let shapePoints = primitive.polygons()
+        let bounds = expressionResult.primitive.bounds
+        let shapePoints = expressionResult.primitive.polygons()
 
         let document = Document()
         let svg = document.makeDocumentElement(name: "svg", defaultNamespace: "http://www.w3.org/2000/svg")
