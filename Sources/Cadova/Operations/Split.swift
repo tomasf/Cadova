@@ -91,13 +91,17 @@ public extension Geometry3D {
         @GeometryBuilder3D with mask: @escaping () -> any Geometry3D,
         @GeometryBuilder3D result: @Sendable @escaping (_ inside: any Geometry3D, _ outside: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        mask().readingPrimitive { primitive, expression in
-            CachingPrimitiveArrayTransformer(body: self, name: "Cadova.SplitWithMask", parameters: expression) { input in
+        mask().readingPrimitive { primitive, maskResult in
+            CachingPrimitiveArrayTransformer(body: self, name: "Cadova.SplitWithMask", parameters: maskResult.expression) { input in
                 let (a, b) = input.split(by: primitive)
                 return [a, b]
             } resultHandler: { geometries in
                 precondition(geometries.count == 2, "Split result should contain exactly two geometries")
-                return result(geometries[0], geometries[1])
+                
+                return result(
+                    geometries[0].mergingResultElements(with: maskResult.elements),
+                    geometries[1].mergingResultElements(with: maskResult.elements)
+                )
             }
         }
     }

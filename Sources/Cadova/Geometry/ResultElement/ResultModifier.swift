@@ -28,3 +28,11 @@ public extension Geometry {
         }
     }
 }
+
+internal extension Geometry {
+    func mergingResultElements(with otherElements: ResultElements) -> D.Geometry {
+        ResultModifier(body: self) { elements in
+            ResultElements(combining: [elements, otherElements])
+        }
+    }
+}
