@@ -2,14 +2,14 @@ import Foundation
 @testable import Cadova
 
 struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
-    let parts: [PartIdentifier: D.Expression]
+    let parts: [PartIdentifier: D.Node]
 
-    init(result: GeometryResult<D>) {
-        if let result2D = result as? GeometryResult2D {
-            parts = [.main: result2D.expression as! D.Expression]
-        } else if let result3D = result as? GeometryResult3D {
-            var parts = result.elements[PartCatalog.self].mergedOutputs.mapValues(\.expression) as! [PartIdentifier: D.Expression]
-            parts[.main] = (result3D.expression as! D.Expression)
+    init(result: BuildResult<D>) {
+        if let result2D = result as? D2.BuildResult {
+            parts = [.main: result2D.node as! D.Node]
+        } else if let result3D = result as? D3.BuildResult {
+            var parts = result.elements[PartCatalog.self].mergedOutputs.mapValues(\.node) as! [PartIdentifier: D.Node]
+            parts[.main] = (result3D.node as! D.Node)
             self.parts = parts
         } else {
             fatalError("Invalid geometry type")

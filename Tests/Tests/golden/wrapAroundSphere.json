@@ -14,7 +14,7 @@
     },
     {
       "cacheKey" : {
-        "type" : "6Cadova16GeometryCacheKeyVyAA05NamedcD0VAA0B12Expression3DVG",
+        "type" : "6Cadova16GeometryCacheKeyVyAA05NamedcD0VAA0B6Node3DVG",
         "value" : {
           "base" : {
             "operationName" : "Cadova.Simplify",
@@ -27,7 +27,7 @@
           },
           "expression" : {
             "cacheKey" : {
-              "type" : "6Cadova16GeometryCacheKeyVyAA05NamedcD0VAA0B12Expression3DVG",
+              "type" : "6Cadova16GeometryCacheKeyVyAA05NamedcD0VAA0B6Node3DVG",
               "value" : {
                 "base" : {
                   "operationName" : "wrapAroundSphere",
@@ -40,7 +40,7 @@
                 },
                 "expression" : {
                   "cacheKey" : {
-                    "type" : "6Cadova16GeometryCacheKeyVyAA05NamedcD0VAA0B12Expression3DVG",
+                    "type" : "6Cadova16GeometryCacheKeyVyAA05NamedcD0VAA0B6Node3DVG",
                     "value" : {
                       "base" : {
                         "operationName" : "Cadova.Refine",

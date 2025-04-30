@@ -2,9 +2,9 @@ import Testing
 import Foundation
 @testable import Cadova
 
-struct GeometryExpressionCodableTests {
+struct GeometryNodeCodableTests {
     @Test func testCodableRoundTrip2D() throws {
-        let expression: GeometryExpression2D = .boolean([
+        let expression: GeometryNode2D = .boolean([
             .shape(.rectangle(size: .init(x: 10, y: 5))),
             .transform(
                 .shape(.circle(radius: 3, segmentCount: 24)),
@@ -22,13 +22,13 @@ struct GeometryExpressionCodableTests {
         ], type: .union)
 
         let encoded = try JSONEncoder().encode(expression)
-        let decoded = try JSONDecoder().decode(GeometryExpression2D.self, from: encoded)
+        let decoded = try JSONDecoder().decode(GeometryNode2D.self, from: encoded)
         #expect(decoded == expression)
     }
 
     @Test
     func testCodableRoundTrip3D() throws {
-        let expression: GeometryExpression3D = .boolean([
+        let expression: GeometryNode3D = .boolean([
             .shape(.box(size: .init(x: 5, y: 5, z: 1))),
             .transform(
                 .shape(.sphere(radius: 3, segmentCount: 16)),
@@ -44,7 +44,7 @@ struct GeometryExpressionCodableTests {
         ], type: .intersection)
 
         let encoded = try JSONEncoder().encode(expression)
-        let decoded = try JSONDecoder().decode(GeometryExpression3D.self, from: encoded)
+        let decoded = try JSONDecoder().decode(GeometryNode3D.self, from: encoded)
         #expect(decoded == expression)
     }
 }
