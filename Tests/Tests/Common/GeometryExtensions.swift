@@ -13,9 +13,9 @@ enum TestGeneratedOutputType: String, Hashable {
 }
 
 extension Geometry {
-    var expression: D.Expression {
+    var expression: D.Node {
         get async {
-            await withDefaultSegmentation().build(in: .defaultEnvironment, context: .init()).expression
+            await withDefaultSegmentation().build(in: .defaultEnvironment, context: .init()).node
         }
     }
 
@@ -27,8 +27,8 @@ extension Geometry {
         get async {
             let context = EvaluationContext()
             let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
-            let expressionResult = await context.result(for: result.expression)
-            return D.BoundingBox(expressionResult.primitive.bounds)
+            let nodeResult = await context.result(for: result.node)
+            return D.BoundingBox(nodeResult.concrete.bounds)
         }
     }
 
@@ -81,12 +81,12 @@ extension Geometry {
     }
 }
 
-extension GeometryResult {
-    var for3MFVerification: GeometryResult<D3> {
-        if let d3 = self as? GeometryResult<D3> {
+extension BuildResult {
+    var for3MFVerification: BuildResult<D3> {
+        if let d3 = self as? BuildResult<D3> {
             return d3
-        } else if let d2 = self as? GeometryResult<D2> {
-            return replacing(expression: GeometryExpression3D.extrusion(d2.expression, type: .linear(height: 0.001, twist: 0°, divisions: 0, scaleTop: Vector2D(1, 1))))
+        } else if let d2 = self as? BuildResult<D2> {
+            return replacing(expression: GeometryNode3D.extrusion(d2.node, type: .linear(height: 0.001, twist: 0°, divisions: 0, scaleTop: Vector2D(1, 1))))
         } else {
             return replacing(expression: .empty)
         }

@@ -6,45 +6,45 @@ import Manifold3D
 /// This type encapsulates various metrics like bounding boxes, areas, and vertex counts,
 /// tailored to either 2D or 3D geometries based on the specified dimensionality.
 public struct Measurements<D: Dimensionality>: Sendable {
-    internal let primitive: D.Primitive
+    internal let concrete: D.Concrete
 }
 
 public extension Measurements {
     /// The bounding box of the geometry.
     var boundingBox: BoundingBox<D>? {
-        isEmpty ? nil : .init(primitive.bounds)
+        isEmpty ? nil : .init(concrete.bounds)
     }
 
     /// Is this geometry empty?
-    var isEmpty: Bool { .init(primitive.isEmpty) }
+    var isEmpty: Bool { .init(concrete.isEmpty) }
 }
 
 public extension Measurements2D {
     /// The total area of the 2D geometry.
-    var area: Double { primitive.area }
+    var area: Double { concrete.area }
 
     /// The total number of vertices in the geometry.
-    var pointCount: Int { primitive.vertexCount }
+    var pointCount: Int { concrete.vertexCount }
 
     /// The number of contours (closed paths) in the geometry.
-    var contourCount: Int { primitive.contourCount }
+    var contourCount: Int { concrete.contourCount }
 }
 
 public extension Measurements3D {
     /// The total surface area of the 3D geometry.
-    var surfaceArea: Double { primitive.surfaceArea }
+    var surfaceArea: Double { concrete.surfaceArea }
 
     /// The total volume enclosed by the 3D geometry.
-    var volume: Double { primitive.volume }
+    var volume: Double { concrete.volume }
 
     /// The total number of vertices in the geometry.
-    var pointCount: Int { primitive.vertexCount }
+    var pointCount: Int { concrete.vertexCount }
 
     /// The total number of edges in the geometry.
-    var edgeCount: Int { primitive.edgeCount }
+    var edgeCount: Int { concrete.edgeCount }
 
     /// The number of triangular faces in the geometry.
-    var triangleCount: Int { primitive.triangleCount }
+    var triangleCount: Int { concrete.triangleCount }
 }
 
 extension Measurements: CustomDebugStringConvertible {

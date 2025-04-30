@@ -8,23 +8,23 @@ struct GeometryCacheTests {
     let box = Box(4)
 
     @Test func basics() async throws {
-        _ = await context.primitive(for: sphere)
+        _ = await context.concrete(for: sphere)
         await #expect(context.cache3D.count == 1)
 
         let union = sphere.adding { box }
 
-        _ = await context.primitive(for: union)
+        _ = await context.concrete(for: union)
         await #expect(context.cache3D.count == 3)
 
-        _ = await context.primitive(for: union)
+        _ = await context.concrete(for: union)
         await #expect(context.cache3D.count == 3)
     }
 
     @Test func differentEnvironments() async throws {
-        _ = await context.primitive(for: sphere)
+        _ = await context.concrete(for: sphere)
         await #expect(context.cache3D.count == 1)
 
-        _ = await context.primitive(for: sphere, in: .defaultEnvironment.withSegmentation(.fixed(10)))
+        _ = await context.concrete(for: sphere, in: .defaultEnvironment.withSegmentation(.fixed(10)))
         await #expect(context.cache3D.count == 2)
     }
 
@@ -34,17 +34,17 @@ struct GeometryCacheTests {
             Vector3D($0.x + $0.z * scale, $0.y, $0.z)
         }
 
-        _ = await context.primitive(for: warp1)
+        _ = await context.concrete(for: warp1)
         await #expect(context.cache3D.count == 2) // sphere + warped box
 
-        _ = await context.primitive(for: warp1)
+        _ = await context.concrete(for: warp1)
         await #expect(context.cache3D.count == 2)
 
         let warp2 = box.warped(operationName: "test", cacheParameters: scale) { _ in
             Issue.record("This closure should never be reached because the cache keys are matching")
             return .zero
         }
-        _ = await context.primitive(for: warp2)
+        _ = await context.concrete(for: warp2)
         await #expect(context.cache3D.count == 2)
     }
 
@@ -55,7 +55,7 @@ struct GeometryCacheTests {
             g1.adding(g2)
         }
 
-        _ = await context.primitive(for: split1)
+        _ = await context.concrete(for: split1)
         await #expect(context.cache3D.count == 6) // box, 2x splits, 2x translated splits, split union
     }
 
@@ -64,9 +64,9 @@ struct GeometryCacheTests {
 
         await #expect(context.hasCachedResult(for: cacheKey, with: D3.self) == false)
         _ = await context.storeMaterializedResult(
-            D3.Expression.Result(.sphere(radius: 1, segmentCount: 10)),
+            D3.Node.Result(.sphere(radius: 1, segmentCount: 10)),
             key: cacheKey
-        ) as D3.Expression
+        ) as D3.Node
         await #expect(context.hasCachedResult(for: cacheKey, with: D3.self) == true)
     }
 
@@ -104,7 +104,7 @@ fileprivate struct CallbackGeometry: Geometry {
 
     let callback: @Sendable () async -> ()
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D3.Result {
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D3.BuildResult {
         await callback()
         return .init(.empty)
     }
