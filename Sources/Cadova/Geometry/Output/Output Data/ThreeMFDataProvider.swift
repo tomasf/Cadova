@@ -123,7 +123,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 return PartData(
                     id: partIdentifier,
                     mesh: expressionResult.primitive.meshGL(),
-                    materials: expressionResult.materialsByOriginalID
+                    materials: expressionResult.materialMapping
                 )
             }
             .sorted(by: { $0.id.hashValue < $1.id.hashValue })

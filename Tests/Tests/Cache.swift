@@ -64,7 +64,7 @@ struct GeometryCacheTests {
 
         await #expect(context.hasCachedResult(for: cacheKey, with: D3.self) == false)
         _ = await context.storeMaterializedResult(
-            D3.Expression.Result(original: .sphere(radius: 1, segmentCount: 10)),
+            D3.Expression.Result(.sphere(radius: 1, segmentCount: 10)),
             key: cacheKey
         ) as D3.Expression
         await #expect(context.hasCachedResult(for: cacheKey, with: D3.self) == true)
