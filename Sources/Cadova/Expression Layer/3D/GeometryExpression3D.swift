@@ -54,7 +54,7 @@ extension GeometryExpression3D {
             return .empty
 
         case .shape (let shape):
-            return Result(original: shape.evaluate())
+            return Result(shape.evaluate())
 
         case .boolean (let members, let booleanOperation):
             let results = await context.results(for: members)
@@ -76,10 +76,10 @@ extension GeometryExpression3D {
             let result = await context.result(for: expression)
             return switch extrusion {
             case .linear (let height, let twist, let divisions, let scaleTop):
-                Result(original: result.primitive.extrude(height: height, divisions: divisions, twist: twist.degrees, scaleTop: scaleTop))
+                Result(result.primitive.extrude(height: height, divisions: divisions, twist: twist.degrees, scaleTop: scaleTop))
 
             case .rotational (let angle, let segmentCount):
-                Result(original: result.primitive.revolve(degrees: angle.degrees, circularSegments: segmentCount))
+                Result(result.primitive.revolve(degrees: angle.degrees, circularSegments: segmentCount))
             }
 
         case .lazyUnion (let members):

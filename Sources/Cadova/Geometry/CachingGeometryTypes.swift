@@ -40,7 +40,7 @@ struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
         if await context.hasCachedResult(for: key, with: D.self) {
             D.Result(cacheKey: key, elements: [:])
         } else {
-            await D.Result(context.storeMaterializedResult(D.Expression.Result(original: generator()), key: key))
+            await D.Result(context.storeMaterializedResult(D.Expression.Result(generator()), key: key))
         }
     }
 }
