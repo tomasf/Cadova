@@ -15,9 +15,9 @@ import Foundation
 
 
 public struct Teardrop: Shape2D {
-    public let style: Style
-    public let angle: Angle
-    public let diameter: Double
+    private let style: Style
+    private let angle: Angle
+    private let radius: Double
 
     @Environment(\.naturalUpDirectionXYAngle) var upAngle
 
@@ -28,24 +28,23 @@ public struct Teardrop: Shape2D {
     ///   - style: Specifies the style of the teardrop. Defaults to `.full`.
     public init(diameter: Double, angle: Angle = 45°, style: Style = .full) {
         precondition(angle > 0° && angle < 90°, "Angle must be between 0 and 90 degrees")
-        self.diameter = diameter
+        self.radius = diameter / 2
         self.angle = angle
         self.style = style
     }
 
     public var body: any Geometry2D {
-        let radius = diameter / 2
         let mask = Rectangle(radius / sin(angle))
             .rotated(-angle)
             .translated(x: -cos(angle) * radius, y: sin(angle) * radius)
 
-        Circle(diameter: diameter)
+        Circle(radius: radius)
         Intersection {
             mask
             mask.flipped(across: .x)
 
             if style == .bridged {
-                Rectangle(diameter)
+                Rectangle(radius * 2)
                     .aligned(at: .center)
             }
         }

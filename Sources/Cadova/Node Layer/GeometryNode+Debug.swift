@@ -6,7 +6,7 @@ extension String {
     }
 }
 
-extension GeometryNode {
+extension GeometryNode: CustomDebugStringConvertible {
     public var debugDescription: String {
         switch contents {
         case .empty:

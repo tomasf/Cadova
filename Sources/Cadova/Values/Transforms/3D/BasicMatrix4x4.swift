@@ -22,8 +22,8 @@ internal struct BasicMatrix4x4: Equatable, Sendable {
         [0, 0, 0, 1]
     ])
 
-    static func *(_ lhs: BasicMatrix4x4, _ rhs: BasicMatrix4x4) -> BasicMatrix4x4 {
-        BasicMatrix4x4(rows:
+    static func *(_ lhs: Self, _ rhs: Self) -> Self {
+        Self(rows:
             (0..<4).map { row in
                 (0..<4).map { column in
                     (0..<4).map { i in
@@ -34,7 +34,7 @@ internal struct BasicMatrix4x4: Equatable, Sendable {
         )
     }
 
-    static func *(_ lhs: Column, _ rhs: BasicMatrix4x4) -> Row {
+    static func *(_ lhs: Column, _ rhs: Self) -> Row {
         (0..<4).map { column in
             (0..<4).map { row in
                 rhs[column, row] * lhs[row]
@@ -42,7 +42,7 @@ internal struct BasicMatrix4x4: Equatable, Sendable {
         }
     }
 
-    static func *(_ lhs: BasicMatrix4x4, _ rhs: Column) -> Row {
+    static func *(_ lhs: Self, _ rhs: Column) -> Row {
         (0..<4).map { row in
             (0..<4).map { column in
                 lhs[column, row] * rhs[column]
@@ -50,7 +50,7 @@ internal struct BasicMatrix4x4: Equatable, Sendable {
         }
     }
 
-    var inverse: BasicMatrix4x4 {
+    var inverse: Self {
         .init(rows: invertMatrix(matrix: values))
     }
 }
