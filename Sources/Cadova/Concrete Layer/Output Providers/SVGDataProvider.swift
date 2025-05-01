@@ -10,14 +10,14 @@ struct SVGDataProvider: OutputDataProvider {
         let node = GeometryNode.transform(result.node, transform: .scaling(x: 1, y: -1))
         let nodeResult = await context.result(for: node)
 
-        let bounds = nodeResult.concrete.bounds
+        let bounds = BoundingBox2D(nodeResult.concrete.bounds)
         let shapePoints = nodeResult.concrete.polygons()
 
         let document = Document()
         let svg = document.makeDocumentElement(name: "svg", defaultNamespace: "http://www.w3.org/2000/svg")
         svg[attribute: "viewBox"] = String(format: "%g %g %g %g",
-                                           bounds.min.x, bounds.min.y,
-                                           bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y)
+                                           bounds.minimum.x, bounds.minimum.y,
+                                           bounds.size.x, bounds.size.y)
 
         let metadata = options[Metadata.self]
         if let title = metadata.title {
