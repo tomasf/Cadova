@@ -27,7 +27,7 @@ struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geomet
         transformer = { environment, context in
             let newEnvironment = environmentTransformer?(environment) ?? environment
             let bodyResult = await body.build(in: newEnvironment, context: context)
-            return bodyResult.replacing(expression: expressionTransformer(bodyResult.node))
+            return bodyResult.replacing(node: expressionTransformer(bodyResult.node))
         }
     }
 

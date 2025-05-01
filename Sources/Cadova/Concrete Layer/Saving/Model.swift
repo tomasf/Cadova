@@ -26,18 +26,6 @@ private func saveModel(
     }
 }
 
-fileprivate extension Geometry {
-    var preparedFor3DExport: any Geometry3D {
-        if let geometry3D = self as? any Geometry3D {
-            return geometry3D
-        } else if let geometry2D = self as? any Geometry2D {
-            return geometry2D.extruded(height: 0.001)
-        } else {
-            fatalError("Unsupported geometry type")
-        }
-    }
-}
-
 public struct Model: Sendable {
     let name: String
     let writer: @Sendable (EvaluationContext) async -> ()
@@ -45,6 +33,7 @@ public struct Model: Sendable {
     @discardableResult
     public init<D: Dimensionality>(
         _ name: String,
+        options: ModelOptions...,
         @GeometryBuilder<D> content: @Sendable @escaping () -> D.Geometry,
         environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
     ) async {
@@ -61,14 +50,36 @@ public struct Model: Sendable {
             baseURL = URL(expandingFilePath: name)
         }
 
+        let localOptions: ModelOptions = [
+            .init(ModelName(name: name)),
+            OutputContext.current?.options ?? [],
+            .init(options)
+        ]
+
         writer = { context in
             let result = await ContinuousClock().measure {
-                await content().preparedFor3DExport.build(in: environment, context: context)
+                await content().build(in: environment, context: context)
             } results: { duration, _ in
                 logger.debug("Built geometry node tree in \(duration)")
             }
 
-            let provider = ThreeMFDataProvider(result: result)
+            let provider: OutputDataProvider
+            if let result = result as? D2.BuildResult {
+                switch localOptions[ModelOptions.FileFormat2D.self] {
+                case .threeMF: provider = ThreeMFDataProvider(result: result, options: localOptions)
+                case .svg: provider = SVGDataProvider(result: result, options: localOptions)
+                }
+
+            } else if let result = result as? D3.BuildResult {
+                switch localOptions[ModelOptions.FileFormat3D.self] {
+                case .threeMF: provider = ThreeMFDataProvider(result: result, options: localOptions)
+                case .stl: provider = BinarySTLDataProvider(result: result, options: localOptions)
+                }
+
+            } else {
+                preconditionFailure("Unknown result type")
+            }
+
             let url = baseURL.appendingPathExtension(provider.fileExtension)
 
             do {
@@ -85,3 +96,4 @@ public struct Model: Sendable {
         }
     }
 }
+

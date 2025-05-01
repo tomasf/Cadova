@@ -6,6 +6,18 @@ extension MeshGL: @retroactive @unchecked Sendable {}
 
 struct ThreeMFDataProvider: OutputDataProvider {
     let result: D3.BuildResult
+    let options: ModelOptions
+
+    init(result: D3.BuildResult, options: ModelOptions) {
+        self.result = result
+        self.options = options
+    }
+
+    init(result: D2.BuildResult, options: ModelOptions) {
+        self.result = result.replacing(node: D3.Node.extrusion(result.node, type: .linear(height: 0.001)))
+        self.options = options
+    }
+
     let fileExtension = "3mf"
 
     private struct PartData {
@@ -105,7 +117,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         return ThreeMF.Model(
             unit: .millimeter,
             recommendedExtensions: [.materials],
-            metadata: prepareMetadata(),
+            metadata: options[Metadata.self].threeMFMetadata,
             resources: resources,
             buildItems: items
         )
@@ -137,20 +149,6 @@ struct ThreeMFDataProvider: OutputDataProvider {
         } results: { duration, _ in
             logger.debug("Built 3MF structure in \(duration)")
         }
-    }
-
-    private func prepareMetadata() -> [ThreeMF.Metadata] {
-        var metadata = result.elements[MetadataContainer.self]
-
-        if !metadata.contains(.application) {
-            metadata.add(.application, value: "Cadova - http://cadova.org/")
-        }
-        if !metadata.contains(.creationDate) {
-            let dateFormatter = ISO8601DateFormatter()
-            dateFormatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-            metadata.add(.creationDate, value: dateFormatter.string(from: Date()))
-        }
-        return metadata.metadata
     }
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
@@ -282,5 +280,18 @@ extension PropertyReference {
         case .specular (let color, let glossiness):
             return addSpecular(name: material.name, baseColor: material.baseColor, specularColor: color, glossiness: glossiness, to: &specularProperties, colorGroup: &specularColorGroup)
         }
+    }
+}
+
+extension Metadata {
+    var threeMFMetadata: [ThreeMF.Metadata] {
+        [
+            title.map { .init(name: .title, value: $0) },
+            description.map { .init(name: .description, value: $0) },
+            author.map { .init(name: .designer, value: $0) },
+            license.map { .init(name: .licenseTerms, value: $0) },
+            date.map { .init(name: .creationDate, value: $0) },
+            application.map { .init(name: .application, value: $0) }
+        ].compactMap { $0 }
     }
 }
