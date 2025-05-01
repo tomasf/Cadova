@@ -8,7 +8,7 @@ public struct AffineTransform3D: AffineTransform {
     public typealias D = D3
     private var matrix: Matrix4x4
 
-    public static let size: (rows: Int, columns: Int) = (4, 4)
+    public static let size = (rows: 4, columns: 4)
 
     private init(_ matrix: Matrix4x4) {
         self.matrix = matrix

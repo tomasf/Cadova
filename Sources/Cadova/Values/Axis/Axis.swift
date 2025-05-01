@@ -19,10 +19,7 @@ public enum Axis3D: Int, Axis {
     case z
 
     public init(_ axis: Axis2D) {
-        switch axis {
-        case .x: self = .x
-        case .y: self = .y
-        }
+        self.init(rawValue: axis.rawValue)!
     }
 
     /// The unit vector pointing along the axis, in either the positive or negative direction.
