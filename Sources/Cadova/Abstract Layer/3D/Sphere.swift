@@ -36,10 +36,10 @@ public struct Sphere: CompositeGeometry {
     @Environment(\.segmentation) private var segmentation
 
     public var body: D3.Geometry {
-        PrimitiveShape(shape: .sphere(
+        NodeBasedGeometry(.shape(.sphere(
             radius: radius,
             segmentCount: segmentation.segmentCount(circleRadius: diameter / 2)
-        ))
+        )))
     }
 }
 

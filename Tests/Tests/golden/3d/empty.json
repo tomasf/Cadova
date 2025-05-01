@@ -13,13 +13,14 @@
       "type" : "solid"
     },
     {
-      "kind" : "shape",
+      "kind" : "shape3D",
       "primitive" : {
-        "kind" : "box",
-        "size" : {
-          "x" : 10,
-          "y" : 20,
-          "z" : 30
+        "box" : {
+          "size" : {
+            "x" : 10,
+            "y" : 20,
+            "z" : 30
+          }
         }
       }
     }

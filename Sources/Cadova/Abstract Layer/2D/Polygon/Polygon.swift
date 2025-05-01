@@ -46,7 +46,7 @@ public struct Polygon: CompositeGeometry {
     @Environment private var environment
 
     public var body: any Geometry2D {
-        PrimitiveShape(shape: .polygon(points: points(in: environment), fillRule: fillRule))
+        NodeBasedGeometry(.shape(.polygon(points: points(in: environment), fillRule: fillRule)))
     }
 }
 

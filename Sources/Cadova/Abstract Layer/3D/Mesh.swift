@@ -28,7 +28,7 @@ public struct Mesh: CompositeGeometry {
     }
 
     public var body: any Geometry3D {
-        PrimitiveShape(shape: .mesh(meshData))
+        NodeBasedGeometry(.shape(.mesh(meshData)))
     }
 }
 

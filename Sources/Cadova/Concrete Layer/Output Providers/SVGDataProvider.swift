@@ -7,8 +7,8 @@ struct SVGDataProvider: OutputDataProvider {
     let fileExtension = "svg"
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
-        let expression = GeometryNode2D.transform(result.node, transform: .scaling(x: 1, y: -1))
-        let nodeResult = await context.result(for: expression)
+        let node = GeometryNode.transform(result.node, transform: .scaling(x: 1, y: -1))
+        let nodeResult = await context.result(for: node)
 
         let bounds = nodeResult.concrete.bounds
         let shapePoints = nodeResult.concrete.polygons()

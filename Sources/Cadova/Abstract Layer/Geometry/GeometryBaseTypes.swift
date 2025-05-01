@@ -8,11 +8,15 @@ public struct Empty<D: Dimensionality>: Geometry {
     }
 }
 
-struct PrimitiveShape<D: Dimensionality>: Geometry {
-    let shape: D.Node.PrimitiveShape
+struct NodeBasedGeometry<D: Dimensionality>: Geometry {
+    let node: D.Node
+
+    init(_ node: D.Node) {
+        self.node = node
+    }
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        .init(.shape(shape))
+        .init(node)
     }
 }
 
@@ -21,24 +25,24 @@ struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geomet
 
     init(
         body: Input.Geometry,
-        expressionTransformer: @Sendable @escaping (Input.Node) -> D.Node,
+        nodeTransformer: @Sendable @escaping (Input.Node) -> D.Node,
         environment environmentTransformer: (@Sendable (EnvironmentValues) -> EnvironmentValues)? = nil
     ) {
         transformer = { environment, context in
             let newEnvironment = environmentTransformer?(environment) ?? environment
             let bodyResult = await body.build(in: newEnvironment, context: context)
-            return bodyResult.replacing(node: expressionTransformer(bodyResult.node))
+            return bodyResult.replacing(node: nodeTransformer(bodyResult.node))
         }
     }
 
     init(
         bodies: [Input.Geometry],
-        expressionTransformer: @Sendable @escaping ([Input.Node]) -> D.Node
+        nodeTransformer: @Sendable @escaping ([Input.Node]) -> D.Node
     ) {
         transformer = { environment, context in
             let results = await bodies.asyncMap { await $0.build(in: environment, context: context) }
-            let expression = expressionTransformer(results.map(\.node))
-            return .init(node: expression, elements: .init(combining: results.map(\.elements)))
+            let node = nodeTransformer(results.map(\.node))
+            return .init(node: node, elements: .init(combining: results.map(\.elements)))
         }
     }
 

@@ -54,7 +54,7 @@ extension Circle: CompositeGeometry {
     public typealias D = D2
 
     public var body: any Geometry2D {
-        PrimitiveShape(shape: .circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius)))
+        NodeBasedGeometry(.shape(.circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius))))
     }
 }
 

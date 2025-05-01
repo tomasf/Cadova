@@ -28,7 +28,7 @@ public extension Geometry2D {
 
     internal func extruded(height: Double, twist: Angle = 0°, scale: Vector2D = [1,1], divisions: Int) -> any Geometry3D {
         GeometryNodeTransformer(body: self) {
-            GeometryNode3D.extrusion($0, type: .linear(
+            .extrusion($0, type: .linear(
                 height: height, twist: twist, divisions: divisions, scaleTop: scale
             ))
         }
@@ -58,7 +58,7 @@ public extension Geometry2D {
                 let radius = max(bounds.maximum.x, 0)
 
                 GeometryNodeTransformer(body: geometry) {
-                    GeometryNode3D.extrusion($0, type: .rotational(
+                    GeometryNode.extrusion($0, type: .rotational(
                         angle: range.length,
                         segments: segmentation.segmentCount(circleRadius: radius)
                     ))

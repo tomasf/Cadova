@@ -22,20 +22,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 2,
-                          "segmentCount" : 83
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 1,
-                            "segmentCount" : 41
+                            "circle" : {
+                              "radius" : 1,
+                              "segmentCount" : 41
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -87,20 +89,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 2,
-                          "segmentCount" : 83
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 1,
-                            "segmentCount" : 41
+                            "circle" : {
+                              "radius" : 1,
+                              "segmentCount" : 41
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -152,20 +156,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 2,
-                          "segmentCount" : 83
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 1,
-                            "segmentCount" : 41
+                            "circle" : {
+                              "radius" : 1,
+                              "segmentCount" : 41
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -217,20 +223,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 2,
-                          "segmentCount" : 83
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 1,
-                            "segmentCount" : 41
+                            "circle" : {
+                              "radius" : 1,
+                              "segmentCount" : 41
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -282,20 +290,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 2,
-                          "segmentCount" : 83
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 1,
-                            "segmentCount" : 41
+                            "circle" : {
+                              "radius" : 1,
+                              "segmentCount" : 41
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -373,20 +383,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 1,
-                          "segmentCount" : 41
+                          "circle" : {
+                            "radius" : 1,
+                            "segmentCount" : 41
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 0.001,
-                            "segmentCount" : 5
+                            "circle" : {
+                              "radius" : 0.001,
+                              "segmentCount" : 5
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -438,20 +450,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 1,
-                          "segmentCount" : 41
+                          "circle" : {
+                            "radius" : 1,
+                            "segmentCount" : 41
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 0.001,
-                            "segmentCount" : 5
+                            "circle" : {
+                              "radius" : 0.001,
+                              "segmentCount" : 5
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -503,20 +517,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 1,
-                          "segmentCount" : 41
+                          "circle" : {
+                            "radius" : 1,
+                            "segmentCount" : 41
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 0.001,
-                            "segmentCount" : 5
+                            "circle" : {
+                              "radius" : 0.001,
+                              "segmentCount" : 5
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -568,20 +584,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 1,
-                          "segmentCount" : 41
+                          "circle" : {
+                            "radius" : 1,
+                            "segmentCount" : 41
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 0.001,
-                            "segmentCount" : 5
+                            "circle" : {
+                              "radius" : 0.001,
+                              "segmentCount" : 5
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -633,20 +651,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 1,
-                          "segmentCount" : 41
+                          "circle" : {
+                            "radius" : 1,
+                            "segmentCount" : 41
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 0.001,
-                            "segmentCount" : 5
+                            "circle" : {
+                              "radius" : 0.001,
+                              "segmentCount" : 5
+                            }
                           }
                         },
                         "kind" : "transform",
@@ -698,20 +718,22 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape",
+                        "kind" : "shape2D",
                         "primitive" : {
-                          "kind" : "circle",
-                          "radius" : 1,
-                          "segmentCount" : 41
+                          "circle" : {
+                            "radius" : 1,
+                            "segmentCount" : 41
+                          }
                         }
                       },
                       {
                         "body" : {
-                          "kind" : "shape",
+                          "kind" : "shape2D",
                           "primitive" : {
-                            "kind" : "circle",
-                            "radius" : 0.001,
-                            "segmentCount" : 5
+                            "circle" : {
+                              "radius" : 0.001,
+                              "segmentCount" : 5
+                            }
                           }
                         },
                         "kind" : "transform",

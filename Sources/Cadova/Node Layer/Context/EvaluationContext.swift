@@ -11,31 +11,31 @@ public struct EvaluationContext: Sendable {
 public typealias CacheKey = Hashable & Sendable & Codable
 
 internal extension EvaluationContext {
-    func result<Expression: GeometryNode>(for expression: Expression) async -> Expression.Result {
-        if let expression = expression as? GeometryNode2D {
-            return await cache2D.result(for: expression, in: self) as! Expression.Result
-        } else if let expression = expression as? GeometryNode3D {
-            return await cache3D.result(for: expression, in: self) as! Expression.Result
+    func result<D: Dimensionality>(for node: D.Node) async -> EvaluationResult<D> {
+        if let node = node as? D2.Node {
+            return await cache2D.result(for: node, in: self) as! EvaluationResult<D>
+        } else if let node = node as? D3.Node {
+            return await cache3D.result(for: node, in: self) as! EvaluationResult<D>
         } else {
             preconditionFailure("Unknown geometry type")
         }
     }
 
-    func results<E: GeometryNode>(for expressions: [E]) async -> [E.Result] {
-        await expressions.asyncMap { await self.result(for: $0) }
+    func results<D: Dimensionality>(for nodes: [D.Node]) async -> [EvaluationResult<D>] {
+        await nodes.asyncMap { await self.result(for: $0) }
     }
 
     // MARK: - Materialized results
 
     func cachedMaterializedResult<D: Dimensionality, Key: CacheKey>(key: Key) async -> EvaluationResult<D>? {
         let wrappedKey = OpaqueKey(key)
-        let expression = D.Node.materialized(cacheKey: wrappedKey)
+        let node = D.Node.materialized(cacheKey: wrappedKey)
 
-        if let expression = expression as? GeometryNode2D {
-            return await cache2D.cachedResult(for: expression) as! EvaluationResult<D>?
+        if let node = node as? D2.Node {
+            return await cache2D.cachedResult(for: node) as! EvaluationResult<D>?
 
-        } else if let expression = expression as? GeometryNode3D {
-            return await cache3D.cachedResult(for: expression) as! EvaluationResult<D>?
+        } else if let node = node as? D3.Node {
+            return await cache3D.cachedResult(for: node) as! EvaluationResult<D>?
 
         } else {
             preconditionFailure("Unknown geometry type")
@@ -46,21 +46,21 @@ internal extension EvaluationContext {
         (await cachedMaterializedResult(key: key) as D.Node.Result?) != nil
     }
 
-    func storeMaterializedResult<E: GeometryNode, Key: CacheKey>(_ result: E.Result, key: Key) async -> E {
+    func storeMaterializedResult<D: Dimensionality, Key: CacheKey>(_ result: EvaluationResult<D>, key: Key) async -> D.Node {
         let wrappedKey = OpaqueKey(key)
-        let expression = E.materialized(cacheKey: wrappedKey)
+        let node = D.Node.materialized(cacheKey: wrappedKey)
 
-        if let expression = expression as? GeometryNode2D {
-            await cache2D.setCachedResult(result as! D2.Node.Result, for: expression)
+        if let node = node as? D2.Node {
+            await cache2D.setCachedResult(result as! D2.Node.Result, for: node)
 
-        } else if let expression = expression as? GeometryNode3D {
-            await cache3D.setCachedResult(result as! D3.Node.Result, for: expression)
+        } else if let node = node as? D3.Node {
+            await cache3D.setCachedResult(result as! D3.Node.Result, for: node)
 
         } else {
             preconditionFailure("Unknown geometry type")
         }
 
-        return expression
+        return node
     }
 
     // MARK: - Result elements
