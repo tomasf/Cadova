@@ -1,5 +1,5 @@
 {
-  "originHash" : "6a2b22bbed084187e267753bc0eab2061826b95c9f13e53f63ceab7ba1f26485",
+  "originHash" : "c0c89a7cb969e7c4d28314c30dfc17e440fc93cc1ba867dff4006b70e8982c08",
   "pins" : [
     {
       "identity" : "manifold-swift",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/tomasf/manifold-swift.git",
       "state" : {
         "branch" : "dev",
-        "revision" : "4a299c751220918ee92400b7834ad6a7ccda6c8a"
+        "revision" : "4286c463572ff98361a907d20cd46e0f9b712f6f"
       }
     },
     {
@@ -43,7 +43,7 @@
       "location" : "https://github.com/tomasf/ThreeMF.git",
       "state" : {
         "branch" : "main",
-        "revision" : "ebe87894f8e31061ae8d2eca59664e0779c2e430"
+        "revision" : "a0a03b682c4afc8f58fa0543fa64e6d3d8ccee42"
       }
     },
     {

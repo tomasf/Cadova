@@ -35,7 +35,7 @@ extension Rectangle: CompositeGeometry {
     public typealias D = D2
 
     public var body: any Geometry2D {
-        PrimitiveShape(shape: .rectangle(size: size))
+        NodeBasedGeometry(.shape(.rectangle(size: size)))
     }
 }
 

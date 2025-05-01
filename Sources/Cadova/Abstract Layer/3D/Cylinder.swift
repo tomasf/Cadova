@@ -25,21 +25,21 @@ public struct Cylinder: Shape3D {
             return Empty()
 
         } else if bottomRadius < .ulpOfOne {
-            return PrimitiveShape<D3>(shape: .cylinder(
+            return NodeBasedGeometry(.shape(.cylinder(
                 bottomRadius: topRadius,
                 topRadius: bottomRadius,
                 height: height,
                 segmentCount: segmentCount
-            ))
+            )))
             .scaled(z: -1)
             .translated(z: height)
         } else {
-            return PrimitiveShape<D3>(shape: .cylinder(
+            return NodeBasedGeometry(.shape(.cylinder(
                 bottomRadius: bottomRadius,
                 topRadius: topRadius,
                 height: height,
                 segmentCount: segmentCount
-            ))
+            )))
         }
     }
 }

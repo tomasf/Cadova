@@ -8,7 +8,7 @@ struct BinarySTLDataProvider: OutputDataProvider {
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
         let allParts = [result] + result.elements[PartCatalog.self].mergedOutputs.map(\.value)
-        let union = GeometryNode3D.boolean(allParts.map(\.node), type: .union)
+        let union = GeometryNode.boolean(allParts.map(\.node), type: .union)
 
         var concrete = await context.result(for: union).concrete
         concrete = concrete.calculateNormals(channelIndex: 0)

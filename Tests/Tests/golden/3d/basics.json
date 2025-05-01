@@ -18,13 +18,14 @@
           "children" : [
             {
               "body" : {
-                "kind" : "shape",
+                "kind" : "shape3D",
                 "primitive" : {
-                  "kind" : "box",
-                  "size" : {
-                    "x" : 20,
-                    "y" : 20,
-                    "z" : 20
+                  "box" : {
+                    "size" : {
+                      "x" : 20,
+                      "y" : 20,
+                      "z" : 20
+                    }
                   }
                 }
               },
@@ -57,11 +58,12 @@
               ]
             },
             {
-              "kind" : "shape",
+              "kind" : "shape3D",
               "primitive" : {
-                "kind" : "sphere",
-                "radius" : 11.5,
-                "segmentCount" : 180
+                "sphere" : {
+                  "radius" : 11.5,
+                  "segmentCount" : 180
+                }
               }
             }
           ],
@@ -75,13 +77,14 @@
                 "children" : [
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -114,13 +117,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -153,13 +157,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -192,13 +197,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -231,13 +237,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -270,13 +277,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -309,13 +317,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -348,13 +357,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -387,13 +397,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -426,13 +437,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -465,13 +477,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -504,13 +517,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -578,13 +592,14 @@
                 "children" : [
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -617,13 +632,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -656,13 +672,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -695,13 +712,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -734,13 +752,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -773,13 +792,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -812,13 +832,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -851,13 +872,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -890,13 +912,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -929,13 +952,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -968,13 +992,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",
@@ -1007,13 +1032,14 @@
                   },
                   {
                     "body" : {
-                      "kind" : "shape",
+                      "kind" : "shape3D",
                       "primitive" : {
-                        "bottomRadius" : 1,
-                        "height" : 30,
-                        "kind" : "cylinder",
-                        "segmentCount" : 41,
-                        "topRadius" : 1
+                        "cylinder" : {
+                          "bottomRadius" : 1,
+                          "height" : 30,
+                          "segmentCount" : 41,
+                          "topRadius" : 1
+                        }
                       }
                     },
                     "kind" : "transform",

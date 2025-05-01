@@ -4,7 +4,7 @@ import Foundation
 
 struct GeometryNodeCodableTests {
     @Test func testCodableRoundTrip2D() throws {
-        let expression: GeometryNode2D = .boolean([
+        let node: GeometryNode = .boolean([
             .shape(.rectangle(size: .init(x: 10, y: 5))),
             .transform(
                 .shape(.circle(radius: 3, segmentCount: 24)),
@@ -21,14 +21,14 @@ struct GeometryNodeCodableTests {
             )
         ], type: .union)
 
-        let encoded = try JSONEncoder().encode(expression)
-        let decoded = try JSONDecoder().decode(GeometryNode2D.self, from: encoded)
-        #expect(decoded == expression)
+        let encoded = try JSONEncoder().encode(node)
+        let decoded = try JSONDecoder().decode(GeometryNode<D2>.self, from: encoded)
+        #expect(decoded == node)
     }
 
     @Test
     func testCodableRoundTrip3D() throws {
-        let expression: GeometryNode3D = .boolean([
+        let node = GeometryNode.boolean([
             .shape(.box(size: .init(x: 5, y: 5, z: 1))),
             .transform(
                 .shape(.sphere(radius: 3, segmentCount: 16)),
@@ -43,8 +43,8 @@ struct GeometryNodeCodableTests {
             )
         ], type: .intersection)
 
-        let encoded = try JSONEncoder().encode(expression)
-        let decoded = try JSONDecoder().decode(GeometryNode3D.self, from: encoded)
-        #expect(decoded == expression)
+        let encoded = try JSONEncoder().encode(node)
+        let decoded = try JSONDecoder().decode(GeometryNode<D3>.self, from: encoded)
+        #expect(decoded == node)
     }
 }

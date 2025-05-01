@@ -14,13 +14,14 @@
     },
     {
       "body" : {
-        "kind" : "shape",
+        "kind" : "shape3D",
         "primitive" : {
-          "kind" : "box",
-          "size" : {
-            "x" : 10,
-            "y" : 20,
-            "z" : 5
+          "box" : {
+            "size" : {
+              "x" : 10,
+              "y" : 20,
+              "z" : 5
+            }
           }
         }
       },

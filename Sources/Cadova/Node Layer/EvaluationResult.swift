@@ -25,7 +25,7 @@ public struct EvaluationResult<D: Dimensionality>: Sendable {
         self.init(concrete: geometry, materialMapping: [originalID: material])
     }
 
-    internal init(product: Manifold, results: [Self]) where D == D3 {
+    internal init(product: D.Concrete, results: [Self]) {
         self.concrete = product
 
         var merged: [Manifold.OriginalID: Material] = [:]

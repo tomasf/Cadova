@@ -44,6 +44,6 @@ public struct Box: Shape3D {
     }
 
     public var body: any Geometry3D {
-        PrimitiveShape<D3>(shape: .box(size: size))
+        NodeBasedGeometry(.shape(.box(size: size)))
     }
 }

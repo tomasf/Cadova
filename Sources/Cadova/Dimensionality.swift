@@ -3,7 +3,6 @@ import Manifold3D
 
 public protocol Dimensionality {
     typealias Geometry = any Cadova.Geometry<Self>
-    associatedtype Node: GeometryNode where Node.D == Self
     associatedtype Concrete: Manifold3D.Geometry, ConcreteGeometry where Concrete.D == Self
 
     associatedtype Vector: Cadova.Vector where Vector.D == Self
@@ -18,9 +17,12 @@ public protocol Dimensionality {
     typealias BoundingBox = Cadova.BoundingBox<Self>
 }
 
+internal extension Dimensionality {
+    typealias Node = GeometryNode<Self>
+}
+
 // 2D-related types
 public struct D2: Dimensionality {
-    public typealias Node = GeometryNode2D
     public typealias Concrete = CrossSection
 
     public typealias Vector = Vector2D
@@ -32,7 +34,6 @@ public struct D2: Dimensionality {
 
 // 3D-related types
 public struct D3: Dimensionality {
-    public typealias Node = GeometryNode3D
     public typealias Concrete = Manifold
 
     public typealias Vector = Vector3D

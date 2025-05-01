@@ -46,13 +46,13 @@ internal struct PartCatalog: ResultElement {
         }
     }
 
-    func modifyingExpressions(_ modifier: (D3.Node) -> D3.Node) -> Self {
+    func modifyingNodes(_ modifier: (D3.Node) -> D3.Node) -> Self {
         .init(parts: parts.mapValues {
             $0.map { $0.replacing(node: modifier($0.node)) }
         })
     }
 
     func applyingTransform(_ transform: AffineTransform3D) -> Self {
-        modifyingExpressions { .transform($0, transform: transform) }
+        modifyingNodes { .transform($0, transform: transform) }
     }
 }

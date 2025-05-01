@@ -14,7 +14,7 @@
     },
     {
       "cacheKey" : {
-        "type" : "6Cadova16GeometryCacheKeyVyAA05NamedcD0VAA0B6Node3DVG",
+        "type" : "6Cadova12NodeCacheKeyVyAA05NamedcD0VAA2D3VG",
         "value" : {
           "base" : {
             "operationName" : "Cadova.Simplify",
@@ -25,9 +25,9 @@
               }
             ]
           },
-          "expression" : {
+          "node" : {
             "cacheKey" : {
-              "type" : "6Cadova16GeometryCacheKeyVyAA05NamedcD0VAA0B6Node3DVG",
+              "type" : "6Cadova12NodeCacheKeyVyAA05NamedcD0VAA2D3VG",
               "value" : {
                 "base" : {
                   "operationName" : "wrapAroundSphere",
@@ -38,9 +38,9 @@
                     }
                   ]
                 },
-                "expression" : {
+                "node" : {
                   "cacheKey" : {
-                    "type" : "6Cadova16GeometryCacheKeyVyAA05NamedcD0VAA0B6Node3DVG",
+                    "type" : "6Cadova12NodeCacheKeyVyAA05NamedcD0VAA2D3VG",
                     "value" : {
                       "base" : {
                         "operationName" : "Cadova.Refine",
@@ -51,20 +51,21 @@
                           }
                         ]
                       },
-                      "expression" : {
+                      "node" : {
                         "children" : [
                           {
                             "body" : {
                               "children" : [
                                 {
                                   "body" : {
-                                    "kind" : "shape",
+                                    "kind" : "shape3D",
                                     "primitive" : {
-                                      "kind" : "box",
-                                      "size" : {
-                                        "x" : 40,
-                                        "y" : 30,
-                                        "z" : 3
+                                      "box" : {
+                                        "size" : {
+                                          "x" : 40,
+                                          "y" : 30,
+                                          "z" : 3
+                                        }
                                       }
                                     }
                                   },
@@ -104,11 +105,12 @@
                                           "children" : [
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -141,11 +143,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -178,11 +181,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -215,11 +219,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -252,11 +257,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -289,11 +295,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -326,11 +333,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -398,11 +406,12 @@
                                           "children" : [
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -435,11 +444,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -472,11 +482,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -509,11 +520,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -546,11 +558,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -583,11 +596,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -620,11 +634,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -692,11 +707,12 @@
                                           "children" : [
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -729,11 +745,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -766,11 +783,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -803,11 +821,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -840,11 +859,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -877,11 +897,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -914,11 +935,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -986,11 +1008,12 @@
                                           "children" : [
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1023,11 +1046,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1060,11 +1084,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1097,11 +1122,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1134,11 +1160,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1171,11 +1198,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1208,11 +1236,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1280,11 +1309,12 @@
                                           "children" : [
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1317,11 +1347,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1354,11 +1385,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1391,11 +1423,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1428,11 +1461,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1465,11 +1499,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1502,11 +1537,12 @@
                                             },
                                             {
                                               "body" : {
-                                                "kind" : "shape",
+                                                "kind" : "shape3D",
                                                 "primitive" : {
-                                                  "kind" : "sphere",
-                                                  "radius" : 1.5,
-                                                  "segmentCount" : 62
+                                                  "sphere" : {
+                                                    "radius" : 1.5,
+                                                    "segmentCount" : 62
+                                                  }
                                                 }
                                               },
                                               "kind" : "transform",
@@ -1638,13 +1674,14 @@
                               "children" : [
                                 {
                                   "body" : {
-                                    "kind" : "shape",
+                                    "kind" : "shape3D",
                                     "primitive" : {
-                                      "bottomRadius" : 1,
-                                      "height" : 30,
-                                      "kind" : "cylinder",
-                                      "segmentCount" : 41,
-                                      "topRadius" : 1
+                                      "cylinder" : {
+                                        "bottomRadius" : 1,
+                                        "height" : 30,
+                                        "segmentCount" : 41,
+                                        "topRadius" : 1
+                                      }
                                     }
                                   },
                                   "kind" : "transform",
@@ -1677,13 +1714,14 @@
                                 },
                                 {
                                   "body" : {
-                                    "kind" : "shape",
+                                    "kind" : "shape3D",
                                     "primitive" : {
-                                      "kind" : "box",
-                                      "size" : {
-                                        "x" : 2,
-                                        "y" : 32,
-                                        "z" : 3.9985323621016264
+                                      "box" : {
+                                        "size" : {
+                                          "x" : 2,
+                                          "y" : 32,
+                                          "z" : 3.9985323621016264
+                                        }
                                       }
                                     }
                                   },

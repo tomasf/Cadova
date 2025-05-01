@@ -3,7 +3,7 @@ import Foundation
 @testable import Cadova
 
 enum TestGeneratedOutputType: String, Hashable {
-    case expression, model
+    case node, model
 
     static var fromEnvironment: Set<Self>? {
         let strings = ProcessInfo.processInfo.environment["CADOVA_TESTS_OUTPUT_TYPES"]?.split(separator: ",") ?? []
@@ -13,14 +13,14 @@ enum TestGeneratedOutputType: String, Hashable {
 }
 
 extension Geometry {
-    var expression: D.Node {
+    var node: D.Node {
         get async {
             await withDefaultSegmentation().build(in: .defaultEnvironment, context: .init()).node
         }
     }
 
     func triggerEvaluation() async {
-        _ = await expression
+        _ = await node
     }
 
     var bounds: D.BoundingBox? {
@@ -44,13 +44,13 @@ extension Geometry {
         let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
 
         let goldenRoot = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appending(path: "golden")
-        if types.contains(.expression) {
+        if types.contains(.node) {
             let goldenURL = goldenRoot.appending(component: name).appendingPathExtension("json")
             try GoldenRecord(result: result).write(to: goldenURL)
         }
         if types.contains(.model) {
             let verificationURL = goldenRoot.appending(component: name).appendingPathExtension("3mf")
-            let provider = ThreeMFDataProvider(result: result.for3MFVerification)
+            let provider = ThreeMFDataProvider(result: result.for3MFVerification, options: [])
             try await provider.writeOutput(to: verificationURL, context: context)
         }
     }
@@ -86,9 +86,9 @@ extension BuildResult {
         if let d3 = self as? BuildResult<D3> {
             return d3
         } else if let d2 = self as? BuildResult<D2> {
-            return replacing(expression: GeometryNode3D.extrusion(d2.node, type: .linear(height: 0.001, twist: 0°, divisions: 0, scaleTop: Vector2D(1, 1))))
+            return replacing(node: GeometryNode.extrusion(d2.node, type: .linear(height: 0.001, twist: 0°, divisions: 0, scaleTop: Vector2D(1, 1))))
         } else {
-            return replacing(expression: .empty)
+            return replacing(node: .empty)
         }
     }
 }

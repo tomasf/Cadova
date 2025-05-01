@@ -1,8 +1,8 @@
 import Foundation
 
-internal struct GeometryCacheKey<Key: CacheKey, G: GeometryNode>: CacheKey {
+internal struct NodeCacheKey<Key: CacheKey, D: Dimensionality>: CacheKey {
     let base: Key
-    let expression: G
+    let node: D.Node
 }
 
 internal struct IndexedCacheKey<Key: CacheKey>: CacheKey {
@@ -10,7 +10,7 @@ internal struct IndexedCacheKey<Key: CacheKey>: CacheKey {
     let index: Int
 }
 
-// Boxes a geometry tree behind a freestanding cache key, avoiding both expression building
+// Boxes a geometry tree behind a freestanding cache key, avoiding both node building
 // and primitive generation
 
 struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey>: Geometry {
@@ -45,7 +45,7 @@ struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
     }
 }
 
-// Apply an arbitrary transformation to a body's primitive, cached based on expression + key
+// Apply an arbitrary transformation to a body's primitive, cached based on node + key
 
 struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
@@ -68,7 +68,7 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
         let bodyResult = await body.build(in: environment, context: context)
-        let bakedKey = GeometryCacheKey(base: key, expression: bodyResult.node)
+        let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
 
         if await context.hasCachedResult(for: bakedKey, with: D.self) {
             return bodyResult.replacing(cacheKey: bakedKey)
@@ -77,14 +77,14 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
             let nodeResult = await context.result(for: bodyResult.node)
             let newResult = nodeResult.modified(generator)
 
-            let expression = await context.storeMaterializedResult(newResult, key: bakedKey) as D.Node
-            return bodyResult.replacing(node: expression)
+            let node = await context.storeMaterializedResult(newResult, key: bakedKey) as D.Node
+            return bodyResult.replacing(node: node)
         }
     }
 }
 
 // Apply an arbitrary transformation to a body's primitive, returning a variable number
-// of resulting primitives, individually cached based on expression + key + index
+// of resulting primitives, individually cached based on node + key + index
 
 struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
@@ -121,7 +121,7 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
         let bodyResult = await body.build(in: environment, context: context)
 
-        let bakedKey = GeometryCacheKey(base: key, expression: bodyResult.node)
+        let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
         let firstKey = IndexedCacheKey(base: bakedKey, index: 0)
         let geometries: [D.Geometry]
 
@@ -144,8 +144,8 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
 
             geometries = await Array(primitives.enumerated()).asyncMap { index, primitive in
                 let indexedKey = IndexedCacheKey(base: key, index: index)
-                let expression: D.Node = await context.storeMaterializedResult(nodeResult.modified { _ in primitive }, key: indexedKey)
-                return bodyResult.replacing(node: expression)
+                let node: D.Node = await context.storeMaterializedResult(nodeResult.modified { _ in primitive }, key: indexedKey)
+                return bodyResult.replacing(node: node)
             }
         }
 
