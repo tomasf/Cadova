@@ -19,6 +19,14 @@ struct SVGDataProvider: OutputDataProvider {
                                            bounds.min.x, bounds.min.y,
                                            bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y)
 
+        let metadata = options[Metadata.self]
+        if let title = metadata.title {
+            svg.addElement("title").textContent = title
+        }
+        if let desc = metadata.description {
+            svg.addElement("desc").textContent = desc
+        }
+
         let path = svg.addElement("path")
         path[attribute: "fill"] = "black"
         path[attribute: "d"] = shapePoints.map {
