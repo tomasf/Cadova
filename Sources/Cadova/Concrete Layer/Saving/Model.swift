@@ -30,6 +30,8 @@ public struct Model: Sendable {
     let name: String
     let writer: @Sendable (EvaluationContext) async -> ()
 
+    private static let defaultContext = EvaluationContext()
+
     @discardableResult
     public init<D: Dimensionality>(
         _ name: String,
@@ -91,8 +93,7 @@ public struct Model: Sendable {
         }
 
         if OutputContext.current == nil {
-            let context = EvaluationContext()
-            await writer(context)
+            await writer(Self.defaultContext)
         }
     }
 }
