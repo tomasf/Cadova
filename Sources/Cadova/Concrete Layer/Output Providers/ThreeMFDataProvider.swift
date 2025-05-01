@@ -91,7 +91,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             uniqueIdentifiers.insert(uniqueID)
 
             objects.append(object)
-            items.append(.init(objectID: object.id, partNumber: uniqueID, printable: part.id.printable))
+            items.append(.init(objectID: object.id, partNumber: uniqueID, printable: part.id.type == .solid))
             objectCount += 1
         }
 
@@ -174,18 +174,6 @@ struct ThreeMFDataProvider: OutputDataProvider {
             try writer.finalize()
         }
         logger.debug("Generated 3MF archive in \(duration)")
-    }
-}
-
-fileprivate extension PartIdentifier {
-    var printable: Bool? {
-        type == .solid
-    }
-}
-
-fileprivate extension Dictionary where Value == IndexSet {
-    func key(for index: IndexSet.Element) -> Key? {
-        first(where: { $0.value.contains(index) })?.key
     }
 }
 
