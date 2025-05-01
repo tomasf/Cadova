@@ -1,6 +1,7 @@
 import Foundation
 import Manifold3D
 import ThreeMF
+import Zip
 
 extension MeshGL: @retroactive @unchecked Sendable {}
 
@@ -153,7 +154,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
         let writer = PackageWriter()
-        writer.compressionLevel = .best
+        writer.compressionLevel = options[ModelOptions.Compression.self].zipCompression
         writer.model = try await makeModel(context: context)
 
         let data = try await ContinuousClock().measure {
@@ -167,7 +168,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     func writeOutput(to url: URL, context: EvaluationContext) async throws {
         let writer = try PackageWriter(url: url)
-        writer.compressionLevel = .fastest
+        writer.compressionLevel = options[ModelOptions.Compression.self].zipCompression
         writer.model = try await makeModel(context: context)
         let duration = try ContinuousClock().measure {
             try writer.finalize()
@@ -293,5 +294,15 @@ extension Metadata {
             date.map { .init(name: .creationDate, value: $0) },
             application.map { .init(name: .application, value: $0) }
         ].compactMap { $0 }
+    }
+}
+
+extension ModelOptions.Compression {
+    var zipCompression: Zip.CompressionLevel {
+        switch self {
+        case .standard: return .default
+        case .fastest: return .fastest
+        case .smallest: return .best
+        }
     }
 }
