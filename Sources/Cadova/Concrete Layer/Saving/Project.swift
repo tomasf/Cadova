@@ -2,6 +2,7 @@ import Foundation
 
 public func Project(
     root url: URL?,
+    options: ModelOptions = [],
     @ArrayBuilder<Model> content: @escaping () async -> [Model],
     environment environmentBuilder: ((inout EnvironmentValues) -> Void)? = nil
 ) async {
@@ -12,7 +13,7 @@ public func Project(
         try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
     }
 
-    let outputContext = OutputContext(directory: url, environmentValues: environment, evaluationContext: .init())
+    let outputContext = OutputContext(directory: url, environmentValues: environment, evaluationContext: .init(), options: options)
     let models = await outputContext.whileCurrent {
         await content()
     }

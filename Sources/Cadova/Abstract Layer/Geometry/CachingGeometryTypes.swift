@@ -25,7 +25,7 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey>: Geometry {
             let results = await generator().build(in: environment, context: context)
             let nodeResults = await context.result(for: results.node)
             await context.setResultElements(results.elements, for: key)
-            return await results.replacing(expression: context.storeMaterializedResult(nodeResults, key: key))
+            return await results.replacing(node: context.storeMaterializedResult(nodeResults, key: key))
         }
     }
 }
@@ -78,7 +78,7 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
             let newResult = nodeResult.modified(generator)
 
             let expression = await context.storeMaterializedResult(newResult, key: bakedKey) as D.Node
-            return bodyResult.replacing(expression: expression)
+            return bodyResult.replacing(node: expression)
         }
     }
 }
@@ -145,7 +145,7 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
             geometries = await Array(primitives.enumerated()).asyncMap { index, primitive in
                 let indexedKey = IndexedCacheKey(base: key, index: index)
                 let expression: D.Node = await context.storeMaterializedResult(nodeResult.modified { _ in primitive }, key: indexedKey)
-                return bodyResult.replacing(expression: expression)
+                return bodyResult.replacing(node: expression)
             }
         }
 

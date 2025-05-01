@@ -11,7 +11,7 @@ struct PartAssignment: Geometry {
             $0.add(part: output, to: identifier)
         }
         if isSeparated {
-            newOutput = newOutput.replacing(expression: .empty)
+            newOutput = newOutput.replacing(node: .empty)
         }
         return newOutput
     }

@@ -25,8 +25,8 @@ public struct BuildResult<D: Dimensionality>: Sendable {
 }
 
 internal extension BuildResult {
-    func replacing<New: Dimensionality>(expression: New.Node) -> New.BuildResult {
-        .init(node: expression, elements: elements)
+    func replacing<New: Dimensionality>(node: New.Node) -> New.BuildResult {
+        .init(node: node, elements: elements)
     }
 
     func replacing<New: Dimensionality, Key: CacheKey>(cacheKey: Key) -> New.BuildResult {

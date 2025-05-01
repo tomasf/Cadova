@@ -1,9 +1,10 @@
 import Foundation
 
-internal struct OutputContext {
+internal struct OutputContext: Sendable {
     let directory: URL?
     let environmentValues: EnvironmentValues?
     let evaluationContext: EvaluationContext?
+    let options: ModelOptions
 }
 
 extension OutputContext {

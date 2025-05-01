@@ -3,6 +3,7 @@ import Nodal
 
 struct SVGDataProvider: OutputDataProvider {
     let result: D2.BuildResult
+    let options: ModelOptions
     let fileExtension = "svg"
 
     func generateOutput(context: EvaluationContext) async throws -> Data {

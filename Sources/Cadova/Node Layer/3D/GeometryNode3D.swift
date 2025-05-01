@@ -31,7 +31,7 @@ public struct GeometryNode3D: GeometryNode, Sendable {
     }
 
     public enum Extrusion: Hashable, Sendable, Codable {
-        case linear (height: Double, twist: Angle, divisions: Int, scaleTop: Vector2D)
+        case linear (height: Double, twist: Angle = 0°, divisions: Int = 0, scaleTop: Vector2D = [1,1])
         case rotational (angle: Angle, segments: Int)
 
         var isEmpty: Bool {

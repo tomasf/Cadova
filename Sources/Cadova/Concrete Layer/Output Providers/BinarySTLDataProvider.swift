@@ -3,6 +3,7 @@ import Manifold3D
 
 struct BinarySTLDataProvider: OutputDataProvider {
     let result: D3.BuildResult
+    let options: ModelOptions
     let fileExtension = "stl"
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
@@ -13,7 +14,12 @@ struct BinarySTLDataProvider: OutputDataProvider {
         concrete = concrete.calculateNormals(channelIndex: 0)
         let meshGL = concrete.meshGL()
 
-        return stlData(for: meshGL, header: "Cadova model")
+        let metadata = options[Metadata.self]
+        let name = metadata.title ?? options[ModelName.self].name ?? "Cadova model"
+        let description = metadata.description
+        let author = metadata.author.map { "Author: " + $0 }
+        let header = [name, description, author].compactMap { $0 }.joined(separator: "\n")
+        return stlData(for: meshGL, header: header)
     }
 
     private func stlData(for meshGL: MeshGL, header: String) -> Data {
@@ -57,7 +63,7 @@ struct BinarySTLDataProvider: OutputDataProvider {
                                             ))
 
         data.append(Data(repeating: 0, count: 80))
-        let nameData = header.utf8.prefix(80)
+        let nameData = Data(header.utf8.prefix(80)).replacing("\n".utf8, with: [0])
         data.replaceSubrange(0..<nameData.count, with: nameData)
 
         append(UInt32(triangles.count))
