@@ -1,49 +1,54 @@
 import Foundation
 
-/// A teardrop shape used for 3D printing.
+/// A teardrop shape optimized for FDM 3D printing, used to replace circular features with printable overhangs.
 ///
-/// A teardrop shape is often used in place of a circle in 3D printing designs to reduce steep overhangs that are difficult to print.
-/// By replacing circular geometry with a teardrop, the design becomes more suitable for printing, especially without the need for support structures.
-/// The `bridged` style introduces bridging at the top of the originally intended circle, resulting in a shape that retains a more circular appearance while remaining printable.
+/// This shape reduces steep overhangs that occur in circular cutouts, making it more suitable for FDM printing without supports.
+/// The top of the shape can either be pointed or flat (bridgeable).
 ///
-/// If `Environment.naturalUpDirection` is set, the Teardrop will automatically rotate so that its point or bridge faces upward.
+/// If `EnvironmentValues.naturalUpDirection` is set, the shape automatically rotates so that the tip or flat bridge faces upward.
 ///
-/// ```
-/// // Example of creating a teardrop shape with a diameter of 10, angle of 30°, and full style.
-/// let teardrop = Teardrop(diameter: 10, angle: 30°, style: .full)
-/// ```
-
-
+/// This shape is commonly used for holes or cutouts where mechanical function is preserved but steep overhangs need to be avoided.
+///
 public struct Teardrop: Shape2D {
     private let style: Style
     private let angle: Angle
     private let radius: Double
 
-    @Environment(\.naturalUpDirectionXYAngle) var upAngle
+    @Environment(\.naturalUpDirectionXYAngle) private var upAngle
 
-    /// Creates a teardrop shape with a specific diameter, angle, and style.
+    /// Creates a teardrop shape with a given radius, overhang angle, and visual style.
+    ///
     /// - Parameters:
-    ///   - diameter: The diameter of the circular part of the teardrop.
-    ///   - angle: The angle of the point of the teardrop. Defaults to 45 degrees.
-    ///   - style: Specifies the style of the teardrop. Defaults to `.full`.
-    public init(diameter: Double, angle: Angle = 45°, style: Style = .full) {
-        precondition(angle > 0° && angle < 90°, "Angle must be between 0 and 90 degrees")
-        self.radius = diameter / 2
+    ///   - radius: The radius of the shape (typically replacing a circular hole of this size).
+    ///   - angle: The overhang angle, or half the point angle. Lower values create sharper tips.
+    ///            The default of 45° is typically a safe starting point for most FDM printers.
+    ///   - style: The top style: `.pointed` (sharp) or `.flat` (bridged). Defaults to `.pointed`.
+    ///
+    public init(radius: Double, overhang angle: Angle = 45°, style: Style = .pointed) {
+        precondition(angle > 0° && angle <= 90°, "Angle must be between 0 and 90 degrees")
+        self.radius = radius
         self.angle = angle
         self.style = style
     }
 
+    /// Creates a teardrop shape with a given diameter, overhang angle, and visual style.
+    ///
+    /// - Parameters:
+    ///   - diameter: The full width of the shape (typically replacing a circular hole of this size).
+    ///   - angle: The overhang angle, or half the point angle. Lower values create sharper tips.
+    ///            The default of 45° is typically a safe starting point for most FDM printers.
+    ///   - style: The top style: `.pointed` (sharp) or `.flat` (bridged). Defaults to `.pointed`.
+    ///
+    public init(diameter: Double, overhang angle: Angle = 45°, style: Style = .pointed) {
+        self.init(radius: diameter / 2, overhang: angle, style: style)
+    }
+
     public var body: any Geometry2D {
-        let mask = Rectangle(radius / sin(angle))
-            .rotated(-angle)
-            .translated(x: -cos(angle) * radius, y: sin(angle) * radius)
-
-        Circle(radius: radius)
         Intersection {
-            mask
-            mask.flipped(across: .x)
+            Circle(radius: radius)
+                .convexHull(adding: [0, radius / sin(angle)])
 
-            if style == .bridged {
+            if style == .flat {
                 Rectangle(radius * 2)
                     .aligned(at: .center)
             }
@@ -51,11 +56,12 @@ public struct Teardrop: Shape2D {
         .rotated(upAngle.map { $0 - 90° } ?? .zero)
     }
 
-    /// Defines the style of a teardrop shape.
+    /// Defines the top shape of a teardrop used for 3D printing.
     public enum Style: Sendable {
-        /// A complete teardrop shape where steep overhangs need to be avoided.
-        case full
-        /// A teardrop shape with a "bridge" at the top of the originally intended circle, creating a more circle-like appearance while keeping it printable.
-        case bridged
+        /// A pointed top that forms a complete teardrop, optimal for minimizing steep overhangs.
+        case pointed
+
+        /// A flat, bridgeable top that retains more of the circular appearance while remaining printable.
+        case flat
     }
 }
