@@ -6,12 +6,12 @@ public extension Rectangle {
 }
 
 public extension Rectangle.Corner {
-    init(x: AxisDirection, y: AxisDirection) {
+    init(x: LinearDirection, y: LinearDirection) {
         self.init(axisDirections: .init(x: x, y: y))
     }
 
-    var x: AxisDirection { axisDirections[.x] }
-    var y: AxisDirection { axisDirections[.y] }
+    var x: LinearDirection { axisDirections[.x] }
+    var y: LinearDirection { axisDirections[.y] }
 
     static let minXminY = Self(x: .min, y: .min)
     static let minXmaxY = Self(x: .min, y: .max)
@@ -50,8 +50,8 @@ public extension Rectangle.Corners {
     static let none: Self = []
     static var all: Self {
         Set(
-            AxisDirection.allCases.flatMap { x in
-                AxisDirection.allCases.map { y in
+            LinearDirection.allCases.flatMap { x in
+                LinearDirection.allCases.map { y in
                     Rectangle.Corner(x: x, y: y)
                 }
             }

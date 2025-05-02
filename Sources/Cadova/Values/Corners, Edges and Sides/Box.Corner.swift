@@ -6,13 +6,13 @@ public extension Box {
 }
 
 public extension Box.Corner {
-    init(x: AxisDirection, y: AxisDirection, z: AxisDirection) {
+    init(x: LinearDirection, y: LinearDirection, z: LinearDirection) {
         self.init(axisDirections: .init(x: x, y: y, z: z))
     }
 
-    var x: AxisDirection { axisDirections[.x] }
-    var y: AxisDirection { axisDirections[.y] }
-    var z: AxisDirection { axisDirections[.z] }
+    var x: LinearDirection { axisDirections[.x] }
+    var y: LinearDirection { axisDirections[.y] }
+    var z: LinearDirection { axisDirections[.z] }
 
     static let min = minXminYminZ
 
@@ -59,9 +59,9 @@ public extension Box.Corners {
     static let none: Self = []
     static var all: Self {
         Set(
-            AxisDirection.allCases.flatMap { x in
-                AxisDirection.allCases.flatMap { y in
-                    AxisDirection.allCases.map { z in
+            LinearDirection.allCases.flatMap { x in
+                LinearDirection.allCases.flatMap { y in
+                    LinearDirection.allCases.map { z in
                         Box.Corner(x: x, y: y, z: z)
                     }
                 }
