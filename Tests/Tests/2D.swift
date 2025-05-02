@@ -19,7 +19,7 @@ struct Geometry2DTests {
         .expectEquals(goldenFile: "2d/basics")
     }
 
-    /*
+
     @Test func circular() async throws {
         try await Union {
             Circle(diameter: 8)
@@ -28,7 +28,7 @@ struct Geometry2DTests {
                 .translated(x: 15)
             Teardrop(diameter: 5)
                 .translated(x: 22)
-            Teardrop(diameter: 4, angle: 30°, style: .bridged)
+            Teardrop(diameter: 4, overhang: 30°, style: .flat)
                 .translated(x: 27)
             CylinderBridge(bottomDiameter: 10, topDiameter: 6)
                 .translated(x: 15)
@@ -37,7 +37,6 @@ struct Geometry2DTests {
         }
         .expectEquals(goldenFile: "2d/circular")
     }
-     */
 
     @Test func roundedRectangle() async throws {
         try await Rectangle(x: 10, y: 10)

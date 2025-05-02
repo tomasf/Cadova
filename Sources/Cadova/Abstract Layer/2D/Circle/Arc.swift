@@ -42,16 +42,11 @@ public struct Arc: Shape2D {
 
 internal extension Polygon {
     static func circularArc(radius: Double, range: Range<Angle>, segmentation: EnvironmentValues.Segmentation) -> Polygon {
-        let magnitude = range.upperBound - range.lowerBound
-        let circleSegments = segmentation.segmentCount(circleRadius: radius)
-        let segmentCount = max(Int(ceil(Double(circleSegments) * magnitude / 360°)), 2)
+        let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: range.length)
 
         return Polygon((0...segmentCount).map { i -> Vector2D in
-            let angle = range.lowerBound + (Double(i) / Double(segmentCount)) * magnitude
-            return Vector2D(
-                x: cos(angle) * radius,
-                y: sin(angle) * radius
-            )
+            let angle = range.lowerBound + (Double(i) / Double(segmentCount)) * range.length
+            return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
         })
     }
 }
