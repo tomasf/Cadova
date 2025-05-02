@@ -11,8 +11,6 @@ import Foundation
 public struct Arc: Shape2D {
     public let range: Range<Angle>
     public let radius: Double
-    
-    @Environment(\.segmentation) var segmentation
 
     /// Creates a new `Arc` instance with the specified range of angles and radius.
     ///
@@ -31,26 +29,23 @@ public struct Arc: Shape2D {
         self.init(range: range, radius: diameter / 2)
     }
 
+    @Environment(\.segmentation) private var segmentation
+
     public var body: any Geometry2D {
-        Polygon([.zero]) + .circularArc(radius: radius, range: range, segmentation: segmentation)
+        Polygon([.zero] + arcPoints(segmentation: segmentation))
     }
 
-    public var angularDistance: Angle {
-        range.upperBound - range.lowerBound
-    }
-}
-
-internal extension Polygon {
-    static func circularArc(radius: Double, range: Range<Angle>, segmentation: EnvironmentValues.Segmentation) -> Polygon {
+    private func arcPoints(segmentation: EnvironmentValues.Segmentation) -> [Vector2D] {
         let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: range.length)
 
-        return Polygon((0...segmentCount).map { i -> Vector2D in
+        return (0...segmentCount).map { i -> Vector2D in
             let angle = range.lowerBound + (Double(i) / Double(segmentCount)) * range.length
             return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
-        })
+        }
     }
 }
 
 extension Arc: Area2D {
+    public var angularDistance: Angle { range.length }
     public var area: Double { radius * radius * .pi * (angularDistance / 360°) }
 }

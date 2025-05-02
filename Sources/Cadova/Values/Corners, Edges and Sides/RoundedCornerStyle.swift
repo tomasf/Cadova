@@ -11,14 +11,23 @@ public enum RoundedCornerStyle: Sendable {
 internal extension RoundedCornerStyle {
     func polygon(radius: Double, segmentation: EnvironmentValues.Segmentation) -> Polygon {
         switch self {
-        case .circular: .circularArc(radius: radius, range: 0°..<90°, segmentation: segmentation)
+        case .circular: .circleCorner(radius: radius, segmentation: segmentation)
         case .squircular: .squircleCorner(radius: radius, segmentation: segmentation)
         }
     }
 }
 
-internal extension Polygon {
-    static func squircleCorner(radius: Double, segmentation: EnvironmentValues.Segmentation) -> Polygon {
+fileprivate extension Polygon {
+    static func circleCorner(radius: Double, segmentation: EnvironmentValues.Segmentation) -> Self {
+        let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: 90°)
+
+        return Polygon((0...segmentCount).map { i -> Vector2D in
+            let angle = Double(i) / Double(segmentCount) * 90°
+            return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
+        })
+    }
+
+    static func squircleCorner(radius: Double, segmentation: EnvironmentValues.Segmentation) -> Self {
         let segmentCount = segmentation.segmentCount(circleRadius: radius)
         let radius4th = pow(radius, 4.0)
         let multiplier = Double.pi / 2.0 / Double(segmentCount)
