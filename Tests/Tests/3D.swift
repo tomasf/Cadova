@@ -39,7 +39,6 @@ struct Geometry3DTests {
         .expectEquals(goldenFile: "3d/rounded-box")
     }
 
-    /*
     @Test func cylinders() async throws {
         try await Stack(.y, spacing: 1) {
             Cylinder(bottomRadius: 3, topRadius: 6, height: 10)
@@ -50,5 +49,4 @@ struct Geometry3DTests {
         }
         .expectEquals(goldenFile: "3d/cylinders")
     }
-     */
 }
