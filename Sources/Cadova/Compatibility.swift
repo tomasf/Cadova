@@ -33,7 +33,7 @@ extension Geometry {
 
 extension Teardrop {
     @available(*, deprecated, renamed: "init(diameter:overhang:style:)")
-    public init(diameter: Double, angle: Angle = 45°, style: Style = .pointed) {
+    public init(diameter: Double, angle: Angle, style: Style = .pointed) {
         self.init(diameter: diameter, overhang: angle, style: style)
     }
 }
