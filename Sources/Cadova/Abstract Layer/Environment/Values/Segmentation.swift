@@ -30,11 +30,14 @@ public extension EnvironmentValues {
         /// between performance and visual quality.
         public static let defaults = Segmentation.adaptive(minAngle: 2°, minSize: 0.15)
 
-        /// Computes the number of segments required to approximate a circle of the given radius.
+        /// Computes the number of segments required to approximate a full circle of the given radius.
+        ///
+        /// The number of segments is determined either by a fixed count or, in adaptive mode, based on
+        /// a minimum angle between segments and a minimum linear segment length.
         ///
         /// - Parameter r: The radius of the circle.
         /// - Returns: The computed segment count, ensuring a minimum of 5 segments.
-
+        ///
         public func segmentCount(circleRadius r: Double) -> Int {
             switch self {
             case .fixed (let count):
@@ -47,11 +50,28 @@ public extension EnvironmentValues {
             }
         }
 
-        /// Computes the number of segments needed to approximate a curve of the given length.
+        /// Computes the number of segments required to approximate an arc with a given radius and angle.
         ///
-        /// - Parameter length: The total arc length or curve length.
-        /// - Returns: The computed number of segments
+        /// This method estimates how many linear segments are needed to accurately approximate a curved arc
+        /// based on the provided radius and angle.
+        ///
+        /// - Parameters:
+        ///   - r: The radius of the arc.
+        ///   - angle: The total angle of the arc.
+        /// - Returns: The computed segment count, with a minimum of 2 segments.
+        ///
+        public func segmentCount(arcRadius r: Double, angle: Angle) -> Int {
+            return max(Int(ceil(Double(segmentCount(circleRadius: r)) * angle / 360°)), 2)
+        }
 
+        /// Computes the number of segments required to approximate a curve of the given length.
+        ///
+        /// In adaptive mode, the number of segments is calculated based on the minimum allowed
+        /// segment length. This method ensures a minimum of 5 segments for reasonable quality.
+        ///
+        /// - Parameter length: The total length of the curve.
+        /// - Returns: The computed segment count.
+        /// 
         public func segmentCount(length: Double) -> Int {
             switch self {
             case .fixed (let count):
