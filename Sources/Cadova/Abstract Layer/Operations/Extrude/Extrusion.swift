@@ -62,6 +62,8 @@ public extension Geometry2D {
                         angle: range.length,
                         segments: segmentation.segmentCount(circleRadius: radius)
                     ))
+                } environment: {
+                    $0.applyingTransform(.rotation(x: 90°))
                 }
                 .rotated(z: range.lowerBound)
             }
