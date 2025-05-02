@@ -111,6 +111,10 @@ extension GeometryNode {
         case .extrusion (let node, let extrusion):
             assert(D.self == D3.self, "Invalid dimensionality for node type")
             let result = await context.result(for: node)
+            guard result.concrete.isEmpty == false else {
+                return .empty
+            }
+
             let manifold: Manifold
 
             switch extrusion {

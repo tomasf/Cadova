@@ -3,9 +3,9 @@ import Foundation
 public extension Box {
     struct Side: Sendable {
         let axis: Axis3D
-        let axisDirection: AxisDirection
+        let axisDirection: LinearDirection
 
-        public init(axis: Axis3D, towards direction: AxisDirection) {
+        public init(axis: Axis3D, towards direction: LinearDirection) {
             self.axis = axis
             self.axisDirection = direction
         }

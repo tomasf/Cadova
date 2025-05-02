@@ -11,6 +11,9 @@ public struct EvaluationResult<D: Dimensionality>: Sendable {
     }
 
     internal init(_ concrete: D.Concrete) {
+        if let manifold = concrete as? Manifold, let error = manifold.status {
+            print(error)
+        }
         self.init(concrete: concrete, materialMapping: [:])
     }
 

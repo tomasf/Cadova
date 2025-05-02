@@ -2,9 +2,9 @@ import Foundation
 
 // A corner of a rectangular shape (Rectangle / Box)
 public struct OrthogonalCorner<D: Dimensionality>: Sendable, Hashable {
-    let axisDirections: DimensionalValues<AxisDirection, D>
+    let axisDirections: DimensionalValues<LinearDirection, D>
 
-    internal init(axisDirections: DimensionalValues<AxisDirection, D>) {
+    internal init(axisDirections: DimensionalValues<LinearDirection, D>) {
         self.axisDirections = axisDirections
     }
 

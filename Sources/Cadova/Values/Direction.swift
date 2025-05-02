@@ -48,7 +48,7 @@ public extension Direction <D3> {
     /// - Parameters:
     ///   - axis: The axis to align to.
     ///   - direction: The direction along the axis (positive or negative).
-    init(_ axis: D.Axis, _ direction: AxisDirection) {
+    init(_ axis: D.Axis, _ direction: LinearDirection) {
         self.init(vector: .zero.with(axis, as: direction == .positive ? 1 : -1))
     }
 

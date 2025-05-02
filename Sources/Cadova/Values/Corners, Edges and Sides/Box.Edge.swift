@@ -7,11 +7,11 @@ public extension Box {
         /// The primary axis along which the edge runs (X, Y, or Z).
         public let axis: Axis3D
 
-        internal let x: AxisDirection
-        internal let y: AxisDirection
-        internal let z: AxisDirection
+        internal let x: LinearDirection
+        internal let y: LinearDirection
+        internal let z: LinearDirection
 
-        internal init(axis: Axis3D, x: AxisDirection = .min, y: AxisDirection = .min, z: AxisDirection = .min) {
+        internal init(axis: Axis3D, x: LinearDirection = .min, y: LinearDirection = .min, z: LinearDirection = .min) {
             self.axis = axis
             self.x = axis == .x ? .min : x
             self.y = axis == .y ? .min : y
@@ -35,7 +35,7 @@ public extension Box {
         /// This method combines the two directions that define this edge’s location on
         /// the perpendicular axes with the specified direction along the primary axis, yielding
         /// a unique `Corner` in the box.
-        public func corner(in direction: AxisDirection) -> Corner {
+        public func corner(in direction: LinearDirection) -> Corner {
             Corner(
                 x: axis == .x ? direction : x,
                 y: axis == .y ? direction : y,
@@ -47,7 +47,7 @@ public extension Box {
     typealias Edges = Set<Edge>
 }
 
-fileprivate extension AxisDirection {
+fileprivate extension LinearDirection {
     var unit: Double {
         self == .positive ? 1 : 0
     }
@@ -60,7 +60,7 @@ public extension Box.Edge {
     ///   - ySide: The position along the Y-axis (`.min` or `.max`).
     ///   - zSide: The position along the Z-axis (`.min` or `.max`).
     /// - Returns: An `Edge` instance running along the X-axis.
-    static func alongX(ySide: AxisDirection, zSide: AxisDirection) -> Self {
+    static func alongX(ySide: LinearDirection, zSide: LinearDirection) -> Self {
         .init(axis: .x, y: ySide, z: zSide)
     }
 
@@ -70,7 +70,7 @@ public extension Box.Edge {
     ///   - xSide: The position along the X-axis (`.min` or `.max`).
     ///   - zSide: The position along the Z-axis (`.min` or `.max`).
     /// - Returns: An `Edge` instance running along the Y-axis.
-    static func alongY(xSide: AxisDirection, zSide: AxisDirection) -> Self {
+    static func alongY(xSide: LinearDirection, zSide: LinearDirection) -> Self {
         .init(axis: .y, x: xSide, z: zSide)
     }
 
@@ -80,7 +80,7 @@ public extension Box.Edge {
     ///   - xSide: The position along the X-axis (`.min` or `.max`).
     ///   - ySide: The position along the Y-axis (`.min` or `.max`).
     /// - Returns: An `Edge` instance running along the Z-axis.
-    static func alongZ(xSide: AxisDirection, ySide: AxisDirection) -> Self {
+    static func alongZ(xSide: LinearDirection, ySide: LinearDirection) -> Self {
         .init(axis: .z, x: xSide, y: ySide)
     }
 }
@@ -88,9 +88,9 @@ public extension Box.Edge {
 internal extension Box.Edges {
     static var all: Self {
         Set(Axis3D.allCases.flatMap { axis in
-            AxisDirection.allCases.flatMap { x in
-                AxisDirection.allCases.flatMap { y in
-                    AxisDirection.allCases.map { z in
+            LinearDirection.allCases.flatMap { x in
+                LinearDirection.allCases.flatMap { y in
+                    LinearDirection.allCases.map { z in
                         Box.Edge(axis: axis, x: x, y: y, z: z)
                     }
                 }
