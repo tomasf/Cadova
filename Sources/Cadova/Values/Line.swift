@@ -6,10 +6,10 @@ import Foundation
 public struct Line<D: Dimensionality>: Sendable, Hashable {
     /// A point on the line.
     public let point: D.Vector
-
+    
     /// The direction of the line
     public let direction: D.Direction
-
+    
     /// Creates a line that passes through the given point in the specified direction.
     ///
     /// - Parameters:
@@ -30,29 +30,26 @@ public extension Line {
     init(from: D.Vector, to: D.Vector) {
         self.init(point: from, direction: .init(from: from, to: to))
     }
-
+    
     /// Returns a point on the line at the given scalar multiple of the direction.
     /// For `t = 0`, returns the base `point`. For `t = 1`, returns one unit in the `direction`, and so on.
     func point(at t: Double) -> D.Vector {
         point + direction.unitVector * t
     }
-
+    
     /// Checks whether a given point lies on the line, within a small tolerance.
     /// - Parameters:
     ///   - candidate: The point to test.
-    ///
     func contains(_ candidate: D.Vector) -> Bool {
         let offset = candidate - point
-        let dir = direction.unitVector
-
-        // If the offset is zero, it's trivially on the line
         if offset.magnitude < 1e-6 { return true }
-
-        let ratio = offset / dir
-        let reference = ratio.first!
-        return ratio.allSatisfy { Swift.abs($0 - reference) < 1e-6 }
+        
+        // Project the offset onto the direction
+        let dir = direction.unitVector
+        let projected = dir * ((offset ⋅ dir) / (dir ⋅ dir))
+        return (projected - offset).magnitude < 1e-6
     }
-
+    
     /// Returns the closest point on the line to the given external point.
     ///
     /// - Parameter external: The point to project onto the line.
@@ -61,7 +58,7 @@ public extension Line {
         let dir = direction.unitVector
         return point + dir * ((external - point) ⋅ dir)
     }
-
+    
     /// Computes the shortest distance from the given point to this line.
     ///
     /// This is the length of the perpendicular from the point to the line.
@@ -83,12 +80,12 @@ public extension Line<D2> {
         let r = direction.unitVector
         let q = other.point
         let s = other.direction.unitVector
-
+        
         let cross = r.x * s.y - r.y * s.x
         if Swift.abs(cross) < 1e-10 {
             return nil // Lines are parallel
         }
-
+        
         let t = ((q - p).x * s.y - (q - p).y * s.x) / cross
         return p + r * t
     }
