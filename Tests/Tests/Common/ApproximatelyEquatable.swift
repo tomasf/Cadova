@@ -65,3 +65,9 @@ extension BezierCurve: ApproximatelyEquatable where V: ApproximatelyEquatable {
         lhs.controlPoints ≈ rhs.controlPoints
     }
 }
+
+extension Direction: ApproximatelyEquatable {
+    static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
+        lhs.unitVector ≈ rhs.unitVector
+    }
+}

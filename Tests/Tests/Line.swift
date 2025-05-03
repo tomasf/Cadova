@@ -11,6 +11,24 @@ struct LineTests {
     }
 
     @Test
+    func testTranslatedLine() {
+        let original = Line<D3>(point: [1, 2, 3], direction: .positiveZ)
+        let translated = original.translated(x: 3, y: -2, z: 1)
+        #expect(translated.point ≈ [4, 0, 4])
+        #expect(translated.direction ≈ original.direction)
+    }
+
+    @Test
+    func testRotatedLine() {
+        let line = Line<D3>(point: [1, 0, 0], direction: .positiveY)
+        let rotated = line.rotated(x: 0°, y: 0°, z: 90°)
+        #expect(rotated.direction ≈ .negativeX)
+
+        let expectedDir = Vector3D(x: -1, y: 0, z: 0)
+        #expect(rotated.direction.unitVector ≈ expectedDir.normalized)
+    }
+
+    @Test
     func testClosestPoint() {
         let line = Line<D2>(point: [0, 0], direction: .positiveX)
         #expect(line.closestPoint(to: [2, 5]) ≈ [2, 0])
