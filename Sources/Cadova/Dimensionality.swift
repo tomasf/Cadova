@@ -10,6 +10,7 @@ public protocol Dimensionality {
     associatedtype Axis: Cadova.Axis
 
     typealias Axes = Set<Axis>
+    typealias Line = Cadova.Line<Self>
     typealias Alignment = GeometryAlignment<Self>
     typealias Direction = Cadova.Direction<Self>
     typealias BuildResult = Cadova.BuildResult<Self>
