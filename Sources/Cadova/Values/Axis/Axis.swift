@@ -24,7 +24,7 @@ public enum Axis3D: Int, Axis {
 
     /// The unit vector pointing along the axis, in either the positive or negative direction.
     func direction(_ direction: LinearDirection) -> Direction3D {
-        Direction3D(vector: Vector3D(self, value: direction.factor))
+        Direction3D(Vector3D(self, value: direction.factor))
     }
 
     /// The other two axes that are orthogonal to this axis.

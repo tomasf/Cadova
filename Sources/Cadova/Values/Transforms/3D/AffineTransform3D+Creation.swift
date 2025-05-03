@@ -110,7 +110,7 @@ public extension AffineTransform3D {
     /// - Returns: An `AffineTransform3D` representing the rotation from the `from` vector to the `to` vector.
 
     static func rotation(from: Direction3D, to: Direction3D) -> AffineTransform3D {
-        let axis = Direction3D(vector: from.unitVector × to.unitVector)
+        let axis = Direction3D(from.unitVector × to.unitVector)
         let angle: Angle = acos(from.unitVector ⋅ to.unitVector)
         return .rotation(angle: angle, around: axis)
     }
