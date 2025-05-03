@@ -51,7 +51,7 @@ public extension Geometry3D {
     func withMaterial(_ material: Material) -> any Geometry3D {
         GeometryNodeTransformer(body: self) {
             .applyMaterial($0, material: material)
-        }
+        } environment: { $0.withMaterial(material) }
     }
 }
 
