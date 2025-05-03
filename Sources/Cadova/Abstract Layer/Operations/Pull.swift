@@ -1,70 +1,65 @@
 import Foundation
 
+public extension Geometry {
+    func pulled(toward point: D.Vector, distance: Double) -> D.Geometry {
+        pulled(towardTarget: point as! any PullTarget<D>, distance: distance)
+    }
+
+    func pulled(toward line: D.Line, distance: Double) -> D.Geometry {
+        pulled(towardTarget: line, distance: distance)
+    }
+}
+
 public extension Geometry3D {
-    /// Pull each point of the geometry toward a line by a fixed distance.
-    ///
-    /// For every point in the geometry, this method computes the closest point on the given line
-    /// and moves the point toward it by the specified distance. If the point is closer to the line
-    /// than the specified distance, it is moved directly onto the line.
-    ///
-    /// - Parameters:
-    ///   - line: The target line to attract vertices toward.
-    ///   - distance: The distance each point is moved toward the line.
-    /// - Returns: A new geometry with the warping applied.
-    func pulled(toward line: Line<D3>, distance: Double) -> any Geometry3D {
-        warped(operationName: "pullTowardLine", cacheParameters: line, distance) { point in
-            let closest = line.closestPoint(to: point)
-            let offset = closest - point
-            let length = offset.magnitude
+    func pulled(toward plane: Plane, distance: Double) -> D.Geometry {
+        pulled(towardTarget: plane, distance: distance)
+    }
+}
 
+
+// MARK: - Internal
+
+internal protocol PullTarget<D>: Sendable, Hashable, Codable {
+    associatedtype D: Dimensionality
+    func offset(pulling point: D.Vector) -> D.Vector
+}
+
+internal extension Geometry {
+    func pulled(towardTarget target: any PullTarget<D>, distance: Double) -> D.Geometry {
+        warped(operationName: "pullTowardTarget", cacheParameters: target, distance) { point in
+            let offset = target.offset(pulling: point)
+            let length = offset.magnitude
             guard length > 1e-6 else { return point }
 
             let direction = offset / length
             return point + direction * min(distance, length)
         }
     }
+}
 
-    /// Pull each point of the geometry toward a plane by a fixed distance.
-    ///
-    /// For every point in the geometry, this method computes the closest point on the given plane
-    /// and moves the point toward it by the specified distance. If the point is closer to the plane
-    /// than the specified distance, it is moved directly onto the plane.
-    ///
-    /// - Parameters:
-    ///   - plane: The target plane to attract vertices toward.
-    ///   - distance: The distance each point is moved toward the plane.
-    /// - Returns: A new geometry with the warping applied.
-    func pulled(toward plane: Plane, distance: Double) -> any Geometry3D {
-        warped(operationName: "pullTowardPlane", cacheParameters: plane, distance) { point in
-            let projected = plane.project(point: point)
-            let offset = projected - point
-            let length = offset.magnitude
-
-            guard length > 1e-6 else { return point }
-
-            let direction = offset / length
-            return point + direction * min(distance, length)
-        }
+extension Vector2D: PullTarget {
+    func offset(pulling point: Vector2D) -> Vector2D {
+        self - point
     }
+}
 
-    /// Pull each point of the geometry toward a fixed point by a specified distance.
-    ///
-    /// For every point in the geometry, this method moves it toward the given point by up to the specified distance.
-    /// If the point is closer than the given distance, it is moved directly to the target point.
-    ///
-    /// - Parameters:
-    ///   - target: The point to attract vertices toward.
-    ///   - distance: The distance each point is moved toward the target.
-    /// - Returns: A new geometry with the warping applied.
-    func pulled(toward target: Vector3D, distance: Double) -> any Geometry3D {
-        warped(operationName: "pullTowardPoint", cacheParameters: target, distance) { point in
-            let offset = target - point
-            let length = offset.magnitude
+extension Vector3D: PullTarget {
+    func offset(pulling point: Vector3D) -> Vector3D {
+        self - point
+    }
+}
 
-            guard length > 1e-6 else { return point }
+extension Line: PullTarget {
+    func offset(pulling point: D.Vector) -> D.Vector {
+        let closest = self.closestPoint(to: point)
+        return closest - point
+    }
+}
 
-            let direction = offset / length
-            return point + direction * min(distance, length)
-        }
+extension Plane: PullTarget {
+    typealias D = D3
+
+    func offset(pulling point: Vector3D) -> Vector3D {
+        project(point: point) - point
     }
 }
