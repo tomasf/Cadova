@@ -2,7 +2,7 @@ import Foundation
 
 extension BoundingBox {
     fileprivate var visualizationBorderColor: Color {
-        .blue.withAlphaComponent(0.5)
+        .blue.with(alpha: 0.5)
     }
 
     fileprivate var visualizationStandardBorderWidth: Double { 0.1 }

@@ -425,5 +425,5 @@ public extension Color {
     static let yellowGreen = Color(red: 0.604, green: 0.804, blue: 0.196)
 
     /// A fully transparent color.
-    static let transparent = black.withAlphaComponent(0)
+    static let transparent = Color(red: 0, green: 0, blue: 0, alpha: 0)
 }
