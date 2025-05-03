@@ -52,7 +52,7 @@ public extension Plane {
         let normalVector = (vector1 × vector2).normalized
         precondition(normalVector.magnitude > 0, "The points must not be collinear.")
         self.offset = point1
-        self.normal = .init(vector: normalVector)
+        self.normal = .init(normalVector)
     }
 
     /// Initializes a plane perpendicular to the specified Cartesian axis at the given offset.
@@ -60,7 +60,7 @@ public extension Plane {
     ///   - axis: The axis perpendicular to the plane.
     ///   - offset: The plane's offset along the axis.
     init(perpendicularTo axis: Axis3D, at offset: Double = 0) {
-        let direction = Direction(axis, .positive)
+        let direction = Direction<D3>(axis, .positive)
         self.init(offset: direction.unitVector * offset, normal: direction)
     }
 

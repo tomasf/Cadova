@@ -1,6 +1,7 @@
 import Foundation
 
-public protocol Vector: Hashable, Sendable, Codable, CustomDebugStringConvertible, Collection where Element == Double {
+public protocol Vector: Hashable, Sendable, Codable, CustomDebugStringConvertible,
+                        Collection where Element == Double {
     associatedtype D: Dimensionality where D.Vector == Self
 
     static var zero: Self { get }

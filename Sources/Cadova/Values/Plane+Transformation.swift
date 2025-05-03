@@ -30,7 +30,7 @@ public extension Plane {
     private func rotated(using transform: AffineTransform3D) -> Plane {
         Plane(
             offset: transform.apply(to: offset),
-            normal: .init(vector: transform.apply(to: normal.unitVector).normalized)
+            normal: .init(transform.apply(to: normal.unitVector).normalized)
         )
     }
 
