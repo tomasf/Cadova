@@ -29,16 +29,6 @@ public struct Color: Hashable, Sendable, Codable {
         self.init(red: brightness, green: brightness, blue: brightness, alpha: alpha)
     }
 
-
-    /// Returns a copy of the color with a modified alpha (transparency) value.
-    ///
-    /// - Parameter a: The new alpha component, ranging from 0.0 (fully transparent) to 1.0 (fully opaque).
-    /// - Returns: A new `Color` instance with the same red, green, and blue components but with the specified alpha value.
-    ///
-    public func withAlphaComponent(_ a: Double) -> Color {
-        Color(red: red, green: green, blue: blue, alpha: a)
-    }
-
     /// Returns the RGBA components as a tuple
     public var rgbaComponents: (red: Double, green: Double, blue: Double, alpha: Double) {
         (red: red, green: green, blue: blue, alpha: alpha)
@@ -66,30 +56,16 @@ public extension Color {
 }
 
 public extension Color {
-    enum Component {
-        case red
-        case green
-        case blue
-
-        case hue
-        case saturation
-        case brightness
-
-        case alpha
+    func with(alpha: Double) -> Self {
+        Color(red: red, green: green, blue: blue, alpha: alpha)
     }
 
-    func setting(_ component: Component, to value: Double) -> Color {
+    func with(red: Double? = nil, green: Double? = nil, blue: Double? = nil, alpha: Double? = nil) -> Self {
+        Color(red: red ?? self.red, green: green ?? self.green, blue: blue ?? self.blue, alpha: alpha ?? self.alpha)
+    }
+
+    func with(hue: Double? = nil, saturation: Double? = nil, brightness: Double? = nil, alpha: Double? = nil) -> Self {
         let hsba = hsbaComponents
-
-        return switch component {
-        case .red: Color(red: value, green: green, blue: blue, alpha: alpha)
-        case .green: Color(red: red, green: value, blue: blue, alpha: alpha)
-        case .blue: Color(red: red, green: green, blue: value, alpha: alpha)
-        case .alpha: Color(red: red, green: green, blue: blue, alpha: value)
-
-        case .hue: Color(hue: value, saturation: hsba.saturation, brightness: hsba.brightness, alpha: alpha)
-        case .saturation: Color(hue: hsba.hue, saturation: value, brightness: hsba.brightness, alpha: alpha)
-        case .brightness: Color(hue: hsba.hue, saturation: hsba.saturation, brightness: value, alpha: alpha)
-        }
+        return Color(hue: hue ?? hsba.hue, saturation: saturation ?? hsba.saturation, brightness: brightness ?? hsba.brightness, alpha: alpha ?? hsba.alpha)
     }
 }

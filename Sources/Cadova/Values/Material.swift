@@ -18,6 +18,6 @@ public struct Material: Hashable, Sendable, Codable {
     }
 
     static func plain(_ color: Color, alpha: Double? = nil) -> Material {
-        return .init(baseColor: color.withAlphaComponent(alpha ?? color.alpha))
+        return .init(baseColor: color.with(alpha: alpha ?? color.alpha))
     }
 }
