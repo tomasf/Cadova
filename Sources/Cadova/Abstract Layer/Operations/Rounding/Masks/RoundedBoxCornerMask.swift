@@ -26,7 +26,7 @@ internal struct RoundedBoxCornerMask: Shape3D {
 internal extension Geometry3D {
     func extended(to extent: Double, along axis: Axis3D) -> D3.Geometry {
         measureBoundsIfNonEmpty { body, e, bounds in
-            let max = bounds.maximum[axis] - 1e-6
+            let max = bounds.maximum[axis] - 1e-5
             if extent <= max {
                 return body
             }

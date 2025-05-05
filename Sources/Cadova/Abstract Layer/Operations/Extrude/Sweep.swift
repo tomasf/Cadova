@@ -32,7 +32,7 @@ internal struct Sweep: Shape3D {
                     .adding(Union(debugParts ?? []))
             }
         }
-        .cached(as: "sweep", parameters: path, reference, target)
+        .cached(as: "sweep", geometry: shape, parameters: path, reference, target)
     }
 }
 
