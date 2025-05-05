@@ -13,19 +13,28 @@ internal struct IndexedCacheKey<Key: CacheKey>: CacheKey {
 // Boxes a geometry tree behind a freestanding cache key, avoiding both node building
 // and primitive generation
 
-struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey>: Geometry {
+struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey, ID: Dimensionality>: Geometry {
     let key: Key
+    let geometry: (any Geometry<ID>)?
     let generator: @Sendable () -> D.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        if await context.hasCachedResult(for: key, with: D.self) {
-            let resultElements = await context.resultElements(for: key) ?? [:]
-            return D.BuildResult(cacheKey: key, elements: resultElements)
+        let bakedKey: any CacheKey
+        if let geometry {
+            let node = await geometry.build(in: environment, context: context).node
+            bakedKey = NodeCacheKey(base: key, node: node)
+        } else {
+            bakedKey = key
+        }
+
+        if await context.hasCachedResult(for: bakedKey, with: D.self) {
+            let resultElements = await context.resultElements(for: bakedKey) ?? [:]
+            return D.BuildResult(cacheKey: bakedKey, elements: resultElements)
         } else {
             let results = await generator().build(in: environment, context: context)
             let nodeResults = await context.result(for: results.node)
-            await context.setResultElements(results.elements, for: key)
-            return await results.replacing(node: context.storeMaterializedResult(nodeResults, key: key))
+            await context.setResultElements(results.elements, for: bakedKey)
+            return await results.replacing(node: context.storeMaterializedResult(nodeResults, key: bakedKey))
         }
     }
 }
