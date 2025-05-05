@@ -51,7 +51,7 @@ struct GeometryCacheTests {
     @Test func split() async throws {
         await #expect(context.cache3D.count == 0)
 
-        let split1 = box.split(along: .init(z: 2).rotated(x: 10°)) { g1, g2 in
+        let split1 = box.split(along: .z(2).rotated(x: 10°)) { g1, g2 in
             g1.adding(g2)
         }
 

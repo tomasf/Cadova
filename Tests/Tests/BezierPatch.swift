@@ -10,7 +10,7 @@ struct BezierPatchTests {
             [ [0, 3, 0],   [1, 3, 0.4],   [2, 3, 0.1],   [3, 3, 1.2] ]
         ])
 
-        try await patch.extruded(to: Plane(z: -0.5))
+        try await patch.extruded(to: Plane.z(-0.5))
             .aligned(at: .bottom)
             .expectEquals(goldenFile: "bezierPatchBasic")
     }

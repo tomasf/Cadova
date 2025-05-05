@@ -8,6 +8,12 @@ public struct Empty<D: Dimensionality>: Geometry {
     }
 }
 
+public extension Geometry {
+    func hidden<O: Dimensionality>() -> O.Geometry {
+        Empty()
+    }
+}
+
 struct NodeBasedGeometry<D: Dimensionality>: Geometry {
     let node: D.Node
 

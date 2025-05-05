@@ -30,40 +30,6 @@ public extension BezierPath {
             curves: curves.map { $0.transformed(using: transform) }
         )
     }
-
-    /// Calculates the transformation when rotated and translated along the Bézier path up to a specified position.
-    ///
-    /// This method computes the transformation that includes both rotation and translation,
-    /// as an object moves along the Bézier path up to a given position specified by `position`. The transformation
-    /// accounts for the rotations necessary to align the object with the path's direction.
-    ///
-    /// - Parameters:
-    ///   - position: The position along the path where the transformation is calculated. This value is of type
-    ///   - segmentation: The desired level of detail for the generated points, affecting the smoothness and accuracy of the path traversal
-    /// - Returns: A `V.D.Transform` representing the combined rotation and translation needed to move an object along the
-    ///   Bézier path to the specified position.
-    func transform(at position: Position, segmentation: EnvironmentValues.Segmentation) -> V.D.Transform {
-        guard !curves.isEmpty else { return .translation(startPoint) }
-        return .init(
-            points(in: 0...position, segmentation: segmentation).map(\.vector3D)
-                .paired().map { Direction3D(from: $1, to: $0) }
-                .paired().map(AffineTransform3D.rotation(from:to:))
-                .reduce(AffineTransform3D.identity) { $0.concatenated(with: $1) }
-                .translated(point(at: position).vector3D)
-        )
-    }
-
-    func readTransform(at position: Position, @GeometryBuilder2D _ reader: @Sendable @escaping (V.D.Transform) -> any Geometry2D) -> any Geometry2D {
-        readEnvironment { e in
-            reader(transform(at: position, segmentation: e.segmentation))
-        }
-    }
-
-    func readTransform(at position: Position, @GeometryBuilder3D _ reader: @Sendable @escaping (V.D.Transform) -> any Geometry3D) -> any Geometry3D {
-        readEnvironment { e in
-            reader(transform(at: position, segmentation: e.segmentation))
-        }
-    }
 }
 
 public extension BezierPath {
@@ -73,7 +39,7 @@ public extension BezierPath {
     /// - Returns: An array of points that approximate the Bezier path.
     func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
         return [startPoint] + curves.flatMap {
-            $0.points(segmentation: segmentation)[1...]
+            $0.points(segmentation: segmentation)[1...].map { $1 }
         }
     }
 
@@ -100,7 +66,29 @@ public extension BezierPath {
         return curves[curveIndex].point(at: fraction)
     }
 
+    func tangent(at position: Position) -> Direction<V.D> {
+        assert(positionRange ~= position)
+        let curveIndex = min(Int(floor(position)), curves.count - 1)
+        let fraction = position - Double(curveIndex)
+        return curves[curveIndex].tangent(at: fraction)
+    }
+
     func points(in pathFractionRange: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [V] {
+        pointsAtPositions(in: pathFractionRange, segmentation: segmentation).map(\.1)
+    }
+
+    func readPoints<D: Dimensionality>(
+        in range: ClosedRange<Position>? = nil,
+        @GeometryBuilder<D> _ reader: @Sendable @escaping ([V]) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment { e in
+            reader(points(in: range ?? positionRange, segmentation: e.segmentation))
+        }
+    }
+}
+
+internal extension BezierPath {
+    func pointsAtPositions(in pathFractionRange: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
         let (fromCurveIndex, fromFraction) = pathFractionRange.lowerBound.indexAndFraction(curveCount: curves.count)
         let (toCurveIndex, toFraction) = pathFractionRange.upperBound.indexAndFraction(curveCount: curves.count)
 
@@ -108,19 +96,18 @@ public extension BezierPath {
             let startFraction = (index == fromCurveIndex) ? fromFraction : 0.0
             let endFraction = (index == toCurveIndex) ? toFraction : 1.0
             let skipFirst = index > fromCurveIndex
-            return curve.points(in: startFraction..<endFraction, segmentation: segmentation)[(skipFirst ? 1 : 0)...]
+            return curve.points(in: startFraction..<endFraction, segmentation: segmentation)
+                .map { ($0 + Double(index), $1) }
+                .dropFirst(skipFirst ? 1 : 0)
         }
     }
 
-    func readPoints(in range: ClosedRange<Position>? = nil, @GeometryBuilder2D _ reader: @Sendable @escaping ([V]) -> any Geometry2D) -> any Geometry2D {
+    func readPositionsAndPoints<D: Dimensionality>(
+        in range: ClosedRange<Position>? = nil,
+        reader: @Sendable @escaping ([(Double, V)]) -> D.Geometry
+    ) -> D.Geometry {
         readEnvironment { e in
-            reader(points(in: range ?? positionRange, segmentation: e.segmentation))
-        }
-    }
-
-    func readPoints(in range: ClosedRange<Position>? = nil, @GeometryBuilder3D _ reader: @Sendable @escaping ([V]) -> any Geometry3D) -> any Geometry3D {
-        readEnvironment { e in
-            reader(points(in: range ?? positionRange, segmentation: e.segmentation))
+            reader(pointsAtPositions(in: range ?? positionRange, segmentation: e.segmentation))
         }
     }
 }

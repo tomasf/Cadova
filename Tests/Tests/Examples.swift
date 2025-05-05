@@ -53,13 +53,12 @@ struct ExampleTests {
     }
 
     @Test func example4() async throws {
-        let path = BezierPath2D(startPoint: .zero)
-            .addingCubicCurve(controlPoint1: [10, 65], controlPoint2: [55, -20], end: [60, 40])
+        let path = BezierPath2D {
+            curve([10, 65], [50, -20], [60, 50])
+        }
 
         try await Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-            .withDefaultSegmentation()
-            .extruded(along: path)
-            .withSegmentation(minAngle: 5°, minSize: 1)
+            .swept(along: path)
             .expectEquals(goldenFile: "examples/example4")
     }
 }

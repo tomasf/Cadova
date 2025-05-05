@@ -55,5 +55,6 @@ extension BezierPath {
                     .colored(.blue)
             }
         }
+        .inPart(named: "Visualized Path", type: .visual)
     }
 }

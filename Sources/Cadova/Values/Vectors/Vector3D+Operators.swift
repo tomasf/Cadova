@@ -25,6 +25,14 @@ public extension Vector3D {
         )
     }
 
+    static func *(_ d: Double, _ v: Vector3D) -> Vector3D {
+        Vector3D(
+            x: v.x * d,
+            y: v.y * d,
+            z: v.z * d
+        )
+    }
+
     static func /(_ v: Vector3D, _ d: Double) -> Vector3D {
         Vector3D(
             x: v.x / d,

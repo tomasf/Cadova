@@ -13,43 +13,6 @@ struct BezierPathTests {
         linearPath = BezierPath3D(linesBetween: linearPoints)
     }
 
-    @Test func linearAllPoints() {
-        let points = linearPath.points(segmentation: .fixed(10))
-        let points2 = linearPath.points(segmentation: .defaults)
-        // Optimization makes sure linear curves simply resolve to the control points, regardless of segments
-        #expect(points ≈ linearPoints)
-        #expect(points2 ≈ linearPoints)
-    }
-
-    @Test func linearAllPointsClosed() {
-        let points = linearPath.closed().points(segmentation: .fixed(10))
-        #expect(points ≈ (linearPoints + [linearPoints[0]]))
-    }
-
-    @Test func linearLimitedRange() {
-        let rangePoints = linearPath.points(in: 0.5...1.5, segmentation: .fixed(10))
-        let rangePoints2 = linearPath.points(in: 0.5...1.5, segmentation: .defaults)
-        let expectedRangePoints: [Vector3D] = [
-            linearPoints[0].point(alongLineTo: linearPoints[1], at: 0.5),
-            linearPoints[1],
-            linearPoints[1].point(alongLineTo: linearPoints[2], at: 0.5)
-        ]
-
-        // Similar optimization for range points
-        #expect(rangePoints ≈ expectedRangePoints)
-        #expect(rangePoints2 ≈ expectedRangePoints)
-    }
-
-    @Test func linearExtendedRange() {
-        let extendedRangePoints = linearPath.points(in: -0.5...2.5, segmentation: .fixed(10))
-        let expectedExtendedRangePoints: [Vector3D] = [
-            linearPoints[0].point(alongLineTo: linearPoints[1], at: -0.5),
-            linearPoints[1],
-            linearPoints[1].point(alongLineTo: linearPoints[2], at: 1.5)
-        ]
-        #expect(extendedRangePoints ≈ expectedExtendedRangePoints)
-    }
-
     @Test func quadraticPointsFixed() {
         let points = quadraticPath.points(segmentation: .fixed(5))
         #expect(points ≈ [[39.1, 150], [31.456, 133.6], [23.724, 160.4], [15.904, 230.4], [7.996, 343.6], [0, 500], [118.12, 346.336], [216.48, 219.504], [295.08, 119.504], [353.92, 46.336], [393, 0]])

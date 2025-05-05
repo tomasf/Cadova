@@ -1,10 +1,9 @@
 import Foundation
 
-internal struct BezierCurve<V: Vector>: Sendable {
+internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     let controlPoints: [V]
 
     init(controlPoints: [V]) {
-        precondition(controlPoints.count >= 2)
         self.controlPoints = controlPoints
     }
 
@@ -16,7 +15,19 @@ internal struct BezierCurve<V: Vector>: Sendable {
         return workingPoints[0]
     }
 
-    private func points(in range: Range<Double>, segmentLength: Double) -> [V] {
+    // Returns the Bezier curve that represents the derivative of this curve.
+    internal var derivative: BezierCurve<V> {
+        let n = controlPoints.count - 1
+        return BezierCurve(controlPoints: (0..<n).map { i in
+            (controlPoints[i + 1] - controlPoints[i]) * Double(n)
+        })
+    }
+
+    func tangent(at fraction: Double) -> Direction<V.D> {
+        Direction(derivative.point(at: fraction))
+    }
+
+    private func points(in range: Range<Double>, segmentLength: Double) -> [(Double, V)] {
         let midFraction = (range.lowerBound + range.upperBound) / 2
         let midPoint = point(at: midFraction)
         let distance = point(at: range.lowerBound).distance(to: midPoint) + point(at: range.upperBound).distance(to: midPoint)
@@ -26,24 +37,19 @@ internal struct BezierCurve<V: Vector>: Sendable {
         }
 
         return points(in: range.lowerBound..<midFraction, segmentLength: segmentLength)
-        + [midPoint]
+        + [(midFraction, midPoint)]
         + points(in: midFraction..<range.upperBound, segmentLength: segmentLength)
     }
 
-    private func points(in range: Range<Double>, segmentCount: Int) -> [V] {
-        let segmentLength = (range.upperBound - range.lowerBound) / Double(segmentCount)
+    private func points(in range: Range<Double>, segmentCount: Int) -> [(Double, V)] {
+        let segmentInterval = (range.upperBound - range.lowerBound) / Double(segmentCount)
         return (0...segmentCount).map { f in
-            point(at: range.lowerBound + Double(f) * segmentLength)
+            let t = range.lowerBound + Double(f) * segmentInterval
+            return (t, point(at: t))
         }
     }
 
-    func points(in range: Range<Double>, segmentation: EnvironmentValues.Segmentation) -> [V] {
-        guard controlPoints.count > 2 else {
-            let start = controlPoints[0].point(alongLineTo: controlPoints[1], at: range.lowerBound)
-            let end = controlPoints[0].point(alongLineTo: controlPoints[1], at: range.upperBound)
-            return [start, end]
-        }
-
+    func points(in range: Range<Double>, segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
         switch segmentation {
         case .fixed (let count):
             return points(in: range, segmentCount: count)
@@ -52,22 +58,19 @@ internal struct BezierCurve<V: Vector>: Sendable {
         }
     }
 
-    private func points(segmentLength: Double) -> [V] {
-        return [point(at: 0)] + points(in: 0..<1, segmentLength: segmentLength) + [point(at: 1)]
+    private func points(segmentLength: Double) -> [(Double, V)] {
+        return [(0, point(at: 0))] + points(in: 0..<1, segmentLength: segmentLength) + [(1, point(at: 1))]
     }
 
-    private func points(segmentCount: Int) -> [V] {
-        let segmentLength = 1.0 / Double(segmentCount)
+    private func points(segmentCount: Int) -> [(Double, V)] {
+        let segmentInterval = 1.0 / Double(segmentCount)
         return (0...segmentCount).map { f in
-            point(at: Double(f) * segmentLength)
+            let t = Double(f) * segmentInterval
+            return (t, point(at: t))
         }
     }
 
-    func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
-        guard controlPoints.count > 2 else {
-            return controlPoints
-        }
-
+    func points(segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
         switch segmentation {
         case .fixed (let count):
             return points(segmentCount: count)
@@ -84,6 +87,10 @@ internal struct BezierCurve<V: Vector>: Sendable {
         let last = controlPoints[controlPoints.count - 1]
         let secondLast = controlPoints[controlPoints.count - 2]
         return (last - secondLast).normalized
+    }
+
+    func map<V2: Vector>(_ transform: (V) -> V2) -> BezierCurve<V2> {
+        .init(controlPoints: controlPoints.map(transform))
     }
 }
 

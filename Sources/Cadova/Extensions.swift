@@ -175,3 +175,17 @@ extension Clock {
         return result!
     }
 }
+
+extension Array {
+    func indexPair<E>(forGlobalIndex index: Int) -> (outer: Int, inner: Int) where Element == [E] {
+        var offset = index
+        for (outerIndex, innerArray) in enumerated() {
+            if innerArray.count > offset {
+                return (outerIndex, offset)
+            } else {
+                offset -= innerArray.count
+            }
+        }
+        preconditionFailure("Index out of range")
+    }
+}
