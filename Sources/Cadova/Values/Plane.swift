@@ -153,10 +153,9 @@ public extension Plane {
         ])
 
         let column = Matrix3x3.Column(-d1, -d2, 0)
-        let point = matrix.inverse * column
-        return Line(point: .init(point.x, point.y, point.z), direction: Direction3D(direction))
+        let point: Matrix3x3.Row = matrix.inverse * column
+        return Line(point: .init(point[0], point[1], point[2]), direction: Direction3D(direction))
     }
-
 }
 
 public extension Plane {

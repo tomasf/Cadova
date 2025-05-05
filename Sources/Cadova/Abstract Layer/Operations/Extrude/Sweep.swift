@@ -44,12 +44,9 @@ extension Sweep {
 
         func targetPoint(from plane: Plane) -> Vector3D {
             switch self {
-            case .point (let p):
-                return p
-            case .line (let line):
-                return plane.intersection(with: line) ?? line.closestPoint(to: plane.offset)
-            case .direction (let dir):
-                return plane.offset + dir.unitVector
+            case let .point(p): p
+            case let .line(line): plane.intersection(with: line) ?? line.closestPoint(to: plane.offset)
+            case let .direction(dir): plane.offset + dir.unitVector
             }
         }
     }
@@ -160,14 +157,14 @@ extension [Sweep.Frame] {
 
     mutating func normalizeAngles() {
         guard !isEmpty else { return }
-        for i in 1..<count {
+        for i in indices.dropFirst() {
             let previous = self[i-1].angle!
             self[i].angle = previous + (self[i].angle! - previous).normalized
         }
     }
 
     mutating func applyTwistDamping(maxTwistRate: Angle) {
-        for i in 1..<count {
+        for i in indices.dropFirst() {
             let current = self[i - 1].angle!
             let delta = self[i].angle! - current
             let distance = (self[i].point - self[i - 1].point).magnitude
