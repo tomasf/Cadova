@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(simd)
+import simd
+#endif
 
 /// A geometric plane in 3D space, defined by an offset point and a normal vector.
 ///
@@ -65,18 +68,18 @@ public extension Plane {
     }
 
     /// Creates a plane perpendicular to the X-axis.
-    init(x offset: Double) {
-        self.init(perpendicularTo: .x, at: offset)
+    static func x(_ offset: Double) -> Self {
+        .init(perpendicularTo: .x, at: offset)
     }
 
     /// Creates a plane perpendicular to the Y-axis.
-    init(y offset: Double) {
-        self.init(perpendicularTo: .y, at: offset)
+    static func y(_ offset: Double) -> Self {
+        .init(perpendicularTo: .y, at: offset)
     }
 
     /// Creates a plane perpendicular to the Z-axis.
-    init(z offset: Double) {
-        self.init(perpendicularTo: .z, at: offset)
+    static func z(_ offset: Double) -> Self {
+        .init(perpendicularTo: .z, at: offset)
     }
 }
 
@@ -108,6 +111,52 @@ public extension Plane {
     var transform: AffineTransform3D {
         .rotation(from: .positiveZ, to: normal).translated(offset)
     }
+
+    /// Computes the intersection point between the plane and a given line, if it exists.
+    ///
+    /// - Parameter line: The line to intersect with the plane.
+    /// - Returns: The intersection point, or `nil` if the line is parallel to the plane.
+    func intersection(with line: Line<D3>) -> Vector3D? {
+        let lineDir = line.direction.unitVector
+        let denom = lineDir ⋅ normal.unitVector
+
+        // If denom is close to zero, the line is parallel to the plane
+        guard Swift.abs(denom) > 1e-8 else {
+            return nil
+        }
+
+        let diff = offset - line.point
+        let t = (diff ⋅ normal.unitVector) / denom
+        return line.point + lineDir * t
+    }
+
+    /// Computes the intersection line between this plane and another plane, if it exists.
+    ///
+    /// - Parameter other: The second plane to intersect with.
+    /// - Returns: A `Line<D3>` representing the intersection line, or `nil` if the planes are parallel or coincident.
+    func intersection(with other: Plane) -> Line<D3>? {
+        let n1 = self.normal.unitVector
+        let n2 = other.normal.unitVector
+
+        let direction = n1 × n2
+        if direction.magnitude < 1e-8 {
+            return nil
+        }
+
+        let (a1, b1, c1, d1) = self.equation
+        let (a2, b2, c2, d2) = other.equation
+
+        let matrix = Matrix3x3(rows: [
+            [a1, b1, c1],
+            [a2, b2, c2],
+            [direction.x, direction.y, direction.z]
+        ])
+
+        let column = Matrix3x3.Column(-d1, -d2, 0)
+        let point = matrix.inverse * column
+        return Line(point: .init(point.x, point.y, point.z), direction: Direction3D(direction))
+    }
+
 }
 
 public extension Plane {

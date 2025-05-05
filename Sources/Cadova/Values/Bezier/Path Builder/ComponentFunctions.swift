@@ -12,6 +12,10 @@ public func curve<V: Vector>(_ controlPoints: [V]) -> BezierPath<V>.Component {
     .init(controlPoints.map(PathBuilderVector<V>.init))
 }
 
+public func curve<V: Vector>(_ controlPoints: V...) -> BezierPath<V>.Component {
+    .init(controlPoints.map(PathBuilderVector<V>.init))
+}
+
 public func continuousCurve<V: Vector>(distance: Double, controlPoints: [V]) -> BezierPath<V>.Component {
     .init(continuousDistance: distance, controlPoints.map(PathBuilderVector<V>.init))
 }

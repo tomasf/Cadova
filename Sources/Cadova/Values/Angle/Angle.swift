@@ -95,6 +95,14 @@ public extension Angle {
     static func turns(_ turns: Double) -> Angle {
         Angle(turns: turns)
     }
+
+    /// Normalizes this angle to the range (-180°, 180°]
+    var normalized: Angle {
+        var r = radians
+        while r <= -.pi { r += 2 * .pi }
+        while r > .pi { r -= 2 * .pi }
+        return Angle(radians: r)
+    }
 }
 
 extension Angle: CustomDebugStringConvertible {

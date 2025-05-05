@@ -30,8 +30,4 @@ public extension Geometry3D {
     func inPart(named name: String, type: PartType = .solid) -> any Geometry3D {
         PartAssignment(body: self, isSeparated: true, identifier: .named(name, type: type))
     }
-
-    func hidden() -> any Geometry3D {
-        Empty()
-    }
 }

@@ -7,7 +7,7 @@ extension Geometry {
     /// Caching helps avoid redundant computation of both the geometry node and the underlying primitive data.
     ///
     /// The operation is cached based on the supplied `name` and `parameters`. If the same
-    /// combination of input geometry and cache parameters has been previously evaluated, the cached result is reused
+    /// combination of name and cache parameters has been previously evaluated, the cached result is reused
     /// to avoid redundant computation. Ensure that these parameters are stable and deterministic;
     /// the same set of name + parameters should always result in an identical operation.
     ///

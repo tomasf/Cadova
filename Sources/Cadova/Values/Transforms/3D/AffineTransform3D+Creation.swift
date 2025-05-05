@@ -1,6 +1,16 @@
 import Foundation
 
 public extension AffineTransform3D {
+    /// Constructs a transform from an orthonormal basis and an origin.
+    init(orthonormalBasisOrigin origin: Vector3D, x: Direction3D, y: Direction3D, z: Direction3D) {
+        self.init([
+            [x.x, y.x, z.x, origin.x],
+            [x.y, y.y, z.y, origin.y],
+            [x.z, y.z, z.z, origin.z],
+            [0,   0,   0,   1]
+        ])
+    }
+
     /// Creates a translation `AffineTransform3D` using the given x, y, and z offsets.
     ///
     /// - Parameters:
