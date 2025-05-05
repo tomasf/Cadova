@@ -10,8 +10,8 @@ actor GeometryCache<D: Dimensionality> {
         await entries[node]?.value
     }
 
-    func setCachedResult(_ concrete: D.Node.Result, for node: D.Node) {
-        entries[node] = Task { concrete }
+    func setCachedResult(_ result: D.Node.Result, for node: D.Node) {
+        entries[node] = Task { result.modified { $0.baked() } }
     }
 
     func result(for node: D.Node, in context: EvaluationContext) async -> D.Node.Result {
@@ -20,7 +20,7 @@ actor GeometryCache<D: Dimensionality> {
         if let cached = await cachedResult(for: node) {
             return cached
         }
-        let task = Task { await node.evaluate(in: context) }
+        let task = Task { await node.evaluate(in: context).modified { $0.baked() } }
         entries[node] = task
         return await task.value
     }

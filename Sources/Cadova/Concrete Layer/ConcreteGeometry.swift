@@ -7,6 +7,7 @@ public protocol ConcreteGeometry {
 
     func refine(edgeLength: Double) -> Self
     func allVertices() -> [Vector]
+    func baked() -> Self
 }
 
 extension CrossSection: ConcreteGeometry {
@@ -31,6 +32,11 @@ extension CrossSection: ConcreteGeometry {
         }
         return .init(polygons: newPoints.map { Manifold3D.Polygon(vertices: $0) }, fillRule: .nonZero)
     }
+
+    public func baked() -> Self {
+        _ = vertexCount
+        return self
+    }
 }
 
 extension Manifold: ConcreteGeometry {
@@ -38,6 +44,11 @@ extension Manifold: ConcreteGeometry {
 
     public func allVertices() -> [Vector] {
         meshGL().vertices
+    }
+
+    public func baked() -> Self {
+        _ = vertexCount
+        return self
     }
 }
 
