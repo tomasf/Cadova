@@ -105,3 +105,7 @@ internal extension Vector {
         .init { axes.contains($0) ? value : self[$0] }
     }
 }
+
+public func lerp<V: Vector>(_ a: V, _ b: V, t: Double) -> V {
+    a + (b - a) * t
+}
