@@ -109,6 +109,10 @@ extension Dictionary {
         dict[key] = value
         return dict
     }
+
+    init<S: Sequence<Key>>(keys: S, values: (Key) -> Value) {
+        self.init(keys.map { ($0, values($0)) }) { $1 }
+    }
 }
 
 extension RangeExpression {
@@ -188,4 +192,16 @@ extension Array {
         }
         preconditionFailure("Index out of range")
     }
+}
+
+func combinations<A, B, C>(_ a: [A], _ b: [B], _ c: [C]) -> [(A, B, C)] {
+    var result: [(A, B, C)] = []
+    for itemA in a {
+        for itemB in b {
+            for itemC in c {
+                result.append((itemA, itemB, itemC))
+            }
+        }
+    }
+    return result
 }

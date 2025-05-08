@@ -28,6 +28,14 @@ public extension Geometry {
         EnvironmentModifier(body: self, modification: modifier)
     }
 
+    func withEnvironment(_ modifier: @Sendable @escaping (inout EnvironmentValues) -> ()) -> D.Geometry {
+        EnvironmentModifier(body: self, modification: {
+            var e = $0
+            modifier(&e)
+            return e
+        })
+    }
+
     func withEnvironment(key: EnvironmentValues.Key, value: (any Sendable)?) -> D.Geometry {
         withEnvironment { environment in
             environment.setting(key: key, value: value)
