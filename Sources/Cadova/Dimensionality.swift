@@ -6,7 +6,7 @@ public protocol Dimensionality {
     associatedtype Concrete: Manifold3D.Geometry, ConcreteGeometry where Concrete.D == Self
 
     associatedtype Vector: Cadova.Vector where Vector.D == Self
-    associatedtype Transform: Cadova.AffineTransform where Transform.D == Self
+    associatedtype Transform: Cadova.Transform where Transform.D == Self
     associatedtype Axis: Cadova.Axis
 
     typealias Axes = Set<Axis>
@@ -27,7 +27,7 @@ public struct D2: Dimensionality {
     public typealias Concrete = CrossSection
 
     public typealias Vector = Vector2D
-    public typealias Transform = AffineTransform2D
+    public typealias Transform = Transform2D
     public typealias Axis = Axis2D
 
     private init() {}
@@ -38,7 +38,7 @@ public struct D3: Dimensionality {
     public typealias Concrete = Manifold
 
     public typealias Vector = Vector3D
-    public typealias Transform = AffineTransform3D
+    public typealias Transform = Transform3D
     public typealias Axis = Axis3D
 
     private init() {}

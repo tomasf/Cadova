@@ -44,3 +44,9 @@ extension Teardrop.Style {
     @available(*, deprecated, renamed: "flat")
     static let bridged = Self.flat
 }
+
+@available(*, deprecated, renamed: "Transform2D")
+public typealias AffineTransform2D = Transform2D
+
+@available(*, deprecated, renamed: "Transform3D")
+public typealias AffineTransform3D = Transform3D

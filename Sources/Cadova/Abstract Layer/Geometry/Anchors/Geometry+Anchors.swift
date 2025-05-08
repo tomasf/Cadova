@@ -8,7 +8,7 @@ internal extension Geometry {
                 if alignment.hasEffect {
                     alignmentTranslation = (measurements.boundingBox ?? .zero).translation(for: alignment)
                 }
-                let anchorTransform = AffineTransform3D.identity
+                let anchorTransform = Transform3D.identity
                     .concatenated(with: environment.transform.inverse)
                     .translated(alignmentTranslation.vector3D)
                     .concatenated(with: transform.inverse.transform3D)

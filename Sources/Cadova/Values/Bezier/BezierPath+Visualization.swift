@@ -8,14 +8,14 @@ extension BezierPath {
 
     public func visualize(scale: Double = 1, markerRotation: Rotation3D? = [45°, 0°, -45°]) -> any Geometry3D {
         @Sendable @GeometryBuilder3D
-        func makeMarker(at location: V, text: String, transform: AffineTransform3D) -> any Geometry3D {
+        func makeMarker(at location: V, text: String, transform: Transform3D) -> any Geometry3D {
             Sphere(radius: 0.2)
                 .colored(.black)
                 .transformed(transform)
                 .translated(location.vector3D)
         }
 
-        @Sendable func makeMarker(at location: V, curveIndex: Int, pointIndex: Int, transform: AffineTransform3D) -> any Geometry3D {
+        @Sendable func makeMarker(at location: V, curveIndex: Int, pointIndex: Int, transform: Transform3D) -> any Geometry3D {
             makeMarker(at: location, text: "c\(curveIndex + 1)p\(pointIndex + 1)", transform: transform)
         }
 
@@ -32,7 +32,7 @@ extension BezierPath {
 
         return readEnvironment { environment -> any Geometry3D in
             if let markerRotation {
-                let transform = AffineTransform3D.scaling(scale).rotated(markerRotation)
+                let transform = Transform3D.scaling(scale).rotated(markerRotation)
                 for (curveIndex, curve) in curves.enumerated() {
                     for (pointIndex, controlPoint) in curve.controlPoints.dropFirst().enumerated() {
                         makeMarker(at: controlPoint, curveIndex: curveIndex, pointIndex: pointIndex, transform: transform)

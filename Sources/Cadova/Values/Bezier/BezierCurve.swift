@@ -79,7 +79,7 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         }
     }
 
-    func transformed<T: AffineTransform>(using transform: T) -> Self where T == V.D.Transform, T.V == V {
+    func transformed<T: Transform>(using transform: T) -> Self where T == V.D.Transform, T.V == V {
         Self(controlPoints: controlPoints.map { transform.apply(to: $0) })
     }
 

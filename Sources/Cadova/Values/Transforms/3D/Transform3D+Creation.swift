@@ -1,6 +1,6 @@
 import Foundation
 
-public extension AffineTransform3D {
+public extension Transform3D {
     /// Constructs a transform from an orthonormal basis and an origin.
     init(orthonormalBasisOrigin origin: Vector3D, x: Direction3D, y: Direction3D, z: Direction3D) {
         self.init([
@@ -11,13 +11,13 @@ public extension AffineTransform3D {
         ])
     }
 
-    /// Creates a translation `AffineTransform3D` using the given x, y, and z offsets.
+    /// Creates a translation `Transform3D` using the given x, y, and z offsets.
     ///
     /// - Parameters:
     ///   - x: The x-axis translation offset.
     ///   - y: The y-axis translation offset.
     ///   - z: The z-axis translation offset.
-    static func translation(x: Double = 0, y: Double = 0, z: Double = 0) -> AffineTransform3D {
+    static func translation(x: Double = 0, y: Double = 0, z: Double = 0) -> Transform3D {
         var transform = identity
         transform[0, 3] = x
         transform[1, 3] = y
@@ -25,20 +25,20 @@ public extension AffineTransform3D {
         return transform
     }
 
-    /// Creates a translation `AffineTransform3D` using the given 3D vector.
+    /// Creates a translation `Transform3D` using the given 3D vector.
     ///
     /// - Parameter v: The 3D vector representing the translation along each axis.
-    static func translation(_ v: Vector3D) -> AffineTransform3D {
+    static func translation(_ v: Vector3D) -> Transform3D {
         translation(x: v.x, y: v.y, z: v.z)
     }
 
-    /// Creates a scaling `AffineTransform3D` using the given x, y, and z scaling factors.
+    /// Creates a scaling `Transform3D` using the given x, y, and z scaling factors.
     ///
     /// - Parameters:
     ///   - x: The scaling factor along the x-axis.
     ///   - y: The scaling factor along the y-axis.
     ///   - z: The scaling factor along the z-axis.
-    static func scaling(x: Double = 1, y: Double = 1, z: Double = 1) -> AffineTransform3D {
+    static func scaling(x: Double = 1, y: Double = 1, z: Double = 1) -> Transform3D {
         var transform = identity
         transform[0, 0] = x
         transform[1, 1] = y
@@ -46,27 +46,27 @@ public extension AffineTransform3D {
         return transform
     }
 
-    /// Creates a scaling `AffineTransform3D` using the given 3D vector.
+    /// Creates a scaling `Transform3D` using the given 3D vector.
     ///
     /// - Parameter v: The 3D vector representing the scaling along each axis.
-    static func scaling(_ v: Vector3D) -> AffineTransform3D {
+    static func scaling(_ v: Vector3D) -> Transform3D {
         scaling(x: v.x, y: v.y, z: v.z)
     }
 
-    /// Creates a `AffineTransform3D` for scaling all three axes uniformly
+    /// Creates a `Transform3D` for scaling all three axes uniformly
     ///
     /// - Parameter s: The scaling factor for all axes
-    static func scaling(_ s: Double) -> AffineTransform3D {
+    static func scaling(_ s: Double) -> Transform3D {
         scaling(x: s, y: s, z: s)
     }
 
-    /// Creates a rotation `AffineTransform3D` using the given angles for rotation along the x, y, and z axes.
+    /// Creates a rotation `Transform3D` using the given angles for rotation along the x, y, and z axes.
     ///
     /// - Parameters:
     ///   - x: The rotation angle around the x-axis.
     ///   - y: The rotation angle around the y-axis.
     ///   - z: The rotation angle around the z-axis.
-    static func rotation(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> AffineTransform3D {
+    static func rotation(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> Transform3D {
         var transform = identity
         transform[0, 0] = cos(y) * cos(z)
         transform[0, 1] = sin(x) * sin(y) * cos(z) - cos(x) * sin(z)
@@ -80,11 +80,11 @@ public extension AffineTransform3D {
         return transform
     }
 
-    /// Creates a rotation `AffineTransform3D` using a Rotation3D structure
+    /// Creates a rotation `Transform3D` using a Rotation3D structure
     ///
     /// - Parameter r: The `Rotation3D` describing the desired 3D rotation.
-    /// - Returns: An `AffineTransform3D` representing the corresponding rotation.
-    static func rotation(_ r: Rotation3D) -> AffineTransform3D {
+    /// - Returns: An `Transform3D` representing the corresponding rotation.
+    static func rotation(_ r: Rotation3D) -> Transform3D {
         let x = r.qx, y = r.qy, z = r.qz, w = r.qw
 
         let xx = x * x
@@ -110,28 +110,28 @@ public extension AffineTransform3D {
         return transform
     }
 
-    /// Creates a rotation `AffineTransform3D` that aligns one vector to another in 3D space.
+    /// Creates a rotation `Transform3D` that aligns one vector to another in 3D space.
     ///
     /// Calculate the rotation needed to align a vector `from` to another vector `to`, both in 3D space. The method ensures that the rotation minimizes the angular distance between the `from` and `to` vectors, effectively rotating around the shortest path between them.
     ///
     /// - Parameters:
     ///   - from: A `Vector3D` representing the starting orientation of the vector.
     ///   - to: A `Vector3D` representing the desired orientation of the vector.
-    /// - Returns: An `AffineTransform3D` representing the rotation from the `from` vector to the `to` vector.
+    /// - Returns: An `Transform3D` representing the rotation from the `from` vector to the `to` vector.
 
-    static func rotation(from: Direction3D, to: Direction3D) -> AffineTransform3D {
+    static func rotation(from: Direction3D, to: Direction3D) -> Transform3D {
         let axis = Direction3D(from.unitVector × to.unitVector)
         let angle: Angle = acos(from.unitVector ⋅ to.unitVector)
         return .rotation(angle: angle, around: axis)
     }
 
-    /// Creates a rotation `AffineTransform3D` around an arbitrary axis.
+    /// Creates a rotation `Transform3D` around an arbitrary axis.
     ///
     /// - Parameters:
     ///   - angle: The angle of rotation.
     ///   - axis: The axis of rotation, represented as a `Direction`.
-    /// - Returns: An `AffineTransform3D` representing the rotation around the given axis.
-    static func rotation(angle: Angle, around axis: Direction3D) -> AffineTransform3D {
+    /// - Returns: An `Transform3D` representing the rotation around the given axis.
+    static func rotation(angle: Angle, around axis: Direction3D) -> Transform3D {
         let x = axis.unitVector.x
         let y = axis.unitVector.y
         let z = axis.unitVector.z
@@ -156,26 +156,26 @@ public extension AffineTransform3D {
         return transform
     }
 
-    /// Creates a shearing `AffineTransform3D` that skews along one axis with respect to another axis.
+    /// Creates a shearing `Transform3D` that skews along one axis with respect to another axis.
     ///
     /// - Parameters:
     ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - factor: The shearing factor.
-    static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> AffineTransform3D {
+    static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, factor: Double) -> Transform3D {
         precondition(axis != otherAxis, "Shearing requires two distinct axes")
-        var t = AffineTransform3D.identity
+        var t = Transform3D.identity
         t[axis.index, otherAxis.index] = factor
         return t
     }
 
-    /// Creates a shearing `AffineTransform3D` that skews along one axis with respect to another axis at the given angle.
+    /// Creates a shearing `Transform3D` that skews along one axis with respect to another axis at the given angle.
     ///
     /// - Parameters:
     ///   - axis: The axis to shear.
     ///   - otherAxis: The axis to shear with respect to.
     ///   - angle: The angle of shearing.
-    static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> AffineTransform3D {
+    static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> Transform3D {
         assert(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
         let factor = sin(angle) / sin(90° - angle)
         return shearing(axis, along: otherAxis, factor: factor)

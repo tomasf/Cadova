@@ -27,7 +27,7 @@ public extension Plane {
 }
 
 public extension Plane {
-    private func rotated(using transform: AffineTransform3D) -> Plane {
+    private func rotated(using transform: Transform3D) -> Plane {
         Plane(
             offset: transform.apply(to: offset),
             normal: .init(transform.apply(to: normal.unitVector).normalized)

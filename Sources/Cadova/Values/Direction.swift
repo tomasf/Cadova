@@ -65,7 +65,7 @@ public extension Direction <D3> {
     ///   - angle: The angle to rotate.
     ///   - other: The direction around which to rotate.
     func rotated(angle: Angle, around other: Direction3D) -> Direction3D {
-        .init(AffineTransform3D.rotation(angle: angle, around: other).apply(to: unitVector))
+        .init(Transform3D.rotation(angle: angle, around: other).apply(to: unitVector))
     }
 
     /// A direction pointing along the positive X axis.

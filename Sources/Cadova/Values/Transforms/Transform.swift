@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol AffineTransform: Sendable, Hashable, Codable {
+public protocol Transform: Sendable, Hashable, Codable {
     associatedtype D: Dimensionality
     typealias V = D.Vector
     associatedtype Rotation
@@ -27,11 +27,11 @@ public protocol AffineTransform: Sendable, Hashable, Codable {
     func rotated(_ rotation: Rotation) -> Self
 
     static var size: (rows: Int, columns: Int) { get }
-    init(_ transform3D: AffineTransform3D)
-    var transform3D: AffineTransform3D { get }
+    init(_ transform3D: Transform3D)
+    var transform3D: Transform3D { get }
 }
 
-public extension AffineTransform {
+public extension Transform {
     /// A 2D array representing the values of the affine transformation.
     var values: [[Double]] {
         (0..<Self.size.rows).map { row in
@@ -47,28 +47,28 @@ public extension AffineTransform {
     ///   - from: The starting transform.
     ///   - to: The ending transform.
     ///   - factor: The interpolation factor between 0.0 and 1.0, where 0.0 results in the `from` transform and 1.0 results in the `to` transform.
-    /// - Returns: A new `AffineTransform` representing the interpolated transformation.
+    /// - Returns: A new `Transform` representing the interpolated transformation.
     static func linearInterpolation(_ from: Self, _ to: Self, factor: Double) -> Self {
         from.mapValues { row, column, value in
             value + (to[row, column] - value) * factor
         }
     }
 
-    /// Creates a new `AffineTransform` by concatenating a translation with this transformation using the given vector.
+    /// Creates a new `Transform` by concatenating a translation with this transformation using the given vector.
     ///
     /// - Parameter v: The vector representing the translation along each axis.
     func translated(_ v: V) -> Self {
         concatenated(with: .translation(v))
     }
 
-    /// Creates a new `AffineTransform` by concatenating a scaling transformation with this transformation using the given vector.
+    /// Creates a new `Transform` by concatenating a scaling transformation with this transformation using the given vector.
     ///
     /// - Parameter v: The vector representing the scaling along each axis.
     func scaled(_ v: V) -> Self {
         concatenated(with: .scaling(v))
     }
 
-    /// Creates a new `AffineTransform` by concatenating a rotation transformation with this transformation using the given rotation.
+    /// Creates a new `Transform` by concatenating a rotation transformation with this transformation using the given rotation.
     ///
     /// - Parameter r: The rotation to apply
     func rotated(_ r: Rotation) -> Self {
@@ -76,7 +76,7 @@ public extension AffineTransform {
     }
 }
 
-public extension AffineTransform {
+public extension Transform {
     func hash(into hasher: inout Hasher) {
         for row in (0..<Self.size.rows) {
             for column in (0..<Self.size.columns) {

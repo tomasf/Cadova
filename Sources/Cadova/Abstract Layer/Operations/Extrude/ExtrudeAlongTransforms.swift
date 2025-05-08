@@ -9,7 +9,7 @@ fileprivate struct Vertex: Hashable {
 
 internal extension Mesh {
     // Sweep the polygons along the path of transforms
-    init(extruding polygons: [ManifoldPolygon], along transforms: [AffineTransform3D]) {
+    init(extruding polygons: [ManifoldPolygon], along transforms: [Transform3D]) {
         let polygonPoints = polygons.map(\.vertices)
         let faceTriangles = Manifold3D.Polygon.triangulate(polygons, epsilon: 1e-6)
 
@@ -67,7 +67,7 @@ public extension Geometry2D {
     /// - Returns: A 3D geometry resulting from extruding the shape along the specified path.
     ///
     /// - Note: The `path` array must contain at least two transforms, and `steps` must be at least 1.
-    func extruded(along path: [AffineTransform3D], steps: Int = 1) -> any Geometry3D {
+    func extruded(along path: [Transform3D], steps: Int = 1) -> any Geometry3D {
         let expandedPath = [path[0]] + path.paired().flatMap { t1, t2 in
             (1...steps).map { .linearInterpolation(t1, t2, factor: 1.0 / Double(steps) * Double($0)) }
         }

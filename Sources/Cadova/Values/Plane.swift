@@ -108,7 +108,7 @@ public extension Plane {
     }
 
     /// Returns a transformation that aligns the plane with the XY plane.
-    var transform: AffineTransform3D {
+    var transform: Transform3D {
         .rotation(from: .positiveZ, to: normal).translated(offset)
     }
 

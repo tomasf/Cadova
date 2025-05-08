@@ -5,7 +5,7 @@ internal extension EnvironmentValues {
 
     struct NaturalUpDirectionData {
         let direction: Direction3D
-        let transform: AffineTransform3D
+        let transform: Transform3D
     }
 
     var naturalUpDirectionData: NaturalUpDirectionData? {
