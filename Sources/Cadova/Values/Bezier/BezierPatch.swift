@@ -15,10 +15,10 @@ import Foundation
 ///
 /// ```swift
 /// BezierPatch(controlPoints: [
-///     [ [0, 0, 0],   [1, 0, 0.8],   [2, 0, -0.2],  [3, 0, 0] ],
-///     [ [0, 1, 0.5], [1, 1, 1.5],   [2, 1, 0.3],   [3, 1, -0.4] ],
-///     [ [0, 2, 0.4], [1, 2, 1.2],   [2, 2, 1],     [3, 2, 0.2] ],
-///     [ [0, 3, 0],   [1, 3, 0.4],   [2, 3, 0.1],   [3, 3, 1.2] ]
+///     [[0, 3, 0],   [1, 3, 0.4],   [2, 3, 0.1],   [3.5, 3, 1.2]],
+///     [[0, 2, 0.4], [1, 2, 1.2],   [2, 2, 1],     [3, 2, 0.2]  ],
+///     [[0, 1, 0.5], [1, 1, 1.5],   [2, 1, 0.3],   [3, 1, -0.4] ],
+///     [[0, 0, 0],   [1, 0, 0.8],   [2, 0, -0.2],  [3, 0, 0]    ],
 /// ])
 /// .extruded(to: Plane(z: -0.5))
 /// .aligned(at: .bottom)
@@ -34,7 +34,7 @@ import Foundation
 ///
 /// - SeeAlso: `BezierPatch.extruded(to:)`
 ///
-public struct BezierPatch: Sendable {
+public struct BezierPatch: Sendable, Hashable, Codable {
     let controlPoints: [[Vector3D]] // rows × columns
 
     public init(controlPoints: [[Vector3D]]) {
@@ -46,14 +46,14 @@ public struct BezierPatch: Sendable {
     }
 
     /// Evaluate the point on the surface at parameters (u, v), both in 0...1 range
-    internal func point(at u: Double, v: Double) -> Vector3D {
+    internal func point(at uv: Vector2D) -> Vector3D {
         // V direction (columns)
         let intermediatePoints: [Vector3D] = controlPoints.map { row in
-            BezierCurve(controlPoints: row).point(at: v)
+            BezierCurve(controlPoints: row).point(at: uv.y)
         }
 
         // U direction (rows)
-        return BezierCurve(controlPoints: intermediatePoints).point(at: u)
+        return BezierCurve(controlPoints: intermediatePoints).point(at: uv.x)
     }
 
     /// Generates a grid of sampled points across the surface
@@ -63,13 +63,13 @@ public struct BezierPatch: Sendable {
 
         return uSteps.map { u in
             vSteps.map { v in
-                point(at: u, v: v)
+                point(at: Vector2D(u, v))
             }
         }
     }
 
     /// Transform all control points using an affine transform
-    func transformed(using transform: Transform3D) -> Self {
+    public func transformed(using transform: Transform3D) -> Self {
         let transformedPoints = controlPoints.map { row in
             row.map { transform.apply(to: $0) }
         }
@@ -100,7 +100,7 @@ public extension BezierPatch {
         let vSteps = (0...vCount).map { Double($0) / Double(vCount) }
         return uSteps.map { u in
             vSteps.map { v in
-                point(at: u, v: v)
+                point(at: Vector2D(u, v))
             }
         }
     }
@@ -114,7 +114,7 @@ public extension BezierPatch {
             // Sample current grid
             let pointsGrid = uSteps.map { u in
                 vSteps.map { v in
-                    point(at: u, v: v)
+                    point(at: Vector2D(u, v))
                 }
             }
 
@@ -160,7 +160,7 @@ public extension BezierPatch {
 
         return uSteps.map { u in
             vSteps.map { v in
-                point(at: u, v: v)
+                point(at: Vector2D(u, v))
             }
         }
     }
