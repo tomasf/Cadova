@@ -27,6 +27,31 @@ public extension Geometry {
     ) -> Output.Geometry {
         Measure(target: self, builder: builder)
     }
+
+    /// Measures the geometry and provides a bounding box to a closure, if available.
+    ///
+    /// This is a convenience method for cases where you only need the bounding box
+    /// of a geometry and want to avoid dealing with optionals.
+    ///
+    /// If the geometry has a bounding box (i.e., it's not empty), it is passed to the closure
+    /// along with the geometry itself. If the geometry is empty and has no bounds,
+    /// the method just produces an empty geometry.
+    ///
+    /// - Parameter builder: A closure that receives the geometry and its bounding box,
+    ///   and returns a new geometry.
+    /// - Returns: A modified geometry based on the bounding box, or an empty geometry if none exists.
+    ///
+    func measuringBounds<Output: Dimensionality>(
+        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.BoundingBox) -> Output.Geometry
+    ) -> Output.Geometry {
+        measuring { geometry, measurements in
+            if let box = measurements.boundingBox {
+                builder(geometry, box)
+            } else {
+                Empty()
+            }
+        }
+    }
 }
 
 internal extension Geometry {
