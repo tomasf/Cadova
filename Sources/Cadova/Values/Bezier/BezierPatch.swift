@@ -69,7 +69,7 @@ public struct BezierPatch: Sendable {
     }
 
     /// Transform all control points using an affine transform
-    func transformed(using transform: AffineTransform3D) -> Self {
+    func transformed(using transform: Transform3D) -> Self {
         let transformedPoints = controlPoints.map { row in
             row.map { transform.apply(to: $0) }
         }

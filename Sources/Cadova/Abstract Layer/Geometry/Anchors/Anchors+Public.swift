@@ -14,7 +14,7 @@ public extension Geometry2D {
     ///   - anchor: The `Anchor` to define on this geometry.
     ///   - transform: A transform applied relative to the current transformation state
     /// - Returns: A modified version of the geometry with the defined anchor.
-    func definingAnchor(_ anchor: Anchor, transform: AffineTransform2D) -> any Geometry2D {
+    func definingAnchor(_ anchor: Anchor, transform: Transform2D) -> any Geometry2D {
         definingAnchor(anchor, alignment: .none, transform: transform)
     }
 
@@ -47,7 +47,7 @@ public extension Geometry2D {
         readEnvironment { environment in
             readingResult(AnchorList.self) { body, anchorList in
                 if let transform = anchorList.anchors[anchor] {
-                    self.transformed(.init(AffineTransform3D.identity
+                    self.transformed(.init(Transform3D.identity
                         .concatenated(with: environment.transform)
                         .concatenated(with: transform)
                     ))
@@ -68,7 +68,7 @@ public extension Geometry3D {
     ///   - anchor: The `Anchor` to define on this geometry.
     ///   - transform: A transform applied relative to the current transformation state
     /// - Returns: The geometry with a defined anchor.
-    func definingAnchor(_ anchor: Anchor, transform: AffineTransform3D) -> any Geometry3D {
+    func definingAnchor(_ anchor: Anchor, transform: Transform3D) -> any Geometry3D {
         definingAnchor(anchor, alignment: .none, transform: transform)
     }
 
@@ -110,7 +110,7 @@ public extension Geometry3D {
         readEnvironment { environment in
             readingResult(AnchorList.self) { body, anchorList in
                 if let transform = anchorList.anchors[anchor] {
-                    self.transformed(AffineTransform3D.identity
+                    self.transformed(Transform3D.identity
                         .concatenated(with: environment.transform)
                         .concatenated(with: transform)
                     )

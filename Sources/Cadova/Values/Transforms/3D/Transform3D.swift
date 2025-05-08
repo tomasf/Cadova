@@ -3,8 +3,8 @@ import Foundation
 import simd
 #endif
 
-/// An `AffineTransform3D` represents a 3D affine transformation using a 4x4 matrix.
-public struct AffineTransform3D: AffineTransform {
+/// An `Transform3D` represents a 3D affine transformation using a 4x4 matrix.
+public struct Transform3D: Transform {
     public typealias D = D3
     private var matrix: Matrix4x4
 
@@ -14,13 +14,13 @@ public struct AffineTransform3D: AffineTransform {
         self.matrix = matrix
     }
 
-    /// Creates an `AffineTransform3D` with the specified 4x4 matrix.
+    /// Creates an `Transform3D` with the specified 4x4 matrix.
     ///
     /// - Parameter values: A 2D array of `Double` with 4x4 elements in row-major order.
     public init(_ values: [[Double]]) {
         precondition(
             values.count == 4 && values.allSatisfy { $0.count == 4},
-            "AffineTransform3D requires 16 (4 x 4) elements"
+            "Transform3D requires 16 (4 x 4) elements"
         )
         self.init(Matrix4x4(rows: values.map(Matrix4x4.Row.init)))
     }
@@ -43,30 +43,30 @@ public struct AffineTransform3D: AffineTransform {
         }
     }
 
-    /// The identity `AffineTransform3D`, representing no transformation.
-    public static var identity: AffineTransform3D {
-        AffineTransform3D(Matrix4x4.identity)
+    /// The identity `Transform3D`, representing no transformation.
+    public static var identity: Transform3D {
+        Transform3D(Matrix4x4.identity)
     }
 
-    /// Concatenates this `AffineTransform3D` with another, creating a new combined transformation.
+    /// Concatenates this `Transform3D` with another, creating a new combined transformation.
     ///
-    /// - Parameter other: The `AffineTransform3D` to concatenate with.
-    public func concatenated(with other: AffineTransform3D) -> AffineTransform3D {
-        AffineTransform3D(other.matrix * matrix)
+    /// - Parameter other: The `Transform3D` to concatenate with.
+    public func concatenated(with other: Transform3D) -> Transform3D {
+        Transform3D(other.matrix * matrix)
     }
 
     /// Computes the inverse of the affine transformation, if possible.
     ///
-    /// - Returns: The inverse `AffineTransform3D`, which, when concatenated with the original transform, results in the identity transform. If the matrix is not invertible, the behavior is undefined.
-    public var inverse: AffineTransform3D {
+    /// - Returns: The inverse `Transform3D`, which, when concatenated with the original transform, results in the identity transform. If the matrix is not invertible, the behavior is undefined.
+    public var inverse: Transform3D {
         .init(matrix.inverse)
     }
 
     /// Applies a custom transformation function to each element of the matrix.
     ///
     /// - Parameter function: A transformation function that takes row and column indices, along with the current value, and returns a new value.
-    /// - Returns: A new `AffineTransform3D` with the function applied to each element of the matrix.
-    public func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> AffineTransform3D {
+    /// - Returns: A new `Transform3D` with the function applied to each element of the matrix.
+    public func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> Transform3D {
         .init(
             (0..<4).map { row in
                 (0..<4).map { column in
@@ -77,12 +77,12 @@ public struct AffineTransform3D: AffineTransform {
     }
 }
 
-public extension AffineTransform3D {
-    /// Creates a new `AffineTransform3D` from a 2D affine transformation.
+public extension Transform3D {
+    /// Creates a new `Transform3D` from a 2D affine transformation.
     ///
     /// - Parameter transform2d: The 2D affine transformation to convert.
-    init(_ transform2d: AffineTransform2D) {
-        var transform = AffineTransform3D.identity
+    init(_ transform2d: Transform2D) {
+        var transform = Transform3D.identity
 
         transform[0, 0] = transform2d[0, 0]
         transform[0, 1] = transform2d[0, 1]
@@ -113,13 +113,13 @@ public extension AffineTransform3D {
         apply(to: .zero)
     }
 
-    init(_ transform3d: AffineTransform3D) {
+    init(_ transform3d: Transform3D) {
         self = transform3d
     }
 }
 
-extension AffineTransform3D {
-    public var transform3D: AffineTransform3D {
+extension Transform3D {
+    public var transform3D: Transform3D {
         self
     }
 }

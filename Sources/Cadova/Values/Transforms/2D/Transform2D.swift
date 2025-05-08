@@ -3,8 +3,8 @@ import Foundation
 import simd
 #endif
 
-/// An `AffineTransform2D` represents a 2D affine transformation using a 3x3 matrix.
-public struct AffineTransform2D: AffineTransform {
+/// An `Transform2D` represents a 2D affine transformation using a 3x3 matrix.
+public struct Transform2D: Transform {
     public typealias D = D2
     private var matrix: Matrix3x3
 
@@ -14,13 +14,13 @@ public struct AffineTransform2D: AffineTransform {
         self.matrix = matrix
     }
 
-    /// Creates an `AffineTransform2D` with the specified 3x3 matrix.
+    /// Creates an `Transform2D` with the specified 3x3 matrix.
     ///
     /// - Parameter values: A 2D array of `Double` with 3x3 elements in row-major order.
     public init(_ values: [[Double]]) {
         precondition(
             values.count == 3 && values.allSatisfy { $0.count == 3},
-            "AffineTransform2D requires 9 (3 x 3) elements"
+            "Transform2D requires 9 (3 x 3) elements"
         )
         self.matrix = .init(rows: values.map(Matrix3x3.Row.init))
     }
@@ -43,32 +43,32 @@ public struct AffineTransform2D: AffineTransform {
         }
     }
 
-    /// The identity `AffineTransform2D`, representing no transformation.
-    public static var identity: AffineTransform2D {
-        AffineTransform2D(Matrix3x3.identity)
+    /// The identity `Transform2D`, representing no transformation.
+    public static var identity: Transform2D {
+        Transform2D(Matrix3x3.identity)
     }
 
-    /// Concatenates this `AffineTransform2D` with another, creating a new combined 2D transformation.
+    /// Concatenates this `Transform2D` with another, creating a new combined 2D transformation.
     ///
-    /// - Parameter other: The `AffineTransform2D` to concatenate with.
-    public func concatenated(with other: AffineTransform2D) -> AffineTransform2D {
-        AffineTransform2D(other.matrix * matrix)
+    /// - Parameter other: The `Transform2D` to concatenate with.
+    public func concatenated(with other: Transform2D) -> Transform2D {
+        Transform2D(other.matrix * matrix)
     }
 
     /// Returns the inverse of this affine transform, if it exists.
     ///
     /// The inverse transform reverses the effects of applying this transform. If the transform is non-invertible, the result is undefined.
-    public var inverse: AffineTransform2D {
+    public var inverse: Transform2D {
         .init(matrix.inverse)
     }
 
-    /// Applies a custom function to each element of the matrix, creating a new `AffineTransform2D`.
+    /// Applies a custom function to each element of the matrix, creating a new `Transform2D`.
     ///
     /// This method allows for arbitrary transformations of the affine transform's underlying matrix by applying a provided function to each element.
     ///
     /// - Parameter function: A closure that takes a row index, a column index, and the current value at that position, then returns a new value to be assigned to that position.
-    /// - Returns: A new `AffineTransform2D` with the matrix modified by the provided function.
-    public func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> AffineTransform2D {
+    /// - Returns: A new `Transform2D` with the matrix modified by the provided function.
+    public func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> Transform2D {
         .init(
             (0..<3).map { row in
                 (0..<3).map { column in
@@ -79,7 +79,7 @@ public struct AffineTransform2D: AffineTransform {
     }
 }
 
-public extension AffineTransform2D {
+public extension Transform2D {
     /// Applies the affine transformation to a 2D point, returning the transformed point.
     ///
     /// - Parameter point: The 2D point to transform.
@@ -98,10 +98,10 @@ public extension AffineTransform2D {
         apply(to: .zero)
     }
 
-    /// Creates a new `AffineTransform2D` by converting a 3D affine transformation to 2D, discarding Z components.
+    /// Creates a new `Transform2D` by converting a 3D affine transformation to 2D, discarding Z components.
     ///
     /// - Parameter transform3d: The 3D affine transformation to convert.
-    init(_ transform3d: AffineTransform3D) {
+    init(_ transform3d: Transform3D) {
         self = .identity
 
         self[0, 0] = transform3d[0, 0]
@@ -114,8 +114,8 @@ public extension AffineTransform2D {
     }
 }
 
-extension AffineTransform2D {
-    public var transform3D: AffineTransform3D {
+extension Transform2D {
+    public var transform3D: Transform3D {
         .init(self)
     }
 }

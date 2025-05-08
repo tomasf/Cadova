@@ -60,8 +60,8 @@ public typealias MeshGL = Manifold3D.MeshGL<Vector3D>
 extension Vector2D: Manifold3D.Vector2 {}
 extension Vector3D: Manifold3D.Vector3 {}
 
-extension AffineTransform2D: Manifold3D.Matrix2x3 {}
-extension AffineTransform3D: Manifold3D.Matrix3x4 {}
+extension Transform2D: Manifold3D.Matrix2x3 {}
+extension Transform3D: Manifold3D.Matrix3x4 {}
 
 extension Vector2D {
     public init(_ manifoldVector: any Vector2) {

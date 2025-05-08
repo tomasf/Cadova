@@ -66,7 +66,7 @@ extension Sweep {
             let plane = Plane(offset: point, normal: Direction3D(zAxis))
 
             if let previousSample {
-                let rotation = AffineTransform3D.rotation(from: Direction3D(previousSample.zAxis), to: Direction3D(zAxis))
+                let rotation = Transform3D.rotation(from: Direction3D(previousSample.zAxis), to: Direction3D(zAxis))
                 xAxis = rotation.apply(to: previousSample.xAxis).normalized
                 yAxis = rotation.apply(to: previousSample.yAxis).normalized
             } else {
@@ -118,10 +118,10 @@ extension Sweep {
             ])
         }
 
-        var transform: AffineTransform3D {
+        var transform: Transform3D {
             let alignedX = Direction3D(xAxis).rotated(angle: angle!, around: Direction3D(zAxis))
             let alignedY = Direction3D(zAxis × alignedX.unitVector)
-            return AffineTransform3D(orthonormalBasisOrigin: point, x: alignedX, y: alignedY, z: Direction3D(zAxis))
+            return Transform3D(orthonormalBasisOrigin: point, x: alignedX, y: alignedY, z: Direction3D(zAxis))
         }
     }
 }

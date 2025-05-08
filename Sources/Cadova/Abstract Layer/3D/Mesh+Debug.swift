@@ -41,7 +41,7 @@ public extension Mesh {
                     .translated(z: thickness)
             }
 
-        let rotation = AffineTransform3D([
+        let rotation = Transform3D([
             [u.x, v.x, normal.x, 0],
             [u.y, v.y, normal.y, 0],
             [u.z, v.z, normal.z, 0],

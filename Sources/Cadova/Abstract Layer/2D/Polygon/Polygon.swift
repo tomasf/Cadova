@@ -59,9 +59,9 @@ public extension Polygon {
     }
 
     /// Transforms the polygon using an affine transformation.
-    /// - Parameter transform: An `AffineTransform2D` to apply to the polygon.
+    /// - Parameter transform: An `Transform2D` to apply to the polygon.
     /// - Returns: A new `Polygon` instance with transformed vertices.
-    func transformed(_ transform: AffineTransform2D) -> Polygon {
+    func transformed(_ transform: Transform2D) -> Polygon {
         applying { transform.apply(to: $0) }
     }
 

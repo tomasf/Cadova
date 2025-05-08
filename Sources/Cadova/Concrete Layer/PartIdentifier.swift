@@ -52,7 +52,7 @@ internal struct PartCatalog: ResultElement {
         })
     }
 
-    func applyingTransform(_ transform: AffineTransform3D) -> Self {
+    func applyingTransform(_ transform: Transform3D) -> Self {
         modifyingNodes { .transform($0, transform: transform) }
     }
 }
