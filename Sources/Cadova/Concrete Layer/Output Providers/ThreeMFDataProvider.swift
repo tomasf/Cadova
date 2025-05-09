@@ -91,7 +91,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             uniqueIdentifiers.insert(uniqueID)
 
             objects.append(object)
-            items.append(.init(objectID: object.id, partNumber: uniqueID, printable: part.id.type == .solid))
+            items.append(.init(objectID: object.id, partNumber: uniqueID, printable: part.id.type == .solid ? nil : false))
             objectCount += 1
         }
 
