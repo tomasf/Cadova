@@ -28,7 +28,7 @@ let package = Package(
         .testTarget(
             name: "Tests",
             dependencies: ["Cadova"],
-            resources: [.copy("golden")],
+            resources: [.copy("golden"), .copy("resources")],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         )
     ],

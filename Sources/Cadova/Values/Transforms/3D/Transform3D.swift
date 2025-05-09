@@ -19,7 +19,7 @@ public struct Transform3D: Transform {
     /// - Parameter values: A 2D array of `Double` with 4x4 elements in row-major order.
     public init(_ values: [[Double]]) {
         precondition(
-            values.count == 4 && values.allSatisfy { $0.count == 4},
+            values.count == 4 && values.allSatisfy { $0.count == 4 },
             "Transform3D requires 16 (4 x 4) elements"
         )
         self.init(Matrix4x4(rows: values.map(Matrix4x4.Row.init)))

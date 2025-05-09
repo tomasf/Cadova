@@ -18,6 +18,16 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey, ID: Dimensionality>
     let geometry: (any Geometry<ID>)?
     let generator: @Sendable () -> D.Geometry
 
+    init(key: Key, geometry: ID.Geometry?, generator: @Sendable @escaping () -> D.Geometry) {
+        self.key = key
+        self.geometry = geometry
+        self.generator = generator
+    }
+
+    init(operationName: String, parameters: any Hashable & Sendable & Codable..., generator: @Sendable @escaping () -> D.Geometry) where Key == NamedCacheKey, ID == D3 {
+        self.init(key: NamedCacheKey(operationName: operationName, parameters: parameters), geometry: nil, generator: generator)
+    }
+
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
         let bakedKey: any CacheKey
         if let geometry {
