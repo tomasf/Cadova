@@ -1,5 +1,5 @@
 {
-  "originHash" : "bf638ef2e4b61ec28de67b1b6c49fd552d1ebfa9a5e422208cdf434442b2e04b",
+  "originHash" : "58ab7cdb058e44f41039a5e7e1e75e665d8169cab3e87aeb4499f0e06aea4b0a",
   "pins" : [
     {
       "identity" : "manifold-swift",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/tomasf/manifold-swift.git",
       "state" : {
         "branch" : "dev",
-        "revision" : "4286c463572ff98361a907d20cd46e0f9b712f6f"
+        "revision" : "3436f676e11f62e6adbdc2b376a4e97c2ca4b217"
       }
     },
     {
