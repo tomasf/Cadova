@@ -4,7 +4,7 @@ import Foundation
 
 extension URL {
     init(goldenFileNamed name: String, extension fileExtension: String) throws {
-        guard let url = Bundle.module.url(forResource: name, withExtension: fileExtension,subdirectory: "golden") else {
+        guard let url = Bundle.module.url(forResource: name, withExtension: fileExtension, subdirectory: "golden") else {
             fatalError("Golden file \(name).\(fileExtension) not found")
         }
         self = url
