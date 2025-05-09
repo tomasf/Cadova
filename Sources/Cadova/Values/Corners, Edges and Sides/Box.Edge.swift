@@ -11,6 +11,7 @@ public extension Box {
         internal let y: LinearDirection
         internal let z: LinearDirection
 
+        // The component that corresponds to the axis is unused
         internal init(axis: Axis3D, x: LinearDirection = .min, y: LinearDirection = .min, z: LinearDirection = .min) {
             self.axis = axis
             self.x = axis == .x ? .min : x
@@ -83,6 +84,21 @@ public extension Box.Edge {
     static func alongZ(xSide: LinearDirection, ySide: LinearDirection) -> Self {
         .init(axis: .z, x: xSide, y: ySide)
     }
+
+    static let bottomLeft = Self.alongY(xSide: .min, zSide: .min)
+    static let bottomRight = Self.alongY(xSide: .max, zSide: .min)
+    static let bottomFront = Self.alongX(ySide: .min, zSide: .min)
+    static let bottomBack = Self.alongX(ySide: .max, zSide: .min)
+
+    static let topLeft = Self.alongY(xSide: .min, zSide: .max)
+    static let topRight = Self.alongY(xSide: .max, zSide: .max)
+    static let topFront = Self.alongX(ySide: .min, zSide: .max)
+    static let topBack = Self.alongX(ySide: .max, zSide: .max)
+
+    static let verticalFrontLeft = Self.alongZ(xSide: .min, ySide: .min)
+    static let verticalFrontRight = Self.alongZ(xSide: .max, ySide: .min)
+    static let verticalBackLeft = Self.alongZ(xSide: .min, ySide: .max)
+    static let verticalBackRight = Self.alongZ(xSide: .max, ySide: .max)
 }
 
 internal extension Box.Edges {
