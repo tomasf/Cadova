@@ -32,14 +32,6 @@ public extension Collection {
     }
 }
 
-public extension Collection where Element: Sendable {
-    func mapUnion<D: Dimensionality>(
-        @GeometryBuilder<D> _ transform: @Sendable @escaping (Element) async -> D.Geometry
-    ) async -> D.Geometry {
-        Union(children: await asyncMap(transform))
-    }
-}
-
 public extension Sequence {
     /// Transforms each element of the sequence into geometry and returns the intersection of all resulting geometries.
     ///
