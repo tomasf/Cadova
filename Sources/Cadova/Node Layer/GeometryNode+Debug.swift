@@ -68,6 +68,10 @@ extension GeometryNode.PrimitiveShape2D {
             String(format: "polygon(fillRule: %@) { %@ }", String(describing: fillRule), points.map {
                 String(format: "[%g, %g]", $0.x, $0.y)
             }.joined(separator: ", "))
+        case .convexHull(let points):
+            String(format: "hull { %@ }", points.map {
+                String(format: "[%g, %g]", $0.x, $0.y)
+            }.joined(separator: ", "))
         }
     }
 }
@@ -85,7 +89,7 @@ extension GeometryNode.PrimitiveShape3D {
             "mesh(...)"
         case .convexHull(let points):
             String(format: "hull { %@ }", points.map {
-                String(format: "[%g, %g]", $0.x, $0.y)
+                String(format: "[%g, %g, %g]", $0.x, $0.y, $0.z)
             }.joined(separator: ", "))
         }
     }

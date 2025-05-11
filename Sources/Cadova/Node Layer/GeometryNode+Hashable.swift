@@ -135,7 +135,7 @@ extension GeometryNode.Extrusion {
 
 extension GeometryNode.PrimitiveShape2D {
     private enum Kind: String {
-        case rectangle, circle, polygon
+        case rectangle, circle, polygon, convexHull
     }
 
     func hash(into hasher: inout Hasher) {
@@ -151,6 +151,9 @@ extension GeometryNode.PrimitiveShape2D {
             hasher.combine(Kind.polygon)
             hasher.combine(points)
             hasher.combine(fillRule)
+        case .convexHull(let points):
+            hasher.combine(Kind.convexHull)
+            hasher.combine(points)
         }
     }
 
@@ -159,8 +162,9 @@ extension GeometryNode.PrimitiveShape2D {
         case let (.rectangle(a), .rectangle(b)): a == b
         case let (.circle(ra, sa), .circle(rb, sb)): ra.roundedForHash == rb.roundedForHash && sa == sb
         case let (.polygon(pa, fa), .polygon(pb, fb)): pa == pb && fa == fb
+        case let (.convexHull(pa), .convexHull(pb)): pa == pb
 
-        case (.rectangle, _), (.circle, _), (.polygon, _): false
+        case (.rectangle, _), (.circle, _), (.polygon, _), (.convexHull, _): false
         }
     }
 }
