@@ -20,9 +20,11 @@ public func Project(
     guard models.isEmpty == false else { return }
     let context = EvaluationContext()
 
-    await models.concurrentAsyncForEach { model in
+    let urls = await models.asyncCompactMap { model in
         await model.writer(context)
     }
+    try? Platform.revealFiles(urls)
+
 }
 
 public func Project(
