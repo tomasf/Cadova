@@ -25,8 +25,12 @@ public extension EnvironmentValues {
         self[Self.key] as? Operation ?? .addition
     }
 
+    internal func withOperation(_ value: Operation) -> EnvironmentValues {
+        setting(key: Self.key, value: value)
+    }
+
     internal func invertingOperation() -> EnvironmentValues {
-        setting(key: Self.key, value: !operation)
+        withOperation(!operation)
     }
 }
 
