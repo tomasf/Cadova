@@ -28,7 +28,7 @@ private func saveModel(
 
 public struct Model: Sendable {
     let name: String
-    let writer: @Sendable (EvaluationContext) async -> ()
+    let writer: @Sendable (EvaluationContext) async -> (URL?)
 
     private static let defaultContext = EvaluationContext()
 
@@ -84,16 +84,22 @@ public struct Model: Sendable {
 
             let url = baseURL.appendingPathExtension(provider.fileExtension)
 
+            let fileExisted = FileManager().fileExists(atPath: url.path())
+
             do {
                 try await provider.writeOutput(to: url, context: context)
                 logger.info("Wrote model to \(url.path)")
             } catch {
                 logger.error("Failed to save model file to \(url.path): \(error)")
             }
+
+            return fileExisted ? nil : url
         }
 
         if OutputContext.current == nil {
-            await writer(Self.defaultContext)
+            if let url = await writer(Self.defaultContext) {
+                try? Platform.revealFiles([url])
+            }
         }
     }
 }
