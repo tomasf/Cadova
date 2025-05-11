@@ -32,6 +32,13 @@ extension Geometry {
         }
     }
 
+    var parts: [PartIdentifier: D3.BuildResult] {
+        get async {
+            await build(in: .defaultEnvironment, context: .init())
+                .elements[PartCatalog.self].mergedOutputs
+        }
+    }
+
     func readingOperation(_ action: @Sendable @escaping (EnvironmentValues.Operation) -> ()) -> D.Geometry {
         readEnvironment(\.operation) {
             action($0)
