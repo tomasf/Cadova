@@ -6,7 +6,8 @@ struct PartAssignment: Geometry {
     let identifier: PartIdentifier
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D3.BuildResult {
-        let output = await body.build(in: environment, context: context)
+        let newEnvironment = environment.withOperation(.addition)
+        let output = await body.build(in: newEnvironment, context: context)
         var newOutput = output.modifyingElement(PartCatalog.self) {
             $0.add(part: output, to: identifier)
         }
