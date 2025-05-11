@@ -43,3 +43,31 @@ public extension Geometry {
         convexHull(adding: points)
     }
 }
+
+public extension Sequence<Vector2D> {
+    /// Computes the convex hull of a sequence of 2D vectors.
+    ///
+    /// The convex hull is the smallest convex polygon that contains all the points
+    /// in the sequence. This can be useful for shape analysis, geometry simplification,
+    /// or as part of a preprocessing step in modeling workflows.
+    ///
+    /// - Returns: A 2D geometry representing the convex hull of the points.
+    ///
+    func convexHull() -> D2.Geometry {
+        NodeBasedGeometry(.shape(.convexHull(points: Array(self))))
+    }
+}
+
+public extension Sequence<Vector3D> {
+    /// Computes the convex hull of a sequence of 3D vectors.
+    ///
+    /// The convex hull is the smallest convex polyhedron that contains all the points
+    /// in the sequence. This is useful for constructing bounding volumes or approximating
+    /// the outer envelope of a scattered point cloud.
+    ///
+    /// - Returns: A 3D geometry representing the convex hull of the points.
+    /// 
+    func convexHull() -> D3.Geometry {
+        NodeBasedGeometry(.shape(.convexHull(points: Array(self))))
+    }
+}
