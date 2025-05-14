@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "Cadova",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v14)],
     products: [
         .library(name: "Cadova", targets: ["Cadova"]),
     ],
@@ -18,12 +18,19 @@ let package = Package(
         .target(
             name: "Cadova",
             dependencies: [
+                .byName(name: "CadovaCPP"),
                 .product(name: "Manifold", package: "manifold-swift"),
                 .product(name: "ThreeMF", package: "ThreeMF"),
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Logging", package: "swift-log"),
             ],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
+        ),
+        .target(
+            name: "CadovaCPP",
+            dependencies: [
+                .product(name: "Manifold", package: "manifold-swift"),
+            ],
         ),
         .testTarget(
             name: "Tests",
