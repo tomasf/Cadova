@@ -23,6 +23,13 @@ extension Sequence {
 }
 
 extension Collection where Element: Sendable {
+    func wrappedTriplets() -> [(Element, Element, Element)] where Index == Int {
+        let n = count
+        return (0..<n).map { i in
+            (self[i], self[(i + 1) % n], self[(i + 2) % n])
+        }
+    }
+
     func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async -> T) async -> [T] {
         await withTaskGroup(of: (Int, T).self) { group in
             for (index, element) in self.enumerated() {
@@ -204,4 +211,16 @@ func combinations<A, B, C>(_ a: [A], _ b: [B], _ c: [C]) -> [(A, B, C)] {
         }
     }
     return result
+}
+
+func unpacked<A, B, C, D>(_ tuple: ((A, B), (C, D))) -> (A, B, C, D) {
+    (tuple.0.0, tuple.0.1, tuple.1.0, tuple.1.1)
+}
+
+func unpacked<A, B, C>(_ tuple: ((A, B), C)) -> (A, B, C) {
+    (tuple.0.0, tuple.0.1, tuple.1)
+}
+
+func unpacked<A, B, C>(_ tuple: (A, (B, C))) -> (A, B, C) {
+    (tuple.0, tuple.1.0, tuple.1.1)
 }

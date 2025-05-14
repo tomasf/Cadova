@@ -32,6 +32,15 @@ extension Geometry {
         }
     }
 
+    var measurements: D.Measurements {
+        get async {
+            let context = EvaluationContext()
+            let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
+            let nodeResult = await context.result(for: result.node)
+            return D.Measurements(concrete: nodeResult.concrete)
+        }
+    }
+
     var parts: [PartIdentifier: D3.BuildResult] {
         get async {
             await build(in: .defaultEnvironment, context: .init())

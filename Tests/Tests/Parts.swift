@@ -25,7 +25,7 @@ struct PartTests {
             .translated(x: 10)
 
         let partNames = await g.parts.map(\.key.name)
-        #expect(partNames == ["inner", "outer"])
+        #expect(Set(partNames) == ["inner", "outer"])
     }
 
     @Test func partsWithEqualNamesAreMerged() async throws {

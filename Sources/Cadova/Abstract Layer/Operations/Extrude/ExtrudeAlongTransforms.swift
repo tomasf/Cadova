@@ -20,7 +20,7 @@ internal extension Mesh {
                         Vertex(stepIndex: step-1, polygonIndex: polygonIndex, pointIndex: pointIndex2),
                         Vertex(stepIndex: step, polygonIndex: polygonIndex, pointIndex: pointIndex2),
                         Vertex(stepIndex: step, polygonIndex: polygonIndex, pointIndex: pointIndex1),
-                    ], [
+                    ],[
                         Vertex(stepIndex: step, polygonIndex: polygonIndex, pointIndex: pointIndex1),
                         Vertex(stepIndex: step-1, polygonIndex: polygonIndex, pointIndex: pointIndex1),
                         Vertex(stepIndex: step-1, polygonIndex: polygonIndex, pointIndex: pointIndex2),

@@ -53,7 +53,7 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey, ID: Dimensionality>
 
 struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
     let key: Key
-    let generator: @Sendable () -> D.Concrete
+    let generator: @Sendable () async -> D.Concrete
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
         if await context.hasCachedResult(for: key, with: D.self) {
@@ -61,6 +61,15 @@ struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
         } else {
             await D.BuildResult(context.storeMaterializedResult(D.Node.Result(generator()), key: key))
         }
+    }
+
+    init(key: Key, generator: @Sendable @escaping () async -> D.Concrete) {
+        self.key = key
+        self.generator = generator
+    }
+
+    init(name: String, parameters: any CacheKey..., generator: @Sendable @escaping () async -> D.Concrete) where Key == NamedCacheKey {
+        self.init(key: NamedCacheKey(operationName: name, parameters: parameters), generator: generator)
     }
 }
 

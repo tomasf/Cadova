@@ -17,6 +17,9 @@ public extension Mesh {
         for face in meshData.faces {
             visualizeFace(face.map { meshData.vertices[$0] })
         }
+        for vertex in meshData.vertices {
+            Box(0.1).aligned(at: .center).translated(vertex).colored(.red)
+        }
     }
 
     private func visualizeFace(_ faceVertices: [Vector3D]) -> any Geometry3D {
