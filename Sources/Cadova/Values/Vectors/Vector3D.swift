@@ -62,6 +62,17 @@ public extension Vector3D {
         case .z: return z
         }
     }
+
+    /// Returns the angle between this vector and another vector.
+    func angle(with other: Vector3D) -> Angle {
+        let magnitudes = self.magnitude * other.magnitude
+        guard magnitudes > 0 else {
+            return 0°
+        }
+
+        return acos(((self ⋅ other) / magnitudes).clamped(to: -1.0...1.0))
+    }
+
 }
 
 public extension Vector3D {

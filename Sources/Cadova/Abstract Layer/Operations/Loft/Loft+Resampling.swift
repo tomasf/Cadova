@@ -2,7 +2,7 @@ import Foundation
 import Manifold3D
 
 internal extension Loft.LayerInterpolation {
-    func resampledLoft(treeLayers: [TreeLayer], in environment: EnvironmentValues) async -> any Geometry3D {
+    func resampledLoft(treeLayers: [TreeLayer], interpolation: ShapingFunction, in environment: EnvironmentValues) async -> any Geometry3D {
         var groups = buildPolygonGroups(layerTrees: treeLayers.map(\.1))
 
         for (index, layerPolygons) in groups.enumerated() {
@@ -19,7 +19,17 @@ internal extension Loft.LayerInterpolation {
             groups[index] = newPolygons
         }
 
-        return mesh(for: groups, layerLevels: treeLayers.map(\.0))
+        let groupsWithLevels = groups.map { polygons in
+            return (polygons, treeLayers.map(\.0))
+        }
+
+        if interpolation == .linear {
+            return mesh(for: groupsWithLevels)
+        } else {
+            let interpolatedGroups = interpolatePolygonGroups(for: groupsWithLevels, curve: interpolation.function, environment: environment)
+            return mesh(for: interpolatedGroups)
+                .simplified()
+        }
     }
 
     // Takes a list of polygon trees representing each layer. Returns a list of polygon lists, each list representing the matching polygons from each layer
@@ -68,48 +78,116 @@ internal extension Loft.LayerInterpolation {
         return groups
     }
 
-    func mesh(for polygonGroups: [SimplePolygonList], layerLevels: [Double]) -> Mesh {
+    func interpolatePolygonGroups(
+        for polygonGroups: [(polygons: SimplePolygonList, zLevels: [Double])],
+        curve: (Double) -> Double,
+        environment: EnvironmentValues
+    ) -> [(polygons: SimplePolygonList, zLevels: [Double])] {
+        let segmentation = environment.segmentation
+        var refinedGroups: [(polygons: SimplePolygonList, zLevels: [Double])] = []
+
+        for (polygons, zLevels) in polygonGroups {
+            var newPolygons: [SimplePolygon] = [polygons[0]]
+            var newZLevels: [Double] = [zLevels[0]]
+
+            for i in 1..<zLevels.count {
+                let lower = polygons[i - 1]
+                let upper = polygons[i]
+                let z0 = zLevels[i - 1]
+                let z1 = zLevels[i]
+
+                let interpolatedLayers: [(polygon: SimplePolygon, z: Double)]
+                switch segmentation {
+                case .fixed(let count):
+                    interpolatedLayers = (1..<count).map { j in
+                        let t = Double(j) / Double(count)
+                        let curvedT = curve(t)
+                        let z = z0 + (z1 - z0) * t
+                        let polygon = lower.blended(with: upper, t: curvedT)
+                        return (polygon, z)
+                    }
+
+                case .adaptive(_, let minLength):
+                    var results: [(polygon: SimplePolygon, z: Double)] = []
+
+                    func subdivide(range: Range<Double>) {
+                        let zStart = z0 + (z1 - z0) * range.lowerBound
+                        let zEnd = z0 + (z1 - z0) * range.upperBound
+                        let pStart = lower.blended(with: upper, t: curve(range.lowerBound))
+                        let pEnd = lower.blended(with: upper, t: curve(range.upperBound))
+
+                        if pStart.needsSubdivision(next: pEnd, z0: zStart, z1: zEnd, minLength: minLength) {
+                            let tMid = range.mid
+                            subdivide(range: range.lowerBound..<tMid)
+                            subdivide(range: tMid..<range.upperBound)
+                        } else {
+                            results.append((pStart, zStart))
+                        }
+                    }
+
+                    subdivide(range: 0..<1)
+                    interpolatedLayers = results
+                }
+
+                newPolygons.append(contentsOf: interpolatedLayers.map(\.polygon))
+                newZLevels.append(contentsOf: interpolatedLayers.map(\.z))
+                newPolygons.append(upper)
+                newZLevels.append(z1)
+            }
+
+            refinedGroups.append((SimplePolygonList(newPolygons), newZLevels))
+        }
+
+        return refinedGroups
+    }
+
+    func mesh(for polygonGroups: [(polygons: SimplePolygonList, zLevels: [Double])]) -> Mesh {
         struct Vertex: Hashable {
-            let polygonIndex: Int
+            let polygonGroupIndex: Int
             let layerIndex: Int
             let pointIndex: Int
         }
 
-        let sideFaces = polygonGroups.enumerated().flatMap { polygonIndex, group in
+        let sideFaces = polygonGroups.map(\.0).enumerated().flatMap { polygonIndex, group in
             (0..<(group.count - 1)).flatMap { layerIndex1 in
                 let layerIndex2 = layerIndex1 + 1
                 return (0..<group[0].count).wrappedPairs().flatMap { pointIndex1, pointIndex2 in [
                     [
-                        Vertex(polygonIndex: polygonIndex, layerIndex: layerIndex1, pointIndex: pointIndex2),
-                        Vertex(polygonIndex: polygonIndex, layerIndex: layerIndex2, pointIndex: pointIndex2),
-                        Vertex(polygonIndex: polygonIndex, layerIndex: layerIndex2, pointIndex: pointIndex1),
+                        Vertex(polygonGroupIndex: polygonIndex, layerIndex: layerIndex1, pointIndex: pointIndex2),
+                        Vertex(polygonGroupIndex: polygonIndex, layerIndex: layerIndex2, pointIndex: pointIndex2),
+                        Vertex(polygonGroupIndex: polygonIndex, layerIndex: layerIndex2, pointIndex: pointIndex1),
                     ],[
-                        Vertex(polygonIndex: polygonIndex, layerIndex: layerIndex2, pointIndex: pointIndex1),
-                        Vertex(polygonIndex: polygonIndex, layerIndex: layerIndex1, pointIndex: pointIndex1),
-                        Vertex(polygonIndex: polygonIndex, layerIndex: layerIndex1, pointIndex: pointIndex2),
+                        Vertex(polygonGroupIndex: polygonIndex, layerIndex: layerIndex2, pointIndex: pointIndex1),
+                        Vertex(polygonGroupIndex: polygonIndex, layerIndex: layerIndex1, pointIndex: pointIndex1),
+                        Vertex(polygonGroupIndex: polygonIndex, layerIndex: layerIndex1, pointIndex: pointIndex2),
                     ]
                 ]}
             }
         }
 
-        let bottomPolygons = SimplePolygonList(polygonGroups.map { $0[0] })
+        let bottomPolygons = SimplePolygonList(polygonGroups.map { $0.polygons[0] })
         let bottomFaces = bottomPolygons.triangulate().map { a, b, c in [
-            Vertex(polygonIndex: c.polygon, layerIndex: 0, pointIndex: c.vertex),
-            Vertex(polygonIndex: b.polygon, layerIndex: 0, pointIndex: b.vertex),
-            Vertex(polygonIndex: a.polygon, layerIndex: 0, pointIndex: a.vertex),
+            Vertex(polygonGroupIndex: c.polygon, layerIndex: 0, pointIndex: c.vertex),
+            Vertex(polygonGroupIndex: b.polygon, layerIndex: 0, pointIndex: b.vertex),
+            Vertex(polygonGroupIndex: a.polygon, layerIndex: 0, pointIndex: a.vertex),
         ]}
 
-        let topLayerIndex = layerLevels.count - 1
-        let topPolygons = SimplePolygonList(polygonGroups.map { $0[topLayerIndex] })
+        let topPolygons = SimplePolygonList(polygonGroups.map { $0.polygons[$0.polygons.count - 1] })
         let topFaces = topPolygons.triangulate().map { a, b, c in [
-            Vertex(polygonIndex: a.polygon, layerIndex: topLayerIndex, pointIndex: a.vertex),
-            Vertex(polygonIndex: b.polygon, layerIndex: topLayerIndex, pointIndex: b.vertex),
-            Vertex(polygonIndex: c.polygon, layerIndex: topLayerIndex, pointIndex: c.vertex),
+            Vertex(polygonGroupIndex: a.polygon, layerIndex: polygonGroups[a.polygon].polygons.count - 1, pointIndex: a.vertex),
+            Vertex(polygonGroupIndex: b.polygon, layerIndex: polygonGroups[b.polygon].polygons.count - 1, pointIndex: b.vertex),
+            Vertex(polygonGroupIndex: c.polygon, layerIndex: polygonGroups[c.polygon].polygons.count - 1, pointIndex: c.vertex),
         ]}
 
         return Mesh(faces: sideFaces + bottomFaces + topFaces) { vertex in
-            let flatPoint = polygonGroups[vertex.polygonIndex][vertex.layerIndex][vertex.pointIndex]
-            return Vector3D(flatPoint, z: layerLevels[vertex.layerIndex])
+            let flatPoint = polygonGroups[vertex.polygonGroupIndex].polygons[vertex.layerIndex][vertex.pointIndex]
+            return Vector3D(flatPoint, z: polygonGroups[vertex.polygonGroupIndex].zLevels[vertex.layerIndex])
         }
+    }
+}
+
+fileprivate extension SimplePolygon {
+    func needsSubdivision(next: SimplePolygon, z0: Double, z1: Double, minLength: Double) -> Bool {
+        (0..<count).contains { (Vector3D(next[$0], z: z1) - Vector3D(self[$0], z: z0)).magnitude > minLength }
     }
 }

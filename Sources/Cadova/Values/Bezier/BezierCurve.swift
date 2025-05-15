@@ -94,6 +94,46 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     }
 }
 
+extension BezierCurve<Vector2D> {
+    /// Solves for `t` such that the x component of the point at `t` is approximately `xTarget`.
+    ///
+    /// - Important: Only works for monotonic curves in the x direction.
+    /// - Parameters:
+    ///   - xTarget: The target x value to solve for.
+    /// - Returns: The value of `t` in [0, 1] such that point(at: t).x ≈ xTarget, or `nil` if not found.
+    func t(forX xTarget: Double) -> Double? {
+        let maxIterations = 8
+        let tolerance = 1e-6
+        var t = xTarget
+
+        // Clamp t to range
+        t = t.clamped(to: 0...1)
+
+        for _ in 0..<maxIterations {
+            let x = point(at: t).x
+            let dx = derivative.point(at: t).x
+
+            let error = x - xTarget
+            if Swift.abs(error) < tolerance {
+                return t
+            }
+
+            if Swift.abs(dx) < 1e-10 {
+                break // Avoid division by zero
+            }
+
+            let tNext = t - error / dx
+            if tNext < 0 || tNext > 1 {
+                break // Out of bounds
+            }
+
+            t = tNext
+        }
+
+        return nil
+    }
+}
+
 extension BezierCurve: CustomDebugStringConvertible {
     public var debugDescription: String {
         controlPoints.map { $0.debugDescription }.joined(separator: ",  ")
