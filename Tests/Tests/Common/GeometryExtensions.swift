@@ -88,11 +88,6 @@ extension Geometry {
         let computedGoldenRecord = GoldenRecord(result: result)
         let goldenRecord = try GoldenRecord<D>(url: URL(goldenFileNamed: name, extension: "json"))
 
-        if computedGoldenRecord != goldenRecord {
-            logger.error("Expected: \(goldenRecord)")
-            logger.error("Got: \(computedGoldenRecord)")
-        }
-
         #expect(computedGoldenRecord == goldenRecord)
     }
 }

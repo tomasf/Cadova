@@ -29,13 +29,13 @@ struct Geometry2DTests {
             Teardrop(diameter: 5)
                 .translated(x: 22)
             Teardrop(diameter: 4, style: .flat)
+                .withOverhangAngle(30°)
                 .translated(x: 27)
             CylinderBridge(bottomDiameter: 10, topDiameter: 6)
                 .translated(x: 15)
                 .repeated(in: 20°..<250°, count: 5)
                 .translated(x: 50, y: -10)
         }
-        .withOverhangAngle(30°)
         .expectEquals(goldenFile: "2d/circular")
     }
 
