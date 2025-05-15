@@ -20,7 +20,7 @@ struct TransformTests {
 */
     
     @Test func transform2DTo3D() {
-        let transforms2D: [AffineTransform2D] = [
+        let transforms2D: [Transform2D] = [
             .translation(x: 10, y: 3),
             .scaling(x: 3, y: 9),
             .rotation(30°),
@@ -29,7 +29,7 @@ struct TransformTests {
                 .rotated(15°)
         ]
 
-        let transforms3D: [Cadova.AffineTransform3D] = [
+        let transforms3D: [Transform3D] = [
             .translation(x: 10, y: 3),
             .scaling(x: 3, y: 9),
             .rotation(z: 30°),
@@ -47,7 +47,7 @@ struct TransformTests {
         
         for (index, transform2D) in transforms2D.enumerated() {
             let transform3D = transforms3D[index]
-            let converted3D = AffineTransform3D(transform2D)
+            let converted3D = Transform3D(transform2D)
 
             #expect(transform3D.values ≈ converted3D.values)
 

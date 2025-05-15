@@ -180,3 +180,33 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
         return await resultHandler(geometries).build(in: environment, context: context)
     }
 }
+
+// Apply an arbitrary transformation to a node, cached based on node + key
+
+struct CachingTransformer<D: Dimensionality, Input: Dimensionality>: Geometry {
+    let body: Input.Geometry
+    let key: NamedCacheKey
+    let generator: @Sendable (Input.Node, EnvironmentValues, EvaluationContext) async -> D.Node
+
+    init(body: Input.Geometry, name: String, parameters: any CacheKey..., generator: @Sendable @escaping (Input.Node, EnvironmentValues, EvaluationContext) async -> D.Node) {
+        self.body = body
+        self.key = NamedCacheKey(operationName: name, parameters: parameters)
+        self.generator = generator
+    }
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
+        let bodyResult = await body.build(in: environment, context: context)
+        let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
+
+        if await context.hasCachedResult(for: bakedKey, with: D.self) {
+            return bodyResult.replacing(cacheKey: bakedKey)
+
+        } else {
+            let outputNode = await generator(bodyResult.node, environment, context)
+            let nodeResult = await context.result(for: outputNode)
+
+            let node = await context.storeMaterializedResult(nodeResult, key: bakedKey) as D.Node
+            return bodyResult.replacing(node: node)
+        }
+    }
+}
