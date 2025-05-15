@@ -102,4 +102,10 @@ extension SimplePolygon {
     func vertices(at z: Double) -> [Vector3D] {
         vertices.map { Vector3D($0, z: z) }
     }
+
+    func blended(with other: Self, t: Double) -> Self {
+        Self(zip(vertices, other.vertices).map { a, b in
+            a + (b - a) * t
+        })
+    }
 }

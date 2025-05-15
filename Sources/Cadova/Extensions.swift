@@ -96,6 +96,10 @@ extension Range where Bound: AdditiveArithmetic {
     var length: Bound { upperBound - lowerBound }
 }
 
+extension Range where Bound: FloatingPoint {
+    var mid: Bound { (lowerBound + upperBound) / 2 }
+}
+
 extension URL {
     init(expandingFilePath path: String, extension requiredExtension: String? = nil, relativeTo: URL? = nil) {
         var url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath, relativeTo: relativeTo)
@@ -211,6 +215,10 @@ func combinations<A, B, C>(_ a: [A], _ b: [B], _ c: [C]) -> [(A, B, C)] {
         }
     }
     return result
+}
+
+func unpacked<A, B, C, D>(_ tuple: (A, (B, C, D))) -> (A, B, C, D) {
+    (tuple.0, tuple.1.0, tuple.1.1, tuple.1.2)
 }
 
 func unpacked<A, B, C, D>(_ tuple: ((A, B), (C, D))) -> (A, B, C, D) {

@@ -50,8 +50,8 @@ internal extension Loft.LayerInterpolation {
                 (bottomPoints + topPoints).convexHull()
             }
 
-        case .resampled:
-            return await resampledLoft(treeLayers: layers, in: environment)
+        case .resampled (let function):
+            return await resampledLoft(treeLayers: layers, interpolation: function, in: environment)
 
         case .automatic: preconditionFailure()
         }

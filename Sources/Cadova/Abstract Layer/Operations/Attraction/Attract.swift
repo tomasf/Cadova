@@ -10,14 +10,14 @@ public extension Geometry {
     ///   - target: The point to attract toward.
     ///   - influenceRadius: The distance within which points are affected. Points beyond this radius are unaffected.
     ///   - maxMovement: The maximum distance any point may be moved, even if the falloff would suggest more.
-    ///   - falloff: A falloff function defining the strength based on distance. Defaults to `.smoothstep`.
+    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`, full strength is used within the influence radius.
     /// - Returns: A new geometry attracted toward the target.
     ///
-    func attracted<F: Falloff>(
+    func attracted(
         toward target: D.Vector,
         influenceRadius: Double,
         maxMovement: Double,
-        falloff: F = .smoothstep
+        falloff: ShapingFunction? = .smoothstep
     ) -> D.Geometry {
         attracted(towardTarget: target as! any AttractionTarget<D>, influenceRadius: influenceRadius, maxMovement: maxMovement, falloff: falloff)
     }
@@ -31,14 +31,14 @@ public extension Geometry {
     ///   - line: The line to attract toward.
     ///   - influenceRadius: The distance within which points are affected. Points beyond this radius are unaffected.
     ///   - maxMovement: The maximum distance any point may be moved, even if the falloff would suggest more.
-    ///   - falloff: A falloff function defining the strength based on distance. Defaults to `.smoothstep`.
+    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`, full strength is used within the influence radius.
     /// - Returns: A new geometry attracted toward the line.
     ///
-    func attracted<F: Falloff>(
+    func attracted(
         toward line: D.Line,
         influenceRadius: Double,
         maxMovement: Double,
-        falloff: F = .smoothstep
+        falloff: ShapingFunction? = .smoothstep
     ) -> D.Geometry {
         attracted(towardTarget: line, influenceRadius: influenceRadius, maxMovement: maxMovement, falloff: falloff)
     }
@@ -54,14 +54,14 @@ public extension Geometry3D {
     ///   - plane: The plane to attract toward.
     ///   - influenceRadius: The distance within which points are affected. Points beyond this radius are unaffected.
     ///   - maxMovement: The maximum distance any point may be moved, even if the falloff would suggest more.
-    ///   - falloff: A falloff function defining the strength based on distance. Defaults to `.smoothstep`.
+    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`, full strength is used within the influence radius.
     /// - Returns: A new geometry attracted toward the plane.
     ///
-    func attracted<F: Falloff>(
+    func attracted(
         toward plane: Plane,
         influenceRadius: Double,
         maxMovement: Double,
-        falloff: F = .smoothstep
+        falloff: ShapingFunction? = .smoothstep
     ) -> D.Geometry {
         attracted(towardTarget: plane, influenceRadius: influenceRadius, maxMovement: maxMovement, falloff: falloff)
     }
@@ -70,13 +70,14 @@ public extension Geometry3D {
 // MARK: - Internal
 
 internal extension Geometry {
-    func attracted<F: Falloff>(
+    func attracted(
         towardTarget target: any AttractionTarget<D>,
         influenceRadius: Double,
         maxMovement: Double,
-        falloff: F
+        falloff: ShapingFunction?
     ) -> D.Geometry {
-        warped(operationName: "attractTowardTarget", cacheParameters: target, influenceRadius, maxMovement, falloff) { point in
+        let function = falloff?.function
+        return warped(operationName: "attractTowardTarget", cacheParameters: target, influenceRadius, maxMovement, falloff) { point in
             let to = target.pullTarget(for: point)
             let offset = to - point
             let length = offset.magnitude
@@ -85,7 +86,7 @@ internal extension Geometry {
 
             let normalized = min(length / influenceRadius, 1.0)
             let amount = min(length, maxMovement)
-            return point + offset.normalized * falloff.value(normalized: normalized) * amount
+            return point + offset.normalized * (function?(normalized) ?? 1.0) * amount
         }
     }
 }

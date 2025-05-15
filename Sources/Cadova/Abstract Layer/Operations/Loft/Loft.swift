@@ -89,7 +89,17 @@ public struct Loft: Geometry {
 
         /// Resamples each shape to have matching vertex counts. Allows precise matching of complex shapes, including those with holes.
         /// All layers must have the same topology; the same number of sub-shapes, each with matching hole counts and structure.
-        case resampled
+        ///
+        /// The `ShapingFunction` parameter determines how intermediate layers are distributed and how the transition between each pair of cross-sections progresses.
+        /// By default, the interpolation is linear, meaning each intermediate layer is evenly spaced in both height and shape between the source and target layers.
+        ///
+        /// By supplying a different shaping function, you can control the interpolation rate—such as using "ease in", "ease out", or a custom curve.
+        /// This can be used to create organic bulges, tapering, or other stylized transitions between layers.
+        /// See `ShapingFunction` for available built-in curves and how to create custom ones.
+        ///
+        case resampled (ShapingFunction)
+
+        public static var resampled: Self { .resampled(.linear) }
     }
 }
 
