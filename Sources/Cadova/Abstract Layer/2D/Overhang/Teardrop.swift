@@ -5,48 +5,50 @@ import Foundation
 /// This shape reduces steep overhangs that occur in circular cutouts, making it more suitable for FDM printing without supports.
 /// The top of the shape can either be pointed or flat (bridgeable).
 ///
-/// If `EnvironmentValues.naturalUpDirection` is set, the shape automatically rotates so that the tip or flat bridge faces upward.
+/// The overhang angle for this shape is determined from the environment (`overhangAngle`, default 45°). To set a custom overhang
+/// angle for your geometry, use `.withOverhangAngle(_:)` on your geometry. If `EnvironmentValues.naturalUpDirection` is set, the
+/// shape automatically rotates so that the tip or flat bridge faces upward.
 ///
 /// This shape is commonly used for holes or cutouts where mechanical function is preserved but steep overhangs need to be avoided.
 ///
 public struct Teardrop: Shape2D {
     private let style: Style
-    private let angle: Angle
     private let radius: Double
 
     @Environment(\.naturalUpDirectionXYAngle) private var upAngle
+    @Environment(\.overhangAngle) private var overhangAngle
 
-    /// Creates a teardrop shape with a given radius, overhang angle, and visual style.
+    /// Creates a teardrop shape with a given radius and visual style.
+    ///
+    /// The overhang angle is determined from the environment using the `overhangAngle` value (default 45°).
+    /// To set the overhang angle, use `.withOverhangAngle(_:)` on your geometry.
     ///
     /// - Parameters:
     ///   - radius: The radius of the shape (typically replacing a circular hole of this size).
-    ///   - angle: The overhang angle, or half the point angle. Lower values create sharper tips.
-    ///            The default of 45° is typically a safe starting point for most FDM printers.
     ///   - style: The top style: `.pointed` (sharp) or `.flat` (bridged). Defaults to `.pointed`.
     ///
-    public init(radius: Double, overhang angle: Angle = 45°, style: Style = .pointed) {
-        precondition(angle > 0° && angle <= 90°, "Angle must be between 0 and 90 degrees")
+    public init(radius: Double, style: Style = .pointed) {
         self.radius = radius
-        self.angle = angle
         self.style = style
     }
 
-    /// Creates a teardrop shape with a given diameter, overhang angle, and visual style.
+    /// Creates a teardrop shape with a given diameter and visual style.
+    ///
+    /// The overhang angle is determined from the environment using the `overhangAngle` value (default 45°).
+    /// To set the overhang angle, use `.withOverhangAngle(_:)` on your geometry.
     ///
     /// - Parameters:
     ///   - diameter: The full width of the shape (typically replacing a circular hole of this size).
-    ///   - angle: The overhang angle, or half the point angle. Lower values create sharper tips.
-    ///            The default of 45° is typically a safe starting point for most FDM printers.
     ///   - style: The top style: `.pointed` (sharp) or `.flat` (bridged). Defaults to `.pointed`.
     ///
-    public init(diameter: Double, overhang angle: Angle = 45°, style: Style = .pointed) {
-        self.init(radius: diameter / 2, overhang: angle, style: style)
+    public init(diameter: Double, style: Style = .pointed) {
+        self.init(radius: diameter / 2, style: style)
     }
 
     public var body: any Geometry2D {
         Intersection {
             Circle(radius: radius)
-                .convexHull(adding: [0, radius / sin(angle)])
+                .convexHull(adding: [0, radius / sin(overhangAngle)])
 
             if style == .flat {
                 Rectangle(radius * 2)

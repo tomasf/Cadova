@@ -17,24 +17,29 @@ public extension Geometry2D {
 @available(*, deprecated, message: "Use Mesh instead of Polyhedron.")
 public typealias Polyhedron = Mesh
 
-extension Geometry2D {
+public extension Geometry2D {
     @available(*, deprecated, renamed: "revolved(in:)")
     func extruded(angles: Range<Angle> = 0°..<360°) -> any Geometry3D {
         revolved(in: angles)
     }
 }
 
-extension Geometry {
+public extension Geometry {
     @available(*, deprecated, renamed: "flipped(across:)")
     func flipped(along axes: D.Axes) -> D.Geometry {
         flipped(across: axes)
     }
 }
 
-extension Teardrop {
-    @available(*, deprecated, renamed: "init(diameter:overhang:style:)")
-    public init(diameter: Double, angle: Angle, style: Style = .pointed) {
-        self.init(diameter: diameter, overhang: angle, style: style)
+public extension Teardrop {
+    @available(*, deprecated, message: "Use the `withOverhangAngle` modifier to specify an angle for Teardrop", renamed: "init(diameter:style:)")
+    init(diameter: Double, angle: Angle, style: Style = .pointed) {
+        self.init(diameter: diameter, style: style)
+    }
+
+    @available(*, deprecated, message: "Use the `withOverhangAngle` modifier to specify an angle for Teardrop", renamed: "init(radius:style:)")
+    init(radius: Double, angle: Angle = 45°, style: Style = .pointed) {
+        self.init(radius: radius, style: style)
     }
 }
 
