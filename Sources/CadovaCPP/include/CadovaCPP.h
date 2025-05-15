@@ -1,5 +1,12 @@
 #include "manifold/cross_section.h"
-#include <swift/bridging>
+//#include <swift/bridging>
+
+// This is from swift/bridging
+#define SWIFT_UNSAFE_REFERENCE \
+__attribute__((swift_attr("import_reference"))) \
+__attribute__((swift_attr("retain:immortal"))) \
+__attribute__((swift_attr("release:immortal"))) \
+__attribute__((swift_attr("unsafe")))
 
 namespace cadova {
 
