@@ -28,7 +28,7 @@ internal struct Sweep: Shape3D {
                 frames.normalizeAngles()
                 frames.applyTwistDamping(maxTwistRate: maxTwistRate)
 
-                return Mesh(extruding: crossSection.polygons(), along: frames.map(\.transform))
+                return Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform))
                     .adding(Union(debugParts ?? []))
             }
         }

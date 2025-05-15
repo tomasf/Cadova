@@ -1,4 +1,5 @@
 import Foundation
+import Manifold3D
 
 internal struct SimplePolygonList: Sendable, Hashable, Codable {
     var polygons: [SimplePolygon]
@@ -79,5 +80,11 @@ extension SimplePolygonList {
 
             self[i] = candidate.offset(bestOffset)
         }
+    }
+}
+
+extension D2.Concrete {
+    func polygonList() -> SimplePolygonList {
+        SimplePolygonList(polygons())
     }
 }

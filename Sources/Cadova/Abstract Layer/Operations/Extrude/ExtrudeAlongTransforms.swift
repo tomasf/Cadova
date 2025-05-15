@@ -9,13 +9,12 @@ fileprivate struct Vertex: Hashable {
 
 internal extension Mesh {
     // Sweep the polygons along the path of transforms
-    init(extruding polygons: [ManifoldPolygon], along transforms: [Transform3D]) {
-        let polygonPoints = polygons.map(\.vertices)
-        let faceTriangles = Manifold3D.Polygon.triangulate(polygons, epsilon: 1e-6)
+    init(extruding polygons: SimplePolygonList, along transforms: [Transform3D]) {
+        let faceTriangles = polygons.triangulate()
 
         let sideFaces = transforms.enumerated().dropFirst().flatMap { step, transform in
-            polygonPoints.enumerated().flatMap { polygonIndex, polygon in
-                polygon.indices.wrappedPairs().flatMap { pointIndex1, pointIndex2 in [
+            polygons.polygons.enumerated().flatMap { polygonIndex, polygon in
+                polygon.vertices.indices.wrappedPairs().flatMap { pointIndex1, pointIndex2 in [
                     [
                         Vertex(stepIndex: step-1, polygonIndex: polygonIndex, pointIndex: pointIndex2),
                         Vertex(stepIndex: step, polygonIndex: polygonIndex, pointIndex: pointIndex2),
@@ -33,9 +32,9 @@ internal extension Mesh {
         var endFace: [[Vertex]] = []
 
         for triangle in faceTriangles {
-            let (polygon1, point1) = polygonPoints.indexPair(forGlobalIndex: triangle.a)
-            let (polygon2, point2) = polygonPoints.indexPair(forGlobalIndex: triangle.b)
-            let (polygon3, point3) = polygonPoints.indexPair(forGlobalIndex: triangle.c)
+            let (polygon1, point1) = triangle.0
+            let (polygon2, point2) = triangle.1
+            let (polygon3, point3) = triangle.2
 
             startFace.append([
                 Vertex(stepIndex: 0, polygonIndex: polygon3, pointIndex: point3),
@@ -50,7 +49,7 @@ internal extension Mesh {
         }
 
         self = Mesh(faces: sideFaces + startFace + endFace) { vertex in
-            let point = polygonPoints[vertex.polygonIndex][vertex.pointIndex]
+            let point = polygons[vertex.polygonIndex][vertex.pointIndex]
             return transforms[vertex.stepIndex].apply(to: Vector3D(point))
         }
     }
@@ -74,7 +73,7 @@ public extension Geometry2D {
 
         return readEnvironment { environment in
             readingPrimitive { crossSection in
-                Mesh(extruding: crossSection.polygons(), along: expandedPath)
+                Mesh(extruding: crossSection.polygonList(), along: expandedPath)
             }
         }
     }
