@@ -32,4 +32,19 @@ struct SweepTests {
         #expect(m.surfaceArea ≈ 18055.813)
         #expect(m.boundingBox ≈ .init(minimum: [0.195, -5.603, -3], maximum: [105.831, 99.805, 155.5]))
     }
+
+    // Star from example4
+    @Test func exampleStar() async throws {
+        let path = BezierPath2D {
+            curve([10, 65], [50, -20], [60, 50])
+        }
+
+        let sweep = ExampleTests.Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
+            .swept(along: path)
+        let m = await sweep.measurements
+
+        #expect(m.volume ≈ 13072.877)
+        #expect(m.surfaceArea ≈ 9220.515)
+        #expect(m.boundingBox ≈ .init(minimum: [-10.856, -1.294, -10.511], maximum: [68.983, 51.461, 10.511]))
+    }
 }

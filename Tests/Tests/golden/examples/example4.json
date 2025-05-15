@@ -77,6 +77,23 @@
                     }
                   }
                 }
+              },
+              {
+                "type" : "6Cadova5AngleV",
+                "value" : {
+                  "radians" : 0.03490658503988659
+                }
+              },
+              {
+                "type" : "6Cadova17EnvironmentValuesV12SegmentationO",
+                "value" : {
+                  "adaptive" : {
+                    "minAngle" : {
+                      "radians" : 0.03490658503988659
+                    },
+                    "minSize" : 0.15
+                  }
+                }
               }
             ]
           },

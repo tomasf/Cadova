@@ -8,7 +8,7 @@ public extension EnvironmentValues {
     /// Cadova uses segments (sometimes called facets) to approximate curves and circles.
     /// The segmentation can be either fixed or adaptive, depending on your precision and performance needs.
 
-    enum Segmentation: Sendable {
+    enum Segmentation: Sendable, Hashable, Codable {
         /// Uses a fixed number of segments for all circular or curved geometries, regardless of size.
         ///
         /// - Parameter count: The number of segments to use (minimum 3).

@@ -8,31 +8,48 @@ internal struct Sweep: Shape3D {
     let target: Target
 
     @Environment(\.maxTwistRate) var maxTwistRate
+    @Environment(\.segmentation) var segmentation
 
     var body: any Geometry3D {
-        shape.readingPrimitive { crossSection in
-            let derivative = path.derivative
-            let enableDebugging = ProcessInfo.processInfo.environment["CADOVA_SWEEP_DEBUG"] == "1"
+        let enableDebugging = ProcessInfo.processInfo.environment["CADOVA_SWEEP_DEBUG"] == "1"
+        let maxTwistRate = maxTwistRate
+        let segmentation = segmentation
 
-            return path.readPositionsAndPoints { fractionsAndPoints in
-                var frames: [Frame] = []
-                var debugParts: [any Geometry3D]? = enableDebugging ? [] : nil
-
-                for (t, point) in fractionsAndPoints {
-                    frames.append(Frame(
-                        point: point, tangent: derivative.point(at: t), reference: reference, target: target, previousSample: frames.last, debugGeometry: &debugParts
-                    ))
-                }
-
-                frames.interpolateMissingAngles()
-                frames.normalizeAngles()
-                frames.applyTwistDamping(maxTwistRate: maxTwistRate)
-
-                return Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform))
-                    .adding(Union(debugParts ?? []))
+        if enableDebugging {
+            shape.readingPrimitive { crossSection, _ in
+                let (mesh, debugParts) = sweep(crossSection: crossSection, segmentation: segmentation, maxTwistRate: maxTwistRate, enableDebugging: true)
+                return mesh.adding(Union(debugParts))
+            }
+        } else {
+            CachingTransformer(body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation) { node, environment, context in
+                let crossSection = await context.result(for: node).concrete
+                let (mesh, _) = sweep(
+                    crossSection: crossSection, segmentation: segmentation, maxTwistRate: maxTwistRate
+                )
+                return GeometryNode(.shape3D(.mesh(mesh.meshData)))
             }
         }
-        .cached(as: "sweep", geometry: shape, parameters: path, reference, target)
+    }
+}
+
+fileprivate extension Sweep {
+    func sweep(crossSection: CrossSection, segmentation: EnvironmentValues.Segmentation, maxTwistRate: Angle, enableDebugging: Bool = false) -> (Mesh, [any Geometry3D]) {
+        let derivative = path.derivative
+        let fractionsAndPoints = path.pointsAtPositions(in: path.positionRange, segmentation: segmentation)
+        var frames: [Frame] = []
+        var debugParts: [any Geometry3D]? = enableDebugging ? [] : nil
+
+        for (t, point) in fractionsAndPoints {
+            frames.append(Frame(
+                point: point, tangent: derivative.point(at: t), reference: reference, target: target, previousSample: frames.last, debugGeometry: &debugParts
+            ))
+        }
+
+        frames.interpolateMissingAngles()
+        frames.normalizeAngles()
+        frames.applyTwistDamping(maxTwistRate: maxTwistRate)
+
+        return (Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform)), debugParts ?? [])
     }
 }
 
