@@ -191,20 +191,6 @@ extension Clock {
     }
 }
 
-extension Array {
-    func indexPair<E>(forGlobalIndex index: Int) -> (outer: Int, inner: Int) where Element == [E] {
-        var offset = index
-        for (outerIndex, innerArray) in enumerated() {
-            if innerArray.count > offset {
-                return (outerIndex, offset)
-            } else {
-                offset -= innerArray.count
-            }
-        }
-        preconditionFailure("Index out of range")
-    }
-}
-
 func combinations<A, B, C>(_ a: [A], _ b: [B], _ c: [C]) -> [(A, B, C)] {
     var result: [(A, B, C)] = []
     for itemA in a {
