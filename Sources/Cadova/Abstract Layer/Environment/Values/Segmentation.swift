@@ -20,7 +20,7 @@ public extension EnvironmentValues {
         /// of the geometry. It aims to balance detail and performance.
         ///
         /// - Parameters:
-        ///   - minAngle: The minimum angle (in degrees) per segment.
+        ///   - minAngle: The minimum angle per segment.
         ///   - minSize: The minimum segment length.
         case adaptive (minAngle: Angle, minSize: Double)
 
@@ -102,7 +102,7 @@ public extension EnvironmentValues {
     /// Sets an adaptive segmentation strategy in the environment.
     ///
     /// - Parameters:
-    ///   - minAngle: The minimum angle (in degrees) per segment.
+    ///   - minAngle: The minimum angle per segment.
     ///   - minSize: The minimum segment length.
     mutating func setSegmentation(minAngle: Angle, minSize: Double) {
         segmentation = .adaptive(minAngle: minAngle, minSize: minSize)

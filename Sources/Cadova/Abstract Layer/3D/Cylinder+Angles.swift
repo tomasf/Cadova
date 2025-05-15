@@ -10,7 +10,7 @@ public extension Cylinder {
     ///
     /// - Parameters:
     ///   - largerDiameter: The diameter at the larger end (top if expanding, bottom if narrowing)
-    ///   - apexAngle: The apex angle (in degrees) between the two slanted sides
+    ///   - apexAngle: The apex angle between the two slanted sides
     ///   - height: The height between the larger and smaller ends
     init(largerDiameter: Double, apexAngle: Angle, height: Double) {
         assert(height > 0, "Cylinder height must be positive")
@@ -39,7 +39,7 @@ public extension Cylinder {
     ///
     /// - Parameters:
     ///   - smallerDiameter: The diameter at the smaller end (bottom if expanding, top if narrowing)
-    ///   - apexAngle: The apex angle (in degrees) between the two slanted sides
+    ///   - apexAngle: The apex angle between the two slanted sides
     ///   - height: The height between the larger and smaller ends
     init(smallerDiameter: Double, apexAngle: Angle, height: Double) {
         assert(height > 0, "Cylinder height must be positive")
@@ -64,7 +64,7 @@ public extension Cylinder {
     /// - Parameters:
     ///   - bottomDiameter: The diameter at the bottom of the cone
     ///   - topDiameter: The diameter at the top of the cone
-    ///   - apexAngle: The apex angle (in degrees) between the two slanted sides
+    ///   - apexAngle: The apex angle between the two slanted sides
     init(bottomDiameter: Double, topDiameter: Double, apexAngle: Angle) {
         assert(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Apex angle is outside valid range 0° < |a| < 180°")
         assert(bottomDiameter >= 0 && topDiameter >= 0, "Diameters must be non-negative")
