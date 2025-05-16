@@ -63,7 +63,7 @@ extension GeometryNode {
 
     static func offset(_ body: D2.Node, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int) -> GeometryNode where D == D2 {
         guard !body.isEmpty else { return .empty }
-        guard fabs(amount) > .ulpOfOne else { return .empty }
+        guard fabs(amount) > .ulpOfOne else { return body }
         return Self(.offset(body, amount: amount, joinStyle: joinStyle, miterLimit: miterLimit, segmentCount: segmentCount))
     }
 
