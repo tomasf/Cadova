@@ -17,17 +17,21 @@ public extension Geometry3D {
     func applyingProfile(_ edgeProfile: EdgeProfile, toBoxEdge edge: Box.Edge) -> any Geometry3D {
         measuring { child, measurements in
             let box = measurements.boundingBox.requireNonNil()
-            let epsilon = 0.01
+            let epsilon = 1e-6
 
-            child.subtracting(edgeProfile.shape()
-                .rotated(edge.profileRotation)
-                .extruded(height: box.size[edge.axis] + 2 * epsilon)
-                .translated(z: -epsilon)
-                .rotated(from: .up, to: edge.axis.direction(.positive))
-                .flipped(across: edge.flippedProfileAxes)
-                .translated(edge.unitOffset * box.size)
-                .translated(box.minimum)
-            )
+            edgeProfile.readingNegativeShape { negativeShape, profileSize in
+                child.subtracting(negativeShape
+                    .translated(x: epsilon, y: epsilon)
+                    .flipped(across: .xy)
+                    .rotated(edge.profileRotation)
+                    .extruded(height: box.size[edge.axis] + 2 * epsilon)
+                    .translated(z: -epsilon)
+                    .rotated(from: .up, to: edge.axis.direction(.positive))
+                    .flipped(across: edge.flippedProfileAxes)
+                    .translated(edge.unitOffset * box.size)
+                    .translated(box.minimum)
+                )
+            }
         }
     }
 

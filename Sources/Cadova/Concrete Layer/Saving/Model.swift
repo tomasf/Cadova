@@ -41,6 +41,8 @@ public struct Model: Sendable {
     ) async {
         self.name = name
 
+        logger.info("Generating \"\(name)\"...")
+
         var mutatingEnvironment = OutputContext.current?.environmentValues ?? .defaultEnvironment
         environmentBuilder?(&mutatingEnvironment)
         let environment = mutatingEnvironment

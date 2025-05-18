@@ -10,32 +10,40 @@ public enum RoundedCornerStyle: Sendable {
 
 internal extension RoundedCornerStyle {
     func polygon(radius: Double, segmentation: EnvironmentValues.Segmentation) -> Polygon {
-        switch self {
-        case .circular: .circleCorner(radius: radius, segmentation: segmentation)
-        case .squircular: .squircleCorner(radius: radius, segmentation: segmentation)
+        let points = switch self {
+        case .circular: Self.circularCornerPoints(radius: radius, segmentation: segmentation)
+        case .squircular: Self.squircularCornerPoints(radius: radius, segmentation: segmentation)
+        }
+        return Polygon(points)
+    }
+
+    static func circularCornerPoints(radius: Double, segmentation: EnvironmentValues.Segmentation) -> [Vector2D] {
+        let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: 90°)
+
+        return (0...segmentCount).map { i -> Vector2D in
+            let angle = Double(i) / Double(segmentCount) * 90°
+            return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
+        }
+    }
+
+    static func squircularCornerPoints(radius: Double, segmentation: EnvironmentValues.Segmentation) -> [Vector2D] {
+        let segmentCount = segmentation.segmentCount(circleRadius: radius) / 4
+        let radius4th = pow(radius, 4.0)
+        let multiplier = Double.pi / 2.0 / Double(segmentCount)
+
+        return (0...segmentCount).map { segment -> Vector2D in
+            let x = cos(multiplier * Double(segment)) * radius
+            let y = pow(radius4th - x * x * x * x, 0.25)
+            return Vector2D(x, y)
         }
     }
 }
 
-fileprivate extension Polygon {
-    static func circleCorner(radius: Double, segmentation: EnvironmentValues.Segmentation) -> Self {
-        let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: 90°)
+internal struct SquircularCorner: Shape2D {
+    let radius: Double
+    @Environment(\.segmentation) private var segmentation
 
-        return Polygon((0...segmentCount).map { i -> Vector2D in
-            let angle = Double(i) / Double(segmentCount) * 90°
-            return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
-        })
-    }
-
-    static func squircleCorner(radius: Double, segmentation: EnvironmentValues.Segmentation) -> Self {
-        let segmentCount = segmentation.segmentCount(circleRadius: radius)
-        let radius4th = pow(radius, 4.0)
-        let multiplier = Double.pi / 2.0 / Double(segmentCount)
-
-        return Polygon((0...segmentCount).map { segment -> Vector2D in
-            let x = cos(multiplier * Double(segment)) * radius
-            let y = pow(radius4th - pow(x, 4.0), 0.25)
-            return Vector2D(x, y)
-        })
+    var body: any Geometry2D {
+        Polygon(RoundedCornerStyle.squircularCornerPoints(radius: radius, segmentation: segmentation) + [.zero])
     }
 }
