@@ -1,11 +1,21 @@
 import Foundation
 
 public protocol Axis: Equatable, Hashable, CaseIterable, Sendable {
+    associatedtype D: Dimensionality where D.Axis == Self
     var index: Int { get }
+}
+
+public extension Axis {
+    /// The unit vector pointing along the axis, in either the positive or negative direction.
+    func direction(_ direction: LinearDirection) -> D.Direction {
+        .init(self, direction)
+    }
 }
 
 /// One of the cartesian axes in two dimensions (X or Y)
 public enum Axis2D: Int, Axis {
+    public typealias D = D2
+
     case x
     case y
 
@@ -14,17 +24,14 @@ public enum Axis2D: Int, Axis {
 
 /// An enumeration representing the three Cartesian axes in a three-dimensional space: X, Y, and Z.
 public enum Axis3D: Int, Axis {
+    public typealias D = D3
+
     case x
     case y
     case z
 
     public init(_ axis: Axis2D) {
         self.init(rawValue: axis.rawValue)!
-    }
-
-    /// The unit vector pointing along the axis, in either the positive or negative direction.
-    func direction(_ direction: LinearDirection) -> Direction3D {
-        Direction3D(Vector3D(self, value: direction.factor))
     }
 
     /// The other two axes that are orthogonal to this axis.

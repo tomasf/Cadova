@@ -24,6 +24,32 @@ public func tan(_ angle: Angle) -> Double {
     tan(angle.radians)
 }
 
+/// Calculate the secant of an angle (1 / cosine).
+///
+/// - Parameter angle: The angle for which to calculate the secant.
+/// - Returns: The secant of the given angle.
+public func sec(_ angle: Angle) -> Double {
+    1 / cos(angle)
+}
+
+/// Calculate the cosecant of an angle (1 / sine).
+///
+/// - Parameter angle: The angle for which to calculate the cosecant.
+/// - Returns: The cosecant of the given angle.
+public func csc(_ angle: Angle) -> Double {
+    1 / sin(angle)
+}
+
+/// Calculate the cotangent of an angle (1 / tangent).
+///
+/// - Parameter angle: The angle for which to calculate the cotangent.
+/// - Returns: The cotangent of the given angle.
+public func cot(_ angle: Angle) -> Double {
+    1 / tan(angle)
+}
+
+// - MARK: Inverse
+
 /// Calculate the arcsine of a value.
 ///
 /// - Parameter value: The value for which to calculate the arcsine.
@@ -59,4 +85,28 @@ public func atan(_ value: Double) -> Angle {
 ///
 public func atan2(_ y: Double, _ x: Double) -> Angle {
     Angle(radians: atan2(y, x))
+}
+
+/// Calculate the arcsecant (inverse of secant) of a value.
+///
+/// - Parameter value: The value for which to calculate the arcsecant.
+/// - Returns: The angle whose secant is the given value.
+public func asec(_ value: Double) -> Angle {
+    Angle(radians: acos(1 / value))
+}
+
+/// Calculate the arccosecant (inverse of cosecant) of a value.
+///
+/// - Parameter value: The value for which to calculate the arccosecant.
+/// - Returns: The angle whose cosecant is the given value.
+public func acsc(_ value: Double) -> Angle {
+    Angle(radians: asin(1 / value))
+}
+
+/// Calculate the arccotangent (inverse of cotangent) of a value.
+///
+/// - Parameter value: The value for which to calculate the arccotangent.
+/// - Returns: The angle whose cotangent is the given value.
+public func acot(_ value: Double) -> Angle {
+    Angle(radians: atan(1 / value))
 }

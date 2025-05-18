@@ -67,6 +67,21 @@ public extension Plane {
         self.init(offset: direction.unitVector * offset, normal: direction)
     }
 
+    /// Initializes a plane at a given side of a bounding box, with an optional offset.
+    ///
+    /// The plane is perpendicular to the given side's axis and passes through the box's corresponding face, offset by a specified amount.
+    ///
+    /// - Parameters:
+    ///   - side: The directional axis (axis + direction) the plane is perpendicular to.
+    ///   - box: The bounding box to use as a reference.
+    ///   - offset: An additional distance to offset the plane from the box's face, in the same direction as the side.
+    init(side: DirectionalAxis<D3>, on box: BoundingBox3D, offset: Double = 0) {
+        self.init(
+            offset: .init(side.axis, value: box[side.axis, side.axisDirection] + offset * side.axisDirection.factor),
+            normal: side.direction
+        )
+    }
+
     /// Creates a plane perpendicular to the X-axis.
     static func x(_ offset: Double) -> Self {
         .init(perpendicularTo: .x, at: offset)

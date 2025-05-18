@@ -1,109 +1,133 @@
 import Foundation
+import Manifold3D
 
-/// The profile of an edge
+/// A profile used to modify the edge of a 3D shape, such as for chamfers or fillets.
+///
+/// The profile is defined in 2D, where:
+/// - The X axis is horizontal; negative X points inward, positive X outward from the edge
+/// - The Y axis is vertical; positive Y points outward from the edge face
+///
 public struct EdgeProfile: Sendable {
-    private let profileShape: any EdgeProfileShape
+    public let profile: any Geometry2D
 
-    internal init(_ profileShape: any EdgeProfileShape) {
-        self.profileShape = profileShape
-    }
-
-    /// Generates a shape for edge modification, suitable for extrusion along an edge to customize its profile.
+    /// Creates a new edge profile.
+    /// - Parameter profile: A 2D geometry builder describing the profile cross-section.
+    ///   The profile is automatically aligned so that its bottom-right corner is at the origin.
     ///
-    /// This method creates a 2D shape, designed for altering edges by extruding this shape along the edge's path. The extruded shape can be utilized to modify a 3D object’s edges by either adding to or subtracting from it:
-    /// - For exterior edges, subtract the extruded shape to mitigate sharpness or create a beveled effect.
-    /// - For interior edges, add the extruded shape to expand it.
-    ///
-    /// - Parameter angle: specifies the edge's angle. This makes the shape align with the geometry of the edge being modified.
-    public func shape(angle: Angle = 90°) -> any Geometry2D {
-        profileShape.shape(angle: angle)
-    }
-
-    public var width: Double { profileShape.size.x }
-    public var height: Double { profileShape.size.y }
-}
-
-public extension EdgeProfile {
-    /// Represents an edge modified to be rounded with an elliptic shape
-    ///   - width: The horizontal distance from the original edge to the fillet's farthest point, determining the fillet's depth.
-    ///   - height: The vertical height from the base of the edge to the top of the fillet.
-    static func fillet(width: Double, height: Double) -> EdgeProfile {
-        .init(Fillet(width: width, height: height))
-    }
-
-    /// Represents an edge modified to be rounded.
-    /// - Parameter radius: The radius of the curvature applied to the edge, determining the degree of roundness.
-    static func fillet(radius: Double) -> EdgeProfile {
-        .fillet(width: radius, height: radius)
-    }
-}
-
-public extension EdgeProfile {
-    /// Represents an edge that is chamfered, creating a beveled effect by cutting off the edge at a flat angle.
-    /// - Parameters:
-    ///   - width: The horizontal distance from the original edge to the chamfer's farthest point, determining the chamfer's depth.
-    ///   - height: The vertical height from the base of the edge to the top of the chamfer.
-    static func chamfer(width: Double, height: Double) -> EdgeProfile {
-        .init(Chamfer(width: width, height: height))
-    }
-
-    /// A 45° chamfered edge
-    static func chamfer(size: Double) -> EdgeProfile {
-        .chamfer(width: size, height: size)
-    }
-
-    /// A chamfered edge with a given width and angle
-    /// - Parameters:
-    ///   - width: The depth of the chamfer in the X/Y axes
-    ///   - angle: An angle between 0° and 90°, measured from the top of the extrusion
-    static func chamfer(width: Double, angle: Angle) -> EdgeProfile {
-        assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
-        return .chamfer(width: width, height: width * tan(angle))
-    }
-
-    /// A chamfered edge with a given height and angle
-    /// - Parameters:
-    ///   - height: The depth of the chamfer in the Z axis
-    ///   - angle: An angle between 0° and 90°, measured from the top of the extrusion
-    static func chamfer(height: Double, angle: Angle) -> EdgeProfile {
-        assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
-        return .chamfer(width: height / tan(angle), height: height)
-    }
-}
-
-public extension EdgeProfile {
-    /// Represents an edge that combines a rounded fillet with a straight chamfer near the top or bottom.
-    /// Useful for 3D printing where bottom edges can't have too much overhang.
-    /// - Parameters:
-    ///   - radius: The radius of the curvature applied to the edge.
-    ///   - overhang: The angle of the straight chamfer near the top or bottom.
-    static func chamferedFillet(radius: Double, overhang: Angle = 45°) -> EdgeProfile {
-        .init(ChamferedFillet(radius: radius, overhang: overhang))
-    }
-}
-
-public extension EdgeProfile {
-    /// Methods for building an extruded shape with modified edges
-    enum Method: Sendable {
-        /// Divide the extrusion into distinct layers with a given thickness. While less elegant and more expensive to render, it is suitable for non-convex shapes. Layers work well for 3D printing, as the printing process inherently occurs in layers.
-        case layered (height: Double)
-        /// Create a smooth, non-layered shape. It is often computationally less intensive and results in a more aesthetically pleasing form but only works as expected for convex shapes.
-        case convexHull
+    public init(@GeometryBuilder2D profile: () -> any Geometry2D) {
+        self.profile = profile().aligned(at: .max)
     }
 }
 
 internal extension EdgeProfile {
-    func mask(shape: any Geometry2D, extrusionHeight: Double, method: EdgeProfile.Method) -> any Geometry3D {
-        profileShape.mask(shape: shape, extrusionHeight: extrusionHeight, method: method)
+    func readingNegativeShape<D: Dimensionality>(
+        @GeometryBuilder<D> reader: @Sendable @escaping (_ negativeProfile: any Geometry2D, _ size: Vector2D) -> D.Geometry
+    ) -> D.Geometry {
+        profile.measuringBounds { shape, bounds in
+            let negativeShape = Rectangle(bounds.size)
+                .aligned(at: .max)
+                .subtracting { shape }
+
+            reader(negativeShape, bounds.size)
+        }
     }
 
-    func negativeMask(shape: any Geometry2D, method: EdgeProfile.Method) -> any Geometry3D {
-        shape
-            .offset(amount: 0.01, style: .round)
-            .extruded(height: height + 0.01)
-            .subtracting {
-                profileShape.mask(shape: shape, extrusionHeight: height, method: method)
+    func negativeMask(for shape: any Geometry2D) -> any Geometry3D {
+        readingNegativeShape { negativeShape, profileSize in
+            let universeLength = 1e5
+
+            let unitProfile = negativeShape.extruded(height: 1.0)
+                .rotated(x: 90°, z: -90°)
+                .translated(x: 1, y: -0.000001, z: 0.00002)
+
+            shape.readingPrimitive { crossSection in
+                let polygons = crossSection.polygonList()
+
+                return polygons.polygons.mapUnion { polygon in
+                    for (a, b) in polygon.vertices.wrappedPairs() {
+                        unitProfile.scaled(x: (b - a).magnitude + 0.000001)
+                            .rotated(z: a.angle(to: b))
+                            .translated(Vector3D(a, z: 0))
+                    }
+
+                    for (a, b, c) in polygon.vertices.wrappedTriplets() {
+                        let cb = c - b
+                        let ab = a - b
+
+                        // Inward corner; extended chamfers
+                        if ab × cb > 0 {
+                            let angle: Angle = acos(
+                                ((ab ⋅ cb) / (ab.magnitude * cb.magnitude)).clamped(to: -1.0...1.0)
+                            )
+
+                            // Distance from vertex to where the innermost part of chamfers meet
+                            let inset = profileSize.x * cot(angle / 2)
+
+                            // Left side extension
+                            unitProfile.scaled(x: inset + 1)
+                                .translated(x: -0.001)
+                                .rotated(z: a.angle(to: b))
+                                .translated(Vector3D(b, z: 0))
+                                .intersecting {
+                                    // Mask to left of vertex
+                                    Box(universeLength)
+                                        .translated(y: -0.002)
+                                        .rotated(z: angle / 2)
+                                        .rotated(z: a.angle(to: b))
+                                        .translated(Vector3D(b, z: -profileSize.y))
+                                }
+
+                            // Right side extension
+                            unitProfile.scaled(x: inset + 1.001)
+                                .translated(x: -inset - 1)
+                                .rotated(z: b.angle(to: c))
+                                .translated(Vector3D(b, z: 0))
+                                .subtracting {
+                                    // Mask to right of vertex
+                                    Box(universeLength)
+                                        .translated(y: 0.002)
+                                        .rotated(z: angle / 2)
+                                        .rotated(z: a.angle(to: b))
+                                        .translated(Vector3D(b, z: -profileSize.y))
+                                }
+                        }
+                    }
+                }
             }
-            .translated(z: -height)
+        }
+    }
+}
+
+public extension Geometry3D {
+    /// Applies an edge profile to a specified side of the 3D geometry.
+    /// - Parameters:
+    ///   - edgeProfile: The edge profile to apply.
+    ///   - side: The side of the bounding box to which the profile should be applied.
+    /// - Returns: A new geometry with the edge profile applied on the given side.
+    ///
+    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to side: DirectionalAxis<D3>) -> any Geometry3D {
+        edgeProfile.profile.measuringBounds { _, profileBounds in
+            measuringBounds { body, bounds in
+                let plane = Plane(side: side, on: bounds, offset: -profileBounds.size.y)
+                applyingEdgeProfile(edgeProfile, at: plane)
+            }
+        }
+    }
+
+    /// Applies an edge profile at a specified plane in 3D space.
+    /// - Parameters:
+    ///   - edgeProfile: The edge profile to apply.
+    ///   - plane: The plane at which to apply the profile.
+    /// - Returns: A new geometry with the edge profile applied at the given plane.
+    ///
+    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, at plane: Plane) -> any Geometry3D {
+        edgeProfile.profile.measuringBounds { _, profileBounds in
+            transformed(plane.transform.inverse).subtracting {
+                edgeProfile
+                    .negativeMask(for: sliced(along: plane))
+                    .translated(z: profileBounds.size.y)
+            }
+            .transformed(plane.transform)
+        }
     }
 }

@@ -55,3 +55,30 @@ public typealias AffineTransform2D = Transform2D
 
 @available(*, deprecated, renamed: "Transform3D")
 public typealias AffineTransform3D = Transform3D
+
+public extension EdgeProfile {
+    @available(*, deprecated, renamed: "fillet(depth:height:)")
+    func fillet(width: Double, height: Double) -> Self {
+        .fillet(depth: width, height: height)
+    }
+
+    @available(*, deprecated, renamed: "chamfer(depth:height:)")
+    static func chamfer(width: Double, height: Double) -> Self {
+        .chamfer(depth: width, height: height)
+    }
+
+    @available(*, deprecated, renamed: "chamfer(depth:angle:)")
+    static func chamfer(width: Double, angle: Angle) -> Self {
+        .chamfer(depth: width, angle: angle)
+    }
+
+    @available(*, deprecated, renamed: "fillet(depth:)")
+    static func chamfer(size: Double) -> Self {
+        .chamfer(depth: size)
+    }
+
+    @available(*, deprecated, renamed: "overhangFillet(radius:)")
+    static func chamferedFillet(radius: Double, overhang: Angle = 45°) -> EdgeProfile {
+        .overhangFillet(radius: radius)
+    }
+}

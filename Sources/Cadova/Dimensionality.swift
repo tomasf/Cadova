@@ -7,7 +7,7 @@ public protocol Dimensionality {
 
     associatedtype Vector: Cadova.Vector where Vector.D == Self
     associatedtype Transform: Cadova.Transform where Transform.D == Self
-    associatedtype Axis: Cadova.Axis
+    associatedtype Axis: Cadova.Axis where Axis.D == Self
 
     typealias Axes = Set<Axis>
     typealias Line = Cadova.Line<Self>
