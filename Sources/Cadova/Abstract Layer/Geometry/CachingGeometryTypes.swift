@@ -210,3 +210,26 @@ struct CachingTransformer<D: Dimensionality, Input: Dimensionality>: Geometry {
         }
     }
 }
+
+struct CachedNode<D: Dimensionality>: Geometry {
+    let key: NamedCacheKey
+    let generator: @Sendable (EnvironmentValues, EvaluationContext) async -> D.Node
+
+    init(name: String, parameters: any CacheKey..., generator: @Sendable @escaping (EnvironmentValues, EvaluationContext) async -> D.Node) {
+        self.key = NamedCacheKey(operationName: name, parameters: parameters)
+        self.generator = generator
+    }
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
+        if await context.hasCachedResult(for: key, with: D.self) {
+            return D.BuildResult(.materialized(cacheKey: OpaqueKey(key)))
+
+        } else {
+            let outputNode = await generator(environment, context)
+            let nodeResult = await context.result(for: outputNode)
+
+            let node = await context.storeMaterializedResult(nodeResult, key: key) as D.Node
+            return D.BuildResult(node)
+        }
+    }
+}
