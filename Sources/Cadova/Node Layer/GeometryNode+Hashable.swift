@@ -147,9 +147,9 @@ extension GeometryNode.PrimitiveShape2D {
             hasher.combine(Kind.circle)
             hasher.combine(radius.roundedForHash)
             hasher.combine(segments)
-        case .polygon(let points, let fillRule):
+        case .polygons(let list, let fillRule):
             hasher.combine(Kind.polygon)
-            hasher.combine(points)
+            hasher.combine(list)
             hasher.combine(fillRule)
         case .convexHull(let points):
             hasher.combine(Kind.convexHull)
@@ -161,10 +161,10 @@ extension GeometryNode.PrimitiveShape2D {
         switch (lhs, rhs) {
         case let (.rectangle(a), .rectangle(b)): a == b
         case let (.circle(ra, sa), .circle(rb, sb)): ra.roundedForHash == rb.roundedForHash && sa == sb
-        case let (.polygon(pa, fa), .polygon(pb, fb)): pa == pb && fa == fb
+        case let (.polygons(la, fa), .polygons(lb, fb)): la == lb && fa == fb
         case let (.convexHull(pa), .convexHull(pb)): pa == pb
 
-        case (.rectangle, _), (.circle, _), (.polygon, _), (.convexHull, _): false
+        case (.rectangle, _), (.circle, _), (.polygons, _), (.convexHull, _): false
         }
     }
 }

@@ -5,7 +5,7 @@ extension GeometryNode {
     public enum PrimitiveShape2D: Hashable, Sendable, Codable {
         case rectangle (size: Vector2D)
         case circle (radius: Double, segmentCount: Int)
-        case polygon (points: [Vector2D], fillRule: FillRule)
+        case polygons (SimplePolygonList, fillRule: FillRule)
         case convexHull (points: [Vector2D])
     }
 
@@ -30,9 +30,9 @@ extension GeometryNode.PrimitiveShape2D {
             guard radius >= 0 else { return .empty }
             return CrossSection.circle(radius: radius, segmentCount: segmentCount)
 
-        case .polygon (let points, let fillRule):
-            guard points.count >= 3 else { return .empty }
-            return CrossSection(polygons: [Manifold3D.Polygon(vertices: points)], fillRule: fillRule.manifoldRepresentation)
+        case .polygons (let list, let fillRule):
+            guard list.count > 0 else { return .empty }
+            return CrossSection(polygons: list.polygons.map(\.manifoldPolygon), fillRule: fillRule.manifoldRepresentation)
 
         case .convexHull (let points):
             guard points.count >= 3 else { return .empty }

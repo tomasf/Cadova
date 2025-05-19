@@ -64,9 +64,11 @@ extension GeometryNode.PrimitiveShape2D {
             String(format: "rectangle(x: %g, y: %g)", size.x, size.y)
         case .circle(let radius, let segmentCount):
             String(format: "circle(radius: %g, segments: %d)", radius, segmentCount)
-        case .polygon(let points, let fillRule):
-            String(format: "polygon(fillRule: %@) { %@ }", String(describing: fillRule), points.map {
-                String(format: "[%g, %g]", $0.x, $0.y)
+        case .polygons(let list, let fillRule):
+            String(format: "polygons(fillRule: %@) { %@ }", String(describing: fillRule), list.polygons.map {
+                "{" + $0.vertices.map {
+                    String(format: "[%g, %g]", $0.x, $0.y)
+                }.joined(separator: ", ") + "}"
             }.joined(separator: ", "))
         case .convexHull(let points):
             String(format: "hull { %@ }", points.map {

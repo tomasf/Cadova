@@ -46,7 +46,8 @@ public struct Polygon: CompositeGeometry {
     @Environment private var environment
 
     public var body: any Geometry2D {
-        NodeBasedGeometry(.shape(.polygon(points: points(in: environment), fillRule: fillRule)))
+        let polygonList = SimplePolygonList([SimplePolygon(points(in: environment))])
+        return NodeBasedGeometry(.shape(.polygons(polygonList, fillRule: fillRule)))
     }
 }
 
