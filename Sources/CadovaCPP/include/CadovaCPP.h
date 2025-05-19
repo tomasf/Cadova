@@ -1,4 +1,5 @@
 #include "manifold/cross_section.h"
+#include "manifold/manifold.h"
 //#include <swift/bridging>
 
 // This is from swift/bridging
@@ -36,4 +37,9 @@ public:
     }
 } SWIFT_UNSAFE_REFERENCE;
 
+void BulkReadMesh(const manifold::Manifold& man,
+                  void(^propertyReader)(const double *const values, size_t vertexCount, size_t propertyCount), // count of values is vertexCount * propertyCount
+                  void(^triangleReader)(const uint64_t *const values, size_t count), // count of values is count * 3
+                  void(^originalIDReader)(const uint64_t *const runIndex, size_t runIndexCount, const uint32_t *const runOriginalIDs, size_t originalIDCount) // counts are actual
+                  );
 }
