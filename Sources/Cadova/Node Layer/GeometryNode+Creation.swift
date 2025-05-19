@@ -100,7 +100,7 @@ extension GeometryNode.PrimitiveShape2D {
         switch self {
         case .rectangle(let size): size.x <= 0 || size.y <= 0
         case .circle(let radius, _): radius <= 0
-        case .polygon(let points, _): points.count < 3
+        case .polygons(let list, _): list.count == 0
         case .convexHull(let points): points.count < 3
         }
     }
