@@ -2,6 +2,7 @@ import Foundation
 import Manifold3D
 import ThreeMF
 import Zip
+import CadovaCPP
 
 extension MeshGL: @retroactive @unchecked Sendable {}
 
@@ -23,7 +24,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     private struct PartData {
         let id: PartIdentifier
-        let mesh: MeshGL
+        let manifold: Manifold
         let materials: [Manifold.OriginalID: Material]
     }
 
@@ -56,10 +57,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var uniqueIdentifiers: Set<String> = []
 
         for part in parts {
-            let triangleOIDs = TriangleOIDMapping(indexSets: part.mesh.originalIDs)
+            let (vertices, manifoldTriangles, originalIDs) = part.manifold.readMesh()
+
+            let triangleOIDs = TriangleOIDMapping(indexSets: originalIDs)
             let propertyReferencesByOID = part.materials.mapValues(addMaterial)
 
-            let triangles = part.mesh.triangles.enumerated().map { index, t in
+            let triangles = manifoldTriangles.enumerated().map { index, t in
                 let originalID = triangleOIDs.originalID(for: index)
                 let materialProperty = originalID.flatMap { propertyReferencesByOID[$0] }
 
@@ -72,7 +75,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
             let defaultProperty = addMaterial(part.id.defaultMaterial)
 
-            let mesh = ThreeMF.Mesh(vertices: part.mesh.vertices.map(\.threeMFVector), triangles: triangles)
+            let mesh = ThreeMF.Mesh(vertices: vertices.map(\.threeMFVector), triangles: triangles)
             let object = ThreeMF.Object(
                 id: nextObjectID(),
                 type: .model,
@@ -135,13 +138,13 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
                 return PartData(
                     id: partIdentifier,
-                    mesh: nodeResult.concrete.meshGL(),
+                    manifold: nodeResult.concrete,
                     materials: nodeResult.materialMapping
                 )
             }
             .sorted(by: { $0.id.hashValue < $1.id.hashValue })
         } results: { duration, meshData in
-            let triangleCount = meshData.map { $0.mesh.triangleCount }.reduce(0, +)
+            let triangleCount = meshData.map { $0.manifold.triangleCount }.reduce(0, +)
             logger.debug("Built meshes with \(triangleCount) triangles in \(duration)")
         }
 

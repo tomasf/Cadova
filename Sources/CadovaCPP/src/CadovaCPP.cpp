@@ -60,4 +60,22 @@ void PolygonNode::Destroy(const PolygonNode* node) {
     delete node;
 }
 
+void BulkReadMesh(const manifold::Manifold& man,
+                  void(^propertyReader)(const double *const values, size_t vertexCount, size_t propertyCount),
+                  void(^triangleReader)(const uint64_t *const values, size_t count),
+                  void(^originalIDReader)(const uint64_t *const runIndex, size_t runIndexCount, const uint32_t *const runOriginalIDs, size_t originalIDCount)) {
+
+    auto mesh = man.GetMeshGL64();
+
+    if (propertyReader != NULL) {
+        propertyReader(mesh.vertProperties.data(), mesh.NumVert(), mesh.numProp);
+    }
+    if (triangleReader != NULL) {
+        triangleReader(mesh.triVerts.data(), mesh.NumTri());
+    }
+    if (originalIDReader != NULL) {
+        originalIDReader(mesh.runIndex.data(), mesh.runIndex.size(), mesh.runOriginalID.data(), mesh.runOriginalID.size());
+    }
+}
+
 }
