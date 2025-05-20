@@ -108,4 +108,8 @@ extension SimplePolygon {
             a + (b - a) * t
         })
     }
+
+    func transformed(_ transform: Transform2D) -> Self {
+        Self(vertices.map { transform.apply(to: $0) })
+    }
 }
