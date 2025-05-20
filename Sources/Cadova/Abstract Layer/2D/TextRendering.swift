@@ -1,7 +1,9 @@
 import Foundation
 import freetype
+import FindFont
 
 internal enum TextError: Error {
+    case fontNotFound (family: String, style: String?)
     case freeTypeInitializationFailure
     case fontLoadingFailed
 }
@@ -12,17 +14,19 @@ extension TextAttributes {
             preconditionFailure("render(text:) called on unresolved TextAttributes")
         }
 
-        guard let fontURL = fontFile else {
-            preconditionFailure("Font finding is not supported yet")
+        let fontData: Data
+        if let fontFile {
+            fontData = try! Data(contentsOf: fontFile)
+        } else {
+            guard let data = try FontRepository.dataForFont(family: family, style: fontFace?.style) else {
+                throw TextError.fontNotFound(family: family, style: fontFace?.style)
+            }
+            fontData = data
         }
 
         var library: FT_Library?
         guard FT_Init_FreeType(&library) == 0, let library else {
             throw TextError.freeTypeInitializationFailure
-        }
-
-        guard let fontData = try? Data(contentsOf: fontURL) else {
-            throw TextError.fontLoadingFailed
         }
 
         var face: FT_Face?

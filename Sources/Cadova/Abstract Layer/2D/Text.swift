@@ -18,7 +18,7 @@ public struct Text: Shape2D {
         CachedNode(name: "text", parameters: content, attributes, segmentation) { environment, context in
             #warning("TODO: handle error")
             do {
-                let polygons = (try? attributes.render(text: content, in: environment)) ?? .init()
+                let polygons = try attributes.render(text: content, in: environment)
                 return .shape(.polygons(polygons, fillRule: .nonZero))
             } catch {
                 fatalError("Error: \(error)")
