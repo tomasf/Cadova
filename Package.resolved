@@ -1,5 +1,5 @@
 {
-  "originHash" : "97c18c5f4184b510346917905ae80163be958f262f4a1fb88cb0607245c7354c",
+  "originHash" : "f3981b2c03c3c914333f24879bafd6505ca11d936e7708d0c391721f279180a5",
   "pins" : [
     {
       "identity" : "findfont",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/tomasf/FindFont.git",
       "state" : {
         "branch" : "main",
-        "revision" : "91aa974741f0d01da1cd5a4c432cbf8078344598"
+        "revision" : "8764018ff6e25c928175d5170b53df543acceb86"
       }
     },
     {
