@@ -19,7 +19,6 @@ struct Geometry2DTests {
         .expectEquals(goldenFile: "2d/basics")
     }
 
-
     @Test func circular() async throws {
         try await Union {
             Circle(diameter: 8)
