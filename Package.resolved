@@ -1,6 +1,15 @@
 {
-  "originHash" : "b8ae770f07543025be9d0d8370bcf560d614d37471b67ccc9a3f2305977cb345",
+  "originHash" : "97c18c5f4184b510346917905ae80163be958f262f4a1fb88cb0607245c7354c",
   "pins" : [
+    {
+      "identity" : "findfont",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tomasf/FindFont.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "91aa974741f0d01da1cd5a4c432cbf8078344598"
+      }
+    },
     {
       "identity" : "freetype-spm",
       "kind" : "remoteSourceControl",
