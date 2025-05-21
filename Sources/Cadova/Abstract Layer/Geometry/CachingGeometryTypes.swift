@@ -11,7 +11,7 @@ internal struct IndexedCacheKey<Key: CacheKey>: CacheKey {
 }
 
 // Boxes a geometry tree behind a freestanding cache key, avoiding both node building
-// and primitive generation
+// and concrete generation
 
 struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey, ID: Dimensionality>: Geometry {
     let key: Key
@@ -49,9 +49,9 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey, ID: Dimensionality>
     }
 }
 
-// Caches a leaf primitive
+// Caches a leaf concrete
 
-struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
+struct CachedConcrete<D: Dimensionality, Key: CacheKey>: Geometry {
     let key: Key
     let generator: @Sendable () async -> D.Concrete
 
@@ -73,9 +73,9 @@ struct CachingPrimitive<D: Dimensionality, Key: CacheKey>: Geometry {
     }
 }
 
-// Apply an arbitrary transformation to a body's primitive, cached based on node + key
+// Apply an arbitrary transformation to a body's concrete, cached based on node + key
 
-struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
+struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
     let key: Key
     let generator: @Sendable (D.Concrete) -> D.Concrete
@@ -111,10 +111,10 @@ struct CachingPrimitiveTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     }
 }
 
-// Apply an arbitrary transformation to a body's primitive, returning a variable number
-// of resulting primitives, individually cached based on node + key + index
+// Apply an arbitrary transformation to a body's concrete, returning a variable number
+// of resulting concretes, individually cached based on node + key + index
 
-struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
+struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
     let key: Key
     let generator: @Sendable (D.Concrete) -> [D.Concrete]
@@ -168,11 +168,11 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
 
         } else {
             let nodeResult = await context.result(for: bodyResult.node)
-            let primitives = generator(nodeResult.concrete)
+            let concretes = generator(nodeResult.concrete)
 
-            geometries = await Array(primitives.enumerated()).asyncMap { index, primitive in
+            geometries = await Array(concretes.enumerated()).asyncMap { index, concrete in
                 let indexedKey = IndexedCacheKey(base: key, index: index)
-                let node: D.Node = await context.storeMaterializedResult(nodeResult.modified { _ in primitive }, key: indexedKey)
+                let node: D.Node = await context.storeMaterializedResult(nodeResult.modified { _ in concrete }, key: indexedKey)
                 return bodyResult.replacing(node: node)
             }
         }
@@ -183,7 +183,7 @@ struct CachingPrimitiveArrayTransformer<D: Dimensionality, Key: CacheKey>: Geome
 
 // Apply an arbitrary transformation to a node, cached based on node + key
 
-struct CachingTransformer<D: Dimensionality, Input: Dimensionality>: Geometry {
+struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry {
     let body: Input.Geometry
     let key: NamedCacheKey
     let generator: @Sendable (Input.Node, EnvironmentValues, EvaluationContext) async -> D.Node

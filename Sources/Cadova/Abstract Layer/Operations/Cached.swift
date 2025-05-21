@@ -4,7 +4,7 @@ extension Geometry {
     /// Caches this geometry under a specified name and optional parameters.
     ///
     /// Use this method to optimize complex or expensive geometry by wrapping it in a caching layer.
-    /// Caching helps avoid redundant computation of both the geometry node and the underlying primitive data.
+    /// Caching helps avoid redundant computation of both the geometry node and the underlying geometric data.
     ///
     /// The operation is cached based on the supplied `name` and `parameters`. If the same
     /// combination of name and cache parameters has been previously evaluated, the cached result is reused

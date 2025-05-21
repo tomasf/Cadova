@@ -72,7 +72,7 @@ public extension Geometry2D {
         }
 
         return readEnvironment { environment in
-            readingPrimitive { crossSection in
+            readingConcrete { crossSection in
                 Mesh(extruding: crossSection.polygonList(), along: expandedPath)
             }
         }

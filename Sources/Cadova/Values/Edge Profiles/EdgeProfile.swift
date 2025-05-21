@@ -40,7 +40,7 @@ internal extension EdgeProfile {
                 .rotated(x: 90°, z: -90°)
                 .translated(x: 1, y: -0.000001, z: 0.00002)
 
-            shape.readingPrimitive { crossSection in
+            shape.readingConcrete { crossSection in
                 let polygons = crossSection.polygonList()
 
                 return polygons.polygons.mapUnion { polygon in

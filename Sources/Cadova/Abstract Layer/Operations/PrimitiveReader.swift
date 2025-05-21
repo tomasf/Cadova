@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-internal struct ReadPrimitive<Input: Dimensionality, Output: Dimensionality>: Geometry {
+internal struct ReadConcrete<Input: Dimensionality, Output: Dimensionality>: Geometry {
     let body: Input.Geometry
     let action: @Sendable (Input.Concrete, Input.BuildResult) -> Output.Geometry
 
@@ -13,19 +13,19 @@ internal struct ReadPrimitive<Input: Dimensionality, Output: Dimensionality>: Ge
 }
 
 internal extension Geometry {
-    // Primtive + Result
-    func readingPrimitive<Output: Dimensionality>(
+    // Concrete + Result
+    func readingConcrete<Output: Dimensionality>(
         _ action: @Sendable @escaping (D.Concrete, D.BuildResult) -> Output.Geometry
     ) -> Output.Geometry {
-        ReadPrimitive(body: self, action: action)
+        ReadConcrete(body: self, action: action)
     }
 
-    // Primitive only
-    func readingPrimitive<Output: Dimensionality>(
+    // Concrete only
+    func readingConcrete<Output: Dimensionality>(
         _ action: @Sendable @escaping (D.Concrete) -> Output.Geometry
     ) -> Output.Geometry {
-        readingPrimitive { primitive, _ in
-            action(primitive)
+        readingConcrete { concrete, _ in
+            action(concrete)
         }
     }
 }
