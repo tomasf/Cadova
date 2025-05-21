@@ -39,8 +39,8 @@ public struct EvaluationResult<D: Dimensionality>: Sendable {
         self.materialMapping = merged
     }
 
-    func modified(_ action: (D.Concrete) -> D.Concrete) -> Self {
-        .init(concrete: action(concrete), materialMapping: materialMapping)
+    func modified(_ action: (D.Concrete) throws -> D.Concrete) rethrows -> Self {
+        .init(concrete: try action(concrete), materialMapping: materialMapping)
     }
 
     func applyingMaterial(_ material: Material) -> Self where D == D3 {

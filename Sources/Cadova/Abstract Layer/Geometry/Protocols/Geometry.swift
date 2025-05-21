@@ -2,7 +2,7 @@ import Foundation
 
 public protocol Geometry<D>: Sendable {
     associatedtype D: Dimensionality
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult
 }
 
 /// Two-dimensional geometry.

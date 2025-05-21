@@ -5,10 +5,10 @@ internal struct ReadConcrete<Input: Dimensionality, Output: Dimensionality>: Geo
     let body: Input.Geometry
     let action: @Sendable (Input.Concrete, Input.BuildResult) -> Output.Geometry
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> Output.BuildResult {
-        let bodyResult = await body.build(in: environment, context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
+        let bodyResult = try await body.build(in: environment, context: context)
         let nodeResult = await context.result(for: bodyResult.node)
-        return await action(nodeResult.concrete, bodyResult).build(in: environment, context: context)
+        return try await action(nodeResult.concrete, bodyResult).build(in: environment, context: context)
     }
 }
 

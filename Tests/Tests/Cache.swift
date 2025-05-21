@@ -104,7 +104,7 @@ fileprivate struct CallbackGeometry: Geometry {
 
     let callback: @Sendable () async -> ()
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D3.BuildResult {
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         await callback()
         return .init(.empty)
     }

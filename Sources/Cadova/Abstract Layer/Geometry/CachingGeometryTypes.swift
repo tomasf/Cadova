@@ -28,10 +28,10 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey, ID: Dimensionality>
         self.init(key: NamedCacheKey(operationName: operationName, parameters: parameters), geometry: nil, generator: generator)
     }
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         let bakedKey: any CacheKey
         if let geometry {
-            let node = await geometry.build(in: environment, context: context).node
+            let node = try await geometry.build(in: environment, context: context).node
             bakedKey = NodeCacheKey(base: key, node: node)
         } else {
             bakedKey = key
@@ -41,7 +41,7 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey, ID: Dimensionality>
             let resultElements = await context.resultElements(for: bakedKey) ?? [:]
             return D.BuildResult(cacheKey: bakedKey, elements: resultElements)
         } else {
-            let results = await generator().build(in: environment, context: context)
+            let results = try await generator().build(in: environment, context: context)
             let nodeResults = await context.result(for: results.node)
             await context.setResultElements(results.elements, for: bakedKey)
             return await results.replacing(node: context.storeMaterializedResult(nodeResults, key: bakedKey))
@@ -53,22 +53,22 @@ struct CachedBoxedGeometry<D: Dimensionality, Key: CacheKey, ID: Dimensionality>
 
 struct CachedConcrete<D: Dimensionality, Key: CacheKey>: Geometry {
     let key: Key
-    let generator: @Sendable () async -> D.Concrete
+    let generator: @Sendable () async throws -> D.Concrete
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         if await context.hasCachedResult(for: key, with: D.self) {
             D.BuildResult(cacheKey: key, elements: [:])
         } else {
-            await D.BuildResult(context.storeMaterializedResult(D.Node.Result(generator()), key: key))
+            try await D.BuildResult(context.storeMaterializedResult(D.Node.Result(generator()), key: key))
         }
     }
 
-    init(key: Key, generator: @Sendable @escaping () async -> D.Concrete) {
+    init(key: Key, generator: @Sendable @escaping () async throws -> D.Concrete) {
         self.key = key
         self.generator = generator
     }
 
-    init(name: String, parameters: any CacheKey..., generator: @Sendable @escaping () async -> D.Concrete) where Key == NamedCacheKey {
+    init(name: String, parameters: any CacheKey..., generator: @Sendable @escaping () async throws -> D.Concrete) where Key == NamedCacheKey {
         self.init(key: NamedCacheKey(operationName: name, parameters: parameters), generator: generator)
     }
 }
@@ -78,15 +78,20 @@ struct CachedConcrete<D: Dimensionality, Key: CacheKey>: Geometry {
 struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
     let key: Key
-    let generator: @Sendable (D.Concrete) -> D.Concrete
+    let generator: @Sendable (D.Concrete) throws -> D.Concrete
 
-    init(body: D.Geometry, key: Key, generator: @Sendable @escaping (D.Concrete) -> D.Concrete) {
+    init(body: D.Geometry, key: Key, generator: @Sendable @escaping (D.Concrete) throws -> D.Concrete) {
         self.body = body
         self.key = key
         self.generator = generator
     }
 
-    init(body: D.Geometry, name: String, parameters: any CacheKey..., generator: @Sendable @escaping (D.Concrete) -> D.Concrete) where Key == NamedCacheKey {
+    init(
+        body: D.Geometry,
+        name: String,
+        parameters: any CacheKey...,
+        generator: @Sendable @escaping (D.Concrete) throws -> D.Concrete
+    ) where Key == NamedCacheKey {
         self.init(
             body: body,
             key: NamedCacheKey(operationName: name, parameters: parameters),
@@ -94,8 +99,8 @@ struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
         )
     }
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        let bodyResult = await body.build(in: environment, context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let bodyResult = try await body.build(in: environment, context: context)
         let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
 
         if await context.hasCachedResult(for: bakedKey, with: D.self) {
@@ -103,7 +108,7 @@ struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
 
         } else {
             let nodeResult = await context.result(for: bodyResult.node)
-            let newResult = nodeResult.modified(generator)
+            let newResult = try nodeResult.modified(generator)
 
             let node = await context.storeMaterializedResult(newResult, key: bakedKey) as D.Node
             return bodyResult.replacing(node: node)
@@ -117,12 +122,12 @@ struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
 struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
     let key: Key
-    let generator: @Sendable (D.Concrete) -> [D.Concrete]
+    let generator: @Sendable (D.Concrete) throws -> [D.Concrete]
     let resultHandler: @Sendable ([D.Geometry]) -> D.Geometry
 
     init(
         body: D.Geometry,
-        key: Key, generator: @Sendable @escaping (D.Concrete) -> [D.Concrete],
+        key: Key, generator: @Sendable @escaping (D.Concrete) throws -> [D.Concrete],
         resultHandler: @Sendable @escaping ([D.Geometry]) -> D.Geometry
     ) {
         self.body = body
@@ -135,7 +140,7 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
         body: D.Geometry,
         name: String,
         parameters: any CacheKey...,
-        generator: @Sendable @escaping (D.Concrete) -> [D.Concrete],
+        generator: @Sendable @escaping (D.Concrete) throws -> [D.Concrete],
         resultHandler: @Sendable @escaping ([D.Geometry]) -> D.Geometry
     ) where Key == NamedCacheKey {
         self.init(
@@ -146,8 +151,8 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
         )
     }
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        let bodyResult = await body.build(in: environment, context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let bodyResult = try await body.build(in: environment, context: context)
 
         let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
         let firstKey = IndexedCacheKey(base: bakedKey, index: 0)
@@ -168,7 +173,7 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
 
         } else {
             let nodeResult = await context.result(for: bodyResult.node)
-            let concretes = generator(nodeResult.concrete)
+            let concretes = try generator(nodeResult.concrete)
 
             geometries = await Array(concretes.enumerated()).asyncMap { index, concrete in
                 let indexedKey = IndexedCacheKey(base: key, index: index)
@@ -177,7 +182,7 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
             }
         }
 
-        return await resultHandler(geometries).build(in: environment, context: context)
+        return try await resultHandler(geometries).build(in: environment, context: context)
     }
 }
 
@@ -186,23 +191,23 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
 struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry {
     let body: Input.Geometry
     let key: NamedCacheKey
-    let generator: @Sendable (Input.Node, EnvironmentValues, EvaluationContext) async -> D.Node
+    let generator: @Sendable (Input.Node, EnvironmentValues, EvaluationContext) async throws -> D.Node
 
-    init(body: Input.Geometry, name: String, parameters: any CacheKey..., generator: @Sendable @escaping (Input.Node, EnvironmentValues, EvaluationContext) async -> D.Node) {
+    init(body: Input.Geometry, name: String, parameters: any CacheKey..., generator: @Sendable @escaping (Input.Node, EnvironmentValues, EvaluationContext) async throws -> D.Node) {
         self.body = body
         self.key = NamedCacheKey(operationName: name, parameters: parameters)
         self.generator = generator
     }
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        let bodyResult = await body.build(in: environment, context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let bodyResult = try await body.build(in: environment, context: context)
         let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
 
         if await context.hasCachedResult(for: bakedKey, with: D.self) {
             return bodyResult.replacing(cacheKey: bakedKey)
 
         } else {
-            let outputNode = await generator(bodyResult.node, environment, context)
+            let outputNode = try await generator(bodyResult.node, environment, context)
             let nodeResult = await context.result(for: outputNode)
 
             let node = await context.storeMaterializedResult(nodeResult, key: bakedKey) as D.Node
@@ -213,19 +218,23 @@ struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry
 
 struct CachedNode<D: Dimensionality>: Geometry {
     let key: NamedCacheKey
-    let generator: @Sendable (EnvironmentValues, EvaluationContext) async -> D.Node
+    let generator: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.Node
 
-    init(name: String, parameters: any CacheKey..., generator: @Sendable @escaping (EnvironmentValues, EvaluationContext) async -> D.Node) {
+    init(
+        name: String,
+        parameters: any CacheKey...,
+        generator: @Sendable @escaping (EnvironmentValues, EvaluationContext) async throws -> D.Node)
+    {
         self.key = NamedCacheKey(operationName: name, parameters: parameters)
         self.generator = generator
     }
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         if await context.hasCachedResult(for: key, with: D.self) {
             return D.BuildResult(.materialized(cacheKey: OpaqueKey(key)))
 
         } else {
-            let outputNode = await generator(environment, context)
+            let outputNode = try await generator(environment, context)
             let nodeResult = await context.result(for: outputNode)
 
             let node = await context.storeMaterializedResult(nodeResult, key: key) as D.Node

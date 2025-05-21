@@ -12,7 +12,7 @@ import Foundation
 ///   when stacking along the `.z` axis, alignment controls how items are positioned along `.x` and `.y`
 ///   relative to the origin.
 ///
-public struct Stack<D: Dimensionality> {
+public struct Stack <D: Dimensionality> {
     private let items: [D.Geometry]
     private let axis: D.Axis
     private let spacing: Double
@@ -61,11 +61,11 @@ extension Stack: Geometry {
         self.init(axis: axis, spacing: spacing, alignment: alignment, content: content)
     }
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         var offset = 0.0
-        return await LazyUnion(lazy: spacing >= 0) {
+        return try await LazyUnion(lazy: spacing >= 0) {
             for geometry in items {
-                let result = await geometry.build(in: environment, context: context)
+                let result = try await geometry.build(in: environment, context: context)
                 let nodeResult = await context.result(for: result.node)
                 if !nodeResult.concrete.isEmpty {
                     let box = D.BoundingBox(nodeResult.concrete.bounds)

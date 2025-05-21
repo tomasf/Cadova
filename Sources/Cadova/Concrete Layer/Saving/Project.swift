@@ -24,7 +24,6 @@ public func Project(
         await model.writer(context)
     }
     try? Platform.revealFiles(urls)
-
 }
 
 public func Project(

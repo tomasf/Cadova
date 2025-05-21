@@ -30,17 +30,17 @@ extension Collection where Element: Sendable {
         }
     }
 
-    func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async -> T) async -> [T] {
-        await withTaskGroup(of: (Int, T).self) { group in
+    func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T) async rethrows -> [T] {
+        try await withThrowingTaskGroup(of: (Int, T).self) { group in
             for (index, element) in self.enumerated() {
                 group.addTask {
-                    let value = await transform(element)
+                    let value = try await transform(element)
                     return (index, value)
                 }
             }
 
             var results = Array<T?>(repeating: nil, count: self.count)
-            for await (index, result) in group {
+            for try await (index, result) in group {
                 results[index] = result
             }
 
@@ -48,17 +48,17 @@ extension Collection where Element: Sendable {
         }
     }
 
-    func asyncCompactMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async -> T?) async -> [T] {
-        await withTaskGroup(of: (Int, T?).self) { group in
+    func asyncCompactMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T?) async rethrows -> [T] {
+        try await withThrowingTaskGroup(of: (Int, T?).self) { group in
             for (index, element) in self.enumerated() {
                 group.addTask {
-                    let value = await transform(element)
+                    let value = try await transform(element)
                     return (index, value)
                 }
             }
 
             var results = Array<T?>(repeating: nil, count: self.count)
-            for await (index, result) in group {
+            for try await (index, result) in group {
                 results[index] = result
             }
 

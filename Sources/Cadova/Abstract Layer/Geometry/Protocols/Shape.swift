@@ -20,9 +20,9 @@ public protocol Shape2D: Geometry2D {
 }
 
 public extension Shape2D {
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        await environment.whileCurrent {
-            await body.build(in: environment, context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await environment.whileCurrent {
+            try await body.build(in: environment, context: context)
         }
     }
 
@@ -55,9 +55,9 @@ public protocol Shape3D: Geometry3D {
 }
 
 public extension Shape3D {
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        await environment.whileCurrent {
-            await body.build(in: environment, context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await environment.whileCurrent {
+            try await body.build(in: environment, context: context)
         }
     }
 

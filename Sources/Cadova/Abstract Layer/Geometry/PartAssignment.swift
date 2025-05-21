@@ -5,9 +5,9 @@ struct PartAssignment: Geometry {
     let isSeparated: Bool
     let identifier: PartIdentifier
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D3.BuildResult {
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         let newEnvironment = environment.withOperation(.addition)
-        let output = await body.build(in: newEnvironment, context: context)
+        let output = try await body.build(in: newEnvironment, context: context)
         var newOutput = output.modifyingElement(PartCatalog.self) {
             $0.add(part: output, to: identifier)
         }
