@@ -19,8 +19,11 @@ struct PolygonTree: Sendable {
 fileprivate extension PolygonTree {
     init(polygonNode: cadova.PolygonNode) {
         polygon = SimplePolygon(polygonNode.polygon.map { Vector2D(x: $0.x, y: $0.y) })
-        children = polygonNode.children.map {
-            PolygonTree(polygonNode: $0!)
+
+        // Trying to either map polygonNode.children directly or trying to access .count
+        // instead of size() makes the compiler crash on Windows. I don't even- 
+        children = (0..<polygonNode.children.size()).map {
+            PolygonTree(polygonNode: polygonNode.children[$0]!)
         }
     }
 }
