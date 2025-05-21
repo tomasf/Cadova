@@ -22,12 +22,12 @@ public extension Geometry3D {
             edgeProfile.readingNegativeShape { negativeShape, profileSize in
                 child.subtracting(negativeShape
                     .translated(x: epsilon, y: epsilon)
-                    .flipped(across: .xy)
+                    .flipped(along: .xy)
                     .rotated(edge.profileRotation)
                     .extruded(height: box.size[edge.axis] + 2 * epsilon)
                     .translated(z: -epsilon)
                     .rotated(from: .up, to: edge.axis.direction(.positive))
-                    .flipped(across: edge.flippedProfileAxes)
+                    .flipped(along: edge.flippedProfileAxes)
                     .translated(edge.unitOffset * box.size)
                     .translated(box.minimum)
                 )

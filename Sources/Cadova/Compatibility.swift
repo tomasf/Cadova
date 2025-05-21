@@ -24,13 +24,6 @@ public extension Geometry2D {
     }
 }
 
-public extension Geometry {
-    @available(*, deprecated, renamed: "flipped(across:)")
-    func flipped(along axes: D.Axes) -> D.Geometry {
-        flipped(across: axes)
-    }
-}
-
 public extension Teardrop {
     @available(*, deprecated, message: "Use the `withOverhangAngle` modifier to specify an angle for Teardrop", renamed: "init(diameter:style:)")
     init(diameter: Double, angle: Angle, style: Style = .pointed) {
@@ -43,7 +36,7 @@ public extension Teardrop {
     }
 }
 
-extension Teardrop.Style {
+public extension Teardrop.Style {
     @available(*, deprecated, renamed: "pointed")
     static let full = Self.pointed
     @available(*, deprecated, renamed: "flat")

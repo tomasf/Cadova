@@ -40,7 +40,7 @@ public extension BoundingBox3D {
         return half
             .translated(minimum)
             .adding {
-                half.flipped(across: .all)
+                half.flipped(along: .all)
                     .translated(maximum)
             }
             .colored(visualizationBorderColor)

@@ -108,7 +108,7 @@ public extension Geometry3D {
     ///
     func roundingBoxCorner(_ corner: Box.Corner, radius: Double) -> any Geometry3D {
         self
-            .flipped(across: corner.maxAxes)
+            .flipped(along: corner.maxAxes)
             .measuring { child, measurements in
                 child.intersecting {
                     let box = measurements.boundingBox.requireNonNil()
@@ -118,7 +118,7 @@ public extension Geometry3D {
                     }
                 }
             }
-            .flipped(across: corner.maxAxes)
+            .flipped(along: corner.maxAxes)
     }
 
     /// Rounds the specified corners of the geometry based on its bounding box dimensions.
