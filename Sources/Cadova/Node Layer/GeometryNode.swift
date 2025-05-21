@@ -122,7 +122,8 @@ extension GeometryNode {
                 manifold = result.concrete.extrude(height: height, divisions: divisions, twist: twist.degrees, scaleTop: scaleTop)
 
             case .rotational (let angle, let segmentCount):
-                manifold = result.concrete.revolve(degrees: angle.degrees, circularSegments: segmentCount)
+                let revolved: D3.Concrete = result.concrete.revolve(degrees: angle.degrees, circularSegments: segmentCount)
+                manifold = revolved.status == nil ? revolved : .empty
             }
 
             return Result(manifold as! D.Concrete)

@@ -53,8 +53,7 @@ public extension Geometry2D {
     /// ```
     func revolved(in range: Range<Angle> = 0°..<360°) -> any Geometry3D {
         readEnvironment(\.segmentation) { segmentation in
-            self.measuring { geometry, measurements in
-                let bounds = measurements.boundingBox ?? .zero
+            self.measuringBounds { geometry, bounds in
                 let radius = max(bounds.maximum.x, 0)
 
                 GeometryNodeTransformer(body: geometry) {
