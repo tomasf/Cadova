@@ -53,25 +53,61 @@ public extension Geometry2D {
     ///   - Wrapping starts at the origin, which becomes 0°, inner radius
     ///
     /// - Parameters:
-    ///   - diameter: The inner circle's diameter. If omitted, the diameter is
+    ///   - radius: The inner circle's radius. If omitted, the radius is
     ///     automatically inferred from the geometry’s bounding box by using the
     ///     maximum X extent as one full turn of the circle.
     ///
-    func wrappedAroundCircle(diameter: Double? = nil) -> any Geometry2D {
+    /// - Rotation Direction:
+    ///   - Rotation is measured clockwise around the origin. This is opposite of
+    ///     the standard counter-clockwise convention, but chosen to ensure that
+    ///     the resulting wrapped geometry faces upward.
+    ///
+    func wrappedAroundCircle(radius: Double? = nil) -> any Geometry2D {
         measureBoundsIfNonEmpty { geometry, e, bounds in
-            let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
+            let innerRadius = radius ?? bounds.maximum.x / .pi
             let maximumRadius = innerRadius + bounds.maximum.y
             let segmentLength = (maximumRadius * 2 * .pi) / Double(e.segmentation.segmentCount(circleRadius: maximumRadius))
             let innerCircumference = innerRadius * 2 * .pi
 
             geometry
                 .refined(maxEdgeLength: segmentLength)
-                .warped(operationName: "wrapAroundCircle", cacheParameters: diameter) {
+                .warped(operationName: "wrapAroundCircle", cacheParameters: radius) {
                     let angle = -360° * $0.x / innerCircumference
                     let radius = innerRadius + $0.y
                     return Vector2D(cos(angle) * radius, sin(angle) * radius)
                 }
                 .simplified()
+        }
+    }
+
+    /// Wraps the current geometry around the origin using a circle of the specified diameter.
+    ///
+    /// See `wrappedAroundCircle(radius:)` for more information.
+    ///
+    func wrappedAroundCircle(diameter: Double) -> any Geometry2D {
+        wrappedAroundCircle(radius: diameter / 2)
+    }
+
+    /// Wraps the current geometry around a circular arc defined by an angular span.
+    ///
+    /// The geometry is wrapped clockwise around the origin, occupying the angular span
+    /// specified by `angleRange`. The diameter of the circular arc is calculated so that
+    /// the geometry fits within the given angle range based on its maximum X extent.
+    ///
+    /// - Parameters:
+    ///   - angleRange: The span of angles that the wrapped geometry will occupy. The
+    ///   wrapping occurs clockwise starting from `angleRange.lowerBound`.
+    ///
+    /// - Returns: A new `Geometry2D` wrapped around a circular arc defined by the angle range.
+    ///
+    /// See `wrappedAroundCircle(radius:)` for more information.
+    ///
+    func wrappedAroundCircle(spanning angleRange: Range<Angle>) -> any Geometry2D {
+        measuringBounds { body, bounds in
+            let fraction = angleRange.length / 360°
+            let targetCircumference = bounds.maximum.x / fraction
+            wrappedAroundCircle(diameter: targetCircumference / .pi)
+                .rotated(-angleRange.lowerBound)
         }
     }
 }
@@ -97,8 +133,8 @@ public extension Geometry3D {
     ///     - Positive Z values expand outward from the surface, adding thickness.
     ///
     /// - Sphere Size:
-    ///   - If `diameter` is provided, it defines the base sphere’s diameter.
-    ///   - If `diameter` is omitted, the diameter is inferred from the **maximum X extent** of the geometry.
+    ///   - If `radius` is provided, it defines the base sphere’s radius.
+    ///   - If `radius` is omitted, the radius is inferred from the **maximum X extent** of the geometry.
     ///     - Specifically, the maximum X value determines the circumference of the equator.
     ///     - This makes it important for the geometry to start at X = 0 to fully wrap cleanly.
     ///
@@ -116,14 +152,13 @@ public extension Geometry3D {
     /// ```
     /// This creates a thin, curved shell wrapping around a sphere.
     ///
-    func wrappedAroundSphere(diameter: Double? = nil) -> any Geometry3D {
+    func wrappedAroundSphere(radius: Double? = nil) -> any Geometry3D {
         measureBoundsIfNonEmpty { geometry, e, bounds in
             let naturalCircumference = bounds.maximum.x
-            let circumference = diameter.map { $0 * .pi } ?? naturalCircumference
+            let baseRadius = radius ?? (naturalCircumference / .pi / 2.0)
+            let circumference = baseRadius * 2.0 * .pi
             let circumferenceScale = circumference / naturalCircumference
             let yExtent = max(bounds.maximum.y, -bounds.minimum.y)
-
-            let baseRadius = circumference / .pi / 2.0
             let maximumRadius = baseRadius + bounds.maximum.z
 
             let sphereSegmentLength = maximumRadius * 2 * .pi / Double(e.segmentation.segmentCount(circleRadius: maximumRadius)) / circumferenceScale
@@ -133,9 +168,7 @@ public extension Geometry3D {
                 .warped(operationName: "wrapAroundSphere", cacheParameters: baseRadius) { point in
                     let longitude = 360° * point.x * circumferenceScale / circumference
                     let latitude = 90° * point.y / yExtent
-
                     let radius = baseRadius + point.z
-
                     let cosLat = cos(latitude)
                     return Vector3D(
                         radius * cosLat * cos(longitude),
@@ -145,5 +178,13 @@ public extension Geometry3D {
                 }
                 .simplified()
         }
+    }
+
+    /// Wraps the current geometry around a sphere using a specified diameter.
+    ///
+    /// See `wrappedAroundSphere(radius:)` for more information.
+    ///
+    func wrappedAroundSphere(diameter: Double) -> any Geometry3D {
+        wrappedAroundSphere(radius: diameter / 2)
     }
 }
