@@ -16,12 +16,12 @@ internal struct Sweep: Shape3D {
         let segmentation = segmentation
 
         if enableDebugging {
-            shape.readingPrimitive { crossSection, _ in
+            shape.readingConcrete { crossSection, _ in
                 let (mesh, debugParts) = sweep(crossSection: crossSection, segmentation: segmentation, maxTwistRate: maxTwistRate, enableDebugging: true)
                 return mesh.adding(Union(debugParts))
             }
         } else {
-            CachingTransformer(body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation) { node, environment, context in
+            CachedNodeTransformer(body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation) { node, environment, context in
                 let crossSection = await context.result(for: node).concrete
                 let (mesh, _) = sweep(
                     crossSection: crossSection, segmentation: segmentation, maxTwistRate: maxTwistRate

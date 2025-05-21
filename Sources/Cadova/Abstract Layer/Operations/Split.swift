@@ -26,7 +26,7 @@ public extension Geometry3D {
         along plane: Plane,
         @GeometryBuilder3D reader: @Sendable @escaping (_ over: any Geometry3D, _ under: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        CachingPrimitiveArrayTransformer(body: self, name: "Cadova.SplitAlongPlane", parameters: plane) { input in
+        CachedConcreteArrayTransformer(body: self, name: "Cadova.SplitAlongPlane", parameters: plane) { input in
             let (a, b) = input.split(by: plane.normal.unitVector, originOffset: 0)
             return [a, b]
         } resultHandler: { geometries in
@@ -91,9 +91,9 @@ public extension Geometry3D {
         @GeometryBuilder3D with mask: @escaping () -> any Geometry3D,
         @GeometryBuilder3D result: @Sendable @escaping (_ inside: any Geometry3D, _ outside: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        mask().readingPrimitive { primitive, maskResult in
-            CachingPrimitiveArrayTransformer(body: self, name: "Cadova.SplitWithMask", parameters: maskResult.node) { input in
-                let (a, b) = input.split(by: primitive)
+        mask().readingConcrete { concrete, maskResult in
+            CachedConcreteArrayTransformer(body: self, name: "Cadova.SplitWithMask", parameters: maskResult.node) { input in
+                let (a, b) = input.split(by: concrete)
                 return [a, b]
             } resultHandler: { geometries in
                 precondition(geometries.count == 2, "Split result should contain exactly two geometries")
@@ -131,7 +131,7 @@ public extension Geometry {
     /// In this example, each disconnected part of the model is extracted and displayed side-by-side
     /// along the X axis with a spacing of 1 mm.
     func separated(@GeometryBuilder<D> reader: @Sendable @escaping (_ components: [D.Geometry]) -> D.Geometry) -> D.Geometry {
-        CachingPrimitiveArrayTransformer(body: self, name: "Cadova.Separate") {
+        CachedConcreteArrayTransformer(body: self, name: "Cadova.Separate") {
             $0.decompose()
         } resultHandler: {
             reader($0)

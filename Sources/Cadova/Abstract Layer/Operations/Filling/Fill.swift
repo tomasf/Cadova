@@ -7,7 +7,7 @@ public extension Geometry2D {
     ///
     /// - Returns: A new geometry representing the shape with its holes filled.
     func filled() -> any Geometry2D {
-        CachingPrimitiveTransformer(body: self, name: "Cadova.Fill") {
+        CachedConcreteTransformer(body: self, name: "Cadova.Fill") {
             .boolean(.union, with: $0.polygons().map {
                 D2.Concrete(polygons: [$0], fillRule: .nonZero)
             })

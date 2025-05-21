@@ -16,7 +16,7 @@ internal extension Geometry {
         cacheParameters params: [any Hashable & Sendable & Codable],
         transform: @Sendable @escaping (D.Vector) -> D.Vector
     ) -> D.Geometry {
-        CachingPrimitiveTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
+        CachedConcreteTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
             $0.warp(transform)
         }
     }

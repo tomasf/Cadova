@@ -6,7 +6,7 @@ extension Loft {
             LayerNode(z: $0.z, node: await $0.geometry.build(in: environment, context: context).node)
         }
 
-        return await CachingPrimitive(name: "loft", parameters: layerNodes, interpolation) {
+        return await CachedConcrete(name: "loft", parameters: layerNodes, interpolation) {
             let layerTrees = await layerNodes.asyncMap {
                 (z: $0.z, tree: await context.result(for: $0.node).concrete.polygonTree())
             }
