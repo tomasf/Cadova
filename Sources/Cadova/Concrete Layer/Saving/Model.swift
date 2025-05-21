@@ -61,10 +61,16 @@ public struct Model: Sendable {
         ]
 
         writer = { context in
-            let result = await ContinuousClock().measure {
-                await content().build(in: environment, context: context)
-            } results: { duration, _ in
-                logger.debug("Built geometry node tree in \(duration)")
+            let result: D.BuildResult
+            do {
+                result = try await ContinuousClock().measure {
+                    try await content().build(in: environment, context: context)
+                } results: { duration, _ in
+                    logger.debug("Built geometry node tree in \(duration)")
+                }
+            } catch {
+                logger.error("Cadova caught an error while evaluating model \"\(name)\":\n🛑 \(error)\n")
+                return nil
             }
 
             let provider: OutputDataProvider

@@ -13,6 +13,6 @@ internal func LazyUnion<D: Dimensionality>(lazy: Bool, @ArrayBuilder<D.Geometry>
     LazyUnion(lazy: lazy, children: body())
 }
 
-internal func LazyUnion<D: Dimensionality>(lazy: Bool, @ArrayBuilder<D.Geometry> _ body: () async -> [D.Geometry]) async -> D.Geometry {
-    await LazyUnion(lazy: lazy, children: body())
+internal func LazyUnion<D: Dimensionality>(lazy: Bool, @ArrayBuilder<D.Geometry> _ body: () async throws -> [D.Geometry]) async rethrows -> D.Geometry {
+    try await LazyUnion(lazy: lazy, children: body())
 }

@@ -5,11 +5,11 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
     let target: Input.Geometry
     let builder: @Sendable (Input.Geometry, Measurements<Input>) -> D.Geometry
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        let targetResult = await target.build(in: environment, context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let targetResult = try await target.build(in: environment, context: context)
         let nodeResult = await context.result(for: targetResult.node)
         let generatedGeometry = builder(target, .init(concrete: nodeResult.concrete))
-        return await generatedGeometry.build(in: environment, context: context)
+        return try await generatedGeometry.build(in: environment, context: context)
     }
 }
 

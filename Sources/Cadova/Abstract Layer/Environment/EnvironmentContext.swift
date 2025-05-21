@@ -3,9 +3,9 @@ import Foundation
 internal extension EnvironmentValues {
     @TaskLocal static var current: EnvironmentValues? = nil
 
-    func whileCurrent<T>(_ actions: () async -> T) async -> T {
-        await Self.$current.withValue(self) {
-            await actions()
+    func whileCurrent<T>(_ actions: () async throws -> T) async rethrows -> T {
+        try await Self.$current.withValue(self) {
+            try await actions()
         }
     }
 
