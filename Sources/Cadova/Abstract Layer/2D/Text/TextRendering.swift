@@ -38,7 +38,7 @@ extension TextAttributes {
             throw TextError.fontLoadingFailed
         }
 
-        FT_Set_Char_Size(face, 0, Int(size * 64.0), 72, 72)
+        FT_Set_Char_Size(face, 0, FT_F26Dot6(size * 64.0), 72, 72)
         FT_Select_Charmap(face, FT_ENCODING_UNICODE)
 
         var glyphOffset = Vector2D.zero
@@ -77,7 +77,7 @@ fileprivate extension FT_Library {
     func faceMatching(family targetFamily: String, style targetStyle: String?, from fontData: Data) throws -> FT_Face? {
         var face: FT_Face?
         let loadResult = fontData.withUnsafeBytes { buffer in
-            FT_New_Memory_Face(self, buffer.baseAddress, buffer.count, -1, &face)
+            FT_New_Memory_Face(self, buffer.baseAddress, FT_Long(buffer.count), -1, &face)
         }
         guard loadResult == 0, let dummyFace = face else {
             throw TextError.fontLoadingFailed
@@ -88,7 +88,7 @@ fileprivate extension FT_Library {
 
         for i in 0..<faceCount {
             let loadResult = fontData.withUnsafeBytes { buffer in
-                FT_New_Memory_Face(self, buffer.baseAddress, buffer.count, i, &face)
+                FT_New_Memory_Face(self, buffer.baseAddress, FT_Long(buffer.count), i, &face)
             }
             guard loadResult == 0, let face else {
                 throw TextError.fontLoadingFailed
