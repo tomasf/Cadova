@@ -24,7 +24,6 @@ public struct Stack<D: Dimensionality> {
         self.axis = axis
         self.spacing = spacing
         self.alignment = .init(merging: alignment)
-            .defaultingToOrigin()
             .with(axis: axis, as: .min)
     }
 }
@@ -40,6 +39,7 @@ extension Stack: Geometry {
     ///   - spacing: The spacing in millimeters between items. Defaults to `0`.
     ///   - alignment: One or more alignment values for the *non-stacking* axes.
     ///     For example, in a `.z` stack, `.centerX` and `.centerY` will center items in the XY plane.
+    ///     Axes that are neither the stack axis nor explicitly specified in `alignment` are left unchanged.
     ///   - content: A closure that returns the geometries to be stacked.
     ///
     /// ## Example
