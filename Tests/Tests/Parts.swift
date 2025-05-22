@@ -24,7 +24,7 @@ struct PartTests {
             }
             .translated(x: 10)
 
-        let partNames = await g.parts.map(\.key.name)
+        let partNames = try await g.parts.map(\.key.name)
         #expect(Set(partNames) == ["inner", "outer"])
     }
 
@@ -45,7 +45,7 @@ struct PartTests {
     }
 
     @Test func rootOperationShouldBePositive() async throws {
-        await Box(10)
+        try await Box(10)
             .subtracting {
                 Sphere(diameter: 10)
                     .readingOperation { op in
