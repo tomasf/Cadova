@@ -161,9 +161,12 @@ internal extension MeshData {
 
 internal extension ThreeMF.Matrix3D {
     var cadovaTransform: Transform3D {
-        guard values.count == 12 else { return .identity }
+        guard values.count == 4, values.allSatisfy({ $0.count == 3 }) else { return .identity }
         return Transform3D([
-            values[0] + [0], values[1] + [0], values[2] + [0], values[3] + [1]
+            [values[0][0], values[1][0], values[2][0], values[3][0]],
+            [values[0][1], values[1][1], values[2][1], values[3][1]],
+            [values[0][2], values[1][2], values[2][2], values[3][2]],
+            [0, 0, 0, 1]
         ])
     }
 }
