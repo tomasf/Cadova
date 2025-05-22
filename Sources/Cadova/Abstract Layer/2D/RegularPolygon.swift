@@ -47,23 +47,30 @@ public struct RegularPolygon: Shape2D {
         self.init(sideCount: sideCount, circumradius: sideLength / (2 * sin(.pi / Double(sideCount))))
     }
 
-    /// The distance from the center of the polygon to a side.
-    public var apothem: Double {
-        circumradius * cos(.pi / Double(sideCount))
-    }
-
-    /// The length of a side of the polygon.
-    public var sideLength: Double {
-        circumradius * 2 * sin(.pi / Double(sideCount))
-    }
-
-    /// The geometry representation of the polygon.
     public var body: any Geometry2D {
         Circle(radius: circumradius)
             .withSegmentation(count: sideCount)
     }
 }
 
-extension RegularPolygon: Area2D {
-    public var area: Double { Double(sideCount) / 2.0 * pow(circumradius, 2) * sin(360° / Double(sideCount)) }
+public extension RegularPolygon {
+    /// The distance from the center of the polygon to a side.
+    var apothem: Double {
+        circumradius * cos(.pi / Double(sideCount))
+    }
+
+    /// The length of a side of the polygon.
+    var sideLength: Double {
+        circumradius * 2 * sin(.pi / Double(sideCount))
+    }
+}
+
+extension RegularPolygon: Area, Perimeter {
+    public var area: Double {
+        Double(sideCount) / 2.0 * pow(circumradius, 2) * sin(360° / Double(sideCount))
+    }
+
+    public var perimeter: Double {
+        Double(sideCount) * sideLength
+    }
 }

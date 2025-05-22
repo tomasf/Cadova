@@ -10,8 +10,8 @@ import Foundation
 /// let ring = Ring(outerDiameter: 10, innerDiameter: 4)
 /// ```
 public struct Ring: Shape2D {
-    private let outerDiameter: Double
-    private let innerDiameter: Double
+    public let outerDiameter: Double
+    public let innerDiameter: Double
 
     /// Creates a new `Ring` instance with the specified outer and inner diameters.
     ///
@@ -80,5 +80,11 @@ public struct Ring: Shape2D {
             .subtracting {
                 Circle(diameter: innerDiameter)
             }
+    }
+}
+
+extension Ring: Area {
+    public var area: Double {
+        Circle(diameter: outerDiameter).area - Circle(diameter: innerDiameter).area
     }
 }

@@ -39,6 +39,12 @@ extension Rectangle: CompositeGeometry {
     }
 }
 
-extension Rectangle: Area2D {
-    public var area: Double { size.x * size.y }
+extension Rectangle: Area, Perimeter {
+    public var area: Double {
+        size.x * size.y
+    }
+
+    public var perimeter: Double {
+        2 * (size.x + size.y)
+    }
 }

@@ -13,19 +13,16 @@ public struct Cylinder: Shape3D {
     public let bottomRadius: Double
     public let topRadius: Double
 
-    public var topDiameter: Double { topRadius * 2 }
-    public var bottomDiameter: Double { bottomRadius * 2 }
-
     @Environment(\.segmentation) private var segmentation
 
     public var body: any Geometry3D {
         let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
         if height < .ulpOfOne {
-            return Empty()
+            Empty()
 
         } else if bottomRadius < .ulpOfOne {
-            return NodeBasedGeometry(.shape(.cylinder(
+            NodeBasedGeometry(.shape(.cylinder(
                 bottomRadius: topRadius,
                 topRadius: bottomRadius,
                 height: height,
@@ -34,7 +31,7 @@ public struct Cylinder: Shape3D {
             .scaled(z: -1)
             .translated(z: height)
         } else {
-            return NodeBasedGeometry(.shape(.cylinder(
+            NodeBasedGeometry(.shape(.cylinder(
                 bottomRadius: bottomRadius,
                 topRadius: topRadius,
                 height: height,
@@ -91,5 +88,60 @@ public extension Cylinder {
 
     init(bottomDiameter: Double, topDiameter: Double, height: Double) {
         self.init(bottomRadius: bottomDiameter / 2, topRadius: topDiameter / 2, height: height)
+    }
+}
+
+public extension Cylinder {
+    /// A circular representation of the top face of the cylinder.
+    var top: Circle {
+        Circle(radius: topRadius)
+    }
+
+    /// A circular representation of the bottom face of the cylinder.
+    var bottom: Circle {
+        Circle(radius: bottomRadius)
+    }
+
+    /// Returns the circular cross-section at a specific height `z` along the cylinder.
+    ///
+    /// - Parameter z: The height along the cylinder's axis, where 0 is the bottom and `height` is the top.
+    /// - Returns: A `Circle` representing the cross-section at that height.
+    func crossSection(at z: Double) -> Circle {
+        Circle(radius: bottomRadius + (topRadius - bottomRadius) * z / height)
+    }
+
+    /// The slant height of the cylinder, which is the length of the side connecting the top and bottom edges.
+    ///
+    /// For a regular cylinder this is the same as `height`, but for a truncated cone it is the length
+    /// of the diagonal between the top and bottom radii.
+    var slantHeight: Double {
+        (((topRadius - bottomRadius) * (topRadius - bottomRadius)) + height * height).squareRoot()
+    }
+
+    /// The lateral surface area, excluding the top and bottom faces.
+    ///
+    /// This is the curved surface area of the cylinder or cone.
+    var lateralSurfaceArea: Double {
+        (topRadius + bottomRadius) * .pi * slantHeight
+    }
+
+    /// The total surface area, including the top, bottom, and lateral surface.
+    var surfaceArea: Double {
+        lateralSurfaceArea + top.area + bottom.area
+    }
+
+    /// The volume of the solid, whether a full cylinder or truncated cone.
+    var volume: Double {
+        (1.0 / 3.0) * .pi * height * (bottomRadius * bottomRadius + bottomRadius * topRadius + topRadius * topRadius)
+    }
+
+    /// The angle between the side of the cylinder and its base.
+    ///
+    /// A value of 0 means the side is vertical (as in a regular cylinder).
+    /// Positive angles indicate a flare outward (top radius > bottom radius),
+    /// and negative angles indicate a taper inward (top radius < bottom radius).
+    ///
+    var sideAngle: Angle {
+        atan((topRadius - bottomRadius) / height)
     }
 }
