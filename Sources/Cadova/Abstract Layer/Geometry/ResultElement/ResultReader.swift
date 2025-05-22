@@ -6,7 +6,7 @@ internal struct ResultReader<Input: Dimensionality, Output: Dimensionality>: Geo
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
         let bodyResult = try await body.build(in: environment, context: context)
-        return await try generator(bodyResult.elements).build(in: environment, context: context)
+        return try await generator(bodyResult.elements).build(in: environment, context: context)
     }
 }
 

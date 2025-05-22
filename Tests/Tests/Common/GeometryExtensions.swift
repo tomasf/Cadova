@@ -14,36 +14,36 @@ enum TestGeneratedOutputType: String, Hashable {
 
 extension Geometry {
     var node: D.Node {
-        get async {
-            await withDefaultSegmentation().build(in: .defaultEnvironment, context: .init()).node
+        get async throws {
+            try await withDefaultSegmentation().build(in: .defaultEnvironment, context: .init()).node
         }
     }
 
-    func triggerEvaluation() async {
-        _ = await node
+    func triggerEvaluation() async throws {
+        _ = try await node
     }
 
     var bounds: D.BoundingBox? {
-        get async {
+        get async throws {
             let context = EvaluationContext()
-            let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
+            let result = try await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
             let nodeResult = await context.result(for: result.node)
             return D.BoundingBox(nodeResult.concrete.bounds)
         }
     }
 
     var measurements: D.Measurements {
-        get async {
+        get async throws {
             let context = EvaluationContext()
-            let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
+            let result = try await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
             let nodeResult = await context.result(for: result.node)
             return D.Measurements(concrete: nodeResult.concrete)
         }
     }
 
     var parts: [PartIdentifier: D3.BuildResult] {
-        get async {
-            await build(in: .defaultEnvironment, context: .init())
+        get async throws {
+            try await build(in: .defaultEnvironment, context: .init())
                 .elements[PartCatalog.self].mergedOutputs
         }
     }
@@ -57,7 +57,7 @@ extension Geometry {
 
     func writeOutputFiles(_ name: String, types: Set<TestGeneratedOutputType>) async throws {
         let context = EvaluationContext()
-        let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
+        let result = try await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
 
         let goldenRoot = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appending(path: "golden")
         if types.contains(.node) {
@@ -84,7 +84,7 @@ extension Geometry {
             return
         }
 
-        let result = await withDefaultSegmentation().build(in: .defaultEnvironment, context: .init())
+        let result = try await withDefaultSegmentation().build(in: .defaultEnvironment, context: .init())
         let computedGoldenRecord = GoldenRecord(result: result)
         let goldenRecord = try GoldenRecord<D>(url: URL(goldenFileNamed: name, extension: "json"))
 

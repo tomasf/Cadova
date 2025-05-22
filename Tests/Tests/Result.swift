@@ -2,8 +2,8 @@ import Testing
 @testable import Cadova
 
 struct ResultTests {
-    @Test func resultElementCombination() async {
-        await Box(1)
+    @Test func resultElementCombination() async throws {
+        try await Box(1)
             .withTestValue(1)
             .adding {
                 Sphere(diameter: 10)
@@ -18,8 +18,8 @@ struct ResultTests {
             .triggerEvaluation()
     }
 
-    @Test func resultElementReplacement() async {
-        await Box(1)
+    @Test func resultElementReplacement() async throws {
+        try await Box(1)
             .withTestValue(1)
             .adding { Box(2) }
             .withTestValue(3)

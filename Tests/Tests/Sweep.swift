@@ -26,7 +26,7 @@ struct SweepTests {
             .swept(along: path, pointing: .down, toward: .down)
             .withSegmentation(minAngle: 4°, minSize: 0.3)
 
-        let m = await sweep.measurements
+        let m = try await sweep.measurements
 
         #expect(m.volume ≈ 11539.408)
         #expect(m.surfaceArea ≈ 18055.813)
@@ -41,7 +41,7 @@ struct SweepTests {
 
         let sweep = ExampleTests.Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
             .swept(along: path)
-        let m = await sweep.measurements
+        let m = try await sweep.measurements
 
         #expect(m.volume ≈ 13072.877)
         #expect(m.surfaceArea ≈ 9220.515)
