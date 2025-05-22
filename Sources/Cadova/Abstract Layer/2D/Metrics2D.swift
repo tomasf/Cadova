@@ -1,11 +1,14 @@
 import Foundation
 
-public protocol Area2D {
+public protocol Area {
     var area: Double { get }
-    func pyramidVolume(height: Double) -> Double
 }
 
-public extension Area2D {
+public protocol Perimeter {
+    var perimeter: Double { get }
+}
+
+public extension Area {
     func pyramidVolume(height: Double) -> Double {
         return (area * height) / 3.0
     }

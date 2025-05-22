@@ -45,7 +45,7 @@ public struct Arc: Shape2D {
     }
 }
 
-extension Arc: Area2D {
+extension Arc: Area {
     public var angularDistance: Angle { range.length }
     public var area: Double { radius * radius * .pi * (angularDistance / 360°) }
 }

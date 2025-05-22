@@ -7,15 +7,10 @@ import Foundation
 public struct Sphere: CompositeGeometry {
     public typealias D = D3
 
-    /// The diameter of the sphere.
-    ///
-    /// This property defines the overall size of the sphere from one side to the other through its center.
-    var diameter: Double { radius * 2}
-
     /// The radius of the sphere.
     ///
     /// This property defines the overall size of the sphere from its center to its surface.
-    let radius: Double
+    public let radius: Double
 
     /// Creates a sphere with the specified diameter.
     ///
@@ -52,5 +47,22 @@ public extension Sphere {
 
     static func ellipsoid(x: Double, y: Double, z: Double) -> any Geometry3D {
         ellipsoid(size: .init(x, y, z))
+    }
+}
+
+public extension Sphere {
+    /// The diameter of the sphere.
+    ///
+    /// This property defines the overall size of the sphere from one side to the other through its center.
+    var diameter: Double { radius * 2}
+
+    /// The surface area of the sphere.
+    var surfaceArea: Double {
+        4 * .pi * radius * radius
+    }
+
+    /// The volume of the sphere.
+    var volume: Double {
+        (4.0 / 3.0) * .pi * radius * radius * radius
     }
 }
