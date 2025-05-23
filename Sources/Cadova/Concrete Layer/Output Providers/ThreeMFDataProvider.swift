@@ -142,7 +142,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
                     materials: nodeResult.materialMapping
                 )
             }
-            .sorted(by: { $0.id.hashValue < $1.id.hashValue })
+            .sorted(using: [
+                KeyPathComparator(\.id.name),
+                KeyPathComparator(\.id.type.rawValue),
+            ])
+
         } results: { duration, meshData in
             let triangleCount = meshData.map { $0.manifold.triangleCount }.reduce(0, +)
             logger.debug("Built meshes with \(triangleCount) triangles in \(duration)")
