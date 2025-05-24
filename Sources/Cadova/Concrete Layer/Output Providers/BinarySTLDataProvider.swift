@@ -7,7 +7,10 @@ struct BinarySTLDataProvider: OutputDataProvider {
     let fileExtension = "stl"
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
-        let allParts = [result] + result.elements[PartCatalog.self].mergedOutputs.map(\.value)
+        let solidParts = result.elements[PartCatalog.self].mergedOutputs
+            .filter { $0.key.type == .solid }.map(\.value)
+
+        let allParts = [result] + solidParts
         let union = GeometryNode.boolean(allParts.map(\.node), type: .union)
 
         var concrete = await context.result(for: union).concrete

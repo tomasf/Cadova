@@ -43,8 +43,15 @@ public struct Model: Sendable {
 
         logger.info("Generating \"\(name)\"...")
 
+        let localOptions: ModelOptions = [
+            .init(ModelName(name: name)),
+            OutputContext.current?.options ?? [],
+            .init(options)
+        ]
+
         var mutatingEnvironment = OutputContext.current?.environmentValues ?? .defaultEnvironment
         environmentBuilder?(&mutatingEnvironment)
+        mutatingEnvironment.modelOptions = localOptions
         let environment = mutatingEnvironment
 
         let baseURL: URL
@@ -53,12 +60,6 @@ public struct Model: Sendable {
         } else {
             baseURL = URL(expandingFilePath: name)
         }
-
-        let localOptions: ModelOptions = [
-            .init(ModelName(name: name)),
-            OutputContext.current?.options ?? [],
-            .init(options)
-        ]
 
         writer = { context in
             let result: D.BuildResult
