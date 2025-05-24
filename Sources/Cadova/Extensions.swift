@@ -218,3 +218,16 @@ func unpacked<A, B, C>(_ tuple: ((A, B), C)) -> (A, B, C) {
 func unpacked<A, B, C>(_ tuple: (A, (B, C))) -> (A, B, C) {
     (tuple.0, tuple.1.0, tuple.1.1)
 }
+
+func waitForTask(operation: @Sendable @escaping () async -> Void) {
+    let semaphore = DispatchSemaphore(value: 0)
+
+    Task {
+        await operation()
+        semaphore.signal()
+    }
+
+    while semaphore.wait(timeout: .now()) == .timedOut {
+        RunLoop.current.run(until: .now)
+    }
+}
