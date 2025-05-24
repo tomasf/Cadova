@@ -55,6 +55,13 @@ extension Geometry {
         }
     }
 
+    func readingPartNames(reader: @Sendable @escaping (Set<String>) -> Void) -> D.Geometry {
+        readingResult(PartCatalog.self) { geometry, catalog in
+            reader(Set(catalog.parts.keys.map(\.name)))
+            return geometry
+        }
+    }
+
     func writeOutputFiles(_ name: String, types: Set<TestGeneratedOutputType>) async throws {
         let context = EvaluationContext()
         let result = try await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)

@@ -14,11 +14,6 @@ internal struct PartIdentifier: Hashable, Sendable, Codable {
     }
 }
 
-public enum PartType: String, Hashable, Sendable, Codable {
-    case solid
-    case visual
-}
-
 internal struct PartCatalog: ResultElement {
     var parts: [PartIdentifier: [D3.BuildResult]]
 
@@ -38,6 +33,15 @@ internal struct PartCatalog: ResultElement {
 
     mutating func add(part: D3.BuildResult, to identifier: PartIdentifier) {
         parts[identifier, default: []].append(part)
+    }
+
+    mutating func detachPart(named name: String) -> D3.BuildResult? {
+        guard let identifier = parts.keys.first(where: { $0.name == name }) else {
+            return nil
+        }
+        let mergedResults = D3.BuildResult(combining: parts[identifier]!, operationType: .union)
+        parts[identifier] = nil
+        return mergedResults
     }
 
     var mergedOutputs: [PartIdentifier: D3.BuildResult] {
