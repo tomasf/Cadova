@@ -1,13 +1,34 @@
 import Foundation
 import freetype
 
+/// A 2D shape that renders text using vector outlines derived from a font.
+///
+/// The `Text` shape lets you display strings using scalable vector geometry. It supports Unicode input, multiple lines via
+/// newline characters, and customizable font attributes including typeface, style, and size. Text is converted to geometric
+/// outlines suitable for modeling or extrusion, making it ideal for engraving, labeling, signage, or decorative features.
+///
+/// Text rendering is affected by environment values such as:
+/// - `withFont(...)`: Sets the font family, size, and style.
+/// - `withTextAlignment(...)`: Controls both horizontal and vertical alignment of the text block.
+///
+/// Example:
+/// ```swift
+/// Text("Hello\nCadova")
+///   .withFont(family: "Helvetica", size: 12)
+///   .withTextAlignment(horizontal: .center, vertical: .firstBaseline)
+/// ```
+///
 public struct Text: Shape2D {
-    let content: String
+    private let content: String
 
     @Environment private var environment
     @Environment(\.textAttributes) private var textAttributes
     @Environment(\.segmentation) private var segmentation
 
+    /// Creates a text shape from a string.
+    ///
+    /// - Parameter text: The string to render as vector-based geometry. Use `\n` for manual line breaks.
+    ///
     public init(_ text: String) {
         self.content = text
     }
@@ -21,14 +42,3 @@ public struct Text: Shape2D {
         }
     }
 }
-
-extension TextAttributes {
-    func applyingDefaults() -> Self {
-        return Self(
-            fontFace: fontFace ?? .default,
-            fontSize: fontSize ?? 12,
-            fontFile: fontFile
-        )
-    }
-}
-
