@@ -55,4 +55,31 @@ struct PartTests {
             }
             .triggerEvaluation()
     }
+
+    @Test func detachment() async throws {
+        let measurements = try await Box(10)
+            .readingPartNames { #expect($0.isEmpty) }
+            .adding {
+                Sphere(diameter: 12)
+                    .withSegmentation(count: 10)
+                    .inPart(named: "sphere")
+            }
+            .readingPartNames { #expect($0 == ["sphere"]) }
+            .subtracting {
+                Cylinder(diameter: 4, height: 20)
+                    .inPart(named: "cylinder")
+            }
+            .readingPartNames { #expect($0 == ["sphere", "cylinder"]) }
+            .detachingPart(named: "sphere") { geometry, part in
+                geometry.adding {
+                    part
+                }
+            }
+            .readingPartNames { #expect($0 == ["cylinder"]) }
+            .measurements
+
+        #expect(measurements.boundingBox ≈ .init(minimum: [-6, -6, -6], maximum: [10, 10, 10]))
+        #expect(measurements.volume ≈ 1676.119)
+        #expect(measurements.surfaceArea ≈ 882.572)
+    }
 }
