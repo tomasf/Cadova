@@ -1,6 +1,6 @@
 import Foundation
 
-struct EnvironmentModifier<D: Dimensionality>: Geometry {
+internal struct EnvironmentModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modification: @Sendable (EnvironmentValues) -> EnvironmentValues
 
