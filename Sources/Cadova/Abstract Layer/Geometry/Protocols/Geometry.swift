@@ -1,5 +1,8 @@
 import Foundation
 
+/// Base protocol for geometry.
+/// Don't conform your types to this protocol directly; instead, use `Shape2D` or `Shape3D`
+/// and implement its `body` property.
 public protocol Geometry<D>: Sendable {
     associatedtype D: Dimensionality
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult
