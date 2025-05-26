@@ -18,7 +18,7 @@ public struct ShapingFunction: Sendable, Hashable, Codable {
         case .easeInOutCubic: { $0 < 0.5 ? 4 * $0 * $0 * $0 : 0.5 * (2 * $0 - 2) * (2 * $0 - 2) * (2 * $0 - 2) + 1 }
         case .smoothstep: { $0 * $0 * (3 - 2 * $0) }
         case .smootherstep: { $0 * $0 * $0 * ($0 * (6 * $0 - 15) + 10) }
-        case .bezier (let curve): { curve.point(at: curve.t(forX: $0) ?? $0).y }
+        case .bezier (let curve): { curve.point(at: curve.t(for: $0, in: .x) ?? $0).y }
         case .custom (_, let function): function
         }
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Axis: Equatable, Hashable, CaseIterable, Sendable {
+public protocol Axis: Equatable, Hashable, CaseIterable, Sendable, Codable {
     associatedtype D: Dimensionality where D.Axis == Self
     var index: Int { get }
 }

@@ -92,6 +92,15 @@ extension Range {
     }
 }
 
+extension ClosedRange {
+    init(_ first: Bound, _ second: Bound) {
+        self.init(uncheckedBounds: (
+            lower: Swift.min(first, second),
+            upper: Swift.max(first, second))
+        )
+    }
+}
+
 extension Range where Bound: AdditiveArithmetic {
     var length: Bound { upperBound - lowerBound }
 }
@@ -231,3 +240,31 @@ func waitForTask(operation: @Sendable @escaping () async -> Void) {
         RunLoop.current.run(until: .now)
     }
 }
+
+extension BidirectionalCollection where Index == Int {
+    func binarySearchInterpolate<V: Vector>(key: Double) -> V where Element == (Double, V) {
+        precondition(!isEmpty, "Array must not be empty")
+        if key <= self.first!.0 { return self.first!.1 }
+        if key >= self.last!.0  { return self.last!.1 }
+
+        // Binary search for the correct interval
+        var low = 0
+        var high = self.count - 1
+
+        while low <= high {
+            let mid = (low + high) / 2
+            let midKey = self[mid].0
+
+            if midKey < key {
+                low = mid + 1
+            } else {
+                high = mid - 1
+            }
+        }
+
+        let (k0, v0) = self[high]
+        let (k1, v1) = self[low]
+        return v0 + (v1 - v0) * (key - k0) / (k1 - k0)
+    }
+}
+
