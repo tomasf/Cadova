@@ -114,23 +114,21 @@ extension BezierCurve {
         let a = controlPoints.first![axis]
         let b = controlPoints.last![axis]
         var t = ((target - a) / (b - a))
-        let fullRange = Range(controlPoints[0][axis], controlPoints.last![axis])
-
         guard !t.isNaN else { return nil }
 
         for _ in 0..<maxIterations {
             let value = point(at: t)[axis]
-            let dValue = derived.point(at: t)[axis]
+            let delta = derived.point(at: t)[axis]
 
             let error = value - target
             if Swift.abs(error) < tolerance {
                 return t
             }
 
-            if Swift.abs(dValue) < 1e-10 {
+            guard Swift.abs(delta) > 1e-10 else {
                 break // Avoid division by zero
             }
-            t = t - error / dValue
+            t -= error / delta
         }
 
         return nil
