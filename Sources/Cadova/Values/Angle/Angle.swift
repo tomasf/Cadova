@@ -16,7 +16,7 @@ import Foundation
 /// let rightAngle = 90°
 /// let quarterTurn = Angle(turns: 0.25)
 /// ```
-public struct Angle: Sendable, Hashable, Codable {
+public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable {
     /// The angle expressed in radians
     public let radians: Double
 
