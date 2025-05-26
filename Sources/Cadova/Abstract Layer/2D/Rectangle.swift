@@ -31,9 +31,7 @@ public struct Rectangle {
     }
 }
 
-extension Rectangle: CompositeGeometry {
-    public typealias D = D2
-
+extension Rectangle: Shape2D {
     public var body: any Geometry2D {
         NodeBasedGeometry(.shape(.rectangle(size: size)))
     }

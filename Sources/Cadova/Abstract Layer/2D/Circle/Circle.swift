@@ -50,9 +50,7 @@ public struct Circle {
     @Environment(\.segmentation) private var segmentation
 }
 
-extension Circle: CompositeGeometry {
-    public typealias D = D2
-
+extension Circle: Shape2D {
     public var body: any Geometry2D {
         NodeBasedGeometry(.shape(.circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius))))
     }

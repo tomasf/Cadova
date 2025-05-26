@@ -16,7 +16,7 @@ import Manifold3D
 ///     let polygonFromBezierPath = Polygon(bezierPath)
 ///     ```
 
-public struct Polygon: CompositeGeometry {
+public struct Polygon: Shape {
     public typealias D = D2
     internal let pointsProvider: any PolygonPointsProvider
 
@@ -78,7 +78,6 @@ public extension Polygon {
         self.init(provider: BezierPathRange(bezierPath: bezierPath, range: range))
     }
 
-    
     static func +(_ lhs: Polygon, _ rhs: Polygon) -> Polygon {
         lhs.appending(rhs)
     }

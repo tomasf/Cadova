@@ -57,21 +57,6 @@ struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geomet
     }
 }
 
-// Dimensionality-independent Shape equivalent
-
-public protocol CompositeGeometry: Geometry {
-    var body: D.Geometry { get }
-}
-
-extension CompositeGeometry {
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        try await environment.whileCurrent {
-            try await body.build(in: environment, context: context)
-        }
-    }
-}
-
-
 struct BooleanGeometry<D: Dimensionality>: Geometry {
     let children: [D.Geometry]
     let type: BooleanOperationType
