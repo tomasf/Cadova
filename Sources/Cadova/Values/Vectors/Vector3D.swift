@@ -57,9 +57,9 @@ public struct Vector3D: ExpressibleByArrayLiteral, Hashable, Sendable, Codable {
 public extension Vector3D {
     subscript(_ axis: Axis3D) -> Double {
         switch axis {
-        case .x: return x
-        case .y: return y
-        case .z: return z
+        case .x: x
+        case .y: y
+        case .z: z
         }
     }
 

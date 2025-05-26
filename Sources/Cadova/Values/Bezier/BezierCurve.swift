@@ -92,46 +92,50 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     func map<V2: Vector>(_ transform: (V) -> V2) -> BezierCurve<V2> {
         .init(controlPoints: controlPoints.map(transform))
     }
+
+    func approximateLength(segmentCount: Int) -> Double {
+        points(segmentCount: segmentCount).paired().map { ($1.0 - $0.0).magnitude }.reduce(0, +)
+    }
 }
 
-extension BezierCurve<Vector2D> {
-    /// Solves for `t` such that the x component of the point at `t` is approximately `xTarget`.
+extension BezierCurve {
+    /// Solves for `t` such that the `axis` component of the point at `t` is approximately `target`.
     ///
-    /// - Important: Only works for monotonic curves in the x direction.
+    /// - Important: Only works for monotonic curves in the axis direction.
     /// - Parameters:
-    ///   - xTarget: The target x value to solve for.
-    /// - Returns: The value of `t` in [0, 1] such that point(at: t).x ≈ xTarget, or `nil` if not found.
-    func t(forX xTarget: Double) -> Double? {
+    ///   - target: The target value to solve for.
+    ///   - axis: The axis for the target value.
+    /// - Returns: The value of `t` (not clamped to [0, 1]) such that point(at: t)[axis] ≈ target, or `nil` if not found.
+    ///   Values outside [0, 1] are allowed if the curve extends in that direction.
+    func t(for target: Double, in axis: V.D.Axis) -> Double? {
         let maxIterations = 8
         let tolerance = 1e-6
-        var t = xTarget
+        let derived = derivative
+        let a = controlPoints.first![axis]
+        let b = controlPoints.last![axis]
+        var t = ((target - a) / (b - a))
+        let fullRange = Range(controlPoints[0][axis], controlPoints.last![axis])
 
-        // Clamp t to range
-        t = t.clamped(to: 0...1)
+        guard !t.isNaN else { return nil }
 
         for _ in 0..<maxIterations {
-            let x = point(at: t).x
-            let dx = derivative.point(at: t).x
+            let value = point(at: t)[axis]
+            let dValue = derived.point(at: t)[axis]
 
-            let error = x - xTarget
+            let error = value - target
             if Swift.abs(error) < tolerance {
                 return t
             }
 
-            if Swift.abs(dx) < 1e-10 {
+            if Swift.abs(dValue) < 1e-10 {
                 break // Avoid division by zero
             }
-
-            let tNext = t - error / dx
-            if tNext < 0 || tNext > 1 {
-                break // Out of bounds
-            }
-
-            t = tNext
+            t = t - error / dValue
         }
 
         return nil
     }
+
 }
 
 extension BezierCurve: CustomDebugStringConvertible {

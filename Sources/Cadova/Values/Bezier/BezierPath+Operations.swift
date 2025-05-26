@@ -49,8 +49,8 @@ public extension BezierPath {
     ///   of the length calculation. More detailed segmentation results in more points being generated, leading to a more
     ///   accurate length approximation.
     /// - Returns: A `Double` value representing the total length of the Bézier path.
-    func length(segmentation: EnvironmentValues.Segmentation) -> Double {
-        points(segmentation: segmentation)
+    func length(segmentation: EnvironmentValues.Segmentation, in range: ClosedRange<Position>? = nil) -> Double {
+        points(in: range ?? positionRange, segmentation: segmentation)
             .paired()
             .map { $0.distance(to: $1) }
             .reduce(0, +)
@@ -58,12 +58,21 @@ public extension BezierPath {
 
     /// Returns the point at a given position along the path
     func point(at position: Position) -> V {
-        assert(positionRange ~= position)
+        //assert(positionRange ~= position)
         guard !curves.isEmpty else { return startPoint }
 
-        let curveIndex = min(Int(floor(position)), curves.count - 1)
-        let fraction = position - Double(curveIndex)
+        var curveIndex = min(Int(floor(position)), curves.count - 1)
+        var fraction = position - Double(curveIndex)
+        if curveIndex < 0 {
+            fraction += Double(curveIndex)
+            curveIndex = 0
+        }
         return curves[curveIndex].point(at: fraction)
+    }
+
+    /// Returns the point at a given position along the path
+    subscript(position: Position) -> V {
+        point(at: position)
     }
 
     func tangent(at position: Position) -> Direction<V.D> {
@@ -109,6 +118,28 @@ internal extension BezierPath {
         readEnvironment { e in
             reader(pointsAtPositions(in: range ?? positionRange, segmentation: e.segmentation))
         }
+    }
+}
+
+// For paths that are monotonic over axis
+internal extension BezierPath {
+    func range(for axis: V.D.Axis) -> Range<Double> {
+        guard let lastCurve = curves.last else { return 0..<0 }
+        let lastPoint = lastCurve.controlPoints.last!
+        return startPoint[axis]..<lastPoint[axis]
+    }
+
+    func curveIndex(for value: Double, in axis: V.D.Axis) -> Int {
+        guard value >= startPoint[axis] else { return 0 }
+        return curves.firstIndex(where: {
+            value <= $0.controlPoints.last![axis]
+        }) ?? curves.count - 1
+    }
+
+    func position(for target: Double, in axis: V.D.Axis) -> Position? {
+        let curveIndex = curveIndex(for: target, in: axis)
+        guard let t = curves[curveIndex].t(for: target, in: axis) else { return nil }
+        return Double(curveIndex) + t
     }
 }
 
