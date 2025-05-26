@@ -1,30 +1,5 @@
 import Foundation
 
-fileprivate extension BoundingBox {
-    func partialBox(from: Double?, to: Double?, in axis: D.Axis) -> BoundingBox {
-        .init(
-            minimum: minimum.with(axis, as: from ?? minimum[axis] - 1),
-            maximum: maximum.with(axis, as: to ?? maximum[axis] + 1)
-        )
-    }
-
-    static var universe: Self {
-        .init(minimum: .init(-1000), maximum: .init(1000))
-    }
-}
-
-internal extension BoundingBox2D {
-    var mask: any Geometry2D {
-        Rectangle(size).translated(minimum)
-    }
-}
-
-internal extension BoundingBox3D {
-    var mask: any Geometry3D {
-        Box(size).translated(minimum)
-    }
-}
-
 public extension Geometry {
     typealias WithinRange = RangeExpression<Double> & Sendable
 }
@@ -71,5 +46,30 @@ public extension Geometry3D {
             box = box.partialBox(from: z?.min, to: z?.max, in: .z)
             geometry.intersecting { box.mask }
         }
+    }
+}
+
+fileprivate extension BoundingBox {
+    func partialBox(from: Double?, to: Double?, in axis: D.Axis) -> BoundingBox {
+        .init(
+            minimum: minimum.with(axis, as: from ?? minimum[axis] - 1),
+            maximum: maximum.with(axis, as: to ?? maximum[axis] + 1)
+        )
+    }
+
+    static var universe: Self {
+        .init(minimum: .init(-1000), maximum: .init(1000))
+    }
+}
+
+internal extension BoundingBox2D {
+    var mask: any Geometry2D {
+        Rectangle(size).translated(minimum)
+    }
+}
+
+internal extension BoundingBox3D {
+    var mask: any Geometry3D {
+        Box(size).translated(minimum)
     }
 }

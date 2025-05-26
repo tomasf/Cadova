@@ -12,18 +12,18 @@ public extension Double {
     }
 }
 
-extension Angle: AdditiveArithmetic {
-    public static let zero = 0°
+public extension Angle {
+    static let zero = 0°
 
-    public static prefix func -(_ a: Angle) -> Angle {
+    static prefix func -(_ a: Angle) -> Angle {
         Angle(radians: -a.radians)
     }
 
-    public static func +(_ a: Angle, _ b: Angle) -> Angle {
+    static func +(_ a: Angle, _ b: Angle) -> Angle {
         Angle(radians: a.radians + b.radians)
     }
 
-    public static func -(_ a: Angle, _ b: Angle) -> Angle {
+    static func -(_ a: Angle, _ b: Angle) -> Angle {
         Angle(radians: a.radians - b.radians)
     }
 }
@@ -46,7 +46,6 @@ public extension Angle {
     }
 }
 
-extension Angle: Comparable {}
 public extension Angle {
     static func <(_ a: Angle, _ b: Angle) -> Bool {
         a.radians < b.radians
