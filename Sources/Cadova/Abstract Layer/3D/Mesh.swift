@@ -11,9 +11,7 @@ import Manifold3D
 /// Use this type when importing or constructing complex geometry manually, such as converting from external
 /// sources, procedural generation, or custom geometry definitions.
 
-public struct Mesh: CompositeGeometry {
-    public typealias D = D3
-
+public struct Mesh: Shape3D {
     let meshData: MeshData
 
     internal init(_ meshData: MeshData) {

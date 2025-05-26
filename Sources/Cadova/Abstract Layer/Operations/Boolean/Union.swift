@@ -31,15 +31,17 @@ import Manifold3D
 ///
 /// Both examples create a union where the cylinder and box are combined into a single geometry.
 ///
-public struct Union<D: Dimensionality>: CompositeGeometry {
+public struct Union<D: Dimensionality>: Geometry {
     let children: [D.Geometry]
 
     internal init(children: [D.Geometry]) {
         self.children = children
     }
 
-    public var body: D.Geometry {
-        BooleanGeometry(children: children, type: .union)
+    // Union can't be a Shape because Shape uses a geometry builder which uses Union
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await BooleanGeometry(children: children, type: .union)
+            .build(in: environment, context: context)
     }
 }
 

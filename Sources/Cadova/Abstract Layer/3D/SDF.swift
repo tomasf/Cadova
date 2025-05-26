@@ -1,9 +1,7 @@
 import Foundation
 import Manifold3D
 
-public struct LevelSet: CompositeGeometry {
-    public typealias D = D3
-
+public struct LevelSet: Shape3D {
     let function: @Sendable (Vector3D) -> Double
     let bounds: BoundingBox3D
     let edgeLength: Double
