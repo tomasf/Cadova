@@ -15,6 +15,11 @@ public extension Measurements {
         isEmpty ? nil : .init(concrete.bounds)
     }
 
+    /// The total number of vertices in the geometry.
+    var pointCount: Int {
+        concrete.vertexCount
+    }
+
     /// Is this geometry empty?
     var isEmpty: Bool { .init(concrete.isEmpty) }
 }
@@ -22,9 +27,6 @@ public extension Measurements {
 public extension Measurements2D {
     /// The total area of the 2D geometry.
     var area: Double { concrete.area }
-
-    /// The total number of vertices in the geometry.
-    var pointCount: Int { concrete.vertexCount }
 
     /// The number of contours (closed paths) in the geometry.
     var contourCount: Int { concrete.contourCount }
@@ -36,9 +38,6 @@ public extension Measurements3D {
 
     /// The total volume enclosed by the 3D geometry.
     var volume: Double { concrete.volume }
-
-    /// The total number of vertices in the geometry.
-    var pointCount: Int { concrete.vertexCount }
 
     /// The total number of edges in the geometry.
     var edgeCount: Int { concrete.edgeCount }
