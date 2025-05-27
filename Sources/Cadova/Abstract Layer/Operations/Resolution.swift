@@ -15,9 +15,7 @@ public extension Geometry {
     /// - Returns: A new geometry with refined resolution, adapted to the specified maximum edge length.
     ///
     func refined(maxEdgeLength: Double) -> D.Geometry {
-        return CachedConcreteTransformer(body: self, name: "Cadova.Refine", parameters: maxEdgeLength) {
-            $0.refine(edgeLength: maxEdgeLength)
-        }
+        GeometryNodeTransformer(body: self) { .refine($0, maxEdgeLength: maxEdgeLength) }
     }
 }
 
@@ -37,9 +35,7 @@ public extension Geometry {
     ///   A new, simplified geometry instance.
     ///
     func simplified(threshold: Double) -> D.Geometry {
-        CachedConcreteTransformer(body: self, name: "Cadova.Simplify", parameters: threshold) { concrete in
-            concrete.simplify(epsilon: threshold)
-        }
+        GeometryNodeTransformer(body: self) { .simplify($0, tolerance: threshold) }
     }
 
     /// Returns a simplified version of the geometry based on the current environment’s simplification threshold.

@@ -13,6 +13,8 @@ internal struct GeometryNode<D: Dimensionality>: Sendable {
         case boolean ([D.Node], type: BooleanOperationType)
         case transform (D.Node, transform: D.Transform)
         case convexHull (D.Node)
+        case refine (D.Node, edgeLength: Double)
+        case simplify (D.Node, tolerance: Double)
         case materialized (cacheKey: OpaqueKey)
 
         // 2D
@@ -71,6 +73,12 @@ extension GeometryNode {
 
         case .convexHull (let node):
             return await context.result(for: node).modified { $0.hull() }
+
+        case .refine (let node, let edgeLength):
+            return await context.result(for: node).modified { $0.refine(edgeLength: edgeLength) }
+
+        case .simplify(let node, let tolerance):
+            return await context.result(for: node).modified { $0.simplify(epsilon: tolerance) }
 
         case .materialized (_):
             preconditionFailure("Materialized geometry nodes are pre-cached and cannot be evaluated")

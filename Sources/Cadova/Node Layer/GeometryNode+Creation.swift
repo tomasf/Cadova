@@ -36,6 +36,16 @@ extension GeometryNode {
         return Self(.convexHull(body))
     }
 
+    static func refine(_ body: D.Node, maxEdgeLength: Double) -> GeometryNode {
+        guard body.isEmpty == false else { return .empty }
+        return Self(.refine(body, edgeLength: maxEdgeLength))
+    }
+
+    static func simplify(_ body: D.Node, tolerance: Double) -> GeometryNode {
+        guard body.isEmpty == false else { return .empty }
+        return Self(.simplify(body, tolerance: tolerance))
+    }
+
     static func shape(_ shape: PrimitiveShape2D) -> GeometryNode where D == D2 {
         guard shape.isEmpty == false else { return .empty }
         return Self(.shape2D(shape))

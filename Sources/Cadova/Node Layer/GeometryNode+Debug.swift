@@ -22,6 +22,11 @@ extension GeometryNode: CustomDebugStringConvertible {
                    String(describing: transform.values),
                    body.debugDescription.indented
             )
+        case .refine(let body, let edgeLength):
+            String(format: "refine(%g) {\n%@\n}", edgeLength, body.debugDescription.indented)
+        case .simplify(let body, let tolerance):
+            String(format: "simplify(%g) {\n%@\n}", tolerance, body.debugDescription.indented)
+
         case .convexHull(let body):
             "convexHull {\n\(body.debugDescription.indented)\n}"
         case .materialized(let key):
