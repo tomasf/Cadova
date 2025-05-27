@@ -264,6 +264,7 @@ extension BidirectionalCollection where Index == Int {
 
         let (k0, v0) = self[high]
         let (k1, v1) = self[low]
+        guard k1 - k0 != 0 else { return v0 }
         return v0 + (v1 - v0) * (key - k0) / (k1 - k0)
     }
 }
