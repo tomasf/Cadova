@@ -268,4 +268,3 @@ extension BidirectionalCollection where Index == Int {
         return v0 + (v1 - v0) * (key - k0) / (k1 - k0)
     }
 }
-
