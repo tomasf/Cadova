@@ -7,6 +7,9 @@ extension GeometryNode: Equatable {
         case let (.boolean(a, ta), .boolean(b, tb)): ta == tb && a == b
         case let (.transform(a1, t1), .transform(a2, t2)): a1 == a2 && t1 == t2
         case let (.convexHull(a), .convexHull(b)): a == b
+        case let (.refine(n1, l1), .refine(n2, l2)): n1 == n2 && l1 == l2
+        case let (.simplify(n1, t1), .simplify(n2, t2)): n1 == n2 && t1 == t2
+
         case let (.materialized(k1), .materialized(k2)): k1 == k2
         case let (.shape2D(a), .shape2D(b)): a == b
         case let (.offset(a1, aa, aj, am, asc), .offset(a2, ba, bj, bm, bsc)):
@@ -17,10 +20,7 @@ extension GeometryNode: Equatable {
         case let (.extrusion(a1, k1), .extrusion(a2, k2)): a1 == a2 && k1 == k2
         case let (.lazyUnion(ca), .lazyUnion(cb)): ca == cb
 
-        case (.empty, _), (.boolean, _), (.transform, _), (.convexHull, _), (.materialized, _),
-            (.shape2D, _), (.offset, _), (.projection, _),
-            (.shape3D, _), (.applyMaterial, _), (.extrusion, _), (.lazyUnion, _):
-            false
+        default: false
         }
     }
 }
@@ -41,6 +41,14 @@ extension GeometryNode: Hashable {
         case .convexHull(let body):
             hasher.combine(Kind.convexHull)
             hasher.combine(body)
+        case .refine(let body, let edgeLength):
+            hasher.combine(Kind.refine)
+            hasher.combine(body)
+            hasher.combine(edgeLength)
+        case .simplify(let body, let tolerance):
+            hasher.combine(Kind.simplify)
+            hasher.combine(body)
+            hasher.combine(tolerance)
         case .materialized(let key):
             hasher.combine(Kind.materialized)
             hasher.combine(key)
