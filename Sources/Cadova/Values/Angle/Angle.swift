@@ -3,8 +3,8 @@ import Foundation
 /// A value representing a geometric angle.
 ///
 /// `Angle` encapsulates the concept of an angle without being tied to any specific unit.
-/// Internally, angles are stored in radians, but you can easily create or inspect angles in degrees,
-/// arcminutes, arcseconds, or even full turns.
+/// You can easily create or inspect angles in degrees, radians, arcminutes, arcseconds,
+/// or even full turns.
 ///
 /// You can think of `Angle` as a semantic wrapper for angular values—mathematically unitless in storage,
 /// but meaningfully constructed and interpreted in various units.
@@ -17,8 +17,8 @@ import Foundation
 /// let quarterTurn = Angle(turns: 0.25)
 /// ```
 public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable {
-    /// The angle expressed in radians
-    public let radians: Double
+    /// The angle expressed in degrees
+    public let degrees: Double
 
     /// Create an angle from radians.
     ///
@@ -28,7 +28,7 @@ public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable
     /// - Precondition: The radians value must be a finite number.
     public init(radians: Double) {
         precondition(radians.isFinite, "Angles can't be NaN or infinite")
-        self.radians = radians
+        self.init(degrees: radians / .pi * 180.0)
     }
 
     /// Create an angle from degrees, and optionally, arcminutes and arcseconds.
@@ -41,7 +41,7 @@ public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable
     ///   - arcsecs: The angle in arcseconds, one sixtieth of an arcminute.
     public init(degrees: Double, arcmins: Double = 0, arcsecs: Double = 0) {
         let totalDegrees = degrees + arcmins / 60.0 + arcsecs / 3600.0
-        self.init(radians: totalDegrees * .pi / 180.0)
+        self.degrees = totalDegrees
     }
 
     /// Create an angle from a number of complete turns.
@@ -55,9 +55,9 @@ public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable
         self.init(radians: turns * 2.0 * .pi)
     }
 
-    /// The angle expressed in degrees
-    public var degrees: Double {
-        radians / (.pi / 180.0)
+    /// The angle expressed in radians
+    public var radians: Double {
+        degrees / 180.0 * .pi
     }
 
     /// The angle expressed in full turns (360°).

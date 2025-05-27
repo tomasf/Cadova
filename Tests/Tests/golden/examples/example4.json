@@ -81,7 +81,7 @@
               {
                 "type" : "6Cadova5AngleV",
                 "value" : {
-                  "radians" : 0.03490658503988659
+                  "degrees" : 2
                 }
               },
               {
@@ -89,7 +89,7 @@
                 "value" : {
                   "adaptive" : {
                     "minAngle" : {
-                      "radians" : 0.03490658503988659
+                      "degrees" : 2
                     },
                     "minSize" : 0.15
                   }

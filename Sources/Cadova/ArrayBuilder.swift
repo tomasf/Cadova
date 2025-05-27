@@ -9,7 +9,7 @@ import Foundation
         [expression]
     }
 
-    public static func buildExpression<S>(_ geometry: S) -> [Element] where S: Sequence, S.Element == Element {
+    public static func buildExpression<S: Sequence<Element>>(_ geometry: S) -> [Element] {
         Array(geometry)
     }
 
