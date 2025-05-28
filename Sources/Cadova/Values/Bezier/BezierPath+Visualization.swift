@@ -6,7 +6,7 @@ extension BezierPath {
     ///   - scale: A value that scales the size of markers and the thickness of lines.
     ///   - markerRotation: The rotation to use for markers. Set to nil to hide them.
 
-    public func visualize(scale: Double = 1, markerRotation: Rotation3D? = [45°, 0°, -45°]) -> any Geometry3D {
+    public func visualize(scale: Double = 1, markerRotation: Angle? = -45°) -> any Geometry3D {
         @Sendable @GeometryBuilder3D
         func makeMarker(at location: V, text: String, transform: Transform3D) -> any Geometry3D {
             Sphere(radius: 0.2)
@@ -32,7 +32,7 @@ extension BezierPath {
 
         return readEnvironment { environment -> any Geometry3D in
             if let markerRotation {
-                let transform = Transform3D.scaling(scale).rotated(markerRotation)
+                let transform = Transform3D.scaling(scale).rotated(x: 45°, z: markerRotation)
                 for (curveIndex, curve) in curves.enumerated() {
                     for (pointIndex, controlPoint) in curve.controlPoints.dropFirst().enumerated() {
                         makeMarker(at: controlPoint, curveIndex: curveIndex, pointIndex: pointIndex, transform: transform)
