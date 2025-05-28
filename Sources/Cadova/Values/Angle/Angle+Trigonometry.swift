@@ -4,8 +4,23 @@ import Foundation
 ///
 /// - Parameter angle: The angle for which to calculate the sine.
 /// - Returns: The sine of the given angle.
+///
 public func sin(_ angle: Angle) -> Double {
-    sin(angle.radians)
+    // Sine function where multiples of 90 degrees come out exact.
+    // Borrowed from Manifold: https://github.com/elalish/manifold/blob/master/include/manifold/common.h
+
+    guard angle >= 0° else { return -sin(-angle) }
+
+    var quotient: Int32 = 0
+    let remainder = remquo(angle.degrees, 90, &quotient) / 180 * .pi
+
+    return switch quotient % 4 {
+    case 0: sin(remainder)
+    case 1: cos(remainder)
+    case 2: -sin(remainder)
+    case 3: -cos(remainder)
+    default: 0
+    }
 }
 
 /// Calculate the cosine of an angle.
@@ -13,7 +28,7 @@ public func sin(_ angle: Angle) -> Double {
 /// - Parameter angle: The angle for which to calculate the cosine.
 /// - Returns: The cosine of the given angle.
 public func cos(_ angle: Angle) -> Double {
-    cos(angle.radians)
+    sin(angle + 90°)
 }
 
 /// Calculate the tangent of an angle.
@@ -21,7 +36,7 @@ public func cos(_ angle: Angle) -> Double {
 /// - Parameter angle: The angle for which to calculate the tangent.
 /// - Returns: The tangent of the given angle.
 public func tan(_ angle: Angle) -> Double {
-    tan(angle.radians)
+    sin(angle) / cos(angle)
 }
 
 /// Calculate the secant of an angle (1 / cosine).

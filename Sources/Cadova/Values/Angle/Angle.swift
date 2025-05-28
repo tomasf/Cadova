@@ -52,7 +52,7 @@ public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable
     /// - Precondition: The turns value must be a finite number.
     public init(turns: Double) {
         precondition(turns.isFinite, "Turns can't be NaN or infinite")
-        self.init(radians: turns * 2.0 * .pi)
+        self.init(degrees: turns * 360.0)
     }
 
     /// The angle expressed in radians
@@ -62,12 +62,12 @@ public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable
 
     /// The angle expressed in full turns (360°).
     public var turns: Double {
-        radians / (2 * .pi)
+        degrees / 360.0
     }
 
     /// Returns `true` if the angle is effectively zero, within floating-point precision.
     public var isZero: Bool {
-        Swift.abs(radians) < .ulpOfOne
+        Swift.abs(degrees) < .ulpOfOne
     }
 }
 
@@ -98,10 +98,10 @@ public extension Angle {
 
     /// Normalizes this angle to the range (-180°, 180°]
     var normalized: Angle {
-        var r = radians
-        while r <= -.pi { r += 2 * .pi }
-        while r > .pi { r -= 2 * .pi }
-        return Angle(radians: r)
+        var d = degrees
+        while d <= -180 { d += 360 }
+        while d > 180 { d -= 360 }
+        return Angle(degrees: d)
     }
 }
 
@@ -113,11 +113,11 @@ extension Angle: CustomDebugStringConvertible {
 
 extension Angle {
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(radians.rounded())
+        hasher.combine(degrees.rounded())
     }
 
     public static func ==(lhs: Self, rhs: Self) -> Bool {
-        lhs.radians.roundedForHash == rhs.radians.roundedForHash
+        lhs.degrees.roundedForHash == rhs.degrees.roundedForHash
     }
 }
 
