@@ -38,7 +38,7 @@ extension TextAttributes {
             throw TextError.fontLoadingFailed
         }
 
-        FT_Set_Char_Size(face, 0, FT_F26Dot6(size * 64.0), 72, 72)
+        FT_Set_Char_Size(face, 0, FT_F26Dot6(size * 64.0 * GlyphRenderer.scaleFactor), 72, 72)
         FT_Select_Charmap(face, FT_ENCODING_UNICODE)
 
         let glyphRenderer = GlyphRenderer()
@@ -74,9 +74,9 @@ extension TextAttributes {
         FT_Done_Face(face)
         FT_Done_FreeType(library)
 
-        let lineHeight = Double(metrics.height) / 64.0
-        let ascender = Double(metrics.ascender) / 64.0
-        let descender = Double(metrics.descender) / 64.0
+        let lineHeight = Double(metrics.height) / 64.0 / GlyphRenderer.scaleFactor
+        let ascender = Double(metrics.ascender) / 64.0 / GlyphRenderer.scaleFactor
+        let descender = Double(metrics.descender) / 64.0 / GlyphRenderer.scaleFactor
         let horizontalAdjustment = horizontalAlignment!.adjustmentFactor
 
         let lastBaselineOffset = lineHeight * Double(lines.count - 1)

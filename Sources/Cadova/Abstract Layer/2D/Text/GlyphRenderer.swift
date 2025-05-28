@@ -2,6 +2,7 @@ import Foundation
 import freetype
 
 internal class GlyphRenderer {
+    static let scaleFactor = 16.0
     private var paths: [BezierPath2D] = []
 
     func move(to target: FT_Vector) {
@@ -83,6 +84,6 @@ internal class GlyphRenderer {
 
 internal extension FT_Vector {
     var cadovaVector: Vector2D {
-        Vector2D(Double(x) / 64.0, Double(y) / 64.0)
+        Vector2D(Double(x) / 64.0 / GlyphRenderer.scaleFactor, Double(y) / 64.0 / GlyphRenderer.scaleFactor)
     }
 }
