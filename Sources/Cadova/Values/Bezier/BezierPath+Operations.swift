@@ -33,16 +33,6 @@ public extension BezierPath {
 }
 
 public extension BezierPath {
-    /// Generates a sequence of points representing the path.
-    ///
-    /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
-    /// - Returns: An array of points that approximate the Bezier path.
-    func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
-        return [startPoint] + curves.flatMap {
-            $0.points(segmentation: segmentation)[1...].map { $1 }
-        }
-    }
-
     /// Calculates the total length of the Bézier path.
     ///
     /// - Parameter segmentation: The desired level of detail for the generated points, which influences the accuracy
@@ -82,8 +72,23 @@ public extension BezierPath {
         return curves[curveIndex].tangent(at: fraction)
     }
 
-    func points(in pathFractionRange: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [V] {
-        pointsAtPositions(in: pathFractionRange, segmentation: segmentation).map(\.1)
+    /// Generates a sequence of points representing the path.
+    ///
+    /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
+    /// - Returns: An array of points that approximate the Bezier path.
+    func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
+        return [startPoint] + curves.flatMap {
+            $0.points(segmentation: segmentation)[1...].map { $1 }
+        }
+    }
+
+    /// Generates a sequence of points representing the path.
+    ///
+    /// - Parameter range: The position range in which to collect points
+    /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
+    /// - Returns: An array of points that approximate the Bezier path.
+    func points(in range: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [V] {
+        pointsAtPositions(in: range, segmentation: segmentation).map(\.1)
     }
 
     func readPoints<D: Dimensionality>(
@@ -130,15 +135,16 @@ internal extension BezierPath {
     }
 
     func curveIndex(for value: Double, in axis: V.D.Axis) -> Int {
-        guard value >= startPoint[axis] else { return 0 }
-        return curves.firstIndex(where: {
+        curves.firstIndex(where: {
             value <= $0.controlPoints.last![axis]
         }) ?? curves.count - 1
     }
 
     func position(for target: Double, in axis: V.D.Axis) -> Position? {
         let curveIndex = curveIndex(for: target, in: axis)
-        guard let t = curves[curveIndex].t(for: target, in: axis) else { return nil }
+        guard let t = curves[curveIndex].t(for: target, in: axis) else {
+            return nil
+        }
         return Double(curveIndex) + t
     }
 }

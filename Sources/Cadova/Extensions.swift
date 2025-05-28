@@ -244,8 +244,9 @@ func waitForTask(operation: @Sendable @escaping () async -> Void) {
 extension BidirectionalCollection where Index == Int {
     func binarySearchInterpolate<V: Vector>(key: Double) -> V where Element == (Double, V) {
         precondition(!isEmpty, "Array must not be empty")
-        if key <= self.first!.0 { return self.first!.1 }
-        if key >= self.last!.0  { return self.last!.1 }
+
+        guard key > self.first!.0 else { return self.first!.1 }
+        guard key < self.last!.0 else { return self.last!.1 }
 
         // Binary search for the correct interval
         var low = 0

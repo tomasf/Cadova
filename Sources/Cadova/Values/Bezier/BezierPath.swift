@@ -33,7 +33,7 @@ internal extension BezierPath {
         guard let previousCurve = curves.last else {
             preconditionFailure("Adding a continuous segment requires a previous segment to match")
         }
-        return endPoint + previousCurve.endDirection * distance
+        return endPoint + previousCurve.endDirection.unitVector * distance
     }
 
     var derivative: BezierPath {
