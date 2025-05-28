@@ -2,6 +2,7 @@ import Foundation
 import Manifold3D
 import ThreeMF
 import Zip
+import Nodal
 import CadovaCPP
 
 extension MeshGL: @retroactive @unchecked Sendable {}
@@ -22,7 +23,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     let fileExtension = "3mf"
 
-    private struct PartData {
+    fileprivate struct PartData {
         let id: PartIdentifier
         let manifold: Manifold
         let materials: [Manifold.OriginalID: Material]
@@ -94,7 +95,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
             uniqueIdentifiers.insert(uniqueID)
 
             objects.append(object)
-            items.append(.init(objectID: object.id, partNumber: uniqueID, printable: part.id.type == .solid ? nil : false))
+            let attributes: [ExpandedName: String] = [
+                .printable: part.id.type == .solid ? "1" : "0",
+                .semantic: part.id.type.xmlAttributeValue
+            ]
+            items.append(.init(objectID: object.id, partNumber: uniqueID, customAttributes: attributes))
             objectCount += 1
         }
 
@@ -121,6 +126,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         return ThreeMF.Model(
             unit: .millimeter,
             recommendedExtensions: [.materials],
+            customNamespaces: ["c": CadovaNamespace.uri],
             metadata: options[Metadata.self].threeMFMetadata,
             resources: resources,
             buildItems: items
@@ -300,4 +306,22 @@ extension ModelOptions.Compression {
         case .smallest: return .best
         }
     }
+}
+
+fileprivate extension ExpandedName {
+    static let printable = ExpandedName(namespaceName: nil, localName: "printable")
+    static let semantic = CadovaNamespace.semantic
+}
+
+fileprivate struct CadovaNamespace {
+    static let uri = "https://cadova.org/3mf"
+    static let semantic = ExpandedName(namespaceName: uri, localName: "semantic")
+}
+
+fileprivate extension PartSemantic {
+    init?(xmlAttributeValue value: String) {
+        self.init(rawValue: value)
+    }
+
+    var xmlAttributeValue: String { rawValue }
 }
