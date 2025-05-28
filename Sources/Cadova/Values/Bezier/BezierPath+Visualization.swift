@@ -6,13 +6,30 @@ extension BezierPath {
     ///   - scale: A value that scales the size of markers and the thickness of lines.
     ///   - markerRotation: The rotation to use for markers. Set to nil to hide them.
 
-    public func visualize(scale: Double = 1, markerRotation: Angle? = -45°) -> any Geometry3D {
+    public func visualized(scale: Double = 1, markerRotation: Angle? = -45°) -> any Geometry3D {
         @Sendable @GeometryBuilder3D
         func makeMarker(at location: V, text: String, transform: Transform3D) -> any Geometry3D {
-            Sphere(radius: 0.2)
-                .colored(.black)
-                .transformed(transform)
-                .translated(location.vector3D)
+            Union {
+                Sphere(radius: 0.2)
+                    .colored(.black)
+
+                Text(text)
+                    .measuringBounds { text, bounds in
+                        Box(x: bounds.size.x + 1.0, y: 2, z: 0.1)
+                            .roundingBoxCorners(axis: .z, radius: 1)
+                            .aligned(at: .center)
+                            .colored(.white)
+                            .adding {
+                                text
+                                    .extruded(height: 0.01)
+                                    .translated(z: 0.1)
+                                    .colored(.black)
+                            }
+                            .translated(y: 1)
+                    }
+            }
+            .transformed(transform)
+            .translated(location.vector3D)
         }
 
         @Sendable func makeMarker(at location: V, curveIndex: Int, pointIndex: Int, transform: Transform3D) -> any Geometry3D {
@@ -55,6 +72,8 @@ extension BezierPath {
                     .colored(.blue)
             }
         }
+        .withFontSize(1.5)
+        .withTextAlignment(horizontal: .center, vertical: .center)
         .inPart(named: "Visualized Path", type: .visual)
     }
 }
