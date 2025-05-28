@@ -35,7 +35,7 @@ public extension BezierPath {
             }
             start = controlPoints.last!
             let curve = Curve(controlPoints: controlPoints)
-            direction = curve.endDirection
+            direction = curve.tangent(at: 1)
             return curve
         }
 

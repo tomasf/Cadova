@@ -66,12 +66,6 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         Self(controlPoints: controlPoints.map { transform.apply(to: $0) })
     }
 
-    var endDirection: Direction<V.D> {
-        let last = controlPoints[controlPoints.count - 1]
-        let secondLast = controlPoints[controlPoints.count - 2]
-        return Direction(from: secondLast, to: last)
-    }
-
     func map<V2: Vector>(_ transform: (V) -> V2) -> BezierCurve<V2> {
         .init(controlPoints: controlPoints.map(transform))
     }
