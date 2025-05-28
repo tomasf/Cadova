@@ -36,4 +36,11 @@ public extension Transform2D {
     func sheared(_ axis: Axis2D, angle: Angle) -> Transform2D {
         concatenated(with: .shearing(axis, angle: angle))
     }
+
+    /// Creates a new `Transform2D` by concatenating a rotation transformation with this transformation using the given rotation.
+    ///
+    /// - Parameter r: The rotation to apply
+    func rotated(_ r: Angle) -> Self {
+        concatenated(with: .rotation(r))
+    }
 }

@@ -3,7 +3,6 @@ import Foundation
 public protocol Transform: Sendable, Hashable, Codable {
     associatedtype D: Dimensionality
     typealias V = D.Vector
-    associatedtype Rotation
 
     static var identity: Self { get }
 
@@ -20,11 +19,9 @@ public protocol Transform: Sendable, Hashable, Codable {
 
     static func translation(_ v: V) -> Self
     static func scaling(_ v: V) -> Self
-    static func rotation(_ r: Rotation) -> Self
-    
+
     func translated(_ v: V) -> Self
     func scaled(_ v: V) -> Self
-    func rotated(_ rotation: Rotation) -> Self
 
     static var size: (rows: Int, columns: Int) { get }
     init(_ transform3D: Transform3D)
@@ -66,13 +63,6 @@ public extension Transform {
     /// - Parameter v: The vector representing the scaling along each axis.
     func scaled(_ v: V) -> Self {
         concatenated(with: .scaling(v))
-    }
-
-    /// Creates a new `Transform` by concatenating a rotation transformation with this transformation using the given rotation.
-    ///
-    /// - Parameter r: The rotation to apply
-    func rotated(_ r: Rotation) -> Self {
-        concatenated(with: .rotation(r))
     }
 }
 

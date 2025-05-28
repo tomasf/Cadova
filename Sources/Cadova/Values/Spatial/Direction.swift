@@ -35,12 +35,6 @@ public extension Direction {
     init(_ axis: D.Axis, _ direction: LinearDirection) {
         self.init(.zero.with(axis, as: direction == .positive ? 1 : -1))
     }
-
-    /// Rotates the direction by an arbitrary rotation.
-    /// - Parameter rotation: The rotation to apply.
-    func rotated(_ rotation: D.Transform.Rotation) -> Self {
-        .init(D.Transform.rotation(rotation).apply(to: unitVector))
-    }
 }
 
 public extension Direction <D3> {
@@ -66,6 +60,11 @@ public extension Direction <D3> {
     ///   - other: The direction around which to rotate.
     func rotated(angle: Angle, around other: Direction3D) -> Direction3D {
         .init(Transform3D.rotation(angle: angle, around: other).apply(to: unitVector))
+    }
+
+    /// Rotates the direction by euler angles.
+    func rotated(x: Angle, y: Angle, z: Angle) -> Self {
+        .init(Transform3D.rotation(x: x, y: y, z: z).apply(to: unitVector))
     }
 
     /// A direction pointing along the positive X axis.
@@ -118,6 +117,12 @@ public extension Direction <D2> {
     /// - Parameter angle: The angle representing the direction.
     init(angle: Angle) {
         self.init(x: cos(angle), y: sin(angle))
+    }
+
+    /// Rotates the direction by an arbitrary rotation.
+    /// - Parameter rotation: The rotation to apply.
+    func rotated(_ rotation: Angle) -> Self {
+        .init(Transform2D.rotation(rotation).apply(to: unitVector))
     }
 
     /// A direction pointing along the positive X axis.

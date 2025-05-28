@@ -14,15 +14,6 @@ public extension Geometry2D {
 public extension Geometry3D {
     /// Rotate geometry
     ///
-    /// - Parameters:
-    ///   - rotation: The rotation
-    /// - Returns: A rotated geometry
-    func rotated(_ rotation: Rotation3D) -> any Geometry3D {
-        transformed(.rotation(rotation))
-    }
-
-    /// Rotate geometry
-    ///
     /// When using multiple axes, the geometry is rotated around the axes in order (first X, then Y, then Z).
     ///
     /// - Parameters:
