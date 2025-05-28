@@ -7,7 +7,7 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         self.controlPoints = controlPoints
     }
 
-    internal func point(at fraction: Double) -> V {
+    func point(at fraction: Double) -> V {
         var workingPoints = controlPoints
         while workingPoints.count > 1 {
             workingPoints = workingPoints.paired().map { $0.point(alongLineTo: $1, at: fraction) }
@@ -16,7 +16,7 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     }
 
     // Returns the Bezier curve that represents the derivative of this curve.
-    internal var derivative: BezierCurve<V> {
+    var derivative: BezierCurve<V> {
         let n = controlPoints.count - 1
         return BezierCurve(controlPoints: (0..<n).map { i in
             (controlPoints[i + 1] - controlPoints[i]) * Double(n)

@@ -36,10 +36,6 @@ internal extension BezierPath {
         return endPoint + previousCurve.tangent(at: 1).unitVector * distance
     }
 
-    var derivative: BezierPath {
-        BezierPath(startPoint: startPoint, curves: curves.map { $0.derivative })
-    }
-
     var path3D: BezierPath3D {
         if let self = self as? BezierPath3D {
             self

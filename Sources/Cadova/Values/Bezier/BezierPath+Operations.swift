@@ -46,9 +46,12 @@ public extension BezierPath {
             .reduce(0, +)
     }
 
-    /// Returns the point at a given position along the path
+    /// Returns the point at a specific fractional position along the path.
+    ///
+    /// - Parameter position: A fractional value indicating the position along the path.
+    ///   The integer part indicates the curve index; the fractional part specifies the location within that curve.
+    /// - Returns: The interpolated point along the path at the specified position.
     func point(at position: Position) -> V {
-        //assert(positionRange ~= position)
         guard !curves.isEmpty else { return startPoint }
 
         var curveIndex = min(Int(floor(position)), curves.count - 1)
@@ -60,26 +63,27 @@ public extension BezierPath {
         return curves[curveIndex].point(at: fraction)
     }
 
-    /// Returns the point at a given position along the path
+    /// Accesses the point at a specific fractional position along the path.
+    ///
+    /// - Parameter position: A fractional value indicating the position along the path.
+    /// - Returns: The point along the path at the specified position.
     subscript(position: Position) -> V {
         point(at: position)
     }
 
+    /// Returns the tangent direction at a specific position along the path.
+    ///
+    /// - Parameter position: The fractional position along the path where the tangent is evaluated.
+    /// - Returns: A `Direction` representing the tangent vector at the given position.
     func tangent(at position: Position) -> Direction<V.D> {
-        assert(positionRange ~= position)
-        let curveIndex = min(Int(floor(position)), curves.count - 1)
-        let fraction = position - Double(curveIndex)
-        return curves[curveIndex].tangent(at: fraction)
+        Direction(derivative.point(at: position))
     }
 
-    /// Generates a sequence of points representing the path.
+    /// Computes the derivative path of the Bézier path.
     ///
-    /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
-    /// - Returns: An array of points that approximate the Bezier path.
-    func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
-        return [startPoint] + curves.flatMap {
-            $0.points(segmentation: segmentation)[1...].map { $1 }
-        }
+    /// - Returns: A new `BezierPath` where each curve is replaced by its derivative.
+    var derivative: BezierPath {
+        BezierPath(startPoint: startPoint, curves: curves.map { $0.derivative })
     }
 
     /// Generates a sequence of points representing the path.
@@ -87,78 +91,22 @@ public extension BezierPath {
     /// - Parameter range: The position range in which to collect points
     /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
     /// - Returns: An array of points that approximate the Bezier path.
-    func points(in range: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [V] {
-        pointsAtPositions(in: range, segmentation: segmentation).map(\.1)
+    func points(in range: ClosedRange<Position>? = nil, segmentation: EnvironmentValues.Segmentation) -> [V] {
+        pointsAtPositions(in: range ?? positionRange, segmentation: segmentation).map(\.1)
     }
 
+    /// Converts a sequence of points along the path into a custom geometry using a geometry builder.
+    ///
+    /// - Parameters:
+    ///   - range: Optional position range within the path to sample.
+    ///   - reader: A closure that transforms the points into a geometry value.
+    /// - Returns: A constructed geometry object based on the sampled points.
     func readPoints<D: Dimensionality>(
         in range: ClosedRange<Position>? = nil,
         @GeometryBuilder<D> _ reader: @Sendable @escaping ([V]) -> D.Geometry
     ) -> D.Geometry {
         readEnvironment { e in
             reader(points(in: range ?? positionRange, segmentation: e.segmentation))
-        }
-    }
-}
-
-internal extension BezierPath {
-    func pointsAtPositions(in pathFractionRange: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
-        let (fromCurveIndex, fromFraction) = pathFractionRange.lowerBound.indexAndFraction(curveCount: curves.count)
-        let (toCurveIndex, toFraction) = pathFractionRange.upperBound.indexAndFraction(curveCount: curves.count)
-
-        return curves[fromCurveIndex...toCurveIndex].enumerated().flatMap { index, curve in
-            let startFraction = (index == fromCurveIndex) ? fromFraction : 0.0
-            let endFraction = (index == toCurveIndex) ? toFraction : 1.0
-            let skipFirst = index > fromCurveIndex
-            return curve.points(in: startFraction..<endFraction, segmentation: segmentation)
-                .map { ($0 + Double(index), $1) }
-                .dropFirst(skipFirst ? 1 : 0)
-        }
-    }
-
-    func readPositionsAndPoints<D: Dimensionality>(
-        in range: ClosedRange<Position>? = nil,
-        reader: @Sendable @escaping ([(Double, V)]) -> D.Geometry
-    ) -> D.Geometry {
-        readEnvironment { e in
-            reader(pointsAtPositions(in: range ?? positionRange, segmentation: e.segmentation))
-        }
-    }
-}
-
-// For paths that are monotonic over axis
-internal extension BezierPath {
-    func range(for axis: V.D.Axis) -> Range<Double> {
-        guard let lastCurve = curves.last else { return 0..<0 }
-        let lastPoint = lastCurve.controlPoints.last!
-        return startPoint[axis]..<lastPoint[axis]
-    }
-
-    func curveIndex(for value: Double, in axis: V.D.Axis) -> Int {
-        curves.firstIndex(where: {
-            value <= $0.controlPoints.last![axis]
-        }) ?? curves.count - 1
-    }
-
-    func position(for target: Double, in axis: V.D.Axis) -> Position? {
-        let curveIndex = curveIndex(for: target, in: axis)
-        guard let t = curves[curveIndex].t(for: target, in: axis) else {
-            return nil
-        }
-        return Double(curveIndex) + t
-    }
-}
-
-fileprivate extension BezierPath.Position {
-    func indexAndFraction(curveCount: Int) -> (Int, Double) {
-        if self < 0 {
-            return (0, self)
-        } else if self >= Double(curveCount) {
-            return (curveCount - 1, self - Double(curveCount - 1))
-        } else {
-            let index = floor(self)
-            let fraction = self - index
-            return (Int(index), fraction)
         }
     }
 }
