@@ -44,7 +44,7 @@ public extension BoundingBox3D {
                     .translated(maximum)
             }
             .colored(visualizationBorderColor)
-            .background()
+            .inPart(named: "Visualized Bounding Box", type: .visual)
     }
 }
 

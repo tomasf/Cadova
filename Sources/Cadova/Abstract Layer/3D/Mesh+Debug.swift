@@ -12,6 +12,7 @@ public extension Mesh {
     /// Use only with relatively simple meshes or subsets of geometry.
     ///
     /// - Returns: A composite geometry consisting of extruded versions of each face in the mesh.
+    /// 
     @GeometryBuilder3D
     func visualizedForDebugging() -> any Geometry3D {
         for face in meshData.faces {

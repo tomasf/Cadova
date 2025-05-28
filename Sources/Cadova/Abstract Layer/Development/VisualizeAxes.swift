@@ -35,7 +35,7 @@ public extension Geometry3D {
                 }
                 .scaled(scale)
                 .withSegmentation(count: 8)
-                .background()
+                .inPart(named: "Visualized Axes", type: .visual)
         }
     }
 }

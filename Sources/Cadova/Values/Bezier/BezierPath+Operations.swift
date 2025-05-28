@@ -13,9 +13,11 @@ public extension BezierPath {
     /// - `1.5` represents the midpoint of the second curve.
     ///
     /// This type is used for navigating and interpolating points along a multi-curve Bézier path.
+    /// Positions outside the full `positionRange` can be used to extrapolate outside the normal path.
+    ///
     typealias Position = Double
 
-    /// The valid range of positions within this path
+    /// The full range of positions within this path
     var positionRange: ClosedRange<Position> {
         0...Position(curves.count)
     }
