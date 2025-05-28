@@ -20,6 +20,20 @@ internal extension Geometry {
             $0.warp(transform)
         }
     }
+
+    func warped<Shared>(
+        operationName name: String,
+        cacheParameters params: any Hashable & Sendable & Codable...,
+        initialization: @Sendable @escaping () -> Shared,
+        transform: @Sendable @escaping (D.Vector, Shared) -> D.Vector
+    ) -> D.Geometry {
+        CachedConcreteTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
+            let initData = initialization()
+            return $0.warp { v in
+                transform(v, initData)
+            }
+        }
+    }
 }
 
 public extension Geometry {

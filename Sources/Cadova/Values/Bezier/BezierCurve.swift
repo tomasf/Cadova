@@ -28,9 +28,11 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     }
 
     private func points(in range: Range<Double>, segmentLength: Double) -> [(Double, V)] {
-        let midFraction = (range.lowerBound + range.upperBound) / 2
+        let midFraction = range.mid
         let midPoint = point(at: midFraction)
-        let distance = point(at: range.lowerBound).distance(to: midPoint) + point(at: range.upperBound).distance(to: midPoint)
+        let distance1 = point(at: range.lowerBound).distance(to: midPoint)
+        let distance2 = point(at: range.upperBound).distance(to: midPoint)
+        let distance = distance1 + distance2
 
         if (distance < segmentLength) || distance < 0.001 {
             return []
@@ -49,33 +51,14 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         }
     }
 
-    func points(in range: Range<Double>, segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
+    func points(in range: Range<Double> = 0..<1, segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
         switch segmentation {
         case .fixed (let count):
-            return points(in: range, segmentCount: count)
+            points(in: range, segmentCount: count)
         case .adaptive(_, let minSize):
-            return points(in: range, segmentLength: minSize)
-        }
-    }
-
-    private func points(segmentLength: Double) -> [(Double, V)] {
-        return [(0, point(at: 0))] + points(in: 0..<1, segmentLength: segmentLength) + [(1, point(at: 1))]
-    }
-
-    private func points(segmentCount: Int) -> [(Double, V)] {
-        let segmentInterval = 1.0 / Double(segmentCount)
-        return (0...segmentCount).map { f in
-            let t = Double(f) * segmentInterval
-            return (t, point(at: t))
-        }
-    }
-
-    func points(segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
-        switch segmentation {
-        case .fixed (let count):
-            return points(segmentCount: count)
-        case .adaptive(_, let minSize):
-            return points(segmentLength: minSize)
+            [(range.lowerBound, point(at: range.lowerBound))]
+            + points(in: range, segmentLength: minSize)
+            + [(range.upperBound, point(at: range.upperBound))]
         }
     }
 
@@ -83,10 +66,10 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         Self(controlPoints: controlPoints.map { transform.apply(to: $0) })
     }
 
-    var endDirection: V {
+    var endDirection: Direction<V.D> {
         let last = controlPoints[controlPoints.count - 1]
         let secondLast = controlPoints[controlPoints.count - 2]
-        return (last - secondLast).normalized
+        return Direction(from: secondLast, to: last)
     }
 
     func map<V2: Vector>(_ transform: (V) -> V2) -> BezierCurve<V2> {
@@ -94,7 +77,7 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     }
 
     func approximateLength(segmentCount: Int) -> Double {
-        points(segmentCount: segmentCount).paired().map { ($1.0 - $0.0).magnitude }.reduce(0, +)
+        points(segmentation: .fixed(segmentCount)).paired().map { ($1.0 - $0.0).magnitude }.reduce(0, +)
     }
 }
 

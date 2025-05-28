@@ -47,21 +47,23 @@ public extension Geometry {
                 let max = path.position(for: bounds.maximum[referenceAxis], in: referenceAxis) ?? path.positionRange.upperBound
                 let approximateLength = path.length(segmentation: .fixed(10), in: ClosedRange(min, max))
                 let segmentCount = segmentation.segmentCount(length: approximateLength)
-
-                let lookupTable = (0...segmentCount).map {
-                    let value = bounds.minimum[referenceAxis] + bounds.size[referenceAxis] * Double($0) / Double(segmentCount)
-                    let position = path.position(for: value, in: referenceAxis) ?? 0
-                    let point = path[position]
-                    return (point[referenceAxis], point.with(referenceAxis, as: 0))
-                }
-
                 let segmentLength = bounds.size[referenceAxis] / Double(segmentCount)
+
                 body
                     .refined(maxEdgeLength: segmentLength)
                     .warped(operationName: "deformUsingPath", cacheParameters: referenceAxis, path, segmentation) {
-                        $0 + lookupTable.binarySearchInterpolate(key: $0[referenceAxis])
+                        (0...segmentCount).map {
+                            let value = bounds.minimum[referenceAxis] + bounds.size[referenceAxis] * Double($0) / Double(segmentCount)
+                            guard let position = path.position(for: value, in: referenceAxis) else {
+                                preconditionFailure("Failed to locate \(referenceAxis) = \(value) along path. Make sure the path is monotonic along the \(referenceAxis) axis and valid for all \(referenceAxis) values in the geometry.")
+                            }
+                            let point = path[position]
+                            return (point[referenceAxis], point.with(referenceAxis, as: 0))
+                        }
+                    } transform: {
+                        $0 + $1.binarySearchInterpolate(key: $0[referenceAxis])
                     }
-                    .simplified()
+                    //.simplified()
             }
         }
     }
