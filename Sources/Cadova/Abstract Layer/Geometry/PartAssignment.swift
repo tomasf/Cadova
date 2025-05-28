@@ -36,17 +36,19 @@ internal struct PartDetachment<D: Dimensionality, Input: Dimensionality>: Geomet
     }
 }
 
-/// Specifies the type of a part in the 3MF output.
+/// Specifies the semantic role of a part in the 3MF output.
 ///
-/// This is used to indicate how a part should be treated in the resulting model, especially in slicers or viewers.
+/// This is used to indicate how a part should be treated in the resulting model.
 ///
-/// - `solid`: A regular printable part, typically rendered as opaque and included in the physical output.
-/// - `visual`: A visual-only part used for display, guidance, or context. These are not intended for printing.
-public enum PartType: String, Hashable, Sendable, Codable {
-    /// A regular printable part, rendered as a solid object in the 3MF output.
+public enum PartSemantic: String, Hashable, Sendable, Codable {
+    /// A regular printable part, typically rendered as opaque and included in the physical output.
     case solid
 
-    /// A non-printing visual element, such as a reference shape or guide.
+    /// A background or reference part used for spatial context. These parts are included in the model for visualization,
+    /// but are not intended to be printed or interact with the printable geometry.
+    case context
+
+    /// A visual-only part used for display, guidance, or context. These are not intended for printing.
     case visual
 }
 
@@ -89,7 +91,7 @@ public extension Geometry3D {
     ///   - partName: The name of the part in the 3MF file.
     ///   - type: The type of part, such as `.solid` or `.visual`.
     /// - Returns: A geometry wrapped as a named part.
-    func inPart(named partName: String, type: PartType = .solid) -> any Geometry3D {
+    func inPart(named partName: String, type: PartSemantic = .solid) -> any Geometry3D {
         PartAssignment(body: self, isSeparated: true, identifier: .named(partName, type: type))
     }
 }
