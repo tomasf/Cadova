@@ -6,7 +6,7 @@ internal struct RoundedRectangleMask: Shape2D {
     let corners: Rectangle.Corners
 
     @Environment(\.segmentation) var segmentation
-    @Environment(\.roundedCornerStyle) var style
+    @Environment(\.cornerRoundingStyle) var style
 
     init(size: Vector2D, radius: Double, corners: Rectangle.Corners) {
         self.size = size
