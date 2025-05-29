@@ -8,18 +8,20 @@ public extension Geometry3D {
     /// - Parameters:
     ///   - corners: The corners of the geometry to round. Defaults to `.all`.
     ///   - axis: The axis along which to round the corners.
-    ///     - For the Z axis, the corners are as seen from positive Z, looking down at the origin with positive X pointing right and positive Y pointing up.
+    ///     - For the Z axis, the corners are as seen from positive Z, looking down at the origin with positive X pointing
+    ///       right and positive Y pointing up.
     ///     - For the X axis, the corners are as seen from the origin, with the positive Y axis pointing left and Z pointing up.
     ///     - For the Y axis, the corners are as seen from the origin, with the positive X axis pointing right and Z pointing up.
     ///   - radius: The radius of the rounding.
-    ///   - style: The style of the rounded corners. Defaults to `.circular`.
     ///
     /// - Returns: A new `Geometry3D` object with rounded corners applied to the geometry.
     ///
-    /// This method uses the bounding box of the geometry to determine the appropriate size for rounding.
-    /// It is intended for geometries that are box-like or similar enough for this approximation to be effective.
-
-    func roundingBoxCorners(_ corners: Rectangle.Corners = .all, axis: Axis3D, radius: Double, style: RoundedCornerStyle = .circular) -> any Geometry3D {
+    /// This method uses the bounding box of the geometry to determine the appropriate size for rounding. It is intended for
+    /// geometries that are box-like or similar enough for this approximation to be effective. The shape of the rounded corners
+    /// is determined by the environment’s `roundedCornerStyle`, which controls whether corners are shaped as simple circular
+    /// arcs or smoother, squircle-like transitions.
+    ///
+    func roundingBoxCorners(_ corners: Rectangle.Corners = .all, axis: Axis3D, radius: Double) -> any Geometry3D {
         let adjustments = [90°, 0°, 180°]
 
         return self
@@ -28,7 +30,7 @@ public extension Geometry3D {
             .measuring { body, measurements in
                 let box = measurements.boundingBox.requireNonNil()
                 body.intersecting {
-                    RoundedRectangleMask(size: box.size.xy, radius: radius, corners: corners, style: style)
+                    RoundedRectangleMask(size: box.size.xy, radius: radius, corners: corners)
                         .extruded(height: box.size.z)
                         .translated(z: -box.size.z / 2)
                         .translated(box.center)
@@ -50,7 +52,9 @@ public extension Geometry3D {
     /// It is intended for geometries that are box-like or similar enough for this approximation to be effective.
     ///
     /// The rounding is done in a spherical manner, affecting all eight corners of the bounding box uniformly.
-    
+    /// The shape of the rounded corners is determined by the environment’s `roundedCornerStyle`, which controls
+    /// whether corners are shaped as simple circular arcs or smoother, squircle-like transitions.
+
     func roundingBoxCorners(radius: Double) -> any Geometry3D {
         measuring { child, measurements in
             child.intersecting {
@@ -74,7 +78,9 @@ public extension Geometry3D {
     /// - Returns: A new `Geometry3D` object with the specified side's corners rounded.
     ///
     /// This method is intended for geometries with box-like structures, where rounding only one side’s corners
-    /// is desired. The specified side’s four corners are smoothly rounded based on the given radius.
+    /// is desired. The specified side’s four corners are smoothly rounded based on the given radius. The shape
+    /// of the rounded corners is determined by the environment’s `roundedCornerStyle`, which affects whether
+    /// corners use a standard circular arc or a more gradual, squircular curve.
     ///
     func roundingBoxCorners(side: Box.Side, radius: Double) -> any Geometry3D {
         self
@@ -93,8 +99,9 @@ public extension Geometry3D {
 
     /// Rounds the specified corner and its adjacent edges based on the geometry's bounding box dimensions.
     ///
-    /// This method applies rounding to a single corner of the geometry, smoothing the transition between the three edges that converge at the specified corner.
-    /// The rounding effect is localized to the given corner and provides a softened appearance at that point.
+    /// This method applies rounding to a single corner of the geometry, smoothing the transition between the
+    /// three edges that converge at the specified corner. The rounding effect is localized to the given corner
+    /// and provides a softened appearance at that point.
     ///
     /// - Parameters:
     ///   - corner: The corner to round, specified using `Box.Corner` (e.g., `.minXminYminZ`).
@@ -103,8 +110,10 @@ public extension Geometry3D {
     /// - Returns: A new `Geometry3D` object with the specified corner and its adjacent edges rounded.
     ///
     /// This method is intended for box-like geometries where rounding only one corner is desired.
-    /// It uses the bounding box of the geometry to determine the correct positioning and size for the rounding effect.
-    /// The specified corner is rounded in a way that affects the three edges meeting at that corner.
+    /// It uses the bounding box of the geometry to determine the correct positioning and size for the rounding
+    /// effect. The specified corner is rounded in a way that affects the three edges meeting at that corner.
+    /// The appearance of the rounded corner is controlled by the environment’s `roundedCornerStyle`, determining
+    /// if the corner uses a circular or a smoother squircular shape.
     ///
     func roundingBoxCorner(_ corner: Box.Corner, radius: Double) -> any Geometry3D {
         self
@@ -123,8 +132,9 @@ public extension Geometry3D {
 
     /// Rounds the specified corners of the geometry based on its bounding box dimensions.
     ///
-    /// This method applies rounding to multiple corners of the geometry, smoothing the transition at each selected corner.
-    /// Each corner is rounded individually, providing a softened appearance at the points specified by the `corners` parameter.
+    /// This method applies rounding to multiple corners of the geometry, smoothing the transition at each selected
+    /// corner. Each corner is rounded individually, providing a softened appearance at the points specified by the
+    /// `corners` parameter.
     ///
     /// - Parameters:
     ///   - corners: A set of corners to round, specified using `Box.Corner` (e.g., `[.minXminYminZ, .maxXminYminZ]`).
@@ -132,9 +142,11 @@ public extension Geometry3D {
     ///
     /// - Returns: A new `Geometry3D` object with the specified corners rounded.
     ///
-    /// This method is intended for box-like geometries where rounding multiple corners is desired.
-    /// It uses the bounding box of the geometry to determine the correct positioning and size for the rounding effect.
-    /// Each specified corner is rounded individually, affecting the three edges that meet at each corner.
+    /// This method is intended for box-like geometries where rounding multiple corners is desired. It uses the
+    /// bounding box of the geometry to determine the correct positioning and size for the rounding effect. Each
+    /// specified corner is rounded individually, affecting the three edges that meet at each corner. The look of each
+    /// rounded corner depends on the environment’s `roundedCornerStyle`, which sets whether corners are circular or
+    /// use a squircle profile for a softer result.
     ///
     func roundingBoxCorners(_ corners: Set<Box.Corner>, radius: Double) -> any Geometry3D {
         corners.reduce(self) {

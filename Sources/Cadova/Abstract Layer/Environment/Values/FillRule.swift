@@ -33,7 +33,7 @@ public enum FillRule: Hashable, Sendable, Codable {
 }
 
 public extension Geometry {
-    func usingFillRule(_ fillRule: FillRule) -> D.Geometry {
+    func withFillRule(_ fillRule: FillRule) -> D.Geometry {
         withEnvironment { $0.withFillRule(fillRule) }
     }
 }

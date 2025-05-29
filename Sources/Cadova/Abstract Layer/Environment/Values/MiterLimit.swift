@@ -27,7 +27,7 @@ public extension Geometry {
     /// - Parameter limit: The maximum allowed extension, expressed as a multiple of the offset amount.
     ///   For example, a limit of `2.0` means corners can extend up to twice the offset distance.
     /// - Returns: A modified geometry that uses the specified miter limit during offset operations.
-    func usingMiterLimit(_ limit: Double) -> D.Geometry {
+    func withMiterLimit(_ limit: Double) -> D.Geometry {
         withEnvironment { $0.withMiterLimit(limit) }
     }
 }

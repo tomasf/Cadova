@@ -3,8 +3,19 @@ import Foundation
 /// Represents the style of rounded corners.
 public enum RoundedCornerStyle: Sendable {
     /// A regular circular corner.
+    ///
+    /// This style uses a quarter-circle arc to round corners, producing the classic
+    /// appearance commonly seen in UI design and general modeling. It is simple, smooth,
+    /// and predictable in shape.
     case circular
+
     /// A squircular corner, forming a more natural and continuous curve.
+    ///
+    /// This style uses a squircle profile, which is smoother and more gradual than a circular arc.
+    /// It follows a superellipse curve defined by `x⁴ + y⁴ = r⁴`, providing a softer transition
+    /// from edge to corner. This can look more organic and balanced, especially at larger radii.
+    /// Because of the flatter profile near the edges, squircular corners visually appear smaller
+    /// than circular ones at the same radius.
     case squircular
 }
 
