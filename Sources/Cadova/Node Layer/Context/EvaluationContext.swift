@@ -8,8 +8,6 @@ public struct EvaluationContext: Sendable {
     internal init() {}
 }
 
-public typealias CacheKey = Hashable & Sendable & Codable
-
 internal extension EvaluationContext {
     private func cache<D: Dimensionality>() -> GeometryCache<D> {
         switch D.self {

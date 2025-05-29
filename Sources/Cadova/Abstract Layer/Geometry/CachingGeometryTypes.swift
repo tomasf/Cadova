@@ -1,15 +1,5 @@
 import Foundation
 
-internal struct NodeCacheKey<Key: CacheKey, D: Dimensionality>: CacheKey {
-    let base: Key
-    let node: D.Node
-}
-
-internal struct IndexedCacheKey<Key: CacheKey>: CacheKey {
-    let base: Key
-    let index: Int
-}
-
 // Caches a leaf concrete
 
 struct CachedConcrete<D: Dimensionality, Key: CacheKey>: Geometry {
