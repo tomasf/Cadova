@@ -4,6 +4,7 @@ fileprivate struct SegmentedMask {
     let boxSize: Vector3D
     let radius: Double
     let segmentCount: Int
+    let cornerStyle: RoundedCornerStyle
 
     fileprivate enum Vertex: Hashable {
         case surface (sector: Int, level: Int)
@@ -25,13 +26,21 @@ fileprivate struct SegmentedMask {
         case .surface(let sector, let level):
             let resolvedRange = 0...(segmentCount)
             let sectorAngle = Double(sector.clamped(to: resolvedRange)) / Double(segmentCount) * 90°
-            let levelAngle =  Double(level.clamped(to: resolvedRange)) / Double(segmentCount) * 90°
+            let levelAngle = Double(level.clamped(to: resolvedRange)) / Double(segmentCount) * 90°
 
+            let center = Vector3D(radius)
             var point = Transform3D.identity
                 .translated(x: -radius)
                 .rotated(y: levelAngle - 90°, z: sectorAngle)
-                .translated(.init(radius))
                 .offset
+
+            if cornerStyle == .squircular {
+                // Rescale the point so that it satisfies x⁴ + y⁴ + z⁴ = r⁴ (a super‑ellipsoid with exponent 4).
+                let denom = pow(Swift.abs(point.x), 4) + pow(Swift.abs(point.y), 4) + pow(Swift.abs(point.z), 4)
+                point *= pow(pow(radius, 4) / denom, 0.25)
+            }
+
+            point += center
 
             if sector < 0 {
                 point.y = boxSize.y
@@ -41,6 +50,7 @@ fileprivate struct SegmentedMask {
             if level > segmentCount {
                 point.z = boxSize.z
             }
+
             return point
         }
     }
@@ -78,6 +88,7 @@ internal struct RoundedBoxCornerMask: Shape3D {
     let radius: Double
 
     @Environment(\.segmentation) var segmentation
+    @Environment(\.roundedCornerStyle) var roundedCornerStyle
 
     init(boxSize: Vector3D, radius: Double) {
         precondition(boxSize.allSatisfy { $0 >= radius }, "All box dimensions must be >= radius")
@@ -89,7 +100,7 @@ internal struct RoundedBoxCornerMask: Shape3D {
         let segmentCount = max(segmentation.segmentCount(circleRadius: radius) / 4 - 1, 1)
 
         CachedNode(name: "roundedBoxCornerMask", parameters: boxSize, radius, segmentCount) {
-            let segmentedMask = SegmentedMask(boxSize: boxSize, radius: radius, segmentCount: segmentCount)
+            let segmentedMask = SegmentedMask(boxSize: boxSize, radius: radius, segmentCount: segmentCount, cornerStyle: roundedCornerStyle)
 
             return Mesh(faces: segmentedMask.faces) {
                 segmentedMask.resolve(vertex: $0)

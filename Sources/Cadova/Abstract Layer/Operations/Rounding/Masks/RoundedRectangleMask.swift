@@ -4,15 +4,14 @@ internal struct RoundedRectangleMask: Shape2D {
     let size: Vector2D
     let radius: Double
     let corners: Rectangle.Corners
-    let style: RoundedCornerStyle
 
     @Environment(\.segmentation) var segmentation
+    @Environment(\.roundedCornerStyle) var style
 
-    init(size: Vector2D, radius: Double, corners: Rectangle.Corners, style: RoundedCornerStyle) {
+    init(size: Vector2D, radius: Double, corners: Rectangle.Corners) {
         self.size = size
         self.radius = radius
         self.corners = corners
-        self.style = style
 
         precondition(size.x >= radius * Double(corners.cornerCountAffecting(.x)), "Rectangle is too small to fit rounded corners")
         precondition(size.y >= radius * Double(corners.cornerCountAffecting(.y)), "Rectangle is too small to fit rounded corners")
