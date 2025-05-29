@@ -190,6 +190,18 @@ struct CachedNode<D: Dimensionality>: Geometry {
         self.generator = generator
     }
 
+    // Cached node built from abstract geometry. Use this as a convenience and keep in mind result elements are discarded.
+    init(
+        name: String,
+        parameters: any CacheKey...,
+        generator: @Sendable @escaping () async throws -> D.Geometry)
+    {
+        self.key = NamedCacheKey(operationName: name, parameters: parameters)
+        self.generator = { environment, context in
+            try await generator().build(in: environment, context: context).node
+        }
+    }
+
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         if await context.hasCachedResult(for: key, with: D.self) {
             return D.BuildResult(.materialized(cacheKey: OpaqueKey(key)))

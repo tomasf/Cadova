@@ -1,5 +1,78 @@
 import Foundation
 
+fileprivate struct SegmentedMask {
+    let boxSize: Vector3D
+    let radius: Double
+    let segmentCount: Int
+
+    fileprivate enum Vertex: Hashable {
+        case surface (sector: Int, level: Int)
+        case innerLower
+        case innerUpper
+    }
+
+    private func surface(sector: Int, level: Int) -> Vertex {
+        // Make sure the bottommost surface vertex where the curved edges meet is the same regardless of sector
+        let resolvedSector = level == 0 && (0...segmentCount) ~= sector ? 0 : sector
+        return .surface(sector: resolvedSector, level: level)
+    }
+
+    func resolve(vertex: Vertex) -> Vector3D {
+        switch vertex {
+        case .innerLower: return Vector3D(boxSize.x, boxSize.y, 0)
+        case .innerUpper: return boxSize
+
+        case .surface(let sector, let level):
+            let resolvedRange = 0...(segmentCount)
+            let sectorAngle = Double(sector.clamped(to: resolvedRange)) / Double(segmentCount) * 90°
+            let levelAngle =  Double(level.clamped(to: resolvedRange)) / Double(segmentCount) * 90°
+
+            var point = Transform3D.identity
+                .translated(x: -radius)
+                .rotated(y: levelAngle - 90°, z: sectorAngle)
+                .translated(.init(radius))
+                .offset
+
+            if sector < 0 {
+                point.y = boxSize.y
+            } else if sector > segmentCount {
+                point.x = boxSize.x
+            }
+            if level > segmentCount {
+                point.z = boxSize.z
+            }
+            return point
+        }
+    }
+
+    var faces: [[Vertex]] {
+        let curvedSurface: [[Vertex]] = (-1...segmentCount).flatMap { sector in
+            (0...segmentCount).map { level in [
+                surface(sector: sector, level: level),
+                surface(sector: sector + 1, level: level),
+                surface(sector: sector + 1, level: level + 1),
+                surface(sector: sector, level: level + 1),
+            ]}
+        }
+        let bottom = [
+            Vertex.innerLower,
+            surface(sector: segmentCount + 1, level: 0),
+            surface(sector: 0, level: 0),
+            surface(sector: -1, level: 0),
+        ]
+        let xWall: [Vertex] = [.innerLower, .innerUpper] + (0...segmentCount + 1).reversed().map {
+            surface(sector: segmentCount + 1, level: $0)
+        }
+        let yWall: [Vertex] = [.innerUpper, .innerLower] + (0...segmentCount + 1).map {
+            surface(sector: -1, level: $0)
+        }
+        let zWall: [Vertex] = [.innerUpper] + (-1...segmentCount + 1).map {
+            surface(sector: $0, level: segmentCount + 1)
+        }
+        return curvedSurface + [bottom, xWall, yWall, zWall]
+    }
+}
+
 internal struct RoundedBoxCornerMask: Shape3D {
     let boxSize: Vector3D
     let radius: Double
@@ -13,35 +86,14 @@ internal struct RoundedBoxCornerMask: Shape3D {
     }
 
     var body: any Geometry3D {
-        Sphere(radius: radius)
-            .intersecting {
-                Box(radius)
-                    .translated(x: -radius, y: -radius, z: -radius)
-            }
-            .translated(x: radius, y: radius, z: radius)
-            .extended(to: boxSize)
-    }
-}
+        let segmentCount = max(segmentation.segmentCount(circleRadius: radius) / 4 - 1, 1)
 
-internal extension Geometry3D {
-    func extended(to extent: Double, along axis: Axis3D) -> D3.Geometry {
-        measureBoundsIfNonEmpty { body, e, bounds in
-            let max = bounds.maximum[axis] - 1e-5
-            if extent <= max {
-                return body
-            }
-            let plane = Plane(perpendicularTo: axis, at: max)
-            return body.adding {
-                body.sliced(along: plane)
-                    .extruded(height: extent - max)
-                    .transformed(plane.transform)
+        CachedNode(name: "roundedBoxCornerMask", parameters: boxSize, radius, segmentCount) {
+            let segmentedMask = SegmentedMask(boxSize: boxSize, radius: radius, segmentCount: segmentCount)
+
+            return Mesh(faces: segmentedMask.faces) {
+                segmentedMask.resolve(vertex: $0)
             }
         }
-    }
-
-    func extended(to size: Vector3D) -> D3.Geometry {
-        extended(to: size.x, along: .x)
-        .extended(to: size.y, along: .y)
-        .extended(to: size.z, along: .z)
     }
 }
