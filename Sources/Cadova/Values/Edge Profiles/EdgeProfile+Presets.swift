@@ -45,68 +45,34 @@ public extension EdgeProfile {
 }
 
 public extension EdgeProfile {
-    /// Creates a rounded fillet profile with an elliptical shape.
-    /// - Parameters:
-    ///   - depth: The horizontal distance from the original edge to the fillet's farthest point, defining the fillet's depth.
-    ///   - height: The vertical height from the base of the edge to the top of the fillet.
-    /// - Returns: An edge profile representing the elliptical fillet.
+    /// Creates a rounded fillet profile with an elliptical or custom corner style.
     ///
-    static func fillet(depth: Double, height: Double) -> Self {
-        Self {
-            Circle.ellipse(x: depth * 2, y: height * 2)
-                .within(x: 0..., y: 0...)
-        }
-    }
-
-    /// Creates a rounded fillet profile with a circular shape.
-    /// - Parameter radius: The radius of the curvature applied to the edge, defining the fillet's size.
-    /// - Returns: An edge profile representing the circular fillet.
+    /// The shape of the fillet is determined by the current `CornerRoundingStyle` environment setting,
+    /// which can be set using `.withCornerRoundingStyle(...)`. This allows for circular, squircular,
+    /// or superelliptical rounding styles. The default style is `.circular`.
     ///
-    static func fillet(radius: Double) -> Self {
-        .fillet(depth: radius, height: radius)
-    }
-}
-
-public extension EdgeProfile {
-    /// Creates a rounded fillet profile using a squircular (superellipse) shape.
-    ///
-    /// A squircular fillet provides a softer, more square-like rounding compared to a circular fillet,
-    /// often used for a more modern or stylized look. The shape is defined by a superellipse and
-    /// appears tighter than a circular fillet with the same radius.
-    ///
-    /// - Parameter radius: The radius defining the size of the squircular corner.
-    /// - Returns: An edge profile representing the soft fillet.
-    ///
-    static func softFillet(radius: Double) -> Self {
-        Self {
-            SquircularCorner(radius: radius)
-        }
-    }
-}
-
-public extension EdgeProfile {
-    /// Creates an inverted fillet profile with a circular shape.
-    /// - Parameter radius: The radius of the inverted fillet.
-    /// - Returns: An edge profile representing the inverted fillet.
-    ///
-    static func invertedFillet(radius: Double) -> Self {
-        .invertedFillet(depth: radius, height: radius)
-    }
-
-    /// Creates an inverted fillet profile with an elliptical shape.
     /// - Parameters:
     ///   - depth: The horizontal distance from the original edge to the fillet's farthest point.
     ///   - height: The vertical height from the base of the edge to the top of the fillet.
-    /// - Returns: An edge profile representing the inverted elliptical fillet.
+    /// - Returns: An edge profile representing the rounded fillet.
     ///
-    static func invertedFillet(depth: Double, height: Double) -> Self {
+    static func fillet(depth: Double, height: Double) -> Self {
         Self {
-            Rectangle(x: depth, y: height)
-                .aligned(at: .max)
-                .subtracting {
-                    Circle.ellipse(x: depth * 2, y: height * 2)
-                }
+            FilletCorner(size: Vector2D(depth, height))
         }
+    }
+
+    /// Creates a rounded fillet profile using a uniform radius, with style from the environment.
+    ///
+    /// This method creates a rounded fillet profile where both depth and height equal the given radius.
+    /// The specific shape of the fillet is controlled by the current `CornerRoundingStyle` environment setting,
+    /// which supports circular, squircular, or superelliptical corner shapes. The default style is `.circular`.
+    ///
+    /// - Parameter radius: The radius defining the size of the corner.
+    /// - Returns: An edge profile representing the rounded fillet.
+    ///
+    static func fillet(radius: Double) -> Self {
+        .fillet(depth: radius, height: radius)
     }
 }
 
