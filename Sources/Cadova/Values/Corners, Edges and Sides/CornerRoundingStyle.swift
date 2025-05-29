@@ -76,11 +76,22 @@ internal extension CornerRoundingStyle {
     }
 }
 
-internal struct SquircularCorner: Shape2D {
-    let radius: Double
+internal struct FilletCorner: Shape2D {
+    let size: Vector2D
     @Environment(\.segmentation) private var segmentation
+    @Environment(\.cornerRoundingStyle) private var style
 
     var body: any Geometry2D {
-        Polygon(CornerRoundingStyle.squircularCornerPoints(radius: radius, exponent: 4, segmentation: segmentation) + [.zero])
+        let radius = max(size.x, size.y)
+        let scale = size / radius
+
+        let points = switch style {
+        case .circular:
+            CornerRoundingStyle.circularCornerPoints(radius: radius, segmentation: segmentation)
+        case .squircular, .superelliptical:
+            CornerRoundingStyle.squircularCornerPoints(radius: radius, exponent: style.exponent, segmentation: segmentation)
+        }
+
+        Polygon(points + [.zero]).scaled(scale)
     }
 }
