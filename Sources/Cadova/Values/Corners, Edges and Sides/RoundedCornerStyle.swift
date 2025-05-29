@@ -29,10 +29,10 @@ internal extension RoundedCornerStyle {
     static func squircularCornerPoints(radius: Double, segmentation: EnvironmentValues.Segmentation) -> [Vector2D] {
         let segmentCount = segmentation.segmentCount(circleRadius: radius) / 4
         let radius4th = pow(radius, 4.0)
-        let multiplier = Double.pi / 2.0 / Double(segmentCount)
 
-        return (0...segmentCount).map { segment -> Vector2D in
-            let x = cos(multiplier * Double(segment)) * radius
+        return (0...segmentCount).map { i -> Vector2D in
+            let angle = Double(i) / Double(segmentCount) * 90°
+            let x = cos(angle) * radius
             let y = pow(radius4th - x * x * x * x, 0.25)
             return Vector2D(x, y)
         }
