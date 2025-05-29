@@ -34,10 +34,10 @@ fileprivate struct SegmentedMask {
                 .rotated(y: levelAngle - 90°, z: sectorAngle)
                 .offset
 
-            if cornerStyle == .squircular {
-                // Rescale the point so that it satisfies x⁴ + y⁴ + z⁴ = r⁴ (a super‑ellipsoid with exponent 4).
-                let denom = pow(Swift.abs(point.x), 4) + pow(Swift.abs(point.y), 4) + pow(Swift.abs(point.z), 4)
-                point *= pow(pow(radius, 4) / denom, 0.25)
+            if cornerStyle != .circular {
+                let exponent = cornerStyle.exponent
+                let denom = pow(Swift.abs(point.x), exponent) + pow(Swift.abs(point.y), exponent) + pow(Swift.abs(point.z), exponent)
+                point *= pow(pow(radius, exponent) / denom, 1.0 / exponent)
             }
 
             point += center
