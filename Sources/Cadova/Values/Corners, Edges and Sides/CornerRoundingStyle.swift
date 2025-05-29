@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents the style of rounded corners.
-public enum RoundedCornerStyle: Sendable, Equatable, Hashable, Codable {
+public enum CornerRoundingStyle: Sendable, Equatable, Hashable, Codable {
     /// A regular circular corner.
     ///
     /// This style uses a quarter-circle arc to round corners, producing the classic
@@ -31,7 +31,7 @@ public enum RoundedCornerStyle: Sendable, Equatable, Hashable, Codable {
     case superelliptical(exponent: Double)
 }
 
-internal extension RoundedCornerStyle {
+internal extension CornerRoundingStyle {
     var exponent: Double {
         switch self {
         case .circular: 2
@@ -81,6 +81,6 @@ internal struct SquircularCorner: Shape2D {
     @Environment(\.segmentation) private var segmentation
 
     var body: any Geometry2D {
-        Polygon(RoundedCornerStyle.squircularCornerPoints(radius: radius, exponent: 4, segmentation: segmentation) + [.zero])
+        Polygon(CornerRoundingStyle.squircularCornerPoints(radius: radius, exponent: 4, segmentation: segmentation) + [.zero])
     }
 }

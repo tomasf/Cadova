@@ -4,7 +4,7 @@ fileprivate struct SegmentedMask {
     let boxSize: Vector3D
     let radius: Double
     let segmentCount: Int
-    let cornerStyle: RoundedCornerStyle
+    let cornerStyle: CornerRoundingStyle
 
     fileprivate enum Vertex: Hashable {
         case surface (sector: Int, level: Int)
@@ -88,7 +88,7 @@ internal struct RoundedBoxCornerMask: Shape3D {
     let radius: Double
 
     @Environment(\.segmentation) var segmentation
-    @Environment(\.roundedCornerStyle) var roundedCornerStyle
+    @Environment(\.cornerRoundingStyle) var roundedCornerStyle
 
     init(boxSize: Vector3D, radius: Double) {
         precondition(boxSize.allSatisfy { $0 >= radius }, "All box dimensions must be >= radius")
