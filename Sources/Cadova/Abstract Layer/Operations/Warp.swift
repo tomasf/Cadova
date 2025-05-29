@@ -1,15 +1,5 @@
 import Foundation
 
-internal struct NamedCacheKey: CacheKey {
-    let operationName: String
-    let parameters: [OpaqueKey]
-
-    init(operationName: String, parameters: [any Hashable & Sendable & Codable]) {
-        self.operationName = operationName
-        self.parameters = parameters.map { OpaqueKey($0) }
-    }
-}
-
 internal extension Geometry {
     func warped(
         operationName name: String,
