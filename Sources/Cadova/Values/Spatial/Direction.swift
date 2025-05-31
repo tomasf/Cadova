@@ -45,6 +45,11 @@ public extension Direction <D3> {
     /// The Z component of the direction.
     var z: Double { unitVector.z }
 
+    /// The opposite of this direction
+    var opposite: Self {
+        Self(-unitVector)
+    }
+
     /// Creates a direction from x, y, z components.
     /// - Parameters:
     ///   - x: The x component of the direction.

@@ -32,12 +32,16 @@ internal extension EdgeProfile {
         }
     }
 
-    func negativeMask(for shape: any Geometry2D) -> any Geometry3D {
+    func followingEdge(of shape: any Geometry2D, type: ProfilingType) -> any Geometry3D {
         readingNegativeShape { negativeShape, profileSize in
             let universeLength = 1e5
             let unitProfile = negativeShape.extruded(height: 1.0)
                 .rotated(x: 90°, z: -90°)
-                .translated(x: 1, y: -0.01, z: 0.00002)
+                .translated(
+                    x: 1,
+                    y: type == .subtractive ? -0.01 : 0,
+                    z: type == .subtractive ? 0.00002 : 0
+                )
 
             shape.simplified().readingConcrete { crossSection in
                 let polygons = crossSection.polygonList()
@@ -47,11 +51,12 @@ internal extension EdgeProfile {
                 }
 
                 return polygons.polygons.mapUnion { polygon in
-                    for index in polygon.vertices.indices {
-                        let a = polygon.vertices[wrapped: index - 1]
-                        let b = polygon.vertices[wrapped: index]
-                        let c = polygon.vertices[wrapped: index + 1]
-                        let d = polygon.vertices[wrapped: index + 2]
+                    let vertices = Array(type == .subtractive ? polygon.vertices : polygon.vertices.reversed())
+                    for index in vertices.indices {
+                        let a = vertices[wrap: index - 1]
+                        let b = vertices[wrap: index]
+                        let c = vertices[wrap: index + 1]
+                        let d = vertices[wrap: index + 2]
 
                         let ba = b - a
                         let bc = b - c // vector in
@@ -65,17 +70,17 @@ internal extension EdgeProfile {
                         unitProfile.scaled(x: cb.magnitude + trailingExtension + leadingExtension)
                             .translated(x: -leadingExtension)
                             .rotated(z: edgeAngle)
-                            .translated(Vector3D(b, z: 0))
+                            .translated(b, z: 0)
                             .subtracting {
                                 Box(universeLength * 2)
                                     .translated(x: -0.000001)
                                     .rotated(z: Angle(bisecting: edgeAngle, a.angle(to: b)) + 90°)
-                                    .translated(Vector3D(b, z: -universeLength))
+                                    .translated(b, z: -universeLength)
 
                                 Box(universeLength * 2)
                                     .translated(x: 0.000001)
                                     .rotated(z: Angle(bisecting: edgeAngle, c.angle(to: d)))
-                                    .translated(Vector3D(c, z: -universeLength))
+                                    .translated(c, z: -universeLength)
                             }
                     }
                 }
@@ -89,13 +94,23 @@ public extension Geometry3D {
     /// - Parameters:
     ///   - edgeProfile: The edge profile to apply.
     ///   - side: The side of the bounding box to which the profile should be applied.
+    ///   - offset: The distance to offset the profiling plane along the axis.
+    ///   - type: Whether the profile should be added to or subtracted from the shape.
     /// - Returns: A new geometry with the edge profile applied on the given side.
     ///
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to side: DirectionalAxis<D3>) -> any Geometry3D {
+    /// - Example:
+    /// ```swift
+    /// Box(10)
+    ///     .applyingEdgeProfile(.fillet(radius: 3), to: .top, type: .subtractive)
+    /// ```
+    /// This creates a box and applies an exterior fillet to the top edges.
+    ///
+    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to side: DirectionalAxis<D3>, offset: Double = 0, type: ProfilingType) -> any Geometry3D {
         edgeProfile.profile.measuringBounds { _, profileBounds in
             measuringBounds { body, bounds in
-                let plane = Plane(side: side, on: bounds, offset: -profileBounds.size.y)
-                applyingEdgeProfile(edgeProfile, at: plane)
+                let plane = Plane(side: side, on: bounds, offset: offset * side.axisDirection.factor)
+                let shape = sliced(along: plane.offset(-profileBounds.size.y))
+                applyingEdgeProfile(edgeProfile, with: shape, at: plane, type: type)
             }
         }
     }
@@ -104,16 +119,49 @@ public extension Geometry3D {
     /// - Parameters:
     ///   - edgeProfile: The edge profile to apply.
     ///   - plane: The plane at which to apply the profile.
+    ///   - type: Whether the profile should be added to or subtracted from the shape.
     /// - Returns: A new geometry with the edge profile applied at the given plane.
     ///
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, at plane: Plane) -> any Geometry3D {
+    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, at plane: Plane, type: ProfilingType) -> any Geometry3D {
         edgeProfile.profile.measuringBounds { _, profileBounds in
-            transformed(plane.transform.inverse).subtracting {
-                edgeProfile
-                    .negativeMask(for: sliced(along: plane))
-                    .translated(z: profileBounds.size.y)
+            let sweep = edgeProfile
+                .followingEdge(of: sliced(along: plane), type: type)
+
+            if type == .additive {
+                transformed(plane.transform.inverse).adding(sweep).transformed(plane.transform)
+            } else {
+                transformed(plane.transform.inverse).subtracting(sweep).transformed(plane.transform)
             }
-            .transformed(plane.transform)
         }
     }
+}
+
+internal extension Geometry3D {
+    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, with shape: any Geometry2D, at plane: Plane, type: ProfilingType) -> any Geometry3D {
+        edgeProfile.profile.measuringBounds { _, profileBounds in
+            let sweep = edgeProfile
+                .followingEdge(of: shape, type: type)
+
+            if type == .additive {
+                transformed(plane.transform.inverse).adding(sweep).transformed(plane.transform)
+            } else {
+                transformed(plane.transform.inverse).subtracting(sweep).transformed(plane.transform)
+            }
+        }
+    }
+}
+
+/// Describes how an ``EdgeProfile`` should be applied to a shape.
+///
+/// Cadova distinguishes between *subtracting* a profile (cutting material away)
+/// and *adding* a profile (building material up).
+///
+public enum ProfilingType: Sendable, Hashable {
+    /// Removes material from the host shape, carving an **exterior edge**
+    /// (e.g. a chamfer or fillet on the outside of a box).
+    case subtractive
+
+    /// Adds the swept profile to the host shape, filling an **interior edge**.
+    /// Useful for reinforcing or decorating inner edges with coves, beads, etc.
+    case additive
 }

@@ -101,22 +101,22 @@ public extension Geometry2D {
 public extension Geometry3D {
     @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
     func applyingTopEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: _LegacyProfileMethod, @GeometryBuilder2D shape: () -> any Geometry2D) -> any Geometry3D {
-        applyingEdgeProfile(profile, to: .top)
+        applyingEdgeProfile(profile, to: .top, type: .subtractive)
     }
 
     @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
     func applyingTopEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: _LegacyProfileMethod) -> any Geometry3D {
-        applyingEdgeProfile(profile, to: .top)
+        applyingEdgeProfile(profile, to: .top, type: .subtractive)
     }
 
     @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
     func applyingBottomEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: _LegacyProfileMethod, @GeometryBuilder2D shape: () -> any Geometry2D) -> any Geometry3D {
-        applyingEdgeProfile(profile, to: .bottom)
+        applyingEdgeProfile(profile, to: .bottom, type: .subtractive)
     }
 
     @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
     func applyingBottomEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: _LegacyProfileMethod) -> any Geometry3D {
-        applyingEdgeProfile(profile, to: .bottom)
+        applyingEdgeProfile(profile, to: .bottom, type: .subtractive)
     }
 }
 
