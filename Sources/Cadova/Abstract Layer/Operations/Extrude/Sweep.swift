@@ -17,14 +17,21 @@ internal struct Sweep: Shape3D {
 
         if enableDebugging {
             shape.readingConcrete { crossSection, _ in
-                let (mesh, debugParts) = sweep(crossSection: crossSection, segmentation: segmentation, maxTwistRate: maxTwistRate, enableDebugging: true)
+                let (mesh, debugParts) = sweep(
+                    crossSection: crossSection,
+                    segmentation: segmentation,
+                    maxTwistRate: maxTwistRate,
+                    enableDebugging: true
+                )
                 return mesh.adding(Union(debugParts))
             }
         } else {
             CachedNodeTransformer(body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation) { node, environment, context in
                 let crossSection = await context.result(for: node).concrete
                 let (mesh, _) = sweep(
-                    crossSection: crossSection, segmentation: segmentation, maxTwistRate: maxTwistRate
+                    crossSection: crossSection,
+                    segmentation: segmentation,
+                    maxTwistRate: maxTwistRate
                 )
                 return GeometryNode(.shape3D(.mesh(mesh.meshData)))
             }
@@ -48,6 +55,7 @@ fileprivate extension Sweep {
         frames.interpolateMissingAngles()
         frames.normalizeAngles()
         frames.applyTwistDamping(maxTwistRate: maxTwistRate)
+        frames.pruneStraightRuns(bounds: .init(crossSection.bounds), segmentation: segmentation)
 
         return (Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform)), debugParts ?? [])
     }
@@ -187,6 +195,32 @@ extension [Sweep.Frame] {
             let distance = (self[i].point - self[i - 1].point).magnitude
             let maxDelta = maxTwistRate * distance
             self[i].angle = current + delta.clamped(to: (-maxDelta...maxDelta))
+        }
+    }
+
+    mutating func pruneStraightRuns(bounds: BoundingBox2D, segmentation: EnvironmentValues.Segmentation) {
+        // Only prune for adaptive segmentation. Fixed already has the desired number of frames.
+        guard !isEmpty, case .adaptive (let angleTolerance, let distanceTolerance) = segmentation else { return }
+
+        let maxRadius = bounds.maximumDistanceToOrigin
+        let cosTolerance = cos(angleTolerance)
+
+        var lastSolidFrame = self[0]
+        var i = 1
+        while i < count {
+            let frame = self[i]
+            let directionDifference = lastSolidFrame.zAxis.normalized ⋅ frame.zAxis.normalized
+            let twistDifference = lastSolidFrame.angle!.distance(to: frame.angle!)
+
+            let centerDistance = (frame.point - lastSolidFrame.point).magnitude
+            let twistDistance = (twistDifference / 360°) * maxRadius * 2 * .pi
+
+            if (directionDifference > cosTolerance && twistDifference < angleTolerance) || (centerDistance < distanceTolerance && twistDistance < distanceTolerance) {
+                remove(at: i)
+            } else {
+                lastSolidFrame = frame
+                i += 1
+            }
         }
     }
 }

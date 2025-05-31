@@ -132,8 +132,11 @@ public extension Angle {
     /// unit vectors instead of doing fragile wrap‑around arithmetic.
     @inlinable
     init(bisecting a: Angle, _ b: Angle)  {
-        let vx = cos(a.radians) + cos(b.radians)
-        let vy = sin(a.radians) + sin(b.radians)
-        self = Angle(radians: atan2(vy, vx))
+        self = atan2(sin(a) + sin(b), cos(a) + cos(b))
+    }
+
+    @inlinable
+    func distance(to other: Angle) -> Angle {
+        abs(atan2(sin(other - self), cos(other - self)))
     }
 }
