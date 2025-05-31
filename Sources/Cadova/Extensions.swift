@@ -270,8 +270,8 @@ extension BidirectionalCollection where Index == Int {
     }
 }
 
-extension Array {
-    subscript(wrapped index: Int) -> Element {
+extension Collection where Index == Int {
+    subscript(wrap index: Int) -> Element {
         let m = index % count
         return self[m >= 0 ? m : m + count]
     }

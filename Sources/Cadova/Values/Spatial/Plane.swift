@@ -96,6 +96,15 @@ public extension Plane {
     static func z(_ offset: Double) -> Self {
         .init(perpendicularTo: .z, at: offset)
     }
+
+    /// The same plane, but with the normal pointing in the opposite direction
+    var flipped: Self {
+        Self(offset: offset, normal: normal.opposite)
+    }
+
+    func offset(_ amount: Double) -> Self {
+        Self(offset: offset + normal.unitVector * amount, normal: normal)
+    }
 }
 
 public extension Plane {
@@ -180,10 +189,19 @@ public extension Plane {
     ///   - thickness: Thickness of the cylinder.
     /// - Returns: A geometry object representing the plane.
     func visualized(radius: Double = 100, thickness: Double = 0.05) -> any Geometry3D {
+
         Cylinder(radius: radius, height: thickness)
+            .withMaterial(.visualizedPlane)
+            .adding {
+                Cylinder(diameter: 0.5, height: 3)
+                    .adding {
+                        Cylinder(bottomDiameter: 2, topDiameter: 0, height: 2)
+                            .translated(z: 3)
+                    }
+                    .colored(.red.with(alpha: 0.3))
+            }
             .rotated(from: .up, to: normal)
             .translated(offset)
-            .withMaterial(.visualizedPlane)
             .inPart(named: "Visualized Plane", type: .visual)
     }
 }
