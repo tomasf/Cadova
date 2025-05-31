@@ -35,62 +35,48 @@ internal extension EdgeProfile {
     func negativeMask(for shape: any Geometry2D) -> any Geometry3D {
         readingNegativeShape { negativeShape, profileSize in
             let universeLength = 1e5
-
             let unitProfile = negativeShape.extruded(height: 1.0)
                 .rotated(x: 90°, z: -90°)
-                .translated(x: 1, y: -0.000001, z: 0.00002)
+                .translated(x: 1, y: -0.01, z: 0.00002)
 
-            shape.readingConcrete { crossSection in
+            shape.simplified().readingConcrete { crossSection in
                 let polygons = crossSection.polygonList()
 
+                func extraLength(_ u: Vector2D, _ v: Vector2D) -> Double {
+                    profileSize.x * cot(acos((u.normalized ⋅ v.normalized).clamped(to: -1.0...1.0)) / 2)
+                }
+
                 return polygons.polygons.mapUnion { polygon in
-                    for (a, b) in polygon.vertices.wrappedPairs() {
-                        unitProfile.scaled(x: (b - a).magnitude + 0.000001)
-                            .rotated(z: a.angle(to: b))
-                            .translated(Vector3D(a, z: 0))
-                    }
+                    for index in polygon.vertices.indices {
+                        let a = polygon.vertices[wrapped: index - 1]
+                        let b = polygon.vertices[wrapped: index]
+                        let c = polygon.vertices[wrapped: index + 1]
+                        let d = polygon.vertices[wrapped: index + 2]
 
-                    for (a, b, c) in polygon.vertices.wrappedTriplets() {
-                        let cb = c - b
-                        let ab = a - b
+                        let ba = b - a
+                        let bc = b - c // vector in
+                        let cb = c - b // vector out
+                        let cd = c - d
 
-                        // Inward corner; extended chamfers
-                        if ab × cb > 0 {
-                            let angle: Angle = acos(
-                                ((ab ⋅ cb) / (ab.magnitude * cb.magnitude)).clamped(to: -1.0...1.0)
-                            )
+                        let leadingExtension  = (ba × bc > 0) ? extraLength(ba, bc) : 0
+                        let trailingExtension = (cb × cd > 0) ? extraLength(cb, cd) : 0
+                        let edgeAngle = b.angle(to: c)
 
-                            // Distance from vertex to where the innermost part of chamfers meet
-                            let inset = profileSize.x * cot(angle / 2)
+                        unitProfile.scaled(x: cb.magnitude + trailingExtension + leadingExtension)
+                            .translated(x: -leadingExtension)
+                            .rotated(z: edgeAngle)
+                            .translated(Vector3D(b, z: 0))
+                            .subtracting {
+                                Box(universeLength * 2)
+                                    .translated(x: -0.000001)
+                                    .rotated(z: Angle(bisecting: edgeAngle, a.angle(to: b)) + 90°)
+                                    .translated(Vector3D(b, z: -universeLength))
 
-                            // Left side extension
-                            unitProfile.scaled(x: inset + 1)
-                                .translated(x: -0.001)
-                                .rotated(z: a.angle(to: b))
-                                .translated(Vector3D(b, z: 0))
-                                .intersecting {
-                                    // Mask to left of vertex
-                                    Box(universeLength)
-                                        .translated(y: -0.002)
-                                        .rotated(z: angle / 2)
-                                        .rotated(z: a.angle(to: b))
-                                        .translated(Vector3D(b, z: -profileSize.y))
-                                }
-
-                            // Right side extension
-                            unitProfile.scaled(x: inset + 1.001)
-                                .translated(x: -inset - 1)
-                                .rotated(z: b.angle(to: c))
-                                .translated(Vector3D(b, z: 0))
-                                .subtracting {
-                                    // Mask to right of vertex
-                                    Box(universeLength)
-                                        .translated(y: 0.002)
-                                        .rotated(z: angle / 2)
-                                        .rotated(z: a.angle(to: b))
-                                        .translated(Vector3D(b, z: -profileSize.y))
-                                }
-                        }
+                                Box(universeLength * 2)
+                                    .translated(x: 0.000001)
+                                    .rotated(z: Angle(bisecting: edgeAngle, c.angle(to: d)))
+                                    .translated(Vector3D(c, z: -universeLength))
+                            }
                     }
                 }
             }

@@ -63,4 +63,16 @@ public extension Geometry {
     ) -> D.Geometry {
         warped(operationName: name, cacheParameters: params, transform: transform)
     }
+
+    func warped(
+        operationName name: String,
+        cacheParameters params: any Hashable & Sendable & Codable...,
+        transform: @Sendable @escaping (inout D.Vector) -> ()
+    ) -> D.Geometry {
+        warped(operationName: name, cacheParameters: params) {
+            var p = $0
+            transform(&p)
+            return p
+        }
+    }
 }
