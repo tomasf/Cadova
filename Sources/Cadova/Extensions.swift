@@ -269,3 +269,10 @@ extension BidirectionalCollection where Index == Int {
         return v0 + (v1 - v0) * (key - k0) / (k1 - k0)
     }
 }
+
+extension Array {
+    subscript(wrapped index: Int) -> Element {
+        let m = index % count
+        return self[m >= 0 ? m : m + count]
+    }
+}

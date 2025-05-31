@@ -125,3 +125,15 @@ public func acsc(_ value: Double) -> Angle {
 public func acot(_ value: Double) -> Angle {
     Angle(radians: atan(1 / value))
 }
+
+public extension Angle {
+    /// The geometric‐angle bisector between two absolute angles.
+    /// Works even when the two angles straddle ±180° because it sums their
+    /// unit vectors instead of doing fragile wrap‑around arithmetic.
+    @inlinable
+    init(bisecting a: Angle, _ b: Angle)  {
+        let vx = cos(a.radians) + cos(b.radians)
+        let vy = sin(a.radians) + sin(b.radians)
+        self = Angle(radians: atan2(vy, vx))
+    }
+}
