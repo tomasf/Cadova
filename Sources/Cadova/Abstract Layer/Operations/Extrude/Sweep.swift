@@ -207,7 +207,7 @@ extension [Sweep.Frame] {
 
         var lastSolidFrame = self[0]
         var i = 1
-        while i < count {
+        while i < count - 1 {
             let frame = self[i]
             let directionDifference = lastSolidFrame.zAxis.normalized ⋅ frame.zAxis.normalized
             let twistDifference = lastSolidFrame.angle!.distance(to: frame.angle!)
