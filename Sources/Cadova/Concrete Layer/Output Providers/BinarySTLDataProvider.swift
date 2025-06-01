@@ -13,7 +13,7 @@ struct BinarySTLDataProvider: OutputDataProvider {
         let allParts = [result] + solidParts
         let union = GeometryNode.boolean(allParts.map(\.node), type: .union)
 
-        var concrete = await context.result(for: union).concrete
+        var concrete = try await context.result(for: union).concrete
         concrete = concrete.calculateNormals(channelIndex: 0)
         let meshGL = concrete.meshGL()
 

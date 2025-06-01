@@ -27,7 +27,7 @@ internal struct Sweep: Shape3D {
             }
         } else {
             CachedNodeTransformer(body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation) { node, environment, context in
-                let crossSection = await context.result(for: node).concrete
+                let crossSection = try await context.result(for: node).concrete
                 let (mesh, _) = sweep(
                     crossSection: crossSection,
                     segmentation: segmentation,

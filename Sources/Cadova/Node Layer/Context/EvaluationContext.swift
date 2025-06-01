@@ -17,27 +17,27 @@ internal extension EvaluationContext {
         }
     }
 
-    func result<D: Dimensionality>(for node: D.Node) async -> EvaluationResult<D> {
-        await cache().result(for: node, in: self)
+    func result<D: Dimensionality>(for node: D.Node) async throws -> EvaluationResult<D> {
+        try await cache().result(for: node, in: self)
     }
 
-    func results<D: Dimensionality>(for nodes: [D.Node]) async -> [EvaluationResult<D>] {
-        await nodes.asyncMap { await self.result(for: $0) }
+    func results<D: Dimensionality>(for nodes: [D.Node]) async throws -> [EvaluationResult<D>] {
+        try await nodes.asyncMap { try await self.result(for: $0) }
     }
 
     // MARK: - Materialized results
 
     func cachedMaterializedResult<D: Dimensionality, Key: CacheKey>(
         key: Key
-    ) async -> EvaluationResult<D>? {
-        await cache().cachedResult(for: .materialized(cacheKey: OpaqueKey(key)))
+    ) async throws -> EvaluationResult<D>? {
+        try await cache().cachedResult(for: .materialized(cacheKey: OpaqueKey(key)))
     }
 
     func hasCachedResult<D: Dimensionality, Key: CacheKey>(
         for key: Key,
         with dimensionality: D.Type
-    ) async -> Bool {
-        (await cachedMaterializedResult(key: key) as EvaluationResult<D>?) != nil
+    ) async throws -> Bool {
+        (try await cachedMaterializedResult(key: key) as EvaluationResult<D>?) != nil
     }
 
     func storeMaterializedResult<D: Dimensionality, Key: CacheKey>(

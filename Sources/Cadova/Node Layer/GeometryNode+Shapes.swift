@@ -42,7 +42,7 @@ extension GeometryNode.PrimitiveShape2D {
 }
 
 extension GeometryNode.PrimitiveShape3D {
-    func evaluate() -> Manifold {
+    func evaluate() throws -> Manifold {
         switch self {
         case .box (let size):
             guard size.x > 0, size.y > 0, size.z > 0 else { return .empty }
@@ -64,7 +64,15 @@ extension GeometryNode.PrimitiveShape3D {
             do {
                 return try Manifold(meshData.meshGL()).asOriginal()
             } catch ManifoldError.notManifold {
-                logger.error("""
+                throw MeshNotManifoldError()
+            }
+        }
+    }
+}
+
+struct MeshNotManifoldError: Error {
+    var localizedDescription: String {
+"""
 Mesh creation failed: The mesh is not manifold.
 
 This means some edges or vertices are shared in a way that makes the shape ambiguous or invalid for solid geometry. 
@@ -75,12 +83,6 @@ Common causes include:
 - Duplicate or misordered vertices
 
 Ensure that your mesh defines a closed, watertight surface where every edge is shared by exactly two faces, and all faces have consistent winding. Try visualizedForDebugging() to visualize the faces of a mesh without requiring it to be manifold.
-""")
-                return .empty
-            } catch {
-                logger.error("Mesh creation failed: \(error)")
-                return .empty
-            }
-        }
+"""
     }
 }
