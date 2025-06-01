@@ -7,15 +7,15 @@ extension Loft {
         }
 
         return try await CachedConcrete(name: "loft", parameters: layerNodes, interpolation) {
-            let layerTrees = await layerNodes.asyncMap {
-                (z: $0.z, tree: await context.result(for: $0.node).concrete.polygonTree())
+            let layerTrees = try await layerNodes.asyncMap {
+                (z: $0.z, tree: try await context.result(for: $0.node).concrete.polygonTree())
             }
 
             let node = try await interpolation
                 .resolved(with: layerTrees)
                 .applied(to: layerTrees, in: environment)
                 .build(in: environment, context: context).node
-            return await context.result(for: node).concrete
+            return try await context.result(for: node).concrete
         }
         .build(in: environment, context: context)
     }

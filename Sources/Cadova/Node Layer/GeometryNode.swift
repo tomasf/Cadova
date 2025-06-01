@@ -59,49 +59,73 @@ extension GeometryNode {
         if case .empty = contents { true } else { false }
     }
 
-    public func evaluate(in context: EvaluationContext) async -> Result {
+    public func evaluate(in context: EvaluationContext) async throws -> Result {
         switch contents {
         case .empty:
             return .empty
 
         case .boolean (let members, let booleanOperation):
-            let results = await context.results(for: members)
-            return Result(product: .boolean(booleanOperation.manifoldRepresentation, with: results.map(\.concrete)), results: results)
+            let results = try await context.results(for: members)
+            return try Result(product: .boolean(booleanOperation.manifoldRepresentation, with: results.map(\.concrete)), results: results)
 
         case .transform (let node, let transform):
-            return await context.result(for: node).modified { $0.transform(transform as! D.Concrete.Transform) }
+            return try await context.result(for: node).modified { $0.transform(transform as! D.Concrete.Transform) }
 
         case .convexHull (let node):
-            return await context.result(for: node).modified { $0.hull() }
+            return try await context.result(for: node).modified { $0.hull() }
 
         case .refine (let node, let edgeLength):
-            return await context.result(for: node).modified { $0.refine(edgeLength: edgeLength) }
+            return try await context.result(for: node).modified { $0.refine(edgeLength: edgeLength) }
 
         case .simplify(let node, let tolerance):
-            return await context.result(for: node).modified { $0.simplify(epsilon: tolerance) }
+            return try await context.result(for: node).modified { $0.simplify(epsilon: tolerance) }
 
         case .materialized (_):
             preconditionFailure("Materialized geometry nodes are pre-cached and cannot be evaluated")
 
         default:
             switch D.self {
-            case is D2.Type: return await evaluate2D(in: context) as! Result
-            case is D3.Type: return await evaluate3D(in: context) as! Result
+            case is D2.Type: return try await evaluate2D(in: context) as! Result
+            case is D3.Type: return try await evaluate3D(in: context) as! Result
             default: fatalError()
             }
         }
     }
 
-    private func evaluate3D(in context: EvaluationContext) async -> EvaluationResult<D3> {
+    private func evaluate2D(in context: EvaluationContext) async throws -> EvaluationResult<D2> {
+        switch contents {
+        case .shape2D (let shape):
+            return try EvaluationResult(shape.evaluate())
+
+        case .offset (let node, let amount, let joinStyle, let miterLimit, let segmentCount):
+            return try EvaluationResult(
+                try await context.result(for: node).concrete
+                    .offset(amount: amount, joinType: joinStyle.manifoldRepresentation, miterLimit: miterLimit, circularSegments: segmentCount)
+            )
+
+        case .projection (let node, let projection):
+            let crossSection: CrossSection = switch projection {
+            case .full:           try await context.result(for: node).concrete.projection()
+            case .slice (let z):  try await context.result(for: node).concrete.slice(at: z)
+            }
+
+            return try EvaluationResult(crossSection)
+
+        default:
+            preconditionFailure("Invalid dimensionality for node type")
+        }
+    }
+
+    private func evaluate3D(in context: EvaluationContext) async throws -> EvaluationResult<D3> {
         switch contents {
         case .shape3D (let shape):
-            return EvaluationResult(shape.evaluate())
+            return try EvaluationResult(shape.evaluate())
 
         case .applyMaterial (let node, let material):
-            return await context.result(for: node).applyingMaterial(material)
+            return try await context.result(for: node).applyingMaterial(material)
 
         case .extrusion (let node, let extrusion):
-            let result = await context.result(for: node)
+            let result = try await context.result(for: node)
             guard result.concrete.isEmpty == false else {
                 return .empty
             }
@@ -116,35 +140,11 @@ extension GeometryNode {
                 manifold = revolved.status == nil ? revolved : .empty
             }
 
-            return EvaluationResult(manifold)
+            return try EvaluationResult(manifold)
 
         case .lazyUnion (let members):
-            let results = await context.results(for: members)
-            return EvaluationResult(product: .init(composing: results.map(\.concrete)), results: results)
-        default:
-            preconditionFailure("Invalid dimensionality for node type")
-        }
-    }
-
-    private func evaluate2D(in context: EvaluationContext) async -> EvaluationResult<D2> {
-        switch contents {
-        case .shape2D (let shape):
-            return EvaluationResult(shape.evaluate())
-
-        case .offset (let node, let amount, let joinStyle, let miterLimit, let segmentCount):
-            return EvaluationResult(
-                await context.result(for: node).concrete
-                    .offset(amount: amount, joinType: joinStyle.manifoldRepresentation, miterLimit: miterLimit, circularSegments: segmentCount)
-            )
-
-        case .projection (let node, let projection):
-            let crossSection: CrossSection = switch projection {
-            case .full:           await context.result(for: node).concrete.projection()
-            case .slice (let z):  await context.result(for: node).concrete.slice(at: z)
-            }
-
-            return EvaluationResult(crossSection)
-
+            let results = try await context.results(for: members)
+            return try EvaluationResult(product: .init(composing: results.map(\.concrete)), results: results)
         default:
             preconditionFailure("Invalid dimensionality for node type")
         }

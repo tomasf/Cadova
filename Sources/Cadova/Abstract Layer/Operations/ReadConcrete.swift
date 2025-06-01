@@ -7,7 +7,7 @@ internal struct ReadConcrete<Input: Dimensionality, Output: Dimensionality>: Geo
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
         let bodyResult = try await body.build(in: environment, context: context)
-        let nodeResult = await context.result(for: bodyResult.node)
+        let nodeResult = try await context.result(for: bodyResult.node)
         return try await action(nodeResult.concrete, bodyResult).build(in: environment, context: context)
     }
 }

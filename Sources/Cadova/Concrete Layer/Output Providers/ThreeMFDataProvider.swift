@@ -137,10 +137,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var outputs = result.elements[PartCatalog.self].mergedOutputs
         outputs[.main] = result
 
-        let parts = await ContinuousClock().measure {
-            await outputs.asyncCompactMap { partIdentifier, result -> PartData? in
+        let parts = try await ContinuousClock().measure {
+            try await outputs.asyncCompactMap { partIdentifier, result -> PartData? in
                 guard !result.node.isEmpty else { return nil }
-                let nodeResult = await context.result(for: result.node)
+                let nodeResult = try await context.result(for: result.node)
 
                 return PartData(
                     id: partIdentifier,

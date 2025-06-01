@@ -66,7 +66,7 @@ extension Stack: Geometry {
         return try await LazyUnion(lazy: spacing >= 0) {
             for geometry in items {
                 let result = try await geometry.build(in: environment, context: context)
-                let nodeResult = await context.result(for: result.node)
+                let nodeResult = try await context.result(for: result.node)
                 if !nodeResult.concrete.isEmpty {
                     let box = D.BoundingBox(nodeResult.concrete.bounds)
                     geometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
