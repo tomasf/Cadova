@@ -83,48 +83,30 @@ extension GeometryNode {
         case .materialized (_):
             preconditionFailure("Materialized geometry nodes are pre-cached and cannot be evaluated")
 
-        case .shape2D (let shape):
-            assert(D.self == D2.self, "Invalid dimensionality for node type")
-            return Result(shape.evaluate() as! D.Concrete)
-
-        case .offset (let node, let amount, let joinStyle, let miterLimit, let segmentCount):
-            assert(D.self == D2.self, "Invalid dimensionality for node type")
-            return Result(
-                await context.result(for: node).concrete
-                    .offset(amount: amount, joinType: joinStyle.manifoldRepresentation, miterLimit: miterLimit, circularSegments: segmentCount)
-                as! D.Concrete
-            )
-
-        case .projection (let node, let projection):
-            assert(D.self == D2.self, "Invalid dimensionality for node type")
-            let crossSection: CrossSection
-
-            switch projection {
-            case .full:
-                crossSection = await context.result(for: node).concrete.projection()
-            case .slice (let z):
-                crossSection = await context.result(for: node).concrete.slice(at: z)
+        default:
+            switch D.self {
+            case is D2.Type: return await evaluate2D(in: context) as! Result
+            case is D3.Type: return await evaluate3D(in: context) as! Result
+            default: fatalError()
             }
+        }
+    }
 
-            return Result(crossSection as! D.Concrete)
-
+    private func evaluate3D(in context: EvaluationContext) async -> EvaluationResult<D3> {
+        switch contents {
         case .shape3D (let shape):
-            assert(D.self == D3.self, "Invalid dimensionality for node type")
-            return Result(shape.evaluate() as! D.Concrete)
+            return EvaluationResult(shape.evaluate())
 
         case .applyMaterial (let node, let material):
-            assert(D.self == D3.self, "Invalid dimensionality for node type")
-            return await context.result(for: node).applyingMaterial(material) as! Result
+            return await context.result(for: node).applyingMaterial(material)
 
         case .extrusion (let node, let extrusion):
-            assert(D.self == D3.self, "Invalid dimensionality for node type")
             let result = await context.result(for: node)
             guard result.concrete.isEmpty == false else {
                 return .empty
             }
 
             let manifold: Manifold
-
             switch extrusion {
             case .linear (let height, let twist, let divisions, let scaleTop):
                 manifold = result.concrete.extrude(height: height, divisions: divisions, twist: twist.degrees, scaleTop: scaleTop)
@@ -134,12 +116,37 @@ extension GeometryNode {
                 manifold = revolved.status == nil ? revolved : .empty
             }
 
-            return Result(manifold as! D.Concrete)
+            return EvaluationResult(manifold)
 
         case .lazyUnion (let members):
-            assert(D.self == D3.self, "Invalid dimensionality for node type")
             let results = await context.results(for: members)
-            return Result(product: .init(composing: results.map(\.concrete) as! [D.Concrete]), results: results as! [Result])
+            return EvaluationResult(product: .init(composing: results.map(\.concrete)), results: results)
+        default:
+            preconditionFailure("Invalid dimensionality for node type")
+        }
+    }
+
+    private func evaluate2D(in context: EvaluationContext) async -> EvaluationResult<D2> {
+        switch contents {
+        case .shape2D (let shape):
+            return EvaluationResult(shape.evaluate())
+
+        case .offset (let node, let amount, let joinStyle, let miterLimit, let segmentCount):
+            return EvaluationResult(
+                await context.result(for: node).concrete
+                    .offset(amount: amount, joinType: joinStyle.manifoldRepresentation, miterLimit: miterLimit, circularSegments: segmentCount)
+            )
+
+        case .projection (let node, let projection):
+            let crossSection: CrossSection = switch projection {
+            case .full:           await context.result(for: node).concrete.projection()
+            case .slice (let z):  await context.result(for: node).concrete.slice(at: z)
+            }
+
+            return EvaluationResult(crossSection)
+
+        default:
+            preconditionFailure("Invalid dimensionality for node type")
         }
     }
 }
