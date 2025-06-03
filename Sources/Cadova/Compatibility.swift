@@ -166,3 +166,14 @@ public extension Geometry3D {
         applyingEdgeProfile(.fillet(radius: radius), to: corners, along: axis)
     }
 }
+
+public enum _RoundingSideDeprecated {
+    case outside, inside, both
+}
+
+public extension Geometry2D {
+    @available(*, deprecated, renamed: "rounded(insideRadius:outsideRadius:)")
+    func rounded(amount: Double, side: _RoundingSideDeprecated = .both) -> any Geometry2D {
+        rounded(insideRadius: side != .outside ? amount : nil, outsideRadius: side != .inside ? amount : nil)
+    }
+}
