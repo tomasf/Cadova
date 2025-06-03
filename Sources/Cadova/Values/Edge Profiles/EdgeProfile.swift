@@ -17,6 +17,12 @@ public struct EdgeProfile: Sendable {
     public init(@GeometryBuilder2D profile: () -> any Geometry2D) {
         self.profile = profile().aligned(at: .max)
     }
+
+    public var negativeShape: any Geometry2D {
+        readingNegativeShape { negativeShape, _ in
+            negativeShape
+        }
+    }
 }
 
 internal extension EdgeProfile {

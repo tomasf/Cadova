@@ -152,3 +152,17 @@ public extension Geometry {
         withDefaultSegmentation()
     }
 }
+
+public extension Geometry2D {
+    @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
+    func roundingRectangleCorners(_ corners: Rectangle.Corners = .all, radius: Double) -> any Geometry2D {
+        applyingEdgeProfile(.fillet(radius: radius), to: corners)
+    }
+}
+
+public extension Geometry3D {
+    @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:along:)")
+    func roundingBoxCorners(_ corners: Rectangle.Corners = .all, axis: Axis3D, radius: Double) -> any Geometry3D {
+        applyingEdgeProfile(.fillet(radius: radius), to: corners, along: axis)
+    }
+}

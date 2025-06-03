@@ -1,45 +1,6 @@
 import Foundation
 
 public extension Geometry3D {
-    /// Rounds the corners of the geometry using its bounding box dimensions along a specified axis.
-    ///
-    /// This method assumes that the geometry is a box or something similar and rounds its corners as if it were a box.
-    ///
-    /// - Parameters:
-    ///   - corners: The corners of the geometry to round. Defaults to `.all`.
-    ///   - axis: The axis along which to round the corners.
-    ///     - For the Z axis, the corners are as seen from positive Z, looking down at the origin with positive X pointing
-    ///       right and positive Y pointing up.
-    ///     - For the X axis, the corners are as seen from the origin, with the positive Y axis pointing left and Z pointing up.
-    ///     - For the Y axis, the corners are as seen from the origin, with the positive X axis pointing right and Z pointing up.
-    ///   - radius: The radius of the rounding.
-    ///
-    /// - Returns: A new `Geometry3D` object with rounded corners applied to the geometry.
-    ///
-    /// This method uses the bounding box of the geometry to determine the appropriate size for rounding. It is intended for
-    /// geometries that are box-like or similar enough for this approximation to be effective. The shape of the rounded corners
-    /// is determined by the environment’s `roundedCornerStyle`, which controls whether corners are shaped as simple circular
-    /// arcs or smoother, squircle-like transitions.
-    ///
-    func roundingBoxCorners(_ corners: Rectangle.Corners = .all, axis: Axis3D, radius: Double) -> any Geometry3D {
-        let adjustments = [90°, 0°, 180°]
-
-        return self
-            .rotated(from: axis.direction(.negative), to: .up)
-            .rotated(z: adjustments[axis.index])
-            .measuring { body, measurements in
-                let box = measurements.boundingBox.requireNonNil()
-                body.intersecting {
-                    RoundedRectangleMask(size: box.size.xy, radius: radius, corners: corners)
-                        .extruded(height: box.size.z)
-                        .translated(z: -box.size.z / 2)
-                        .translated(box.center)
-                }
-            }
-            .rotated(z: -adjustments[axis.index])
-            .rotated(from: .up, to: axis.direction(.negative))
-    }
-
     /// Rounds all eight corners of the geometry using its bounding box dimensions.
     ///
     /// This method assumes that the geometry is a box or something similar and rounds all its corners as if it were a box.
