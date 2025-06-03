@@ -86,11 +86,8 @@ public extension EdgeProfile {
     static func overhangFillet(radius: Double) -> Self {
         Self {
             readEnvironment(\.overhangAngle) { overhangAngle in
-                Circle(radius: radius)
-                    .convexHull(adding: [0, radius / sin(overhangAngle)])
-                    .intersecting {
-                        Rectangle(radius)
-                    }
+                Teardrop(radius: radius, style: .flat)
+                    .within(x: 0..., y: 0...)
             }
         }
     }

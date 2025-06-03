@@ -17,6 +17,7 @@ public struct Teardrop: Shape2D {
 
     @Environment(\.naturalUpDirectionXYAngle) private var upAngle
     @Environment(\.overhangAngle) private var overhangAngle
+    @Environment(\.operation) private var operation
 
     /// Creates a teardrop shape with a given radius and visual style.
     ///
@@ -55,7 +56,7 @@ public struct Teardrop: Shape2D {
                     .aligned(at: .center)
             }
         }
-        .rotated(upAngle.map { $0 - 90° } ?? .zero)
+        .rotated(upAngle.map { $0 - (operation == .subtraction ? 90° : -90°) } ?? .zero)
     }
 
     /// Defines the top shape of a teardrop used for 3D printing.
