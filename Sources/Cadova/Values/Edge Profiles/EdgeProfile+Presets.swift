@@ -77,12 +77,20 @@ public extension EdgeProfile {
 }
 
 public extension EdgeProfile {
-    /// Creates an edge profile combining a rounded fillet with a straight chamfer near the top or bottom.
-    /// Useful for 3D printing where bottom edges require limited overhang.
-    /// The overhang angle is determined from `EnvironmentValues.overhangAngle`; set it with `.withOverhangAngle(_:)`.
-    /// - Parameter radius: The radius of the curvature applied to the edge.
-    /// - Returns: An edge profile representing the overhang fillet.
+    /// Creates an edge profile combining a smooth fillet with a straight upper edge to reduce overhang.
     ///
+    /// This profile is useful in 3D printing where a rounded base is desirable but overhangs must be minimized.
+    /// The curvature is shaped to reduce material cantilevering while maintaining a rounded appearance at the base.
+    ///
+    /// The vertical orientation of the profile is derived from the surrounding geometry's `naturalUpDirection`.
+    /// The shape is contextually adapted based on the current geometric `operation`:
+    /// - For `.addition`, the profile curves upward, forming a teardrop shape with its point at the bottom.
+    /// - For `.subtraction`, the profile is inverted to curve downward, maintaining consistency in the removed material boundary.
+    ///
+    /// - Parameter radius: The effective radius of the curved portion.
+    /// - Returns: An edge profile shaped for print-friendly overhanging geometry.
+    /// The shape adapts to the current `overhangAngle` environment value, allowing it to respect the maximum printable overhang angle and reduce unsupported material.
+    /// 
     static func overhangFillet(radius: Double) -> Self {
         Self {
             readEnvironment(\.overhangAngle) { overhangAngle in
