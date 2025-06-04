@@ -11,6 +11,8 @@ import Foundation
 ///
 /// This shape is commonly used for holes or cutouts where mechanical function is preserved but steep overhangs need to be avoided.
 ///
+/// When used in additive operations, the teardrop shape is automatically oriented with its point facing downward. This orientation improves printability by minimizing unsupported overhangs and taking advantage of gravity. In subtractive operations, such as cutouts, the shape is rotated to face upward to ensure optimal bridging or point clearance at the top of the cavity.
+///
 public struct Teardrop: Shape2D {
     private let style: Style
     private let radius: Double
