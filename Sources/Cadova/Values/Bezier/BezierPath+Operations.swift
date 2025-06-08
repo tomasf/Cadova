@@ -58,7 +58,7 @@ public extension BezierPath {
     ///   The integer part indicates the curve index; the fractional part specifies the location within that curve.
     /// - Returns: The interpolated point along the path at the specified position.
     func point(at position: Position) -> V {
-        guard !curves.isEmpty else { return startPoint }
+        guard !isEmpty else { return startPoint }
 
         var curveIndex = min(Int(floor(position)), curves.count - 1)
         var fraction = position - Double(curveIndex)
