@@ -15,7 +15,8 @@ public extension Geometry {
     /// - Returns: A new geometry with refined resolution, adapted to the specified maximum edge length.
     ///
     func refined(maxEdgeLength: Double) -> D.Geometry {
-        GeometryNodeTransformer(body: self) { .refine($0, maxEdgeLength: maxEdgeLength) }
+        precondition(maxEdgeLength > .ulpOfOne, "Maximum edge length must be positive")
+        return GeometryNodeTransformer(body: self) { .refine($0, maxEdgeLength: maxEdgeLength) }
     }
 }
 

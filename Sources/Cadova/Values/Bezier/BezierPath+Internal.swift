@@ -1,7 +1,7 @@
 import Foundation
 
 internal extension BezierPath {
-    func pointsAtPositions(in pathFractionRange: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
+    func pointsAtPositions(in pathFractionRange: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [(position: Double, point: V)] {
         let (fromCurveIndex, fromFraction) = pathFractionRange.lowerBound.indexAndFraction(curveCount: curves.count)
         let (toCurveIndex, toFraction) = pathFractionRange.upperBound.indexAndFraction(curveCount: curves.count)
 

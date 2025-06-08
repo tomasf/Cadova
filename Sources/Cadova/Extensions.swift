@@ -268,6 +268,32 @@ extension BidirectionalCollection where Index == Int {
         guard k1 - k0 != 0 else { return v0 }
         return v0 + (v1 - v0) * (key - k0) / (k1 - k0)
     }
+
+    func binarySearchInterpolate<Key: FloatingPoint>(target: Key, key: (Element) -> Key) -> (Index, fraction: Key) {
+        precondition(!isEmpty, "Array must not be empty")
+
+        guard target > key(self.first!) else { return (0, 0) }
+        guard target < key(self.last!) else { return (count - 1, 0) }
+
+        // Binary search for the correct interval
+        var low = 0
+        var high = self.count - 1
+
+        while low <= high {
+            let mid = (low + high) / 2
+            let midKey = key(self[mid])
+
+            if midKey < target {
+                low = mid + 1
+            } else {
+                high = mid - 1
+            }
+        }
+
+        let k0 = key(self[high]), k1 = key(self[low])
+        guard k1 - k0 != 0 else { return (high, 0) }
+        return (high, (target - k0) / (k1 - k0))
+    }
 }
 
 extension Collection where Index == Int {
