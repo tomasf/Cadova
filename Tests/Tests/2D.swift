@@ -40,9 +40,9 @@ struct Geometry2DTests {
 
     @Test func roundedRectangle() async throws {
         try await Rectangle(x: 10, y: 10)
-            .roundingRectangleCorners(.bottomLeft, radius: 5)
-            .roundingRectangleCorners(.bottomRight, radius: 3)
-            .roundingRectangleCorners(.topRight, radius: 2)
+            .applyingEdgeProfile(.fillet(radius: 5), to: .bottomLeft)
+            .applyingEdgeProfile(.fillet(radius: 3), to: .bottomRight)
+            .applyingEdgeProfile(.fillet(radius: 2), to: .topRight)
             .aligned(at: .centerX)
             .rotated(45°)
             .translated(x: -3)

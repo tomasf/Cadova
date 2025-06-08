@@ -27,7 +27,7 @@ extension Geometry {
         get async throws {
             let context = EvaluationContext()
             let result = try await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
-            let nodeResult = await context.result(for: result.node)
+            let nodeResult = try await context.result(for: result.node)
             return D.BoundingBox(nodeResult.concrete.bounds)
         }
     }
@@ -36,7 +36,7 @@ extension Geometry {
         get async throws {
             let context = EvaluationContext()
             let result = try await withDefaultSegmentation().build(in: .defaultEnvironment, context: context)
-            let nodeResult = await context.result(for: result.node)
+            let nodeResult = try await context.result(for: result.node)
             return D.Measurements(concrete: nodeResult.concrete)
         }
     }
