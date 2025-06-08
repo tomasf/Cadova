@@ -20,7 +20,7 @@ extension BezierPath {
                 Text(text)
                     .measuringBounds { text, bounds in
                         Box(x: bounds.size.x + 1.0, y: 2, z: 0.1)
-                            .roundingBoxCorners(axis: .z, radius: 1)
+                            .applyingEdgeProfile(.fillet(radius: 1), along: .z)
                             .aligned(at: .center)
                             .colored(.white)
                             .adding {

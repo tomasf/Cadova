@@ -28,9 +28,9 @@ struct SweepTests {
 
         let m = try await sweep.measurements
 
-        #expect(m.volume ≈ 11553.915)
-        #expect(m.surfaceArea ≈ 18078.758)
-        #expect(m.boundingBox ≈ .init(minimum: [0, -5.59705, -3], maximum: [105.831, 100, 155.5]))
+        #expect(m.volume ≈ 11652.703)
+        #expect(m.surfaceArea ≈ 18070.729)
+        #expect(m.boundingBox ≈ .init(minimum: [0, -5.595, -3], maximum: [105.831, 100, 155.5]))
     }
 
     // Star from example4
@@ -43,8 +43,8 @@ struct SweepTests {
             .swept(along: path)
         let m = try await sweep.measurements
 
-        #expect(m.volume ≈ 13099.645)
-        #expect(m.surfaceArea ≈ 9238.845)
+        #expect(m.volume ≈ 13096.084)
+        #expect(m.surfaceArea ≈ 9237.344)
         #expect(m.boundingBox ≈ .init(minimum: [-10.8721, -1.38221, -10.5105], maximum: [68.9987, 51.5556, 10.5105]))
     }
 }

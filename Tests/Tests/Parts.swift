@@ -40,7 +40,7 @@ struct PartTests {
             }
 
         let node = try await #require(g.parts[.named("merged", type: .solid)]?.node)
-        let concrete = await node.evaluate(in: .init()).concrete
+        let concrete = try await node.evaluate(in: .init()).concrete
         #expect(BoundingBox3D(concrete.bounds) ≈ BoundingBox3D(minimum: [-2.5, -2.5, -2.5], maximum: [20, 4, 4]))
     }
 
