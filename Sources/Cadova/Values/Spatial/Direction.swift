@@ -130,6 +130,9 @@ public extension Direction <D2> {
         .init(Transform2D.rotation(rotation).apply(to: unitVector))
     }
 
+    var clockwiseNormal: Self { Self(Vector2D(unitVector.y, -unitVector.x)) }
+    var counterclockwiseNormal: Self { Self(Vector2D(-unitVector.y, unitVector.x)) }
+
     /// A direction pointing along the positive X axis.
     static let positiveX = Direction(x: 1)
     /// A direction pointing along the negative X axis.

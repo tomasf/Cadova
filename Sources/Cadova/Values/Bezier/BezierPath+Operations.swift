@@ -35,6 +35,10 @@ public extension BezierPath {
 }
 
 public extension BezierPath {
+    var isEmpty: Bool {
+        curves.isEmpty
+    }
+    
     /// Calculates the total length of the Bézier path.
     ///
     /// - Parameter segmentation: The desired level of detail for the generated points, which influences the accuracy

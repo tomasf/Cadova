@@ -29,10 +29,23 @@ internal extension BezierPath3D {
         var frames: [Frame] = []
         var debugParts: [any Geometry3D]? = enableDebugging ? [] : nil
 
+        var distance = 0.0
+        var lastPoint: Vector3D?
         for (t, point) in fractionsAndPoints {
+            if let last = lastPoint {
+                distance += (point - last).magnitude
+            }
             frames.append(Frame(
-                point: point, tangent: derivative.point(at: t), reference: targetReference, target: target, previousSample: frames.last, debugGeometry: &debugParts
+                t: t,
+                distance: distance,
+                point: point,
+                tangent: derivative.point(at: t),
+                reference: targetReference,
+                target: target,
+                previousSample: frames.last,
+                debugGeometry: &debugParts
             ))
+            lastPoint = point
         }
 
         frames.interpolateMissingAngles()
@@ -43,13 +56,17 @@ internal extension BezierPath3D {
     }
 
     struct Frame {
+        let t: Double
+        let distance: Double
         let point: Vector3D
         let xAxis: Vector3D
         let yAxis: Vector3D
         let zAxis: Vector3D
         var angle: Angle?
 
-        init(point: Vector3D, tangent: Vector3D, reference: Direction2D, target: FrameTarget, previousSample: Frame?, debugGeometry: inout [any Geometry3D]?) {
+        init(t: Double, distance: Double, point: Vector3D, tangent: Vector3D, reference: Direction2D, target: FrameTarget, previousSample: Frame?, debugGeometry: inout [any Geometry3D]?) {
+            self.t = t
+            self.distance = distance
             zAxis = tangent.normalized
             self.point = point
             let plane = Plane(offset: point, normal: Direction3D(zAxis))
