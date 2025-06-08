@@ -7,7 +7,6 @@ extension BezierPath {
     ///   - markerRotation: The rotation to use for markers. Set to nil to hide them.
 
     public func visualized(
-        in positionRange: ClosedRange<BezierPath.Position>? = nil,
         scale: Double = 1,
         markerRotation: Angle? = -45°
     ) -> any Geometry3D {
@@ -71,7 +70,7 @@ extension BezierPath {
             }
 
             // Curves
-            for (v1, v2) in points(in: positionRange ?? self.positionRange, segmentation: environment.segmentation).paired() {
+            for (v1, v2) in points(in: self.positionRange, segmentation: environment.segmentation).paired() {
                 makeLine(from: v1, to: v2, thickness: 0.1 * scale)
                     .colored(.blue)
             }

@@ -74,10 +74,6 @@ public extension Polygon {
         .init(provider: ReversedPolygonPoints(innerProvider: pointsProvider))
     }
 
-    init(_ bezierPath: BezierPath2D, in range: ClosedRange<BezierPath.Position>) {
-        self.init(provider: BezierPathRange(bezierPath: bezierPath, range: range))
-    }
-
     static func +(_ lhs: Polygon, _ rhs: Polygon) -> Polygon {
         lhs.appending(rhs)
     }
