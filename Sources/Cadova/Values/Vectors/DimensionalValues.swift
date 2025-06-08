@@ -82,3 +82,14 @@ extension DimensionalValues.Value: Equatable where Element: Equatable {}
 extension DimensionalValues: Equatable where Element: Equatable {}
 extension DimensionalValues.Value: Hashable where Element: Hashable {}
 extension DimensionalValues: Hashable where Element: Hashable {}
+
+extension DimensionalValues: Comparable where Element: Comparable {
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        for x in zip(lhs.values, rhs.values) {
+            if x.0 != x.1 {
+                return x.0 < x.1
+            }
+        }
+        return false
+    }
+}
