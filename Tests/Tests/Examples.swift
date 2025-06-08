@@ -16,7 +16,7 @@ struct ExampleTests {
             .translated(x: 2)
             .scaled(x: 2)
             .repeated(in: 0°..<360°, count: 5)
-            .rounded(amount: 1)
+            .rounded(radius: 1)
             .extruded(height: 5, twist: -20°)
             .subtracting {
                 Cylinder(bottomDiameter: 1, topDiameter: 5, height: 20)
