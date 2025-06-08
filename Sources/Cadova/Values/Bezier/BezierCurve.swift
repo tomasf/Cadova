@@ -118,3 +118,38 @@ extension BezierCurve: CustomDebugStringConvertible {
         controlPoints.map { $0.debugDescription }.joined(separator: ",  ")
     }
 }
+
+extension BezierCurve {
+    /// Returns a sub-curve spanning `tRange` using two De Casteljau splits.
+    ///
+    /// Algorithm
+    /// 1. Split the curve at t₁ = `tRange.upperBound`, keeping the left piece.
+    /// 2. Split that piece at t₀′ = `tRange.lowerBound / t₁`, keeping the right piece.
+    ///
+    /// This is the classic, numerically robust way to extract a Bézier segment.
+    func trimmed(to tRange: ClosedRange<Double>) -> BezierCurve<V> {
+        let t0 = tRange.lowerBound
+        let t1 = tRange.upperBound
+
+        // De Casteljau split helper
+        func split(_ pts: [V], at t: Double) -> ([V], [V]) {
+            var left:  [V] = [pts.first!]
+            var right: [V] = [pts.last!]
+            var layer = pts
+            while layer.count > 1 {
+                layer = zip(layer, layer.dropFirst()).map { $0 + ($1 - $0) * t }
+                left.append(layer.first!)
+                right.append(layer.last!)
+            }
+            return (left, right.reversed())
+        }
+
+        // 1. Cut at t₁
+        let (leftPiece, _) = split(controlPoints, at: t1)
+
+        // 2. Cut that piece at rescaled t₀′
+        let (_, trimmed) = split(leftPiece, at: t0 / t1)
+
+        return BezierCurve(controlPoints: trimmed)
+    }
+}

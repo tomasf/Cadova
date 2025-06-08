@@ -38,7 +38,7 @@ public extension BezierPath {
     var isEmpty: Bool {
         curves.isEmpty
     }
-    
+
     /// Calculates the total length of the Bézier path.
     ///
     /// - Parameter segmentation: The desired level of detail for the generated points, which influences the accuracy
@@ -114,5 +114,48 @@ public extension BezierPath {
         readEnvironment { e in
             reader(points(in: range ?? positionRange, segmentation: e.segmentation))
         }
+    }
+}
+
+public extension BezierPath {
+    /// Returns a new Bézier path representing a subrange of this path.
+    ///
+    /// The provided range uses the same `Position` format as other path operations, where the integer part
+    /// indicates the curve index and the fractional part is the position within that curve. This allows the
+    /// creation of a trimmed path spanning partial or multiple curves.
+    ///
+    /// Positions outside the full `positionRange` are extrapolated.
+    ///
+    /// - Parameter range: The position range to extract from the path.
+    /// - Returns: A new `BezierPath` covering the requested segment of the path.
+    func subpath(in range: ClosedRange<Position>) -> BezierPath {
+        guard !isEmpty else { return self }
+        let (lowerIndex, lowerFraction) = curveIndexAndFraction(for: range.lowerBound)
+        var (upperIndex, upperFraction) = curveIndexAndFraction(for: range.upperBound)
+
+        if upperIndex > 0, upperFraction < .ulpOfOne {
+            upperIndex -= 1
+            upperFraction = 1.0
+        }
+
+        let newCurves: [BezierCurve<V>] = (lowerIndex...upperIndex).map { i in
+            let start = (i == lowerIndex) ? lowerFraction : 0
+            let end = (i == upperIndex) ? upperFraction : 1
+            return (start == 0 && end == 1) ? curves[i] : curves[i].trimmed(to: start...end)
+        }
+        let newStartPoint = newCurves.first?.controlPoints[0] ?? startPoint
+        return BezierPath(startPoint: newStartPoint, curves: newCurves)
+    }
+
+    subscript(range: ClosedRange<Position>) -> BezierPath {
+        subpath(in: range)
+    }
+
+    subscript(range: PartialRangeFrom<Position>) -> BezierPath {
+        subpath(in: range.lowerBound...positionRange.upperBound)
+    }
+
+    subscript(range: PartialRangeThrough<Position>) -> BezierPath {
+        subpath(in: 0...range.upperBound)
     }
 }

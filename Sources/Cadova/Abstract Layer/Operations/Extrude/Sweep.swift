@@ -127,7 +127,12 @@ internal struct Sweep: Shape3D {
     var body: any Geometry3D {
         CachedNodeTransformer(body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation) { node, environment, context in
             let crossSection = try await context.result(for: node).concrete
-            let (frames, _) = path.frames(environment: environment, target: target, targetReference: reference, perpendicularBounds: .init(crossSection.bounds))
+            let (frames, _) = path.frames(
+                environment: environment,
+                target: target,
+                targetReference: reference,
+                perpendicularBounds: .init(crossSection.bounds)
+            )
             let mesh = Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform))
             return GeometryNode.shape(.mesh(mesh.meshData))
         }

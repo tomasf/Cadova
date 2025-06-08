@@ -5,8 +5,8 @@ internal extension BezierPath {
         in pathFractionRange: ClosedRange<Position>,
         segmentation: EnvironmentValues.Segmentation
     ) -> [(position: Double, point: V)] {
-        let (fromCurveIndex, fromFraction) = pathFractionRange.lowerBound.indexAndFraction(curveCount: curves.count)
-        let (toCurveIndex, toFraction) = pathFractionRange.upperBound.indexAndFraction(curveCount: curves.count)
+        let (fromCurveIndex, fromFraction) = curveIndexAndFraction(for: pathFractionRange.lowerBound)
+        let (toCurveIndex, toFraction) = curveIndexAndFraction(for: pathFractionRange.upperBound)
 
         return (fromCurveIndex...toCurveIndex).flatMap { index in
             let startFraction = (index == fromCurveIndex) ? fromFraction : 0.0
@@ -49,18 +49,15 @@ internal extension BezierPath {
         }
         return Double(curveIndex) + t
     }
-}
 
-fileprivate extension BezierPath.Position {
-    func indexAndFraction(curveCount: Int) -> (Int, Double) {
-        if self < 0 {
-            return (0, self)
-        } else if self >= Double(curveCount) {
-            return (curveCount - 1, self - Double(curveCount - 1))
+    func curveIndexAndFraction(for position: Position) -> (index: Int, fraction: Double) {
+        if position < 0 {
+            return (0, position)
+        } else if position >= Double(curves.count) {
+            return (curves.count - 1, position - Double(curves.count - 1))
         } else {
-            let index = floor(self)
-            let fraction = self - index
-            return (Int(index), fraction)
+            let index = floor(position)
+            return (Int(index), position - index)
         }
     }
 }
