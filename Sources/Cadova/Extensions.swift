@@ -154,6 +154,17 @@ extension RangeExpression {
         default: nil
         }
     }
+
+    func resolved(with range: ClosedRange<Bound>) -> ClosedRange<Bound> {
+        switch self {
+        case let self as ClosedRange<Bound>: self
+        case let self as Range<Bound>: self.lowerBound...self.upperBound
+        case let self as PartialRangeFrom<Bound>: self.lowerBound...range.upperBound
+        case let self as PartialRangeThrough<Bound>: range.lowerBound...self.upperBound
+        case let self as PartialRangeFrom<Bound>: self.lowerBound...range.upperBound
+        default: range
+        }
+    }
 }
 
 extension Comparable {
