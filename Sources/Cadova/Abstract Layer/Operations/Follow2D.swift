@@ -10,37 +10,31 @@ public extension Geometry2D {
     /// resulting in a curved version of the original shape. This is useful for modeling banners, ribbons,
     /// or any 2D elements that must follow a curved segment.
     ///
-    /// The `range` parameter lets you control which part of the path is used, expressed in terms of Bézier path positions.
-    /// A position value like `1.5` represents the halfway point along the second curve of the path.
-    ///
     /// The level of detail is determined by the environment’s segmentation settings.
     ///
     /// - Parameters:
     ///   - path: The 2D path that the geometry should follow.
-    ///   - range: The portion of the path to use, specified in `BezierPath2D.Position` values. Defaults to the full path.
     /// - Returns: A warped version of the geometry that follows the specified segment of the 2D path.
     /// 
-    func following(path: BezierPath2D, in range: ClosedRange<BezierPath.Position>? = nil) -> any Geometry2D {
-        FollowPath2D(geometry: self, path: path, range: range ?? path.positionRange)
+    func following(path: BezierPath2D) -> any Geometry2D {
+        FollowPath2D(geometry: self, path: path)
     }
 }
 
 internal struct FollowPath2D: Shape2D {
     let geometry: any Geometry2D
     let path: BezierPath2D
-    let range: ClosedRange<BezierPath.Position>
 
     @Environment(\.segmentation) var segmentation
 
     var body: any Geometry2D {
         geometry.measuringBounds { body, bounds in
-            let frames = path.frames(in: range, segmentation: segmentation)
+            let frames = path.frames(in: path.positionRange, segmentation: segmentation)
             let pathLength = frames.last!.distance
             let lengthFactor = pathLength / bounds.size.x
-            print("range", range, "frames", frames[0])
 
             body.refined(maxEdgeLength: bounds.size.x / Double(segmentation.segmentCount(length: pathLength)))
-                .warped(operationName: "followPath", cacheParameters: path, segmentation, range) { p in
+                .warped(operationName: "followPath", cacheParameters: path, segmentation) { p in
                     let distanceTarget = (p.x - bounds.minimum.x) * lengthFactor
                     let (index, fraction) = frames.binarySearchInterpolate(target: distanceTarget, key: \.distance)
                     let frame = if fraction > .ulpOfOne {
