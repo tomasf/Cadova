@@ -29,14 +29,15 @@ internal struct FollowPath2D: Shape2D {
 
     var body: any Geometry2D {
         geometry.measuringBounds { body, bounds in
-            let frames = path.frames(segmentation: segmentation)
-            let pathLength = frames.last!.distance
+            let pathLength = path.length(segmentation: .fixed(10))
             let lengthFactor = pathLength / bounds.size.x
 
             body.refined(maxEdgeLength: bounds.size.x / Double(segmentation.segmentCount(length: pathLength)))
-                .warped(operationName: "followPath", cacheParameters: path, segmentation) { p in
+                .warped(operationName: "followPath", cacheParameters: path, segmentation) {
+                    path.frames(segmentation: segmentation)
+                } transform: { p, frames in
                     let distanceTarget = (p.x - bounds.minimum.x) * lengthFactor
-                    let (index, fraction) = frames.binarySearchInterpolate(target: distanceTarget, key: \.distance)
+                    let (index, fraction) = frames.binarySearch(target: distanceTarget, key: \.distance)
                     let frame = if fraction > .ulpOfOne {
                         frames[index].interpolated(with: frames[index + 1], fraction: fraction)
                     } else {
