@@ -51,7 +51,7 @@ internal struct FollowPath2D: Shape2D {
 
 fileprivate extension BezierPath2D {
     struct FollowFrame {
-        let position: Position
+        let position: Fraction
         let point: Vector2D
         let distance: Double
         let normal: Direction2D
@@ -68,7 +68,7 @@ fileprivate extension BezierPath2D {
 
     func frames(segmentation: EnvironmentValues.Segmentation) -> [FollowFrame] {
         let derivative = self.derivative
-        return pointsAtPositions(in: positionRange, segmentation: segmentation)
+        return pointsAtPositions(in: fractionRange, segmentation: segmentation)
             .reduce(into: []) { frames, entry in
                 let distance = if let lastFrame = frames.last {
                     lastFrame.distance + (entry.point - lastFrame.point).magnitude

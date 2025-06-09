@@ -1,9 +1,9 @@
 import Foundation
 
 public extension BezierPath {
-    /// A typealias representing a position along a Bézier path.
+    /// A typealias representing a fraction along a Bézier path.
     ///
-    /// `BezierPath.Position` is a `Double` value that represents a fractional position along a Bézier path.
+    /// `BezierPath.Fraction` is a `Double` value that represents a fractional position along a Bézier path.
     /// The integer part of the value represents the index of the Bézier curve within the path,
     /// and the fractional part represents a position within that specific curve.
     ///
@@ -13,13 +13,13 @@ public extension BezierPath {
     /// - `1.5` represents the midpoint of the second curve.
     ///
     /// This type is used for navigating and interpolating points along a multi-curve Bézier path.
-    /// Positions outside the full `positionRange` can be used to extrapolate outside the normal path.
+    /// Fractions outside the full `fractionRange` can be used to extrapolate outside the normal path.
     ///
-    typealias Position = Double
+    typealias Fraction = Double
 
-    /// The full range of positions within this path
-    var positionRange: ClosedRange<Position> {
-        0...Position(curves.count)
+    /// The full range of fractions within this path
+    var fractionRange: ClosedRange<Fraction> {
+        0...Fraction(curves.count)
     }
 
     /// Applies the given 2D affine transform to the `BezierPath`.
@@ -45,44 +45,38 @@ public extension BezierPath {
     ///   of the length calculation. More detailed segmentation results in more points being generated, leading to a more
     ///   accurate length approximation.
     /// - Returns: A `Double` value representing the total length of the Bézier path.
-    func length(segmentation: EnvironmentValues.Segmentation, in range: ClosedRange<Position>? = nil) -> Double {
-        points(in: range ?? positionRange, segmentation: segmentation)
+    func length(segmentation: EnvironmentValues.Segmentation) -> Double {
+        points(segmentation: segmentation)
             .paired()
-            .map { $0.distance(to: $1) }
+            .map { ($1 - $0).magnitude }
             .reduce(0, +)
     }
 
     /// Returns the point at a specific fractional position along the path.
     ///
-    /// - Parameter position: A fractional value indicating the position along the path.
+    /// - Parameter fraction: A fractional value indicating the position along the path.
     ///   The integer part indicates the curve index; the fractional part specifies the location within that curve.
     /// - Returns: The interpolated point along the path at the specified position.
-    func point(at position: Position) -> V {
+    func point(at fraction: Fraction) -> V {
         guard !isEmpty else { return startPoint }
-
-        var curveIndex = min(Int(floor(position)), curves.count - 1)
-        var fraction = position - Double(curveIndex)
-        if curveIndex < 0 {
-            fraction += Double(curveIndex)
-            curveIndex = 0
-        }
-        return curves[curveIndex].point(at: fraction)
+        let (curveIndex, t) = curveIndexAndFraction(for: fraction)
+        return curves[curveIndex].point(at: t)
     }
 
     /// Accesses the point at a specific fractional position along the path.
     ///
-    /// - Parameter position: A fractional value indicating the position along the path.
+    /// - Parameter fraction: A fractional value indicating the position along the path.
     /// - Returns: The point along the path at the specified position.
-    subscript(position: Position) -> V {
-        point(at: position)
+    subscript(fraction: Fraction) -> V {
+        point(at: fraction)
     }
 
     /// Returns the tangent direction at a specific position along the path.
     ///
-    /// - Parameter position: The fractional position along the path where the tangent is evaluated.
+    /// - Parameter fraction: The fractional position along the path where the tangent is evaluated.
     /// - Returns: A `Direction` representing the tangent vector at the given position.
-    func tangent(at position: Position) -> Direction<V.D> {
-        Direction(derivative.point(at: position))
+    func tangent(at fraction: Fraction) -> Direction<V.D> {
+        Direction(derivative.point(at: fraction))
     }
 
     /// Computes the derivative path of the Bézier path.
@@ -94,31 +88,29 @@ public extension BezierPath {
 
     /// Generates a sequence of points representing the path.
     ///
-    /// - Parameter range: The position range in which to collect points
+    /// - Parameter range: The fraction range in which to collect points
     /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
     /// - Returns: An array of points that approximate the Bezier path.
-    func points(in range: ClosedRange<Position>? = nil, segmentation: EnvironmentValues.Segmentation) -> [V] {
-        pointsAtPositions(in: range ?? positionRange, segmentation: segmentation).map(\.1)
+    func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
+        pointsAtPositions(in: fractionRange, segmentation: segmentation).map(\.1)
     }
 
     /// Converts a sequence of points along the path into a custom geometry using a geometry builder.
     ///
     /// - Parameters:
-    ///   - range: Optional position range within the path to sample.
     ///   - reader: A closure that transforms the points into a geometry value.
     /// - Returns: A constructed geometry object based on the sampled points.
     func readPoints<D: Dimensionality>(
-        in range: ClosedRange<Position>? = nil,
         @GeometryBuilder<D> _ reader: @Sendable @escaping ([V]) -> D.Geometry
     ) -> D.Geometry {
         readEnvironment { e in
-            reader(points(in: range ?? positionRange, segmentation: e.segmentation))
+            reader(points(segmentation: e.segmentation))
         }
     }
 }
 
 public extension BezierPath {
-    internal func subpath(in range: ClosedRange<Position>) -> BezierPath {
+    internal func subpath(in range: ClosedRange<Fraction>) -> BezierPath {
         guard !isEmpty else { return self }
         let (lowerIndex, lowerFraction) = curveIndexAndFraction(for: range.lowerBound)
         var (upperIndex, upperFraction) = curveIndexAndFraction(for: range.upperBound)
@@ -139,7 +131,7 @@ public extension BezierPath {
 
     /// Returns a new Bézier path covering the portion specified by `range`.
     ///
-    /// The `range` follows the same `Position` convention used throughout the API:
+    /// The `range` follows the same `Fraction` convention used throughout the API:
     /// *Integer part* → curve index, *fractional part* → location within that curve.
     ///
     /// ### Examples
@@ -154,10 +146,10 @@ public extension BezierPath {
     /// let segment3 = path[...2.0]
     /// ```
     ///
-    /// Positions outside the full `positionRange` are permitted and will extrapolate
+    /// Positions outside the full `fractionRange` are permitted and will extrapolate
     /// beyond the path’s usual bounds.
     ///
-    subscript(range: any RangeExpression<Position>) -> BezierPath {
-        subpath(in: range.resolved(with: positionRange))
+    subscript(range: any RangeExpression<Fraction>) -> BezierPath {
+        subpath(in: range.resolved(with: fractionRange))
     }
 }

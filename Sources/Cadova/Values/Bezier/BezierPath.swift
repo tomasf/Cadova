@@ -39,7 +39,7 @@ internal extension BezierPath {
     var path3D: BezierPath3D {
         switch self {
         case let self as BezierPath3D: self
-        case let self as BezierPath2D:
+        case is BezierPath2D:
             BezierPath3D(
                 startPoint: startPoint.vector3D,
                 curves: curves.map { $0.map(\.vector3D) }
