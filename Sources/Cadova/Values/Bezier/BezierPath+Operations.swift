@@ -88,11 +88,14 @@ public extension BezierPath {
 
     /// Generates a sequence of points representing the path.
     ///
-    /// - Parameter range: The fraction range in which to collect points
     /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
     /// - Returns: An array of points that approximate the Bezier path.
     func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
-        pointsAtPositions(in: fractionRange, segmentation: segmentation).map(\.1)
+        curves.indices.flatMap { index in
+            curves[index].points(segmentation: segmentation)
+                .map(\.1)
+                .dropFirst(index > 0 ? 1 : 0)
+        }
     }
 
     /// Converts a sequence of points along the path into a custom geometry using a geometry builder.

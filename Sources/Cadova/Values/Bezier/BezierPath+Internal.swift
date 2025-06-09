@@ -1,20 +1,11 @@
 import Foundation
 
 internal extension BezierPath {
-    func pointsAtPositions(
-        in pathFractionRange: ClosedRange<Fraction>,
-        segmentation: EnvironmentValues.Segmentation
-    ) -> [(position: Double, point: V)] {
-        let (fromCurveIndex, fromFraction) = curveIndexAndFraction(for: pathFractionRange.lowerBound)
-        let (toCurveIndex, toFraction) = curveIndexAndFraction(for: pathFractionRange.upperBound)
-
-        return (fromCurveIndex...toCurveIndex).flatMap { index in
-            let startFraction = (index == fromCurveIndex) ? fromFraction : 0.0
-            let endFraction = (index == toCurveIndex) ? toFraction : 1.0
-            let skipFirst = index > fromCurveIndex
-            return curves[index].points(in: startFraction..<endFraction, segmentation: segmentation)
+    func pointsAtPositions(segmentation: EnvironmentValues.Segmentation) -> [(fraction: Fraction, point: V)] {
+        curves.indices.flatMap { index in
+            curves[index].points(segmentation: segmentation)
                 .map { ($0 + Double(index), $1) }
-                .dropFirst(skipFirst ? 1 : 0)
+                .dropFirst(index > 0 ? 1 : 0)
         }
     }
 }
