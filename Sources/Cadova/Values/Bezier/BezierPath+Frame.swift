@@ -1,22 +1,6 @@
 import Foundation
 
 internal extension BezierPath3D {
-    enum FrameTarget: Sendable, Hashable, Codable {
-        case point (Vector3D)
-        case line (D3.Line)
-        case direction (Direction3D)
-
-        func targetPoint(from plane: Plane) -> Vector3D {
-            switch self {
-            case let .point(p): p
-            case let .line(line): plane.intersection(with: line) ?? line.closestPoint(to: plane.offset)
-            case let .direction(dir): plane.offset + dir.unitVector
-            }
-        }
-    }
-}
-
-internal extension BezierPath3D {
     func frames(
         environment: EnvironmentValues,
         target: FrameTarget,
@@ -53,6 +37,20 @@ internal extension BezierPath3D {
         frames.applyTwistDamping(maxTwistRate: environment.maxTwistRate)
         frames.pruneStraightRuns(bounds: perpendicularBounds, segmentation: environment.segmentation)
         return (frames, debugParts ?? [])
+    }
+
+    enum FrameTarget: Sendable, Hashable, Codable {
+        case point (Vector3D)
+        case line (D3.Line)
+        case direction (Direction3D)
+
+        func targetPoint(from plane: Plane) -> Vector3D {
+            switch self {
+            case let .point(p): p
+            case let .line(line): plane.intersection(with: line) ?? line.closestPoint(to: plane.offset)
+            case let .direction(dir): plane.offset + dir.unitVector
+            }
+        }
     }
 
     struct Frame {
