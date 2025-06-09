@@ -23,8 +23,7 @@ extension BezierPath {
                             .aligned(at: .center)
                             .colored(.white)
                             .adding {
-                                text
-                                    .extruded(height: 0.01)
+                                text.extruded(height: 0.01)
                                     .translated(z: 0.1)
                                     .colored(.black)
                             }
@@ -40,7 +39,7 @@ extension BezierPath {
         }
 
         @Sendable func makeLine(from: V, to: V, thickness: Double) -> any Geometry3D {
-            Sphere(radius: thickness)
+            Sphere(diameter: thickness)
                 .translated(from.vector3D)
                 .adding {
                     Sphere(radius: thickness)
@@ -64,16 +63,15 @@ extension BezierPath {
             // Lines between control points
             for curve in curves {
                 for (cp1, cp2) in curve.controlPoints.paired() {
-                    makeLine(from: cp1, to: cp2, thickness: 0.04 * scale)
+                    makeLine(from: cp1, to: cp2, thickness: 0.08 * scale)
                         .colored(.red, alpha: 0.2)
                 }
             }
 
             // Curves
-            for (v1, v2) in points(in: self.positionRange, segmentation: environment.segmentation).paired() {
-                makeLine(from: v1, to: v2, thickness: 0.1 * scale)
-                    .colored(.blue)
-            }
+            Circle(radius: 0.1 * scale)
+                .swept(along: self)
+                .colored(.blue)
         }
         .withFontSize(1.5)
         .withTextAlignment(horizontal: .center, vertical: .center)
