@@ -99,21 +99,21 @@ internal struct FollowPath3D: Shape3D {
             Empty()
         } else {
             geometry.measuringBounds { body, bounds in
-                let (frames, _) = path.frames(environment: environment, target: target, targetReference: reference, perpendicularBounds: bounds.bounds2D)
-                let pathLength = frames.last!.distance
+                let pathLength = path.length(segmentation: .fixed(10))
                 let lengthFactor = pathLength / bounds.size.z
 
-                body
-                    .refined(maxEdgeLength: bounds.size.z / Double(segmentation.segmentCount(length: pathLength)))
-                    .warped(operationName: "followPath", cacheParameters: path, reference, target, segmentation, maxTwistRate) { p in
+                body.refined(maxEdgeLength: bounds.size.z / Double(segmentation.segmentCount(length: pathLength)))
+                    .warped(operationName: "followPath", cacheParameters: path, reference, target, segmentation, maxTwistRate) {
+                        path.frames(environment: environment, target: target, targetReference: reference, perpendicularBounds: bounds.bounds2D).0
+                    } transform: { p, frames in
                         let distanceTarget = (p.z - bounds.minimum.z) * lengthFactor
-                        let (index, fraction) = frames.binarySearchInterpolate(target: distanceTarget, key: \.distance)
+                        let (index, fraction) = frames.binarySearch(target: distanceTarget, key: \.distance)
                         let transform: Transform3D = if fraction > .ulpOfOne {
                             .linearInterpolation(frames[index].transform, frames[index + 1].transform, factor: fraction)
                         } else {
                             frames[index].transform
                         }
-                        return transform.apply(to: Vector3D(x: p.x, y: p.y))
+                        return transform.apply(to: Vector3D(p))
                     }
                     .simplified()
             }
