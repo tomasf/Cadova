@@ -37,15 +37,14 @@ internal extension BezierPath {
     }
 
     var path3D: BezierPath3D {
-        if let self = self as? BezierPath3D {
-            self
-        } else if let self = self as? BezierPath2D {
+        switch self {
+        case let self as BezierPath3D: self
+        case let self as BezierPath2D:
             BezierPath3D(
-                startPoint: Vector3D(self.startPoint),
-                curves: self.curves.map { $0.map { Vector3D($0) } }
+                startPoint: startPoint.vector3D,
+                curves: curves.map { $0.map(\.vector3D) }
             )
-        } else {
-            fatalError("Unsupported vector type")
+        default: fatalError()
         }
     }
 }
