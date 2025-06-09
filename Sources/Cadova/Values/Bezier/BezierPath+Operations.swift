@@ -118,17 +118,7 @@ public extension BezierPath {
 }
 
 public extension BezierPath {
-    /// Returns a new Bézier path representing a subrange of this path.
-    ///
-    /// The provided range uses the same `Position` format as other path operations, where the integer part
-    /// indicates the curve index and the fractional part is the position within that curve. This allows the
-    /// creation of a trimmed path spanning partial or multiple curves.
-    ///
-    /// Positions outside the full `positionRange` are extrapolated.
-    ///
-    /// - Parameter range: The position range to extract from the path.
-    /// - Returns: A new `BezierPath` covering the requested segment of the path.
-    func subpath(in range: ClosedRange<Position>) -> BezierPath {
+    internal func subpath(in range: ClosedRange<Position>) -> BezierPath {
         guard !isEmpty else { return self }
         let (lowerIndex, lowerFraction) = curveIndexAndFraction(for: range.lowerBound)
         var (upperIndex, upperFraction) = curveIndexAndFraction(for: range.upperBound)
@@ -147,15 +137,27 @@ public extension BezierPath {
         return BezierPath(startPoint: newStartPoint, curves: newCurves)
     }
 
-    subscript(range: ClosedRange<Position>) -> BezierPath {
-        subpath(in: range)
-    }
-
-    subscript(range: PartialRangeFrom<Position>) -> BezierPath {
-        subpath(in: range.lowerBound...positionRange.upperBound)
-    }
-
-    subscript(range: PartialRangeThrough<Position>) -> BezierPath {
-        subpath(in: 0...range.upperBound)
+    /// Returns a new Bézier path covering the portion specified by `range`.
+    ///
+    /// The `range` follows the same `Position` convention used throughout the API:
+    /// *Integer part* → curve index, *fractional part* → location within that curve.
+    ///
+    /// ### Examples
+    /// ```swift
+    /// // From 1½ curves in, through 3 curves in.
+    /// let segment1 = path[1.5...3.0]
+    ///
+    /// // Partial from: start 1¼ curves in and continue to the end.
+    /// let segment2 = path[1.25...]
+    ///
+    /// // Partial through: from the start up to *and including* 2 curves in.
+    /// let segment3 = path[...2.0]
+    /// ```
+    ///
+    /// Positions outside the full `positionRange` are permitted and will extrapolate
+    /// beyond the path’s usual bounds.
+    ///
+    subscript(range: any RangeExpression<Position>) -> BezierPath {
+        subpath(in: range.resolved(with: positionRange))
     }
 }
