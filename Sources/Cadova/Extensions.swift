@@ -101,6 +101,10 @@ extension ClosedRange {
     }
 }
 
+extension ClosedRange where Bound: AdditiveArithmetic {
+    var length: Bound { upperBound - lowerBound }
+}
+
 extension Range where Bound: AdditiveArithmetic {
     var length: Bound { upperBound - lowerBound }
 }
