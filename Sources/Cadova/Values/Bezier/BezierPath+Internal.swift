@@ -2,7 +2,7 @@ import Foundation
 
 internal extension BezierPath {
     func pointsAtPositions(
-        in pathFractionRange: ClosedRange<Position>,
+        in pathFractionRange: ClosedRange<Fraction>,
         segmentation: EnvironmentValues.Segmentation
     ) -> [(position: Double, point: V)] {
         let (fromCurveIndex, fromFraction) = curveIndexAndFraction(for: pathFractionRange.lowerBound)
@@ -15,15 +15,6 @@ internal extension BezierPath {
             return curves[index].points(in: startFraction..<endFraction, segmentation: segmentation)
                 .map { ($0 + Double(index), $1) }
                 .dropFirst(skipFirst ? 1 : 0)
-        }
-    }
-
-    func readPositionsAndPoints<D: Dimensionality>(
-        in range: ClosedRange<Position>? = nil,
-        reader: @Sendable @escaping ([(Double, V)]) -> D.Geometry
-    ) -> D.Geometry {
-        readEnvironment { e in
-            reader(pointsAtPositions(in: range ?? positionRange, segmentation: e.segmentation))
         }
     }
 }
@@ -42,7 +33,7 @@ internal extension BezierPath {
         }) ?? curves.count - 1
     }
 
-    func position(for target: Double, in axis: V.D.Axis) -> Position? {
+    func position(for target: Double, in axis: V.D.Axis) -> Fraction? {
         let curveIndex = curveIndex(for: target, in: axis)
         guard let t = curves[curveIndex].t(for: target, in: axis) else {
             return nil
@@ -50,7 +41,7 @@ internal extension BezierPath {
         return Double(curveIndex) + t
     }
 
-    func curveIndexAndFraction(for position: Position) -> (index: Int, fraction: Double) {
+    func curveIndexAndFraction(for position: Fraction) -> (index: Int, fraction: Double) {
         if position < 0 {
             return (0, position)
         } else if position >= Double(curves.count) {

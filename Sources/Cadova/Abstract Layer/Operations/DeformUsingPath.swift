@@ -44,8 +44,8 @@ public extension Geometry {
         readEnvironment(\.segmentation) { segmentation in
             measuringBounds { body, bounds in
                 let min = path.position(for: bounds.minimum[referenceAxis], in: referenceAxis) ?? 0
-                let max = path.position(for: bounds.maximum[referenceAxis], in: referenceAxis) ?? path.positionRange.upperBound
-                let approximateLength = path.length(segmentation: .fixed(10), in: ClosedRange(min, max))
+                let max = path.position(for: bounds.maximum[referenceAxis], in: referenceAxis) ?? path.fractionRange.upperBound
+                let approximateLength = path[ClosedRange(min, max)].length(segmentation: .fixed(10))
                 let segmentCount = segmentation.segmentCount(length: approximateLength)
                 let segmentLength = bounds.size[referenceAxis] / Double(segmentCount)
 

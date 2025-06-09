@@ -9,7 +9,7 @@ internal extension BezierPath3D {
         enableDebugging: Bool = false
     ) -> ([Frame], [any Geometry3D]) {
         let derivative = self.derivative
-        let fractionsAndPoints = self.pointsAtPositions(in: self.positionRange, segmentation: environment.segmentation)
+        let fractionsAndPoints = self.pointsAtPositions(in: self.fractionRange, segmentation: environment.segmentation)
         var frames: [Frame] = []
         var debugParts: [any Geometry3D]? = enableDebugging ? [] : nil
 
