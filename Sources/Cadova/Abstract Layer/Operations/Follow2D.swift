@@ -68,17 +68,17 @@ fileprivate extension BezierPath2D {
 
     func frames(segmentation: EnvironmentValues.Segmentation) -> [FollowFrame] {
         let derivative = self.derivative
-        return pointsAtPositions(in: fractionRange, segmentation: segmentation)
+        return pointsAtPositions(segmentation: segmentation)
             .reduce(into: []) { frames, entry in
                 let distance = if let lastFrame = frames.last {
                     lastFrame.distance + (entry.point - lastFrame.point).magnitude
                 } else { 0.0 }
 
                 frames.append(FollowFrame(
-                    position: entry.position,
+                    position: entry.fraction,
                     point: entry.point,
                     distance: distance,
-                    normal: Direction2D(derivative.point(at: entry.position)).counterclockwiseNormal
+                    normal: Direction2D(derivative.point(at: entry.fraction)).counterclockwiseNormal
                 ))
             }
     }
