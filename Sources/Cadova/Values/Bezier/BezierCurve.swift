@@ -10,17 +10,18 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     func point(at fraction: Double) -> V {
         var workingPoints = controlPoints
         while workingPoints.count > 1 {
-            workingPoints = workingPoints.paired().map { $0.point(alongLineTo: $1, at: fraction) }
+            workingPoints = workingPoints.paired().map { $0 + ($1 - $0) * fraction }
         }
         return workingPoints[0]
     }
 
-    // Returns the Bezier curve that represents the derivative of this curve.
+    var degree: Int {
+        controlPoints.count - 1
+    }
+
+    // A Bezier curve that represents the derivative of this curve.
     var derivative: BezierCurve<V> {
-        let n = controlPoints.count - 1
-        return BezierCurve(controlPoints: (0..<n).map { i in
-            (controlPoints[i + 1] - controlPoints[i]) * Double(n)
-        })
+        BezierCurve(controlPoints: controlPoints.paired().map { ($1 - $0) * Double(degree) })
     }
 
     func tangent(at fraction: Double) -> Direction<V.D> {
@@ -120,36 +121,31 @@ extension BezierCurve: CustomDebugStringConvertible {
 }
 
 extension BezierCurve {
-    /// Returns a sub-curve spanning `tRange` using two De Casteljau splits.
-    ///
-    /// Algorithm
-    /// 1. Split the curve at t₁ = `tRange.upperBound`, keeping the left piece.
-    /// 2. Split that piece at t₀′ = `tRange.lowerBound / t₁`, keeping the right piece.
-    ///
-    /// This is the classic, numerically robust way to extract a Bézier segment.
-    func trimmed(to tRange: ClosedRange<Double>) -> BezierCurve<V> {
-        let t0 = tRange.lowerBound
-        let t1 = tRange.upperBound
+    // Returns a sub-curve spanning `range` using two De Casteljau splits.
+    func subcurve(in range: ClosedRange<Double>) -> BezierCurve<V> {
+        guard Swift.abs(range.length) > .ulpOfOne else {
+            return BezierCurve(controlPoints: [point(at: range.lowerBound)])
+        }
 
         // De Casteljau split helper
         func split(_ pts: [V], at t: Double) -> ([V], [V]) {
-            var left:  [V] = [pts.first!]
-            var right: [V] = [pts.last!]
-            var layer = pts
-            while layer.count > 1 {
-                layer = zip(layer, layer.dropFirst()).map { $0 + ($1 - $0) * t }
+            var layer = pts, left = [V](), right = [V]()
+            while layer.count > 0 {
                 left.append(layer.first!)
-                right.append(layer.last!)
+                right.insert(layer.last!, at: 0)
+                layer = layer.paired().map { $0 + ($1 - $0) * t }
             }
-            return (left, right.reversed())
+            return (left, right)
         }
 
-        // 1. Cut at t₁
-        let (leftPiece, _) = split(controlPoints, at: t1)
-
-        // 2. Cut that piece at rescaled t₀′
-        let (_, trimmed) = split(leftPiece, at: t0 / t1)
-
-        return BezierCurve(controlPoints: trimmed)
+        if Swift.abs(range.upperBound) > .ulpOfOne {
+            let (left, _) = split(controlPoints, at: range.upperBound)
+            let (_, segment) = split(left, at: range.lowerBound / range.upperBound)
+            return BezierCurve(controlPoints: segment)
+        } else {
+            let (_, right) = split(controlPoints, at: range.lowerBound)
+            let (_, segment) = split(right, at: range.length / (1 - range.lowerBound))
+            return BezierCurve(controlPoints: segment)
+        }
     }
 }

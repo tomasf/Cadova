@@ -29,7 +29,7 @@ internal struct FollowPath2D: Shape2D {
 
     var body: any Geometry2D {
         geometry.measuringBounds { body, bounds in
-            let frames = path.frames(in: path.positionRange, segmentation: segmentation)
+            let frames = path.frames(segmentation: segmentation)
             let pathLength = frames.last!.distance
             let lengthFactor = pathLength / bounds.size.x
 
@@ -66,9 +66,9 @@ fileprivate extension BezierPath2D {
         }
     }
 
-    func frames(in range: ClosedRange<Position>, segmentation: EnvironmentValues.Segmentation) -> [FollowFrame] {
+    func frames(segmentation: EnvironmentValues.Segmentation) -> [FollowFrame] {
         let derivative = self.derivative
-        return pointsAtPositions(in: range, segmentation: segmentation)
+        return pointsAtPositions(in: positionRange, segmentation: segmentation)
             .reduce(into: []) { frames, entry in
                 let distance = if let lastFrame = frames.last {
                     lastFrame.distance + (entry.point - lastFrame.point).magnitude

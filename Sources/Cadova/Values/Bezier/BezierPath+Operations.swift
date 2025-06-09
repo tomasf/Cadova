@@ -131,7 +131,7 @@ public extension BezierPath {
         let newCurves: [BezierCurve<V>] = (lowerIndex...upperIndex).map { i in
             let start = (i == lowerIndex) ? lowerFraction : 0
             let end = (i == upperIndex) ? upperFraction : 1
-            return (start == 0 && end == 1) ? curves[i] : curves[i].trimmed(to: start...end)
+            return (start == 0 && end == 1) ? curves[i] : curves[i].subcurve(in: start...end)
         }
         let newStartPoint = newCurves.first?.controlPoints[0] ?? startPoint
         return BezierPath(startPoint: newStartPoint, curves: newCurves)
