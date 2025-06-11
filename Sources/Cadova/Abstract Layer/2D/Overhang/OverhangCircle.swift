@@ -39,12 +39,12 @@ internal struct OverhangCylinder: Shape3D {
 
         return if source.bottomRadius < .ulpOfOne {
             OverhangCircle(radius: source.topRadius)
-                .extruded(height: source.height, scale: .zero)
+                .extruded(height: source.height, topScale: .zero)
                 .flipped(along: .z)
                 .translated(z: source.height)
         } else {
             OverhangCircle(radius: source.bottomRadius)
-                .extruded(height: source.height, scale: Vector2D(source.topRadius / source.bottomRadius))
+                .extruded(height: source.height, topScale: Vector2D(source.topRadius / source.bottomRadius))
         }
     }
 }
