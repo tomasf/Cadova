@@ -94,7 +94,8 @@ public extension EdgeProfile {
     static func overhangFillet(radius: Double) -> Self {
         Self {
             readEnvironment(\.overhangAngle) { overhangAngle in
-                Teardrop(radius: radius, style: .flat)
+                Circle(radius: radius)
+                    .overhangSafe(.bridge)
                     .within(x: 0..., y: 0...)
             }
         }
