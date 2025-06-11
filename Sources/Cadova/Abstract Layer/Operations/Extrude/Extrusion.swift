@@ -7,9 +7,9 @@ public extension Geometry2D {
     ///   - height: The height of the resulting geometry, in the Z axis
     ///   - twist: The rotation of the top surface, gradually rotating the geometry around the Z axis, resulting in a twisted shape. Defaults to no twist.
     ///   - scale: The final scale at the top of the extruded shape. The geometry is scaled linearly from 1.0 at the bottom.
-    func extruded(height: Double, twist: Angle = 0°, scale: Vector2D = [1, 1]) -> any Geometry3D {
+    func extruded(height: Double, twist: Angle = 0°, topScale: Vector2D = [1, 1]) -> any Geometry3D {
         if twist.isZero {
-            extruded(height: height, twist: twist, scale: scale, divisions: 0)
+            extruded(height: height, twist: twist, scale: topScale, divisions: 0)
         } else {
             measureBoundsIfNonEmpty { _, e, bounds in
                 let numRevolutions = twist / 360°
@@ -21,7 +21,7 @@ public extension Geometry2D {
                 let segmentsPerRevolution = e.segmentation.segmentCount(circleRadius: maxRadius)
                 let twistSegments = Int(Double(segmentsPerRevolution) * numRevolutions)
                 let lengthSegments = e.segmentation.segmentCount(length: helixLength)
-                extruded(height: height, twist: twist, scale: scale, divisions: max(twistSegments, lengthSegments))
+                extruded(height: height, twist: twist, scale: topScale, divisions: max(twistSegments, lengthSegments))
             }
         }
     }
