@@ -24,25 +24,6 @@ public extension Geometry2D {
     }
 }
 
-public extension Teardrop {
-    @available(*, deprecated, message: "Use the `withOverhangAngle` modifier to specify an angle for Teardrop", renamed: "init(diameter:style:)")
-    init(diameter: Double, angle: Angle, style: Style = .pointed) {
-        self.init(diameter: diameter, style: style)
-    }
-
-    @available(*, deprecated, message: "Use the `withOverhangAngle` modifier to specify an angle for Teardrop", renamed: "init(radius:style:)")
-    init(radius: Double, angle: Angle = 45°, style: Style = .pointed) {
-        self.init(radius: radius, style: style)
-    }
-}
-
-public extension Teardrop.Style {
-    @available(*, deprecated, renamed: "pointed")
-    static let full = Self.pointed
-    @available(*, deprecated, renamed: "flat")
-    static let bridged = Self.flat
-}
-
 @available(*, deprecated, renamed: "Transform2D")
 public typealias AffineTransform2D = Transform2D
 

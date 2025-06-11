@@ -1,0 +1,149 @@
+{
+  "parts" : [
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 1,
+          "blue" : 1,
+          "green" : 1,
+          "red" : 1
+        }
+      },
+      "name" : "Model",
+      "type" : "solid"
+    },
+    {
+      "body" : {
+        "crossSection" : {
+          "children" : [
+            {
+              "body" : {
+                "kind" : "shape2D",
+                "primitive" : {
+                  "rectangle" : {
+                    "size" : {
+                      "x" : 15,
+                      "y" : 15
+                    }
+                  }
+                }
+              },
+              "kind" : "transform",
+              "transform" : [
+                [
+                  1,
+                  0,
+                  -7.5
+                ],
+                [
+                  0,
+                  1,
+                  -7.5
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            },
+            {
+              "body" : {
+                "cacheKey" : {
+                  "type" : "6Cadova12NodeCacheKeyVyAA05NamedcD0VAA2D2VG",
+                  "value" : {
+                    "base" : {
+                      "operationName" : "Cadova.Hull",
+                      "parameters" : [
+                        {
+                          "type" : "Say6Cadova8Vector2DVG",
+                          "value" : [
+                            {
+                              "x" : 0,
+                              "y" : 7.0710678118654755
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "node" : {
+                      "kind" : "shape2D",
+                      "primitive" : {
+                        "circle" : {
+                          "radius" : 5,
+                          "segmentCount" : 180
+                        }
+                      }
+                    }
+                  }
+                },
+                "kind" : "materialized"
+              },
+              "kind" : "transform",
+              "transform" : [
+                [
+                  1,
+                  -0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "kind" : "boolean",
+          "type" : "difference"
+        },
+        "kind" : "extrusion",
+        "type" : {
+          "linear" : {
+            "divisions" : 0,
+            "height" : 1,
+            "scaleTop" : {
+              "x" : 1,
+              "y" : 1
+            },
+            "twist" : {
+              "degrees" : 0
+            }
+          }
+        }
+      },
+      "kind" : "transform",
+      "transform" : [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -1,
+          0
+        ],
+        [
+          -0,
+          1,
+          -0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    }
+  ]
+}

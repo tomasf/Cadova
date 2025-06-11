@@ -43,7 +43,7 @@ public struct Circle {
         precondition(chordLength > 0, "Chord length must be greater than 0.")
         precondition(sagitta > 0, "Sagitta must be greater than 0.")
         precondition(sagitta <= chordLength / 2, "Sagitta must be less than or equal to half of the chord length.")
-        
+
         diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
     }
 

@@ -2,7 +2,9 @@ import Foundation
 
 /// A right circular cylinder or a truncated right circular cone
 ///
-/// The number of faces on the side of a Cylinder is controlled by the segmentation. See ``Geometry/withSegmentation(minAngle:minSize:)`` and ``Geometry/withSegmentation(count:)``. For example, this code creates a right triangular prism:
+/// The number of faces on the side of a Cylinder is controlled by the segmentation. See
+/// ``Geometry/withSegmentation(minAngle:minSize:)`` and ``Geometry/withSegmentation(count:)``. For example, this code
+/// creates a right triangular prism:
 /// ```swift
 /// Cylinder(diameter: 10, height: 5)
 ///     .withSegmentation(count: 3)
@@ -28,7 +30,7 @@ public struct Cylinder: Shape3D {
                 height: height,
                 segmentCount: segmentCount
             )))
-            .scaled(z: -1)
+            .flipped(along: .z)
             .translated(z: height)
         } else {
             NodeBasedGeometry(.shape(.cylinder(
@@ -132,7 +134,7 @@ public extension Cylinder {
 
     /// The volume of the solid, whether a full cylinder or truncated cone.
     var volume: Double {
-        (1.0 / 3.0) * .pi * height * (bottomRadius * bottomRadius + bottomRadius * topRadius + topRadius * topRadius)
+        .pi / 3.0 * height * (bottomRadius * bottomRadius + bottomRadius * topRadius + topRadius * topRadius)
     }
 
     /// The angle between the side of the cylinder and its base.

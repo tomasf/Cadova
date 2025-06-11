@@ -111,7 +111,7 @@ public extension Geometry3D {
     /// ```
     /// This creates a box and applies an exterior fillet to the top edges.
     ///
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to side: DirectionalAxis<D3>, offset: Double = 0, type: ProfilingType) -> any Geometry3D {
+    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to side: DirectionalAxis<D3>, offset: Double = 0, type: ProfilingType = .subtractive) -> any Geometry3D {
         edgeProfile.profile.measuringBounds { _, profileBounds in
             measuringBounds { body, bounds in
                 let plane = Plane(side: side, on: bounds, offset: offset * side.axisDirection.factor)
@@ -128,7 +128,7 @@ public extension Geometry3D {
     ///   - type: Whether the profile should be added to or subtracted from the shape.
     /// - Returns: A new geometry with the edge profile applied at the given plane.
     ///
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, at plane: Plane, type: ProfilingType) -> any Geometry3D {
+    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, at plane: Plane, type: ProfilingType = .subtractive) -> any Geometry3D {
         edgeProfile.profile.measuringBounds { _, profileBounds in
             let sweep = edgeProfile
                 .followingEdge(of: sliced(along: plane), type: type)
