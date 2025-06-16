@@ -70,7 +70,8 @@ public func cot(_ angle: Angle) -> Double {
 /// - Parameter value: The value for which to calculate the arcsine.
 /// - Returns: The angle whose sine is the given value.
 public func asin(_ value: Double) -> Angle {
-    Angle(radians: asin(value))
+    precondition(-1...1 ~= value, "Arc sine is only valid for values -1...1")
+    return Angle(radians: asin(value))
 }
 
 /// Calculate the arccosine of a value.
@@ -78,7 +79,8 @@ public func asin(_ value: Double) -> Angle {
 /// - Parameter value: The value for which to calculate the arccosine.
 /// - Returns: The angle whose cosine is the given value.
 public func acos(_ value: Double) -> Angle {
-    Angle(radians: acos(value))
+    precondition(-1...1 ~= value, "Arc cosine is only valid for values -1...1")
+    return Angle(radians: acos(value))
 }
 
 /// Calculate the arctangent of a value.
