@@ -60,6 +60,10 @@ extension Union {
         self.init(children: body())
     }
 
+    public init(@ArrayBuilder<D.Geometry> _ body: () async throws -> [D.Geometry]) async rethrows {
+        self.init(children: try await body())
+    }
+
     /// Form a union to group multiple pieces of geometry together and treat them as one
     ///
     /// ## Example

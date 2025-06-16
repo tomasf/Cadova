@@ -15,3 +15,19 @@ internal extension EnvironmentValues {
         }
     }
 }
+
+internal struct PushEnvironment<D: Dimensionality>: Geometry {
+    let body: D.Geometry
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await environment.whileCurrent {
+            try await body.build(in: environment, context: context)
+        }
+    }
+}
+
+public extension Geometry {
+    func pushingEnvironment() -> D.Geometry {
+        PushEnvironment(body: self)
+    }
+}

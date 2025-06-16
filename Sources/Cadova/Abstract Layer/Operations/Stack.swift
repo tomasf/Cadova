@@ -62,8 +62,8 @@ extension Stack: Geometry {
     }
 
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        var offset = 0.0
-        return try await LazyUnion(lazy: spacing >= 0) {
+        try await Union {
+            var offset = 0.0
             for geometry in items {
                 let result = try await geometry.build(in: environment, context: context)
                 let nodeResult = try await context.result(for: result.node)
