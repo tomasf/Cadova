@@ -4,7 +4,7 @@ struct EnvironmentReader<D: Dimensionality>: Geometry {
     let body: @Sendable (EnvironmentValues) -> D.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        try await body(environment).build(in: environment, context: context)
+        try await context.buildResult(for: body(environment), in: environment)
     }
 }
 

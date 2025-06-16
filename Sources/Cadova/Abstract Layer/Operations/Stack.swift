@@ -62,18 +62,18 @@ extension Stack: Geometry {
     }
 
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        try await Union {
+        let union = try await Union {
             var offset = 0.0
             for geometry in items {
-                let result = try await geometry.build(in: environment, context: context)
-                let nodeResult = try await context.result(for: result.node)
-                if !nodeResult.concrete.isEmpty {
-                    let box = D.BoundingBox(nodeResult.concrete.bounds)
+                let concreteResult = try await context.result(for: geometry, in: environment)
+
+                if !concreteResult.concrete.isEmpty {
+                    let box = D.BoundingBox(concreteResult.concrete.bounds)
                     geometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
                     offset += box.size[axis] + spacing
                 }
             }
         }
-        .build(in: environment, context: context)
+        return try await context.buildResult(for: union, in: environment)
     }
 }

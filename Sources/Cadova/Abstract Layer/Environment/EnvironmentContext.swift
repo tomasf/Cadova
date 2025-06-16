@@ -21,7 +21,7 @@ internal struct PushEnvironment<D: Dimensionality>: Geometry {
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         try await environment.whileCurrent {
-            try await body.build(in: environment, context: context)
+            try await context.buildResult(for: body, in: environment)
         }
     }
 }

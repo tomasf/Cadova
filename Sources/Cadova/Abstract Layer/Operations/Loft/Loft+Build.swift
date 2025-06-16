@@ -3,21 +3,21 @@ import Foundation
 extension Loft {
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let layerNodes = try await layers.asyncMap {
-            LayerNode(z: $0.z, node: try await $0.geometry.build(in: environment, context: context).node)
+            LayerNode(z: $0.z, node: try await context.buildResult(for: $0.geometry, in: environment).node)
         }
 
-        return try await CachedConcrete(name: "loft", parameters: layerNodes, interpolation) {
+        let cachedConcrete = CachedConcrete<D3, _>(name: "loft", parameters: layerNodes, interpolation) {
             let layerTrees = try await layerNodes.asyncMap {
                 (z: $0.z, tree: try await context.result(for: $0.node).concrete.polygonTree())
             }
 
-            let node = try await interpolation
-                .resolved(with: layerTrees)
-                .applied(to: layerTrees, in: environment)
-                .build(in: environment, context: context).node
-            return try await context.result(for: node).concrete
+            return try await context.result(
+                for: interpolation.resolved(with: layerTrees).applied(to: layerTrees, in: environment),
+                in: environment
+            ).concrete
         }
-        .build(in: environment, context: context)
+
+        return try await context.buildResult(for: cachedConcrete, in: environment)
     }
 
     internal struct LayerNode: CacheKey {
