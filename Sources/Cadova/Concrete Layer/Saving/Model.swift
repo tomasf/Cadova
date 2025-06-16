@@ -72,7 +72,7 @@ public struct Model: Sendable {
             let result: D.BuildResult
             do {
                 result = try await ContinuousClock().measure {
-                    try await content().build(in: environment, context: context)
+                    try await context.buildResult(for: content(), in: environment)
                 } results: { duration, _ in
                     logger.debug("Built geometry node tree in \(duration)")
                 }

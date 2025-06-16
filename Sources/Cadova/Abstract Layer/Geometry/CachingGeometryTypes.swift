@@ -51,7 +51,7 @@ struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     }
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let bodyResult = try await body.build(in: environment, context: context)
+        let bodyResult = try await context.buildResult(for: body, in: environment)
         let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
 
         if try await context.hasCachedResult(for: bakedKey, with: D.self) {
@@ -103,7 +103,7 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
     }
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let bodyResult = try await body.build(in: environment, context: context)
+        let bodyResult = try await context.buildResult(for: body, in: environment)
 
         let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
         let firstKey = IndexedCacheKey(base: bakedKey, index: 0)
@@ -133,7 +133,7 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
             }
         }
 
-        return try await resultHandler(geometries).build(in: environment, context: context)
+        return try await context.buildResult(for: resultHandler(geometries), in: environment)
     }
 }
 
@@ -151,7 +151,7 @@ struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry
     }
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let bodyResult = try await body.build(in: environment, context: context)
+        let bodyResult = try await context.buildResult(for: body, in: environment)
         let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
 
         if try await context.hasCachedResult(for: bakedKey, with: D.self) {
@@ -188,7 +188,7 @@ struct CachedNode<D: Dimensionality>: Geometry {
     {
         self.key = NamedCacheKey(operationName: name, parameters: parameters)
         self.generator = { environment, context in
-            try await generator().build(in: environment, context: context).node
+            try await context.buildResult(for: generator(), in: environment).node
         }
     }
 

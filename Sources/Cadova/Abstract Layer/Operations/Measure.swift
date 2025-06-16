@@ -6,10 +6,9 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
     let builder: @Sendable (Input.Geometry, Measurements<Input>) -> D.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let targetResult = try await target.build(in: environment, context: context)
-        let nodeResult = try await context.result(for: targetResult.node)
-        let generatedGeometry = builder(target, .init(concrete: nodeResult.concrete))
-        return try await generatedGeometry.build(in: environment, context: context)
+        let concreteResult = try await context.result(for: target, in: environment)
+        let generatedGeometry = builder(target, .init(concrete: concreteResult.concrete))
+        return try await context.buildResult(for: generatedGeometry, in: environment)
     }
 }
 

@@ -13,6 +13,6 @@ extension URL {
 
 extension EvaluationContext {
     func concrete<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues = .defaultEnvironment) async throws -> D.Concrete {
-        try await self.result(for: geometry.build(in: environment, context: self).node).concrete
+        try await self.result(for: geometry, in: environment).concrete
     }
 }

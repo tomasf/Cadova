@@ -5,8 +5,8 @@ internal struct ResultReader<Input: Dimensionality, Output: Dimensionality>: Geo
     let generator: @Sendable (ResultElements) -> Output.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
-        let bodyResult = try await body.build(in: environment, context: context)
-        return try await generator(bodyResult.elements).build(in: environment, context: context)
+        let bodyResult = try await context.buildResult(for: body, in: environment)
+        return try await context.buildResult(for: generator(bodyResult.elements), in: environment)
     }
 }
 

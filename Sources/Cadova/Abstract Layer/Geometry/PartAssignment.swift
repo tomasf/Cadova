@@ -7,7 +7,7 @@ internal struct PartAssignment: Geometry {
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         let newEnvironment = environment.withOperation(.addition)
-        let output = try await body.build(in: newEnvironment, context: context)
+        let output = try await context.buildResult(for: body, in: newEnvironment)
         var newOutput = output.modifyingElement(PartCatalog.self) {
             $0.add(part: output, to: identifier)
         }
@@ -24,7 +24,7 @@ internal struct PartDetachment<D: Dimensionality, Input: Dimensionality>: Geomet
     let reader: @Sendable (Input.Geometry, (any Geometry3D)?) -> D.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let output = try await body.build(in: environment, context: context)
+        let output = try await context.buildResult(for: body, in: environment)
 
         var part: D3.BuildResult?
         let newOutput = output.modifyingElement(PartCatalog.self) {
@@ -32,7 +32,7 @@ internal struct PartDetachment<D: Dimensionality, Input: Dimensionality>: Geomet
         }
 
         let outputGeometry = reader(newOutput, part)
-        return try await outputGeometry.build(in: environment, context: context)
+        return try await context.buildResult(for: outputGeometry, in: environment)
     }
 }
 

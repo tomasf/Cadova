@@ -24,7 +24,20 @@ internal extension EvaluationContext {
     func results<D: Dimensionality>(for nodes: [D.Node]) async throws -> [EvaluationResult<D>] {
         try await nodes.asyncMap { try await self.result(for: $0) }
     }
+}
 
+internal extension EvaluationContext {
+    func buildResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D.BuildResult {
+        try await geometry.build(in: environment, context: self)
+    }
+
+    func result<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> EvaluationResult<D> {
+        let buildResult = try await buildResult(for: geometry, in: environment)
+        return try await result(for: buildResult.node)
+    }
+}
+
+internal extension EvaluationContext {
     // MARK: - Materialized results
 
     func cachedMaterializedResult<D: Dimensionality, Key: CacheKey>(
