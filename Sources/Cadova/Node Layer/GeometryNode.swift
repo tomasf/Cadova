@@ -26,7 +26,6 @@ internal struct GeometryNode<D: Dimensionality>: Sendable {
         case shape3D (PrimitiveShape3D)
         case applyMaterial (D3.Node, Material)
         case extrusion (D2.Node, type: Extrusion)
-        case lazyUnion ([D3.Node])
     }
 }
 
@@ -141,10 +140,6 @@ extension GeometryNode {
             }
 
             return try EvaluationResult(manifold)
-
-        case .lazyUnion (let members):
-            let results = try await context.results(for: members)
-            return try EvaluationResult(product: .init(composing: results.map(\.concrete)), results: results)
         default:
             preconditionFailure("Invalid dimensionality for node type")
         }

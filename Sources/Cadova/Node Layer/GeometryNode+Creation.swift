@@ -92,17 +92,6 @@ extension GeometryNode {
         guard body.isEmpty == false else { return .empty }
         return Self(.applyMaterial(body, material))
     }
-
-    static func lazyUnion(_ children: [D3.Node]) -> GeometryNode where D == D3 {
-        let filteredChildren = children.filter { !$0.isEmpty }
-        if filteredChildren.count == 0 {
-            return .empty
-        } else if filteredChildren.count == 1 {
-            return filteredChildren[0]
-        } else {
-            return Self(.lazyUnion(filteredChildren))
-        }
-    }
 }
 
 extension GeometryNode.PrimitiveShape2D {
