@@ -4,7 +4,7 @@ extension GeometryNode: Codable {
     enum Kind: String, Codable {
         case empty, boolean, transform, convexHull, refine, simplify, materialized
         case shape2D, offset, projection
-        case shape3D, applyMaterial, extrusion, lazyUnion
+        case shape3D, applyMaterial, extrusion
     }
 
     enum CodingKeys: String, CodingKey {
@@ -78,10 +78,6 @@ extension GeometryNode: Codable {
             try container.encode(Kind.extrusion, forKey: .kind)
             try container.encode(node, forKey: .crossSection)
             try container.encode(type, forKey: .type)
-
-        case .lazyUnion(let children):
-            try container.encode(Kind.lazyUnion, forKey: .kind)
-            try container.encode(children, forKey: .children)
         }
     }
 
@@ -138,9 +134,6 @@ extension GeometryNode: Codable {
             let node = try container.decode(D2.Node.self, forKey: .crossSection)
             let type = try container.decode(Extrusion.self, forKey: .type)
             self.init(.extrusion(node, type: type))
-        case .lazyUnion:
-            let children = try container.decode([D3.Node].self, forKey: .children)
-            self.init(.lazyUnion(children))
         }
     }
 }

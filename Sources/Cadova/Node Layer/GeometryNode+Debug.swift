@@ -56,8 +56,6 @@ extension GeometryNode: CustomDebugStringConvertible {
             }
         case let .applyMaterial(body, material):
             "applyMaterial (\(material)) {\n\(body.debugDescription.indented)\n}"
-        case let .lazyUnion(children):
-            "lazyUnion {\n\(children.map(\.debugDescription).joined(separator: "\n").indented)\n}"
         }
     }
 }

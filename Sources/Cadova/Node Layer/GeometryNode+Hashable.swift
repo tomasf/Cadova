@@ -18,7 +18,6 @@ extension GeometryNode: Equatable {
         case let (.shape3D(a), .shape3D(b)): a == b
         case let (.applyMaterial(ba, aa), .applyMaterial(bb, ab)): ba == bb && aa == ab
         case let (.extrusion(a1, k1), .extrusion(a2, k2)): a1 == a2 && k1 == k2
-        case let (.lazyUnion(ca), .lazyUnion(cb)): ca == cb
 
         default: false
         }
@@ -77,9 +76,6 @@ extension GeometryNode: Hashable {
             hasher.combine(Kind.extrusion)
             hasher.combine(body)
             hasher.combine(type)
-        case .lazyUnion(let children):
-            hasher.combine(Kind.lazyUnion)
-            hasher.combine(children)
         }
     }
 }
