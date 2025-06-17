@@ -29,9 +29,8 @@ public struct Arc: Shape2D {
         self.init(range: range, radius: diameter / 2)
     }
 
-    @Environment(\.segmentation) private var segmentation
-
     public var body: any Geometry2D {
+        @Environment(\.segmentation) var segmentation
         Polygon([.zero] + arcPoints(segmentation: segmentation))
     }
 

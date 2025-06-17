@@ -66,3 +66,15 @@ struct BooleanGeometry<D: Dimensionality>: Geometry {
         return .init(combining: childResults, operationType: type)
     }
 }
+
+struct Deferred<D: Dimensionality>: Geometry {
+    let body: @Sendable () -> D.Geometry
+
+    init(_ body: @Sendable @escaping () -> D.Geometry) {
+        self.body = body
+    }
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await context.buildResult(for: body(), in: environment)
+    }
+}

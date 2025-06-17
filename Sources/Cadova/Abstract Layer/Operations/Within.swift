@@ -17,9 +17,9 @@ public extension Geometry2D {
         y: (any WithinRange)? = nil
     ) -> any Geometry2D {
         measuring { _, measurements in
-            var box = measurements.boundingBox ?? .universe
-            box = box.partialBox(from: x?.min, to: x?.max, in: .x)
-            box = box.partialBox(from: y?.min, to: y?.max, in: .y)
+            let box = (measurements.boundingBox ?? .universe)
+                .partialBox(from: x?.min, to: x?.max, in: .x)
+                .partialBox(from: y?.min, to: y?.max, in: .y)
             self.intersecting { box.mask }
         }
     }
@@ -40,10 +40,10 @@ public extension Geometry3D {
         z: (any WithinRange)? = nil
     ) -> any Geometry3D {
         measuring { geometry, measurements in
-            var box = measurements.boundingBox ?? .universe
-            box = box.partialBox(from: x?.min, to: x?.max, in: .x)
-            box = box.partialBox(from: y?.min, to: y?.max, in: .y)
-            box = box.partialBox(from: z?.min, to: z?.max, in: .z)
+           let box = (measurements.boundingBox ?? .universe)
+                .partialBox(from: x?.min, to: x?.max, in: .x)
+                .partialBox(from: y?.min, to: y?.max, in: .y)
+                .partialBox(from: z?.min, to: z?.max, in: .z)
             geometry.intersecting { box.mask }
         }
     }

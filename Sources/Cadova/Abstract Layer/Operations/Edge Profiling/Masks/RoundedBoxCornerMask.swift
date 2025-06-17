@@ -87,9 +87,6 @@ internal struct RoundedBoxCornerMask: Shape3D {
     let boxSize: Vector3D
     let radius: Double
 
-    @Environment(\.segmentation) var segmentation
-    @Environment(\.cornerRoundingStyle) var roundedCornerStyle
-
     init(boxSize: Vector3D, radius: Double) {
         precondition(boxSize.allSatisfy { $0 >= radius }, "All box dimensions must be >= radius")
         self.boxSize = boxSize
@@ -97,6 +94,8 @@ internal struct RoundedBoxCornerMask: Shape3D {
     }
 
     var body: any Geometry3D {
+        @Environment(\.segmentation) var segmentation
+        @Environment(\.cornerRoundingStyle) var roundedCornerStyle
         let segmentCount = max(segmentation.segmentCount(circleRadius: radius) / 4 - 1, 1)
 
         CachedNode(name: "roundedBoxCornerMask", parameters: boxSize, radius, segmentCount) {

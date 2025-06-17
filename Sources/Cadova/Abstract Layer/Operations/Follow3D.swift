@@ -90,11 +90,11 @@ internal struct FollowPath3D: Shape3D {
     let reference: Direction2D
     let target: BezierPath3D.FrameTarget
 
-    @Environment var environment
-    @Environment(\.maxTwistRate) var maxTwistRate
-    @Environment(\.segmentation) var segmentation
-
     var body: any Geometry3D {
+        @Environment var environment
+        @Environment(\.maxTwistRate) var maxTwistRate
+        @Environment(\.segmentation) var segmentation
+
         if path.isEmpty {
             Empty()
         } else {

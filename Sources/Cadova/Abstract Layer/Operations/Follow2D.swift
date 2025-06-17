@@ -25,9 +25,9 @@ internal struct FollowPath2D: Shape2D {
     let geometry: any Geometry2D
     let path: BezierPath2D
 
-    @Environment(\.segmentation) var segmentation
-
     var body: any Geometry2D {
+        @Environment(\.segmentation) var segmentation
+
         geometry.measuringBounds { body, bounds in
             let pathLength = path.length(segmentation: .fixed(10))
             let lengthFactor = pathLength / bounds.size.x

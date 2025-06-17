@@ -2,11 +2,11 @@ import Foundation
 import Manifold3D
 
 fileprivate struct Difference<D: Dimensionality>: Shape {
-    let positive: D.Geometry
-    let negative: D.Geometry
+    let positive: @Sendable () -> D.Geometry
+    let negative: @Sendable () -> D.Geometry
 
     public var body: D.Geometry {
-        BooleanGeometry(children: [positive, negative.invertingOperation()], type: .difference)
+        BooleanGeometry(children: [positive(), negative().invertingOperation()], type: .difference)
     }
 }
 
@@ -31,11 +31,11 @@ public extension Geometry {
     ///   - negative: The negative geometry to subtract
     /// - Returns: The new geometry
 
-    func subtracting(@GeometryBuilder<D> _ negative: () -> D.Geometry) -> D.Geometry {
-        Difference(positive: self, negative: negative())
+    func subtracting(@GeometryBuilder<D> _ negative: @Sendable @escaping () -> D.Geometry) -> D.Geometry {
+        Difference(positive: { self }, negative: negative)
     }
 
     func subtracting(_ negative: (D.Geometry)?...) -> D.Geometry {
-        Difference(positive: self, negative: Union(negative))
+        Difference(positive: { self }, negative: { Union(negative) })
     }
 }

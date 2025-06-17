@@ -21,10 +21,6 @@ import freetype
 public struct Text: Shape2D {
     private let content: String
 
-    @Environment private var environment
-    @Environment(\.textAttributes) private var textAttributes
-    @Environment(\.segmentation) private var segmentation
-
     /// Creates a text shape from a string.
     ///
     /// - Parameter text: The string to render as vector-based geometry. Use `\n` for manual line breaks.
@@ -34,6 +30,9 @@ public struct Text: Shape2D {
     }
 
     public var body: any Geometry2D {
+        @Environment var environment
+        @Environment(\.textAttributes) var textAttributes
+        @Environment(\.segmentation) var segmentation
         let attributes = textAttributes.applyingDefaults()
 
         CachedNode(name: "text", parameters: content, attributes, segmentation) { environment, context in

@@ -32,15 +32,19 @@ import Manifold3D
 /// Both examples create a union where the cylinder and box are combined into a single geometry.
 ///
 public struct Union<D: Dimensionality>: Geometry {
-    let children: [D.Geometry]
+    let children: @Sendable () async throws -> [D.Geometry]
+
+    internal init(closure children: @Sendable @escaping () async throws -> [D.Geometry]) {
+        self.children = children
+    }
 
     internal init(children: [D.Geometry]) {
-        self.children = children
+        self.children = { children }
     }
 
     // Union can't be a Shape because Shape uses a geometry builder which uses Union
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        try await context.buildResult(for: BooleanGeometry(children: children, type: .union), in: environment)
+        try await context.buildResult(for: BooleanGeometry(children: children(), type: .union), in: environment)
     }
 }
 
@@ -55,12 +59,12 @@ extension Union {
     /// }
     /// .translate(x: 10)
     /// ```
-    public init(@ArrayBuilder<D.Geometry> _ body: () -> [D.Geometry]) {
-        self.init(children: body())
+    public init(@ArrayBuilder<D.Geometry> _ body: @Sendable @escaping () -> [D.Geometry]) {
+        self.init(closure: body)
     }
 
-    public init(@ArrayBuilder<D.Geometry> _ body: () async throws -> [D.Geometry]) async rethrows {
-        self.init(children: try await body())
+    public init(@ArrayBuilder<D.Geometry> _ body: @Sendable @escaping () async throws -> [D.Geometry]) async rethrows {
+        self.init(closure: body)
     }
 
     /// Form a union to group multiple pieces of geometry together and treat them as one
@@ -94,8 +98,8 @@ public extension Geometry {
     ///
     /// - Parameter bodies: A closure returning one or more geometries to be combined.
     /// - Returns: A new geometry that is the union of the current geometry and the provided geometries.
-    func adding(@SequenceBuilder<D> _ bodies: () -> [D.Geometry]) -> D.Geometry {
-        Union([self] + bodies())
+    func adding(@SequenceBuilder<D> _ bodies: @escaping @Sendable () -> [D.Geometry]) -> D.Geometry {
+        Union { [self] + bodies() }
     }
 
     /// Groups this geometry with additional geometry, forming a union that is treated as a single shape.

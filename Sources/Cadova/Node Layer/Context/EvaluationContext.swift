@@ -28,7 +28,9 @@ internal extension EvaluationContext {
 
 internal extension EvaluationContext {
     func buildResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D.BuildResult {
-        try await geometry.build(in: environment, context: self)
+        try await environment.whileCurrent {
+            try await geometry.build(in: environment, context: self)
+        }
     }
 
     func result<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> EvaluationResult<D> {

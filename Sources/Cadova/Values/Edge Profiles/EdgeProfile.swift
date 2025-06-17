@@ -14,8 +14,8 @@ public struct EdgeProfile: Sendable {
     /// - Parameter profile: A 2D geometry builder describing the profile cross-section.
     ///   The profile is automatically aligned so that its bottom-right corner is at the origin.
     ///
-    public init(@GeometryBuilder2D profile: () -> any Geometry2D) {
-        self.profile = profile().aligned(at: .max)
+    public init(@GeometryBuilder2D profile: @Sendable @escaping () -> any Geometry2D) {
+        self.profile = Deferred(profile).aligned(at: .max)
     }
 
     public var negativeShape: any Geometry2D {
@@ -52,7 +52,7 @@ internal extension EdgeProfile {
             shape.simplified().readingConcrete { crossSection in
                 let polygons = crossSection.polygonList()
 
-                func extraLength(_ u: Vector2D, _ v: Vector2D) -> Double {
+                @Sendable func extraLength(_ u: Vector2D, _ v: Vector2D) -> Double {
                     profileSize.x * cot(acos((u.normalized ⋅ v.normalized).clamped(to: -1.0...1.0)) / 2)
                 }
 

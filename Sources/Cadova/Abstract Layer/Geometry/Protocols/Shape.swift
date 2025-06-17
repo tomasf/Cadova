@@ -6,17 +6,7 @@ public protocol Shape: Geometry {
 
 public extension Shape {
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        try await environment.whileCurrent {
-            try await context.buildResult(for: body, in: environment)
-        }
-    }
-
-    func inCurrentEnvironment(@GeometryBuilder<D> _ contents: @Sendable @escaping () -> D.Geometry) -> D.Geometry {
-        readEnvironment { environment in
-            environment.whileCurrent {
-                contents()
-            }
-        }
+        try await context.buildResult(for: body, in: environment)
     }
 }
 

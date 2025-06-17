@@ -35,14 +35,14 @@ import Manifold3D
 /// This will create an intersection where the box and cylinder overlap.
 ///
 public struct Intersection<D: Dimensionality>: Shape {
-    internal let children: [D.Geometry]
+    internal let children: @Sendable () -> [D.Geometry]
 
-    internal init(children: [D.Geometry]) {
+    internal init(children: @Sendable @escaping () -> [D.Geometry]) {
         self.children = children
     }
 
     public var body: D.Geometry {
-        BooleanGeometry(children: children, type: .intersection)
+        BooleanGeometry(children: children(), type: .intersection)
     }
 
     /// Creates a intersection of multiple geometries.
@@ -50,8 +50,8 @@ public struct Intersection<D: Dimensionality>: Shape {
     /// This initializer takes a closure that provides an array of geometries to intersect.
     ///
     /// - Parameter children: A closure providing the geometries to be intersected.
-    public init(@ArrayBuilder<D.Geometry> _ children: () -> [D.Geometry]) {
-        self.init(children: children())
+    public init(@ArrayBuilder<D.Geometry> _ children: @Sendable @escaping () -> [D.Geometry]) {
+        self.init(children: children)
     }
 }
 
@@ -76,11 +76,11 @@ public extension Geometry {
     ///   - other: The other geometry to intersect with this
     /// - Returns: The intersection (overlap) of this geometry and the input
 
-    func intersecting(@ArrayBuilder<D.Geometry> _ other: () -> [D.Geometry]) -> D.Geometry {
-        Intersection(children: [self] + other())
+    func intersecting(@ArrayBuilder<D.Geometry> _ other: @Sendable @escaping () -> [D.Geometry]) -> D.Geometry {
+        Intersection(children: { [self] + other() })
     }
 
     func intersecting(_ other: D.Geometry...) -> D.Geometry {
-        Intersection(children: [self] + other)
+        Intersection(children: { [self] + other })
     }
 }
