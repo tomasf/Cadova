@@ -3,11 +3,13 @@ import Foundation
 public extension Geometry2D {
     /// Rotates the geometry around a specified pivot point in 2D space.
     ///
-    /// This method rotates the geometry by the specified angle in the 2D plane. The rotation occurs around a pivot point, which is defined by alignment options. The pivot is determined based on the bounding box of the geometry.
+    /// This method rotates the geometry by the specified angle in the 2D plane. The rotation occurs around a pivot
+    /// point, which is defined by alignment options. The pivot is determined based on the bounding box of the geometry.
     ///
     /// - Parameters:
     ///   - angle: The angle to rotate the geometry. Defaults to `0°`.
-    ///   - pivot: A list of alignment options that specify the pivot point for the rotation. For example, `.center` can be used to rotate the geometry around its center, while `.top` can rotate it around the top boundary.
+    ///   - pivot: A list of alignment options that specify the pivot point for the rotation. For example, `.center`
+    ///     can be used to rotate the geometry around its center, while `.top` can rotate it around the top boundary.
     ///
     /// - Returns: A new geometry that is the result of applying the specified rotation and pivot adjustments.
     ///
@@ -36,14 +38,16 @@ public extension Geometry2D {
 public extension Geometry3D {
     /// Rotates the geometry around a specified pivot point in 3D space.
     ///
-    /// This method rotates the geometry by the specified angles along the X, Y, and Z axes. When using multiple axes, the geometry is rotated around the axes in order (first X, then Y, then Z).
-    /// The rotation occurs around a pivot point, which is defined by alignment options. The pivot is determined based on the bounding box of the geometry.
+    /// This method rotates the geometry by the specified angles along the X, Y, and Z axes. When using multiple axes,
+    /// the geometry is rotated around the axes in order (first X, then Y, then Z). The rotation occurs around a pivot
+    /// point, which is defined by alignment options. The pivot is determined based on the bounding box of the geometry.
     ///
     /// - Parameters:
     ///   - x: The angle to rotate around the X-axis. Defaults to `0°`.
     ///   - y: The angle to rotate around the Y-axis. Defaults to `0°`.
     ///   - z: The angle to rotate around the Z-axis. Defaults to `0°`.
-    ///   - pivot: A list of alignment options that specify the pivot point for the rotation. For example, `.center` can be used to rotate the geometry around its center, while `.top` can rotate it around the top boundary.
+    ///   - pivot: A list of alignment options that specify the pivot point for the rotation. For example, `.center`
+    ///     can be used to rotate the geometry around its center, while `.top` can rotate it around the top boundary.
     ///
     /// - Returns: A new geometry that is the result of applying the specified rotation and pivot adjustments.
     ///

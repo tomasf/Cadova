@@ -11,8 +11,8 @@ public struct EdgeProfile: Sendable {
     public let profile: any Geometry2D
 
     /// Creates a new edge profile.
-    /// - Parameter profile: A 2D geometry builder describing the profile cross-section.
-    ///   The profile is automatically aligned so that its bottom-right corner is at the origin.
+    /// - Parameter profile: A 2D geometry builder describing the profile cross-section. The profile is automatically
+    ///   aligned so that its bottom-right corner is at the origin.
     ///
     public init(@GeometryBuilder2D profile: @Sendable @escaping () -> any Geometry2D) {
         self.profile = Deferred(profile).aligned(at: .max)
@@ -111,7 +111,12 @@ public extension Geometry3D {
     /// ```
     /// This creates a box and applies an exterior fillet to the top edges.
     ///
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to side: DirectionalAxis<D3>, offset: Double = 0, type: ProfilingType = .subtractive) -> any Geometry3D {
+    func applyingEdgeProfile(
+        _ edgeProfile: EdgeProfile,
+        to side: DirectionalAxis<D3>,
+        offset: Double = 0,
+        type: ProfilingType = .subtractive
+    ) -> any Geometry3D {
         edgeProfile.profile.measuringBounds { _, profileBounds in
             measuringBounds { body, bounds in
                 let plane = Plane(side: side, on: bounds, offset: offset * side.axisDirection.factor)
@@ -128,7 +133,11 @@ public extension Geometry3D {
     ///   - type: Whether the profile should be added to or subtracted from the shape.
     /// - Returns: A new geometry with the edge profile applied at the given plane.
     ///
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, at plane: Plane, type: ProfilingType = .subtractive) -> any Geometry3D {
+    func applyingEdgeProfile(
+        _ edgeProfile: EdgeProfile,
+        at plane: Plane,
+        type: ProfilingType = .subtractive
+    ) -> any Geometry3D {
         edgeProfile.profile.measuringBounds { _, profileBounds in
             let sweep = edgeProfile
                 .followingEdge(of: sliced(along: plane), type: type)
@@ -143,7 +152,12 @@ public extension Geometry3D {
 }
 
 internal extension Geometry3D {
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, with shape: any Geometry2D, at plane: Plane, type: ProfilingType) -> any Geometry3D {
+    func applyingEdgeProfile(
+        _ edgeProfile: EdgeProfile,
+        with shape: any Geometry2D,
+        at plane: Plane,
+        type: ProfilingType
+    ) -> any Geometry3D {
         edgeProfile.profile.measuringBounds { _, profileBounds in
             let sweep = edgeProfile
                 .followingEdge(of: shape, type: type)

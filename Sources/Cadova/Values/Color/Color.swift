@@ -12,7 +12,8 @@ public struct Color: Hashable, Sendable, Codable {
     ///   - red: The red component of the color, ranging from 0.0 to 1.0.
     ///   - green: The green component of the color, ranging from 0.0 to 1.0.
     ///   - blue: The blue component of the color, ranging from 0.0 to 1.0.
-    ///   - alpha: The alpha (transparency) component of the color, ranging from 0.0 (fully transparent) to 1.0 (fully opaque). Default value is 1.0.
+    ///   - alpha: The alpha (transparency) component of the color, ranging from 0.0 (fully transparent) to 1.0 (fully
+    ///     opaque). Default value is 1.0.
     ///
     public init(red: Double, green: Double, blue: Double, alpha: Double = 1.0) {
         self.red = red
@@ -42,6 +43,7 @@ public extension Color {
     ///   - other: The other color to blend with.
     ///   - amount: The blending amount, between 0 (no blend, use current color) and 1 (full blend, use other color).
     /// - Returns: A new color that is the result of blending this color with the other color by the specified amount.
+    /// 
     func mixed(with other: Color, amount: Double) -> Color {
         let clampedAmount = amount.unitClamped
         let inverseAmount = 1 - clampedAmount

@@ -115,19 +115,22 @@ public extension Geometry2D {
 public extension Geometry3D {
     /// Wraps a flat 3D geometry around a sphere.
     ///
-    /// This operation transforms a geometry into spherical coordinates, effectively wrapping it over the surface of a sphere.
+    /// This operation transforms a geometry into spherical coordinates, effectively wrapping it over the surface of
+    /// a sphere.
     ///
     /// - Coordinate Mapping:
     ///   - The **X axis** controls the **longitude** (rotation around the vertical axis).
     ///     - X = 0 maps to longitude 0°.
     ///     - As X increases, the geometry wraps counter-clockwise when viewed from above (right-hand rule).
     ///     - The entire horizontal range starting from X = 0 is mapped proportionally over 360°.
-    ///     - **Important**: If the geometry extends into negative X values, the "wrap" will overlap itself at the longitude seam.
+    ///     - **Important**: If the geometry extends into negative X values, the "wrap" will overlap itself at the
+    ///       longitude seam.
     ///   - The **Y axis** controls the **latitude** (vertical position):
     ///     - Y = 0 maps to the equator.
     ///     - Positive Y moves toward the north pole, negative Y toward the south pole.
     ///     - The vertical Y range is mapped proportionally between -90° and +90°.
-    ///     - **Important**: If the minimum and maximum Y extents are not symmetrical (e.g., minY ≠ -maxY), the mapping may be uneven, causing a distortion in how the surface stretches across the poles.
+    ///     - **Important**: If the minimum and maximum Y extents are not symmetrical (e.g., minY ≠ -maxY), the mapping
+    ///       may be uneven, causing a distortion in how the surface stretches across the poles.
     ///   - The **Z axis** controls the **radial distance**:
     ///     - Z = 0 lies on the sphere's surface.
     ///     - Positive Z values expand outward from the surface, adding thickness.

@@ -8,14 +8,16 @@ public extension Geometry2D {
     ///   To move the shape outward from the center, translate it toward **positive X**.
     /// - The **Y axis** of the 2D shape maps directly to **vertical height** along the Z axis.
     ///
-    /// The shape twists around the Z axis as it rises, forming a **right-handed** helix (counter-clockwise when viewed from above).
-    /// To create a **left-handed** helix instead, flip the resulting 3D geometry along the X or Y axis after extrusion.
+    /// The shape twists around the Z axis as it rises, forming a **right-handed** helix (counter-clockwise when viewed
+    /// from above). To create a **left-handed** helix instead, flip the resulting 3D geometry along the X or Y axis
+    /// after extrusion.
     ///
     /// If the 2D shape is centered at the origin, parts of it will lie directly on the Z axis.
     /// To avoid this, you typically want to move the 2D shape into positive X before extrusion.
     ///
     /// - Parameters:
-    ///   - pitch: The vertical distance between each complete turn of the helix. Smaller values create tighter spirals.
+    ///   - pitch: The vertical distance between each complete turn of the helix. Smaller values create tighter
+    ///     spirals.
     ///   - height: The total vertical distance the extrusion will cover along the Z axis.
     /// - Returns: A 3D geometry representing the 2D shape swept along the helical path.
     ///

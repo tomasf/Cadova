@@ -8,7 +8,8 @@ import Foundation
 /// where consistent output format, compression, or metadata is desired.
 ///
 /// - Parameters:
-///   - root: An optional base directory where all models in the project will be saved. If `nil`, files are written relative to the working directory unless individually overridden.
+///   - root: An optional base directory where all models in the project will be saved. If `nil`, files are written
+///     relative to the working directory unless individually overridden.
 ///   - options: Shared `ModelOptions` applied to all models in the project unless overridden.
 ///   - content: A result builder that asynchronously returns an array of `Model` instances to be evaluated and saved.
 ///   - environmentBuilder: An optional closure to customize default `EnvironmentValues` for all models in the project.
@@ -45,7 +46,9 @@ public func Project(
         try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
     }
 
-    let outputContext = OutputContext(directory: url, environmentValues: environment, evaluationContext: .init(), options: options)
+    let outputContext = OutputContext(
+        directory: url, environmentValues: environment, evaluationContext: .init(), options: options
+    )
     let models = await outputContext.whileCurrent {
         await content()
     }
@@ -64,5 +67,10 @@ public func Project(
     @ArrayBuilder<Model> content: @Sendable @escaping () async -> [Model],
     environment environmentBuilder: (@Sendable (inout EnvironmentValues) -> Void)? = nil
 ) async {
-    await Project(root: root.map { URL(expandingFilePath: $0) }, options: options, content: content, environment: environmentBuilder)
+    await Project(
+        root: root.map { URL(expandingFilePath: $0) },
+        options: options,
+        content: content,
+        environment: environmentBuilder
+    )
 }

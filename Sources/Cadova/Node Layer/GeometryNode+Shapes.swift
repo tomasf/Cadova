@@ -82,7 +82,9 @@ Common causes include:
 - Non-contiguous face loops
 - Duplicate or misordered vertices
 
-Ensure that your mesh defines a closed, watertight surface where every edge is shared by exactly two faces, and all faces have consistent winding. Try visualizedForDebugging() to visualize the faces of a mesh without requiring it to be manifold.
+Ensure that your mesh defines a closed, watertight surface where every edge is shared by exactly two faces, and all
+faces have consistent winding. Try visualizedForDebugging() to visualize the faces of a mesh without requiring it to
+be manifold.
 """
     }
 }

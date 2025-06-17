@@ -61,7 +61,8 @@ public extension Geometry2D {
     ///
     /// - Parameters:
     ///   - path: An array of affine transforms representing the path along which the shape will be extruded.
-    ///   - steps: The number of steps to divide the interpolation between each pair of transforms in the `path`. Defaults to 1.
+    ///   - steps: The number of steps to divide the interpolation between each pair of transforms in the `path`.
+    ///     Defaults to 1.
     ///
     /// - Returns: A 3D geometry resulting from extruding the shape along the specified path.
     ///

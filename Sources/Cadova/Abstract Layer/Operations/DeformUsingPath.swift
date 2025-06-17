@@ -37,7 +37,8 @@ public extension Geometry {
     ///
     /// - Parameters:
     ///   - path: The Bezier path that defines the displacement, interpreted as a function of the reference axis.
-    ///   - referenceAxis: The axis used to drive the displacement (e.g., `.x`). The geometry is offset in the other axes.
+    ///   - referenceAxis: The axis used to drive the displacement (e.g., `.x`). The geometry is offset in the other
+    ///     axes.
     /// - Returns: A geometry with its shape modified according to the path.
     ///
     func deformed(using path: BezierPath<D.Vector>, with referenceAxis: D.Axis) -> D.Geometry {

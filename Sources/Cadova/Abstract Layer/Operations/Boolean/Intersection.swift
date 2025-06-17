@@ -3,17 +3,15 @@ import Manifold3D
 
 /// A geometry type that represents the intersection (common overlap) of multiple shapes.
 ///
-/// `Intersection` is a combined geometry type that takes multiple 2D or 3D shapes
-/// and returns their intersection – the area or volume where all shapes overlap.
-///
-/// The resulting intersection is defined based on the specific geometries provided
-/// and can be useful for creating complex shapes from overlapping regions of simpler shapes.
+/// `Intersection` is a combined geometry type that takes multiple 2D or 3D shapes and returns their intersection –
+/// the area or volume where all shapes overlap. The resulting intersection is defined based on the specific geometries
+/// provided and can be useful for creating complex shapes from overlapping regions of simpler shapes.
 ///
 /// ## Note
-/// While you can use `Intersection` directly, it is generally more convenient to use
-/// the `.intersecting` method available on `Geometry2D` and `Geometry3D`. The `.intersecting`
-/// method allows you to create intersections in a more concise and readable way by chaining
-/// it directly to an existing geometry, making it the preferred approach in most cases.
+/// While you can use `Intersection` directly, it is generally more convenient to use the `.intersecting` method
+/// available on `Geometry2D` and `Geometry3D`. The `.intersecting` method allows you to create intersections in a more
+/// concise and readable way by chaining it directly to an existing geometry, making it the preferred approach in
+/// most cases.
 ///
 /// ## Examples
 /// ### 2D Intersection

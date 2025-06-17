@@ -82,7 +82,9 @@ public extension Transform3D {
 
     /// Creates a rotation `Transform3D` that aligns one vector to another in 3D space.
     ///
-    /// Calculate the rotation needed to align a vector `from` to another vector `to`, both in 3D space. The method ensures that the rotation minimizes the angular distance between the `from` and `to` vectors, effectively rotating around the shortest path between them.
+    /// Calculate the rotation needed to align a vector `from` to another vector `to`, both in 3D space. The method
+    /// ensures that the rotation minimizes the angular distance between the `from` and `to` vectors, effectively
+    /// rotating around the shortest path between them.
     ///
     /// - Parameters:
     ///   - from: A `Vector3D` representing the starting orientation of the vector.

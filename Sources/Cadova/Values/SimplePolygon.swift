@@ -64,8 +64,8 @@ extension SimplePolygon {
     }
 
     func resampled(count targetCount: Int) -> Self {
-        // Resample the polygon points so that the polygon has exactly targetCount points evenly spaced along its perimeter.
-        // This is done by walking along the polygon edges and interpolating points at regular intervals.
+        // Resample the polygon points so that the polygon has exactly targetCount points evenly spaced along its
+        // perimeter. This is done by walking along the polygon edges and interpolating points at regular intervals.
         guard vertices.count >= 2, targetCount >= 2 else { return self }
 
         let totalLength = perimeter

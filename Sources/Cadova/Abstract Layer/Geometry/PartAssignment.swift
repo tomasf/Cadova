@@ -44,8 +44,8 @@ public enum PartSemantic: String, Hashable, Sendable, Codable {
     /// A regular printable part, typically rendered as opaque and included in the physical output.
     case solid
 
-    /// A background or reference part used for spatial context. These parts are included in the model for visualization,
-    /// but are not intended to be printed or interact with the printable geometry.
+    /// A background or reference part used for spatial context. These parts are included in the model for
+    /// visualization, but are not intended to be printed or interact with the printable geometry.
     case context
 
     /// A visual-only part used for display, guidance, or context. These are not intended for printing.
@@ -99,18 +99,21 @@ public extension Geometry3D {
 public extension Geometry {
     /// Extracts a named part from the current geometry and allows further manipulation.
     ///
-    /// This method detaches a part previously marked with `.inPart(named:)`. The detached part is removed from the input geometry,
-    /// and passed to the given closure for further use or combination. If no matching part is found, `part` will be `nil`.
+    /// This method detaches a part previously marked with `.inPart(named:)`. The detached part is removed from the
+    /// input geometry, and passed to the given closure for further use or combination. If no matching part is found,
+    /// `part` will be `nil`.
     ///
-    /// This is useful when you want to extract, reuse, or reposition specific parts of a model independently, such as rearranging
-    /// multi-part assemblies or isolating individual components.
+    /// This is useful when you want to extract, reuse, or reposition specific parts of a model independently, such as
+    /// rearranging multi-part assemblies or isolating individual components.
     ///
     /// The detached part is no longer included in the final 3MF output unless it is reattached.
     ///
     /// - Parameters:
     ///   - partName: The name of the part to detach.
-    ///   - reader: A closure that receives the original geometry (with the part removed) and the detached part (or `nil`), returning new geometry.
+    ///   - reader: A closure that receives the original geometry (with the part removed) and the detached
+    ///     part (or `nil`), returning new geometry.
     /// - Returns: A geometry object resulting from the `reader` closure.
+    ///
     func detachingPart<Output: Dimensionality>(
         named partName: String,
         _ reader: @Sendable @escaping (_ geometry: D.Geometry, _ part: (any Geometry3D)?) -> Output.Geometry

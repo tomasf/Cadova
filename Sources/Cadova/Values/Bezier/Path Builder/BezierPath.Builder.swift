@@ -20,7 +20,11 @@ public extension BezierPath {
             self.points = points
         }
 
-        internal func bezierCurve(start: inout V, direction: inout Direction<V.D>?, defaultMode: PathBuilderPositioning) -> Curve {
+        internal func bezierCurve(
+            start: inout V,
+            direction: inout Direction<V.D>?,
+            defaultMode: PathBuilderPositioning
+        ) -> Curve {
             var controlPoints = [start]
 
             if let continuousDistance {

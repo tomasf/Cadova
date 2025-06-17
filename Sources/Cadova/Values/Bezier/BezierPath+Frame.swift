@@ -62,7 +62,16 @@ internal extension BezierPath3D {
         let zAxis: Vector3D
         var angle: Angle?
 
-        init(t: Double, distance: Double, point: Vector3D, tangent: Vector3D, reference: Direction2D, target: FrameTarget, previousSample: Frame?, debugGeometry: inout [any Geometry3D]?) {
+        init(
+            t: Double,
+            distance: Double,
+            point: Vector3D,
+            tangent: Vector3D,
+            reference: Direction2D,
+            target: FrameTarget,
+            previousSample: Frame?,
+            debugGeometry: inout [any Geometry3D]?
+        ) {
             self.t = t
             self.distance = distance
             zAxis = tangent.normalized

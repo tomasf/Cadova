@@ -37,7 +37,11 @@ public extension Geometry3D {
     ///   - direction: The world-space direction the `reference` direction should point toward at each step.
     /// - Returns: A warped version of the geometry that follows the given path and orientation control.
     ///
-    func following(path: BezierPath3D, pointing reference: Direction2D, toward direction: Direction3D) -> any Geometry3D {
+    func following(
+        path: BezierPath3D,
+        pointing reference: Direction2D,
+        toward direction: Direction3D
+    ) -> any Geometry3D {
         FollowPath3D(geometry: self, path: path, reference: reference, target: .direction(direction))
     }
 
@@ -103,8 +107,16 @@ internal struct FollowPath3D: Shape3D {
                 let lengthFactor = pathLength / bounds.size.z
 
                 body.refined(maxEdgeLength: bounds.size.z / Double(segmentation.segmentCount(length: pathLength)))
-                    .warped(operationName: "followPath", cacheParameters: path, reference, target, segmentation, maxTwistRate) {
-                        path.frames(environment: environment, target: target, targetReference: reference, perpendicularBounds: bounds.bounds2D).0
+                    .warped(
+                        operationName: "followPath",
+                        cacheParameters: path, reference, target, segmentation, maxTwistRate
+                    ) {
+                        path.frames(
+                            environment: environment,
+                            target: target,
+                            targetReference: reference,
+                            perpendicularBounds: bounds.bounds2D
+                        ).0
                     } transform: { p, frames in
                         let distanceTarget = (p.z - bounds.minimum.z) * lengthFactor
                         let (index, fraction) = frames.binarySearch(target: distanceTarget, key: \.distance)

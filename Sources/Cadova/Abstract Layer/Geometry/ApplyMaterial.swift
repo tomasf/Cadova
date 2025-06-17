@@ -4,10 +4,12 @@ public extension Geometry3D {
     /// Applies a flat color to the geometry.
     ///
     /// This is primarily a visual styling feature, useful when previewing the model or distinguishing parts by color.
-    /// The color is also included in the exported 3MF file, though most slicers do not use it for functional differentiation.
+    /// The color is also included in the exported 3MF file, though most slicers do not use it for functional
+    /// differentiation.
     ///
     /// - Parameter color: The `Color` to apply.
     /// - Returns: A new geometry instance with the color applied.
+    /// 
     func colored(_ color: Color) -> any Geometry3D {
         withMaterial(.init(baseColor: color, properties: nil))
     }
@@ -18,6 +20,7 @@ public extension Geometry3D {
     ///   - color: The base color.
     ///   - alpha: The alpha component of the color, in the range `0.0...1.0`.
     /// - Returns: A new geometry instance with the color and transparency applied.
+    ///
     func colored(_ color: Color, alpha: Double) -> any Geometry3D {
         colored(color.with(alpha: alpha))
     }
@@ -30,6 +33,7 @@ public extension Geometry3D {
     ///   - blue: The blue component, from `0.0` to `1.0`.
     ///   - alpha: The alpha component, from `0.0` to `1.0`. Defaults to `1`.
     /// - Returns: A geometry instance with the given RGBA color applied.
+    ///
     func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> any Geometry3D {
         colored(.init(red: red, green: green, blue: blue, alpha: alpha))
     }
@@ -46,6 +50,7 @@ public extension Geometry3D {
     ///   - roughness: The surface roughness, from `0.0` (smooth) to `1.0` (rough).
     ///   - name: An optional name for identifying the material.
     /// - Returns: A new geometry instance with the specified material applied.
+    ///
     func withMaterial(color: Color, metallicness: Double, roughness: Double, name: String? = nil) -> any Geometry3D {
         withMaterial(.init(
             name: name,
@@ -64,6 +69,7 @@ public extension Geometry3D {
     ///   - glossiness: Glossiness from `0.0` (dull) to `1.0` (shiny).
     ///   - name: An optional name for the material.
     /// - Returns: A new geometry instance with the material applied.
+    ///
     func withMaterial(color: Color, specular: Color, glossiness: Double, name: String? = nil) -> any Geometry3D {
         withMaterial(.init(
             name: name,
@@ -76,6 +82,7 @@ public extension Geometry3D {
     ///
     /// - Parameter material: The material to apply.
     /// - Returns: A new geometry instance with the material applied.
+    ///
     func withMaterial(_ material: Material) -> any Geometry3D {
         GeometryNodeTransformer(body: self) {
             .applyMaterial($0, material: material)

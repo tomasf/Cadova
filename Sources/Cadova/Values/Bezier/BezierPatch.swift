@@ -6,8 +6,9 @@ import Foundation
 /// and 3D modeling used to describe smooth, continuous surfaces such as car bodies, furniture, and other organic forms.
 ///
 /// A Bézier patch is built from a rectangular grid of control points. Each row and column of control points
-/// defines a Bézier curve, and the surface itself is constructed by interpolating first across one axis (typically `v`)
-/// and then across the other (`u`). The patch provides a smooth surface bounded by the convex hull of its control points.
+/// defines a Bézier curve, and the surface itself is constructed by interpolating first across one axis
+/// (typically `v`) and then across the other (`u`). The patch provides a smooth surface bounded by the convex hull of
+/// its control points.
 ///
 /// ### Usage
 ///

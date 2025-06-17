@@ -19,7 +19,11 @@ struct CachedConcrete<D: Dimensionality, Key: CacheKey>: Geometry {
         self.generator = generator
     }
 
-    init(name: String, parameters: any CacheKey..., generator: @Sendable @escaping () async throws -> D.Concrete) where Key == NamedCacheKey {
+    init(
+        name: String,
+        parameters: any CacheKey...,
+        generator: @Sendable @escaping () async throws -> D.Concrete
+    ) where Key == NamedCacheKey {
         self.init(key: NamedCacheKey(operationName: name, parameters: parameters), generator: generator)
     }
 }
@@ -144,7 +148,12 @@ struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry
     let key: NamedCacheKey
     let generator: @Sendable (Input.Node, EnvironmentValues, EvaluationContext) async throws -> D.Node
 
-    init(body: Input.Geometry, name: String, parameters: any CacheKey..., generator: @Sendable @escaping (Input.Node, EnvironmentValues, EvaluationContext) async throws -> D.Node) {
+    init(
+        body: Input.Geometry,
+        name: String,
+        parameters: any CacheKey...,
+        generator: @Sendable @escaping (Input.Node, EnvironmentValues, EvaluationContext) async throws -> D.Node
+    ) {
         self.body = body
         self.key = NamedCacheKey(operationName: name, parameters: parameters)
         self.generator = generator

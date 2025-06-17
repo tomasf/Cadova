@@ -3,10 +3,10 @@ import Foundation
 public extension Geometry3D {
     /// Rounds all eight corners of the geometry using its bounding box dimensions.
     ///
-    /// This method assumes that the geometry is a box or something similar and rounds all its corners as if it were a box.
+    /// This method assumes that the geometry is a box or something similar and rounds all its corners as if it were a
+    /// box.
     ///
     /// - Parameter radius: The radius of the rounding applied to each corner.
-    ///
     /// - Returns: A new `Geometry3D` object with all eight corners of the geometry rounded in a spherical fashion.
     ///
     /// This method uses the bounding box of the geometry to determine the appropriate size for the rounding mask.
@@ -15,7 +15,7 @@ public extension Geometry3D {
     /// The rounding is done in a spherical manner, affecting all eight corners of the bounding box uniformly.
     /// The shape of the rounded corners is determined by the environment’s `roundedCornerStyle`, which controls
     /// whether corners are shaped as simple circular arcs or smoother, squircle-like transitions.
-
+    /// 
     func roundingBoxCorners(radius: Double) -> any Geometry3D {
         measuring { child, measurements in
             child.intersecting {

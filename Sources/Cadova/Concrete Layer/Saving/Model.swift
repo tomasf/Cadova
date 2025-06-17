@@ -101,7 +101,6 @@ public struct Model: Sendable {
             }
 
             let url = baseURL.appendingPathExtension(provider.fileExtension)
-
             let fileExisted = FileManager().fileExists(atPath: url.path())
 
             do {

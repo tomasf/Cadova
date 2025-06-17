@@ -22,6 +22,7 @@ public extension Geometry3D {
     ///         b.colored(.blue)
     ///     }
     /// ```
+    /// 
     func split(
         along plane: Plane,
         @GeometryBuilder3D reader: @Sendable @escaping (_ over: any Geometry3D, _ under: any Geometry3D) -> any Geometry3D

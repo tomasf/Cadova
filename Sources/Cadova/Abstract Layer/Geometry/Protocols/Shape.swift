@@ -12,7 +12,10 @@ public extension Shape {
 
 /// A protocol defining the requirements for custom 2D shapes.
 ///
-/// Conform to `Shape2D` to create custom types that represent 2D geometries. A conforming type must provide a `body` property, which defines the shape's geometry using geometry primitives and operations. The `Shape2D` protocol itself conforms to `Geometry2D`, ensuring that custom shapes can be used anywhere standard Cadova 2D geometries are used.
+/// Conform to `Shape2D` to create custom types that represent 2D geometries. A conforming type must provide a `body`
+/// property, which defines the shape's geometry using geometry primitives and operations. The `Shape2D` protocol
+/// itself conforms to `Geometry2D`, ensuring that custom shapes can be used anywhere standard Cadova 2D geometries
+/// are used.
 ///
 /// Example:
 /// ```
@@ -24,6 +27,7 @@ public extension Shape {
 ///     }
 /// }
 /// ```
+///
 public protocol Shape2D: Shape where D == D2 {
     /// The geometry content of this shape.
     ///
@@ -33,7 +37,10 @@ public protocol Shape2D: Shape where D == D2 {
 
 /// A protocol defining the requirements for custom 3D shapes.
 ///
-/// Conform to `Shape3D` to create custom types that represent 3D geometries. A conforming type must provide a `body` property, which defines the shape's geometry using geometry primitives and operations. The `Shape3D` protocol itself conforms to `Geometry3D`, ensuring that custom shapes can be used anywhere standard Cadova 3D geometries are used.
+/// Conform to `Shape3D` to create custom types that represent 3D geometries. A conforming type must provide a `body`
+/// property, which defines the shape's geometry using geometry primitives and operations. The `Shape3D` protocol
+/// itself conforms to `Geometry3D`, ensuring that custom shapes can be used anywhere standard Cadova 3D geometries
+/// are used.
 ///
 /// Example:
 /// ```
@@ -45,6 +52,7 @@ public protocol Shape2D: Shape where D == D2 {
 ///     }
 /// }
 /// ```
+///
 public protocol Shape3D: Shape where D == D3 {
     /// The geometry content of this shape.
     ///

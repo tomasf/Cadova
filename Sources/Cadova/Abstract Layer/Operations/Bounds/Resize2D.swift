@@ -16,7 +16,10 @@ public enum ResizeBehavior: Sendable {
 }
 
 public extension Geometry2D {
-    private func resized(_ alignment: GeometryAlignment2D, _ calculator: @Sendable @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
+    private func resized(
+        _ alignment: GeometryAlignment2D,
+        calculator: @Sendable @escaping (Vector2D) -> Vector2D
+    ) -> any Geometry2D {
         measuring { geometry, measurements in
             let box = measurements.boundingBox.requireNonNil()
             let translation = box.translation(for: alignment)
@@ -31,7 +34,11 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - x: The target size in the X direction.
     ///   - y: The target size in the Y direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the top edge remains aligned with the geometry's original top edge position. By default, a geometry is resized relative to its origin.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
+    ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
+    ///     example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the
+    ///     top edge remains aligned with the geometry's original top edge position. By default, a geometry is resized
+    ///     relative to its origin.
     /// - Returns: A new geometry resized and repositioned according to the specified dimensions and alignment.
 
     func resized(x: Double, y: Double, alignment: GeometryAlignment2D...) -> any Geometry2D {
@@ -42,7 +49,11 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - x: The target size in the X direction.
     ///   - y: The resize behavior for the Y direction, either fixed or proportional to the X direction resizing.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the top edge remains aligned with the geometry's original top edge position. By default, a geometry is resized relative to its origin.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
+    ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
+    ///     example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the
+    ///     top edge remains aligned with the geometry's original top edge position. By default, a geometry is resized
+    ///     relative to its origin.
     /// - Returns: The geometry, resized and repositioned according to the specified criteria.
 
     func resized(x: Double, y: ResizeBehavior = .fixed, alignment: GeometryAlignment2D...) -> any Geometry2D {
@@ -55,7 +66,11 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - x: The resize behavior for the X direction.
     ///   - y: The target size in the Y direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the top edge remains aligned with the geometry's original top edge position. By default, a geometry is resized relative to its origin.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
+    ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
+    ///     example, `.center` keeps the geometry centered around its original center point, while `.top` ensures the
+    ///     top edge remains aligned with the geometry's original top edge position. By default, a geometry is resized
+    ///     relative to its origin.
     /// - Returns: The geometry, resized and repositioned according to the specified criteria.
 
     func resized(x: ResizeBehavior = .fixed, y: Double, alignment: GeometryAlignment2D...) -> any Geometry2D {
@@ -66,11 +81,17 @@ public extension Geometry2D {
 
     /// Resizes the geometry based on its current bounding box
     /// - Parameters:
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
+    ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
+    ///     example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of
+    ///     its original position. By default, a geometry is resized relative to its origin.
     ///   - calculator: A closure that accepts the current bounding box and returns the new size
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
 
-    func resized(alignment: GeometryAlignment2D..., calculator: @Sendable @escaping (Vector2D) -> Vector2D) -> any Geometry2D {
-        resized(alignment.merged.defaultingToOrigin(), calculator)
+    func resized(
+        alignment: GeometryAlignment2D...,
+        calculator: @Sendable @escaping (Vector2D) -> Vector2D
+    ) -> any Geometry2D {
+        resized(alignment.merged.defaultingToOrigin(), calculator: calculator)
     }
 }

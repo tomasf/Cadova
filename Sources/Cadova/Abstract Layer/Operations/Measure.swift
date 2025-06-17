@@ -15,8 +15,8 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
 public extension Geometry {
     /// Applies custom modifications to a geometry based on its measured properties.
     ///
-    /// This method evaluates the geometry and passes its measurements, such as area/volume and bounding box, to a closure.
-    /// The closure can then return a modified geometry based on these measurements.
+    /// This method evaluates the geometry and passes its measurements, such as area/volume and bounding box, to a
+    /// closure. The closure can then return a modified geometry based on these measurements.
     ///
     /// - Parameter builder: A closure that accepts the current geometry and its measurements,
     ///   and returns a modified geometry.

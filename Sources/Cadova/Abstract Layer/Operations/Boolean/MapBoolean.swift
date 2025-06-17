@@ -35,9 +35,9 @@ public extension Collection where Self: Sendable {
 public extension Sequence where Self: Sendable {
     /// Transforms each element of the sequence into geometry and returns the intersection of all resulting geometries.
     ///
-    /// This method applies a transformation to each element in the sequence and intersects all resulting geometries to produce a single geometry representing their common volume or area.
-    ///
-    /// This is useful when combining multiple shapes and only the overlapping region is desired.
+    /// This method applies a transformation to each element in the sequence and intersects all resulting geometries
+    /// to produce a single geometry representing their common volume or area. This is useful when combining multiple
+    /// shapes and only the overlapping region is desired.
     ///
     /// ## Example
     /// ```swift
