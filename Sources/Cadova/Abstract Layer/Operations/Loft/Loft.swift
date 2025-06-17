@@ -110,8 +110,8 @@ public struct Loft: Geometry {
 ///   - z: The Z height at which to place the 2D shape.
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
-public func layer(z: Double, @GeometryBuilder2D shape: () -> any Geometry2D) -> Loft.Layer {
-    Loft.Layer(z: z, geometry: shape())
+public func layer(z: Double, @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D) -> Loft.Layer {
+    Loft.Layer(z: z, geometry: Deferred(shape))
 }
 
 public extension Geometry2D {
@@ -139,7 +139,7 @@ public extension Geometry2D {
     func lofted(
         _ method: Loft.LayerInterpolation = .automatic,
         height: Double,
-        @GeometryBuilder2D with other: () -> any Geometry2D
+        @GeometryBuilder2D with other: @Sendable @escaping () -> any Geometry2D
     ) -> any Geometry3D {
         Loft(method) {
             layer(z: 0) { self }

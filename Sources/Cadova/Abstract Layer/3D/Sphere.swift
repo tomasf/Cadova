@@ -26,9 +26,9 @@ public struct Sphere: Shape3D {
         self.radius = radius
     }
 
-    @Environment(\.segmentation) private var segmentation
-
     public var body: D3.Geometry {
+        @Environment(\.segmentation) var segmentation
+
         NodeBasedGeometry(.shape(.sphere(
             radius: radius,
             segmentCount: segmentation.segmentCount(circleRadius: diameter / 2)

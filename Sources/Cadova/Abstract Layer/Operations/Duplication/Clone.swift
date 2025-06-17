@@ -15,8 +15,8 @@ public extension Geometry {
     /// ```
     /// In this example, `compositeShape` includes both the original rectangle and a version that has been translated 15 units along the x-axis.
     ///
-    func cloned(@GeometryBuilder<D> _ transform: (D.Geometry) -> D.Geometry) -> D.Geometry {
-        adding(transform(self))
+    func cloned(@GeometryBuilder<D> _ transform: @Sendable @escaping (D.Geometry) -> D.Geometry) -> D.Geometry {
+        adding { transform(self) }
     }
 }
 

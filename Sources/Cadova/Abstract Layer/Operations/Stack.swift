@@ -13,14 +13,18 @@ import Foundation
 ///   relative to the origin.
 ///
 public struct Stack <D: Dimensionality> {
-    private let items: [D.Geometry]
+    private let items: @Sendable () -> [D.Geometry]
     private let axis: D.Axis
     private let spacing: Double
     private let alignment: D.Alignment
 
-    fileprivate init(axis: D.Axis, spacing: Double, alignment: [D.Alignment], content: @escaping () -> [D.Geometry]
+    fileprivate init(
+        axis: D.Axis,
+        spacing: Double,
+        alignment: [D.Alignment],
+        content: @Sendable @escaping () -> [D.Geometry]
     ) {
-        self.items = content()
+        self.items = content
         self.axis = axis
         self.spacing = spacing
         self.alignment = .init(merging: alignment)
@@ -56,7 +60,7 @@ extension Stack: Geometry {
         _ axis: D.Axis,
         spacing: Double = 0,
         alignment: D.Alignment...,
-        @SequenceBuilder<D> content: @escaping () -> [D.Geometry]
+        @SequenceBuilder<D> content: @Sendable @escaping () -> [D.Geometry]
     ) {
         self.init(axis: axis, spacing: spacing, alignment: alignment, content: content)
     }
@@ -64,7 +68,7 @@ extension Stack: Geometry {
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         let union = try await Union {
             var offset = 0.0
-            for geometry in items {
+            for geometry in items() {
                 let concreteResult = try await context.result(for: geometry, in: environment)
 
                 if !concreteResult.concrete.isEmpty {

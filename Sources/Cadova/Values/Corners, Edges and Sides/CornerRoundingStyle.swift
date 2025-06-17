@@ -78,10 +78,11 @@ internal extension CornerRoundingStyle {
 
 internal struct FilletCorner: Shape2D {
     let size: Vector2D
-    @Environment(\.segmentation) private var segmentation
-    @Environment(\.cornerRoundingStyle) private var style
 
     var body: any Geometry2D {
+        @Environment(\.segmentation) var segmentation
+        @Environment(\.cornerRoundingStyle) var style
+
         let radius = max(size.x, size.y)
         let scale = size / radius
 

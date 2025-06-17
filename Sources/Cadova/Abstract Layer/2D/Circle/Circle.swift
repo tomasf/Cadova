@@ -46,12 +46,11 @@ public struct Circle {
 
         diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
     }
-
-    @Environment(\.segmentation) private var segmentation
 }
 
 extension Circle: Shape2D {
     public var body: any Geometry2D {
+        @Environment(\.segmentation) var segmentation
         NodeBasedGeometry(.shape(.circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius))))
     }
 }

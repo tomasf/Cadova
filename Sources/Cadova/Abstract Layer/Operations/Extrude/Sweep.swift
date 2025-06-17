@@ -121,10 +121,10 @@ internal struct Sweep: Shape3D {
     let reference: Direction2D
     let target: BezierPath3D.FrameTarget
 
-    @Environment(\.maxTwistRate) var maxTwistRate
-    @Environment(\.segmentation) var segmentation
-
     var body: any Geometry3D {
+        @Environment(\.maxTwistRate) var maxTwistRate
+        @Environment(\.segmentation) var segmentation
+
         CachedNodeTransformer(body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation) { node, environment, context in
             let crossSection = try await context.result(for: node).concrete
             let (frames, _) = path.frames(

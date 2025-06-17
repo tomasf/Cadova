@@ -15,9 +15,8 @@ public struct Cylinder: Shape3D {
     public let bottomRadius: Double
     public let topRadius: Double
 
-    @Environment(\.segmentation) private var segmentation
-
     public var body: any Geometry3D {
+        @Environment(\.segmentation) var segmentation
         let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
         if height < .ulpOfOne {

@@ -42,12 +42,11 @@ public struct Polygon: Shape {
         self.init(provider: JoinedPolygonPoints(providers: polygons.map(\.pointsProvider)))
     }
 
-    @Environment(\.fillRule) private var fillRule
-    @Environment private var environment
-
     public var body: any Geometry2D {
+        @Environment var environment
+
         let polygonList = SimplePolygonList([SimplePolygon(points(in: environment))])
-        return NodeBasedGeometry(.shape(.polygons(polygonList, fillRule: fillRule)))
+        return NodeBasedGeometry(.shape(.polygons(polygonList, fillRule: environment.fillRule)))
     }
 }
 

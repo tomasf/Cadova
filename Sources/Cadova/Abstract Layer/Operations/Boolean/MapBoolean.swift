@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Collection {
+public extension Collection where Self: Sendable {
     /// Transforms each element of the collection into geometry and returns a union of all resulting geometries.
     ///
     /// This method applies a transformation to each element in the collection, then merges all the
@@ -26,13 +26,13 @@ public extension Collection {
     /// - Returns: A single geometry representing the union of all transformed geometries.
 
     func mapUnion<D: Dimensionality>(
-        @GeometryBuilder<D> _ transform: (Element) throws -> D.Geometry
+        @GeometryBuilder<D> _ transform: @Sendable @escaping (Element) throws -> D.Geometry
     ) rethrows -> D.Geometry {
-        Union(children: try map(transform))
+        Union(closure: { try map(transform) })
     }
 }
 
-public extension Sequence {
+public extension Sequence where Self: Sendable {
     /// Transforms each element of the sequence into geometry and returns the intersection of all resulting geometries.
     ///
     /// This method applies a transformation to each element in the sequence and intersects all resulting geometries to produce a single geometry representing their common volume or area.
@@ -55,8 +55,8 @@ public extension Sequence {
     /// - Returns: A single geometry representing the intersection of all transformed geometries.
 
     func mapIntersection<D: Dimensionality>(
-        @GeometryBuilder<D> _ transform: (Element) throws -> D.Geometry
-    ) rethrows -> D.Geometry {
-        Intersection(children: try map(transform))
+        @GeometryBuilder<D> _ transform: @Sendable @escaping (Element) -> D.Geometry
+    ) -> D.Geometry {
+        Intersection(children: { map(transform) })
     }
 }

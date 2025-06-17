@@ -3,12 +3,12 @@ import Foundation
 internal struct OverhangCircle: Shape2D {
     let radius: Double
 
-    @Environment(\.naturalUpDirectionXYAngle) private var upAngle
-    @Environment(\.overhangAngle) private var overhangAngle
-    @Environment(\.circularOverhangMethod) private var method
-    @Environment(\.operation) private var operation
-
     var body: any Geometry2D {
+        @Environment(\.naturalUpDirectionXYAngle) var upAngle
+        @Environment(\.overhangAngle) var overhangAngle
+        @Environment(\.circularOverhangMethod) var method
+        @Environment(\.operation) var operation
+
         let circle = Circle(radius: radius)
 
         guard let upAngle else {

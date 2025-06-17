@@ -17,7 +17,7 @@ public extension BoundingBox3D {
         let borderWidth = visualizationStandardBorderWidth * scale
         let size = maximum - minimum
 
-        func frame(_ size: Vector2D) -> any Geometry3D {
+        @Sendable func frame(_ size: Vector2D) -> any Geometry3D {
             Rectangle(size)
                 .offset(amount: 0.001, style: .bevel)
                 .subtracting {
