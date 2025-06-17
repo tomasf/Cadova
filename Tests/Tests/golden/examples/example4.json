@@ -85,7 +85,7 @@
                 }
               },
               {
-                "type" : "6Cadova17EnvironmentValuesV12SegmentationO",
+                "type" : "6Cadova12SegmentationO",
                 "value" : {
                   "adaptive" : {
                     "minAngle" : {

@@ -86,7 +86,7 @@ extension BezierPatch: CustomDebugStringConvertible {
 }
 
 public extension BezierPatch {
-    func points(segmentation: EnvironmentValues.Segmentation) -> [[Vector3D]] {
+    func points(segmentation: Segmentation) -> [[Vector3D]] {
         switch segmentation {
         case .fixed(let count):
             return uniformGrid(uCount: count, vCount: count)

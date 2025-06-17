@@ -45,7 +45,7 @@ public extension BezierPath {
     ///   of the length calculation. More detailed segmentation results in more points being generated, leading to a more
     ///   accurate length approximation.
     /// - Returns: A `Double` value representing the total length of the Bézier path.
-    func length(segmentation: EnvironmentValues.Segmentation) -> Double {
+    func length(segmentation: Segmentation) -> Double {
         points(segmentation: segmentation)
             .paired()
             .map { ($1 - $0).magnitude }
@@ -90,7 +90,7 @@ public extension BezierPath {
     ///
     /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
     /// - Returns: An array of points that approximate the Bezier path.
-    func points(segmentation: EnvironmentValues.Segmentation) -> [V] {
+    func points(segmentation: Segmentation) -> [V] {
         curves.indices.flatMap { index in
             curves[index].points(segmentation: segmentation)
                 .map(\.1)

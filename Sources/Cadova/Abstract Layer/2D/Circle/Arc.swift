@@ -34,7 +34,7 @@ public struct Arc: Shape2D {
         Polygon([.zero] + arcPoints(segmentation: segmentation))
     }
 
-    private func arcPoints(segmentation: EnvironmentValues.Segmentation) -> [Vector2D] {
+    private func arcPoints(segmentation: Segmentation) -> [Vector2D] {
         let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: range.length)
 
         return (0...segmentCount).map { i -> Vector2D in

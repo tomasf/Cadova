@@ -1,7 +1,7 @@
 import Foundation
 
 internal extension BezierPath {
-    func pointsAtPositions(segmentation: EnvironmentValues.Segmentation) -> [(fraction: Fraction, point: V)] {
+    func pointsAtPositions(segmentation: Segmentation) -> [(fraction: Fraction, point: V)] {
         curves.indices.flatMap { index in
             curves[index].points(segmentation: segmentation)
                 .map { ($0 + Double(index), $1) }
