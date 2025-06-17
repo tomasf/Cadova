@@ -35,7 +35,7 @@ fileprivate extension BezierPatch {
         case offset (Vector3D)
     }
 
-    private func extrusion(_ mode: ExtrusionMode, segmentation: EnvironmentValues.Segmentation) -> any Geometry3D {
+    private func extrusion(_ mode: ExtrusionMode, segmentation: Segmentation) -> any Geometry3D {
         let points = points(segmentation: segmentation)
         let lastRow = points.count - 1
         let lastColumn = points[0].count - 1

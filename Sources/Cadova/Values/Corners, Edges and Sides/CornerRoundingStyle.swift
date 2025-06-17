@@ -40,7 +40,7 @@ internal extension CornerRoundingStyle {
         }
     }
 
-    func polygon(radius: Double, segmentation: EnvironmentValues.Segmentation) -> Polygon {
+    func polygon(radius: Double, segmentation: Segmentation) -> Polygon {
         let points = switch self {
         case .circular:
             Self.circularCornerPoints(radius: radius, segmentation: segmentation)
@@ -54,7 +54,7 @@ internal extension CornerRoundingStyle {
         return Polygon(points)
     }
 
-    static func circularCornerPoints(radius: Double, segmentation: EnvironmentValues.Segmentation) -> [Vector2D] {
+    static func circularCornerPoints(radius: Double, segmentation: Segmentation) -> [Vector2D] {
         let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: 90°)
 
         return (0...segmentCount).map { i -> Vector2D in
@@ -63,7 +63,7 @@ internal extension CornerRoundingStyle {
         }
     }
 
-    static func squircularCornerPoints(radius: Double, exponent n: Double, segmentation: EnvironmentValues.Segmentation) -> [Vector2D] {
+    static func squircularCornerPoints(radius: Double, exponent n: Double, segmentation: Segmentation) -> [Vector2D] {
         let segmentCount = segmentation.segmentCount(circleRadius: radius) / 4
         let radius4th = pow(radius, n)
 

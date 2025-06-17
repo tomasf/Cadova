@@ -177,7 +177,7 @@ extension [BezierPath3D.Frame] {
         }
     }
 
-    mutating func pruneStraightRuns(bounds: BoundingBox2D, segmentation: EnvironmentValues.Segmentation) {
+    mutating func pruneStraightRuns(bounds: BoundingBox2D, segmentation: Segmentation) {
         // Only prune for adaptive segmentation. Fixed already has the desired number of frames.
         guard !isEmpty, case .adaptive (let angleTolerance, let distanceTolerance) = segmentation else { return }
 

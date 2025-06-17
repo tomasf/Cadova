@@ -52,7 +52,7 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         }
     }
 
-    func points(in range: Range<Double> = 0..<1, segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
+    func points(in range: Range<Double> = 0..<1, segmentation: Segmentation) -> [(Double, V)] {
         switch segmentation {
         case .fixed (let count):
             points(in: range, segmentCount: count)

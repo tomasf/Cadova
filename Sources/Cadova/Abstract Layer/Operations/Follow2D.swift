@@ -67,7 +67,7 @@ fileprivate extension BezierPath2D {
         }
     }
 
-    func frames(segmentation: EnvironmentValues.Segmentation) -> [FollowFrame] {
+    func frames(segmentation: Segmentation) -> [FollowFrame] {
         let derivative = self.derivative
         return pointsAtPositions(segmentation: segmentation)
             .reduce(into: []) { frames, entry in
