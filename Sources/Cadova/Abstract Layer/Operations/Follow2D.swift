@@ -3,8 +3,9 @@ import Foundation
 public extension Geometry2D {
     /// Warps the 2D geometry to follow a portion of a 2D path.
     ///
-    /// This method bends and stretches the geometry along a segment of a `BezierPath2D` so that its local X axis follows
-    /// the shape of the selected range on the path. The geometry is scaled along the X direction to match the length of the specified segment.
+    /// This method bends and stretches the geometry along a segment of a `BezierPath2D` so that its local X axis
+    /// follows the shape of the selected range on the path. The geometry is scaled along the X direction to match the
+    /// length of the specified segment.
     ///
     /// The Y axis of the geometry is treated as the normal direction, and each point is offset accordingly,
     /// resulting in a curved version of the original shape. This is useful for modeling banners, ribbons,

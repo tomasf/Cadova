@@ -34,7 +34,8 @@ public extension Geometry {
     ///
     /// The operation is cached based on the supplied `operationName` and `cacheParameters`. If the same
     /// combination of input geometry and cache parameters has been previously evaluated, the cached result is reused
-    /// to avoid redundant computation. Ensure that these parameters are stable and deterministic; the same set of name + parameters should always result in an identical operation.
+    /// to avoid redundant computation. Ensure that these parameters are stable and deterministic; the same set of
+    /// name + parameters should always result in an identical operation.
     ///
     /// - Parameters:
     ///   - name: A string identifying the transformation operation. Used as part of the cache key.

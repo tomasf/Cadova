@@ -82,8 +82,9 @@ extension Union {
 public extension Geometry {
     /// Groups this geometry with additional geometry, forming a union that is treated as a single shape.
     ///
-    /// This method combines the current geometry with one or more additional geometries using a union operation. The result is a composite shape where all parts are merged into one. This is
-    /// especially useful when positioning or transforming a group of objects as a whole.
+    /// This method combines the current geometry with one or more additional geometries using a union operation. The
+    /// result is a composite shape where all parts are merged into one. This is especially useful when positioning or
+    /// transforming a group of objects as a whole.
     ///
     /// ## Example
     /// ```swift
@@ -94,7 +95,8 @@ public extension Geometry {
     ///     }
     ///     .translated(x: 10)
     /// ```
-    /// In this example, the circle and small rectangle are grouped with the base rectangle, and the entire group is then translated.
+    /// In this example, the circle and small rectangle are grouped with the base rectangle, and the entire group is
+    /// then translated.
     ///
     /// - Parameter bodies: A closure returning one or more geometries to be combined.
     /// - Returns: A new geometry that is the union of the current geometry and the provided geometries.
@@ -104,10 +106,12 @@ public extension Geometry {
 
     /// Groups this geometry with additional geometry, forming a union that is treated as a single shape.
     ///
-    /// This method combines the current geometry with one or more additional geometries using a union operation. The result is a composite shape where all parts are merged into one. This is
-    /// especially useful when positioning or transforming a group of objects as a whole.
+    /// This method combines the current geometry with one or more additional geometries using a union operation. The
+    /// result is a composite shape where all parts are merged into one. This is especially useful when positioning or
+    /// transforming a group of objects as a whole.
     ///
-    /// This overload accepts a variadic list of optional geometries, allowing convenient conditional inclusion without needing to use builders or unwrap values manually.
+    /// This overload accepts a variadic list of optional geometries, allowing convenient conditional inclusion without
+    /// needing to use builders or unwrap values manually.
     ///
     /// - Parameter bodies: A closure returning one or more geometries to be combined.
     /// - Returns: A new geometry that is the union of the current geometry and the provided geometries.

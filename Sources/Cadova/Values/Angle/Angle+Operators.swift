@@ -68,7 +68,8 @@ public func stride(from start: Angle, to end: Angle, by stride: Angle) -> [Angle
 
 /// Calculate the absolute value of an angle.
 ///
-/// This function returns the absolute value of an angle, ensuring the angle's magnitude is positive. It is particularly useful in contexts where the direction of the angle (clockwise or counterclockwise) is irrelevant.
+/// This function returns the absolute value of an angle, ensuring the angle's magnitude is positive. It is
+/// particularly useful in contexts where the direction of the angle (clockwise or counterclockwise) is irrelevant.
 ///
 /// - Parameter angle: The angle for which to compute the absolute value.
 /// - Returns: An `Angle` instance representing the absolute value of the specified angle.

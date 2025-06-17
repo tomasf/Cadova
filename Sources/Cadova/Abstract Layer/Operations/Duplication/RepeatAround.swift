@@ -32,7 +32,8 @@ extension Geometry2D {
 
     /// Repeat the geometry rotated
     /// - Parameters:
-    ///   - range: The range of angles to rotate within. The last repetition will occur at the upper bound of this range.
+    ///   - range: The range of angles to rotate within. The last repetition will occur at the upper bound of this
+    ///     range.
     ///   - count: The number of geometries to generate
     /// - Returns: A new geometry with this geometry repeated
 

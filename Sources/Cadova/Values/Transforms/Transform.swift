@@ -43,7 +43,8 @@ public extension Transform {
     /// - Parameters:
     ///   - from: The starting transform.
     ///   - to: The ending transform.
-    ///   - factor: The interpolation factor between 0.0 and 1.0, where 0.0 results in the `from` transform and 1.0 results in the `to` transform.
+    ///   - factor: The interpolation factor between 0.0 and 1.0, where 0.0 results in the `from` transform and 1.0
+    ///     results in the `to` transform.
     /// - Returns: A new `Transform` representing the interpolated transformation.
     static func linearInterpolation(_ from: Self, _ to: Self, factor: Double) -> Self {
         from.mapValues { row, column, value in
@@ -58,7 +59,8 @@ public extension Transform {
         concatenated(with: .translation(v))
     }
 
-    /// Creates a new `Transform` by concatenating a scaling transformation with this transformation using the given vector.
+    /// Creates a new `Transform` by concatenating a scaling transformation with this transformation using the
+    /// given vector.
     ///
     /// - Parameter v: The vector representing the scaling along each axis.
     func scaled(_ v: V) -> Self {

@@ -16,7 +16,9 @@ public extension EnvironmentValues {
     ///
     /// The default threshold is `0.005`. Setting the threshold to `0` disables automatic simplification entirely.
     ///
-    /// Note: Simplification is only applied to selected operations where appropriate, not universally across all geometry.
+    /// Note: Simplification is only applied to selected operations where appropriate, not universally
+    /// across all geometry.
+    ///
     var simplificationThreshold: Double {
         get { self[Self.key] as? Double ?? Self.defaultThreshold }
         set { self[Self.key] = newValue }

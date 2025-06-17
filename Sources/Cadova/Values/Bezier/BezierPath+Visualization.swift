@@ -1,11 +1,12 @@
 import Foundation
 
 extension BezierPath {
-    /// Visualizes the bezier path for debugging purposes by generating a 3D representation. This method creates visual markers for control points and start points, and lines to represent the path and its control lines.
+    /// Visualizes the bezier path for debugging purposes by generating a 3D representation. This method creates visual
+    /// markers for control points and start points, and lines to represent the path and its control lines.
     /// - Parameters:
     ///   - scale: A value that scales the size of markers and the thickness of lines.
     ///   - markerRotation: The rotation to use for markers. Set to nil to hide them.
-
+    ///
     public func visualized(
         scale: Double = 1,
         markerRotation: Angle? = -45°

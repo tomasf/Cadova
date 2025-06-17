@@ -83,8 +83,10 @@ extension BezierCurve {
     /// - Parameters:
     ///   - target: The target value to solve for.
     ///   - axis: The axis for the target value.
-    /// - Returns: The value of `t` (not clamped to [0, 1]) such that point(at: t)[axis] ≈ target, or `nil` if not found.
+    /// - Returns: The value of `t` (not clamped to [0, 1]) such that point(at: t)[axis] ≈ target, or `nil`
+    ///   if not found.
     ///   Values outside [0, 1] are allowed if the curve extends in that direction.
+    ///   
     func t(for target: Double, in axis: V.D.Axis) -> Double? {
         let maxIterations = 8
         let tolerance = 1e-6

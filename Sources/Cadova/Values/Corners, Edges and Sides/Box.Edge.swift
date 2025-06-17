@@ -30,12 +30,14 @@ public extension Box {
 
         /// Returns the corner point associated with this edge in a specified primary axis direction.
         ///
-        /// - Parameter direction: The primary axis direction to define the corner location (`.positive` or `.negative`).
-        /// - Returns: A `Corner` representing the intersection of this edge with the specified direction along its primary axis.
+        /// - Parameter direction: The primary axis direction to define the corner location (`.positive` or
+        ///   `.negative`).
+        /// - Returns: A `Corner` representing the intersection of this edge with the specified direction along its
+        ///   primary axis.
         ///
-        /// This method combines the two directions that define this edge’s location on
-        /// the perpendicular axes with the specified direction along the primary axis, yielding
-        /// a unique `Corner` in the box.
+        /// This method combines the two directions that define this edge’s location on the perpendicular axes with the
+        /// specified direction along the primary axis, yielding a unique `Corner` in the box.
+        /// 
         public func corner(in direction: LinearDirection) -> Corner {
             Corner(
                 x: axis == .x ? direction : x,

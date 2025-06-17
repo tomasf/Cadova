@@ -6,6 +6,7 @@ public extension Transform2D {
     /// - Parameters:
     ///   - x: The x-axis translation offset.
     ///   - y: The y-axis translation offset.
+    ///
     static func translation(x: Double = 0, y: Double = 0) -> Transform2D {
         var transform = identity
         transform[0, 2] = x
@@ -16,6 +17,7 @@ public extension Transform2D {
     /// Creates a translation `Transform2D` using the given 2D vector.
     ///
     /// - Parameter v: The 2D vector representing the translation along x and y axes.
+    ///
     static func translation(_ v: Vector2D) -> Transform2D {
         translation(x: v.x, y: v.y)
     }
@@ -25,6 +27,7 @@ public extension Transform2D {
     /// - Parameters:
     ///   - x: The scaling factor along the x-axis.
     ///   - y: The scaling factor along the y-axis.
+    ///
     static func scaling(x: Double = 1, y: Double = 1) -> Transform2D {
         var transform = identity
         transform[0, 0] = x
@@ -35,6 +38,7 @@ public extension Transform2D {
     /// Creates a scaling `Transform2D` using the given 2D vector.
     ///
     /// - Parameter v: The 2D vector representing the scaling along x and y axes.
+    ///
     static func scaling(_ v: Vector2D) -> Transform2D {
         scaling(x: v.x, y: v.y)
     }
@@ -42,6 +46,7 @@ public extension Transform2D {
     /// Creates a rotation `Transform2D` using the given angle for rotation.
     ///
     /// - Parameter angle: The rotation angle.
+    /// 
     static func rotation(_ angle: Angle) -> Transform2D {
         var transform = identity
         transform[0, 0] = cos(angle)
@@ -56,6 +61,7 @@ public extension Transform2D {
     /// - Parameters:
     ///   - axis: The axis to shear.
     ///   - factor: The shearing factor.
+    ///
     static func shearing(_ axis: Axis2D, factor: Double) -> Transform2D {
         var transform = Transform2D.identity
         if axis == .x {
@@ -71,6 +77,7 @@ public extension Transform2D {
     /// - Parameters:
     ///   - axis: The axis to shear.
     ///   - angle: The angle of shearing.
+    ///
     static func shearing(_ axis: Axis2D, angle: Angle) -> Transform2D {
         assert(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
         let factor = sin(angle) / sin(90° - angle)

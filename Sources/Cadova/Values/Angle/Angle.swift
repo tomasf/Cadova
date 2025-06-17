@@ -33,7 +33,8 @@ public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable
 
     /// Create an angle from degrees, and optionally, arcminutes and arcseconds.
     ///
-    /// Initializes an `Angle` instance from degrees, with optional additional precision provided by arcminutes and arcseconds.
+    /// Initializes an `Angle` instance from degrees, with optional additional precision provided by arcminutes and
+    /// arcseconds.
     ///
     /// - Parameters:
     ///   - degrees: The angle in degrees.

@@ -1,18 +1,20 @@
 import Foundation
 
 public extension Geometry3D {
-    /// Applies an edge profile to a specified edge of a box-shaped geometry, using the bounding box as a positional reference.
+    /// Applies an edge profile to a specified edge of a box-shaped geometry, using the bounding box as a positional
+    /// reference.
     ///
-    /// This method uses the geometry’s bounding box to guide the placement and orientation of the edge profile (e.g., chamfer or fillet) on the specified edge.
-    /// Note that for asymmetric profiles, the orientation on vertical (Z-axis) edges is undefined.
+    /// This method uses the geometry’s bounding box to guide the placement and orientation of the edge profile (e.g.,
+    /// chamfer or fillet) on the specified edge. Note that for asymmetric profiles, the orientation on vertical
+    /// (Z-axis) edges is undefined.
     ///
     /// - Parameters:
     ///   - edgeProfile: The profile to apply to the specified edge, defined as an `EdgeProfile`.
     ///   - edge: The edge of the box where the profile is applied, specified as `Box.Edge`.
-    ///
     /// - Returns: A new `Geometry3D` object with the edge modified by the specified profile.
     ///
-    /// This method is designed for box-like geometries where adding a profile to a specific edge is desired, with the bounding box serving as a positional reference.
+    /// This method is designed for box-like geometries where adding a profile to a specific edge is desired, with the
+    /// bounding box serving as a positional reference.
     ///
     func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to edge: Box.Edge) -> any Geometry3D {
         measuring { child, measurements in
@@ -35,10 +37,12 @@ public extension Geometry3D {
         }
     }
 
-    /// Applies an edge profile to multiple edges of a box-shaped geometry, using the bounding box as a positional reference.
+    /// Applies an edge profile to multiple edges of a box-shaped geometry, using the bounding box as a positional
+    /// reference.
     ///
-    /// This method uses the geometry’s bounding box to guide the placement and orientation of the edge profile (e.g., chamfer or fillet) on the specified edges.
-    /// Note that for asymmetric profiles, the orientation on vertical (Z-axis) edges is undefined.
+    /// This method uses the geometry’s bounding box to guide the placement and orientation of the edge profile (e.g.,
+    /// chamfer or fillet) on the specified edges. Note that for asymmetric profiles, the orientation on vertical
+    /// (Z-axis) edges is undefined.
     ///
     /// - Parameters:
     ///   - edgeProfile: The profile to apply to each specified edge, defined as an `EdgeProfile`.
@@ -46,7 +50,8 @@ public extension Geometry3D {
     ///
     /// - Returns: A new `Geometry3D` object with the specified edges modified by the profile.
     ///
-    /// This method is designed for box-like geometries where adding a profile to multiple edges is desired, with the bounding box serving as a positional reference.
+    /// This method is designed for box-like geometries where adding a profile to multiple edges is desired, with the
+    /// bounding box serving as a positional reference.
     ///
     func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to edges: Box.Edges) -> any Geometry3D {
         edges.reduce(self) { $0.applyingEdgeProfile(edgeProfile, to: $1) }

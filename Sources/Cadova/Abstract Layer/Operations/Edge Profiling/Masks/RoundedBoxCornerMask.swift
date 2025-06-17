@@ -99,7 +99,9 @@ internal struct RoundedBoxCornerMask: Shape3D {
         let segmentCount = max(segmentation.segmentCount(circleRadius: radius) / 4 - 1, 1)
 
         CachedNode(name: "roundedBoxCornerMask", parameters: boxSize, radius, segmentCount) {
-            let segmentedMask = SegmentedMask(boxSize: boxSize, radius: radius, segmentCount: segmentCount, cornerStyle: roundedCornerStyle)
+            let segmentedMask = SegmentedMask(
+                boxSize: boxSize, radius: radius, segmentCount: segmentCount, cornerStyle: roundedCornerStyle
+            )
 
             return Mesh(faces: segmentedMask.faces) {
                 segmentedMask.resolve(vertex: $0)

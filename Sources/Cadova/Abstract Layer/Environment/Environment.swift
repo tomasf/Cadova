@@ -2,8 +2,9 @@ import Foundation
 
 /// A property wrapper for reading values from the active environment.
 ///
-/// Use `@Environment` to access values that are stored in the current environment, such as configuration or styling options.
-/// It reads the specified key path from `EnvironmentValues`, or if none is specified, retrieves the entire `EnvironmentValues`.
+/// Use `@Environment` to access values that are stored in the current environment, such as configuration or styling
+/// options. It reads the specified key path from `EnvironmentValues`, or if none is specified, retrieves the
+/// entire `EnvironmentValues`.
 ///
 /// ## Usage
 /// ```swift

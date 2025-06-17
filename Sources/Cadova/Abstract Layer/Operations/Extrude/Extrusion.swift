@@ -5,8 +5,11 @@ public extension Geometry2D {
     /// Extrude two-dimensional geometry in the Z axis, creating three-dimensional geometry
     /// - Parameters:
     ///   - height: The height of the resulting geometry, in the Z axis
-    ///   - twist: The rotation of the top surface, gradually rotating the geometry around the Z axis, resulting in a twisted shape. Defaults to no twist.
-    ///   - scale: The final scale at the top of the extruded shape. The geometry is scaled linearly from 1.0 at the bottom.
+    ///   - twist: The rotation of the top surface, gradually rotating the geometry around the Z axis, resulting in a
+    ///     twisted shape. Defaults to no twist.
+    ///   - scale: The final scale at the top of the extruded shape. The geometry is scaled linearly from 1.0 at the
+    ///     bottom.
+    ///
     func extruded(height: Double, twist: Angle = 0°, topScale: Vector2D = [1, 1]) -> any Geometry3D {
         if twist.isZero {
             extruded(height: height, twist: twist, scale: topScale, divisions: 0)
@@ -51,6 +54,7 @@ public extension Geometry2D {
     /// ```swift
     /// let hemisphere = Circle(radius: 10).revolved(in: 0°..<180°)
     /// ```
+    /// 
     func revolved(in range: Range<Angle> = 0°..<360°) -> any Geometry3D {
         readEnvironment(\.segmentation) { segmentation in
             self.measuringBounds { geometry, bounds in

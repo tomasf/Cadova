@@ -69,7 +69,12 @@ public extension Geometry2D {
                 Vector2D(bounds.maximum.x, bounds.maximum.y), Vector2D(bounds.minimum.x, bounds.maximum.y)
             ]
 
-            let target: [Vector2D] = [original[0] + minXminY, original[1] + maxXminY, original[2] + maxXmaxY, original[3] + minXmaxY]
+            let target: [Vector2D] = [
+                original[0] + minXminY,
+                original[1] + maxXminY,
+                original[2] + maxXmaxY,
+                original[3] + minXmaxY
+            ]
             return skewingCorners(from: original, to: target)
         }
     }

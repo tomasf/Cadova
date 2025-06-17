@@ -3,7 +3,8 @@ import Foundation
 public extension Geometry {
     /// Scale geometry uniformly or non-uniformly.
     ///
-    /// This method allows scaling the geometry by a specified vector, where each component of the vector represents the scaling factor along the corresponding axis.
+    /// This method allows scaling the geometry by a specified vector, where each component of the vector represents
+    /// the scaling factor along the corresponding axis.
     ///
     /// - Parameters:
     ///   - scale: A `Vector2D`/`Vector3D` representing the scaling factors along the axes.
@@ -38,7 +39,8 @@ public extension Geometry {
 public extension Geometry2D {
     /// Scale geometry non-uniformly.
     ///
-    /// This method allows non-uniform scaling of the geometry by specifying individual scaling factors for the x and y axes.
+    /// This method allows non-uniform scaling of the geometry by specifying individual scaling factors for the x and
+    /// y axes.
     ///
     /// - Parameters:
     ///   - x: The scaling factor along the x-axis.
@@ -52,7 +54,8 @@ public extension Geometry2D {
 public extension Geometry3D {
     /// Scale geometry non-uniformly.
     ///
-    /// This method allows non-uniform scaling of the geometry by specifying individual scaling factors for the x, y, and z axes.
+    /// This method allows non-uniform scaling of the geometry by specifying individual scaling factors for the x, y,
+    /// and z axes.
     ///
     /// - Parameters:
     ///   - x: The scaling factor along the x-axis.

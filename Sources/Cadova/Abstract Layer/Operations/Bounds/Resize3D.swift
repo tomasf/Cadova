@@ -1,7 +1,10 @@
 import Foundation
 
 public extension Geometry3D {
-    private func resized(_ alignment: GeometryAlignment3D, _ calculator: @Sendable @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
+    private func resized(
+        _ alignment: GeometryAlignment3D,
+        calculator: @Sendable @escaping (Vector3D) -> Vector3D
+    ) -> any Geometry3D {
         return measuring { geometry, measurements in
             let box = measurements.boundingBox.requireNonNil()
             let translation = box.translation(for: alignment)
@@ -17,9 +20,12 @@ public extension Geometry3D {
     ///   - x: The target size in the X direction.
     ///   - y: The target size in the Y direction.
     ///   - z: The target size in the Z direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
+    ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
+    ///     example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of
+    ///     its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and repositioned according to the specified dimensions and alignment.
-
+    ///
     func resized(x: Double, y: Double, z: Double, alignment: GeometryAlignment3D...) -> any Geometry3D {
         resized(alignment.merged.defaultingToOrigin()) { _ in Vector3D(x, y, z) }
     }
@@ -29,10 +35,18 @@ public extension Geometry3D {
     ///   - x: The target size in the X direction.
     ///   - y: The resize behavior for the Y direction.
     ///   - z: The resize behavior for the Z direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
+    ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
+    ///     example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of
+    ///     its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
-
-    func resized(x: Double, y: ResizeBehavior = .fixed, z: ResizeBehavior = .fixed, alignment: GeometryAlignment3D...) -> any Geometry3D {
+    ///
+    func resized(
+        x: Double,
+        y: ResizeBehavior = .fixed,
+        z: ResizeBehavior = .fixed,
+        alignment: GeometryAlignment3D...
+    ) -> any Geometry3D {
         resized(alignment.merged.defaultingToOrigin()) { current in
             Vector3D(
                 x,
@@ -47,10 +61,18 @@ public extension Geometry3D {
     ///   - x: The resize behavior for the X direction.
     ///   - y: The target size in the Y direction.
     ///   - z: The resize behavior for the Z direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
+    ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
+    ///     example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of
+    ///     its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
-
-    func resized(x: ResizeBehavior = .fixed, y: Double, z: ResizeBehavior = .fixed, alignment: GeometryAlignment3D...) -> any Geometry3D {
+    ///
+    func resized(
+        x: ResizeBehavior = .fixed,
+        y: Double,
+        z: ResizeBehavior = .fixed,
+        alignment: GeometryAlignment3D...
+    ) -> any Geometry3D {
         resized(alignment.merged.defaultingToOrigin()) { current in
             Vector3D(
                 x.value(current: current.x, from: current.y, to: y),
@@ -65,10 +87,18 @@ public extension Geometry3D {
     ///   - x: The resize behavior for the X direction.
     ///   - y: The resize behavior for the Y direction.
     ///   - z: The target size in the Z direction.
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
+    ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
+    ///     example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of
+    ///     its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
-
-    func resized(x: ResizeBehavior = .fixed, y: ResizeBehavior = .fixed, z: Double, alignment: GeometryAlignment3D...) -> any Geometry3D {
+    ///
+    func resized(
+        x: ResizeBehavior = .fixed,
+        y: ResizeBehavior = .fixed,
+        z: Double,
+        alignment: GeometryAlignment3D...
+    ) -> any Geometry3D {
         resized(alignment.merged.defaultingToOrigin()) { current in
             Vector3D(
                 x.value(current: current.x, from: current.z, to: z),
@@ -80,11 +110,17 @@ public extension Geometry3D {
 
     /// Resizes the geometry based on its current bounding box
     /// - Parameters:
-    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of its original position. By default, a geometry is resized relative to its origin.
+    ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
+    ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
+    ///     example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of
+    ///     its original position. By default, a geometry is resized relative to its origin.
     ///   - calculator: A closure that accepts the current bounding box and returns the new size
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
-
-    func resized(alignment: GeometryAlignment3D..., calculator: @Sendable @escaping (Vector3D) -> Vector3D) -> any Geometry3D {
-        resized(alignment.merged.defaultingToOrigin(), calculator)
+    ///
+    func resized(
+        alignment: GeometryAlignment3D...,
+        calculator: @Sendable @escaping (Vector3D) -> Vector3D
+    ) -> any Geometry3D {
+        resized(alignment.merged.defaultingToOrigin(), calculator: calculator)
     }
 }

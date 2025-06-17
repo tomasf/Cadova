@@ -192,7 +192,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
 fileprivate extension Color {
     var threeMFColor: ThreeMF.Color {
-        ThreeMF.Color(red: UInt8(round(red * 255.0)), green: UInt8(round(green * 255.0)), blue: UInt8(round(blue * 255.0)), alpha: UInt8(round(alpha * 255.0)))
+        ThreeMF.Color(
+            red: UInt8(round(red * 255.0)),
+            green: UInt8(round(green * 255.0)),
+            blue: UInt8(round(blue * 255.0)),
+            alpha: UInt8(round(alpha * 255.0))
+        )
     }
 }
 
@@ -273,14 +278,27 @@ extension PropertyReference {
         metallicProperties: inout MetallicDisplayProperties, specularProperties: inout SpecularDisplayProperties
     ) -> PropertyReference {
         switch material.properties {
-        case .none:
-            return addColor(material.baseColor, to: &mainColorGroup)
+        case .none: addColor(material.baseColor, to: &mainColorGroup)
 
         case .metallic (let metallicness, let roughness):
-            return addMetallic(baseColor: material.baseColor, name: material.name, metallicness: metallicness, roughness: roughness, to: &metallicProperties, colorGroup: &metallicColorGroup)
+            addMetallic(
+                baseColor: material.baseColor,
+                name: material.name,
+                metallicness: metallicness,
+                roughness: roughness,
+                to: &metallicProperties,
+                colorGroup: &metallicColorGroup
+            )
 
         case .specular (let color, let glossiness):
-            return addSpecular(name: material.name, baseColor: material.baseColor, specularColor: color, glossiness: glossiness, to: &specularProperties, colorGroup: &specularColorGroup)
+            addSpecular(
+                name: material.name,
+                baseColor: material.baseColor,
+                specularColor: color,
+                glossiness: glossiness,
+                to: &specularProperties,
+                colorGroup: &specularColorGroup
+            )
         }
     }
 }

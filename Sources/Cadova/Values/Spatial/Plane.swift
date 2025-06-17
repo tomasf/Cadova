@@ -5,7 +5,8 @@ import simd
 
 /// A geometric plane in 3D space, defined by an offset point and a normal vector.
 ///
-/// The plane is represented in the form: `ax + by + cz + d = 0`, where `(a, b, c)` is the normal vector and `d` is derived from the offset point.
+/// The plane is represented in the form: `ax + by + cz + d = 0`, where `(a, b, c)` is the normal vector and `d` is
+/// derived from the offset point.
 ///
 /// You can initialize a `Plane` in several ways:
 /// - Using a point and a normal vector.
@@ -69,7 +70,8 @@ public extension Plane {
 
     /// Initializes a plane at a given side of a bounding box, with an optional offset.
     ///
-    /// The plane is perpendicular to the given side's axis and passes through the box's corresponding face, offset by a specified amount.
+    /// The plane is perpendicular to the given side's axis and passes through the box's corresponding face, offset by
+    /// a specified amount.
     ///
     /// - Parameters:
     ///   - side: The directional axis (axis + direction) the plane is perpendicular to.
@@ -120,9 +122,11 @@ public extension Plane {
 
     /// Projects a 3D point orthogonally onto the plane.
     ///
-    /// This method computes the closest point on the plane to the input point by dropping a perpendicular line from the point to the plane.
+    /// This method computes the closest point on the plane to the input point by dropping a perpendicular line from
+    /// the point to the plane.
     ///
-    /// The projection is calculated by determining the signed distance from the point to the plane and moving the point along the plane's normal vector by that distance.
+    /// The projection is calculated by determining the signed distance from the point to the plane and moving the
+    /// point along the plane's normal vector by that distance.
     ///
     /// - Parameter point: The point to be projected onto the plane.
     /// - Returns: The closest point on the plane.

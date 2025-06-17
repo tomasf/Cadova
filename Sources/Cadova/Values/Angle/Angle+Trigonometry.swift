@@ -93,7 +93,9 @@ public func atan(_ value: Double) -> Angle {
 
 /// Calculate the arctangent of two values, considering their signs to determine the correct quadrant.
 ///
-/// The `atan2` function computes the angle whose tangent is `y/x`, using the signs of both arguments to place the result in the correct quadrant of the unit circle. This is useful for determining the direction of a point `(x, y)` from the origin.
+/// The `atan2` function computes the angle whose tangent is `y/x`, using the signs of both arguments to place the
+/// result in the correct quadrant of the unit circle. This is useful for determining the direction of a point `(x, y)`
+/// from the origin.
 ///
 /// - Parameters:
 ///   - y: The Y-coordinate.
