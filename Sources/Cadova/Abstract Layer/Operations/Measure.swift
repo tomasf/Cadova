@@ -51,6 +51,23 @@ public extension Geometry {
             }
         }
     }
+
+    /// Replaces the geometry with an alternative if it is empty.
+    ///
+    /// This method checks whether the geometry is empty using its computed measurements.
+    /// If the geometry is empty, the provided closure is evaluated and returned instead.
+    /// Otherwise, the original geometry is returned unchanged.
+    ///
+    /// This is useful for providing fallback geometry in cases where earlier steps
+    /// may produce an empty result.
+    ///
+    /// - Parameter replacement: A closure that returns an alternative geometry to use if the original is empty.
+    /// - Returns: Either the original geometry or the result of the replacement closure.
+    func ifEmpty(@GeometryBuilder<D> _ replacement: @Sendable @escaping () -> D.Geometry) -> D.Geometry {
+        measuring { input, measurements in
+            measurements.isEmpty ? replacement() : input
+        }
+    }
 }
 
 internal extension Geometry {
