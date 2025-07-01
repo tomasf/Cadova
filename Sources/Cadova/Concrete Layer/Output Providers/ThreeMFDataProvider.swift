@@ -252,10 +252,15 @@ extension PropertyReference {
     ) -> PropertyReference {
         let name = name ?? "Metallic \(properties.metallics.count + 1)"
         let metallic = Metallic(name: name, metallicness: metallicness, roughness: roughness)
-        let index = properties.metallics.firstIndex(of: metallic) ?? {
+        let threeMFColor = baseColor.threeMFColor
+
+        let index = properties.metallics.indices.first { index in
+            properties.metallics[index] == metallic && colorGroup.colors[index] == threeMFColor
+        } ?? {
             properties.addMetallic(metallic)
-            return colorGroup.addColor(baseColor.threeMFColor)
+            return colorGroup.addColor(threeMFColor)
         }()
+
         return PropertyReference(groupID: colorGroup.id, index: index)
     }
 
@@ -265,10 +270,15 @@ extension PropertyReference {
     ) -> PropertyReference {
         let name = name ?? "Specular \(properties.speculars.count + 1)"
         let specular = Specular(name: name, specularColor: specularColor.threeMFColor, glossiness: glossiness)
-        let index = properties.speculars.firstIndex(of: specular) ?? {
+        let threeMFColor = baseColor.threeMFColor
+
+        let index = properties.speculars.indices.first { index in
+            properties.speculars[index] == specular && colorGroup.colors[index] == threeMFColor
+        } ?? {
             properties.addSpecular(specular)
             return colorGroup.addColor(baseColor.threeMFColor)
         }()
+
         return PropertyReference(groupID: colorGroup.id, index: index)
     }
 
