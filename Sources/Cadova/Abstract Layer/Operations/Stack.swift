@@ -70,12 +70,9 @@ extension Stack: Geometry {
             var offset = 0.0
             for geometry in items() {
                 let concreteResult = try await context.result(for: geometry, in: environment)
-
-                if !concreteResult.concrete.isEmpty {
-                    let box = D.BoundingBox(concreteResult.concrete.bounds)
-                    geometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
-                    offset += box.size[axis] + spacing
-                }
+                let bounds: D.BoundingBox = concreteResult.concrete.isEmpty ? .zero : .init(concreteResult.concrete.bounds)
+                geometry.translated(bounds.translation(for: alignment) + .init(axis, value: offset))
+                offset += bounds.size[axis] + spacing
             }
         }
         return try await context.buildResult(for: union, in: environment)
