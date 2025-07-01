@@ -44,7 +44,8 @@ public extension Geometry3D {
     ///
     /// This variant is useful when you want to separate a portion of the geometry into a named part
     /// for viewing or slicing. The side of the geometry that faces the direction of the plane's normal
-    /// is moved into a named part, while the opposite side remains in place.
+    /// is moved into a named part, while the opposite side remains in place. This is useful as a way to
+    /// view a clean cross-section of the model.
     ///
     /// The named part is detached from the geometry tree and appears as a separate object in the resulting
     /// 3MF file. It will follow transformations applied to the overall geometry but is otherwise excluded
