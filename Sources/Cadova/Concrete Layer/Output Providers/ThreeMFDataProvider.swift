@@ -47,11 +47,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var metallicProperties = MetallicDisplayProperties(id: nextObjectID())
         var metallicColorGroup = ColorGroup(id: nextObjectID(), displayPropertiesID: metallicProperties.id)
 
-        var specularProperties = SpecularDisplayProperties(id: nextObjectID())
-        var specularColorGroup = ColorGroup(id: nextObjectID(), displayPropertiesID: specularProperties.id)
-
         func addMaterial(_ material: Material) -> PropertyReference {
-            .addMaterial(material, mainColorGroup: &mainColorGroup, metallicColorGroup: &metallicColorGroup, specularColorGroup: &specularColorGroup, metallicProperties: &metallicProperties, specularProperties: &specularProperties)
+            .addMaterial(material, mainColorGroup: &mainColorGroup, metallicColorGroup: &metallicColorGroup, metallicProperties: &metallicProperties)
         }
 
         var objectCount = 0
@@ -110,11 +107,6 @@ struct ThreeMFDataProvider: OutputDataProvider {
         if !metallicColorGroup.colors.isEmpty {
             resources.append(metallicProperties)
             resources.append(metallicColorGroup)
-        }
-
-        if !specularColorGroup.colors.isEmpty {
-            resources.append(specularProperties)
-            resources.append(specularColorGroup)
         }
 
         resources.append(contentsOf: objects)
@@ -284,31 +276,21 @@ extension PropertyReference {
 
     static func addMaterial(
         _ material: Material,
-        mainColorGroup: inout ColorGroup, metallicColorGroup: inout ColorGroup, specularColorGroup: inout ColorGroup,
-        metallicProperties: inout MetallicDisplayProperties, specularProperties: inout SpecularDisplayProperties
+        mainColorGroup: inout ColorGroup,
+        metallicColorGroup: inout ColorGroup,
+        metallicProperties: inout MetallicDisplayProperties
     ) -> PropertyReference {
-        switch material.properties {
-        case .none: addColor(material.baseColor, to: &mainColorGroup)
-
-        case .metallic (let metallicness, let roughness):
+        if let properties = material.physicalProperties {
             addMetallic(
                 baseColor: material.baseColor,
                 name: material.name,
-                metallicness: metallicness,
-                roughness: roughness,
+                metallicness: properties.metallicness,
+                roughness: properties.roughness,
                 to: &metallicProperties,
                 colorGroup: &metallicColorGroup
             )
-
-        case .specular (let color, let glossiness):
-            addSpecular(
-                name: material.name,
-                baseColor: material.baseColor,
-                specularColor: color,
-                glossiness: glossiness,
-                to: &specularProperties,
-                colorGroup: &specularColorGroup
-            )
+        } else {
+            addColor(material.baseColor, to: &mainColorGroup)
         }
     }
 }
