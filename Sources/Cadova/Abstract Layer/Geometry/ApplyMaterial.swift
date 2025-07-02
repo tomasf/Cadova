@@ -55,26 +55,8 @@ public extension Geometry3D {
         withMaterial(.init(
             name: name,
             baseColor: color,
-            properties: .metallic(metallicness: metallicness, roughness: roughness)
-        ))
-    }
-
-    /// Applies a physically-based material with specular highlights and glossiness.
-    ///
-    /// This method is ideal for defining materials like glossy plastics or reflective coatings.
-    ///
-    /// - Parameters:
-    ///   - color: The base color of the material.
-    ///   - specular: The specular highlight color.
-    ///   - glossiness: Glossiness from `0.0` (dull) to `1.0` (shiny).
-    ///   - name: An optional name for the material.
-    /// - Returns: A new geometry instance with the material applied.
-    ///
-    func withMaterial(color: Color, specular: Color, glossiness: Double, name: String? = nil) -> any Geometry3D {
-        withMaterial(.init(
-            name: name,
-            baseColor: color,
-            properties: .specular(color: specular, glossiness: glossiness)
+            metallicness: metallicness,
+            roughness: roughness
         ))
     }
 
