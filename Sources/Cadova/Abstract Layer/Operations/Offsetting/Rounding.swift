@@ -39,6 +39,20 @@ public extension Geometry2D {
         rounded(insideRadius: radius, outsideRadius: radius)
     }
 
+    /// Applies uniform rounding to the geometry's corners, limited to areas covered by a mask.
+    ///
+    /// This is a convenience method that applies the same rounding radius to both inside and outside edges,
+    /// but restricts the effect to the area defined by the given mask.
+    /// Equivalent to calling `rounded(insideRadius:radius, outsideRadius:radius, in: mask)`.
+    ///
+    /// - Parameters:
+    ///   - radius: The radius to apply to both inside and outside edges.
+    ///   - mask: A closure that defines the mask geometry, limiting where the rounding is applied.
+    /// - Returns: A new geometry object with rounded corners, limited to the area covered by the mask.
+    func rounded(radius: Double, @GeometryBuilder2D in mask: @Sendable @escaping () -> any Geometry2D) -> any Geometry2D {
+        rounded(insideRadius: radius, outsideRadius: radius, in: mask)
+    }
+
     /// Applies rounding to the geometry's corners with separate inside and outside radii, limited to areas covered by
     /// a mask.
     ///
