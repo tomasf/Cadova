@@ -21,3 +21,24 @@ Contributions are welcome! If you have ideas, suggestions, or improvements, feel
 
 ## License
 This project is licensed under the MIT. See the LICENSE file for details.
+
+## Package.swift copy-paste template
+```swift
+// swift-tools-version: 6.1
+import PackageDescription
+
+let package = Package(
+    name: "<#name#>",
+    platforms: [.macOS(.v14)],
+    dependencies: [
+        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.1.0")),
+    ],
+    targets: [
+        .executableTarget(
+            name: "<#name#>",
+            dependencies: ["Cadova"],
+            swiftSettings: [.interoperabilityMode(.Cxx)]
+        ),
+    ]
+)
+```
