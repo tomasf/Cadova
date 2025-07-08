@@ -25,7 +25,7 @@ Contributions are welcome! If you have ideas, suggestions, or improvements, feel
 ## License
 This project is licensed under the MIT. See the LICENSE file for details.
 
-## Package.swift copy-paste template
+## Manifest template
 ```swift
 // swift-tools-version: 6.1
 import PackageDescription
