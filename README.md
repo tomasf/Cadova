@@ -1,145 +1,44 @@
 # Cadova
-Cadova is a CAD library for Swift that allows you to create models for 3D printing. Cadova runs on macOS, Windows and Linux.
+<img src="https://github.com/user-attachments/assets/99d15163-d168-419c-9fc3-406e4f657074" width="400" align="right">
+
+Cadova is a Swift library for creating 3D models through code, with a focus on 3D printing. It offers a programmable alternative to traditional CAD tools, combining precise geometry with the expressiveness and elegance of Swift.
+
+Cadova models are written entirely in Swift, making them easy to version, reuse, and extend. The result is a flexible and maintainable approach to modeling, especially for those already comfortable with code.
+
+Cadova runs on macOS, Windows, and Linux. To get started, read the [Getting Started guide](https://github.com/tomasf/Cadova/wiki/Getting-Started).
+
+For more information, see [What is Cadova?](https://github.com/tomasf/Cadova/wiki/What-is-Cadova%3F). For code examples, read [Examples](https://github.com/tomasf/Cadova/wiki/Examples).
 
 [![Swift](https://github.com/tomasf/Cadova/actions/workflows/swift.yml/badge.svg)](https://github.com/tomasf/Cadova/actions/workflows/swift.yml)
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
 
-# Getting Started
-> tl;dr: Create a new executable Swift package, add Cadova as a dependency, import it in your code, create geometry and use the `save(to:)` method to save a 3MF file to disk.
+## Related Projects
+* [Cadova Viewer](https://github.com/tomasf/CadovaViewer) - A native macOS 3MF viewer application
+* [Helical](https://github.com/tomasf/Helical) - A Cadova library providing customizable threads, screws, bolts, nuts and related parts.
 
-## 1. Install Swift
-If you're using macOS, it's easiest to [install the latest version of Xcode][xcode].
+## Contributions
+Contributions are welcome! If you have ideas, suggestions, or improvements, feel free to open an issue or submit a pull request. You’re also welcome to browse the [open GitHub issues](https://github.com/tomasf/Cadova/issues) and pick one to work on — especially those marked as good first issues or help wanted.
 
-For Windows and Linux, [install Swift directly][swift]. I also recommend [installing VS Code][vscode] with the [Swift extension][swift-extension] to make development easier.
+## License
+This project is licensed under the MIT. See the LICENSE file for details.
 
-## 2. Create a new Swift executable package:
-```
-$ mkdir thingamajig
-$ cd thingamajig
-$ swift package init --type executable
-```
+## Package.swift copy-paste template
+```swift
+// swift-tools-version: 6.1
+import PackageDescription
 
-## 3. Add Cadova as a dependency for your package in Package.swift:
-
-<pre>
 let package = Package(
-    name: "thingamajig",
+    name: "<#name#>",
+    platforms: [.macOS(.v14)],
     dependencies: [
-        <b><i>.package(url: "https://github.com/tomasf/Cadova.git", upToNextMinor(from: "0.1.0")),</i></b>
+        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.1.0")),
     ],
     targets: [
-        .executableTarget(name: "thingamajig", dependencies: [<b><i>"Cadova"</i></b>])
+        .executableTarget(
+            name: "<#name#>",
+            dependencies: ["Cadova"],
+            swiftSettings: [.interoperabilityMode(.Cxx)]
+        ),
     ]
 )
-</pre>
-
-## 4. Use Cadova
-In `main.swift`, import Cadova, create geometry and save it:
-
-```swift
-import Cadova
-
-Box([10, 10, 5])
-    .subtracting {
-        Sphere(diameter: 10)
-            .translated(z: 5)
-    }
-    .save(to: "gadget")
 ```
-
-Run your code using `swift run` (or using Xcode/VS Code) to generate the 3MF file. By default, the files are saved to the current working directory. The full path will be printed in the console.
-
-Open it in a viewer to preview your model or in your slicer to prepare for 3D printing.
-
-# Libraries
-* [Helical][helical] - A Cadova library providing customizable threads, screws, bolts, nuts and related parts.
-* [RichText][richtext] - TextKit-based companion library for Cadova (macOS only)
-
-# Examples
-
-## Rotated box
-![Example 1](https://tomasf.se/projects/Cadova/examples/example1.png)
-
-```swift
-Box(x: 10, y: 20, z: 5)
-    .aligned(at: .centerY)
-    .rotated(y: -20°, z: 45°)
-    .save(to: "example1.scad")
-```
-
-## Extruded star with subtraction
-![Example 2](https://tomasf.se/projects/Cadova/examples/example2.png)
-
-```swift
-Circle(diameter: 10)
-    .withSegments(count: 3)
-    .translated(x: 2)
-    .scaled(x: 2)
-    .repeated(in: 0°..<360°, count: 5)
-    .rounded(amount: 1)
-    .extruded(height: 5, twist: -20°)
-    .subtracting {
-        Cylinder(bottomDiameter: 1, topDiameter: 5, height: 20)
-            .translated(y: 2, z: -7)
-            .rotated(x: 20°)
-            .highlighted()
-    }
-    .save(to: "example2")
-```
-
-## Reusable star shape
-![Example 3](https://tomasf.se/projects/Cadova/examples/example3.png)
-
-```swift
-struct Star: Shape2D {
-    let pointCount: Int
-    let radius: Double
-    let pointRadius: Double
-    let centerSize: Double
-
-    var body: any Geometry2D {
-        Circle(diameter: centerSize)
-            .adding {
-                Circle(radius: max(pointRadius, 0.001))
-                    .translated(x: radius)
-            }
-            .convexHull()
-            .repeated(in: 0°..<360°, count: pointCount)
-    }
-}
-
-save {
-    Stack(.x, spacing: 1, alignment: .centerY) {
-        Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-        Star(pointCount: 6, radius: 8, pointRadius: 0, centerSize: 2)
-    }
-    .named("example3")
-}
-```
-
-## Extruding along a Bezier path
-![Example 4](https://tomasf.se/projects/Cadova/examples/example4.png)
-
-```swift
-let path = BezierPath2D(startPoint: .zero)
-    .addingCubicCurve(
-        controlPoint1: [10, 65],
-        controlPoint2: [55, -20],
-        end: [60, 40]
-    )
-
-save {
-    Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-        .withDefaultSegmentation()
-        .extruded(along: path)
-        .withSegments(minAngle: 5°, minSize: 1)
-        .named("example4")
-}
-```
-
-[xcode]: https://developer.apple.com/download/all/?q=xcode
-[swift]: https://www.swift.org/install
-[vscode]: https://code.visualstudio.com/Download
-[swift-extension]: https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang
-[helical]: https://github.com/tomasf/Helical
-[richtext]: https://github.com/tomasf/RichText
