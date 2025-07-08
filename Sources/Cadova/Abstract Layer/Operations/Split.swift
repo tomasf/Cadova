@@ -29,7 +29,8 @@ public extension Geometry3D {
         @GeometryBuilder3D reader: @Sendable @escaping (_ over: any Geometry3D, _ under: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
         CachedConcreteArrayTransformer(body: self, name: "Cadova.SplitAlongPlane", parameters: plane) { input in
-            let (a, b) = input.split(by: plane.normal.unitVector, originOffset: 0)
+            let (a, b) = input.translate(-plane.offset)
+                .split(by: plane.normal.unitVector, originOffset: 0)
             return [a, b]
         } resultHandler: { geometries in
             precondition(geometries.count == 2, "Split result should contain exactly two geometries")
@@ -37,34 +38,6 @@ public extension Geometry3D {
                 geometries[0].translated(plane.offset),
                 geometries[1].translated(plane.offset)
             )
-        }
-    }
-
-    /// Splits the geometry into two parts along the specified plane, assigning one part to a named part.
-    ///
-    /// This variant is useful when you want to separate a portion of the geometry into a named part
-    /// for viewing or slicing. The side of the geometry that faces the direction of the plane's normal
-    /// is moved into a named part, while the opposite side remains in place. This is useful as a way to
-    /// view a clean cross-section of the model.
-    ///
-    /// The named part is detached from the geometry tree and appears as a separate object in the resulting
-    /// 3MF file. It will follow transformations applied to the overall geometry but is otherwise excluded
-    /// from subsequent operations like booleans or modifiers.
-    ///
-    /// - Parameters:
-    ///   - plane: The `Plane` used to split the geometry.
-    ///   - partName: The name to assign to the detached part.
-    ///
-    /// - Returns: A new geometry with one part detached into a named part.
-    ///
-    /// ## Example
-    /// ```swift
-    /// model.split(along: Plane(z: 0), into: "top-half")
-    /// ```
-    func split(along plane: Plane, into partName: String) -> any Geometry3D {
-        split(along: plane) { over, under in
-            under
-            over.inPart(named: partName)
         }
     }
 
