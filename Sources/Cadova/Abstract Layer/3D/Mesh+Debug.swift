@@ -12,13 +12,17 @@ public extension Mesh {
     /// Use only with relatively simple meshes or subsets of geometry.
     ///
     /// - Returns: A composite geometry consisting of extruded versions of each face in the mesh.
+    /// 
     @GeometryBuilder3D
-    func visualizedForDebugging() -> any Geometry3D {
+    func visualizedForDebugging(showVertices: Bool = false) -> any Geometry3D {
         for face in meshData.faces {
             visualizeFace(face.map { meshData.vertices[$0] })
         }
-        for vertex in meshData.vertices {
-            Box(0.1).aligned(at: .center).translated(vertex).colored(.red)
+        if showVertices {
+            for vertex in meshData.vertices {
+                Box(0.1).aligned(at: .center).translated(vertex).colored(.red)
+            }
+
         }
     }
 

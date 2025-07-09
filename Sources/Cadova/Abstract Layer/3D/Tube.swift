@@ -2,9 +2,9 @@ import Foundation
 
 /// A hollow, three-dimensional cylinder with specified inner and outer diameters and height.
 public struct Tube: Shape3D {
-    private let outerDiameter: Double
-    private let innerDiameter: Double
-    private let height: Double
+    public let outerDiameter: Double
+    public let innerDiameter: Double
+    public let height: Double
 
     /// Creates a tube with specified outer and inner diameters and height.
     /// - Parameters:
@@ -69,7 +69,41 @@ public struct Tube: Shape3D {
     }
 
     public var body: any Geometry3D {
+        ring.extruded(height: height)
+    }
+}
+
+public extension Tube {
+    /// The vertical cross-section of the tube
+    var ring: Ring {
         Ring(outerDiameter: outerDiameter, innerDiameter: innerDiameter)
-            .extruded(height: height)
+    }
+
+    /// The outer radius of the tube.
+    var outerRadius: Double { outerDiameter / 2 }
+
+    /// The inner radius of the tube.
+    var innerRadius: Double { innerDiameter / 2 }
+
+    /// The lateral surface area of the tube (cylindrical surfaces).
+    var lateralSurfaceArea: Double {
+        let outer = .pi * outerDiameter * height
+        let inner = .pi * innerDiameter * height
+        return outer + inner
+    }
+
+    /// The area of the top or bottom face (ring area).
+    var ringFaceArea: Double {
+        .pi * (outerRadius * outerRadius - innerRadius * innerRadius)
+    }
+
+    /// The total surface area of the tube (outer + inner sides + two ring faces).
+    var surfaceArea: Double {
+        lateralSurfaceArea + ringFaceArea * 2
+    }
+
+    /// The volume enclosed by the tube wall.
+    var volume: Double {
+        ringFaceArea * height
     }
 }

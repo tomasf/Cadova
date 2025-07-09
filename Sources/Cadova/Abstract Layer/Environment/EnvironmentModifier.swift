@@ -1,11 +1,11 @@
 import Foundation
 
-struct EnvironmentModifier<D: Dimensionality>: Geometry {
+internal struct EnvironmentModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modification: @Sendable (EnvironmentValues) -> EnvironmentValues
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        await body.build(in: modification(environment), context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await context.buildResult(for: body, in: modification(environment))
     }
 }
 
@@ -13,7 +13,8 @@ struct EnvironmentModifier<D: Dimensionality>: Geometry {
 public extension Geometry {
     /// Applies a specified environment modification to this geometry, affecting its appearance or behavior.
     ///
-    /// Use this method to modify the environment for this geometry. The modification is applied by a closure that you provide, which can set or modify any environment settings such as custom environment values you've added.
+    /// Use this method to modify the environment for this geometry. The modification is applied by a closure that you
+    /// provide, which can set or modify any environment settings such as custom environment values you've added.
     ///
     /// Example usage:
     /// ```
@@ -22,8 +23,10 @@ public extension Geometry {
     /// }
     /// ```
     ///
-    /// - Parameter modifier: A closure that takes the current `EnvironmentValues` and returns the modified `EnvironmentValues`.
+    /// - Parameter modifier: A closure that takes the current `EnvironmentValues` and returns the
+    ///   modified `EnvironmentValues`.
     /// - Returns: A new geometry with the modified environment settings applied.
+    /// 
     func withEnvironment(_ modifier: @Sendable @escaping (EnvironmentValues) -> EnvironmentValues) -> D.Geometry {
         EnvironmentModifier(body: self, modification: modifier)
     }

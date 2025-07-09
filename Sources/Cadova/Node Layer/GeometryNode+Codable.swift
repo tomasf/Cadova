@@ -2,13 +2,13 @@ import Foundation
 
 extension GeometryNode: Codable {
     enum Kind: String, Codable {
-        case empty, boolean, transform, convexHull, materialized
+        case empty, boolean, transform, convexHull, refine, simplify, materialized
         case shape2D, offset, projection
-        case shape3D, applyMaterial, extrusion, lazyUnion
+        case shape3D, applyMaterial, extrusion
     }
 
     enum CodingKeys: String, CodingKey {
-        case kind, type, primitive, children, body, transform
+        case kind, type, primitive, children, body, transform, edgeLength, tolerance
         case amount, joinStyle, miterLimit, segmentCount, cacheKey
         case material, crossSection
     }
@@ -33,6 +33,16 @@ extension GeometryNode: Codable {
         case .convexHull(let node):
             try container.encode(Kind.convexHull, forKey: .kind)
             try container.encode(node, forKey: .body)
+
+        case .refine(let node, let edgeLength):
+            try container.encode(Kind.refine, forKey: .kind)
+            try container.encode(node, forKey: .body)
+            try container.encode(edgeLength, forKey: .edgeLength)
+
+        case .simplify(let node, let tolerance):
+            try container.encode(Kind.simplify, forKey: .kind)
+            try container.encode(node, forKey: .body)
+            try container.encode(tolerance, forKey: .tolerance)
 
         case .materialized(let cacheKey):
             try container.encode(Kind.materialized, forKey: .kind)
@@ -68,10 +78,6 @@ extension GeometryNode: Codable {
             try container.encode(Kind.extrusion, forKey: .kind)
             try container.encode(node, forKey: .crossSection)
             try container.encode(type, forKey: .type)
-
-        case .lazyUnion(let children):
-            try container.encode(Kind.lazyUnion, forKey: .kind)
-            try container.encode(children, forKey: .children)
         }
     }
 
@@ -93,6 +99,14 @@ extension GeometryNode: Codable {
         case .convexHull:
             let node = try container.decode(D.Node.self, forKey: .body)
             self.init(.convexHull(node))
+        case .refine:
+            let node = try container.decode(D.Node.self, forKey: .body)
+            let edgeLength = try container.decode(Double.self, forKey: .edgeLength)
+            self.init(.refine(node, edgeLength: edgeLength))
+        case .simplify:
+            let node = try container.decode(D.Node.self, forKey: .body)
+            let tolerance = try container.decode(Double.self, forKey: .tolerance)
+            self.init(.simplify(node, tolerance: tolerance))
         case .materialized:
             let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
             self.init(.materialized(cacheKey: cacheKey))
@@ -120,9 +134,6 @@ extension GeometryNode: Codable {
             let node = try container.decode(D2.Node.self, forKey: .crossSection)
             let type = try container.decode(Extrusion.self, forKey: .type)
             self.init(.extrusion(node, type: type))
-        case .lazyUnion:
-            let children = try container.decode([D3.Node].self, forKey: .children)
-            self.init(.lazyUnion(children))
         }
     }
 }

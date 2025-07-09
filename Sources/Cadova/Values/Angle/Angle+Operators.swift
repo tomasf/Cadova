@@ -12,44 +12,43 @@ public extension Double {
     }
 }
 
-extension Angle: AdditiveArithmetic {
-    public static let zero = 0°
+public extension Angle {
+    static let zero = 0°
 
-    public static prefix func -(_ a: Angle) -> Angle {
-        Angle(radians: -a.radians)
+    static prefix func -(_ a: Angle) -> Angle {
+        Angle(degrees: -a.degrees)
     }
 
-    public static func +(_ a: Angle, _ b: Angle) -> Angle {
-        Angle(radians: a.radians + b.radians)
+    static func +(_ a: Angle, _ b: Angle) -> Angle {
+        Angle(degrees: a.degrees + b.degrees)
     }
 
-    public static func -(_ a: Angle, _ b: Angle) -> Angle {
-        Angle(radians: a.radians - b.radians)
+    static func -(_ a: Angle, _ b: Angle) -> Angle {
+        Angle(degrees: a.degrees - b.degrees)
     }
 }
 
 public extension Angle {
     static func *(_ a: Angle, _ b: Double) -> Angle {
-        Angle(radians: a.radians * b)
+        Angle(degrees: a.degrees * b)
     }
 
     static func *(_ a: Double, _ b: Angle) -> Angle {
-        Angle(radians: a * b.radians)
+        Angle(degrees: a * b.degrees)
     }
 
     static func /(_ a: Angle, _ b: Double) -> Angle {
-        Angle(radians: a.radians / b)
+        Angle(degrees: a.degrees / b)
     }
 
     static func /(_ a: Angle, _ b: Angle) -> Double {
-        a.radians / b.radians
+        a.degrees / b.degrees
     }
 }
 
-extension Angle: Comparable {}
 public extension Angle {
     static func <(_ a: Angle, _ b: Angle) -> Bool {
-        a.radians < b.radians
+        a.degrees < b.degrees
     }
 }
 
@@ -58,21 +57,22 @@ public extension Angle {
 // Hence these manual overloads of stride().
 
 public func stride(from start: Angle, through end: Angle, by stride: Angle) -> [Angle] {
-    Swift.stride(from: start.radians, through: end.radians, by: stride.radians)
-        .map(Angle.init(radians:))
+    Swift.stride(from: start.degrees, through: end.degrees, by: stride.degrees)
+        .map { $0° }
 }
 
 public func stride(from start: Angle, to end: Angle, by stride: Angle) -> [Angle] {
-    Swift.stride(from: start.radians, to: end.radians, by: stride.radians)
-        .map(Angle.init(radians:))
+    Swift.stride(from: start.degrees, to: end.degrees, by: stride.degrees)
+        .map { $0° }
 }
 
 /// Calculate the absolute value of an angle.
 ///
-/// This function returns the absolute value of an angle, ensuring the angle's magnitude is positive. It is particularly useful in contexts where the direction of the angle (clockwise or counterclockwise) is irrelevant.
+/// This function returns the absolute value of an angle, ensuring the angle's magnitude is positive. It is
+/// particularly useful in contexts where the direction of the angle (clockwise or counterclockwise) is irrelevant.
 ///
 /// - Parameter angle: The angle for which to compute the absolute value.
 /// - Returns: An `Angle` instance representing the absolute value of the specified angle.
 public func abs(_ angle: Angle) -> Angle {
-    Angle(radians: Swift.abs(angle.radians))
+    Angle(degrees: Swift.abs(angle.degrees))
 }

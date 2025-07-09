@@ -13,10 +13,10 @@ public extension Geometry2D {
     func extruded(height: Double, topEdge: EdgeProfile?, bottomEdge: EdgeProfile?) -> any Geometry3D {
         var geometry = extruded(height: height)
         if let topEdge {
-            geometry = geometry.applyingEdgeProfile(topEdge, to: .top)
+            geometry = geometry.applyingEdgeProfile(topEdge, to: .top, type: .subtractive)
         }
         if let bottomEdge {
-            geometry = geometry.applyingEdgeProfile(bottomEdge, to: .bottom)
+            geometry = geometry.applyingEdgeProfile(bottomEdge, to: .bottom, type: .subtractive)
         }
         return geometry
     }

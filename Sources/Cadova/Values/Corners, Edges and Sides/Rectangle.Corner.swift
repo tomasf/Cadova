@@ -3,9 +3,8 @@ import Foundation
 public extension Rectangle {
     /// A type representing one of the four corners of a 2D rectangle.
     ///
-    /// Each corner is defined by a combination of minimum or maximum positions
-    /// along the X and Y axes. For example, `.minXminY` refers to the corner
-    /// with the smallest X and Y coordinates.
+    /// Each corner is defined by a combination of minimum or maximum positions along the X and Y axes. For example,
+    /// `.minXminY` refers to the corner with the smallest X and Y coordinates.
     ///
     typealias Corner = OrthogonalCorner<D2>
     typealias Corners = Set<Corner>

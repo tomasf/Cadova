@@ -1,13 +1,15 @@
 import Foundation
 
-/// A shaping function maps a value in the range 0...1 to a new value in the same range, commonly used for easing and interpolation.
+/// A shaping function maps a value in the range 0...1 to a new value in the same range, commonly used for easing and
+/// interpolation.
 public struct ShapingFunction: Sendable, Hashable, Codable {
     internal let curve: Curve
 
     /// Returns a closure that evaluates this shaping function.
     ///
     /// The returned closure maps a value in the range `0.0...1.0` to a shaped output, also in `0.0...1.0`.
-    /// This closure can be used for interpolation, easing, animation, or any other context where a non-linear mapping is desired.
+    /// This closure can be used for interpolation, easing, animation, or any other context where a non-linear mapping
+    /// is desired.
     public var function: @Sendable (Double) -> Double {
         switch curve {
         case .linear: { $0 }
@@ -18,7 +20,7 @@ public struct ShapingFunction: Sendable, Hashable, Codable {
         case .easeInOutCubic: { $0 < 0.5 ? 4 * $0 * $0 * $0 : 0.5 * (2 * $0 - 2) * (2 * $0 - 2) * (2 * $0 - 2) + 1 }
         case .smoothstep: { $0 * $0 * (3 - 2 * $0) }
         case .smootherstep: { $0 * $0 * $0 * ($0 * (6 * $0 - 15) + 10) }
-        case .bezier (let curve): { curve.point(at: curve.t(forX: $0) ?? $0).y }
+        case .bezier (let curve): { curve.point(at: curve.t(for: $0, in: .x) ?? $0).y }
         case .custom (_, let function): function
         }
     }
@@ -46,9 +48,9 @@ public extension ShapingFunction {
         ShapingFunction(curve: .linear)
     }
 
-    /// An exponential shaping function that produces a curve which accelerates slowly at the start and rapidly near the end.
-    /// The `exponent` parameter controls the steepness of the curve; higher values produce more pronounced acceleration.
-    /// This function is useful for simulating easing effects where acceleration increases exponentially.
+    /// An exponential shaping function that produces a curve which accelerates slowly at the start and rapidly near
+    /// the end. The `exponent` parameter controls the steepness of the curve; higher values produce more pronounced
+    /// acceleration. This function is useful for simulating easing effects where acceleration increases exponentially.
     ///
     /// - Parameter exponent: A positive value determining the curve's steepness.
     /// - Returns: A shaping function applying exponential easing.
@@ -69,7 +71,8 @@ public extension ShapingFunction {
     }
 
     /// A quadratic ease-in-out function that accelerates in the first half and decelerates in the second half.
-    /// This function creates a smooth transition with gradual acceleration and deceleration, ideal for natural motion effects.
+    /// This function creates a smooth transition with gradual acceleration and deceleration, ideal for natural motion
+    /// effects.
     static var easeInOut: Self {
         ShapingFunction(curve: .easeInOut)
     }
@@ -88,7 +91,8 @@ public extension ShapingFunction {
     }
 
     /// A smootherstep function that extends smoothstep by also having zero second derivative at the endpoints.
-    /// This results in even smoother transitions with continuous acceleration and deceleration, minimizing visual artifacts.
+    /// This results in even smoother transitions with continuous acceleration and deceleration, minimizing visual
+    /// artifacts.
     static var smootherstep: Self {
         ShapingFunction(curve: .smootherstep)
     }
@@ -97,7 +101,8 @@ public extension ShapingFunction {
     ///
     /// The resulting function is suitable for easing, interpolation, and other shaping purposes.
     ///
-    /// - Important: The Bézier curve must be monotonic in X over the interval [0, 1] to behave as a proper function. If the curve is not monotonic, results may be unpredictable.
+    /// - Important: The Bézier curve must be monotonic in X over the interval [0, 1] to behave as a proper function.
+    ///   If the curve is not monotonic, results may be unpredictable.
     /// - Parameters:
     ///   - controlPoint1: The first control point.
     ///   - controlPoint2: The second control point.
@@ -111,7 +116,8 @@ public extension ShapingFunction {
     /// A custom shaping function.
     /// The function is cached based on the supplied `name` and `parameters`. If the same
     /// combination of input geometry and cache parameters has been previously evaluated, the cached result is reused
-    /// to avoid redundant computation. Ensure that these parameters are stable and deterministic; the same set of name + parameters should always result in an identical function.
+    /// to avoid redundant computation. Ensure that these parameters are stable and deterministic; the same set of
+    /// name + parameters should always result in an identical function.
     ///
     /// - Parameters:
     ///   - name: A name to identify the function.
@@ -119,7 +125,11 @@ public extension ShapingFunction {
     ///   - function: A function mapping input `t` to output `t'`.
     /// - Returns: A shaping function with custom logic.
     ///
-    static func custom(name: String, parameters: any Hashable & Sendable & Codable..., function: @escaping @Sendable (Double) -> Double) -> Self {
+    static func custom(
+        name: String,
+        parameters: any Hashable & Sendable & Codable...,
+        function: @escaping @Sendable (Double) -> Double
+    ) -> Self {
         ShapingFunction(curve: .custom(cacheKey: NamedCacheKey(operationName: name, parameters: parameters), function: function))
     }
 }

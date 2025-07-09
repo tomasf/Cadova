@@ -57,16 +57,19 @@ public struct Transform2D: Transform {
 
     /// Returns the inverse of this affine transform, if it exists.
     ///
-    /// The inverse transform reverses the effects of applying this transform. If the transform is non-invertible, the result is undefined.
+    /// The inverse transform reverses the effects of applying this transform. If the transform is non-invertible, the
+    /// result is undefined.
     public var inverse: Transform2D {
         .init(matrix.inverse)
     }
 
     /// Applies a custom function to each element of the matrix, creating a new `Transform2D`.
     ///
-    /// This method allows for arbitrary transformations of the affine transform's underlying matrix by applying a provided function to each element.
+    /// This method allows for arbitrary transformations of the affine transform's underlying matrix by applying a
+    /// provided function to each element.
     ///
-    /// - Parameter function: A closure that takes a row index, a column index, and the current value at that position, then returns a new value to be assigned to that position.
+    /// - Parameter function: A closure that takes a row index, a column index, and the current value at that position,
+    ///   then returns a new value to be assigned to that position.
     /// - Returns: A new `Transform2D` with the matrix modified by the provided function.
     public func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> Transform2D {
         .init(
@@ -88,11 +91,12 @@ public extension Transform2D {
         return Vector2D(matrixColumn: matrix * point.matrixColumn)
     }
 
-    /// The offset of the transformation, defined as the result of applying the affine transformation to the origin point
+    /// The offset of the transformation, defined as the result of applying the affine transformation to the origin
+    /// point
     ///
-    /// This property represents the transformed position of the origin after applying
-    /// the full affine transformation, including translation, rotation, scaling, and other effects.
-    /// It effectively shows where the origin of the coordinate space is mapped in the transformed space.
+    /// This property represents the transformed position of the origin after applying the full affine transformation,
+    /// including translation, rotation, scaling, and other effects. It effectively shows where the origin of the
+    /// coordinate space is mapped in the transformed space.
     ///
     var offset: Vector2D {
         apply(to: .zero)

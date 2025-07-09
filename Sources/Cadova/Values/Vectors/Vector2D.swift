@@ -46,8 +46,8 @@ public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable, Codable {
 
     public subscript(_ axis: Axis2D) -> Double {
         switch axis {
-        case .x: return x
-        case .y: return y
+        case .x: x
+        case .y: y
         }
     }
 }

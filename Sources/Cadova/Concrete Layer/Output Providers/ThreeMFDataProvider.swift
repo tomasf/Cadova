@@ -2,6 +2,7 @@ import Foundation
 import Manifold3D
 import ThreeMF
 import Zip
+import Nodal
 import CadovaCPP
 
 extension MeshGL: @retroactive @unchecked Sendable {}
@@ -22,7 +23,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     let fileExtension = "3mf"
 
-    private struct PartData {
+    fileprivate struct PartData {
         let id: PartIdentifier
         let manifold: Manifold
         let materials: [Manifold.OriginalID: Material]
@@ -46,11 +47,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var metallicProperties = MetallicDisplayProperties(id: nextObjectID())
         var metallicColorGroup = ColorGroup(id: nextObjectID(), displayPropertiesID: metallicProperties.id)
 
-        var specularProperties = SpecularDisplayProperties(id: nextObjectID())
-        var specularColorGroup = ColorGroup(id: nextObjectID(), displayPropertiesID: specularProperties.id)
-
         func addMaterial(_ material: Material) -> PropertyReference {
-            .addMaterial(material, mainColorGroup: &mainColorGroup, metallicColorGroup: &metallicColorGroup, specularColorGroup: &specularColorGroup, metallicProperties: &metallicProperties, specularProperties: &specularProperties)
+            .addMaterial(material, mainColorGroup: &mainColorGroup, metallicColorGroup: &metallicColorGroup, metallicProperties: &metallicProperties)
         }
 
         var objectCount = 0
@@ -94,7 +92,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
             uniqueIdentifiers.insert(uniqueID)
 
             objects.append(object)
-            items.append(.init(objectID: object.id, partNumber: uniqueID, printable: part.id.type == .solid ? nil : false))
+            let attributes: [ExpandedName: String] = [
+                .printable: part.id.type == .solid ? "1" : "0",
+                .semantic: part.id.type.xmlAttributeValue
+            ]
+            items.append(.init(objectID: object.id, partNumber: uniqueID, customAttributes: attributes))
             objectCount += 1
         }
 
@@ -107,11 +109,6 @@ struct ThreeMFDataProvider: OutputDataProvider {
             resources.append(metallicColorGroup)
         }
 
-        if !specularColorGroup.colors.isEmpty {
-            resources.append(specularProperties)
-            resources.append(specularColorGroup)
-        }
-
         resources.append(contentsOf: objects)
 
         if objectCount == 0 {
@@ -121,6 +118,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         return ThreeMF.Model(
             unit: .millimeter,
             recommendedExtensions: [.materials],
+            customNamespaces: ["c": CadovaNamespace.uri],
             metadata: options[Metadata.self].threeMFMetadata,
             resources: resources,
             buildItems: items
@@ -131,10 +129,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var outputs = result.elements[PartCatalog.self].mergedOutputs
         outputs[.main] = result
 
-        let parts = await ContinuousClock().measure {
-            await outputs.asyncCompactMap { partIdentifier, result -> PartData? in
+        let parts = try await ContinuousClock().measure {
+            try await outputs.asyncCompactMap { partIdentifier, result -> PartData? in
                 guard !result.node.isEmpty else { return nil }
-                let nodeResult = await context.result(for: result.node)
+                let nodeResult = try await context.result(for: result.node)
 
                 return PartData(
                     id: partIdentifier,
@@ -142,7 +140,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
                     materials: nodeResult.materialMapping
                 )
             }
-            .sorted(by: { $0.id.hashValue < $1.id.hashValue })
+            .sorted(using: [
+                KeyPathComparator(\.id.name),
+                KeyPathComparator(\.id.type.rawValue),
+            ])
+
         } results: { duration, meshData in
             let triangleCount = meshData.map { $0.manifold.triangleCount }.reduce(0, +)
             logger.debug("Built meshes with \(triangleCount) triangles in \(duration)")
@@ -182,7 +184,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
 fileprivate extension Color {
     var threeMFColor: ThreeMF.Color {
-        ThreeMF.Color(red: UInt8(round(red * 255.0)), green: UInt8(round(green * 255.0)), blue: UInt8(round(blue * 255.0)), alpha: UInt8(round(alpha * 255.0)))
+        ThreeMF.Color(
+            red: UInt8(round(red * 255.0)),
+            green: UInt8(round(green * 255.0)),
+            blue: UInt8(round(blue * 255.0)),
+            alpha: UInt8(round(alpha * 255.0))
+        )
     }
 }
 
@@ -237,10 +244,15 @@ extension PropertyReference {
     ) -> PropertyReference {
         let name = name ?? "Metallic \(properties.metallics.count + 1)"
         let metallic = Metallic(name: name, metallicness: metallicness, roughness: roughness)
-        let index = properties.metallics.firstIndex(of: metallic) ?? {
+        let threeMFColor = baseColor.threeMFColor
+
+        let index = properties.metallics.indices.first { index in
+            properties.metallics[index] == metallic && colorGroup.colors[index] == threeMFColor
+        } ?? {
             properties.addMetallic(metallic)
-            return colorGroup.addColor(baseColor.threeMFColor)
+            return colorGroup.addColor(threeMFColor)
         }()
+
         return PropertyReference(groupID: colorGroup.id, index: index)
     }
 
@@ -250,27 +262,35 @@ extension PropertyReference {
     ) -> PropertyReference {
         let name = name ?? "Specular \(properties.speculars.count + 1)"
         let specular = Specular(name: name, specularColor: specularColor.threeMFColor, glossiness: glossiness)
-        let index = properties.speculars.firstIndex(of: specular) ?? {
+        let threeMFColor = baseColor.threeMFColor
+
+        let index = properties.speculars.indices.first { index in
+            properties.speculars[index] == specular && colorGroup.colors[index] == threeMFColor
+        } ?? {
             properties.addSpecular(specular)
             return colorGroup.addColor(baseColor.threeMFColor)
         }()
+
         return PropertyReference(groupID: colorGroup.id, index: index)
     }
 
     static func addMaterial(
         _ material: Material,
-        mainColorGroup: inout ColorGroup, metallicColorGroup: inout ColorGroup, specularColorGroup: inout ColorGroup,
-        metallicProperties: inout MetallicDisplayProperties, specularProperties: inout SpecularDisplayProperties
+        mainColorGroup: inout ColorGroup,
+        metallicColorGroup: inout ColorGroup,
+        metallicProperties: inout MetallicDisplayProperties
     ) -> PropertyReference {
-        switch material.properties {
-        case .none:
-            return addColor(material.baseColor, to: &mainColorGroup)
-
-        case .metallic (let metallicness, let roughness):
-            return addMetallic(baseColor: material.baseColor, name: material.name, metallicness: metallicness, roughness: roughness, to: &metallicProperties, colorGroup: &metallicColorGroup)
-
-        case .specular (let color, let glossiness):
-            return addSpecular(name: material.name, baseColor: material.baseColor, specularColor: color, glossiness: glossiness, to: &specularProperties, colorGroup: &specularColorGroup)
+        if let properties = material.physicalProperties {
+            addMetallic(
+                baseColor: material.baseColor,
+                name: material.name,
+                metallicness: properties.metallicness,
+                roughness: properties.roughness,
+                to: &metallicProperties,
+                colorGroup: &metallicColorGroup
+            )
+        } else {
+            addColor(material.baseColor, to: &mainColorGroup)
         }
     }
 }
@@ -296,4 +316,22 @@ extension ModelOptions.Compression {
         case .smallest: return .best
         }
     }
+}
+
+fileprivate extension ExpandedName {
+    static let printable = ExpandedName(namespaceName: nil, localName: "printable")
+    static let semantic = CadovaNamespace.semantic
+}
+
+fileprivate struct CadovaNamespace {
+    static let uri = "https://cadova.org/3mf"
+    static let semantic = ExpandedName(namespaceName: uri, localName: "semantic")
+}
+
+fileprivate extension PartSemantic {
+    init?(xmlAttributeValue value: String) {
+        self.init(rawValue: value)
+    }
+
+    var xmlAttributeValue: String { rawValue }
 }

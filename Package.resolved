@@ -1,13 +1,31 @@
 {
-  "originHash" : "08cbc8b6785314d8866f70aa6ef7e642e1eb3a9ed0ac678ce6b5663642995970",
+  "originHash" : "7731a774151b476006de6c9d8305acaf60da3564439a442c0eb8f1f6b1a44a89",
   "pins" : [
+    {
+      "identity" : "findfont",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tomasf/FindFont.git",
+      "state" : {
+        "revision" : "b9b687abad56844597f4e42c5da8f7d0ef9f80d5",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "freetype-spm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tomasf/freetype-spm.git",
+      "state" : {
+        "revision" : "b308b09b9d21215c522a73a38f670b7aca24843e",
+        "version" : "1.0.0"
+      }
+    },
     {
       "identity" : "manifold-swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/manifold-swift.git",
       "state" : {
-        "branch" : "dev",
-        "revision" : "9920bca8732c454126570272793dc5e0643200b4"
+        "revision" : "63425e809ac19c9b317fdb3fae2c1f923f8900a2",
+        "version" : "0.2.1"
       }
     },
     {
@@ -24,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-collections.git",
       "state" : {
-        "revision" : "671108c96644956dddcd89dd59c203dcdb36cec7",
-        "version" : "1.1.4"
+        "revision" : "c1805596154bb3a265fd91b8ac0c4433b4348fb0",
+        "version" : "1.2.0"
       }
     },
     {
@@ -42,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/ThreeMF.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "a0a03b682c4afc8f58fa0543fa64e6d3d8ccee42"
+        "revision" : "f4cc160e736bb414acdabb5d148dac0f8f8598e1",
+        "version" : "0.1.0"
       }
     },
     {
@@ -51,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/Zip.git",
       "state" : {
-        "revision" : "1ec6920a2b954d505db0d9fe06f1b83d003513dc",
-        "version" : "2.0.1"
+        "revision" : "4f0d993ea822c313acbe6be8b0d40e7cb5e3a217",
+        "version" : "2.1.0"
       }
     }
   ],

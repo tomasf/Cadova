@@ -4,72 +4,63 @@ import Manifold3D
 public struct EvaluationContext: Sendable {
     internal let cache2D = GeometryCache<D2>()
     internal let cache3D = GeometryCache<D3>()
-    internal let resultElementCache = ResultElementCache()
+
     internal init() {}
 }
 
-public typealias CacheKey = Hashable & Sendable & Codable
+internal extension EvaluationContext {
+    private func cache<D: Dimensionality>() -> GeometryCache<D> {
+        switch D.self {
+        case is D2.Type: cache2D as! GeometryCache<D>
+        case is D3.Type: cache3D as! GeometryCache<D>
+        default: fatalError()
+        }
+    }
+
+    func result<D: Dimensionality>(for node: D.Node) async throws -> EvaluationResult<D> {
+        try await cache().result(for: node, in: self)
+    }
+
+    func results<D: Dimensionality>(for nodes: [D.Node]) async throws -> [EvaluationResult<D>] {
+        try await nodes.asyncMap { try await self.result(for: $0) }
+    }
+}
 
 internal extension EvaluationContext {
-    func result<D: Dimensionality>(for node: D.Node) async -> EvaluationResult<D> {
-        if let node = node as? D2.Node {
-            return await cache2D.result(for: node, in: self) as! EvaluationResult<D>
-        } else if let node = node as? D3.Node {
-            return await cache3D.result(for: node, in: self) as! EvaluationResult<D>
-        } else {
-            preconditionFailure("Unknown geometry type")
+    func buildResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D.BuildResult {
+        try await environment.whileCurrent {
+            try await geometry.build(in: environment, context: self)
         }
     }
 
-    func results<D: Dimensionality>(for nodes: [D.Node]) async -> [EvaluationResult<D>] {
-        await nodes.asyncMap { await self.result(for: $0) }
+    func result<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> EvaluationResult<D> {
+        let buildResult = try await buildResult(for: geometry, in: environment)
+        return try await result(for: buildResult.node)
     }
+}
 
+internal extension EvaluationContext {
     // MARK: - Materialized results
 
-    func cachedMaterializedResult<D: Dimensionality, Key: CacheKey>(key: Key) async -> EvaluationResult<D>? {
-        let wrappedKey = OpaqueKey(key)
-        let node = D.Node.materialized(cacheKey: wrappedKey)
-
-        if let node = node as? D2.Node {
-            return await cache2D.cachedResult(for: node) as! EvaluationResult<D>?
-
-        } else if let node = node as? D3.Node {
-            return await cache3D.cachedResult(for: node) as! EvaluationResult<D>?
-
-        } else {
-            preconditionFailure("Unknown geometry type")
-        }
+    func cachedMaterializedResult<D: Dimensionality, Key: CacheKey>(
+        key: Key
+    ) async throws -> EvaluationResult<D>? {
+        try await cache().cachedResult(for: .materialized(cacheKey: OpaqueKey(key)))
     }
 
-    func hasCachedResult<D: Dimensionality>(for key: any CacheKey, with dimensionality: D.Type) async -> Bool {
-        (await cachedMaterializedResult(key: key) as D.Node.Result?) != nil
+    func hasCachedResult<D: Dimensionality, Key: CacheKey>(
+        for key: Key,
+        with dimensionality: D.Type
+    ) async throws -> Bool {
+        (try await cachedMaterializedResult(key: key) as EvaluationResult<D>?) != nil
     }
 
-    func storeMaterializedResult<D: Dimensionality, Key: CacheKey>(_ result: EvaluationResult<D>, key: Key) async -> D.Node {
-        let wrappedKey = OpaqueKey(key)
-        let node = D.Node.materialized(cacheKey: wrappedKey)
-
-        if let node = node as? D2.Node {
-            await cache2D.setCachedResult(result as! D2.Node.Result, for: node)
-
-        } else if let node = node as? D3.Node {
-            await cache3D.setCachedResult(result as! D3.Node.Result, for: node)
-
-        } else {
-            preconditionFailure("Unknown geometry type")
-        }
-
+    func storeMaterializedResult<D: Dimensionality, Key: CacheKey>(
+        _ result: EvaluationResult<D>,
+        key: Key
+    ) async -> D.Node {
+        let node = D.Node.materialized(cacheKey: OpaqueKey(key))
+        await cache().setCachedResult(result, for: node)
         return node
-    }
-
-    // MARK: - Result elements
-
-    func resultElements(for cacheKey: any CacheKey) async -> ResultElements? {
-        await resultElementCache.entries[OpaqueKey(cacheKey)]
-    }
-
-    func setResultElements(_ elements: ResultElements?, for cacheKey: any CacheKey) async {
-        await resultElementCache.setResultElements(elements, for: .init(cacheKey))
     }
 }

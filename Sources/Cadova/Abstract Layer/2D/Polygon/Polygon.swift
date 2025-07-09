@@ -16,7 +16,7 @@ import Manifold3D
 ///     let polygonFromBezierPath = Polygon(bezierPath)
 ///     ```
 
-public struct Polygon: CompositeGeometry {
+public struct Polygon: Shape {
     public typealias D = D2
     internal let pointsProvider: any PolygonPointsProvider
 
@@ -42,12 +42,11 @@ public struct Polygon: CompositeGeometry {
         self.init(provider: JoinedPolygonPoints(providers: polygons.map(\.pointsProvider)))
     }
 
-    @Environment(\.fillRule) private var fillRule
-    @Environment private var environment
-
     public var body: any Geometry2D {
+        @Environment var environment
+
         let polygonList = SimplePolygonList([SimplePolygon(points(in: environment))])
-        return NodeBasedGeometry(.shape(.polygons(polygonList, fillRule: fillRule)))
+        return NodeBasedGeometry(.shape(.polygons(polygonList, fillRule: environment.fillRule)))
     }
 }
 
@@ -74,11 +73,6 @@ public extension Polygon {
         .init(provider: ReversedPolygonPoints(innerProvider: pointsProvider))
     }
 
-    init(_ bezierPath: BezierPath2D, in range: ClosedRange<BezierPath.Position>) {
-        self.init(provider: BezierPathRange(bezierPath: bezierPath, range: range))
-    }
-
-    
     static func +(_ lhs: Polygon, _ rhs: Polygon) -> Polygon {
         lhs.appending(rhs)
     }

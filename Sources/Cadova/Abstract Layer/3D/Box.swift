@@ -2,7 +2,7 @@ import Foundation
 
 /// A rectangular cuboid shape
 public struct Box: Shape3D {
-    let size: Vector3D
+    public let size: Vector3D
 
     /// Initializes a new box with specific dimensions and centering options.
     /// - Parameters:
@@ -45,5 +45,27 @@ public struct Box: Shape3D {
 
     public var body: any Geometry3D {
         NodeBasedGeometry(.shape(.box(size: size)))
+    }
+}
+
+public extension Box {
+    /// The volume of the box.
+    var volume: Double {
+        size.x * size.y * size.z
+    }
+
+    /// The surface area of the box.
+    var surfaceArea: Double {
+        2 * (size.x * size.y + size.x * size.z + size.y * size.z)
+    }
+
+    /// The length of the space diagonal of the box.
+    var diagonal: Double {
+        (size.x * size.x + size.y * size.y + size.z * size.z).squareRoot()
+    }
+
+    /// The average edge length of the box.
+    var averageEdgeLength: Double {
+        (size.x + size.y + size.z) / 3
     }
 }

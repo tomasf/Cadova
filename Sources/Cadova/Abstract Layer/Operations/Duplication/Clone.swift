@@ -3,9 +3,11 @@ import Foundation
 public extension Geometry {
     /// Creates a composite geometry that includes this geometry and a transformed clone of it.
     ///
-    /// This method applies a specified transformation to a clone of the current geometry and combines the original with the transformed clone. It is useful for combining multiple states of a geometry within a single model.
+    /// This method applies a specified transformation to a clone of the current geometry and combines the original
+    /// with the transformed clone. It is useful for combining multiple states of a geometry within a single model.
     ///
-    /// - Parameter transform: A closure that takes the original geometry and returns a transformed version of it. The transformation can include translations, rotations, scaling, or any custom modifications.
+    /// - Parameter transform: A closure that takes the original geometry and returns a transformed version of it. The
+    ///   transformation can include translations, rotations, scaling, or any custom modifications.
     /// - Returns: A new geometry that combines the original and the transformed clone.
     ///
     /// Example usage:
@@ -13,10 +15,11 @@ public extension Geometry {
     /// let originalShape = Rectangle([10, 5])
     /// let compositeShape = originalShape.cloned { $0.rotated(45°) }
     /// ```
-    /// In this example, `compositeShape` includes both the original rectangle and a version that has been translated 15 units along the x-axis.
+    /// In this example, `compositeShape` includes both the original rectangle and a version that has been translated
+    /// 15 units along the x-axis.
     ///
-    func cloned(@GeometryBuilder<D> _ transform: (D.Geometry) -> D.Geometry) -> D.Geometry {
-        adding(transform(self))
+    func cloned(@GeometryBuilder<D> _ transform: @Sendable @escaping (D.Geometry) -> D.Geometry) -> D.Geometry {
+        adding { transform(self) }
     }
 }
 
@@ -38,7 +41,7 @@ public extension Geometry2D {
     ///     .clonedAt(x: 10)
     /// ```
     /// This produces two circles: the original, and another shifted 10 mm to the right.
-
+    ///
     func clonedAt(x: Double = 0, y: Double = 0) -> any Geometry2D {
         cloned { $0.translated(x: x, y: y) }
     }
@@ -63,7 +66,7 @@ public extension Geometry3D {
     ///     .clonedAt(z: 10)
     /// ```
     /// This produces two cylinders: the original, and one offset 10 mm above.
-
+    ///
     func clonedAt(x: Double = 0, y: Double = 0, z: Double = 0) -> any Geometry3D {
         cloned { $0.translated(x: x, y: y, z: z) }
     }

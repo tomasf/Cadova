@@ -2,7 +2,11 @@ import Foundation
 import Manifold3D
 
 internal extension Loft.LayerInterpolation {
-    func resampledLoft(treeLayers: [TreeLayer], interpolation: ShapingFunction, in environment: EnvironmentValues) async -> any Geometry3D {
+    func resampledLoft(
+        treeLayers: [TreeLayer],
+        interpolation: ShapingFunction,
+        in environment: EnvironmentValues
+    ) async -> any Geometry3D {
         var groups = buildPolygonGroups(layerTrees: treeLayers.map(\.1))
 
         for (index, layerPolygons) in groups.enumerated() {
@@ -26,13 +30,16 @@ internal extension Loft.LayerInterpolation {
         if interpolation == .linear {
             return mesh(for: groupsWithLevels)
         } else {
-            let interpolatedGroups = interpolatePolygonGroups(for: groupsWithLevels, curve: interpolation.function, environment: environment)
+            let interpolatedGroups = interpolatePolygonGroups(
+                for: groupsWithLevels, curve: interpolation.function, environment: environment
+            )
             return mesh(for: interpolatedGroups)
                 .simplified()
         }
     }
 
-    // Takes a list of polygon trees representing each layer. Returns a list of polygon lists, each list representing the matching polygons from each layer
+    // Takes a list of polygon trees representing each layer. Returns a list of polygon lists, each list representing
+    // the matching polygons from each layer
     func buildPolygonGroups(layerTrees: [PolygonTree]) -> [SimplePolygonList] {
         var groups = [SimplePolygonList]()
         if layerTrees[0].polygon.vertices.isEmpty == false {
@@ -57,8 +64,8 @@ internal extension Loft.LayerInterpolation {
                 // Each layer has to have at least one matching polygon tree, otherwise the input is invalid
                 precondition(candidatesPerLayer.allSatisfy({ $0.isEmpty == false }), "No topology match")
 
-                // Go through the candidates layer by layer and find the one that is nearest the pick for the previous layer
-                // and remove that one from remainingChildren so it's not included in the next pass
+                // Go through the candidates layer by layer and find the one that is nearest the pick for the previous
+                // layer and remove that one from remainingChildren so it's not included in the next pass
                 var chosenTrees = [prototype]
                 for (layerIndexMinusOne, candidates) in candidatesPerLayer.enumerated() {
                     let previousCentroid = chosenTrees.last!.polygon.centroid

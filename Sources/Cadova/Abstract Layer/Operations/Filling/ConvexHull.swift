@@ -25,7 +25,7 @@ public extension Geometry {
     /// - Returns: A new geometry representing the convex hull of the combined shape and points.
     ///
     func convexHull(adding points: [D.Vector]) -> D.Geometry {
-        CachingPrimitiveTransformer(body: self, name: "Cadova.Hull", parameters: points) {
+        CachedConcreteTransformer(body: self, name: "Cadova.Hull", parameters: points) {
             .hull($0.allVertices() + points)
         }
     }

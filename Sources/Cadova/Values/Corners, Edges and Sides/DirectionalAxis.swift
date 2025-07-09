@@ -3,6 +3,7 @@ import Foundation
 /// Represents an axis in a given dimensional space along with a linear direction on that axis.
 ///
 /// This type is useful for identifying oriented directions, such as the sides of a box (e.g., +X, -Z).
+/// 
 public struct DirectionalAxis<D: Dimensionality>: Sendable {
 
     /// The axis this direction is aligned with.

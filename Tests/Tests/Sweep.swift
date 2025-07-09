@@ -26,11 +26,11 @@ struct SweepTests {
             .swept(along: path, pointing: .down, toward: .down)
             .withSegmentation(minAngle: 4°, minSize: 0.3)
 
-        let m = await sweep.measurements
+        let m = try await sweep.measurements
 
-        #expect(m.volume ≈ 11539.408)
-        #expect(m.surfaceArea ≈ 18055.813)
-        #expect(m.boundingBox ≈ .init(minimum: [0.195, -5.603, -3], maximum: [105.831, 99.805, 155.5]))
+        #expect(m.volume ≈ 11652.703)
+        #expect(m.surfaceArea ≈ 18070.729)
+        #expect(m.boundingBox ≈ .init(minimum: [0, -5.595, -3], maximum: [105.831, 100, 155.5]))
     }
 
     // Star from example4
@@ -41,10 +41,10 @@ struct SweepTests {
 
         let sweep = ExampleTests.Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
             .swept(along: path)
-        let m = await sweep.measurements
+        let m = try await sweep.measurements
 
-        #expect(m.volume ≈ 13072.877)
-        #expect(m.surfaceArea ≈ 9220.515)
-        #expect(m.boundingBox ≈ .init(minimum: [-10.856, -1.294, -10.511], maximum: [68.983, 51.461, 10.511]))
+        #expect(m.volume ≈ 13096.084)
+        #expect(m.surfaceArea ≈ 9237.344)
+        #expect(m.boundingBox ≈ .init(minimum: [-10.8721, -1.38221, -10.5105], maximum: [68.9987, 51.5556, 10.5105]))
     }
 }

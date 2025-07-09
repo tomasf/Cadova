@@ -1,23 +1,27 @@
 import Foundation
 
-internal struct NamedCacheKey: CacheKey {
-    let operationName: String
-    let parameters: [OpaqueKey]
-
-    init(operationName: String, parameters: [any Hashable & Sendable & Codable]) {
-        self.operationName = operationName
-        self.parameters = parameters.map { OpaqueKey($0) }
-    }
-}
-
 internal extension Geometry {
     func warped(
         operationName name: String,
         cacheParameters params: [any Hashable & Sendable & Codable],
         transform: @Sendable @escaping (D.Vector) -> D.Vector
     ) -> D.Geometry {
-        CachingPrimitiveTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
+        CachedConcreteTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
             $0.warp(transform)
+        }
+    }
+
+    func warped<Shared>(
+        operationName name: String,
+        cacheParameters params: any Hashable & Sendable & Codable...,
+        initialization: @Sendable @escaping () -> Shared,
+        transform: @Sendable @escaping (D.Vector, Shared) -> D.Vector
+    ) -> D.Geometry {
+        CachedConcreteTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
+            let initData = initialization()
+            return $0.warp { v in
+                transform(v, initData)
+            }
         }
     }
 }
@@ -30,7 +34,8 @@ public extension Geometry {
     ///
     /// The operation is cached based on the supplied `operationName` and `cacheParameters`. If the same
     /// combination of input geometry and cache parameters has been previously evaluated, the cached result is reused
-    /// to avoid redundant computation. Ensure that these parameters are stable and deterministic; the same set of name + parameters should always result in an identical operation.
+    /// to avoid redundant computation. Ensure that these parameters are stable and deterministic; the same set of
+    /// name + parameters should always result in an identical operation.
     ///
     /// - Parameters:
     ///   - name: A string identifying the transformation operation. Used as part of the cache key.
@@ -58,5 +63,17 @@ public extension Geometry {
         transform: @Sendable @escaping (D.Vector) -> D.Vector
     ) -> D.Geometry {
         warped(operationName: name, cacheParameters: params, transform: transform)
+    }
+
+    func warped(
+        operationName name: String,
+        cacheParameters params: any Hashable & Sendable & Codable...,
+        transform: @Sendable @escaping (inout D.Vector) -> ()
+    ) -> D.Geometry {
+        warped(operationName: name, cacheParameters: params) {
+            var p = $0
+            transform(&p)
+            return p
+        }
     }
 }

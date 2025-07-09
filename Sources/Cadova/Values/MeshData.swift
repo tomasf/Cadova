@@ -31,7 +31,9 @@ public struct MeshData: Sendable, Hashable, Codable {
 }
 
 internal extension MeshData {
-    // Calculates the signed volume of the mesh. A positive volume indicates that the faces are consistently outward-facing. A negative volume indicates that the faces are inward-facing (inside out). This assumes the mesh is closed and manifold.
+    // Calculates the signed volume of the mesh. A positive volume indicates that the faces are consistently
+    // outward-facing. A negative volume indicates that the faces are inward-facing (inside out). This assumes the
+    // mesh is closed and manifold.
     var signedVolume: Double {
         var volume = 0.0
         for face in faces {

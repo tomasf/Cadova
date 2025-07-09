@@ -4,7 +4,7 @@ import Foundation
 ///
 /// This type expresses a simple binary direction: forward (`.positive`) or backward (`.negative`),
 /// typically used when working with one-dimensional or aligned behaviors.
-public enum LinearDirection: Sendable, Hashable, CaseIterable {
+public enum LinearDirection: Sendable, Hashable, CaseIterable, Comparable {
     /// The forward or increasing direction (typically toward positive infinity).
     case positive
     /// The backward or decreasing direction (typically toward negative infinity).
@@ -18,5 +18,9 @@ public enum LinearDirection: Sendable, Hashable, CaseIterable {
 
     internal var factor: Double {
         self == .negative ? -1 : 1
+    }
+
+    public static func < (lhs: LinearDirection, rhs: LinearDirection) -> Bool {
+        lhs == .negative && rhs == .positive
     }
 }

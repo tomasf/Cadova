@@ -12,7 +12,12 @@ struct GeometryNodeCodableTests {
             ),
             .convexHull(
                 .offset(
-                    .shape(.polygon(points: [.init(x: 0, y: 0), .init(x: 1, y: 0), .init(x: 0, y: 1)], fillRule: .nonZero)),
+                    .shape(.polygons(
+                        SimplePolygonList([
+                            SimplePolygon([[0,0 ], [1, 0], [0, 1]])
+                        ]),
+                        fillRule: .nonZero)
+                    ),
                     amount: 1.5,
                     joinStyle: .round,
                     miterLimit: 2.0,

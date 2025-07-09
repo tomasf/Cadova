@@ -87,16 +87,6 @@ public extension Line {
     func translated(by offset: D.Vector) -> Line {
         Line(point: point + offset, direction: direction)
     }
-
-    /// Returns a new line with the direction rotated using the provided rotation.
-    ///
-    /// This applies the rotation to both the point and the direction.
-    ///
-    /// - Parameter rotation: The rotation to apply.
-    /// - Returns: A new rotated line.
-    func rotated(by rotation: D.Transform.Rotation) -> Line {
-        Line(point: point, direction: direction.rotated(rotation))
-    }
 }
 
 public extension Line<D2> {
@@ -108,6 +98,16 @@ public extension Line<D2> {
     /// - Returns: A new translated line.
     func translated(x: Double = 0, y: Double = 0) -> Line {
         translated(by: D.Vector(x, y))
+    }
+
+    /// Returns a new line with the direction rotated using the provided rotation.
+    ///
+    /// This applies the rotation to both the point and the direction.
+    ///
+    /// - Parameter rotation: The rotation to apply.
+    /// - Returns: A new rotated line.
+    func rotated(by rotation: Angle) -> Line {
+        Line(point: point, direction: direction.rotated(rotation))
     }
 
     /// Computes the intersection point with another line, if one exists.
@@ -155,7 +155,7 @@ public extension Line<D3> {
     ///   - z: The rotation angle in degrees around the Z axis.
     /// - Returns: A new line rotated by the given angles.
     func rotated(x: Angle = .zero, y: Angle = .zero, z: Angle = .zero) -> Line {
-        rotated(by: Rotation3D(x: x, y: y, z: z))
+        Line(point: point, direction: direction.rotated(x: x, y: y, z: z))
     }
 
     /// A line extending along the X axis from the origin.

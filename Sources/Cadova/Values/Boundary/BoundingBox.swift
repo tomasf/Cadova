@@ -4,7 +4,9 @@ import Manifold3D
 public typealias BoundingBox2D = BoundingBox<D2>
 public typealias BoundingBox3D = BoundingBox<D3>
 
-/// An axis-aligned bounding volume defined by its minimum and maximum corners, used to calculate and represent the bounding area or volume of shapes or points in a generic vector space.
+/// An axis-aligned bounding volume defined by its minimum and maximum corners, used to calculate and represent the
+/// bounding area or volume of shapes or points in a generic vector space.
+///
 public struct BoundingBox<D: Dimensionality>: Sendable {
     /// The minimum corner point of the bounding volume, typically representing the "lower" corner in geometric space.
     public let minimum: D.Vector
@@ -36,7 +38,8 @@ public struct BoundingBox<D: Dimensionality>: Sendable {
         self.init(minimum: vector, maximum: vector)
     }
 
-    /// Initializes a `BoundingBox` from a sequence of vectors. It efficiently calculates the minimum and maximum vectors that enclose all vectors in the sequence.
+    /// Initializes a `BoundingBox` from a sequence of vectors. It efficiently calculates the minimum and maximum
+    /// vectors that enclose all vectors in the sequence.
     /// - Parameter sequence: A sequence of vectors.
     public init<S: Sequence<D.Vector>>(_ sequence: S) {
         let points = Array(sequence)
@@ -72,22 +75,24 @@ public struct BoundingBox<D: Dimensionality>: Sendable {
 extension BoundingBox {
     /// The size of the bounding volume.
     ///
-    /// This property calculates the size of the bounding volume as the difference between its maximum and minimum points, representing the volume's dimensions in each axis.
+    /// This property calculates the size of the bounding volume as the difference between its maximum and minimum
+    /// points, representing the volume's dimensions in each axis.
     public var size: D.Vector {
         maximum - minimum
     }
 
     /// The center point of the bounding volume.
     ///
-    /// This property calculates the center of the bounding volume, which is halfway between the minimum and maximum points. It represents the geometric center of the volume.
+    /// This property calculates the center of the bounding volume, which is halfway between the minimum and maximum
+    /// points. It represents the geometric center of the volume.
     public var center: D.Vector {
         minimum + size / 2.0
     }
 
     /// Accesses the range of values in the specified axis within the bounding box.
     ///
-    /// This subscript returns the range of coordinates along the provided axis (e.g., x, y, or z for a 3D bounding box).
-    /// The range is defined by the bounding box's minimum and maximum values along that axis.
+    /// This subscript returns the range of coordinates along the provided axis (e.g., x, y, or z for a 3D bounding
+    /// box). The range is defined by the bounding box's minimum and maximum values along that axis.
     ///
     /// - Parameter axis: The axis for which to retrieve the coordinate range.
     /// - Returns: A `Range<Double>` representing the minimum to maximum coordinates along the given axis.
@@ -102,16 +107,21 @@ extension BoundingBox {
 
     /// Determines whether the bounding box is valid.
     ///
-    /// A bounding box is considered valid if it represents a real geometric area or volume, which means all its dimensions must be non-negative. This property checks that the size of the bounding box in each dimension is greater than or equal to zero, ensuring the box does not represent an inverted or non-existent space.
+    /// A bounding box is considered valid if it represents a real geometric area or volume, which means all its
+    /// dimensions must be non-negative. This property checks that the size of the bounding box in each dimension is
+    /// greater than or equal to zero, ensuring the box does not represent an inverted or non-existent space.
     public var isValid: Bool {
         !size.contains { $0 < 0 }
     }
 
     /// Calculates the intersection of this bounding volume with another.
     ///
-    /// This method returns a new `BoundingBox` representing the volume that is common to both this and another bounding volume. If the bounding volumes do not intersect, the result is a bounding volume with zero size at the point of closest approach.
+    /// This method returns a new `BoundingBox` representing the volume that is common to both this and another
+    /// bounding volume. If the bounding volumes do not intersect, the result is a bounding volume with zero size at
+    /// the point of closest approach.
     /// - Parameter other: The other bounding volume to intersect with.
     /// - Returns: A `BoundingBox` representing the intersection of the two volumes.
+    ///
     public func intersection(with other: Self) -> BoundingBox? {
         let overlap = BoundingBox(minimum: D.Vector.max(minimum, other.minimum), maximum: D.Vector.min(maximum, other.maximum))
         return overlap.isValid ? overlap : nil
@@ -119,9 +129,12 @@ extension BoundingBox {
 
     /// Expands or contracts the bounding volume.
     ///
-    /// This method returns a new `BoundingBox` that has been expanded or contracted by the specified vector. The expansion occurs outward from the center in all dimensions if the vector's components are positive, and inward if they are negative.
+    /// This method returns a new `BoundingBox` that has been expanded or contracted by the specified vector. The
+    /// expansion occurs outward from the center in all dimensions if the vector's components are positive, and inward
+    /// if they are negative.
     /// - Parameter expansion: The vector by which to expand or contract the bounding volume.
     /// - Returns: A `BoundingBox` that has been offset by the expansion vector.
+    /// 
     public func offset(_ expansion: D.Vector) -> BoundingBox {
         .init(minimum: minimum - expansion, maximum: maximum + expansion)
     }

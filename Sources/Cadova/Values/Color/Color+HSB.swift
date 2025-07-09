@@ -11,7 +11,8 @@ public extension Color {
     ///   - hue: The hue of the color, ranging from 0.0 to 1.0.
     ///   - saturation: The saturation of the color, ranging from 0.0 to 1.0.
     ///   - brightness: The brightness of the color, ranging from 0.0 to 1.0.
-    ///   - alpha: The alpha (transparency) component of the color, ranging from 0.0 (fully transparent) to 1.0 (fully opaque). Default value is 1.0.
+    ///   - alpha: The alpha (transparency) component of the color, ranging from 0.0 (fully transparent) to 1.0 (fully
+    ///     opaque). Default value is 1.0.
     ///
     init(hue: Double, saturation: Double, brightness: Double, alpha: Double = 1.0) {
         let h = hue * 6.0 // Scale hue to be in the range [0, 6)
@@ -70,7 +71,12 @@ public extension Color {
     ///   - bDelta: The amount to adjust the brightness by, in the range [-1, 1].
     ///   - aDelta: The amount to adjust the alpha by, in the range [-1, 1].
     /// - Returns: A new `Color` instance with the adjusted HSBA values.
-    func adjusting(hue hDelta: Double = 0, saturation sDelta: Double = 0, brightness bDelta: Double = 0, alpha aDelta: Double = 0) -> Color {
+    func adjusting(
+        hue hDelta: Double = 0,
+        saturation sDelta: Double = 0,
+        brightness bDelta: Double = 0,
+        alpha aDelta: Double = 0
+    ) -> Color {
         let hsba = self.hsbaComponents
         return Color(
             hue: (hsba.hue + hDelta).truncatingRemainder(dividingBy: 1),

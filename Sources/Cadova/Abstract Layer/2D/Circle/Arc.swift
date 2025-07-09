@@ -29,13 +29,12 @@ public struct Arc: Shape2D {
         self.init(range: range, radius: diameter / 2)
     }
 
-    @Environment(\.segmentation) private var segmentation
-
     public var body: any Geometry2D {
+        @Environment(\.segmentation) var segmentation
         Polygon([.zero] + arcPoints(segmentation: segmentation))
     }
 
-    private func arcPoints(segmentation: EnvironmentValues.Segmentation) -> [Vector2D] {
+    private func arcPoints(segmentation: Segmentation) -> [Vector2D] {
         let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: range.length)
 
         return (0...segmentCount).map { i -> Vector2D in
@@ -45,7 +44,7 @@ public struct Arc: Shape2D {
     }
 }
 
-extension Arc: Area2D {
+extension Arc: Area {
     public var angularDistance: Angle { range.length }
     public var area: Double { radius * radius * .pi * (angularDistance / 360°) }
 }

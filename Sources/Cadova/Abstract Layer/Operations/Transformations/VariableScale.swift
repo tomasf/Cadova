@@ -28,8 +28,8 @@ public extension Geometry3D {
     ///     func sinusoidallyScaled(in scaleRange: Range<Double>, period: Double) -> any Geometry3D {
     ///         refined(maxEdgeLength: 0.5)
     ///             .scaled(along: .z, operationName: "sinusoidallyScaled", cacheParameters: scaleRange, period) { z in
-    ///                 let t = (sin(z * (.pi * 2) / period) + 1) * 0.5
-    ///                 let scale = scaleRange.lowerBound + t * scaleRange.length
+    ///                 let t = (sin(z * 360° / period) + 1) * 0.5
+    ///                 let scale = scaleRange.lowerBound + t * (scaleRange.upperBound - scaleRange.lowerBound)
     ///                 return Vector2D(scale, scale)
     ///             }
     ///             .simplified()

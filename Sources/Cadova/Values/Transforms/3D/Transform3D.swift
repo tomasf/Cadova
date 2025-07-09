@@ -57,14 +57,16 @@ public struct Transform3D: Transform {
 
     /// Computes the inverse of the affine transformation, if possible.
     ///
-    /// - Returns: The inverse `Transform3D`, which, when concatenated with the original transform, results in the identity transform. If the matrix is not invertible, the behavior is undefined.
+    /// - Returns: The inverse `Transform3D`, which, when concatenated with the original transform, results in the
+    /// identity transform. If the matrix is not invertible, the behavior is undefined.
     public var inverse: Transform3D {
         .init(matrix.inverse)
     }
 
     /// Applies a custom transformation function to each element of the matrix.
     ///
-    /// - Parameter function: A transformation function that takes row and column indices, along with the current value, and returns a new value.
+    /// - Parameter function: A transformation function that takes row and column indices, along with the current
+    ///   value, and returns a new value.
     /// - Returns: A new `Transform3D` with the function applied to each element of the matrix.
     public func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> Transform3D {
         .init(
@@ -103,11 +105,12 @@ public extension Transform3D {
         return Vector3D(matrixColumn: matrix * point.matrixColumn)
     }
 
-    /// The offset of the transformation, defined as the result of applying the affine transformation to the origin point
+    /// The offset of the transformation, defined as the result of applying the affine transformation to the origin
+    /// point
     ///
-    /// This property represents the transformed position of the origin after applying
-    /// the full affine transformation, including translation, rotation, scaling, and other effects.
-    /// It effectively shows where the origin of the coordinate space is mapped in the transformed space.
+    /// This property represents the transformed position of the origin after applying the full affine transformation,
+    /// including translation, rotation, scaling, and other effects. It effectively shows where the origin of the
+    /// coordinate space is mapped in the transformed space.
     ///
     var offset: Vector3D {
         apply(to: .zero)

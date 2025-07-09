@@ -1,0 +1,90 @@
+{
+  "parts" : [
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 1,
+          "blue" : 1,
+          "green" : 1,
+          "red" : 1
+        }
+      },
+      "name" : "Model",
+      "type" : "solid"
+    },
+    {
+      "body" : {
+        "crossSection" : {
+          "body" : {
+            "kind" : "shape2D",
+            "primitive" : {
+              "circle" : {
+                "radius" : 5,
+                "segmentCount" : 180
+              }
+            }
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              -1,
+              0,
+              0
+            ],
+            [
+              -0,
+              -1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "kind" : "extrusion",
+        "type" : {
+          "linear" : {
+            "divisions" : 0,
+            "height" : 1,
+            "scaleTop" : {
+              "x" : 1,
+              "y" : 1
+            },
+            "twist" : {
+              "degrees" : 0
+            }
+          }
+        }
+      },
+      "kind" : "transform",
+      "transform" : [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -1,
+          0
+        ],
+        [
+          -0,
+          1,
+          -0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    }
+  ]
+}

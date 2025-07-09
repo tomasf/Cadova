@@ -3,74 +3,43 @@ import Foundation
 struct EnvironmentReader<D: Dimensionality>: Geometry {
     let body: @Sendable (EnvironmentValues) -> D.Geometry
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        await body(environment).build(in: environment, context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await context.buildResult(for: body(environment), in: environment)
     }
 }
 
 /// Creates a geometry that can read and respond to the current environment settings.
 ///
-/// Use this function to create a geometry that has access to environmental information. This allows for dynamic and conditional geometry creation based on the current environment settings such as segmentation, tolerance, or custom values you've defined.
+/// Use this function to create a geometry that has access to environmental information. This allows for dynamic and
+/// conditional geometry creation based on the current environment settings such as segmentation, tolerance, or custom
+/// values you've defined.
 ///
-/// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a new `Geometry2D` instance based on that environment.
+/// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a new geometry instance
+///   based on that environment.
 /// - Returns: A geometry instance that can be dynamically created based on the current environment.
+///
 public func readEnvironment<D: Dimensionality>(
     @GeometryBuilder<D> _ body: @Sendable @escaping (EnvironmentValues) -> D.Geometry
 ) -> D.Geometry {
     EnvironmentReader(body: body)
 }
 
-/// Creates a geometry that reads a specific environment value and adjusts its geometry accordingly.
+/// Creates a geometry that reads specific environment values and adjusts its geometry accordingly.
 ///
-/// This overload reads one specific key path from the environment and uses it within the body to create `Geometry2D`.
+/// This overload reads specific key paths from the environment and uses them within the body to create geometry.
 /// - Parameters:
-///   - keyPath1: A key path to the specific value in `EnvironmentValues` used in geometry creation.
-///   - body: A closure that takes the specified environment value and returns a `Geometry` instance based on that value.
-/// - Returns: A dynamically created geometry instance that responds to the specified environment value.
-public func readEnvironment<D: Dimensionality, T>(
-    _ keyPath1: KeyPath<EnvironmentValues, T>,
-    @GeometryBuilder<D> _ body: @Sendable @escaping (T) -> D.Geometry
-) -> D.Geometry {
-    readEnvironment {
-        body($0[keyPath: keyPath1])
-    }
-}
-
-/// Creates a geometry that reads two specific environment values and adjusts its geometry accordingly.
+///   - keyPaths: A variadic list of key paths to specific values in `EnvironmentValues` used in geometry creation.
+///   - body: A closure that takes the specified environment values and returns geometry based on those values.
+/// - Returns: A dynamically created geometry instance that responds to the specified environment values.
 ///
-/// This overload reads two specific key paths from the environment and uses them to inform the body closure’s geometry creation.
-/// - Parameters:
-///   - keyPath1: A key path to the first specific value in `EnvironmentValues`.
-///   - keyPath2: A key path to the second specific value in `EnvironmentValues`.
-///   - body: A closure that takes the two specified environment values and returns a `Geometry` instance based on them.
-/// - Returns: A geometry instance dynamically created based on the specified environment values.
-public func readEnvironment<D: Dimensionality, T, U>(
-    _ keyPath1: KeyPath<EnvironmentValues, T>,
-    _ keyPath2: KeyPath<EnvironmentValues, U>,
-    @GeometryBuilder<D> _ body: @Sendable @escaping (T, U) -> D.Geometry
+public func readEnvironment<D: Dimensionality, each EachValue>(
+    _ keyPaths: repeat KeyPath<EnvironmentValues, each EachValue>,
+    @GeometryBuilder<D> body: @Sendable @escaping (repeat each EachValue) -> D.Geometry
 ) -> D.Geometry {
-    readEnvironment {
-        body($0[keyPath: keyPath1], $0[keyPath: keyPath2])
-    }
-}
-
-/// Creates a geometry that reads three specific environment values and adjusts its geometry accordingly.
-///
-/// This overload reads three specific key paths from the environment and uses them to inform the body closure’s geometry creation.
-/// - Parameters:
-///   - keyPath1: A key path to the first specific value in `EnvironmentValues`.
-///   - keyPath2: A key path to the second specific value in `EnvironmentValues`.
-///   - keyPath3: A key path to the third specific value in `EnvironmentValues`.
-///   - body: A closure that takes the three specified environment values and returns a `Geometry` instance based on them.
-/// - Returns: A geometry instance dynamically created based on the specified environment values.
-public func readEnvironment<D: Dimensionality, T, U, V>(
-    _ keyPath1: KeyPath<EnvironmentValues, T>,
-    _ keyPath2: KeyPath<EnvironmentValues, U>,
-    _ keyPath3: KeyPath<EnvironmentValues, V>,
-    @GeometryBuilder<D> _ body: @Sendable @escaping (T, U, V) -> D.Geometry
-) -> D.Geometry {
-    readEnvironment {
-        body($0[keyPath: keyPath1], $0[keyPath: keyPath2], $0[keyPath: keyPath3])
+    // localKeyPaths is needed due to a Swift bug. Should get fixed by https://github.com/swiftlang/swift/pull/80220
+    let localKeyPaths = (repeat each keyPaths)
+    return readEnvironment { environment in
+        body(repeat environment[keyPath: each localKeyPaths])
     }
 }
 
@@ -78,8 +47,10 @@ extension Geometry {
     /// Modifies this geometry by reading the current environment values.
     ///
     /// Use this modifier when you want to adjust an existing geometry in response to the environment.
-    /// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a modified version of this geometry.
+    /// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a modified version of
+    ///   this geometry.
     /// - Returns: A new geometry modified according to the environment.
+    ///
     public func readingEnvironment(
         @GeometryBuilder<D> _ body: @Sendable @escaping (D.Geometry, EnvironmentValues) -> D.Geometry
     ) -> D.Geometry {
@@ -88,36 +59,22 @@ extension Geometry {
         }
     }
 
-    /// Modifies this geometry by reading one specific environment value.
-    public func readingEnvironment<T>(
-        _ keyPath: KeyPath<EnvironmentValues, T>,
-        @GeometryBuilder<D> _ body: @Sendable @escaping (D.Geometry, T) -> D.Geometry
+    /// Modifies this geometry by reading specific environment values.
+    ///
+    /// This overload allows you to specify exactly which environment values to read using key paths.
+    /// The geometry is then modified using the current values of those keys.
+    ///
+    /// - Parameters:
+    ///   - keyPaths: A variadic list of key paths into `EnvironmentValues` that this geometry depends on.
+    ///   - body: A closure that takes the current geometry and the specified environment values to return a modified geometry.
+    /// - Returns: A new geometry adjusted according to the specified environment values.
+    ///
+    public func readingEnvironment<each EachValue>(
+        _ keyPaths: repeat KeyPath<EnvironmentValues, each EachValue>,
+        @GeometryBuilder<D> body: @Sendable @escaping (D.Geometry, repeat each EachValue) -> D.Geometry
     ) -> D.Geometry {
-        readEnvironment(keyPath) { value in
-            body(self, value)
-        }
-    }
-
-    /// Modifies this geometry by reading two specific environment values.
-    public func readingEnvironment<T, U>(
-        _ keyPath1: KeyPath<EnvironmentValues, T>,
-        _ keyPath2: KeyPath<EnvironmentValues, U>,
-        @GeometryBuilder<D> _ body: @Sendable @escaping (D.Geometry, T, U) -> D.Geometry
-    ) -> D.Geometry {
-        readEnvironment(keyPath1, keyPath2) { v1, v2 in
-            body(self, v1, v2)
-        }
-    }
-
-    /// Modifies this geometry by reading three specific environment values.
-    public func readingEnvironment<T, U, V>(
-        _ keyPath1: KeyPath<EnvironmentValues, T>,
-        _ keyPath2: KeyPath<EnvironmentValues, U>,
-        _ keyPath3: KeyPath<EnvironmentValues, V>,
-        @GeometryBuilder<D> _ body: @Sendable @escaping (D.Geometry, T, U, V) -> D.Geometry
-    ) -> D.Geometry {
-        readEnvironment(keyPath1, keyPath2, keyPath3) { v1, v2, v3 in
-            body(self, v1, v2, v3)
+        return readEnvironment(repeat each keyPaths) { (values: repeat each EachValue) in
+            body(self, repeat each values)
         }
     }
 }

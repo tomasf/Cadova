@@ -1,7 +1,8 @@
 import Foundation
 
 public extension BezierPath {
-    /// Adds a Bezier curve to the path using the specified control points. This method can be used to add curves with any number of control points beyond the basic line, quadratic, and cubic curves.
+    /// Adds a Bezier curve to the path using the specified control points. This method can be used to add curves with
+    /// any number of control points beyond the basic line, quadratic, and cubic curves.
     ///
     /// - Parameter controlPoints: A variadic list of control points defining the Bezier curve.
     /// - Returns: A new `BezierPath` instance with the added Bezier curve.
@@ -9,7 +10,8 @@ public extension BezierPath {
         adding(curve: Curve(controlPoints: [endPoint] + controlPoints))
     }
 
-    /// Adds a Bezier curve to the path using the specified control points. This method can be used to add curves with any number of control points beyond the basic line, quadratic, and cubic curves.
+    /// Adds a Bezier curve to the path using the specified control points. This method can be used to add curves with
+    /// any number of control points beyond the basic line, quadratic, and cubic curves.
     ///
     /// - Parameter controlPoints: A list of control points defining the Bezier curve.
     /// - Returns: A new `BezierPath` instance with the added Bezier curve.
@@ -18,7 +20,8 @@ public extension BezierPath {
     }
 
     /// Adds a C1 continuous Bezier curve to the path, ensuring smooth transitions between curves.
-    /// The first control point is positioned at a fixed direction from the last endpoint, with the specified distance allowing for control over the curve’s sharpness or smoothness.
+    /// The first control point is positioned at a fixed direction from the last endpoint, with the specified distance
+    /// allowing for control over the curve’s sharpness or smoothness.
     ///
     /// - Parameters:
     ///   - distance: The distance to place the first control point from the last endpoint in a fixed direction.
@@ -37,7 +40,8 @@ public extension BezierPath {
         adding(curve: Curve(controlPoints: [endPoint, point]))
     }
 
-    /// Adds a C1 continuous line segment from the last point of the `BezierPath`, positioning the control point in a fixed direction with the specified distance for smooth transitions.
+    /// Adds a C1 continuous line segment from the last point of the `BezierPath`, positioning the control point in a
+    /// fixed direction with the specified distance for smooth transitions.
     ///
     /// - Parameter distance: The distance to place the control point from the last endpoint in a fixed direction.
     /// - Returns: A new `BezierPath` instance with the added C1 continuous line segment.
@@ -56,8 +60,9 @@ public extension BezierPath {
         adding(curve: Curve(controlPoints: [endPoint, controlPoint, end]))
     }
 
-    /// Adds a C1 continuous quadratic Bezier curve to the `BezierPath`, fixing the direction of the control point from the previous curve’s endpoint for a smooth transition.
-    /// The control point is placed at a specified distance from the start of the curve.
+    /// Adds a C1 continuous quadratic Bezier curve to the `BezierPath`, fixing the direction of the control point from
+    /// the previous curve’s endpoint for a smooth transition. The control point is placed at a specified distance from
+    /// the start of the curve.
     ///
     /// - Parameters:
     ///   - distance: The distance to place the control point from the start in a fixed direction.
@@ -79,8 +84,9 @@ public extension BezierPath {
         adding(curve: Curve(controlPoints: [endPoint, controlPoint1, controlPoint2, end]))
     }
 
-    /// Adds a C1 continuous cubic Bezier curve to the `BezierPath`, aligning the first control point directionally for a smooth transition from the previous curve.
-    /// The distance parameter controls the position of the first control point, and the second control point is user-defined.
+    /// Adds a C1 continuous cubic Bezier curve to the `BezierPath`, aligning the first control point directionally for
+    /// a smooth transition from the previous curve. The distance parameter controls the position of the first control
+    /// point, and the second control point is user-defined.
     ///
     /// - Parameters:
     ///   - distance: The distance to place the first control point from the start point in a fixed direction.

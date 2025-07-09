@@ -14,11 +14,11 @@ struct SplitTests {
     }
 
     @Test func separated() async throws {
-        await Box(1).adding { Box(1).translated(x: 0.5) }
+        try await Box(1).adding { Box(1).translated(x: 0.5) }
             .separated { #expect($0.count == 1) }
             .triggerEvaluation()
 
-        await Box(1).adding { Box(1).translated(x: 1.1) }
+        try await Box(1).adding { Box(1).translated(x: 1.1) }
             .separated { #expect($0.count == 2) }
             .triggerEvaluation()
     }

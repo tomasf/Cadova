@@ -19,16 +19,17 @@ struct Geometry2DTests {
         .expectEquals(goldenFile: "2d/basics")
     }
 
-
     @Test func circular() async throws {
         try await Union {
             Circle(diameter: 8)
                 .scaled(x: 2)
             Arc(range: 20°..<160°, radius: 4)
                 .translated(x: 15)
-            Teardrop(diameter: 5)
+            Circle(diameter: 5)
+                .overhangSafe(.teardrop)
                 .translated(x: 22)
-            Teardrop(diameter: 4, style: .flat)
+            Circle(diameter: 4)
+                .overhangSafe(.bridge)
                 .withOverhangAngle(30°)
                 .translated(x: 27)
             CylinderBridge(bottomDiameter: 10, topDiameter: 6)
@@ -41,9 +42,9 @@ struct Geometry2DTests {
 
     @Test func roundedRectangle() async throws {
         try await Rectangle(x: 10, y: 10)
-            .roundingRectangleCorners(.bottomLeft, radius: 5)
-            .roundingRectangleCorners(.bottomRight, radius: 3)
-            .roundingRectangleCorners(.topRight, radius: 2)
+            .applyingEdgeProfile(.fillet(radius: 5), to: .bottomLeft)
+            .applyingEdgeProfile(.fillet(radius: 3), to: .bottomRight)
+            .applyingEdgeProfile(.fillet(radius: 2), to: .topRight)
             .aligned(at: .centerX)
             .rotated(45°)
             .translated(x: -3)

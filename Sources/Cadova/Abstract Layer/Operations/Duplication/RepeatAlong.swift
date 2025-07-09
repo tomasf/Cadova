@@ -33,7 +33,8 @@ extension Geometry2D {
     /// Repeat the geometry along an axis
     /// - Parameters:
     ///   - axis: The axis to repeat along
-    ///   - range: The range of offsets to repeat within. The last repetition will occur at the upper bound of this range.
+    ///   - range: The range of offsets to repeat within. The last repetition will occur at the upper bound of this
+    ///     range.
     ///   - count: The number of geometries to generate
     /// - Returns: A new geometry with this geometry repeated
 
@@ -119,7 +120,8 @@ extension Geometry3D {
     /// Repeat the geometry along an axis
     /// - Parameters:
     ///   - axis: The axis to repeat along
-    ///   - range: The range of offsets to repeat within. The last repetition will occur at the upper bound of this range.
+    ///   - range: The range of offsets to repeat within. The last repetition will occur at the upper bound of this
+    ///     range.
     ///   - count: The number of geometries to generate
     /// - Returns: A new geometry with this geometry repeated
 

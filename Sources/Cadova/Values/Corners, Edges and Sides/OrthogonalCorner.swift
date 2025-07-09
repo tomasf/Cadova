@@ -1,7 +1,7 @@
 import Foundation
 
 // A corner of a rectangular shape (Rectangle / Box)
-public struct OrthogonalCorner<D: Dimensionality>: Sendable, Hashable {
+public struct OrthogonalCorner<D: Dimensionality>: Sendable, Hashable, Comparable {
     let axisDirections: DimensionalValues<LinearDirection, D>
 
     internal init(axisDirections: DimensionalValues<LinearDirection, D>) {
@@ -20,5 +20,9 @@ public struct OrthogonalCorner<D: Dimensionality>: Sendable, Hashable {
 
     internal func point(boxSize: D.Vector) -> D.Vector {
         axisDirections.map { boxSize[$0] / 2 * $1.factor }.vector
+    }
+
+    public static func < (lhs: Self, rhs: Self) -> Bool {
+        lhs.axisDirections < rhs.axisDirections
     }
 }
