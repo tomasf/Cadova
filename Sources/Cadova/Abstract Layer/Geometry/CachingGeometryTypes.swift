@@ -131,7 +131,7 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
             let concretes = try generator(nodeResult.concrete)
 
             geometries = try await Array(concretes.enumerated()).asyncMap { index, concrete in
-                let indexedKey = IndexedCacheKey(base: key, index: index)
+                let indexedKey = IndexedCacheKey(base: bakedKey, index: index)
                 let node: D.Node = try await context.storeMaterializedResult(nodeResult.modified { _ in concrete }, key: indexedKey)
                 return bodyResult.replacing(node: node)
             }
