@@ -3,7 +3,7 @@ import Foundation
 public struct Empty<D: Dimensionality>: Geometry {
     public init() {}
     
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         .init(.empty)
     }
 }
@@ -21,23 +21,23 @@ struct NodeBasedGeometry<D: Dimensionality>: Geometry {
         self.node = node
     }
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         .init(node)
     }
 }
 
 struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geometry {
-    let transformer: @Sendable (EnvironmentValues, EvaluationContext) async -> D.BuildResult
+    let transformer: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.BuildResult
 
     init(
         body: Input.Geometry,
-        nodeTransformer: @Sendable @escaping (Input.Node) -> D.Node,
+        nodeTransformer: @Sendable @escaping (Input.Node) throws -> D.Node,
         environment environmentTransformer: (@Sendable (EnvironmentValues) -> EnvironmentValues)? = nil
     ) {
         transformer = { environment, context in
             let newEnvironment = environmentTransformer?(environment) ?? environment
-            let bodyResult = await body.build(in: newEnvironment, context: context)
-            return bodyResult.replacing(node: nodeTransformer(bodyResult.node))
+            let bodyResult = try await context.buildResult(for: body, in: newEnvironment)
+            return bodyResult.replacing(node: try nodeTransformer(bodyResult.node))
         }
     }
 
@@ -46,38 +46,35 @@ struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geomet
         nodeTransformer: @Sendable @escaping ([Input.Node]) -> D.Node
     ) {
         transformer = { environment, context in
-            let results = await bodies.asyncMap { await $0.build(in: environment, context: context) }
+            let results = try await bodies.asyncMap { try await context.buildResult(for: $0, in: environment) }
             let node = nodeTransformer(results.map(\.node))
             return .init(node: node, elements: .init(combining: results.map(\.elements)))
         }
     }
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        await transformer(environment, context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await transformer(environment, context)
     }
 }
-
-// Dimensionality-independent Shape equivalent
-
-public protocol CompositeGeometry: Geometry {
-    var body: D.Geometry { get }
-}
-
-extension CompositeGeometry {
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        await environment.whileCurrent {
-            await body.build(in: environment, context: context)
-        }
-    }
-}
-
 
 struct BooleanGeometry<D: Dimensionality>: Geometry {
     let children: [D.Geometry]
     let type: BooleanOperationType
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        let childResults = await children.asyncMap { await $0.build(in: environment, context: context) }
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let childResults = try await children.asyncMap { try await context.buildResult(for: $0, in: environment) }
         return .init(combining: childResults, operationType: type)
+    }
+}
+
+struct Deferred<D: Dimensionality>: Geometry {
+    let body: @Sendable () -> D.Geometry
+
+    init(_ body: @Sendable @escaping () -> D.Geometry) {
+        self.body = body
+    }
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await context.buildResult(for: body(), in: environment)
     }
 }

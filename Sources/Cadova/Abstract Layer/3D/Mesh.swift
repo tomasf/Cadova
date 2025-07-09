@@ -11,9 +11,7 @@ import Manifold3D
 /// Use this type when importing or constructing complex geometry manually, such as converting from external
 /// sources, procedural generation, or custom geometry definitions.
 
-public struct Mesh: CompositeGeometry {
-    public typealias D = D3
-
+public struct Mesh: Shape3D {
     let meshData: MeshData
 
     internal init(_ meshData: MeshData) {
@@ -119,5 +117,31 @@ public extension Mesh {
     /// - Returns: A mesh with outward-facing normals.
     func correctingFaceWinding() -> Mesh {
         meshData.signedVolume < 0 ? Self(meshData.flipped()) : self
+    }
+}
+
+
+public extension Mesh {
+    /// Returns the total enclosed volume of the mesh, assuming a watertight solid.
+    ///
+    /// A positive value indicates outward-facing face winding. If the result is negative,
+    /// consider calling `correctingFaceWinding()` to fix the orientation.
+    var volume: Double {
+        meshData.signedVolume
+    }
+
+    /// Returns the total surface area of the mesh, calculated from triangulated faces.
+    var surfaceArea: Double {
+        meshData.faces.reduce(0.0) { total, face in
+            guard face.count >= 3 else { return total }
+            let p0 = meshData.vertices[face[0]]
+            var faceArea = 0.0
+            for i in 1..<(face.count - 1) {
+                let p1 = meshData.vertices[face[i]]
+                let p2 = meshData.vertices[face[i + 1]]
+                faceArea += ((p1 - p0) × (p2 - p0)).magnitude * 0.5
+            }
+            return total + faceArea
+        }
     }
 }

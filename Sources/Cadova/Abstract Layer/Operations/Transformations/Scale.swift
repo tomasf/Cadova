@@ -3,7 +3,8 @@ import Foundation
 public extension Geometry {
     /// Scale geometry uniformly or non-uniformly.
     ///
-    /// This method allows scaling the geometry by a specified vector, where each component of the vector represents the scaling factor along the corresponding axis.
+    /// This method allows scaling the geometry by a specified vector, where each component of the vector represents
+    /// the scaling factor along the corresponding axis.
     ///
     /// - Parameters:
     ///   - scale: A `Vector2D`/`Vector3D` representing the scaling factors along the axes.
@@ -23,14 +24,14 @@ public extension Geometry {
         scaled(D.Vector(factor))
     }
 
-    /// Flips the geometry across the specified axes.
+    /// Flips the geometry along the specified axes.
     ///
-    /// This method reflects the geometry across the given axes by negating the coordinate values along them.
+    /// This method reflects the geometry along the given axes by negating the coordinate values along them.
     /// It can be used to create mirrored versions of a shape or invert geometry across one or more axes.
     ///
     /// - Parameter axes: The axes across which to flip the geometry.
     /// - Returns: A new geometry instance that is mirrored across the specified axes.
-    func flipped(across axes: D.Axes) -> D.Geometry {
+    func flipped(along axes: D.Axes) -> D.Geometry {
         scaled(D.Vector(1).with(axes, as: -1))
     }
 }
@@ -38,7 +39,8 @@ public extension Geometry {
 public extension Geometry2D {
     /// Scale geometry non-uniformly.
     ///
-    /// This method allows non-uniform scaling of the geometry by specifying individual scaling factors for the x and y axes.
+    /// This method allows non-uniform scaling of the geometry by specifying individual scaling factors for the x and
+    /// y axes.
     ///
     /// - Parameters:
     ///   - x: The scaling factor along the x-axis.
@@ -52,7 +54,8 @@ public extension Geometry2D {
 public extension Geometry3D {
     /// Scale geometry non-uniformly.
     ///
-    /// This method allows non-uniform scaling of the geometry by specifying individual scaling factors for the x, y, and z axes.
+    /// This method allows non-uniform scaling of the geometry by specifying individual scaling factors for the x, y,
+    /// and z axes.
     ///
     /// - Parameters:
     ///   - x: The scaling factor along the x-axis.

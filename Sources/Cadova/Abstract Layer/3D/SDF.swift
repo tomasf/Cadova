@@ -1,9 +1,7 @@
 import Foundation
 import Manifold3D
 
-public struct LevelSet: CompositeGeometry {
-    public typealias D = D3
-
+public struct LevelSet: Shape3D {
     let function: @Sendable (Vector3D) -> Double
     let bounds: BoundingBox3D
     let edgeLength: Double
@@ -52,7 +50,7 @@ public struct LevelSet: CompositeGeometry {
     }
 
     public var body: D3.Geometry {
-        CachingPrimitive(key: cacheKey) {
+        CachedConcrete(key: cacheKey) {
             .levelSet(
                 bounds: (bounds.minimum, bounds.maximum),
                 edgeLength: edgeLength,

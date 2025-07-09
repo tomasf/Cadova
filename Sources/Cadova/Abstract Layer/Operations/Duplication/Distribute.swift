@@ -9,7 +9,8 @@ extension Geometry {
     ///
     /// - Parameters:
     ///   - offsets: A sequence of offset values. Each value represents a translation along the given axis.
-    ///   - axis: The axis along which to distribute the geometry (e.g., `.x`, `.y`, or `.z` depending on dimensionality).
+    ///   - axis: The axis along which to distribute the geometry (e.g., `.x`, `.y`, or `.z` depending on
+    ///     dimensionality).
     /// - Returns: A composite geometry containing all the translated instances of the original.
     ///
     /// Example usage:
@@ -18,6 +19,7 @@ extension Geometry {
     ///     .distributed(at: stride(from: 0, through: 20, by: 5), along: .x)
     /// ```
     /// This creates five cylinders spaced 5 mm apart along the X axis.
+    ///
     @GeometryBuilder<D>
     public func distributed(at offsets: any Sequence<Double>, along axis: D.Axis) -> D.Geometry {
         for offset in offsets {
@@ -32,6 +34,7 @@ extension Geometry {
     ///
     /// - Parameter offsets: A sequence of translation vectors specifying where each copy should be placed.
     /// - Returns: A composite geometry containing all the translated instances of the original geometry.
+    ///
     @GeometryBuilder<D>
     public func distributed(at offsets: any Sequence<D.Vector>) -> D.Geometry {
         for offset in offsets {
@@ -46,6 +49,7 @@ extension Geometry {
     ///
     /// - Parameter offsets: A sequence of translation vectors specifying where each copy should be placed.
     /// - Returns: A composite geometry containing all the translated instances of the original geometry.
+    ///
     @GeometryBuilder<D>
     public func distributed(at offsets: D.Vector...) -> D.Geometry {
         distributed(at: offsets)
@@ -55,8 +59,8 @@ extension Geometry {
 extension Geometry2D {    
     /// Creates a series of rotated copies of this geometry at the specified angles.
     ///
-    /// This method duplicates the geometry and rotates each copy by a corresponding angle, relative to its original orientation.
-    /// It's useful for creating circular patterns, like spokes or radial arrays.
+    /// This method duplicates the geometry and rotates each copy by a corresponding angle, relative to its original
+    /// orientation. It's useful for creating circular patterns, like spokes or radial arrays.
     ///
     /// - Parameter angles: A sequence of angles to apply as rotations around the origin.
     /// - Returns: A composite geometry containing all the rotated instances of the original shape.

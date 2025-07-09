@@ -12,19 +12,22 @@ import Foundation
 ///   when stacking along the `.z` axis, alignment controls how items are positioned along `.x` and `.y`
 ///   relative to the origin.
 ///
-public struct Stack<D: Dimensionality> {
-    private let items: [D.Geometry]
+public struct Stack <D: Dimensionality> {
+    private let items: @Sendable () -> [D.Geometry]
     private let axis: D.Axis
     private let spacing: Double
     private let alignment: D.Alignment
 
-    fileprivate init(axis: D.Axis, spacing: Double, alignment: [D.Alignment], content: @escaping () -> [D.Geometry]
+    fileprivate init(
+        axis: D.Axis,
+        spacing: Double,
+        alignment: [D.Alignment],
+        content: @Sendable @escaping () -> [D.Geometry]
     ) {
-        self.items = content()
+        self.items = content
         self.axis = axis
         self.spacing = spacing
         self.alignment = .init(merging: alignment)
-            .defaultingToOrigin()
             .with(axis: axis, as: .min)
     }
 }
@@ -40,6 +43,7 @@ extension Stack: Geometry {
     ///   - spacing: The spacing in millimeters between items. Defaults to `0`.
     ///   - alignment: One or more alignment values for the *non-stacking* axes.
     ///     For example, in a `.z` stack, `.centerX` and `.centerY` will center items in the XY plane.
+    ///     Axes that are neither the stack axis nor explicitly specified in `alignment` are left unchanged.
     ///   - content: A closure that returns the geometries to be stacked.
     ///
     /// ## Example
@@ -56,24 +60,21 @@ extension Stack: Geometry {
         _ axis: D.Axis,
         spacing: Double = 0,
         alignment: D.Alignment...,
-        @SequenceBuilder<D> content: @escaping () -> [D.Geometry]
+        @SequenceBuilder<D> content: @Sendable @escaping () -> [D.Geometry]
     ) {
         self.init(axis: axis, spacing: spacing, alignment: alignment, content: content)
     }
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        var offset = 0.0
-        return await LazyUnion(lazy: spacing >= 0) {
-            for geometry in items {
-                let result = await geometry.build(in: environment, context: context)
-                let nodeResult = await context.result(for: result.node)
-                if !nodeResult.concrete.isEmpty {
-                    let box = D.BoundingBox(nodeResult.concrete.bounds)
-                    geometry.translated(box.translation(for: alignment) + .init(axis, value: offset))
-                    offset += box.size[axis] + spacing
-                }
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let union = try await Union {
+            var offset = 0.0
+            for geometry in items() {
+                let concreteResult = try await context.result(for: geometry, in: environment)
+                let bounds: D.BoundingBox = concreteResult.concrete.isEmpty ? .zero : .init(concreteResult.concrete.bounds)
+                geometry.translated(bounds.translation(for: alignment) + .init(axis, value: offset))
+                offset += bounds.size[axis] + spacing
             }
         }
-        .build(in: environment, context: context)
+        return try await context.buildResult(for: union, in: environment)
     }
 }

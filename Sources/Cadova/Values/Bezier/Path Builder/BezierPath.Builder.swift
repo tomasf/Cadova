@@ -5,7 +5,7 @@ public extension BezierPath {
 
     init(from: V = .zero, mode defaultMode: PathBuilderPositioning = .absolute, @Builder builder: () -> [Component]) {
         var start = from
-        var direction: V? = nil
+        var direction: Direction<V.D>? = nil
         self.init(startPoint: from, curves: builder().map {
             $0.bezierCurve(start: &start, direction: &direction, defaultMode: defaultMode)
         })
@@ -20,14 +20,18 @@ public extension BezierPath {
             self.points = points
         }
 
-        internal func bezierCurve(start: inout V, direction: inout V?, defaultMode: PathBuilderPositioning) -> Curve {
+        internal func bezierCurve(
+            start: inout V,
+            direction: inout Direction<V.D>?,
+            defaultMode: PathBuilderPositioning
+        ) -> Curve {
             var controlPoints = [start]
 
             if let continuousDistance {
                 guard let direction else {
                     preconditionFailure("Adding a continuous segment requires a previous segment to match")
                 }
-                controlPoints.append(start + direction * continuousDistance)
+                controlPoints.append(start + direction.unitVector * continuousDistance)
             }
 
             controlPoints += points.map {
@@ -35,7 +39,7 @@ public extension BezierPath {
             }
             start = controlPoints.last!
             let curve = Curve(controlPoints: controlPoints)
-            direction = curve.endDirection
+            direction = curve.tangent(at: 1)
             return curve
         }
 

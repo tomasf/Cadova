@@ -80,39 +80,11 @@ public extension Transform3D {
         return transform
     }
 
-    /// Creates a rotation `Transform3D` using a Rotation3D structure
-    ///
-    /// - Parameter r: The `Rotation3D` describing the desired 3D rotation.
-    /// - Returns: An `Transform3D` representing the corresponding rotation.
-    static func rotation(_ r: Rotation3D) -> Transform3D {
-        let x = r.qx, y = r.qy, z = r.qz, w = r.qw
-
-        let xx = x * x
-        let yy = y * y
-        let zz = z * z
-        let xy = x * y
-        let xz = x * z
-        let yz = y * z
-        let wx = w * x
-        let wy = w * y
-        let wz = w * z
-
-        var transform = identity
-        transform[0, 0] = 1 - 2 * (yy + zz)
-        transform[0, 1] = 2 * (xy - wz)
-        transform[0, 2] = 2 * (xz + wy)
-        transform[1, 0] = 2 * (xy + wz)
-        transform[1, 1] = 1 - 2 * (xx + zz)
-        transform[1, 2] = 2 * (yz - wx)
-        transform[2, 0] = 2 * (xz - wy)
-        transform[2, 1] = 2 * (yz + wx)
-        transform[2, 2] = 1 - 2 * (xx + yy)
-        return transform
-    }
-
     /// Creates a rotation `Transform3D` that aligns one vector to another in 3D space.
     ///
-    /// Calculate the rotation needed to align a vector `from` to another vector `to`, both in 3D space. The method ensures that the rotation minimizes the angular distance between the `from` and `to` vectors, effectively rotating around the shortest path between them.
+    /// Calculate the rotation needed to align a vector `from` to another vector `to`, both in 3D space. The method
+    /// ensures that the rotation minimizes the angular distance between the `from` and `to` vectors, effectively
+    /// rotating around the shortest path between them.
     ///
     /// - Parameters:
     ///   - from: A `Vector3D` representing the starting orientation of the vector.

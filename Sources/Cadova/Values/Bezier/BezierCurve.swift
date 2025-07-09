@@ -7,20 +7,21 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         self.controlPoints = controlPoints
     }
 
-    internal func point(at fraction: Double) -> V {
+    func point(at fraction: Double) -> V {
         var workingPoints = controlPoints
         while workingPoints.count > 1 {
-            workingPoints = workingPoints.paired().map { $0.point(alongLineTo: $1, at: fraction) }
+            workingPoints = workingPoints.paired().map { $0 + ($1 - $0) * fraction }
         }
         return workingPoints[0]
     }
 
-    // Returns the Bezier curve that represents the derivative of this curve.
-    internal var derivative: BezierCurve<V> {
-        let n = controlPoints.count - 1
-        return BezierCurve(controlPoints: (0..<n).map { i in
-            (controlPoints[i + 1] - controlPoints[i]) * Double(n)
-        })
+    var degree: Int {
+        controlPoints.count - 1
+    }
+
+    // A Bezier curve that represents the derivative of this curve.
+    var derivative: BezierCurve<V> {
+        BezierCurve(controlPoints: controlPoints.paired().map { ($1 - $0) * Double(degree) })
     }
 
     func tangent(at fraction: Double) -> Direction<V.D> {
@@ -28,9 +29,11 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     }
 
     private func points(in range: Range<Double>, segmentLength: Double) -> [(Double, V)] {
-        let midFraction = (range.lowerBound + range.upperBound) / 2
+        let midFraction = range.mid
         let midPoint = point(at: midFraction)
-        let distance = point(at: range.lowerBound).distance(to: midPoint) + point(at: range.upperBound).distance(to: midPoint)
+        let distance1 = point(at: range.lowerBound).distance(to: midPoint)
+        let distance2 = point(at: range.upperBound).distance(to: midPoint)
+        let distance = distance1 + distance2
 
         if (distance < segmentLength) || distance < 0.001 {
             return []
@@ -49,33 +52,14 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         }
     }
 
-    func points(in range: Range<Double>, segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
+    func points(in range: Range<Double> = 0..<1, segmentation: Segmentation) -> [(Double, V)] {
         switch segmentation {
         case .fixed (let count):
-            return points(in: range, segmentCount: count)
+            points(in: range, segmentCount: count)
         case .adaptive(_, let minSize):
-            return points(in: range, segmentLength: minSize)
-        }
-    }
-
-    private func points(segmentLength: Double) -> [(Double, V)] {
-        return [(0, point(at: 0))] + points(in: 0..<1, segmentLength: segmentLength) + [(1, point(at: 1))]
-    }
-
-    private func points(segmentCount: Int) -> [(Double, V)] {
-        let segmentInterval = 1.0 / Double(segmentCount)
-        return (0...segmentCount).map { f in
-            let t = Double(f) * segmentInterval
-            return (t, point(at: t))
-        }
-    }
-
-    func points(segmentation: EnvironmentValues.Segmentation) -> [(Double, V)] {
-        switch segmentation {
-        case .fixed (let count):
-            return points(segmentCount: count)
-        case .adaptive(_, let minSize):
-            return points(segmentLength: minSize)
+            [(range.lowerBound, point(at: range.lowerBound))]
+            + points(in: range, segmentLength: minSize)
+            + [(range.upperBound, point(at: range.upperBound))]
         }
     }
 
@@ -83,59 +67,87 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         Self(controlPoints: controlPoints.map { transform.apply(to: $0) })
     }
 
-    var endDirection: V {
-        let last = controlPoints[controlPoints.count - 1]
-        let secondLast = controlPoints[controlPoints.count - 2]
-        return (last - secondLast).normalized
-    }
-
     func map<V2: Vector>(_ transform: (V) -> V2) -> BezierCurve<V2> {
         .init(controlPoints: controlPoints.map(transform))
     }
+
+    func approximateLength(segmentCount: Int) -> Double {
+        points(segmentation: .fixed(segmentCount)).paired().map { ($1.0 - $0.0).magnitude }.reduce(0, +)
+    }
 }
 
-extension BezierCurve<Vector2D> {
-    /// Solves for `t` such that the x component of the point at `t` is approximately `xTarget`.
+extension BezierCurve {
+    /// Solves for `t` such that the `axis` component of the point at `t` is approximately `target`.
     ///
-    /// - Important: Only works for monotonic curves in the x direction.
+    /// - Important: Only works for monotonic curves in the axis direction.
     /// - Parameters:
-    ///   - xTarget: The target x value to solve for.
-    /// - Returns: The value of `t` in [0, 1] such that point(at: t).x ≈ xTarget, or `nil` if not found.
-    func t(forX xTarget: Double) -> Double? {
+    ///   - target: The target value to solve for.
+    ///   - axis: The axis for the target value.
+    /// - Returns: The value of `t` (not clamped to [0, 1]) such that point(at: t)[axis] ≈ target, or `nil`
+    ///   if not found.
+    ///   Values outside [0, 1] are allowed if the curve extends in that direction.
+    ///   
+    func t(for target: Double, in axis: V.D.Axis) -> Double? {
         let maxIterations = 8
         let tolerance = 1e-6
-        var t = xTarget
-
-        // Clamp t to range
-        t = t.clamped(to: 0...1)
+        let derived = derivative
+        let a = controlPoints.first![axis]
+        let b = controlPoints.last![axis]
+        var t = ((target - a) / (b - a))
+        guard !t.isNaN else { return nil }
 
         for _ in 0..<maxIterations {
-            let x = point(at: t).x
-            let dx = derivative.point(at: t).x
+            let value = point(at: t)[axis]
+            let delta = derived.point(at: t)[axis]
 
-            let error = x - xTarget
+            let error = value - target
             if Swift.abs(error) < tolerance {
                 return t
             }
 
-            if Swift.abs(dx) < 1e-10 {
+            guard Swift.abs(delta) > 1e-10 else {
                 break // Avoid division by zero
             }
-
-            let tNext = t - error / dx
-            if tNext < 0 || tNext > 1 {
-                break // Out of bounds
-            }
-
-            t = tNext
+            t -= error / delta
         }
 
         return nil
     }
+
 }
 
 extension BezierCurve: CustomDebugStringConvertible {
     public var debugDescription: String {
         controlPoints.map { $0.debugDescription }.joined(separator: ",  ")
+    }
+}
+
+extension BezierCurve {
+    // Returns a sub-curve spanning `range` using two De Casteljau splits.
+    func subcurve(in range: ClosedRange<Double>) -> BezierCurve<V> {
+        guard Swift.abs(range.length) > .ulpOfOne else {
+            return BezierCurve(controlPoints: [point(at: range.lowerBound)])
+        }
+
+        // De Casteljau split helper
+        func split(_ pts: [V], at t: Double) -> ([V], [V]) {
+            var layer = pts, left = [V](), right = [V]()
+            while layer.count > 0 {
+                left.append(layer.first!)
+                right.insert(layer.last!, at: 0)
+                layer = layer.paired().map { $0 + ($1 - $0) * t }
+            }
+            return (left, right)
+        }
+
+        if Swift.abs(range.upperBound) > .ulpOfOne {
+            let (left, _) = split(controlPoints, at: range.upperBound)
+            let (_, segment) = split(left, at: range.lowerBound / range.upperBound)
+            return BezierCurve(controlPoints: segment)
+        } else {
+            let (_, right) = split(controlPoints, at: range.lowerBound)
+            let (_, segment) = split(right, at: range.length / (1 - range.lowerBound))
+            return BezierCurve(controlPoints: segment)
+        }
     }
 }

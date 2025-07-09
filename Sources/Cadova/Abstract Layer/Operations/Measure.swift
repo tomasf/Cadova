@@ -5,19 +5,18 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
     let target: Input.Geometry
     let builder: @Sendable (Input.Geometry, Measurements<Input>) -> D.Geometry
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
-        let targetResult = await target.build(in: environment, context: context)
-        let nodeResult = await context.result(for: targetResult.node)
-        let generatedGeometry = builder(target, .init(concrete: nodeResult.concrete))
-        return await generatedGeometry.build(in: environment, context: context)
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let concreteResult = try await context.result(for: target, in: environment)
+        let generatedGeometry = builder(target, .init(concrete: concreteResult.concrete))
+        return try await context.buildResult(for: generatedGeometry, in: environment)
     }
 }
 
 public extension Geometry {
     /// Applies custom modifications to a geometry based on its measured properties.
     ///
-    /// This method evaluates the geometry and passes its measurements, such as area/volume and bounding box, to a closure.
-    /// The closure can then return a modified geometry based on these measurements.
+    /// This method evaluates the geometry and passes its measurements, such as area/volume and bounding box, to a
+    /// closure. The closure can then return a modified geometry based on these measurements.
     ///
     /// - Parameter builder: A closure that accepts the current geometry and its measurements,
     ///   and returns a modified geometry.
@@ -50,6 +49,23 @@ public extension Geometry {
             } else {
                 Empty()
             }
+        }
+    }
+
+    /// Replaces the geometry with an alternative if it is empty.
+    ///
+    /// This method checks whether the geometry is empty using its computed measurements.
+    /// If the geometry is empty, the provided closure is evaluated and returned instead.
+    /// Otherwise, the original geometry is returned unchanged.
+    ///
+    /// This is useful for providing fallback geometry in cases where earlier steps
+    /// may produce an empty result.
+    ///
+    /// - Parameter replacement: A closure that returns an alternative geometry to use if the original is empty.
+    /// - Returns: Either the original geometry or the result of the replacement closure.
+    func ifEmpty(@GeometryBuilder<D> _ replacement: @Sendable @escaping () -> D.Geometry) -> D.Geometry {
+        measuring { input, measurements in
+            measurements.isEmpty ? replacement() : input
         }
     }
 }

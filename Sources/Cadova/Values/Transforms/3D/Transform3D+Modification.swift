@@ -21,7 +21,8 @@ public extension Transform3D {
         concatenated(with: .scaling(x: x, y: y, z: z))
     }
 
-    /// Creates a new `Transform3D` by concatenating a rotation transformation with this transformation using the given angles for rotation.
+    /// Creates a new `Transform3D` by concatenating a rotation transformation with this transformation using the given
+    /// angles for rotation.
     ///
     /// - Parameters:
     ///   - x: The rotation angle around the x-axis.
@@ -31,9 +32,12 @@ public extension Transform3D {
         concatenated(with: .rotation(x: x, y: y, z: z))
     }
 
-    /// Creates a new `Transform3D` by concatenating a rotation transformation aligning one vector to another in 3D space.
+    /// Creates a new `Transform3D` by concatenating a rotation transformation aligning one vector to another in 3D
+    /// space.
     ///
-    /// Calculate the rotation needed to align a vector `from` to another vector `to`, both in 3D space. The method ensures that the rotation minimizes the angular distance between the `from` and `to` vectors, effectively rotating around the shortest path between them.
+    /// Calculate the rotation needed to align a vector `from` to another vector `to`, both in 3D space. The method
+    /// ensures that the rotation minimizes the angular distance between the `from` and `to` vectors, effectively
+    /// rotating around the shortest path between them.
     ///
     /// - Parameters:
     ///   - from: A `Vector3D` representing the starting orientation of the vector.
@@ -64,7 +68,8 @@ public extension Transform3D {
         concatenated(with: .shearing(axis, along: otherAxis, factor: factor))
     }
 
-    /// Creates a new `Transform3D` by concatenating a shearing transformation with this transformation at the given angle.
+    /// Creates a new `Transform3D` by concatenating a shearing transformation with this transformation at the given
+    /// angle.
     ///
     /// - Parameters:
     ///   - axis: The axis to shear.

@@ -30,17 +30,17 @@ extension Collection where Element: Sendable {
         }
     }
 
-    func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async -> T) async -> [T] {
-        await withTaskGroup(of: (Int, T).self) { group in
+    func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T) async rethrows -> [T] {
+        try await withThrowingTaskGroup(of: (Int, T).self) { group in
             for (index, element) in self.enumerated() {
                 group.addTask {
-                    let value = await transform(element)
+                    let value = try await transform(element)
                     return (index, value)
                 }
             }
 
             var results = Array<T?>(repeating: nil, count: self.count)
-            for await (index, result) in group {
+            for try await (index, result) in group {
                 results[index] = result
             }
 
@@ -48,17 +48,17 @@ extension Collection where Element: Sendable {
         }
     }
 
-    func asyncCompactMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async -> T?) async -> [T] {
-        await withTaskGroup(of: (Int, T?).self) { group in
+    func asyncCompactMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T?) async rethrows -> [T] {
+        try await withThrowingTaskGroup(of: (Int, T?).self) { group in
             for (index, element) in self.enumerated() {
                 group.addTask {
-                    let value = await transform(element)
+                    let value = try await transform(element)
                     return (index, value)
                 }
             }
 
             var results = Array<T?>(repeating: nil, count: self.count)
-            for await (index, result) in group {
+            for try await (index, result) in group {
                 results[index] = result
             }
 
@@ -90,6 +90,19 @@ extension Range {
             upper: Swift.max(first, second))
         )
     }
+}
+
+extension ClosedRange {
+    init(_ first: Bound, _ second: Bound) {
+        self.init(uncheckedBounds: (
+            lower: Swift.min(first, second),
+            upper: Swift.max(first, second))
+        )
+    }
+}
+
+extension ClosedRange where Bound: AdditiveArithmetic {
+    var length: Bound { upperBound - lowerBound }
 }
 
 extension Range where Bound: AdditiveArithmetic {
@@ -143,6 +156,17 @@ extension RangeExpression {
         case let self as PartialRangeThrough<Bound>: self.upperBound
         case let self as PartialRangeUpTo<Bound>: self.upperBound
         default: nil
+        }
+    }
+
+    func resolved(with range: ClosedRange<Bound>) -> ClosedRange<Bound> {
+        switch self {
+        case let self as ClosedRange<Bound>: self
+        case let self as Range<Bound>: self.lowerBound...self.upperBound
+        case let self as PartialRangeFrom<Bound>: self.lowerBound...range.upperBound
+        case let self as PartialRangeThrough<Bound>: range.lowerBound...self.upperBound
+        case let self as PartialRangeFrom<Bound>: self.lowerBound...range.upperBound
+        default: range
         }
     }
 }
@@ -217,4 +241,79 @@ func unpacked<A, B, C>(_ tuple: ((A, B), C)) -> (A, B, C) {
 
 func unpacked<A, B, C>(_ tuple: (A, (B, C))) -> (A, B, C) {
     (tuple.0, tuple.1.0, tuple.1.1)
+}
+
+func waitForTask(operation: @Sendable @escaping () async -> Void) {
+    let semaphore = DispatchSemaphore(value: 0)
+
+    Task {
+        await operation()
+        semaphore.signal()
+    }
+
+    while semaphore.wait(timeout: .now()) == .timedOut {
+        RunLoop.current.run(until: .now)
+    }
+}
+
+extension BidirectionalCollection where Index == Int {
+    func binarySearchInterpolate<V: Vector>(key: Double) -> V where Element == (Double, V) {
+        precondition(!isEmpty, "Array must not be empty")
+
+        guard key > self.first!.0 else { return self.first!.1 }
+        guard key < self.last!.0 else { return self.last!.1 }
+
+        // Binary search for the correct interval
+        var low = 0
+        var high = self.count - 1
+
+        while low <= high {
+            let mid = (low + high) / 2
+            let midKey = self[mid].0
+
+            if midKey < key {
+                low = mid + 1
+            } else {
+                high = mid - 1
+            }
+        }
+
+        let (k0, v0) = self[high]
+        let (k1, v1) = self[low]
+        guard k1 - k0 != 0 else { return v0 }
+        return v0 + (v1 - v0) * (key - k0) / (k1 - k0)
+    }
+
+    func binarySearch<Key: FloatingPoint>(target: Key, key: (Element) -> Key) -> (Index, fraction: Key) {
+        precondition(!isEmpty, "Array must not be empty")
+
+        guard target > key(self.first!) else { return (0, 0) }
+        guard target < key(self.last!) else { return (count - 1, 0) }
+
+        // Binary search for the correct interval
+        var low = 0
+        var high = self.count - 1
+
+        while low <= high {
+            let mid = (low + high) / 2
+            let midKey = key(self[mid])
+
+            if midKey < target {
+                low = mid + 1
+            } else {
+                high = mid - 1
+            }
+        }
+
+        let k0 = key(self[high]), k1 = key(self[low])
+        guard k1 - k0 != 0 else { return (high, 0) }
+        return (high, (target - k0) / (k1 - k0))
+    }
+}
+
+extension Collection where Index == Int {
+    subscript(wrap index: Int) -> Element {
+        let m = index % count
+        return self[m >= 0 ? m : m + count]
+    }
 }

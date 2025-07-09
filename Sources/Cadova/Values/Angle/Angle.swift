@@ -3,8 +3,8 @@ import Foundation
 /// A value representing a geometric angle.
 ///
 /// `Angle` encapsulates the concept of an angle without being tied to any specific unit.
-/// Internally, angles are stored in radians, but you can easily create or inspect angles in degrees,
-/// arcminutes, arcseconds, or even full turns.
+/// You can easily create or inspect angles in degrees, radians, arcminutes, arcseconds,
+/// or even full turns.
 ///
 /// You can think of `Angle` as a semantic wrapper for angular values—mathematically unitless in storage,
 /// but meaningfully constructed and interpreted in various units.
@@ -16,9 +16,9 @@ import Foundation
 /// let rightAngle = 90°
 /// let quarterTurn = Angle(turns: 0.25)
 /// ```
-public struct Angle: Sendable, Hashable, Codable {
-    /// The angle expressed in radians
-    public let radians: Double
+public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable {
+    /// The angle expressed in degrees
+    public let degrees: Double
 
     /// Create an angle from radians.
     ///
@@ -28,12 +28,13 @@ public struct Angle: Sendable, Hashable, Codable {
     /// - Precondition: The radians value must be a finite number.
     public init(radians: Double) {
         precondition(radians.isFinite, "Angles can't be NaN or infinite")
-        self.radians = radians
+        self.init(degrees: radians / .pi * 180.0)
     }
 
     /// Create an angle from degrees, and optionally, arcminutes and arcseconds.
     ///
-    /// Initializes an `Angle` instance from degrees, with optional additional precision provided by arcminutes and arcseconds.
+    /// Initializes an `Angle` instance from degrees, with optional additional precision provided by arcminutes and
+    /// arcseconds.
     ///
     /// - Parameters:
     ///   - degrees: The angle in degrees.
@@ -41,7 +42,7 @@ public struct Angle: Sendable, Hashable, Codable {
     ///   - arcsecs: The angle in arcseconds, one sixtieth of an arcminute.
     public init(degrees: Double, arcmins: Double = 0, arcsecs: Double = 0) {
         let totalDegrees = degrees + arcmins / 60.0 + arcsecs / 3600.0
-        self.init(radians: totalDegrees * .pi / 180.0)
+        self.degrees = totalDegrees
     }
 
     /// Create an angle from a number of complete turns.
@@ -52,22 +53,22 @@ public struct Angle: Sendable, Hashable, Codable {
     /// - Precondition: The turns value must be a finite number.
     public init(turns: Double) {
         precondition(turns.isFinite, "Turns can't be NaN or infinite")
-        self.init(radians: turns * 2.0 * .pi)
+        self.init(degrees: turns * 360.0)
     }
 
-    /// The angle expressed in degrees
-    public var degrees: Double {
-        radians / (.pi / 180.0)
+    /// The angle expressed in radians
+    public var radians: Double {
+        degrees / 180.0 * .pi
     }
 
     /// The angle expressed in full turns (360°).
     public var turns: Double {
-        radians / (2 * .pi)
+        degrees / 360.0
     }
 
     /// Returns `true` if the angle is effectively zero, within floating-point precision.
     public var isZero: Bool {
-        Swift.abs(radians) < .ulpOfOne
+        Swift.abs(degrees) < .ulpOfOne
     }
 }
 
@@ -98,10 +99,10 @@ public extension Angle {
 
     /// Normalizes this angle to the range (-180°, 180°]
     var normalized: Angle {
-        var r = radians
-        while r <= -.pi { r += 2 * .pi }
-        while r > .pi { r -= 2 * .pi }
-        return Angle(radians: r)
+        var d = degrees
+        while d <= -180 { d += 360 }
+        while d > 180 { d -= 360 }
+        return Angle(degrees: d)
     }
 }
 
@@ -113,11 +114,11 @@ extension Angle: CustomDebugStringConvertible {
 
 extension Angle {
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(radians.rounded())
+        hasher.combine(degrees.rounded())
     }
 
     public static func ==(lhs: Self, rhs: Self) -> Bool {
-        lhs.radians.roundedForHash == rhs.radians.roundedForHash
+        lhs.degrees.roundedForHash == rhs.degrees.roundedForHash
     }
 }
 

@@ -24,32 +24,6 @@ public extension Geometry2D {
     }
 }
 
-public extension Geometry {
-    @available(*, deprecated, renamed: "flipped(across:)")
-    func flipped(along axes: D.Axes) -> D.Geometry {
-        flipped(across: axes)
-    }
-}
-
-public extension Teardrop {
-    @available(*, deprecated, message: "Use the `withOverhangAngle` modifier to specify an angle for Teardrop", renamed: "init(diameter:style:)")
-    init(diameter: Double, angle: Angle, style: Style = .pointed) {
-        self.init(diameter: diameter, style: style)
-    }
-
-    @available(*, deprecated, message: "Use the `withOverhangAngle` modifier to specify an angle for Teardrop", renamed: "init(radius:style:)")
-    init(radius: Double, angle: Angle = 45°, style: Style = .pointed) {
-        self.init(radius: radius, style: style)
-    }
-}
-
-extension Teardrop.Style {
-    @available(*, deprecated, renamed: "pointed")
-    static let full = Self.pointed
-    @available(*, deprecated, renamed: "flat")
-    static let bridged = Self.flat
-}
-
 @available(*, deprecated, renamed: "Transform2D")
 public typealias AffineTransform2D = Transform2D
 
@@ -72,7 +46,7 @@ public extension EdgeProfile {
         .chamfer(depth: width, angle: angle)
     }
 
-    @available(*, deprecated, renamed: "fillet(depth:)")
+    @available(*, deprecated, renamed: "chamfer(depth:)")
     static func chamfer(size: Double) -> Self {
         .chamfer(depth: size)
     }
@@ -80,5 +54,107 @@ public extension EdgeProfile {
     @available(*, deprecated, renamed: "overhangFillet(radius:)")
     static func chamferedFillet(radius: Double, overhang: Angle = 45°) -> EdgeProfile {
         .overhangFillet(radius: radius)
+    }
+}
+
+public enum _LegacyProfileMethod {
+    case convexHull
+    case layered (height: Double)
+}
+
+public extension Geometry2D {
+    @available(*, deprecated, renamed: "extruded(height:topEdge:bottomEdge:)")
+    func extruded(height: Double, topEdge: EdgeProfile?, bottomEdge: EdgeProfile?, method: _LegacyProfileMethod) -> any Geometry3D {
+        extruded(height: height, topEdge: topEdge, bottomEdge: bottomEdge)
+    }
+
+    @available(*, deprecated, renamed: "extruded(height:topEdge:)")
+    func extruded(height: Double, topEdge: EdgeProfile, method: _LegacyProfileMethod) -> any Geometry3D {
+        extruded(height: height, topEdge: topEdge)
+    }
+
+    @available(*, deprecated, renamed: "extruded(height:bottomEdge:)")
+    func extruded(height: Double, bottomEdge: EdgeProfile, method: _LegacyProfileMethod) -> any Geometry3D {
+        extruded(height: height, bottomEdge: bottomEdge)
+    }
+}
+
+public extension Geometry3D {
+    @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
+    func applyingTopEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: _LegacyProfileMethod, @GeometryBuilder2D shape: () -> any Geometry2D) -> any Geometry3D {
+        applyingEdgeProfile(profile, to: .top, type: .subtractive)
+    }
+
+    @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
+    func applyingTopEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: _LegacyProfileMethod) -> any Geometry3D {
+        applyingEdgeProfile(profile, to: .top, type: .subtractive)
+    }
+
+    @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
+    func applyingBottomEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: _LegacyProfileMethod, @GeometryBuilder2D shape: () -> any Geometry2D) -> any Geometry3D {
+        applyingEdgeProfile(profile, to: .bottom, type: .subtractive)
+    }
+
+    @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
+    func applyingBottomEdgeProfile(_ profile: EdgeProfile, at z: Double? = nil, method: _LegacyProfileMethod) -> any Geometry3D {
+        applyingEdgeProfile(profile, to: .bottom, type: .subtractive)
+    }
+}
+
+public extension Geometry {
+    @available(*, deprecated, message: "Use `await Model(\"...\") {...}` instead")
+    func save(to url: URL) {
+        save(to: url.path())
+    }
+
+    @available(*, deprecated, message: "Use `await Model(\"...\") {...}` instead")
+    func save(to path: String) {
+        waitForTask {
+            await Model(path) {
+                self
+            }
+        }
+    }
+}
+
+public extension Geometry {
+    @available(*, deprecated, renamed: "withSegmentation(minAngle:minSize:)")
+    func usingFacets(minAngle: Angle, minSize: Double) -> D.Geometry {
+        withSegmentation(minAngle: minAngle, minSize: minSize)
+    }
+
+    @available(*, deprecated, renamed: "withSegmentation(count:)")
+    func usingFacets(count: Int) -> D.Geometry {
+        withSegmentation(count: count)
+    }
+
+    @available(*, deprecated, renamed: "withDefaultSegmentation()")
+    func usingDefaultFacets() -> D.Geometry {
+        withDefaultSegmentation()
+    }
+}
+
+public extension Geometry2D {
+    @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:)")
+    func roundingRectangleCorners(_ corners: Rectangle.Corners = .all, radius: Double) -> any Geometry2D {
+        applyingEdgeProfile(.fillet(radius: radius), to: corners)
+    }
+}
+
+public extension Geometry3D {
+    @available(*, deprecated, renamed: "applyingEdgeProfile(_:to:along:)")
+    func roundingBoxCorners(_ corners: Rectangle.Corners = .all, axis: Axis3D, radius: Double) -> any Geometry3D {
+        applyingEdgeProfile(.fillet(radius: radius), to: corners, along: axis)
+    }
+}
+
+public enum _RoundingSideDeprecated {
+    case outside, inside, both
+}
+
+public extension Geometry2D {
+    @available(*, deprecated, renamed: "rounded(insideRadius:outsideRadius:)")
+    func rounded(amount: Double, side: _RoundingSideDeprecated = .both) -> any Geometry2D {
+        rounded(insideRadius: side != .outside ? amount : nil, outsideRadius: side != .inside ? amount : nil)
     }
 }

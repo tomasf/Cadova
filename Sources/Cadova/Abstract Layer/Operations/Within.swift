@@ -1,5 +1,54 @@
 import Foundation
 
+public extension Geometry {
+    typealias WithinRange = RangeExpression<Double> & Sendable
+}
+
+public extension Geometry2D {
+    /// Returns a geometry sliced within the specified x and y ranges.
+    ///
+    /// - Parameters:
+    ///   - x: A range expression for the x-axis. If `nil`, the geometry is not restricted along the x-axis.
+    ///   - y: A range expression for the y-axis. If `nil`, the geometry is not restricted along the y-axis.
+    /// - Returns: A new geometry representing the original geometry constrained within the specified ranges.
+    ///
+    func within(
+        x: (any WithinRange)? = nil,
+        y: (any WithinRange)? = nil
+    ) -> any Geometry2D {
+        measuring { _, measurements in
+            let box = (measurements.boundingBox ?? .universe)
+                .partialBox(from: x?.min, to: x?.max, in: .x)
+                .partialBox(from: y?.min, to: y?.max, in: .y)
+            self.intersecting { box.mask }
+        }
+    }
+}
+
+public extension Geometry3D {
+    /// Returns a geometry sliced within the specified x, y, and z ranges.
+    ///
+    /// - Parameters:
+    ///   - x: A range expression for the x-axis. If `nil`, the geometry is not restricted along the x-axis.
+    ///   - y: A range expression for the y-axis. If `nil`, the geometry is not restricted along the y-axis.
+    ///   - z: A range expression for the z-axis. If `nil`, the geometry is not restricted along the z-axis.
+    /// - Returns: A new geometry representing the original geometry constrained within the specified ranges.
+    ///
+    func within(
+        x: (any WithinRange)? = nil,
+        y: (any WithinRange)? = nil,
+        z: (any WithinRange)? = nil
+    ) -> any Geometry3D {
+        measuring { geometry, measurements in
+           let box = (measurements.boundingBox ?? .universe)
+                .partialBox(from: x?.min, to: x?.max, in: .x)
+                .partialBox(from: y?.min, to: y?.max, in: .y)
+                .partialBox(from: z?.min, to: z?.max, in: .z)
+            geometry.intersecting { box.mask }
+        }
+    }
+}
+
 fileprivate extension BoundingBox {
     func partialBox(from: Double?, to: Double?, in axis: D.Axis) -> BoundingBox {
         .init(
@@ -22,54 +71,5 @@ internal extension BoundingBox2D {
 internal extension BoundingBox3D {
     var mask: any Geometry3D {
         Box(size).translated(minimum)
-    }
-}
-
-public extension Geometry {
-    typealias WithinRange = RangeExpression<Double> & Sendable
-}
-
-public extension Geometry2D {
-    /// Returns a geometry sliced within the specified x and y ranges.
-    ///
-    /// - Parameters:
-    ///   - x: A range expression for the x-axis. If `nil`, the geometry is not restricted along the x-axis.
-    ///   - y: A range expression for the y-axis. If `nil`, the geometry is not restricted along the y-axis.
-    /// - Returns: A new geometry representing the original geometry constrained within the specified ranges.
-    ///
-    func within(
-        x: (any WithinRange)? = nil,
-        y: (any WithinRange)? = nil
-    ) -> any Geometry2D {
-        measuring { _, measurements in
-            var box = measurements.boundingBox ?? .universe
-            box = box.partialBox(from: x?.min, to: x?.max, in: .x)
-            box = box.partialBox(from: y?.min, to: y?.max, in: .y)
-            self.intersecting { box.mask }
-        }
-    }
-}
-
-public extension Geometry3D {
-    /// Returns a geometry sliced within the specified x, y, and z ranges.
-    ///
-    /// - Parameters:
-    ///   - x: A range expression for the x-axis. If `nil`, the geometry is not restricted along the x-axis.
-    ///   - y: A range expression for the y-axis. If `nil`, the geometry is not restricted along the y-axis.
-    ///   - z: A range expression for the z-axis. If `nil`, the geometry is not restricted along the z-axis.
-    /// - Returns: A new geometry representing the original geometry constrained within the specified ranges.
-    ///
-    func within(
-        x: (any WithinRange)? = nil,
-        y: (any WithinRange)? = nil,
-        z: (any WithinRange)? = nil
-    ) -> any Geometry3D {
-        measuring { geometry, measurements in
-            var box = measurements.boundingBox ?? .universe
-            box = box.partialBox(from: x?.min, to: x?.max, in: .x)
-            box = box.partialBox(from: y?.min, to: y?.max, in: .y)
-            box = box.partialBox(from: z?.min, to: z?.max, in: .z)
-            geometry.intersecting { box.mask }
-        }
     }
 }

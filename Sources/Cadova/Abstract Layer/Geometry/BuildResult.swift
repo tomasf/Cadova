@@ -45,7 +45,7 @@ internal extension BuildResult {
 }
 
 extension BuildResult: Geometry {
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async -> D.BuildResult {
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         self
     }
 }

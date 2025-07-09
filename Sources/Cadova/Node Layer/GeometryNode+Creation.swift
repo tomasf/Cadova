@@ -36,6 +36,16 @@ extension GeometryNode {
         return Self(.convexHull(body))
     }
 
+    static func refine(_ body: D.Node, maxEdgeLength: Double) -> GeometryNode {
+        guard body.isEmpty == false else { return .empty }
+        return Self(.refine(body, edgeLength: maxEdgeLength))
+    }
+
+    static func simplify(_ body: D.Node, tolerance: Double) -> GeometryNode {
+        guard body.isEmpty == false else { return .empty }
+        return Self(.simplify(body, tolerance: tolerance))
+    }
+
     static func shape(_ shape: PrimitiveShape2D) -> GeometryNode where D == D2 {
         guard shape.isEmpty == false else { return .empty }
         return Self(.shape2D(shape))
@@ -81,17 +91,6 @@ extension GeometryNode {
     static func applyMaterial(_ body: D3.Node, material: Material) -> GeometryNode where D == D3 {
         guard body.isEmpty == false else { return .empty }
         return Self(.applyMaterial(body, material))
-    }
-
-    static func lazyUnion(_ children: [D3.Node]) -> GeometryNode where D == D3 {
-        let filteredChildren = children.filter { !$0.isEmpty }
-        if filteredChildren.count == 0 {
-            return .empty
-        } else if filteredChildren.count == 1 {
-            return filteredChildren[0]
-        } else {
-            return Self(.lazyUnion(filteredChildren))
-        }
     }
 }
 

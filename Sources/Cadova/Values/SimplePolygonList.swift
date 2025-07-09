@@ -4,6 +4,10 @@ import Manifold3D
 internal struct SimplePolygonList: Sendable, Hashable, Codable {
     var polygons: [SimplePolygon]
 
+    init() {
+        self.polygons = []
+    }
+
     init(_ polygons: [SimplePolygon]) {
         self.polygons = polygons
     }
@@ -54,6 +58,10 @@ extension SimplePolygonList {
         let polygons = polygons.map(\.manifoldPolygon)
         let triangles = ManifoldPolygon.triangulate(polygons, epsilon: 1e-8)
         return triangles.map { (vertex(at: $0.a), vertex(at: $0.b), vertex(at: $0.c)) }
+    }
+
+    func transformed(_ transform: Transform2D) -> Self {
+        Self(polygons.map { $0.transformed(transform) })
     }
 }
 

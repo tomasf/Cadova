@@ -2,21 +2,16 @@ import Foundation
 
 internal struct PartIdentifier: Hashable, Sendable, Codable {
     let name: String
-    let type: PartType
+    let type: PartSemantic
     let defaultMaterial: Material
 
-    static var main: PartIdentifier { .init(name: "Model", type: .solid, defaultMaterial: .plain(.white)) }
-    static var highlight: PartIdentifier { .init(name: "Highlighted", type: .visual, defaultMaterial: .plain(.red, alpha: 0.2)) }
-    static var background: PartIdentifier { .init(name: "Background", type: .visual, defaultMaterial: .plain(.gray, alpha: 0.1)) }
+    static let main = PartIdentifier(name: "Model", type: .solid, defaultMaterial: .plain(.white))
+    static let highlight = PartIdentifier(name: "Highlighted", type: .visual, defaultMaterial: .highlightedGeometry)
+    static let background = PartIdentifier(name: "Background", type: .context, defaultMaterial: .backgroundGeometry)
 
-    static func named(_ name: String, type: PartType) -> PartIdentifier {
+    static func named(_ name: String, type: PartSemantic) -> PartIdentifier {
         .init(name: name, type: type, defaultMaterial: .plain(.white))
     }
-}
-
-public enum PartType: String, Hashable, Sendable, Codable {
-    case solid
-    case visual
 }
 
 internal struct PartCatalog: ResultElement {
@@ -38,6 +33,15 @@ internal struct PartCatalog: ResultElement {
 
     mutating func add(part: D3.BuildResult, to identifier: PartIdentifier) {
         parts[identifier, default: []].append(part)
+    }
+
+    mutating func detachPart(named name: String) -> D3.BuildResult? {
+        guard let identifier = parts.keys.first(where: { $0.name == name }) else {
+            return nil
+        }
+        let mergedResults = D3.BuildResult(combining: parts[identifier]!, operationType: .union)
+        parts[identifier] = nil
+        return mergedResults
     }
 
     var mergedOutputs: [PartIdentifier: D3.BuildResult] {

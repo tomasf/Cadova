@@ -31,14 +31,18 @@ public struct Rectangle {
     }
 }
 
-extension Rectangle: CompositeGeometry {
-    public typealias D = D2
-
+extension Rectangle: Shape2D {
     public var body: any Geometry2D {
         NodeBasedGeometry(.shape(.rectangle(size: size)))
     }
 }
 
-extension Rectangle: Area2D {
-    public var area: Double { size.x * size.y }
+extension Rectangle: Area, Perimeter {
+    public var area: Double {
+        size.x * size.y
+    }
+
+    public var perimeter: Double {
+        2 * (size.x + size.y)
+    }
 }

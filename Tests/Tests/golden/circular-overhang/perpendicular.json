@@ -1,0 +1,78 @@
+{
+  "parts" : [
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 1,
+          "blue" : 1,
+          "green" : 1,
+          "red" : 1
+        }
+      },
+      "name" : "Model",
+      "type" : "solid"
+    },
+    {
+      "crossSection" : {
+        "children" : [
+          {
+            "body" : {
+              "kind" : "shape2D",
+              "primitive" : {
+                "rectangle" : {
+                  "size" : {
+                    "x" : 15,
+                    "y" : 15
+                  }
+                }
+              }
+            },
+            "kind" : "transform",
+            "transform" : [
+              [
+                1,
+                0,
+                -7.5
+              ],
+              [
+                0,
+                1,
+                -7.5
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "kind" : "shape2D",
+            "primitive" : {
+              "circle" : {
+                "radius" : 5,
+                "segmentCount" : 180
+              }
+            }
+          }
+        ],
+        "kind" : "boolean",
+        "type" : "difference"
+      },
+      "kind" : "extrusion",
+      "type" : {
+        "linear" : {
+          "divisions" : 0,
+          "height" : 1,
+          "scaleTop" : {
+            "x" : 1,
+            "y" : 1
+          },
+          "twist" : {
+            "degrees" : 0
+          }
+        }
+      }
+    }
+  ]
+}

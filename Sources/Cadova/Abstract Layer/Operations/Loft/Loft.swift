@@ -2,11 +2,12 @@ import Foundation
 
 /// A 3D shape constructed by interpolating between a series of 2D cross-sections layered at different Z positions.
 ///
-/// Lofting is a modeling technique that creates a smooth transition between multiple 2D shapes across different heights.
-/// Each 2D shape forms a horizontal cross-section of the final 3D shape, and the space between these layers is filled in by connecting
-/// the layers using a specific interpolation method.
+/// Lofting is a modeling technique that creates a smooth transition between multiple 2D shapes across different
+/// heights. Each 2D shape forms a horizontal cross-section of the final 3D shape, and the space between these layers
+/// is filled in by connecting the layers using a specific interpolation method.
 ///
-/// Each layer is specified using a Z height and a 2D shape (any Geometry2D-conforming type). At least two layers must be provided.
+/// Each layer is specified using a Z height and a 2D shape (any Geometry2D-conforming type). At least two layers
+/// must be provided.
 ///
 /// - Example:
 ///   ```swift
@@ -57,12 +58,12 @@ public struct Loft: Geometry {
     /// Creates a lofted 3D geometry by interpolating between a series of 2D cross-sections.
     ///
     /// - Parameters:
-    ///   - method: The interpolation method to use between layers. Defaults to `.automatic`, which selects `.convexHull` if all
-    ///     layers are convex, otherwise `.resampled`.
+    ///   - method: The interpolation method to use between layers. Defaults to `.automatic`, which selects
+    ///     `.convexHull` if all layers are convex, otherwise `.resampled`.
     ///   - layers: A builder that returns the list of layers. Each layer must have a Z position and a 2D shape.
     ///
-    /// When using the `.resampled` method, all layers must have compatible topology: each layer must have the same number of
-    /// top-level shapes, and each shape must have the same number of holes (if any), and so on.
+    /// When using the `.resampled` method, all layers must have compatible topology: each layer must have the same
+    /// number of top-level shapes, and each shape must have the same number of holes (if any), and so on.
     ///
     public init(_ method: LayerInterpolation = .automatic, @LayerBuilder layers: () -> [Layer]) {
         self.interpolation = method
@@ -83,19 +84,21 @@ public struct Loft: Geometry {
         /// Uses `.convexHull` if all layers contain a single convex polygon; otherwise falls back to `.resampled`.
         case automatic
 
-        /// Connects layers using their convex hulls. Fast and simple, but less accurate for complex shapes.
-        /// Best used when the convex hull is a good enough approximation of the desired shape.
+        /// Connects layers using their convex hulls. Fast and simple, but less accurate for complex shapes. Best used
+        /// when the convex hull is a good enough approximation of the desired shape.
         case convexHull
 
-        /// Resamples each shape to have matching vertex counts. Allows precise matching of complex shapes, including those with holes.
-        /// All layers must have the same topology; the same number of sub-shapes, each with matching hole counts and structure.
+        /// Resamples each shape to have matching vertex counts. Allows precise matching of complex shapes, including
+        /// those with holes. All layers must have the same topology; the same number of sub-shapes, each with matching
+        /// hole counts and structure.
         ///
-        /// The `ShapingFunction` parameter determines how intermediate layers are distributed and how the transition between each pair of cross-sections progresses.
-        /// By default, the interpolation is linear, meaning each intermediate layer is evenly spaced in both height and shape between the source and target layers.
+        /// The `ShapingFunction` parameter determines how intermediate layers are distributed and how the transition
+        /// between each pair of cross-sections progresses. By default, the interpolation is linear, meaning each
+        /// intermediate layer is evenly spaced in both height and shape between the source and target layers.
         ///
-        /// By supplying a different shaping function, you can control the interpolation rate—such as using "ease in", "ease out", or a custom curve.
-        /// This can be used to create organic bulges, tapering, or other stylized transitions between layers.
-        /// See `ShapingFunction` for available built-in curves and how to create custom ones.
+        /// By supplying a different shaping function, you can control the interpolation rate—such as using "ease in",
+        /// "ease out", or a custom curve. This can be used to create organic bulges, tapering, or other stylized
+        /// transitions between layers. See `ShapingFunction` for available built-in curves and how to create custom ones.
         ///
         case resampled (ShapingFunction)
 
@@ -110,8 +113,8 @@ public struct Loft: Geometry {
 ///   - z: The Z height at which to place the 2D shape.
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
-public func layer(z: Double, @GeometryBuilder2D shape: () -> any Geometry2D) -> Loft.Layer {
-    Loft.Layer(z: z, geometry: shape())
+public func layer(z: Double, @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D) -> Loft.Layer {
+    Loft.Layer(z: z, geometry: Deferred(shape))
 }
 
 public extension Geometry2D {
@@ -120,7 +123,8 @@ public extension Geometry2D {
     /// This is a convenience shortcut for creating a `Loft` with two layers.
     ///
     /// - Parameters:
-    ///   - method: The interpolation method to use. Defaults to `.automatic`, which selects an appropriate strategy based on shape complexity.
+    ///   - method: The interpolation method to use. Defaults to `.automatic`, which selects an appropriate strategy
+    ///     based on shape complexity.
     ///   - height: The vertical distance between the two layers.
     ///   - with: A builder that returns the 2D shape to use for the second layer, placed at the specified height.
     ///
@@ -139,7 +143,7 @@ public extension Geometry2D {
     func lofted(
         _ method: Loft.LayerInterpolation = .automatic,
         height: Double,
-        @GeometryBuilder2D with other: () -> any Geometry2D
+        @GeometryBuilder2D with other: @Sendable @escaping () -> any Geometry2D
     ) -> any Geometry3D {
         Loft(method) {
             layer(z: 0) { self }

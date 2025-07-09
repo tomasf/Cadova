@@ -6,10 +6,10 @@ import Foundation
 
 public struct Torus: Shape3D {
     /// The radius of the tube.
-    private let minorRadius: Double
+    public let minorRadius: Double
 
     /// The distance from the center of the tube to the center of the torus.
-    private let majorRadius: Double
+    public let majorRadius: Double
 
     /// Initializes a new torus with specified minor and major radii.
     ///
@@ -89,5 +89,37 @@ public struct Torus: Shape3D {
         Circle(radius: minorRadius)
             .translated(x: majorRadius)
             .revolved(in: 0°..<360°)
+    }
+}
+
+public extension Torus {
+    /// The total diameter of the torus (outermost span from one side to the other).
+    var outerDiameter: Double {
+        (majorRadius + minorRadius) * 2
+    }
+
+    /// The diameter of the central hole in the torus.
+    var innerDiameter: Double {
+        (majorRadius - minorRadius) * 2
+    }
+
+    /// The area of the circular cross-section (tube).
+    var tubeArea: Double {
+        .pi * minorRadius * minorRadius
+    }
+
+    /// The volume of the torus.
+    var volume: Double {
+        2 * .pi * .pi * majorRadius * minorRadius * minorRadius
+    }
+
+    /// The surface area of the torus.
+    var surfaceArea: Double {
+        4 * .pi * .pi * majorRadius * minorRadius
+    }
+
+    /// The circumference of the torus centerline (the circular path of the tube center).
+    var centerlineCircumference: Double {
+        2 * .pi * majorRadius
     }
 }

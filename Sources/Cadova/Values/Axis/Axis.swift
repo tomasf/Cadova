@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Axis: Equatable, Hashable, CaseIterable, Sendable {
+public protocol Axis: Equatable, Hashable, CaseIterable, Sendable, Codable {
     associatedtype D: Dimensionality where D.Axis == Self
     var index: Int { get }
 }
@@ -36,7 +36,10 @@ public enum Axis3D: Int, Axis {
 
     /// The other two axes that are orthogonal to this axis.
     ///
-    /// This property returns an `Axes3D` instance excluding the current axis. It's particularly useful when needing to perform operations or transformations that involve the other two axes, not including the axis represented by the current `Axis3D` instance.
+    /// This property returns an `Axes3D` instance excluding the current axis. It's particularly useful when needing to
+    /// perform operations or transformations that involve the other two axes, not including the axis represented by
+    /// the current `Axis3D` instance.
+    /// 
     var otherAxes: Axes3D {
         Axes3D([self]).inverted
     }

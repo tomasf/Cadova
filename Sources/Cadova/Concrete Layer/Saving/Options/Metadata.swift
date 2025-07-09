@@ -46,11 +46,11 @@ extension Metadata: ModelOptionItem {
 public extension ModelOptions {
     /// Attaches metadata to the exported model file.
     ///
-    /// This method allows you to embed descriptive metadata into the model file, such as title, author, license, and more.
-    /// These fields can be useful for attribution, versioning, or documentation purposes.
+    /// This method allows you to embed descriptive metadata into the model file, such as title, author, license,
+    /// and more. These fields can be useful for attribution, versioning, or documentation purposes.
     ///
-    /// > Note: The inclusion and usage of metadata depends on the output file format. The 3MF format supports all of these fields,
-    /// while other formats may ignore them entirely or support only a subset.
+    /// > Note: The inclusion and usage of metadata depends on the output file format. The 3MF format supports all of
+    /// these fields, while other formats may ignore them entirely or support only a subset.
     ///
     /// - Parameters:
     ///   - title: A short title for the model.
@@ -67,6 +67,13 @@ public extension ModelOptions {
                          date: String? = nil,
                          application: String? = nil
     ) -> Self {
-        .init(Metadata(title: title, description: description, author: author, license: license, date: date, application: application))
+        .init(Metadata(
+            title: title,
+            description: description,
+            author: author,
+            license: license,
+            date: date,
+            application: application
+        ))
     }
 }

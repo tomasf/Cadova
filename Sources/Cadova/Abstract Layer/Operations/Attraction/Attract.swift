@@ -10,7 +10,8 @@ public extension Geometry {
     ///   - target: The point to attract toward.
     ///   - influenceRadius: The distance within which points are affected. Points beyond this radius are unaffected.
     ///   - maxMovement: The maximum distance any point may be moved, even if the falloff would suggest more.
-    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`, full strength is used within the influence radius.
+    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`,
+    ///     full strength is used within the influence radius.
     /// - Returns: A new geometry attracted toward the target.
     ///
     func attracted(
@@ -19,7 +20,12 @@ public extension Geometry {
         maxMovement: Double,
         falloff: ShapingFunction? = .smoothstep
     ) -> D.Geometry {
-        attracted(towardTarget: target as! any AttractionTarget<D>, influenceRadius: influenceRadius, maxMovement: maxMovement, falloff: falloff)
+        attracted(
+            towardTarget: target as! any AttractionTarget<D>,
+            influenceRadius: influenceRadius,
+            maxMovement: maxMovement,
+            falloff: falloff
+        )
     }
 
     /// Attracts each point of the geometry toward the closest point on the given line.
@@ -31,7 +37,8 @@ public extension Geometry {
     ///   - line: The line to attract toward.
     ///   - influenceRadius: The distance within which points are affected. Points beyond this radius are unaffected.
     ///   - maxMovement: The maximum distance any point may be moved, even if the falloff would suggest more.
-    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`, full strength is used within the influence radius.
+    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`,
+    ///     full strength is used within the influence radius.
     /// - Returns: A new geometry attracted toward the line.
     ///
     func attracted(
@@ -54,7 +61,8 @@ public extension Geometry3D {
     ///   - plane: The plane to attract toward.
     ///   - influenceRadius: The distance within which points are affected. Points beyond this radius are unaffected.
     ///   - maxMovement: The maximum distance any point may be moved, even if the falloff would suggest more.
-    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`, full strength is used within the influence radius.
+    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`,
+    ///     full strength is used within the influence radius.
     /// - Returns: A new geometry attracted toward the plane.
     ///
     func attracted(
@@ -77,7 +85,10 @@ internal extension Geometry {
         falloff: ShapingFunction?
     ) -> D.Geometry {
         let function = falloff?.function
-        return warped(operationName: "attractTowardTarget", cacheParameters: target, influenceRadius, maxMovement, falloff) { point in
+        return warped(
+            operationName: "attractTowardTarget",
+            cacheParameters: target, influenceRadius, maxMovement, falloff
+        ) { point in
             let to = target.pullTarget(for: point)
             let offset = to - point
             let length = offset.magnitude

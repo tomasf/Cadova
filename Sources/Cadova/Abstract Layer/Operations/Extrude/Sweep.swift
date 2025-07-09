@@ -1,192 +1,161 @@
 import Foundation
 import Manifold3D
 
+public extension Geometry2D {
+    /// Sweeps the 2D geometry along a 3D path to create a 3D solid, using default orientation control
+    ///
+    /// This method extrudes the shape along a `BezierPath` in 3D space, positioning and orienting
+    /// it continuously along the path to form a smooth, connected 3D body. The orientation is fixed so
+    /// that the negative Y direction in the 2D shape (`.down`) always points toward the negative Z axis
+    /// in 3D space. It can be used to model pipes, rails, bent sheets, or any geometry that follows a
+    /// curved trajectory. The orientation is computed as an attempt to align the reference direction
+    /// toward the target, but this is not always geometrically possible at every step.
+    ///
+    /// - Parameters:
+    ///   - path: The path the shape should follow. This can be a 2D or 3D Bezier path. If 2D,
+    ///     the path is interpreted as lying in the XY plane.
+    /// - Returns: A 3D geometry created by sweeping the shape along the path.
+    ///
+    /// The shape is placed along a series of points on the path, with consistent orientation and twisting
+    /// to minimize sharp transitions. The spacing and number of sample points along the path is determined
+    /// by the environment’s segmentation settings. This affects the smoothness and polygon count of the
+    /// resulting geometry. The twist rate is controlled by the ``EnvironmentValues/maxTwistRate``
+    /// setting, which limits the rate of rotation between successive frames.
+    ///
+    /// - SeeAlso: ``Geometry/withMaxTwistRate(_:)``
+    func swept<V: Vector>(along path: BezierPath<V>) -> any Geometry3D {
+        Sweep(shape: self, path: path.path3D, reference: .negativeY, target: .direction(.negativeZ))
+    }
+
+    /// Sweeps the 2D geometry along a 3D path to create a 3D solid.
+    ///
+    /// This method extrudes the shape along a `BezierPath` in 3D space, positioning and orienting
+    /// it continuously along the path to form a smooth, connected 3D body. It can be used to model
+    /// pipes, rails, bent sheets, or any geometry that follows a curved trajectory.
+    ///
+    /// - Parameters:
+    ///   - path: The path the shape should follow. This can be a 2D or 3D Bezier path. If 2D,
+    ///     the path is interpreted as lying in the XY plane.
+    ///   - reference: A direction within the 2D shape (usually `.down` or `.right`) that should be
+    ///     kept facing toward the `target` during the sweep. This affects the rotation of the shape
+    ///     as it travels along the path.
+    ///   - direction: The direction that the `reference` direction should point toward at every step of the path.
+    /// - Returns: A 3D geometry created by sweeping the shape along the path, with orientation guided by the
+    ///   `reference` and `target`.
+    ///
+    /// The shape is placed along a series of points on the path, with consistent orientation and twisting to minimize
+    /// sharp transitions. The `reference` and `direction` let you control which way the shape is "facing" as it
+    /// travels, allowing for effects like keeping the bottom of a rail always pointing down. The orientation is
+    /// computed as an attempt to align the reference direction toward the target, but this is not always geometrically
+    /// possible at every step.
+    ///
+    /// The spacing and number of sample points along the path is determined by the environment’s segmentation settings.
+    /// This affects the smoothness and polygon count of the resulting geometry. The twist rate is controlled by the
+    /// ``EnvironmentValues/maxTwistRate`` setting, which limits the rate of rotation between successive frames.
+    ///
+    /// - SeeAlso: ``Geometry/withMaxTwistRate(_:)``
+    func swept<V: Vector>(
+        along path: BezierPath<V>,
+        pointing reference: Direction2D,
+        toward direction: Direction3D
+    ) -> any Geometry3D {
+        Sweep(shape: self, path: path.path3D, reference: reference, target: .direction(direction))
+    }
+
+    /// Sweeps the 2D geometry along a 3D path to create a 3D solid.
+    ///
+    /// This method extrudes the shape along a `BezierPath` in 3D space, positioning and orienting it continuously
+    /// along the path to form a smooth, connected 3D body. It can be used to model pipes, rails, bent sheets, or any
+    /// geometry that follows a curved trajectory.
+    ///
+    /// - Parameters:
+    ///   - path: The path the shape should follow. This can be a 2D or 3D Bezier path. If 2D, the path is interpreted
+    ///     as lying in the XY plane.
+    ///   - reference: A direction within the 2D shape (usually `.down` or `.right`) that should be kept facing toward
+    ///     the `target` during the sweep. This affects the rotation of the shape as it travels along the path.
+    ///   - point: The fixed 3D point that the `reference` direction should point toward at every step of the path.
+    /// - Returns: A 3D geometry created by sweeping the shape along the path, with orientation guided by the
+    ///   `reference` and `point`.
+    ///
+    /// The shape is placed along a series of points on the path, with consistent orientation and twisting to minimize
+    /// sharp transitions. The `reference` and `point` let you control which way the shape is "facing" as it travels,
+    /// allowing for effects like keeping the bottom of a rail always pointing toward a target point. The orientation
+    /// is computed as an attempt to align the reference direction toward the target, but this is not always
+    /// geometrically possible at every step.
+    ///
+    /// The spacing and number of sample points along the path is determined by the environment’s segmentation settings.
+    /// This affects the smoothness and polygon count of the resulting geometry. The twist rate is controlled by the
+    /// ``EnvironmentValues/maxTwistRate`` setting, which limits the rate of rotation between successive frames.
+    ///
+    /// - SeeAlso: ``Geometry/withMaxTwistRate(_:)``
+    ///
+    func swept<V: Vector>(
+        along path: BezierPath<V>,
+        pointing reference: Direction2D,
+        toward point: Vector3D
+    ) -> any Geometry3D {
+        Sweep(shape: self, path: path.path3D, reference: reference, target: .point(point))
+    }
+
+    /// Sweeps the 2D geometry along a 3D path to create a 3D solid.
+    ///
+    /// This method extrudes the shape along a `BezierPath` in 3D space, positioning and orienting
+    /// it continuously along the path to form a smooth, connected 3D body. It can be used to model
+    /// pipes, rails, bent sheets, or any geometry that follows a curved trajectory.
+    ///
+    /// - Parameters:
+    ///   - path: The path the shape should follow. This can be a 2D or 3D Bezier path. If 2D,
+    ///     the path is interpreted as lying in the XY plane.
+    ///   - reference: A direction within the 2D shape (usually `.down` or `.right`) that should be
+    ///     kept facing toward the `target` during the sweep. This affects the rotation of the shape
+    ///     as it travels along the path.
+    ///   - line: The 3D line that the `reference` direction should point toward at every step of the path.
+    /// - Returns: A 3D geometry created by sweeping the shape along the path, with orientation guided by the
+    ///   `reference` and `line`.
+    ///
+    /// The shape is placed along a series of points on the path, with consistent orientation and twisting to minimize
+    /// sharp transitions. The `reference` and `line` let you control which way the shape is "facing" as it travels,
+    /// allowing for effects like keeping the bottom of a rail always facing a spatial axis. The orientation is
+    /// computed as an attempt to align the reference direction toward the target, but this is not always geometrically
+    /// possible at every step.
+    ///
+    /// The spacing and number of sample points along the path is determined by the environment’s segmentation settings.
+    /// This affects the smoothness and polygon count of the resulting geometry. The twist rate is controlled by the
+    /// ``EnvironmentValues/maxTwistRate`` setting, which limits the rate of rotation between successive frames.
+    ///
+    /// - SeeAlso: ``Geometry/withMaxTwistRate(_:)``
+    ///
+    func swept<V: Vector>(
+        along path: BezierPath<V>,
+        pointing reference: Direction2D,
+        toward line: D3.Line
+    ) -> any Geometry3D {
+        Sweep(shape: self, path: path.path3D, reference: reference, target: .line(line))
+    }
+}
+
 internal struct Sweep: Shape3D {
     let shape: any Geometry2D
     let path: BezierPath3D
     let reference: Direction2D
-    let target: Target
-
-    @Environment(\.maxTwistRate) var maxTwistRate
-    @Environment(\.segmentation) var segmentation
+    let target: BezierPath3D.FrameTarget
 
     var body: any Geometry3D {
-        let enableDebugging = ProcessInfo.processInfo.environment["CADOVA_SWEEP_DEBUG"] == "1"
-        let maxTwistRate = maxTwistRate
-        let segmentation = segmentation
+        @Environment(\.maxTwistRate) var maxTwistRate
+        @Environment(\.segmentation) var segmentation
 
-        if enableDebugging {
-            shape.readingPrimitive { crossSection, _ in
-                let (mesh, debugParts) = sweep(crossSection: crossSection, segmentation: segmentation, maxTwistRate: maxTwistRate, enableDebugging: true)
-                return mesh.adding(Union(debugParts))
-            }
-        } else {
-            CachingTransformer(body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation) { node, environment, context in
-                let crossSection = await context.result(for: node).concrete
-                let (mesh, _) = sweep(
-                    crossSection: crossSection, segmentation: segmentation, maxTwistRate: maxTwistRate
-                )
-                return GeometryNode(.shape3D(.mesh(mesh.meshData)))
-            }
-        }
-    }
-}
-
-fileprivate extension Sweep {
-    func sweep(crossSection: CrossSection, segmentation: EnvironmentValues.Segmentation, maxTwistRate: Angle, enableDebugging: Bool = false) -> (Mesh, [any Geometry3D]) {
-        let derivative = path.derivative
-        let fractionsAndPoints = path.pointsAtPositions(in: path.positionRange, segmentation: segmentation)
-        var frames: [Frame] = []
-        var debugParts: [any Geometry3D]? = enableDebugging ? [] : nil
-
-        for (t, point) in fractionsAndPoints {
-            frames.append(Frame(
-                point: point, tangent: derivative.point(at: t), reference: reference, target: target, previousSample: frames.last, debugGeometry: &debugParts
-            ))
-        }
-
-        frames.interpolateMissingAngles()
-        frames.normalizeAngles()
-        frames.applyTwistDamping(maxTwistRate: maxTwistRate)
-
-        return (Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform)), debugParts ?? [])
-    }
-}
-
-extension Sweep {
-    enum Target: Sendable, Hashable, Codable {
-        case point (Vector3D)
-        case line (D3.Line)
-        case direction (Direction3D)
-
-        func targetPoint(from plane: Plane) -> Vector3D {
-            switch self {
-            case let .point(p): p
-            case let .line(line): plane.intersection(with: line) ?? line.closestPoint(to: plane.offset)
-            case let .direction(dir): plane.offset + dir.unitVector
-            }
-        }
-    }
-}
-
-extension Sweep {
-    struct Frame {
-        let point: Vector3D
-        let xAxis: Vector3D
-        let yAxis: Vector3D
-        let zAxis: Vector3D
-        var angle: Angle?
-
-        init(point: Vector3D, tangent: Vector3D, reference: Direction2D, target: Sweep.Target, previousSample: Frame?, debugGeometry: inout [any Geometry3D]?) {
-            zAxis = tangent.normalized
-            self.point = point
-            let plane = Plane(offset: point, normal: Direction3D(zAxis))
-
-            if let previousSample {
-                let rotation = Transform3D.rotation(from: Direction3D(previousSample.zAxis), to: Direction3D(zAxis))
-                xAxis = rotation.apply(to: previousSample.xAxis).normalized
-                yAxis = rotation.apply(to: previousSample.yAxis).normalized
-            } else {
-                let provisionalX = (Swift.abs(zAxis.x) < 0.9) ? Vector3D(x: 1) : Vector3D(y: 1)
-                yAxis = (zAxis × provisionalX).normalized
-                xAxis = (yAxis × zAxis).normalized
-            }
-
-            let referenceVector = (reference.x * xAxis + reference.y * yAxis).normalized
-            let globalTargetPoint = target.targetPoint(from: plane)
-            let targetDirection = (globalTargetPoint - point).normalized
-
-            let projectedReference = referenceVector - zAxis * (referenceVector ⋅ zAxis)
-            let projectedTarget = targetDirection - zAxis * (targetDirection ⋅ zAxis)
-
-            let referenceLength = projectedReference.squaredEuclideanNorm
-            let targetLength = projectedTarget.squaredEuclideanNorm
-
-            let epsilon = 1e-10
-            if referenceLength > epsilon, targetLength > epsilon {
-                let referenceInPlane = projectedReference.normalized
-                let targetInPlane = projectedTarget.normalized
-
-                let sinTheta = (referenceInPlane × targetInPlane) ⋅ zAxis
-                let cosTheta = referenceInPlane ⋅ targetInPlane
-                angle = atan2(sinTheta, cosTheta)
-            } else {
-                angle = nil
-            }
-
-            debugGeometry?.append(contentsOf: [
-                Box(x: 0.1, y: 0.1, z: 10)
-                    .rotated(from: .up, to: .init(referenceVector))
-                    .translated(point)
-                    .colored(.blue)
-                    .inPart(named: "referenceVector", type: .visual),
-
-                Box(x: 0.1, y: 0.1, z: 10)
-                    .rotated(from: .up, to: .init(targetDirection))
-                    .translated(point)
-                    .colored(.green)
-                    .inPart(named: "targetDirection", type: .visual),
-
-                Box(1)
-                    .aligned(at: .center)
-                    .translated(globalTargetPoint)
-                    .colored(.purple)
-                    .inPart(named: "globalTargetPoint", type: .visual)
-            ])
-        }
-
-        var transform: Transform3D {
-            let alignedX = Direction3D(xAxis).rotated(angle: angle!, around: Direction3D(zAxis))
-            let alignedY = Direction3D(zAxis × alignedX.unitVector)
-            return Transform3D(orthonormalBasisOrigin: point, x: alignedX, y: alignedY, z: Direction3D(zAxis))
-        }
-    }
-}
-
-extension [Sweep.Frame] {
-    mutating func interpolateMissingAngles() {
-        var offset = 0
-        while let start = self[offset...].firstIndex(where: { $0.angle == nil }) {
-            let end = self[start...].firstIndex(where: { $0.angle != nil })
-
-            let resolvedIndexes = start..<(end ?? count)
-            let resolvedRange: Range<Angle>
-
-            if start == 0 {
-                let value = end.map { self[$0].angle! } ?? 0°
-                resolvedRange = value..<value
-            } else {
-                resolvedRange = (self[start - 1].angle!)..<(self[end ?? start - 1].angle!)
-            }
-
-            let step = resolvedRange.length / Double(resolvedIndexes.length)
-            for i in resolvedIndexes {
-                self[i].angle = resolvedRange.lowerBound + Double(i - resolvedIndexes.lowerBound) * step
-            }
-
-            if let end {
-                offset = end
-            } else {
-                break
-            }
-        }
-    }
-
-    mutating func normalizeAngles() {
-        guard !isEmpty else { return }
-        for i in indices.dropFirst() {
-            let previous = self[i-1].angle!
-            self[i].angle = previous + (self[i].angle! - previous).normalized
-        }
-    }
-
-    mutating func applyTwistDamping(maxTwistRate: Angle) {
-        for i in indices.dropFirst() {
-            let current = self[i - 1].angle!
-            let delta = self[i].angle! - current
-            let distance = (self[i].point - self[i - 1].point).magnitude
-            let maxDelta = maxTwistRate * distance
-            self[i].angle = current + delta.clamped(to: (-maxDelta...maxDelta))
+        CachedNodeTransformer(
+            body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation
+        ) { node, environment, context in
+            let crossSection = try await context.result(for: node).concrete
+            let (frames, _) = path.frames(
+                environment: environment,
+                target: target,
+                targetReference: reference,
+                perpendicularBounds: .init(crossSection.bounds)
+            )
+            let mesh = Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform))
+            return GeometryNode.shape(.mesh(mesh.meshData))
         }
     }
 }

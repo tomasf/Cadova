@@ -89,7 +89,7 @@ extension Platform {
             ILRemoveLastID(parent)
 
             // Get last ID for child
-            guard let child = ILFindLastID(fullPIDLUnwrapped) else {
+            guard ILFindLastID(fullPIDLUnwrapped) != nil else {
                 CoTaskMemFree(fullPIDLUnwrapped)
                 CoTaskMemFree(parent)
                 throw Error.invalidChildPIDL

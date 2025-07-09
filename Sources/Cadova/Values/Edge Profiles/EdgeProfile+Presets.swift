@@ -45,22 +45,31 @@ public extension EdgeProfile {
 }
 
 public extension EdgeProfile {
-    /// Creates a rounded fillet profile with an elliptical shape.
+    /// Creates a rounded fillet profile with an elliptical or custom corner style.
+    ///
+    /// The shape of the fillet is determined by the current `CornerRoundingStyle` environment setting,
+    /// which can be set using `.withCornerRoundingStyle(...)`. This allows for circular, squircular,
+    /// or superelliptical rounding styles. The default style is `.circular`.
+    ///
     /// - Parameters:
-    ///   - depth: The horizontal distance from the original edge to the fillet's farthest point, defining the fillet's depth.
+    ///   - depth: The horizontal distance from the original edge to the fillet's farthest point.
     ///   - height: The vertical height from the base of the edge to the top of the fillet.
-    /// - Returns: An edge profile representing the elliptical fillet.
+    /// - Returns: An edge profile representing the rounded fillet.
     ///
     static func fillet(depth: Double, height: Double) -> Self {
         Self {
-            Circle.ellipse(x: depth * 2, y: height * 2)
-                .within(x: 0..., y: 0...)
+            FilletCorner(size: Vector2D(depth, height))
         }
     }
 
-    /// Creates a rounded fillet profile with a circular shape.
-    /// - Parameter radius: The radius of the curvature applied to the edge, defining the fillet's size.
-    /// - Returns: An edge profile representing the circular fillet.
+    /// Creates a rounded fillet profile using a uniform radius, with style from the environment.
+    ///
+    /// This method creates a rounded fillet profile where both depth and height equal the given radius.
+    /// The specific shape of the fillet is controlled by the current `CornerRoundingStyle` environment setting,
+    /// which supports circular, squircular, or superelliptical corner shapes. The default style is `.circular`.
+    ///
+    /// - Parameter radius: The radius defining the size of the corner.
+    /// - Returns: An edge profile representing the rounded fillet.
     ///
     static func fillet(radius: Double) -> Self {
         .fillet(depth: radius, height: radius)
@@ -68,63 +77,28 @@ public extension EdgeProfile {
 }
 
 public extension EdgeProfile {
-    /// Creates a rounded fillet profile using a squircular (superellipse) shape.
+    /// Creates an edge profile combining a smooth fillet with a straight upper edge to reduce overhang.
     ///
-    /// A squircular fillet provides a softer, more square-like rounding compared to a circular fillet,
-    /// often used for a more modern or stylized look. The shape is defined by a superellipse and
-    /// appears tighter than a circular fillet with the same radius.
+    /// This profile is useful in 3D printing where a rounded base is desirable but overhangs must be minimized. The
+    /// curvature is shaped to reduce material cantilevering while maintaining a rounded appearance at the base.
     ///
-    /// - Parameter radius: The radius defining the size of the squircular corner.
-    /// - Returns: An edge profile representing the soft fillet.
+    /// The vertical orientation of the profile is derived from the surrounding geometry's `naturalUpDirection`.
+    /// The shape is contextually adapted based on the current geometric `operation`:
+    /// - For `.addition`, the profile curves upward, forming a teardrop shape with its point at the bottom.
+    /// - For `.subtraction`, the profile is inverted to curve downward, maintaining consistency in the removed
+    ///   material boundary.
     ///
-    static func softFillet(radius: Double) -> Self {
-        Self {
-            SquircularCorner(radius: radius)
-        }
-    }
-}
-
-public extension EdgeProfile {
-    /// Creates an inverted fillet profile with a circular shape.
-    /// - Parameter radius: The radius of the inverted fillet.
-    /// - Returns: An edge profile representing the inverted fillet.
-    ///
-    static func invertedFillet(radius: Double) -> Self {
-        .invertedFillet(depth: radius, height: radius)
-    }
-
-    /// Creates an inverted fillet profile with an elliptical shape.
-    /// - Parameters:
-    ///   - depth: The horizontal distance from the original edge to the fillet's farthest point.
-    ///   - height: The vertical height from the base of the edge to the top of the fillet.
-    /// - Returns: An edge profile representing the inverted elliptical fillet.
-    ///
-    static func invertedFillet(depth: Double, height: Double) -> Self {
-        Self {
-            Rectangle(x: depth, y: height)
-                .aligned(at: .max)
-                .subtracting {
-                    Circle.ellipse(x: depth * 2, y: height * 2)
-                }
-        }
-    }
-}
-
-public extension EdgeProfile {
-    /// Creates an edge profile combining a rounded fillet with a straight chamfer near the top or bottom.
-    /// Useful for 3D printing where bottom edges require limited overhang.
-    /// The overhang angle is determined from `EnvironmentValues.overhangAngle`; set it with `.withOverhangAngle(_:)`.
-    /// - Parameter radius: The radius of the curvature applied to the edge.
-    /// - Returns: An edge profile representing the overhang fillet.
+    /// - Parameter radius: The effective radius of the curved portion.
+    /// - Returns: An edge profile shaped for print-friendly overhanging geometry.
+    /// The shape adapts to the current `overhangAngle` environment value, allowing it to respect the maximum printable
+    /// overhang angle and reduce unsupported material.
     ///
     static func overhangFillet(radius: Double) -> Self {
         Self {
             readEnvironment(\.overhangAngle) { overhangAngle in
                 Circle(radius: radius)
-                    .convexHull(adding: [0, radius / sin(overhangAngle)])
-                    .intersecting {
-                        Rectangle(radius)
-                    }
+                    .overhangSafe(.bridge)
+                    .within(x: 0..., y: 0...)
             }
         }
     }

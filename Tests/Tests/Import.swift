@@ -6,7 +6,7 @@ struct ImportTests {
     @Test func importCubeGears() async throws {
         let modelURL = Bundle.module.url(forResource: "cube_gears", withExtension: "3mf", subdirectory: "resources")!
 
-        await Import(model: modelURL)
+        try await Import(model: modelURL)
             .measuring { body, measurements in
                 Empty() as D3.Geometry
                 #expect(measurements.edgeCount == 38502)
@@ -14,7 +14,7 @@ struct ImportTests {
             }
             .triggerEvaluation()
 
-        await Import(model: modelURL, parts: [.name("gear 1"), .name("gear 12")])
+        try await Import(model: modelURL, parts: [.name("gear 1"), .name("gear 12")])
             .measuring { body, measurements in
                 Empty() as D3.Geometry
                 #expect(measurements.edgeCount == 7182)

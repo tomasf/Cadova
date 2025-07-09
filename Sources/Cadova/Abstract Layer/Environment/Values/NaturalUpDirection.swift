@@ -6,10 +6,12 @@ internal extension EnvironmentValues {
     struct NaturalUpDirectionData {
         let direction: Direction3D
         let transform: Transform3D
+
+        static let standard = Self(direction: .positiveZ, transform: .identity)
     }
 
-    var naturalUpDirectionData: NaturalUpDirectionData? {
-        self[Self.key] as? NaturalUpDirectionData
+    var naturalUpDirectionData: NaturalUpDirectionData {
+        self[Self.key] as? NaturalUpDirectionData ?? .standard
     }
 
     func settingNaturalUpDirectionData(_ direction: NaturalUpDirectionData?) -> EnvironmentValues {
@@ -20,50 +22,46 @@ internal extension EnvironmentValues {
 public extension EnvironmentValues {
     /// The natural up direction for the current environment.
     ///
-    /// This computed property returns the up direction as a `Vector3D` if it has been set.
+    /// This computed property returns the up direction as a `Vector3D`.
     /// The direction is adjusted based on the environment's current transformation.
-    /// If no up direction is defined, it returns `nil`.
+    /// The default direction is based on the positive Z axis direction in world space.
     ///
     /// The returned vector represents the "natural" up direction in the current orientation,
     /// taking into account any transformations that have been applied to the environment.
     ///
-    /// - Returns: A `Vector3D` representing the natural up direction, or `nil` if not set.
+    /// - Returns: A `Vector3D` representing the natural up direction.
     ///
-    var naturalUpDirection: Direction3D? {
-        naturalUpDirectionData.map { upDirection in
-            let upTransform = upDirection.transform.inverse.concatenated(with: transform.inverse)
-            return Direction3D(upTransform.apply(to: upDirection.direction.unitVector) - upTransform.offset)
-        }
+    var naturalUpDirection: Direction3D {
+        let upDirection = naturalUpDirectionData
+        let upTransform = upDirection.transform.inverse.concatenated(with: transform.inverse)
+        return Direction3D(upTransform.apply(to: upDirection.direction.unitVector) - upTransform.offset)
     }
 
     /// The angle of the natural up direction relative to the XY plane, if defined.
     ///
     /// This computed property returns the angle between the positive X-axis and the
-    /// projection of the natural up direction onto the XY plane. If the natural up
-    /// direction is set, the method calculates the angle in the XY plane. If the
-    /// natural up direction is not set, the method returns `nil`.
+    /// projection of the natural up direction onto the XY plane.
+    /// Returns `nil` if the natural up direction is perpendicular to the XY plane.
     ///
     /// - Returns: An optional `Angle` representing the angle of the natural up direction
-    ///   in the XY plane, or `nil` if the natural up direction is not set.
+    ///   in the XY plane, or `nil` if no projection exists.
     ///
     var naturalUpDirectionXYAngle: Angle? {
-        naturalUpDirection.map { Vector2D.zero.angle(to: $0.unitVector.xy) }
+        let xy = naturalUpDirection.unitVector.xy
+        guard xy.magnitude > 0 else { return nil }
+        return Vector2D.zero.angle(to: xy)
     }
 
     /// Sets the natural up direction relative to the environment's local coordinate system.
     ///
     /// This method assigns a new natural up direction to the environment, expressed as a `Vector3D`.
     /// The direction is specified relative to the environment's current local coordinate system.
-    /// If the `direction` is `nil`, the natural up direction is cleared, effectively removing
-    /// any specific orientation considerations from the environment.
     ///
-    /// - Parameter direction: A `Vector3D` representing the new natural up direction, or `nil` to remove it.
+    /// - Parameter direction: A `Vector3D` representing the new natural up direction.
     /// - Returns: A new `EnvironmentValues` instance with the updated natural up direction.
     ///
-    func settingNaturalUpDirection(_ direction: Direction3D?) -> EnvironmentValues {
-        settingNaturalUpDirectionData(direction.map {
-            .init(direction: $0, transform: transform)
-        })
+    func settingNaturalUpDirection(_ direction: Direction3D) -> EnvironmentValues {
+        settingNaturalUpDirectionData(.init(direction: direction, transform: transform))
     }
 }
 
@@ -81,28 +79,9 @@ public extension Geometry3D {
     /// - Returns: A new instance of `Geometry3D` with the natural up direction set in its
     ///   environment.
     ///
-    /// - See Also: `Teardrop`
-    ///
     func definingNaturalUpDirection(_ direction: Direction3D = .up) -> any Geometry3D {
         withEnvironment { environment in
             environment.settingNaturalUpDirection(direction)
-        }
-    }
-}
-
-extension Geometry {
-    /// Removes the natural up direction for the geometry.
-    ///
-    /// This method undefines the previously set natural up direction.
-    /// This is useful if you want to remove any specific orientation
-    /// considerations and revert to a state where the natural up
-    /// direction is undefined.
-    ///
-    /// - Returns: A new geometry with the natural up direction unset.
-    ///
-    func clearingNaturalUpDirection() -> D.Geometry {
-        withEnvironment { environment in
-            environment.settingNaturalUpDirection(nil)
         }
     }
 }

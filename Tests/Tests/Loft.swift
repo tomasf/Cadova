@@ -27,7 +27,7 @@ struct LoftTests {
             }
         }
 
-        let m = await loft.measurements
+        let m = try await loft.measurements
 
         #expect(m.volume ≈ 7846.93)
         #expect(m.surfaceArea ≈ 3980.143)

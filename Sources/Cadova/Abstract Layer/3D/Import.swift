@@ -60,50 +60,73 @@ public struct Import: Shape3D {
         case partNumber (String)
     }
 
-    /// Errors that can occur during 3MF import.
     public enum Error: Swift.Error {
         /// A requested part was not found in the model.
         case missingPart (Import.PartIdentifier)
 
         /// A referenced object could not be resolved.
-        case missingObject
+        case missingObject (ThreeMF.ResourceID)
+
+        var localizedDescription: String {
+            switch self {
+            case .missingPart (let partIdentifier):
+                "A part matching \(partIdentifier) was not found in the model."
+            case .missingObject (let id):
+                "A referenced object with ID \(id) could not be resolved."
+            }
+        }
     }
 
     public var body: any Geometry3D {
-        CachedBoxedGeometry(operationName: "import", parameters: url, parts) {
-            do {
-                let model = try PackageReader(url: url).model()
-                return try model.geometry(for: parts)
-            } catch {
-                logger.error("Failed to read 3MF model \(url.path): \(error)")
-                return Empty()
-            }
+        CachedNode(name: "import", parameters: url, parts) { _, _ in
+            let model = try PackageReader(url: url).model()
+            return try model.node(for: parts)
         }
     }
 }
 
 internal extension ThreeMF.Model {
-    func geometry(for parts: [Import.PartIdentifier]?) throws -> any Geometry3D {
-        if let partsIDs = parts {
-            return try Union(partsIDs.map {
+    func node(for parts: [Import.PartIdentifier]?) throws -> D3.Node {
+        let nodes = if let partsIDs = parts {
+            try partsIDs.map {
                 guard let item = firstItem(matching: $0) else {
                     throw Import.Error.missingPart($0)
                 }
-                return try geometry(for: item)
-            })
+                return try node(for: item)
+            }
         } else {
-            return try Union(buildItems.map { try geometry(for: $0) })
+            try buildItems.map { try node(for: $0) }
+        }
+        return .boolean(nodes, type: .union)
+    }
+
+    func node(for item: ThreeMF.Item) throws -> D3.Node {
+        let object = try self.object(for: item.objectID)
+        let geometry = try self.node(for: object)
+
+        return if let transform = item.transform {
+            .transform(geometry, transform: transform.cadovaTransform)
+        } else {
+            geometry
         }
     }
 
-    func geometry(for item: ThreeMF.Item) throws -> any Geometry3D {
-        let object = try self.object(for: item.objectID)
-        let geometry = try self.geometry(for: object)
+    func node(for object: ThreeMF.Object) throws -> D3.Node {
+        switch object.content {
+        case .mesh (let mesh):
+            return .shape(.mesh(.init(mesh)))
 
-        return if let transform = item.transform {
-            geometry.transformed(transform.affineTransform3D)
-        } else {
-            geometry
+        case .components (let components):
+            let subnodes = try components.map { component -> D3.Node in
+                let subobject = try self.object(for: component.objectID)
+                let subgeometry = try self.node(for: subobject)
+                return if let transform = component.transform {
+                    .transform(subgeometry, transform: transform.cadovaTransform)
+                } else {
+                    subgeometry
+                }
+            }
+            return .boolean(subnodes, type: .union)
         }
     }
 
@@ -121,27 +144,9 @@ internal extension ThreeMF.Model {
 
     func object(for id: ResourceID) throws -> Object {
         guard let object = resources.resource(for: id) as? Object else {
-            throw Import.Error.missingObject
+            throw Import.Error.missingObject(id)
         }
         return object
-    }
-
-    func geometry(for object: ThreeMF.Object) throws -> any Geometry3D {
-        switch object.content {
-        case .mesh (let mesh):
-            return Mesh(.init(mesh))
-
-        case .components (let components):
-            return try components.mapUnion { component in
-                let subobject = try self.object(for: component.objectID)
-                let subgeometry = try self.geometry(for: subobject)
-                if let transform = component.transform {
-                    subgeometry.transformed(transform.affineTransform3D)
-                } else {
-                    subgeometry
-                }
-            }
-        }
     }
 }
 
@@ -155,10 +160,13 @@ internal extension MeshData {
 }
 
 internal extension ThreeMF.Matrix3D {
-    var affineTransform3D: Transform3D {
-        guard values.count == 12 else { return .identity }
+    var cadovaTransform: Transform3D {
+        guard values.count == 4, values.allSatisfy({ $0.count == 3 }) else { return .identity }
         return Transform3D([
-            values[0] + [0], values[1] + [0], values[2] + [0], values[3] + [1]
+            [values[0][0], values[1][0], values[2][0], values[3][0]],
+            [values[0][1], values[1][1], values[2][1], values[3][1]],
+            [values[0][2], values[1][2], values[2][2], values[3][2]],
+            [0, 0, 0, 1]
         ])
     }
 }

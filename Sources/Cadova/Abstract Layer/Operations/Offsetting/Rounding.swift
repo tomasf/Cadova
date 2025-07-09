@@ -1,56 +1,80 @@
 import Foundation
 
-/// Specifies the side of the geometry boundary where rounding should be applied.
-public enum RoundingSide {
-    /// Rounding is applied only to the outside edges of the geometry.
-    case outside
-
-    /// Rounding is applied only to the inside edges of the geometry.
-    case inside
-
-    /// Rounding is applied to both the inside and outside edges of the geometry.
-    case both
-}
-
 public extension Geometry2D {
-    /// Applies rounding to the geometry's corners according to the specified amount and side.
+    /// Applies rounding to the geometry's corners with separate control over inside and outside radii.
     ///
-    /// This method modifies the geometry to round its corners, with the extent of rounding determined by the `amount` parameter. The `side` parameter controls which side of the geometry's boundary is affected by the rounding process.
+    /// This method modifies the geometry to round its corners, with the extent of rounding determined by the
+    /// `insideRadius` and `outsideRadius` parameters. Positive values specify the radius of the rounding effect. If
+    /// only one of the parameters is specified, rounding will be applied only on that side.
     ///
     /// - Parameters:
-    ///   - amount: The radius of rounding to be applied to the geometry's corners. Positive values specify the radius of the rounding effect.
-    ///   - side: The side of the geometry's boundary to apply the rounding to. Defaults to `.both`, applying rounding to both the inside and outside edges.
+    ///   - insideRadius: The radius of rounding applied to interior corners of the geometry.
+    ///   - outsideRadius: The radius of rounding applied to exterior corners of the geometry.
     /// - Returns: A new geometry object with rounded corners.
-    func rounded(amount: Double, side: RoundingSide = .both) -> any Geometry2D {
+    ///
+    func rounded(insideRadius: Double? = nil, outsideRadius: Double? = nil) -> any Geometry2D {
         var body: any Geometry2D = self
-        if side != .inside {
+        if let outsideRadius {
             body = body
-                .offset(amount: -amount, style: .miter)
-                .offset(amount: amount, style: .round)
+                .offset(amount: -outsideRadius, style: .miter)
+                .offset(amount: outsideRadius, style: .round)
         }
-        if side != .outside {
+        if let insideRadius {
             body = body
-                .offset(amount: amount, style: .miter)
-                .offset(amount: -amount, style: .round)
+                .offset(amount: insideRadius, style: .miter)
+                .offset(amount: -insideRadius, style: .round)
         }
         return body
     }
 
-    /// Applies rounding to the geometry's corners but limits the effect to areas covered by a mask.
+    /// Applies uniform rounding to both inside and outside corners of the geometry.
     ///
-    /// This method combines the base geometry with a specified mask, rounding the geometry's corners only within the mask's boundaries. The `amount` and `side` parameters determine the extent and direction of rounding, similar to the ``rounded(amount:side:)`` method.
+    /// This is a convenience method that applies the same rounding radius to both the inside and outside edges of the
+    /// geometry. Equivalent to calling `rounded(insideRadius:radius, outsideRadius:radius)`.
+    ///
+    /// - Parameter radius: The radius to apply to both inside and outside edges.
+    /// - Returns: A new geometry object with uniformly rounded corners.
+    ///
+    func rounded(radius: Double) -> any Geometry2D {
+        rounded(insideRadius: radius, outsideRadius: radius)
+    }
+
+    /// Applies uniform rounding to the geometry's corners, limited to areas covered by a mask.
+    ///
+    /// This is a convenience method that applies the same rounding radius to both inside and outside edges,
+    /// but restricts the effect to the area defined by the given mask.
+    /// Equivalent to calling `rounded(insideRadius:radius, outsideRadius:radius, in: mask)`.
     ///
     /// - Parameters:
-    ///   - amount: The radius of rounding to be applied to the geometry's corners. Positive values specify the radius of the rounding effect.
-    ///   - side: The side of the geometry's boundary to apply the rounding to. Defaults to `.both`, applying rounding to both the inside and outside edges.
+    ///   - radius: The radius to apply to both inside and outside edges.
     ///   - mask: A closure that defines the mask geometry, limiting where the rounding is applied.
     /// - Returns: A new geometry object with rounded corners, limited to the area covered by the mask.
+    func rounded(radius: Double, @GeometryBuilder2D in mask: @Sendable @escaping () -> any Geometry2D) -> any Geometry2D {
+        rounded(insideRadius: radius, outsideRadius: radius, in: mask)
+    }
 
-    func rounded(amount: Double, side: RoundingSide = .both, @GeometryBuilder2D in mask: () -> any Geometry2D) -> any Geometry2D {
-        let maskShape = mask()
+    /// Applies rounding to the geometry's corners with separate inside and outside radii, limited to areas covered by
+    /// a mask.
+    ///
+    /// This method combines the base geometry with a specified mask, rounding the geometry's corners only within the
+    /// mask's boundaries. The `insideRadius` and `outsideRadius` parameters determine the extent of rounding on each
+    /// side, respectively.
+    ///
+    /// - Parameters:
+    ///   - insideRadius: The radius of rounding applied to the inside edges of the geometry. Optional.
+    ///   - outsideRadius: The radius of rounding applied to the outside edges of the geometry. Optional.
+    ///   - mask: A closure that defines the mask geometry, limiting where the rounding is applied.
+    /// - Returns: A new geometry object with rounded corners, limited to the area covered by the mask.
+    ///
+    func rounded(
+        insideRadius: Double? = nil,
+        outsideRadius: Double? = nil,
+        @GeometryBuilder2D in mask: @Sendable @escaping () -> any Geometry2D
+    ) -> any Geometry2D {
+        let maskShape = Deferred(mask)
         return subtracting(maskShape)
             .adding {
-                self.rounded(amount: amount, side: side)
+                self.rounded(insideRadius: insideRadius, outsideRadius: outsideRadius)
                     .intersecting(maskShape)
             }
     }

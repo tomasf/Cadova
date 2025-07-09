@@ -1,37 +1,44 @@
 import Foundation
 
-private func saveModel(
-    to name: String,
-    environmentBuilder: ((inout EnvironmentValues) -> Void)?,
-    providerBuilder: (EnvironmentValues, EvaluationContext) async -> any OutputDataProvider,
-) async {
-    var environment = OutputContext.current?.environmentValues ?? .defaultEnvironment
-    environmentBuilder?(&environment)
-
-    let context = OutputContext.current?.evaluationContext ?? .init()
-    let provider = await providerBuilder(environment, context)
-
-    let url: URL
-    if let parent = OutputContext.current?.directory {
-        url = parent.appendingPathComponent(name, isDirectory: false).appendingPathExtension(provider.fileExtension)
-    } else {
-        url = URL(expandingFilePath: name, extension: provider.fileExtension)
-    }
-
-    do {
-        try await provider.writeOutput(to: url, context: context)
-        logger.info("Wrote model to \(url.path)")
-    } catch {
-        logger.error("Failed to save model file to \(url.path): \(error)")
-    }
-}
-
 public struct Model: Sendable {
     let name: String
     let writer: @Sendable (EvaluationContext) async -> (URL?)
 
     private static let defaultContext = EvaluationContext()
 
+    /// Creates and exports a model based on the provided geometry.
+    ///
+    /// Use this initializer to construct and write a 3D or 2D model to disk. The model is
+    /// generated from a geometry tree you define using the result builder. Supported output
+    /// formats include 3MF, STL, and SVG, and can be customized via `ModelOptions`.
+    ///
+    /// The model will be written to a file in the current working directory (unless a full
+    /// path is specified) and revealed in Finder or Explorer if the file did not previously exist.
+    ///
+    /// - Parameters:
+    ///   - name: The base filename (without extension) or a relative/full path to where the model should be saved.
+    ///   - options: One or more `ModelOptions` used to customize output format, compression, metadata, etc.
+    ///   - content: A result builder that returns the model geometry.
+    ///   - environmentBuilder: An optional closure for customizing environment values. This lets you control
+    ///     evaluation parameters such as segmentation detail or geometric constraints. For example, you might set:
+    ///
+    ///     ```swift
+    ///     environment: {
+    ///         $0.segmentation = .adaptive(minAngle: 4°, minSize: 0.2)
+    ///         $0.maxTwistRate = 5°
+    ///     }
+    ///     ```
+    ///
+    /// ### Example
+    /// ```swift
+    /// await Model("example") {
+    ///     Box(x: 100, y: 3, z: 20)
+    ///         .deformed(using: BezierPath2D {
+    ///             curve(controlX: 50, controlY: 50, endX: 100, endY: 0)
+    ///         }, with: .x)
+    /// }
+    /// ```
+    ///
     @discardableResult
     public init<D: Dimensionality>(
         _ name: String,
@@ -43,8 +50,15 @@ public struct Model: Sendable {
 
         logger.info("Generating \"\(name)\"...")
 
+        let localOptions: ModelOptions = [
+            .init(ModelName(name: name)),
+            OutputContext.current?.options ?? [],
+            .init(options)
+        ]
+
         var mutatingEnvironment = OutputContext.current?.environmentValues ?? .defaultEnvironment
         environmentBuilder?(&mutatingEnvironment)
+        mutatingEnvironment.modelOptions = localOptions
         let environment = mutatingEnvironment
 
         let baseURL: URL
@@ -54,17 +68,19 @@ public struct Model: Sendable {
             baseURL = URL(expandingFilePath: name)
         }
 
-        let localOptions: ModelOptions = [
-            .init(ModelName(name: name)),
-            OutputContext.current?.options ?? [],
-            .init(options)
-        ]
-
         writer = { context in
-            let result = await ContinuousClock().measure {
-                await content().build(in: environment, context: context)
-            } results: { duration, _ in
-                logger.debug("Built geometry node tree in \(duration)")
+            let result: D.BuildResult
+            do {
+                result = try await ContinuousClock().measure {
+                    try await environment.whileCurrent {
+                        try await context.buildResult(for: content(), in: environment)
+                    }
+                } results: { duration, _ in
+                    logger.debug("Built geometry node tree in \(duration)")
+                }
+            } catch {
+                logger.error("Cadova caught an error while evaluating model \"\(name)\":\n🛑 \(error)\n")
+                return nil
             }
 
             let provider: OutputDataProvider
@@ -85,7 +101,6 @@ public struct Model: Sendable {
             }
 
             let url = baseURL.appendingPathExtension(provider.fileExtension)
-
             let fileExisted = FileManager().fileExists(atPath: url.path())
 
             do {

@@ -5,7 +5,11 @@ public extension EnvironmentValues {
 
     /// The overhang angle currently set in the environment.
     ///
-    /// This property retrieves the overhang angle setting from the environment. If not explicitly set, the overhang defaults to 45°. Overhang is typically defined as the maximum angle from the vertical at which material can be printed without requiring support, a common concept in 3D printing. This value can be used by your own code or by Cadova features such as `Teardrop` to influence geometry generation according to the specified overhang constraint.
+    /// This property retrieves the overhang angle setting from the environment. If not explicitly set, the overhang
+    /// defaults to 45°. Overhang is typically defined as the maximum angle from the vertical at which material can be
+    /// printed without requiring support, a common concept in 3D printing. This value can be used by your own code or
+    /// by Cadova features such as overhang-safe circular geometry to influence geometry generation according to the
+    /// specified overhang constraint.
     ///
     /// - Returns: The current overhang value as an `Angle`.
     var overhangAngle: Angle {
@@ -26,7 +30,9 @@ public extension EnvironmentValues {
 public extension Geometry {
     /// Applies a specified overhang angle setting to the geometry.
     ///
-    /// This method allows you to set an overhang angle for the geometry, which your own code or third-party libraries can interpret and use to adjust their processing or validation logic. Cadova itself uses this for `Teardrop`.
+    /// This method allows you to set an overhang angle for the geometry, which your own code or third-party libraries
+    /// can interpret and use to adjust their processing or validation logic. Cadova itself uses this for overhang-safe
+    /// circular geometry.
     ///
     /// - Parameter angle: The overhang angle to set for the geometry.
     /// - Returns: A modified geometry with the specified overhang setting applied.

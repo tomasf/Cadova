@@ -24,7 +24,7 @@ struct PartTests {
             }
             .translated(x: 10)
 
-        let partNames = await g.parts.map(\.key.name)
+        let partNames = try await g.parts.map(\.key.name)
         #expect(Set(partNames) == ["inner", "outer"])
     }
 
@@ -40,12 +40,12 @@ struct PartTests {
             }
 
         let node = try await #require(g.parts[.named("merged", type: .solid)]?.node)
-        let concrete = await node.evaluate(in: .init()).concrete
+        let concrete = try await node.evaluate(in: .init()).concrete
         #expect(BoundingBox3D(concrete.bounds) ≈ BoundingBox3D(minimum: [-2.5, -2.5, -2.5], maximum: [20, 4, 4]))
     }
 
     @Test func rootOperationShouldBePositive() async throws {
-        await Box(10)
+        try await Box(10)
             .subtracting {
                 Sphere(diameter: 10)
                     .readingOperation { op in
@@ -54,5 +54,32 @@ struct PartTests {
                     .inPart(named: "subtracted")
             }
             .triggerEvaluation()
+    }
+
+    @Test func detachment() async throws {
+        let measurements = try await Box(10)
+            .readingPartNames { #expect($0.isEmpty) }
+            .adding {
+                Sphere(diameter: 12)
+                    .withSegmentation(count: 10)
+                    .inPart(named: "sphere")
+            }
+            .readingPartNames { #expect($0 == ["sphere"]) }
+            .subtracting {
+                Cylinder(diameter: 4, height: 20)
+                    .inPart(named: "cylinder")
+            }
+            .readingPartNames { #expect($0 == ["sphere", "cylinder"]) }
+            .detachingPart(named: "sphere") { geometry, part in
+                geometry.adding {
+                    part
+                }
+            }
+            .readingPartNames { #expect($0 == ["cylinder"]) }
+            .measurements
+
+        #expect(measurements.boundingBox ≈ .init(minimum: [-6, -6, -6], maximum: [10, 10, 10]))
+        #expect(measurements.volume ≈ 1676.119)
+        #expect(measurements.surfaceArea ≈ 882.572)
     }
 }

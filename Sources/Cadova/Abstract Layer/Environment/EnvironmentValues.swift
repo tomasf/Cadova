@@ -65,3 +65,24 @@ public extension EnvironmentValues {
             .withSegmentation(.defaults)
     }
 }
+
+internal extension EnvironmentValues {
+    @TaskLocal static var topLevelEnvironment: EnvironmentValues? = nil
+
+    /// The current environment, or default values if outside geometry generation
+    static var current: Self {
+        topLevelEnvironment ?? .defaultEnvironment
+    }
+
+    func whileCurrent<T>(_ actions: () async throws -> T) async rethrows -> T {
+        try await Self.$topLevelEnvironment.withValue(self) {
+            try await actions()
+        }
+    }
+
+    func whileCurrent<T>(_ actions: () -> T) -> T {
+        Self.$topLevelEnvironment.withValue(self) {
+            actions()
+        }
+    }
+}
