@@ -158,3 +158,63 @@ public extension Geometry2D {
         rounded(insideRadius: side != .outside ? amount : nil, outsideRadius: side != .inside ? amount : nil)
     }
 }
+
+// Deprecated in 0.1.1
+
+public extension Geometry2D {
+    @available(*, deprecated, message: "Use the swept(along:pointing:toward:) method with ReferenceTarget instead.")
+    func swept<V: Vector>(
+        along path: BezierPath<V>,
+        pointing reference: Direction2D,
+        toward direction: Direction3D
+    ) -> any Geometry3D {
+        swept(along: path, pointing: reference, toward: .direction(direction))
+    }
+
+    @available(*, deprecated, message: "Use the swept(along:pointing:toward:) method with ReferenceTarget instead.")
+    func swept<V: Vector>(
+        along path: BezierPath<V>,
+        pointing reference: Direction2D,
+        toward point: Vector3D
+    ) -> any Geometry3D {
+        swept(along: path, pointing: reference, toward: .point(point))
+    }
+
+    @available(*, deprecated, message: "Use the swept(along:pointing:toward:) method with ReferenceTarget instead.")
+    func swept<V: Vector>(
+        along path: BezierPath<V>,
+        pointing reference: Direction2D,
+        toward line: D3.Line
+    ) -> any Geometry3D {
+        swept(along: path, pointing: reference, toward: .line(line))
+    }
+}
+
+public extension Geometry3D {
+    @available(*, deprecated, message: "Use the version that takes a `ReferenceTarget` instead.")
+    func following(
+        path: BezierPath3D,
+        pointing reference: Direction2D,
+        toward direction: Direction3D
+    ) -> any Geometry3D {
+        FollowPath3D(geometry: self, path: path, reference: reference, target: .direction(direction))
+    }
+
+    @available(*, deprecated, message: "Use the version that takes a `ReferenceTarget` instead.")
+    func following(
+        path: BezierPath3D,
+        pointing reference: Direction2D,
+        toward point: Vector3D
+    ) -> any Geometry3D {
+        FollowPath3D(geometry: self, path: path, reference: reference, target: .point(point))
+    }
+
+    @available(*, deprecated, message: "Use the version that takes a `ReferenceTarget` instead.")
+    func following(
+        path: BezierPath3D,
+        pointing reference: Direction2D,
+        toward line: D3.Line
+    ) -> any Geometry3D {
+        FollowPath3D(geometry: self, path: path, reference: reference, target: .line(line))
+    }
+}
