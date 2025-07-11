@@ -21,10 +21,6 @@ jobs:
     - uses: SwiftyLab/setup-swift@latest
     - uses: actions/checkout@v4
 
-    - name: Set up Git authentication for FindFont private repo
-      run: |
-        git config --global url."https://${{ secrets.FINDFONT_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
     - name: Install Linux dependencies
       if: runner.os == 'Linux'
       run: |
