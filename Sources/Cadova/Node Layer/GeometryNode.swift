@@ -71,7 +71,7 @@ extension GeometryNode {
             return try await context.result(for: node).modified { $0.transform(transform as! D.Concrete.Transform) }
 
         case .convexHull (let node):
-            return try await context.result(for: node).modified { $0.hull() }
+            return try await context.result(for: node).modified { $0.isEmpty ? .empty : $0.hull() }
 
         case .refine (let node, let edgeLength):
             return try await context.result(for: node).modified { $0.refine(edgeLength: edgeLength) }
