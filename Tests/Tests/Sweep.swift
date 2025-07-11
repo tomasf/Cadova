@@ -23,7 +23,7 @@ struct SweepTests {
         }
 
         let sweep = shape
-            .swept(along: path, pointing: .down, toward: .down)
+            .swept(along: path, pointing: .down, toward: .direction(.down))
             .withSegmentation(minAngle: 4°, minSize: 0.3)
 
         let m = try await sweep.measurements
