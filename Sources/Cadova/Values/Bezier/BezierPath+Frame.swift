@@ -5,13 +5,11 @@ internal extension BezierPath3D {
         environment: EnvironmentValues,
         target: FrameTarget,
         targetReference: Direction2D,
-        perpendicularBounds: BoundingBox2D,
-        enableDebugging: Bool = false
-    ) -> ([Frame], [any Geometry3D]) {
+        perpendicularBounds: BoundingBox2D
+    ) -> [Frame] {
         let derivative = self.derivative
         let fractionsAndPoints = self.pointsAtPositions(segmentation: environment.segmentation)
         var frames: [Frame] = []
-        var debugParts: [any Geometry3D]? = enableDebugging ? [] : nil
 
         var distance = 0.0
         var lastPoint: Vector3D?
@@ -26,8 +24,7 @@ internal extension BezierPath3D {
                 tangent: derivative.point(at: t),
                 reference: targetReference,
                 target: target,
-                previousSample: frames.last,
-                debugGeometry: &debugParts
+                previousSample: frames.last
             ))
             lastPoint = point
         }
@@ -36,7 +33,7 @@ internal extension BezierPath3D {
         frames.normalizeAngles()
         frames.applyTwistDamping(maxTwistRate: environment.maxTwistRate)
         frames.pruneStraightRuns(bounds: perpendicularBounds, segmentation: environment.segmentation)
-        return (frames, debugParts ?? [])
+        return frames
     }
 
     enum FrameTarget: Sendable, Hashable, Codable {
@@ -69,8 +66,7 @@ internal extension BezierPath3D {
             tangent: Vector3D,
             reference: Direction2D,
             target: FrameTarget,
-            previousSample: Frame?,
-            debugGeometry: inout [any Geometry3D]?
+            previousSample: Frame?
         ) {
             self.t = t
             self.distance = distance
@@ -109,26 +105,6 @@ internal extension BezierPath3D {
             } else {
                 angle = nil
             }
-
-            debugGeometry?.append(contentsOf: [
-                Box(x: 0.1, y: 0.1, z: 10)
-                    .rotated(from: .up, to: .init(referenceVector))
-                    .translated(point)
-                    .colored(.blue)
-                    .inPart(named: "referenceVector", type: .visual),
-
-                Box(x: 0.1, y: 0.1, z: 10)
-                    .rotated(from: .up, to: .init(targetDirection))
-                    .translated(point)
-                    .colored(.green)
-                    .inPart(named: "targetDirection", type: .visual),
-
-                Box(1)
-                    .aligned(at: .center)
-                    .translated(globalTargetPoint)
-                    .colored(.purple)
-                    .inPart(named: "globalTargetPoint", type: .visual)
-            ])
         }
 
         var transform: Transform3D {
