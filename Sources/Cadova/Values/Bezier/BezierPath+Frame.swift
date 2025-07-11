@@ -1,9 +1,25 @@
 import Foundation
 
+public enum ReferenceTarget: Sendable, Hashable, Codable {
+    case point (Vector3D)
+    case line (D3.Line)
+    case direction (Direction3D)
+}
+
+internal extension ReferenceTarget {
+    func targetPoint(from plane: Plane) -> Vector3D {
+        switch self {
+        case let .point(p): p
+        case let .line(line): plane.intersection(with: line) ?? line.closestPoint(to: plane.offset)
+        case let .direction(dir): plane.offset + dir.unitVector
+        }
+    }
+}
+
 internal extension BezierPath3D {
     func frames(
         environment: EnvironmentValues,
-        target: FrameTarget,
+        target: ReferenceTarget,
         targetReference: Direction2D,
         perpendicularBounds: BoundingBox2D
     ) -> [Frame] {
@@ -36,20 +52,6 @@ internal extension BezierPath3D {
         return frames
     }
 
-    enum FrameTarget: Sendable, Hashable, Codable {
-        case point (Vector3D)
-        case line (D3.Line)
-        case direction (Direction3D)
-
-        func targetPoint(from plane: Plane) -> Vector3D {
-            switch self {
-            case let .point(p): p
-            case let .line(line): plane.intersection(with: line) ?? line.closestPoint(to: plane.offset)
-            case let .direction(dir): plane.offset + dir.unitVector
-            }
-        }
-    }
-
     struct Frame {
         let t: Double
         let distance: Double
@@ -65,7 +67,7 @@ internal extension BezierPath3D {
             point: Vector3D,
             tangent: Vector3D,
             reference: Direction2D,
-            target: FrameTarget,
+            target: ReferenceTarget,
             previousSample: Frame?
         ) {
             self.t = t

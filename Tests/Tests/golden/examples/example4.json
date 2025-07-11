@@ -65,7 +65,7 @@
                 }
               },
               {
-                "type" : "6Cadova10BezierPathVAAE11FrameTargetOyAA8Vector3DV_G",
+                "type" : "6Cadova15ReferenceTargetO",
                 "value" : {
                   "direction" : {
                     "_0" : {

@@ -9,16 +9,19 @@
           "red" : 1
         }
       },
-      "name" : "separate",
+      "name" : "Model",
       "type" : "solid"
     },
     {
       "body" : {
         "kind" : "shape3D",
         "primitive" : {
-          "sphere" : {
-            "radius" : 2.5,
-            "segmentCount" : 104
+          "box" : {
+            "size" : {
+              "x" : 10,
+              "y" : 10,
+              "z" : 10
+            }
           }
         }
       },
@@ -59,19 +62,16 @@
           "red" : 1
         }
       },
-      "name" : "Model",
+      "name" : "separate",
       "type" : "solid"
     },
     {
       "body" : {
         "kind" : "shape3D",
         "primitive" : {
-          "box" : {
-            "size" : {
-              "x" : 10,
-              "y" : 10,
-              "z" : 10
-            }
+          "sphere" : {
+            "radius" : 2.5,
+            "segmentCount" : 104
           }
         }
       },
