@@ -116,7 +116,7 @@ internal struct FollowPath3D: Shape3D {
                             target: target,
                             targetReference: reference,
                             perpendicularBounds: bounds.bounds2D
-                        ).0
+                        )
                     } transform: { p, frames in
                         let distanceTarget = (p.z - bounds.minimum.z) * lengthFactor
                         let (index, fraction) = frames.binarySearch(target: distanceTarget, key: \.distance)

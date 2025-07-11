@@ -11,7 +11,7 @@ import Foundation
         [expression]
     }
 
-    public static func buildExpression<S>(_ geometry: S) -> [G] where S: Sequence, S.Element == G {
+    public static func buildExpression<S: Sequence<G>>(_ geometry: S) -> [G] {
         Array(geometry)
     }
 

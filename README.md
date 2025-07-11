@@ -28,7 +28,7 @@ Cadova is currently in pre-release, with a version number below 1.0. The API is 
 Contributions are welcome! If you have ideas, suggestions, or improvements, feel free to open an issue or submit a pull request. You’re also welcome to browse the [open GitHub issues](https://github.com/tomasf/Cadova/issues) and pick one to work on — especially those marked as good first issues or help wanted.
 
 ## License
-This project is licensed under the MIT. See the LICENSE file for details.
+This project is licensed under the MIT license. See the LICENSE file for details.
 
 ## Manifest template
 ```swift

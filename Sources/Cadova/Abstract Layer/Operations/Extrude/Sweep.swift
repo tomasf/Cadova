@@ -148,7 +148,7 @@ internal struct Sweep: Shape3D {
             body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation
         ) { node, environment, context in
             let crossSection = try await context.result(for: node).concrete
-            let (frames, _) = path.frames(
+            let frames = path.frames(
                 environment: environment,
                 target: target,
                 targetReference: reference,

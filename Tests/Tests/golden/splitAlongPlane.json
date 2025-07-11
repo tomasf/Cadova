@@ -18,29 +18,72 @@
           "body" : {
             "body" : {
               "cacheKey" : {
-                "type" : "6Cadova15IndexedCacheKeyVyAA05NamedcD0VG",
+                "type" : "6Cadova15IndexedCacheKeyVyAA04NodecD0VyAA05NamedcD0VAA2D3VGG",
                 "value" : {
                   "base" : {
-                    "operationName" : "Cadova.SplitAlongPlane",
-                    "parameters" : [
-                      {
-                        "type" : "6Cadova5PlaneV",
-                        "value" : {
-                          "normal" : {
-                            "unitVector" : {
+                    "base" : {
+                      "operationName" : "Cadova.SplitAlongPlane",
+                      "parameters" : [
+                        {
+                          "type" : "6Cadova5PlaneV",
+                          "value" : {
+                            "normal" : {
+                              "unitVector" : {
+                                "x" : 0,
+                                "y" : -0.3420201433256687,
+                                "z" : 0.9396926207859084
+                              }
+                            },
+                            "offset" : {
                               "x" : 0,
-                              "y" : -0.3420201433256687,
-                              "z" : 0.9396926207859084
+                              "y" : 0,
+                              "z" : 0
                             }
-                          },
-                          "offset" : {
-                            "x" : 0,
-                            "y" : 0,
-                            "z" : 0
                           }
                         }
-                      }
-                    ]
+                      ]
+                    },
+                    "node" : {
+                      "body" : {
+                        "kind" : "shape3D",
+                        "primitive" : {
+                          "box" : {
+                            "size" : {
+                              "x" : 10,
+                              "y" : 10,
+                              "z" : 10
+                            }
+                          }
+                        }
+                      },
+                      "kind" : "transform",
+                      "transform" : [
+                        [
+                          1,
+                          0,
+                          0,
+                          -5
+                        ],
+                        [
+                          0,
+                          1,
+                          0,
+                          -5
+                        ],
+                        [
+                          0,
+                          0,
+                          1,
+                          -5
+                        ],
+                        [
+                          0,
+                          0,
+                          0,
+                          1
+                        ]
+                      ]
+                    }
                   },
                   "index" : 0
                 }
@@ -89,29 +132,72 @@
           "body" : {
             "body" : {
               "cacheKey" : {
-                "type" : "6Cadova15IndexedCacheKeyVyAA05NamedcD0VG",
+                "type" : "6Cadova15IndexedCacheKeyVyAA04NodecD0VyAA05NamedcD0VAA2D3VGG",
                 "value" : {
                   "base" : {
-                    "operationName" : "Cadova.SplitAlongPlane",
-                    "parameters" : [
-                      {
-                        "type" : "6Cadova5PlaneV",
-                        "value" : {
-                          "normal" : {
-                            "unitVector" : {
+                    "base" : {
+                      "operationName" : "Cadova.SplitAlongPlane",
+                      "parameters" : [
+                        {
+                          "type" : "6Cadova5PlaneV",
+                          "value" : {
+                            "normal" : {
+                              "unitVector" : {
+                                "x" : 0,
+                                "y" : -0.3420201433256687,
+                                "z" : 0.9396926207859084
+                              }
+                            },
+                            "offset" : {
                               "x" : 0,
-                              "y" : -0.3420201433256687,
-                              "z" : 0.9396926207859084
+                              "y" : 0,
+                              "z" : 0
                             }
-                          },
-                          "offset" : {
-                            "x" : 0,
-                            "y" : 0,
-                            "z" : 0
                           }
                         }
-                      }
-                    ]
+                      ]
+                    },
+                    "node" : {
+                      "body" : {
+                        "kind" : "shape3D",
+                        "primitive" : {
+                          "box" : {
+                            "size" : {
+                              "x" : 10,
+                              "y" : 10,
+                              "z" : 10
+                            }
+                          }
+                        }
+                      },
+                      "kind" : "transform",
+                      "transform" : [
+                        [
+                          1,
+                          0,
+                          0,
+                          -5
+                        ],
+                        [
+                          0,
+                          1,
+                          0,
+                          -5
+                        ],
+                        [
+                          0,
+                          0,
+                          1,
+                          -5
+                        ],
+                        [
+                          0,
+                          0,
+                          0,
+                          1
+                        ]
+                      ]
+                    }
                   },
                   "index" : 1
                 }
