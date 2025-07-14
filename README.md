@@ -1,5 +1,5 @@
 # Cadova
-<img src="https://github.com/user-attachments/assets/99d15163-d168-419c-9fc3-406e4f657074" width="400" align="right">
+<img src="https://github.com/user-attachments/assets/99d15163-d168-419c-9fc3-406e4f657074" width="40%" align="right">
 
 Cadova is a Swift library for creating 3D models through code, with a focus on 3D printing. It offers a programmable alternative to traditional CAD tools, combining precise geometry with the expressiveness and elegance of Swift.
 
