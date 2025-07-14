@@ -1,0 +1,32 @@
+name: Build and test dev
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-15, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: SwiftyLab/setup-swift@latest
+    - uses: actions/checkout@v4
+
+    - name: Install Linux dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libfontconfig1-dev
+
+    - name: Build
+      run: swift build -v
+
+    - name: Run tests
+      if: matrix.os != 'windows-latest'
+      run: swift test -v
