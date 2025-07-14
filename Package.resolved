@@ -1,5 +1,5 @@
 {
-  "originHash" : "7731a774151b476006de6c9d8305acaf60da3564439a442c0eb8f1f6b1a44a89",
+  "originHash" : "95147699b50610ece0153bf82fb0d173ab789561d5c2eab4992db2b19732023f",
   "pins" : [
     {
       "identity" : "findfont",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/freetype-spm.git",
       "state" : {
-        "revision" : "b308b09b9d21215c522a73a38f670b7aca24843e",
-        "version" : "1.0.0"
+        "revision" : "93b117ac4d533090124d44180c9e648ec9e2df94",
+        "version" : "1.0.1"
       }
     },
     {
