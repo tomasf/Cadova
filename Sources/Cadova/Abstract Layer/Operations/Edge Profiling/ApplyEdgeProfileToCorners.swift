@@ -46,7 +46,7 @@ public extension Geometry3D {
     ///
     /// This method uses the bounding box of the geometry to determine the appropriate size and position for the
     /// profile. It is intended for geometries that are box-like or similar enough for this approximation to be
-    /// effective. The shape of fillets is determined by the environment’s `roundedCornerStyle`, which controls whether
+    /// effective. The shape of fillets is determined by the environment’s `cornerRoundingStyle`, which controls whether
     /// corners are shaped as simple circular arcs or smoother, squircle-like transitions.
     ///
     func applyingEdgeProfile(

@@ -79,12 +79,12 @@ internal extension EdgeProfile {
                             .translated(b, z: 0)
                             .subtracting {
                                 Box(universeLength * 2)
-                                    .translated(x: -0.000001)
+                                    .translated(x: -1e-6)
                                     .rotated(z: Angle(bisecting: edgeAngle, a.angle(to: b)) + 90°)
                                     .translated(b, z: -universeLength)
 
                                 Box(universeLength * 2)
-                                    .translated(x: 0.000001)
+                                    .translated(x: 1e-6)
                                     .rotated(z: Angle(bisecting: edgeAngle, c.angle(to: d)))
                                     .translated(c, z: -universeLength)
                             }
