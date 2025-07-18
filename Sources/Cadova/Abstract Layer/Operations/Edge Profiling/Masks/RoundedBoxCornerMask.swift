@@ -95,12 +95,12 @@ internal struct RoundedBoxCornerMask: Shape3D {
 
     var body: any Geometry3D {
         @Environment(\.segmentation) var segmentation
-        @Environment(\.cornerRoundingStyle) var roundedCornerStyle
+        @Environment(\.cornerRoundingStyle) var cornerRoundingStyle
         let segmentCount = max(segmentation.segmentCount(circleRadius: radius) / 4 - 1, 1)
 
         CachedNode(name: "roundedBoxCornerMask", parameters: boxSize, radius, segmentCount) {
             let segmentedMask = SegmentedMask(
-                boxSize: boxSize, radius: radius, segmentCount: segmentCount, cornerStyle: roundedCornerStyle
+                boxSize: boxSize, radius: radius, segmentCount: segmentCount, cornerStyle: cornerRoundingStyle
             )
 
             return Mesh(faces: segmentedMask.faces) {

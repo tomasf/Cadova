@@ -28,7 +28,7 @@ public extension EnvironmentValues {
 
     /// Returns a copy of these environment values with a new corner rounding style applied.
     ///
-    /// Use this method to set the ``roundedCornerStyle`` for a subtree of your geometry. The style
+    /// Use this method to set the ``cornerRoundingStyle`` for a subtree of your geometry. The style
     /// will be used for all descendant geometry unless overridden further down the tree.
     ///
     /// - `.circular`: Corners follow a quarter-circle arc, producing a classic rounded look.
