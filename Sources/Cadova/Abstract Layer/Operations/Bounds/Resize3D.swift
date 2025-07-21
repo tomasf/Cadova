@@ -5,8 +5,7 @@ public extension Geometry3D {
         _ alignment: GeometryAlignment3D,
         calculator: @Sendable @escaping (Vector3D) -> Vector3D
     ) -> any Geometry3D {
-        return measuring { geometry, measurements in
-            let box = measurements.boundingBox.requireNonNil()
+        measuringBounds { geometry, box in
             let translation = box.translation(for: alignment)
             geometry
                 .translated(translation)

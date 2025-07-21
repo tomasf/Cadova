@@ -59,8 +59,7 @@ public extension Geometry3D {
         return self
             .rotated(from: axis.direction(.negative), to: .up)
             .rotated(z: adjustments[axis.index])
-            .measuring { body, measurements in
-                let box = measurements.boundingBox.requireNonNil()
+            .measuringBounds { body, box in
                 body.intersecting {
                     ProfiledRectangleMask(size: box.size.xy, profile: edgeProfile, corners: corners)
                         .extruded(height: box.size.z)
