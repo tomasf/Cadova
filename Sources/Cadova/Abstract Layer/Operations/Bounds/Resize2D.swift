@@ -20,8 +20,7 @@ public extension Geometry2D {
         _ alignment: GeometryAlignment2D,
         calculator: @Sendable @escaping (Vector2D) -> Vector2D
     ) -> any Geometry2D {
-        measuring { geometry, measurements in
-            let box = measurements.boundingBox.requireNonNil()
+        measuringBounds { geometry, box in
             let translation = box.translation(for: alignment)
             geometry
                 .translated(translation)
