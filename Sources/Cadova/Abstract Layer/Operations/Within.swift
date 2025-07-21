@@ -60,37 +60,81 @@ public extension Geometry3D {
     }
 }
 
+public extension Geometry2D {
+    /// Applies additional operations only within a specified region.
+    ///
+    /// This variant of `within` allows you to selectively apply geometry operations to a subregion of a shape.
+    /// The original geometry is preserved outside the specified region, while the intersected region is transformed
+    /// using the provided `operations` closure.
+    ///
+    /// - Parameters:
+    ///   - x: Optional range along the x-axis. If `nil`, the region is unbounded in the x direction.
+    ///   - y: Optional range along the y-axis. If `nil`, the region is unbounded in the y direction.
+    ///   - operations: A closure that receives the clipped region and returns a new modified geometry.
+    ///
+    /// ## Example
+    /// ```swift
+    /// Circle(diameter: 10)
+    ///     .within(y: 0...) {
+    ///         $0.translated(y: 1)
+    ///     }
+    /// ```
+    /// This leaves the lower half of the circle unchanged, and moves the upper half (y > 0) up.
+    ///
+    func within(
+        x: (any WithinRange)? = nil,
+        y: (any WithinRange)? = nil,
+        @GeometryBuilder<D> do operations: @escaping @Sendable (D.Geometry) -> D.Geometry
+    ) -> any Geometry2D {
+        measuringBounds { _, bounds in
+            let mask = bounds.within(x: x, y: y).mask
 
-fileprivate extension BoundingBox {
-    func partialBox(from: Double?, to: Double?, in axis: D.Axis) -> BoundingBox {
-        BoundingBox(
-            minimum: minimum.with(axis, as: from ?? minimum[axis] - 1),
-            maximum: maximum.with(axis, as: to ?? maximum[axis] + 1)
-        )
+            self
+                .subtracting(mask)
+                .adding {
+                    operations(self.intersecting(mask))
+                }
+        }
     }
 }
 
-internal extension BoundingBox2D {
-    func within(x: (any WithinRange)? = nil, y: (any WithinRange)? = nil) -> Self {
-        self
-            .partialBox(from: x?.min, to: x?.max, in: .x)
-            .partialBox(from: y?.min, to: y?.max, in: .y)
-    }
+public extension Geometry3D {
+    /// Applies additional operations only within a specified 3D region.
+    ///
+    /// This variant of `within` allows you to apply geometry modifications to a subregion of a 3D shape.
+    /// The original geometry is preserved outside the specified region, and the intersected region is passed
+    /// into the `operations` closure for transformation.
+    ///
+    /// - Parameters:
+    ///   - x: Optional range along the x-axis. If `nil`, the region is unbounded in the x direction.
+    ///   - y: Optional range along the y-axis. If `nil`, the region is unbounded in the y direction.
+    ///   - z: Optional range along the z-axis. If `nil`, the region is unbounded in the z direction.
+    ///   - operations: A closure that receives the clipped region and returns a new modified geometry.
+    ///
+    /// ## Example
+    /// ```swift
+    /// Sphere(diameter: 10)
+    ///     .within(z: ...0) {
+    ///         $0.colored(.red)
+    ///             .translated(z: -1)
+    ///     }
+    /// ```
+    /// This leaves the upper hemisphere of the sphere unchanged, and moves the lower half (z < 0) down and colors it red.
+    ///
+    func within(
+        x: (any WithinRange)? = nil,
+        y: (any WithinRange)? = nil,
+        z: (any WithinRange)? = nil,
+        @GeometryBuilder<D> do operations: @escaping @Sendable (D.Geometry) -> D.Geometry
+    ) -> any Geometry3D {
+        measuringBounds { _, bounds in
+            let mask = bounds.within(x: x, y: y, z: z).mask
 
-    var mask: any Geometry2D {
-        Rectangle(size).translated(minimum)
-    }
-}
-
-internal extension BoundingBox3D {
-    func within(x: (any WithinRange)? = nil, y: (any WithinRange)? = nil, z: (any WithinRange)? = nil) -> Self {
-        self
-            .partialBox(from: x?.min, to: x?.max, in: .x)
-            .partialBox(from: y?.min, to: y?.max, in: .y)
-            .partialBox(from: z?.min, to: z?.max, in: .z)
-    }
-
-    var mask: any Geometry3D {
-        Box(size).translated(minimum)
+            self
+                .subtracting(mask)
+                .adding {
+                    operations(self.intersecting(mask))
+                }
+        }
     }
 }
