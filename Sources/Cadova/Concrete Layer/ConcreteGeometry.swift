@@ -107,4 +107,22 @@ extension Manifold {
 
         return (vertices, triangles, originalIDs)
     }
+
+    func readMesh() -> (vertices: [Vector3D], triangles: [Manifold3D.Triangle]) {
+        var vertices: [Vector3D] = []
+        var triangles: [Manifold3D.Triangle] = []
+
+        cadova.BulkReadMesh(mesh, { properties, vertexCount, propertyCount in
+            guard let properties else { return }
+            for i in 0..<vertexCount {
+                vertices.append(Vector3D(properties[propertyCount * i], properties[propertyCount * i + 1], properties[propertyCount * i + 2]))
+            }
+        }, { indices, triangleCount in
+            guard let indices else { return }
+            for i in 0..<triangleCount {
+                triangles.append(Manifold3D.Triangle(Int(indices[i * 3]), Int(indices[i * 3 + 1]), Int(indices[i * 3 + 2])))
+            }
+        }, nil)
+        return (vertices, triangles)
+    }
 }
