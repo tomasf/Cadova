@@ -159,7 +159,7 @@ public extension Geometry2D {
     }
 }
 
-// Deprecated in 0.1.1
+// MARK: - Deprecated in 0.1.1
 
 public extension Geometry2D {
     @available(*, deprecated, message: "Use the swept(along:pointing:toward:) method with ReferenceTarget instead.")
@@ -216,5 +216,14 @@ public extension Geometry3D {
         toward line: D3.Line
     ) -> any Geometry3D {
         FollowPath3D(geometry: self, path: path, reference: reference, target: .line(line))
+    }
+}
+
+// MARK: - Deprecated in 0.1.2
+
+public extension Geometry3D {
+    @available(*, deprecated, message: "Use deforming(_:along:using:) instead.")
+    func deformed(using path: BezierPath2D, with referenceAxis: Axis2D) -> any Geometry3D {
+        deformed(using: path.path3D, with: Axis3D(referenceAxis))
     }
 }
