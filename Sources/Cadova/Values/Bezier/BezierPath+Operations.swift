@@ -111,6 +111,21 @@ public extension BezierPath {
             reader(points(segmentation: e.segmentation))
         }
     }
+
+    /// Returns a new `BezierPath` with each point transformed by the given closure.
+    ///
+    /// This method allows you to apply a custom transformation to all points in the path,
+    /// including the starting point and all control points of each curve.
+    ///
+    /// - Parameter transformer: A closure that takes a point `V` and returns a transformed point `V2`.
+    /// - Returns: A new `BezierPath` containing the transformed points.
+    ///
+    func mapPoints<V2: Vector>(_ transformer: (V) -> V2) -> BezierPath<V2> {
+        BezierPath<V2>(
+            startPoint: transformer(startPoint),
+            curves: curves.map { $0.map(transformer) }
+        )
+    }
 }
 
 public extension BezierPath {
