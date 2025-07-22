@@ -45,9 +45,17 @@ public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable, Codable {
     public static func y(_ value: Double) -> Self { Self(y: value) }
 
     public subscript(_ axis: Axis2D) -> Double {
-        switch axis {
-        case .x: x
-        case .y: y
+        get {
+            switch axis {
+            case .x: x
+            case .y: y
+            }
+        }
+        set {
+            switch axis {
+            case .x: x = newValue
+            case .y: y = newValue
+            }
         }
     }
 }
@@ -74,7 +82,14 @@ extension Vector2D: Vector {
     }
 
     public subscript(_ index: Int) -> Double {
-        [x, y][index]
+        get { [x, y][index] }
+        set {
+            switch index {
+            case 0: x = newValue
+            case 1: y = newValue
+            default: assertionFailure("Invalid vector element index")
+            }
+        }
     }
 
     public static func min(_ a: Self, _ b: Self) -> Self {
