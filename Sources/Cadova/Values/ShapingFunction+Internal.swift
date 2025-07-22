@@ -101,7 +101,7 @@ extension ShapingFunction.Curve: Codable {
         case .smootherstep:
             self = .smootherstep
         case .custom:
-            let cacheKey = try container.decode(NamedCacheKey.self, forKey: .cacheKey)
+            let cacheKey = try container.decode(LabeledCacheKey.self, forKey: .cacheKey)
             self = .custom(cacheKey: cacheKey, function: { _ in preconditionFailure("Decoded custom curve cannot be evaluated") })
         case .bezier:
             let curve = try container.decode(BezierCurve<Vector2D>.self, forKey: .curve)

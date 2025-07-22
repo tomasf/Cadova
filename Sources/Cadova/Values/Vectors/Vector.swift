@@ -38,12 +38,12 @@ public protocol Vector: Hashable, Sendable, Codable, CustomDebugStringConvertibl
     init(_ axis: D.Axis, value: Double)
     init(_ getter: (D.Axis) -> Double)
     func with(_ axis: D.Axis, as value: Double) -> Self
-    subscript(_ axis: D.Axis) -> Double { get }
+    subscript(_ axis: D.Axis) -> Double { get set }
 
     // Access by index
     static var elementCount: Int { get }
     init(elements: [Double])
-    subscript(_ index: Int) -> Double { get }
+    subscript(_ index: Int) -> Double { get set }
 
     var vector3D: Vector3D { get }
 }

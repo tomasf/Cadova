@@ -72,12 +72,12 @@ public struct BoundingBox<D: Dimensionality>: Sendable {
     }
 }
 
-extension BoundingBox {
+public extension BoundingBox {
     /// The size of the bounding volume.
     ///
     /// This property calculates the size of the bounding volume as the difference between its maximum and minimum
     /// points, representing the volume's dimensions in each axis.
-    public var size: D.Vector {
+    var size: D.Vector {
         maximum - minimum
     }
 
@@ -85,7 +85,7 @@ extension BoundingBox {
     ///
     /// This property calculates the center of the bounding volume, which is halfway between the minimum and maximum
     /// points. It represents the geometric center of the volume.
-    public var center: D.Vector {
+    var center: D.Vector {
         minimum + size / 2.0
     }
 
@@ -97,11 +97,11 @@ extension BoundingBox {
     /// - Parameter axis: The axis for which to retrieve the coordinate range.
     /// - Returns: A `Range<Double>` representing the minimum to maximum coordinates along the given axis.
     ///
-    public subscript(_ axis: D.Axis) -> Range<Double> {
+    subscript(_ axis: D.Axis) -> Range<Double> {
         .init(minimum[axis], maximum[axis])
     }
 
-    public subscript(_ axis: D.Axis, _ end: LinearDirection) -> Double {
+    subscript(_ axis: D.Axis, _ end: LinearDirection) -> Double {
         end == .min ? minimum[axis] : maximum[axis]
     }
 
@@ -110,7 +110,7 @@ extension BoundingBox {
     /// A bounding box is considered valid if it represents a real geometric area or volume, which means all its
     /// dimensions must be non-negative. This property checks that the size of the bounding box in each dimension is
     /// greater than or equal to zero, ensuring the box does not represent an inverted or non-existent space.
-    public var isValid: Bool {
+    var isValid: Bool {
         !size.contains { $0 < 0 }
     }
 
@@ -122,7 +122,7 @@ extension BoundingBox {
     /// - Parameter other: The other bounding volume to intersect with.
     /// - Returns: A `BoundingBox` representing the intersection of the two volumes.
     ///
-    public func intersection(with other: Self) -> BoundingBox? {
+    func intersection(with other: Self) -> BoundingBox? {
         let overlap = BoundingBox(minimum: D.Vector.max(minimum, other.minimum), maximum: D.Vector.min(maximum, other.maximum))
         return overlap.isValid ? overlap : nil
     }
@@ -135,12 +135,27 @@ extension BoundingBox {
     /// - Parameter expansion: The vector by which to expand or contract the bounding volume.
     /// - Returns: A `BoundingBox` that has been offset by the expansion vector.
     /// 
-    public func offset(_ expansion: D.Vector) -> BoundingBox {
+    func offset(_ expansion: D.Vector) -> BoundingBox {
         .init(minimum: minimum - expansion, maximum: maximum + expansion)
     }
 
-    public func transformed(_ transform: D.Transform) -> BoundingBox {
+    func transformed(_ transform: D.Transform) -> BoundingBox {
         .init([transform.apply(to: minimum), transform.apply(to: maximum)])
+    }
+}
+
+public extension BoundingBox2D {
+    func contains(_ point: Vector2D) -> Bool {
+        point.x >= minimum.x && point.x <= maximum.x
+        && point.y >= minimum.y && point.y <= maximum.y
+    }
+}
+
+public extension BoundingBox3D {
+    func contains(_ point: Vector3D) -> Bool {
+        point.x >= minimum.x && point.x <= maximum.x
+        && point.y >= minimum.y && point.y <= maximum.y
+        && point.z >= minimum.z && point.z <= maximum.z
     }
 }
 
@@ -158,26 +173,42 @@ extension BoundingBox: CustomDebugStringConvertible {
     }
 }
 
-extension BoundingBox2D? {
-    func requireNonNil() -> BoundingBox2D {
-        guard let box = self else {
-            preconditionFailure("Bounding box was empty")
-        }
-        return box
-    }
-}
-
 extension BoundingBox3D {
     var bounds2D: BoundingBox2D {
         .init(minimum: minimum.xy, maximum: maximum.xy)
     }
 }
 
-extension BoundingBox3D? {
-    func requireNonNil() -> BoundingBox3D {
-        guard let box = self else {
-            preconditionFailure("Bounding box was empty")
-        }
-        return box
+fileprivate extension BoundingBox {
+    func partialBox(from: Double?, to: Double?, in axis: D.Axis) -> BoundingBox {
+        BoundingBox(
+            minimum: minimum.with(axis, as: from ?? minimum[axis] - 1),
+            maximum: maximum.with(axis, as: to ?? maximum[axis] + 1)
+        )
+    }
+}
+
+internal extension BoundingBox2D {
+    func within(x: (any WithinRange)? = nil, y: (any WithinRange)? = nil) -> Self {
+        self
+            .partialBox(from: x?.min, to: x?.max, in: .x)
+            .partialBox(from: y?.min, to: y?.max, in: .y)
+    }
+
+    var mask: any Geometry2D {
+        Rectangle(size).translated(minimum)
+    }
+}
+
+internal extension BoundingBox3D {
+    func within(x: (any WithinRange)? = nil, y: (any WithinRange)? = nil, z: (any WithinRange)? = nil) -> Self {
+        self
+            .partialBox(from: x?.min, to: x?.max, in: .x)
+            .partialBox(from: y?.min, to: y?.max, in: .y)
+            .partialBox(from: z?.min, to: z?.max, in: .z)
+    }
+
+    var mask: any Geometry3D {
+        Box(size).translated(minimum)
     }
 }
