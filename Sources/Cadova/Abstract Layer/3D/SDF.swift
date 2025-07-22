@@ -7,7 +7,7 @@ public struct LevelSet: Shape3D {
     let edgeLength: Double
     let level: Double
     let tolerance: Double?
-    let cacheKey: NamedCacheKey
+    let cacheKey: LabeledCacheKey
 
     /// Constructs a 3D mesh by sampling a Signed Distance Function (SDF) over a volume.
     ///
@@ -46,7 +46,7 @@ public struct LevelSet: Shape3D {
         self.level = level
         self.tolerance = tolerance
 
-        cacheKey = NamedCacheKey(operationName: name, parameters: cacheParameters)
+        cacheKey = LabeledCacheKey(operationName: name, parameters: cacheParameters)
     }
 
     public var body: D3.Geometry {

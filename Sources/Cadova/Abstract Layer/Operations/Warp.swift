@@ -6,7 +6,7 @@ internal extension Geometry {
         cacheParameters params: [any Hashable & Sendable & Codable],
         transform: @Sendable @escaping (D.Vector) -> D.Vector
     ) -> D.Geometry {
-        CachedConcreteTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
+        CachedConcreteTransformer(body: self, key: LabeledCacheKey(operationName: name, parameters: params)) {
             $0.warp(transform)
         }
     }
@@ -17,7 +17,7 @@ internal extension Geometry {
         initialization: @Sendable @escaping () -> Shared,
         transform: @Sendable @escaping (D.Vector, Shared) -> D.Vector
     ) -> D.Geometry {
-        CachedConcreteTransformer(body: self, key: NamedCacheKey(operationName: name, parameters: params)) {
+        CachedConcreteTransformer(body: self, key: LabeledCacheKey(operationName: name, parameters: params)) {
             let initData = initialization()
             return $0.warp { v in
                 transform(v, initData)

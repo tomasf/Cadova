@@ -12,7 +12,7 @@ internal struct IndexedCacheKey<Key: CacheKey>: CacheKey {
     let index: Int
 }
 
-internal struct NamedCacheKey: CacheKey {
+internal struct LabeledCacheKey: CacheKey {
     let operationName: String
     let parameters: [OpaqueKey]
 

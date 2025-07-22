@@ -37,7 +37,7 @@ internal extension ShapingFunction {
         case smoothstep
         case smootherstep
         case bezier (BezierCurve<Vector2D>)
-        case custom (cacheKey: NamedCacheKey, function: @Sendable (Double) -> Double)
+        case custom (cacheKey: LabeledCacheKey, function: @Sendable (Double) -> Double)
     }
 }
 
@@ -130,6 +130,6 @@ public extension ShapingFunction {
         parameters: any Hashable & Sendable & Codable...,
         function: @escaping @Sendable (Double) -> Double
     ) -> Self {
-        ShapingFunction(curve: .custom(cacheKey: NamedCacheKey(operationName: name, parameters: parameters), function: function))
+        ShapingFunction(curve: .custom(cacheKey: LabeledCacheKey(operationName: name, parameters: parameters), function: function))
     }
 }
