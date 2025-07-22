@@ -56,10 +56,19 @@ public struct Vector3D: ExpressibleByArrayLiteral, Hashable, Sendable, Codable {
 
 public extension Vector3D {
     subscript(_ axis: Axis3D) -> Double {
-        switch axis {
-        case .x: x
-        case .y: y
-        case .z: z
+        get {
+            switch axis {
+            case .x: x
+            case .y: y
+            case .z: z
+            }
+        }
+        set {
+            switch axis {
+            case .x: x = newValue
+            case .y: y = newValue
+            case .z: z = newValue
+            }
         }
     }
 
@@ -90,7 +99,15 @@ extension Vector3D: Vector {
     public static let elementCount = 3
 
     public subscript(_ index: Int) -> Double {
-        [x, y, z][index]
+        get { [x, y, z][index] }
+        set {
+            switch index {
+            case 0: x = newValue
+            case 1: y = newValue
+            case 2: z = newValue
+            default: assertionFailure("Invalid vector element index")
+            }
+        }
     }
 
     public init(elements e: [Double]) {
