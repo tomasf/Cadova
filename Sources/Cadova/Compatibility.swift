@@ -227,3 +227,23 @@ public extension Geometry3D {
         deformed(using: path.path3D, with: Axis3D(referenceAxis))
     }
 }
+
+public extension Geometry2D {
+    @available(*, deprecated, message: "Use whileMasked(using:do:) + regular rounding instead.")
+    func rounded(radius: Double, @GeometryBuilder2D in mask: @Sendable @escaping () -> any Geometry2D) -> any Geometry2D {
+        whileMasked(using: mask) {
+            $0.rounded(radius: radius)
+        }
+    }
+
+    @available(*, deprecated, message: "Use whileMasked(using:do:) + regular rounding instead.")
+    func rounded(
+        insideRadius: Double? = nil,
+        outsideRadius: Double? = nil,
+        @GeometryBuilder2D in mask: @Sendable @escaping () -> any Geometry2D
+    ) -> any Geometry2D {
+        whileMasked(using: mask) {
+            $0.rounded(insideRadius: insideRadius, outsideRadius: outsideRadius)
+        }
+    }
+}
