@@ -1,31 +1,52 @@
 import Foundation
 
 public extension Geometry3D {
-    /// Deforms geometry by offsetting its points using a Bezier path, based on a reference axis.
+    /// Deforms 3D geometry by applying a 2D Bezier path along a given axis.
     ///
-    /// This is a convenience overload for 3D geometry using a 2D path.
-    /// See `deformed(using:with:)` for full details.
+    /// This method offsets the geometry's points using a 2D path, where one axis of the path is used
+    /// as the reference and the other provides the deformation offset. It is useful for applying
+    /// smooth bends or distortions to 3D shapes based on a 2D curve.
     ///
-    /// This method can be used for various effects such as bending geometry along a curve.
+    /// The `referenceAxis` is mapped to the corresponding `Axis3D` and kept unchanged, while the path controls
+    /// deformation along the `targetAxis`. For example, using `.x` as the reference axis and `.z` as the target
+    /// axis will offset geometry vertically using the curve defined by the path.
     ///
-    func deformed(using path: BezierPath2D, with referenceAxis: Axis2D) -> any Geometry3D {
-        deformed(using: path.path3D, with: Axis3D(referenceAxis))
+    /// Important: The path must be monotonic along the reference axis to ensure predictable results.
+    ///
+    /// - Parameters:
+    ///   - targetAxis: The axis to apply deformation along (e.g. `.z`).
+    ///   - referenceAxis: The axis whose value determines sampling along the path (e.g. `.x`). Must be different from `targetAxis`.
+    ///                    The opposite axis of the bezier path is applied as an offset to the target axis.
+    ///   - path: A 2D Bezier path used to define how points are displaced along the target axis.
+    /// - Returns: A modified 3D geometry deformed according to the path.
+    ///
+    func deforming(_ targetAxis: Axis3D, along referenceAxis: Axis2D, using path: BezierPath2D) -> any Geometry3D {
+        let referenceAxis3D = Axis3D(referenceAxis)
+        precondition(referenceAxis3D != targetAxis, "Target and reference axes need to differ")
+
+        let path3D = path.mapPoints {
+            var v = Vector3D.zero
+            v[referenceAxis3D] = $0[referenceAxis]
+            v[targetAxis] = $0[referenceAxis.otherAxis]
+            return v
+        }
+
+        return deformed(using: path3D, with: referenceAxis3D)
     }
 }
 
 public extension Geometry {
     /// Deforms geometry by offsetting its points using a Bezier path, based on a reference axis.
     ///
-    /// For each point in the geometry, this method uses the value along the given reference axis
-    /// to sample a position along the Bezier path. The resulting offset is applied in the other axes,
+    /// This technique can be used for effects such as bending, tapering, or flowing geometry along a
+    /// curved shape. For each point in the geometry, this method uses the value along the given reference
+    /// axis to sample a position along the Bezier path. The resulting offset is applied in the other axes,
     /// while the reference axis itself remains unchanged.
     ///
     /// In 2D, this shifts the geometry in one axis based on the other (e.g., offsetting `y` based on `x`).
     /// In 3D, it offsets in two axes based on the third (e.g., offsetting `y` and `z` based on `x`).
     ///
-    /// This technique can be used for effects such as bending, tapering, or flowing geometry along a curved shape.
-    ///
-    /// The path must be monotonic along the reference axis to ensure predictable results.
+    /// Important: The path must be monotonic along the reference axis to ensure predictable results.
     ///
     /// Example:
     /// ```swift
@@ -64,7 +85,7 @@ public extension Geometry {
                     } transform: {
                         $0 + $1.binarySearchInterpolate(key: $0[referenceAxis])
                     }
-                    //.simplified()
+                    .simplified()
             }
         }
     }

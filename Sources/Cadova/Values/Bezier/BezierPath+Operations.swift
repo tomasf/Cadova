@@ -32,6 +32,29 @@ public extension BezierPath {
             curves: curves.map { $0.transformed(using: transform) }
         )
     }
+
+    /// Returns a new `BezierPath` with all curves reversed in order and direction.
+    ///
+    /// - Returns: A new `BezierPath` with the start point and curves reversed.
+    ///
+    func reversed() -> Self {
+        Self(startPoint: endPoint, curves: curves.reversed().map { $0.reversed() })
+    }
+
+    /// Returns a new `BezierPath` by appending another path to the current one.
+    ///
+    /// If the end point of the current path is the same as the start point of the other path,
+    /// the two are connected directly. Otherwise, a straight line is added to bridge the gap
+    /// before appending the other path's curves.
+    ///
+    /// - Parameter other: The path to append.
+    /// - Returns: A new `BezierPath` that includes both the current path and the appended one.
+    ///
+    func appending(_ other: Self) -> Self {
+        let distance = endPoint.distance(to: other.startPoint)
+        let head = (distance < 1e-6) ? self : self.addingLine(to: other.startPoint)
+        return BezierPath(startPoint: head.startPoint, curves: head.curves + other.curves)
+    }
 }
 
 public extension BezierPath {
@@ -110,6 +133,21 @@ public extension BezierPath {
         readEnvironment { e in
             reader(points(segmentation: e.segmentation))
         }
+    }
+
+    /// Returns a new `BezierPath` with each point transformed by the given closure.
+    ///
+    /// This method allows you to apply a custom transformation to all points in the path,
+    /// including the starting point and all control points of each curve.
+    ///
+    /// - Parameter transformer: A closure that takes a point `V` and returns a transformed point `V2`.
+    /// - Returns: A new `BezierPath` containing the transformed points.
+    ///
+    func mapPoints<V2: Vector>(_ transformer: (V) -> V2) -> BezierPath<V2> {
+        BezierPath<V2>(
+            startPoint: transformer(startPoint),
+            curves: curves.map { $0.map(transformer) }
+        )
     }
 }
 

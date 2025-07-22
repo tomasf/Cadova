@@ -23,8 +23,8 @@ struct CachedConcrete<D: Dimensionality, Key: CacheKey>: Geometry {
         name: String,
         parameters: any CacheKey...,
         generator: @Sendable @escaping () async throws -> D.Concrete
-    ) where Key == NamedCacheKey {
-        self.init(key: NamedCacheKey(operationName: name, parameters: parameters), generator: generator)
+    ) where Key == LabeledCacheKey {
+        self.init(key: LabeledCacheKey(operationName: name, parameters: parameters), generator: generator)
     }
 }
 
@@ -46,10 +46,10 @@ struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
         name: String,
         parameters: any CacheKey...,
         generator: @Sendable @escaping (D.Concrete) throws -> D.Concrete
-    ) where Key == NamedCacheKey {
+    ) where Key == LabeledCacheKey {
         self.init(
             body: body,
-            key: NamedCacheKey(operationName: name, parameters: parameters),
+            key: LabeledCacheKey(operationName: name, parameters: parameters),
             generator: generator
         )
     }
@@ -97,10 +97,10 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
         parameters: any CacheKey...,
         generator: @Sendable @escaping (D.Concrete) throws -> [D.Concrete],
         resultHandler: @Sendable @escaping ([D.Geometry]) -> D.Geometry
-    ) where Key == NamedCacheKey {
+    ) where Key == LabeledCacheKey {
         self.init(
             body: body,
-            key: NamedCacheKey(operationName: name, parameters: parameters),
+            key: LabeledCacheKey(operationName: name, parameters: parameters),
             generator: generator,
             resultHandler: resultHandler
         )
@@ -145,7 +145,7 @@ struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometr
 
 struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry {
     let body: Input.Geometry
-    let key: NamedCacheKey
+    let key: LabeledCacheKey
     let generator: @Sendable (Input.Node, EnvironmentValues, EvaluationContext) async throws -> D.Node
 
     init(
@@ -155,7 +155,7 @@ struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry
         generator: @Sendable @escaping (Input.Node, EnvironmentValues, EvaluationContext) async throws -> D.Node
     ) {
         self.body = body
-        self.key = NamedCacheKey(operationName: name, parameters: parameters)
+        self.key = LabeledCacheKey(operationName: name, parameters: parameters)
         self.generator = generator
     }
 
@@ -177,7 +177,7 @@ struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry
 }
 
 struct CachedNode<D: Dimensionality>: Geometry {
-    let key: NamedCacheKey
+    let key: LabeledCacheKey
     let generator: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.Node
 
     init(
@@ -185,7 +185,7 @@ struct CachedNode<D: Dimensionality>: Geometry {
         parameters: any CacheKey...,
         generator: @Sendable @escaping (EnvironmentValues, EvaluationContext) async throws -> D.Node)
     {
-        self.key = NamedCacheKey(operationName: name, parameters: parameters)
+        self.key = LabeledCacheKey(operationName: name, parameters: parameters)
         self.generator = generator
     }
 
@@ -195,7 +195,7 @@ struct CachedNode<D: Dimensionality>: Geometry {
         parameters: any CacheKey...,
         generator: @Sendable @escaping () async throws -> D.Geometry)
     {
-        self.key = NamedCacheKey(operationName: name, parameters: parameters)
+        self.key = LabeledCacheKey(operationName: name, parameters: parameters)
         self.generator = { environment, context in
             try await context.buildResult(for: generator(), in: environment).node
         }
