@@ -20,6 +20,7 @@ public enum Axis2D: Int, Axis {
     case y
 
     public var index: Int { rawValue }
+    public var otherAxis: Self { self == .x ? .y : .x }
 }
 
 /// An enumeration representing the three Cartesian axes in a three-dimensional space: X, Y, and Z.
