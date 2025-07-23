@@ -11,6 +11,8 @@ extension ShapingFunction {
         case smoothstep
         case smootherstep
         case bezier
+        case circularEaseIn
+        case circularEaseOut
         case custom
     }
 
@@ -36,6 +38,10 @@ extension ShapingFunction {
         case .bezier (let curve):
             hasher.combine(Kind.bezier)
             hasher.combine(curve)
+        case .circularEaseIn:
+            hasher.combine(Kind.circularEaseIn)
+        case .circularEaseOut:
+            hasher.combine(Kind.circularEaseOut)
         case .custom (let cacheKey, _):
             hasher.combine(Kind.custom)
             hasher.combine(cacheKey)
@@ -55,7 +61,9 @@ extension ShapingFunction {
             (.easeInOut, .easeInOut),
             (.easeInOutCubic, .easeInOutCubic),
             (.smoothstep, .smoothstep),
-            (.smootherstep, .smootherstep):
+            (.smootherstep, .smootherstep),
+            (.circularEaseIn, .circularEaseIn),
+            (.circularEaseOut, .circularEaseOut):
             return true
 
         case (.custom(let aKey, _), .custom(let bKey, _)):
@@ -65,7 +73,8 @@ extension ShapingFunction {
             return ac == bc
 
         case (.linear, _), (.easeIn, _), (.easeOut, _), (.easeInOut, _), (.easeInOutCubic, _),
-            (.smoothstep, _), (.smootherstep, _), (.exponential, _), (.custom, _), (.bezier, _):
+            (.smoothstep, _), (.smootherstep, _), (.exponential, _), (.custom, _), (.bezier, _),
+            (.circularEaseIn, _), (.circularEaseOut, _):
             return false
         }
     }
@@ -77,6 +86,8 @@ extension ShapingFunction.Curve: Codable {
         case exponent
         case cacheKey
         case curve
+        case circularEaseIn
+        case circularEaseOut
     }
 
     public init(from decoder: Decoder) throws {
@@ -106,6 +117,10 @@ extension ShapingFunction.Curve: Codable {
         case .bezier:
             let curve = try container.decode(BezierCurve<Vector2D>.self, forKey: .curve)
             self = .bezier(curve)
+        case .circularEaseIn:
+            self = .circularEaseIn
+        case .circularEaseOut:
+            self = .circularEaseOut
         }
     }
 
@@ -136,6 +151,10 @@ extension ShapingFunction.Curve: Codable {
         case .bezier (let curve):
             try container.encode(ShapingFunction.Kind.bezier, forKey: .kind)
             try container.encode(curve, forKey: .curve)
+        case .circularEaseIn:
+            try container.encode(ShapingFunction.Kind.circularEaseIn, forKey: .kind)
+        case .circularEaseOut:
+            try container.encode(ShapingFunction.Kind.circularEaseOut, forKey: .kind)
         }
     }
 }
