@@ -47,7 +47,7 @@ extension ShapingFunction {
             hasher.combine(Kind.mix)
             hasher.combine(a)
             hasher.combine(b)
-            hasher.combine(Kind.mix)
+            hasher.combine(weight)
         case .custom (let cacheKey, _):
             hasher.combine(Kind.custom)
             hasher.combine(cacheKey)
