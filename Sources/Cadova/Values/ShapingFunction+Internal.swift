@@ -13,6 +13,7 @@ extension ShapingFunction {
         case bezier
         case circularEaseIn
         case circularEaseOut
+        case mix
         case custom
     }
 
@@ -42,6 +43,11 @@ extension ShapingFunction {
             hasher.combine(Kind.circularEaseIn)
         case .circularEaseOut:
             hasher.combine(Kind.circularEaseOut)
+        case .mix (let a, let b, let weight):
+            hasher.combine(Kind.mix)
+            hasher.combine(a)
+            hasher.combine(b)
+            hasher.combine(Kind.mix)
         case .custom (let cacheKey, _):
             hasher.combine(Kind.custom)
             hasher.combine(cacheKey)
@@ -72,9 +78,10 @@ extension ShapingFunction {
         case (.bezier(let ac), .bezier(let bc)):
             return ac == bc
 
-        case (.linear, _), (.easeIn, _), (.easeOut, _), (.easeInOut, _), (.easeInOutCubic, _),
-            (.smoothstep, _), (.smootherstep, _), (.exponential, _), (.custom, _), (.bezier, _),
-            (.circularEaseIn, _), (.circularEaseOut, _):
+        case (.mix(let a1, let b1, let weight1), .mix(let a2, let b2, let weight2)):
+            return a1 == a2 && b1 == b2 && weight1 == weight2
+
+        default:
             return false
         }
     }
@@ -86,8 +93,9 @@ extension ShapingFunction.Curve: Codable {
         case exponent
         case cacheKey
         case curve
-        case circularEaseIn
-        case circularEaseOut
+        case a
+        case b
+        case weight
     }
 
     public init(from decoder: Decoder) throws {
@@ -111,16 +119,24 @@ extension ShapingFunction.Curve: Codable {
             self = .smoothstep
         case .smootherstep:
             self = .smootherstep
+        case .circularEaseIn:
+            self = .circularEaseIn
+        case .circularEaseOut:
+            self = .circularEaseOut
+
+        case .mix:
+            self = .mix(
+                try container.decode(ShapingFunction.self, forKey: .a),
+                try container.decode(ShapingFunction.self, forKey: .b),
+                try container.decode(Double.self, forKey: .weight)
+            )
+
         case .custom:
             let cacheKey = try container.decode(LabeledCacheKey.self, forKey: .cacheKey)
             self = .custom(cacheKey: cacheKey, function: { _ in preconditionFailure("Decoded custom curve cannot be evaluated") })
         case .bezier:
             let curve = try container.decode(BezierCurve<Vector2D>.self, forKey: .curve)
             self = .bezier(curve)
-        case .circularEaseIn:
-            self = .circularEaseIn
-        case .circularEaseOut:
-            self = .circularEaseOut
         }
     }
 
@@ -145,16 +161,22 @@ extension ShapingFunction.Curve: Codable {
             try container.encode(ShapingFunction.Kind.smoothstep, forKey: .kind)
         case .smootherstep:
             try container.encode(ShapingFunction.Kind.smootherstep, forKey: .kind)
+        case .circularEaseIn:
+            try container.encode(ShapingFunction.Kind.circularEaseIn, forKey: .kind)
+        case .circularEaseOut:
+            try container.encode(ShapingFunction.Kind.circularEaseOut, forKey: .kind)
+
+        case .mix(let a, let b, let weight):
+            try container.encode(a, forKey: .a)
+            try container.encode(b, forKey: .b)
+            try container.encode(weight, forKey: .weight)
+
         case .custom (let cacheKey, _):
             try container.encode(ShapingFunction.Kind.custom, forKey: .kind)
             try container.encode(cacheKey, forKey: .cacheKey)
         case .bezier (let curve):
             try container.encode(ShapingFunction.Kind.bezier, forKey: .kind)
             try container.encode(curve, forKey: .curve)
-        case .circularEaseIn:
-            try container.encode(ShapingFunction.Kind.circularEaseIn, forKey: .kind)
-        case .circularEaseOut:
-            try container.encode(ShapingFunction.Kind.circularEaseOut, forKey: .kind)
         }
     }
 }

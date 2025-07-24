@@ -4,7 +4,7 @@ import Foundation
 /// interpolation.
 public struct ShapingFunction: Sendable, Hashable, Codable {
     internal let curve: Curve
-    
+
     /// Returns a closure that evaluates this shaping function.
     ///
     /// The returned closure maps a value in the range `0.0...1.0` to a shaped output, also in `0.0...1.0`.
@@ -23,13 +23,18 @@ public struct ShapingFunction: Sendable, Hashable, Codable {
         case .circularEaseIn: { 1 - sqrt(1 - $0 * $0) }
         case .circularEaseOut: { sqrt(1 - (1 - $0) * (1 - $0)) }
         case .bezier (let curve): { curve.point(at: curve.t(for: $0, in: .x) ?? $0).y }
+        case .mix (let a, let b, let weight): { (1 - weight) * a.function($0) + weight * b.function($0) }
         case .custom (_, let function): function
         }
+    }
+
+    public func callAsFunction(_ input: Double) -> Double {
+        function(input)
     }
 }
 
 internal extension ShapingFunction {
-    enum Curve {
+    indirect enum Curve {
         case linear
         case exponential (exponent: Double)
         case easeIn
@@ -41,6 +46,7 @@ internal extension ShapingFunction {
         case circularEaseIn
         case circularEaseOut
         case bezier (BezierCurve<Vector2D>)
+        case mix (ShapingFunction, ShapingFunction, Double)
         case custom (cacheKey: LabeledCacheKey, function: @Sendable (Double) -> Double)
     }
 }
@@ -51,7 +57,7 @@ public extension ShapingFunction {
     static var linear: Self {
         ShapingFunction(curve: .linear)
     }
-    
+
     /// An exponential shaping function that produces a curve which accelerates slowly at the start and rapidly near
     /// the end. The `exponent` parameter controls the steepness of the curve; higher values produce more pronounced
     /// acceleration. This function is useful for simulating easing effects where acceleration increases exponentially.
@@ -61,58 +67,58 @@ public extension ShapingFunction {
     static func exponential(_ exponent: Double) -> Self {
         ShapingFunction(curve: .exponential(exponent: exponent))
     }
-    
+
     /// A quadratic ease-in function that starts slow and accelerates towards the end.
     /// It produces a smooth curve where the rate of change increases over time, simulating natural acceleration.
     static var easeIn: Self {
         ShapingFunction(curve: .easeIn)
     }
-    
+
     /// A quadratic ease-out function that starts fast and decelerates towards the end.
     /// It produces a smooth curve where the rate of change decreases over time, simulating natural deceleration.
     static var easeOut: Self {
         ShapingFunction(curve: .easeOut)
     }
-    
+
     /// A quadratic ease-in-out function that accelerates in the first half and decelerates in the second half.
     /// This function creates a smooth transition with gradual acceleration and deceleration, ideal for natural motion
     /// effects.
     static var easeInOut: Self {
         ShapingFunction(curve: .easeInOut)
     }
-    
+
     /// A cubic ease-in-out function that provides a stronger smoothing effect than quadratic easing.
     /// It accelerates slowly at the start, speeds up through the middle, and decelerates smoothly at the end.
     /// This function is useful for more pronounced easing effects with smoother transitions.
     static var easeInOutCubic: Self {
         ShapingFunction(curve: .easeInOutCubic)
     }
-    
+
     /// A smoothstep function that provides smooth interpolation with zero first derivative at the endpoints.
     /// It starts and ends with zero velocity, producing smooth easing without abrupt changes.
     static var smoothstep: Self {
         ShapingFunction(curve: .smoothstep)
     }
-    
+
     /// A smootherstep function that extends smoothstep by also having zero second derivative at the endpoints.
     /// This results in even smoother transitions with continuous acceleration and deceleration, minimizing visual
     /// artifacts.
     static var smootherstep: Self {
         ShapingFunction(curve: .smootherstep)
     }
-    
+
     /// A circular ease-in shaping function.
     /// Starts slow and curves sharply near the end.
     static var circularEaseIn: Self {
         ShapingFunction(curve: .circularEaseIn)
     }
-    
+
     /// A circular ease-out shaping function.
     /// Starts sharply and levels out.
     static var circularEaseOut: Self {
         ShapingFunction(curve: .circularEaseOut)
     }
-    
+
     /// A cubic Bézier-based shaping function mapping input from 0 to 1 onto the curve defined by two control points.
     ///
     /// The resulting function is suitable for easing, interpolation, and other shaping purposes.
@@ -128,7 +134,7 @@ public extension ShapingFunction {
     static func bezier(_ controlPoint1: Vector2D, _ controlPoint2: Vector2D) -> Self {
         ShapingFunction(curve: .bezier(BezierCurve(controlPoints: [[0,0], controlPoint1, controlPoint2, [1,1]])))
     }
-    
+
     /// A custom shaping function.
     /// The function is cached based on the supplied `name` and `parameters`. If the same
     /// combination of input geometry and cache parameters has been previously evaluated, the cached result is reused
@@ -147,5 +153,27 @@ public extension ShapingFunction {
         function: @escaping @Sendable (Double) -> Double
     ) -> Self {
         ShapingFunction(curve: .custom(cacheKey: LabeledCacheKey(operationName: name, parameters: parameters), function: function))
+    }
+}
+
+public extension ShapingFunction {
+    /// Constructs a new shaping function that blends this function with another.
+    ///
+    /// The resulting function applies a weighted mix between `self` and `other`.
+    /// When `weight` is 0.0, the result is identical to `self`. When `weight` is 1.0, the
+    /// result is identical to `other`. Intermediate weights produce a linear interpolation
+    /// between the two functions' outputs.
+    ///
+    /// This is useful when you want to gradually transition between two shaping behaviors.
+    ///
+    /// - Parameters:
+    ///   - other: The shaping function to blend with.
+    ///   - weight: A value between 0.0 and 1.0 indicating how much of `other` to include.
+    /// - Returns: A new shaping function representing the blend.
+    /// - Precondition: `weight` must be between 0.0 and 1.0, inclusive.
+    ///
+    func mixed(with other: ShapingFunction, weight: Double) -> Self {
+        precondition(weight >= 0 && weight <= 1)
+        return ShapingFunction(curve: .mix(self, other, weight))
     }
 }
