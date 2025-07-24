@@ -152,7 +152,10 @@ public extension ShapingFunction {
         parameters: any Hashable & Sendable & Codable...,
         function: @escaping @Sendable (Double) -> Double
     ) -> Self {
-        ShapingFunction(curve: .custom(cacheKey: LabeledCacheKey(operationName: name, parameters: parameters), function: function))
+        ShapingFunction(curve: .custom(
+            cacheKey: LabeledCacheKey(operationName: name, parameters: parameters),
+            function: function
+        ))
     }
 }
 

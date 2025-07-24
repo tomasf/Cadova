@@ -30,6 +30,12 @@ public extension Measurements2D {
 
     /// The number of contours (closed paths) in the geometry.
     var contourCount: Int { concrete.contourCount }
+
+    /// Indicates whether the geometry consists of a single convex shape.
+    var isConvex: Bool {
+        let polygons = concrete.polygonList()
+        return polygons.count == 1 && polygons[0].isConvex
+    }
 }
 
 public extension Measurements3D {
@@ -56,7 +62,8 @@ extension Measurements: CustomDebugStringConvertible {
                 "Is empty": isEmpty,
                 "Area": self.area,
                 "Point count": self.pointCount,
-                "Contour count": self.contourCount
+                "Contour count": self.contourCount,
+                "Is convex": self.isConvex
             ]
         } else if let self = self as? Measurements3D {
             items = [
