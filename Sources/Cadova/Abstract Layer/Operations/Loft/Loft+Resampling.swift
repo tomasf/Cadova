@@ -2,12 +2,14 @@ import Foundation
 import Manifold3D
 
 internal extension Loft.LayerInterpolation {
-    func resampledLoft(
-        treeLayers: [TreeLayer],
-        interpolation: ShapingFunction,
-        in environment: EnvironmentValues
-    ) async -> any Geometry3D {
-        var groups = buildPolygonGroups(layerTrees: treeLayers.map(\.1))
+    struct ResamplingLayer {
+        let z: Double
+        let function: ShapingFunction
+        let tree: PolygonTree
+    }
+
+    func resampledLoft(treeLayers: [ResamplingLayer], in environment: EnvironmentValues) async -> any Geometry3D {
+        var groups = buildPolygonGroups(layerTrees: treeLayers.map(\.tree))
 
         for (index, layerPolygons) in groups.enumerated() {
             // Determine target count based on longest perimeter
@@ -23,15 +25,16 @@ internal extension Loft.LayerInterpolation {
             groups[index] = newPolygons
         }
 
-        let groupsWithLevels = groups.map { polygons in
-            return (polygons, treeLayers.map(\.0))
+        let layerDatas = treeLayers.map {
+            LayerData(z: $0.z, function: $0.function)
         }
 
-        if interpolation == .linear {
-            return mesh(for: groupsWithLevels)
+        if layerDatas.allSatisfy { $0.function == .linear } {
+            return mesh(for: groups.map { ($0, treeLayers.map(\.z)) })
         } else {
             let interpolatedGroups = interpolatePolygonGroups(
-                for: groupsWithLevels, curve: interpolation.function, environment: environment
+                for: groups.map { ($0, layerDatas) },
+                environment: environment
             )
             return mesh(for: interpolatedGroups)
                 .simplified()
@@ -85,31 +88,35 @@ internal extension Loft.LayerInterpolation {
         return groups
     }
 
+    struct LayerData {
+        let z: Double
+        let function: ShapingFunction
+    }
+
     func interpolatePolygonGroups(
-        for polygonGroups: [(polygons: SimplePolygonList, zLevels: [Double])],
-        curve: (Double) -> Double,
+        for polygonGroups: [(polygons: SimplePolygonList, layers: [LayerData])],
         environment: EnvironmentValues
     ) -> [(polygons: SimplePolygonList, zLevels: [Double])] {
         let segmentation = environment.segmentation
         var refinedGroups: [(polygons: SimplePolygonList, zLevels: [Double])] = []
 
-        for (polygons, zLevels) in polygonGroups {
+        for (polygons, layers) in polygonGroups {
             var newPolygons: [SimplePolygon] = [polygons[0]]
-            var newZLevels: [Double] = [zLevels[0]]
+            var newZLevels: [Double] = [layers[0].z]
 
-            for i in 1..<zLevels.count {
+            for i in 1..<layers.count {
                 let lower = polygons[i - 1]
                 let upper = polygons[i]
-                let z0 = zLevels[i - 1]
-                let z1 = zLevels[i]
+                let layer0 = layers[i - 1]
+                let layer1 = layers[i]
 
                 let interpolatedLayers: [(polygon: SimplePolygon, z: Double)]
                 switch segmentation {
                 case .fixed(let count):
                     interpolatedLayers = (1..<count).map { j in
                         let t = Double(j) / Double(count)
-                        let curvedT = curve(t)
-                        let z = z0 + (z1 - z0) * t
+                        let curvedT = layer1.function(t)
+                        let z = layer0.z + (layer1.z - layer0.z) * t
                         let polygon = lower.blended(with: upper, t: curvedT)
                         return (polygon, z)
                     }
@@ -118,10 +125,10 @@ internal extension Loft.LayerInterpolation {
                     var results: [(polygon: SimplePolygon, z: Double)] = []
 
                     func subdivide(range: Range<Double>) {
-                        let zStart = z0 + (z1 - z0) * range.lowerBound
-                        let zEnd = z0 + (z1 - z0) * range.upperBound
-                        let pStart = lower.blended(with: upper, t: curve(range.lowerBound))
-                        let pEnd = lower.blended(with: upper, t: curve(range.upperBound))
+                        let zStart = layer0.z + (layer1.z - layer0.z) * range.lowerBound
+                        let zEnd = layer0.z + (layer1.z - layer0.z) * range.upperBound
+                        let pStart = lower.blended(with: upper, t: layer1.function(range.lowerBound))
+                        let pEnd = lower.blended(with: upper, t: layer1.function(range.upperBound))
 
                         if pStart.needsSubdivision(next: pEnd, z0: zStart, z1: zEnd, minLength: minLength) {
                             let tMid = range.mid
@@ -139,7 +146,7 @@ internal extension Loft.LayerInterpolation {
                 newPolygons.append(contentsOf: interpolatedLayers.map(\.polygon))
                 newZLevels.append(contentsOf: interpolatedLayers.map(\.z))
                 newPolygons.append(upper)
-                newZLevels.append(z1)
+                newZLevels.append(layer1.z)
             }
 
             refinedGroups.append((SimplePolygonList(newPolygons), newZLevels))
