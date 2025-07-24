@@ -75,13 +75,15 @@ public struct Loft: Geometry {
 
     public struct Layer: Sendable {
         internal let z: Double
+        internal let shapingFunction: ShapingFunction?
         internal let geometry: any Geometry2D
     }
 
     /// Specifies how the layers in a lofted shape are connected.
     public enum LayerInterpolation: Sendable, Hashable, Codable {
         /// Automatically chooses the most appropriate interpolation method.
-        /// Uses `.convexHull` if all layers contain a single convex polygon; otherwise falls back to `.resampled`.
+        /// Uses `.convexHull` if all layers contain a single convex polygon and no layer has an explicit shaping
+        /// function; otherwise falls back to `.resampled`.
         case automatic
 
         /// Connects layers using their convex hulls. Fast and simple, but less accurate for complex shapes. Best used
@@ -99,6 +101,8 @@ public struct Loft: Geometry {
         /// By supplying a different shaping function, you can control the interpolation rate—such as using "ease in",
         /// "ease out", or a custom curve. This can be used to create organic bulges, tapering, or other stylized
         /// transitions between layers. See `ShapingFunction` for available built-in curves and how to create custom ones.
+        /// Individual layers can override this function by specifying their own shaping function for the upper
+        /// `layer(...)` call.
         ///
         case resampled (ShapingFunction)
 
@@ -111,10 +115,17 @@ public struct Loft: Geometry {
 ///
 /// - Parameters:
 ///   - z: The Z height at which to place the 2D shape.
+///   - interpolation: An optional shaping function that controls how the transition progresses between
+///                    the previous layer and this one. Only used when `Loft.LayerInterpolation.resampled`
+///                    is selected. Defaults to `nil`, which uses the shaping function for the Loft.
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
-public func layer(z: Double, @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D) -> Loft.Layer {
-    Loft.Layer(z: z, geometry: Deferred(shape))
+public func layer(
+    z: Double,
+    interpolation shapingFunction: ShapingFunction? = nil,
+    @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
+) -> Loft.Layer {
+    Loft.Layer(z: z, shapingFunction: shapingFunction, geometry: Deferred(shape))
 }
 
 public extension Geometry2D {
