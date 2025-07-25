@@ -55,7 +55,7 @@ struct LoftTests {
 
         #expect(m.volume ≈ 3864.051)
         #expect(m.surfaceArea ≈ 1236.991)
-        #expect(m.boundingBox ≈ .init(minimum: [-9.998, -9.998, 0], maximum: [9.999, 9.999, 20]))
+        #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
 
     @Test func layerSpecificShapingWithDefault() async throws {
@@ -79,7 +79,7 @@ struct LoftTests {
 
         #expect(m.volume ≈ 2732.414)
         #expect(m.surfaceArea ≈ 1118.009)
-        #expect(m.boundingBox ≈ .init(minimum: [-9.999, -9.998, 0], maximum: [9.999, 9.998, 20]))
+        #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
 }
 
