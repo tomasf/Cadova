@@ -29,7 +29,7 @@ internal extension Loft.LayerInterpolation {
             LayerData(z: $0.z, function: $0.function)
         }
 
-        if layerDatas.allSatisfy { $0.function == .linear } {
+        if layerDatas.allSatisfy({ $0.function == .linear }) {
             return mesh(for: groups.map { ($0, treeLayers.map(\.z)) })
         } else {
             let interpolatedGroups = interpolatePolygonGroups(
