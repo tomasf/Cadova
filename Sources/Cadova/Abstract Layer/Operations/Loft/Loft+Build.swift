@@ -69,7 +69,7 @@ internal extension Loft.LayerInterpolation {
 
         case .resampled (let function):
             let resamplingLayers = layers.map { $0.resamplingLayer(with: function) }
-            return await resampledLoft(treeLayers: resamplingLayers, in: environment)
+            return await resampledLoft(resamplingLayers: resamplingLayers, in: environment)
 
         case .automatic: preconditionFailure()
         }

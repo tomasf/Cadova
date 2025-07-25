@@ -8,8 +8,8 @@ internal extension Loft.LayerInterpolation {
         let tree: PolygonTree
     }
 
-    func resampledLoft(treeLayers: [ResamplingLayer], in environment: EnvironmentValues) async -> any Geometry3D {
-        var groups = buildPolygonGroups(layerTrees: treeLayers.map(\.tree))
+    func resampledLoft(resamplingLayers: [ResamplingLayer], in environment: EnvironmentValues) async -> any Geometry3D {
+        var groups = buildPolygonGroups(layerTrees: resamplingLayers.map(\.tree))
 
         for (index, layerPolygons) in groups.enumerated() {
             // Determine target count based on longest perimeter
@@ -25,14 +25,7 @@ internal extension Loft.LayerInterpolation {
             groups[index] = newPolygons
         }
 
-        let layerDatas = treeLayers.map {
-            LayerData(z: $0.z, function: $0.function)
-        }
-
-        let interpolatedGroups = interpolatePolygonGroups(
-            for: groups.map { ($0, layerDatas) },
-            environment: environment
-        )
+        let interpolatedGroups = interpolatePolygonGroups(for: groups, layers: resamplingLayers, environment: environment)
         return mesh(for: interpolatedGroups)
             .simplified()
     }
@@ -84,19 +77,15 @@ internal extension Loft.LayerInterpolation {
         return groups
     }
 
-    struct LayerData {
-        let z: Double
-        let function: ShapingFunction
-    }
-
     func interpolatePolygonGroups(
-        for polygonGroups: [(polygons: SimplePolygonList, layers: [LayerData])],
+        for polygonGroups: [SimplePolygonList],
+        layers: [ResamplingLayer],
         environment: EnvironmentValues
     ) -> [(polygons: SimplePolygonList, zLevels: [Double])] {
         let segmentation = environment.segmentation
         var refinedGroups: [(polygons: SimplePolygonList, zLevels: [Double])] = []
 
-        for (polygons, layers) in polygonGroups {
+        for polygons in polygonGroups {
             var newPolygons: [SimplePolygon] = [polygons[0]]
             var newZLevels: [Double] = [layers[0].z]
 
@@ -107,40 +96,36 @@ internal extension Loft.LayerInterpolation {
                 let layer1 = layers[i]
                 let interpolatedLayers: [(polygon: SimplePolygon, z: Double)]
 
-                if layers[i].function == .linear {
-                    interpolatedLayers = []
-                } else {
-                    switch segmentation {
-                    case .fixed(let count):
-                        interpolatedLayers = (1..<count).map { j in
-                            let t = Double(j) / Double(count)
-                            let curvedT = layer1.function(t)
-                            let z = layer0.z + (layer1.z - layer0.z) * t
-                            let polygon = lower.blended(with: upper, t: curvedT)
-                            return (polygon, z)
-                        }
-
-                    case .adaptive(_, let minLength):
-                        var results: [(polygon: SimplePolygon, z: Double)] = []
-
-                        func subdivide(range: Range<Double>) {
-                            let zStart = layer0.z + (layer1.z - layer0.z) * range.lowerBound
-                            let zEnd = layer0.z + (layer1.z - layer0.z) * range.upperBound
-                            let pStart = lower.blended(with: upper, t: layer1.function(range.lowerBound))
-                            let pEnd = lower.blended(with: upper, t: layer1.function(range.upperBound))
-
-                            if pStart.needsSubdivision(next: pEnd, z0: zStart, z1: zEnd, minLength: minLength) {
-                                let tMid = range.mid
-                                subdivide(range: range.lowerBound..<tMid)
-                                subdivide(range: tMid..<range.upperBound)
-                            } else {
-                                results.append((pStart, zStart))
-                            }
-                        }
-
-                        subdivide(range: 0..<1)
-                        interpolatedLayers = results
+                switch segmentation {
+                case .fixed(let count):
+                    interpolatedLayers = (1..<count).map { j in
+                        let t = Double(j) / Double(count)
+                        let curvedT = layer1.function(t)
+                        let z = layer0.z + (layer1.z - layer0.z) * t
+                        let polygon = lower.blended(with: upper, t: curvedT)
+                        return (polygon, z)
                     }
+
+                case .adaptive(_, let minLength):
+                    var results: [(polygon: SimplePolygon, z: Double)] = []
+
+                    func subdivide(range: Range<Double>) {
+                        let zStart = layer0.z + (layer1.z - layer0.z) * range.lowerBound
+                        let zEnd = layer0.z + (layer1.z - layer0.z) * range.upperBound
+                        let pStart = lower.blended(with: upper, t: layer1.function(range.lowerBound))
+                        let pEnd = lower.blended(with: upper, t: layer1.function(range.upperBound))
+
+                        if pStart.needsSubdivision(next: pEnd, z0: zStart, z1: zEnd, minLength: minLength) {
+                            let tMid = range.mid
+                            subdivide(range: range.lowerBound..<tMid)
+                            subdivide(range: tMid..<range.upperBound)
+                        } else {
+                            results.append((pStart, zStart))
+                        }
+                    }
+
+                    subdivide(range: 0..<1)
+                    interpolatedLayers = results
                 }
 
                 newPolygons.append(contentsOf: interpolatedLayers.map(\.polygon))

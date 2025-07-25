@@ -27,10 +27,11 @@ struct LoftTests {
             }
         }
 
+        try await loft.writeVerificationModel(name: "loftThreeLayers")
         let m = try await loft.measurements
 
-        #expect(m.volume ≈ 7846.93)
-        #expect(m.surfaceArea ≈ 3980.143)
+        #expect(m.volume ≈ 7846.995)
+        #expect(m.surfaceArea ≈ 3786.088)
         #expect(m.boundingBox ≈ .init(minimum: [-12.5, -12.5, 0], maximum: [12.5, 12.5, 35]))
     }
 
@@ -50,7 +51,7 @@ struct LoftTests {
             }
         }
 
-        try await loft.writeVerificationModel(name: "layerSpecificShaping")
+        try await loft.writeVerificationModel(name: "loftLayerSpecificShaping")
         let m = try await loft.measurements
 
         #expect(m.volume ≈ 3864.051)
@@ -74,7 +75,7 @@ struct LoftTests {
             }
         }
 
-        try await loft.writeVerificationModel(name: "layerSpecificShapingWithDefault")
+        try await loft.writeVerificationModel(name: "loftLayerSpecificShapingWithDefault")
         let m = try await loft.measurements
 
         #expect(m.volume ≈ 2732.414)
