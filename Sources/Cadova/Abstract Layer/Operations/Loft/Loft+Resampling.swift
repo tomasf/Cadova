@@ -29,16 +29,12 @@ internal extension Loft.LayerInterpolation {
             LayerData(z: $0.z, function: $0.function)
         }
 
-        if layerDatas.allSatisfy({ $0.function == .linear }) {
-            return mesh(for: groups.map { ($0, treeLayers.map(\.z)) })
-        } else {
-            let interpolatedGroups = interpolatePolygonGroups(
-                for: groups.map { ($0, layerDatas) },
-                environment: environment
-            )
-            return mesh(for: interpolatedGroups)
-                .simplified()
-        }
+        let interpolatedGroups = interpolatePolygonGroups(
+            for: groups.map { ($0, layerDatas) },
+            environment: environment
+        )
+        return mesh(for: interpolatedGroups)
+            .simplified()
     }
 
     // Takes a list of polygon trees representing each layer. Returns a list of polygon lists, each list representing
@@ -109,38 +105,42 @@ internal extension Loft.LayerInterpolation {
                 let upper = polygons[i]
                 let layer0 = layers[i - 1]
                 let layer1 = layers[i]
-
                 let interpolatedLayers: [(polygon: SimplePolygon, z: Double)]
-                switch segmentation {
-                case .fixed(let count):
-                    interpolatedLayers = (1..<count).map { j in
-                        let t = Double(j) / Double(count)
-                        let curvedT = layer1.function(t)
-                        let z = layer0.z + (layer1.z - layer0.z) * t
-                        let polygon = lower.blended(with: upper, t: curvedT)
-                        return (polygon, z)
-                    }
 
-                case .adaptive(_, let minLength):
-                    var results: [(polygon: SimplePolygon, z: Double)] = []
-
-                    func subdivide(range: Range<Double>) {
-                        let zStart = layer0.z + (layer1.z - layer0.z) * range.lowerBound
-                        let zEnd = layer0.z + (layer1.z - layer0.z) * range.upperBound
-                        let pStart = lower.blended(with: upper, t: layer1.function(range.lowerBound))
-                        let pEnd = lower.blended(with: upper, t: layer1.function(range.upperBound))
-
-                        if pStart.needsSubdivision(next: pEnd, z0: zStart, z1: zEnd, minLength: minLength) {
-                            let tMid = range.mid
-                            subdivide(range: range.lowerBound..<tMid)
-                            subdivide(range: tMid..<range.upperBound)
-                        } else {
-                            results.append((pStart, zStart))
+                if layers[i].function == .linear {
+                    interpolatedLayers = []
+                } else {
+                    switch segmentation {
+                    case .fixed(let count):
+                        interpolatedLayers = (1..<count).map { j in
+                            let t = Double(j) / Double(count)
+                            let curvedT = layer1.function(t)
+                            let z = layer0.z + (layer1.z - layer0.z) * t
+                            let polygon = lower.blended(with: upper, t: curvedT)
+                            return (polygon, z)
                         }
-                    }
 
-                    subdivide(range: 0..<1)
-                    interpolatedLayers = results
+                    case .adaptive(_, let minLength):
+                        var results: [(polygon: SimplePolygon, z: Double)] = []
+
+                        func subdivide(range: Range<Double>) {
+                            let zStart = layer0.z + (layer1.z - layer0.z) * range.lowerBound
+                            let zEnd = layer0.z + (layer1.z - layer0.z) * range.upperBound
+                            let pStart = lower.blended(with: upper, t: layer1.function(range.lowerBound))
+                            let pEnd = lower.blended(with: upper, t: layer1.function(range.upperBound))
+
+                            if pStart.needsSubdivision(next: pEnd, z0: zStart, z1: zEnd, minLength: minLength) {
+                                let tMid = range.mid
+                                subdivide(range: range.lowerBound..<tMid)
+                                subdivide(range: tMid..<range.upperBound)
+                            } else {
+                                results.append((pStart, zStart))
+                            }
+                        }
+
+                        subdivide(range: 0..<1)
+                        interpolatedLayers = results
+                    }
                 }
 
                 newPolygons.append(contentsOf: interpolatedLayers.map(\.polygon))
