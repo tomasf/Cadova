@@ -40,7 +40,7 @@ internal struct PartDetachment<D: Dimensionality, Input: Dimensionality>: Geomet
 ///
 /// This is used to indicate how a part should be treated in the resulting model.
 ///
-public enum PartSemantic: String, Hashable, Sendable, Codable {
+public enum PartSemantic: String, Hashable, Sendable, Codable, CaseIterable {
     /// A regular printable part, typically rendered as opaque and included in the physical output.
     case solid
 
@@ -61,8 +61,8 @@ public extension Geometry3D {
     ///
     /// Highlighted parts are still included in the output, but styled to visually indicate they are not for printing.
     func highlighted() -> any Geometry3D {
-        readEnvironment(\.outputSupportsParts) { supportsParts in
-            PartAssignment(body: self, isSeparated: supportsParts == false, identifier: .highlight)
+        readEnvironment(\.outputIncludesVisualSemantic) { supportsVisual in
+            PartAssignment(body: self, isSeparated: supportsVisual == false, identifier: .highlight)
                 .colored(.transparent)
         }
     }

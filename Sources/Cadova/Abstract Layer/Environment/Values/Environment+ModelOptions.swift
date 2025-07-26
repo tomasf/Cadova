@@ -8,8 +8,13 @@ internal extension EnvironmentValues {
         set { self[Self.key] = newValue }
     }
 
-    var outputSupportsParts: Bool {
-        modelOptions?[ModelOptions.FileFormat3D.self] == .threeMF
+    func outputIncludesSemantic(_ partSemantic: PartSemantic) -> Bool {
+        let format = modelOptions?[ModelOptions.FileFormat3D.self] ?? .threeMF
+        return modelOptions?.includedPartSemantics(for: format).contains(partSemantic) == true
+    }
+
+    var outputIncludesVisualSemantic: Bool {
+        outputIncludesSemantic(.visual)
     }
 }
 
