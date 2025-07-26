@@ -20,14 +20,21 @@ public struct ShapingFunction: Sendable, Hashable, Codable {
         case .easeInOutCubic: { $0 < 0.5 ? 4 * $0 * $0 * $0 : 0.5 * (2 * $0 - 2) * (2 * $0 - 2) * (2 * $0 - 2) + 1 }
         case .smoothstep: { $0 * $0 * (3 - 2 * $0) }
         case .smootherstep: { $0 * $0 * $0 * ($0 * (6 * $0 - 15) + 10) }
+        case .circularEaseIn: { 1 - sqrt(1 - $0 * $0) }
+        case .circularEaseOut: { sqrt(1 - (1 - $0) * (1 - $0)) }
         case .bezier (let curve): { curve.point(at: curve.t(for: $0, in: .x) ?? $0).y }
+        case .mix (let a, let b, let weight): { (1 - weight) * a.function($0) + weight * b.function($0) }
         case .custom (_, let function): function
         }
+    }
+
+    public func callAsFunction(_ input: Double) -> Double {
+        function(input)
     }
 }
 
 internal extension ShapingFunction {
-    enum Curve {
+    indirect enum Curve {
         case linear
         case exponential (exponent: Double)
         case easeIn
@@ -36,7 +43,10 @@ internal extension ShapingFunction {
         case easeInOutCubic
         case smoothstep
         case smootherstep
+        case circularEaseIn
+        case circularEaseOut
         case bezier (BezierCurve<Vector2D>)
+        case mix (ShapingFunction, ShapingFunction, Double)
         case custom (cacheKey: LabeledCacheKey, function: @Sendable (Double) -> Double)
     }
 }
@@ -97,6 +107,18 @@ public extension ShapingFunction {
         ShapingFunction(curve: .smootherstep)
     }
 
+    /// A circular ease-in shaping function.
+    /// Starts slow and curves sharply near the end.
+    static var circularEaseIn: Self {
+        ShapingFunction(curve: .circularEaseIn)
+    }
+
+    /// A circular ease-out shaping function.
+    /// Starts sharply and levels out.
+    static var circularEaseOut: Self {
+        ShapingFunction(curve: .circularEaseOut)
+    }
+
     /// A cubic Bézier-based shaping function mapping input from 0 to 1 onto the curve defined by two control points.
     ///
     /// The resulting function is suitable for easing, interpolation, and other shaping purposes.
@@ -130,6 +152,31 @@ public extension ShapingFunction {
         parameters: any Hashable & Sendable & Codable...,
         function: @escaping @Sendable (Double) -> Double
     ) -> Self {
-        ShapingFunction(curve: .custom(cacheKey: LabeledCacheKey(operationName: name, parameters: parameters), function: function))
+        ShapingFunction(curve: .custom(
+            cacheKey: LabeledCacheKey(operationName: name, parameters: parameters),
+            function: function
+        ))
+    }
+}
+
+public extension ShapingFunction {
+    /// Constructs a new shaping function that blends this function with another.
+    ///
+    /// The resulting function applies a weighted mix between `self` and `other`.
+    /// When `weight` is 0.0, the result is identical to `self`. When `weight` is 1.0, the
+    /// result is identical to `other`. Intermediate weights produce a linear interpolation
+    /// between the two functions' outputs.
+    ///
+    /// This is useful when you want to gradually transition between two shaping behaviors.
+    ///
+    /// - Parameters:
+    ///   - other: The shaping function to blend with.
+    ///   - weight: A value between 0.0 and 1.0 indicating how much of `other` to include.
+    /// - Returns: A new shaping function representing the blend.
+    /// - Precondition: `weight` must be between 0.0 and 1.0, inclusive.
+    ///
+    func mixed(with other: ShapingFunction, weight: Double) -> Self {
+        precondition(weight >= 0 && weight <= 1)
+        return ShapingFunction(curve: .mix(self, other, weight))
     }
 }
