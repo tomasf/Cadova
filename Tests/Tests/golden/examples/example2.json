@@ -3,58 +3,6 @@
     {
       "defaultMaterial" : {
         "baseColor" : {
-          "alpha" : 0.4,
-          "blue" : 0,
-          "green" : 0,
-          "red" : 1
-        }
-      },
-      "name" : "Highlighted",
-      "type" : "visual"
-    },
-    {
-      "body" : {
-        "kind" : "shape3D",
-        "primitive" : {
-          "cylinder" : {
-            "bottomRadius" : 0.5,
-            "height" : 20,
-            "segmentCount" : 104,
-            "topRadius" : 2.5
-          }
-        }
-      },
-      "kind" : "transform",
-      "transform" : [
-        [
-          1,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          0.9396926207859084,
-          -0.3420201433256687,
-          4.273526244851498
-        ],
-        [
-          0,
-          0.3420201433256687,
-          0.9396926207859084,
-          -5.893808058850022
-        ],
-        [
-          0,
-          0,
-          0,
-          1
-        ]
-      ]
-    },
-    {
-      "defaultMaterial" : {
-        "baseColor" : {
           "alpha" : 1,
           "blue" : 1,
           "green" : 1,
@@ -263,7 +211,7 @@
       "kind" : "extrusion",
       "type" : {
         "linear" : {
-          "divisions" : 5,
+          "divisions" : 50,
           "height" : 5,
           "scaleTop" : {
             "x" : 1,
@@ -274,6 +222,58 @@
           }
         }
       }
+    },
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 0.4,
+          "blue" : 0,
+          "green" : 0,
+          "red" : 1
+        }
+      },
+      "name" : "Highlighted",
+      "type" : "visual"
+    },
+    {
+      "body" : {
+        "kind" : "shape3D",
+        "primitive" : {
+          "cylinder" : {
+            "bottomRadius" : 0.5,
+            "height" : 20,
+            "segmentCount" : 104,
+            "topRadius" : 2.5
+          }
+        }
+      },
+      "kind" : "transform",
+      "transform" : [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0.9396926207859084,
+          -0.3420201433256687,
+          4.273526244851498
+        ],
+        [
+          0,
+          0.3420201433256687,
+          0.9396926207859084,
+          -5.893808058850022
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
     }
   ]
 }
