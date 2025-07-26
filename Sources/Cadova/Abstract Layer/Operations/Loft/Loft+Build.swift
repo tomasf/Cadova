@@ -3,7 +3,7 @@ import Foundation
 extension Loft {
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let layerNodes = try await layers.asyncMap {
-            LayerCacheKey(
+            LayerNode(
                 z: $0.z,
                 function: $0.shapingFunction,
                 node: try await context.buildResult(for: $0.geometry, in: environment).node
@@ -26,7 +26,7 @@ extension Loft {
         return try await context.buildResult(for: cachedConcrete, in: environment)
     }
 
-    internal struct LayerCacheKey: CacheKey {
+    internal struct LayerNode: CacheKey {
         let z: Double
         let function: ShapingFunction?
         let node: D2.Node
