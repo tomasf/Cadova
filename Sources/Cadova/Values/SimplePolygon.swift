@@ -33,8 +33,7 @@ extension SimplePolygon {
 
     var centroid: Vector2D {
         guard !isEmpty else { return .zero }
-        let sum = vertices.reduce(Vector2D.zero, +)
-        return sum / Double(count)
+        return vertices.reduce(Vector2D.zero, +) / Double(count)
     }
 
     var isConvex: Bool {
@@ -43,12 +42,12 @@ extension SimplePolygon {
         var lastCross: Double? = nil
         for (a, b, c) in vertices.wrappedTriplets() {
             let cross = (b - a) × (c - b)
-            if cross != 0 {
-                if let lastCross, cross.sign != lastCross.sign {
-                    return false
-                } else {
-                    lastCross = cross
-                }
+            guard cross != 0 else { continue }
+
+            if let lastCross, cross.sign != lastCross.sign {
+                return false
+            } else {
+                lastCross = cross
             }
         }
 
@@ -57,7 +56,7 @@ extension SimplePolygon {
 
     // Shift the polygon points circularly by the given offset.
     // This changes the starting point of the polygon without altering its shape.
-    func offset(_ offset: Int) -> Self {
+    func shifted(_ offset: Int) -> Self {
         SimplePolygon(Array(0..<count).map {
             self[($0 + offset) % count]
         })
@@ -104,9 +103,7 @@ extension SimplePolygon {
     }
 
     func blended(with other: Self, t: Double) -> Self {
-        Self(zip(vertices, other.vertices).map { a, b in
-            a + (b - a) * t
-        })
+        Self(zip(vertices, other.vertices).map { $0 + ($1 - $0) * t })
     }
 
     func transformed(_ transform: Transform2D) -> Self {

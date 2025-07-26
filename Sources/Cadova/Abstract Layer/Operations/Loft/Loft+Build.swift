@@ -19,10 +19,8 @@ extension Loft {
                 )
             }
 
-            return try await context.result(
-                for: interpolation.resolved(with: layerTrees).applied(to: layerTrees, in: environment),
-                in: environment
-            ).concrete
+            let geometry = await interpolation.resolved(with: layerTrees).applied(to: layerTrees, in: environment)
+            return try await context.result(for: geometry, in: environment).concrete
         }
 
         return try await context.buildResult(for: cachedConcrete, in: environment)
@@ -41,8 +39,8 @@ internal extension Loft.LayerInterpolation {
         let function: ShapingFunction?
         let tree: PolygonTree
 
-        func resamplingLayer(with defaultFunction: ShapingFunction) -> ResamplingLayer {
-            ResamplingLayer(z: z, function: function ?? defaultFunction, tree: tree)
+        func resamplingLayer(with defaultFunction: ShapingFunction) -> Loft.ResamplingLayer {
+            Loft.ResamplingLayer(z: z, function: function ?? defaultFunction, tree: tree)
         }
     }
 
@@ -59,17 +57,12 @@ internal extension Loft.LayerInterpolation {
     func applied(to layers: [TreeLayer], in environment: EnvironmentValues) async -> any Geometry3D {
         switch self {
         case .convexHull:
-            let flattenedLayers = layers.map { ($0.z, $0.tree.flattened()) }
-
-            return flattenedLayers.paired().map(unpacked).mapUnion { z1, list1, z2, list2 in
-                let bottomPoints = list1.polygons.flatMap { $0.vertices(at: z1) }
-                let topPoints = list2.polygons.flatMap { $0.vertices(at: z2) }
-                (bottomPoints + topPoints).convexHull()
-            }
+            let layerPoints = layers.map { $0.tree.flattened().vertices(at: $0.z) }
+            return layerPoints.paired().mapUnion { ($0 + $1).convexHull() }
 
         case .resampled (let function):
             let resamplingLayers = layers.map { $0.resamplingLayer(with: function) }
-            return await resampledLoft(resamplingLayers: resamplingLayers, in: environment)
+            return await Loft.resampledLoft(resamplingLayers: resamplingLayers, in: environment)
 
         case .automatic: preconditionFailure()
         }
