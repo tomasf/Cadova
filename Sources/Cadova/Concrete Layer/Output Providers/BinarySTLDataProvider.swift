@@ -7,8 +7,9 @@ struct BinarySTLDataProvider: OutputDataProvider {
     let fileExtension = "stl"
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
+        let acceptedSemantics = options.includedPartSemantics(for: .stl)
         let solidParts = result.elements[PartCatalog.self].mergedOutputs
-            .filter { $0.key.type == .solid }.map(\.value)
+            .filter { acceptedSemantics.contains($0.key.type) }.map(\.value)
 
         let allParts = [result] + solidParts
         let union = GeometryNode.boolean(allParts.map(\.node), type: .union)

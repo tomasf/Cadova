@@ -127,7 +127,9 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     private func makeModel(context: EvaluationContext) async throws -> ThreeMF.Model {
         var outputs = result.elements[PartCatalog.self].mergedOutputs
+        let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
         outputs[.main] = result
+        outputs = outputs.filter { acceptedSemantics.contains($0.key.type) }
 
         let parts = try await ContinuousClock().measure {
             try await outputs.asyncCompactMap { partIdentifier, result -> PartData? in
