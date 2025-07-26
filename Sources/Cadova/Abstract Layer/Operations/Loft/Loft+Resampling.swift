@@ -1,14 +1,14 @@
 import Foundation
 import Manifold3D
 
-internal extension Loft.LayerInterpolation {
+internal extension Loft {
     struct ResamplingLayer {
         let z: Double
         let function: ShapingFunction
         let tree: PolygonTree
     }
 
-    func resampledLoft(resamplingLayers: [ResamplingLayer], in environment: EnvironmentValues) async -> any Geometry3D {
+    static func resampledLoft(resamplingLayers: [ResamplingLayer], in environment: EnvironmentValues) async -> any Geometry3D {
         var groups = buildPolygonGroups(layerTrees: resamplingLayers.map(\.tree))
 
         for (index, layerPolygons) in groups.enumerated() {
@@ -25,59 +25,55 @@ internal extension Loft.LayerInterpolation {
             groups[index] = newPolygons
         }
 
-        let interpolatedGroups = interpolatePolygonGroups(for: groups, layers: resamplingLayers, environment: environment)
-        return mesh(for: interpolatedGroups)
+        let interpolatedGroups = Self.interpolatePolygonGroups(for: groups, layers: resamplingLayers, environment: environment)
+        return Mesh(polygonGroups: interpolatedGroups)
             .simplified()
     }
 
     // Takes a list of polygon trees representing each layer. Returns a list of polygon lists, each list representing
     // the matching polygons from each layer
-    func buildPolygonGroups(layerTrees: [PolygonTree]) -> [SimplePolygonList] {
+    static func buildPolygonGroups(layerTrees: [PolygonTree]) -> [SimplePolygonList] {
         var groups = [SimplePolygonList]()
         if layerTrees[0].polygon.vertices.isEmpty == false {
             groups.append(SimplePolygonList(layerTrees.map(\.polygon)))
         }
 
-        let childrenPerLayer = layerTrees.map(\.children)
+        var remainingChildren = layerTrees.map(\.children)
 
-        if childrenPerLayer.count > 0 {
-            var remainingChildren = childrenPerLayer
+        while !remainingChildren[0].isEmpty {
+            // Take the first polygon tree of the first layer and treat it as the target
+            let prototype = remainingChildren.first!.first!
+            remainingChildren[0].remove(at: 0)
 
-            while !remainingChildren[0].isEmpty {
-                // Take the first polygon tree of the first layer and treat it as the target
-                let prototype = remainingChildren.first!.first!
-                remainingChildren[0].remove(at: 0)
-
-                // Filter each of the layers for polygons matching the topology of the target tree
-                let candidatesPerLayer = remainingChildren.dropFirst().map {
-                    $0.enumerated().filter { $1.matchesTopology(of: prototype) }
-                }
-
-                // Each layer has to have at least one matching polygon tree, otherwise the input is invalid
-                precondition(candidatesPerLayer.allSatisfy({ $0.isEmpty == false }), "No topology match")
-
-                // Go through the candidates layer by layer and find the one that is nearest the pick for the previous
-                // layer and remove that one from remainingChildren so it's not included in the next pass
-                var chosenTrees = [prototype]
-                for (layerIndexMinusOne, candidates) in candidatesPerLayer.enumerated() {
-                    let previousCentroid = chosenTrees.last!.polygon.centroid
-                    let candidatesWithDistances = candidates.map { index, tree in
-                        (index, tree, tree.polygon.centroid.distance(to: previousCentroid))
-                    }
-                    let (winnerIndex, winnerTree, _) = candidatesWithDistances.min(by: { $0.2 < $1.2 })!
-                    remainingChildren[layerIndexMinusOne + 1].remove(at: winnerIndex)
-                    chosenTrees.append(winnerTree)
-                }
-
-                // Recursively call buildPolygonGroups to build matching polygons for the chosen trees
-                let childGroups = buildPolygonGroups(layerTrees: chosenTrees)
-                groups.append(contentsOf: childGroups)
+            // Filter each of the layers for polygons matching the topology of the target tree
+            let candidatesPerLayer = remainingChildren.dropFirst().map {
+                $0.enumerated().filter { $1.matchesTopology(of: prototype) }
             }
+
+            // Each layer has to have at least one matching polygon tree, otherwise the input is invalid
+            precondition(candidatesPerLayer.allSatisfy({ $0.isEmpty == false }), "No topology match")
+
+            // Go through the candidates layer by layer and find the one that is nearest the pick for the previous
+            // layer and remove that one from remainingChildren so it's not included in the next pass
+            var chosenTrees = [prototype]
+            for (layerIndexMinusOne, candidates) in candidatesPerLayer.enumerated() {
+                let previousCentroid = chosenTrees.last!.polygon.centroid
+                let candidatesWithDistances = candidates.map { index, tree in
+                    (index, tree, tree.polygon.centroid.distance(to: previousCentroid))
+                }
+                let (winnerIndex, winnerTree, _) = candidatesWithDistances.min(by: { $0.2 < $1.2 })!
+                remainingChildren[layerIndexMinusOne + 1].remove(at: winnerIndex)
+                chosenTrees.append(winnerTree)
+            }
+
+            // Recursively call buildPolygonGroups to build matching polygons for the chosen trees
+            let childGroups = buildPolygonGroups(layerTrees: chosenTrees)
+            groups.append(contentsOf: childGroups)
         }
         return groups
     }
 
-    func interpolatePolygonGroups(
+    static func interpolatePolygonGroups(
         for polygonGroups: [SimplePolygonList],
         layers: [ResamplingLayer],
         environment: EnvironmentValues
@@ -100,9 +96,8 @@ internal extension Loft.LayerInterpolation {
                 case .fixed(let count):
                     interpolatedLayers = (1..<count).map { j in
                         let t = Double(j) / Double(count)
-                        let curvedT = layer1.function(t)
                         let z = layer0.z + (layer1.z - layer0.z) * t
-                        let polygon = lower.blended(with: upper, t: curvedT)
+                        let polygon = lower.blended(with: upper, t: layer1.function(t))
                         return (polygon, z)
                     }
 
@@ -139,8 +134,18 @@ internal extension Loft.LayerInterpolation {
 
         return refinedGroups
     }
+}
 
-    func mesh(for polygonGroups: [(polygons: SimplePolygonList, zLevels: [Double])]) -> Mesh {
+fileprivate extension SimplePolygon {
+    func needsSubdivision(next: SimplePolygon, z0: Double, z1: Double, minLength: Double) -> Bool {
+        (0..<count).contains {
+            (Vector3D(next[$0], z: z1) - Vector3D(self[$0], z: z0)).magnitude > minLength
+        }
+    }
+}
+
+fileprivate extension Mesh {
+    init(polygonGroups: [(polygons: SimplePolygonList, zLevels: [Double])]) {
         struct Vertex: Hashable {
             let polygonGroupIndex: Int
             let layerIndex: Int
@@ -178,15 +183,9 @@ internal extension Loft.LayerInterpolation {
             Vertex(polygonGroupIndex: c.polygon, layerIndex: polygonGroups[c.polygon].polygons.count - 1, pointIndex: c.vertex),
         ]}
 
-        return Mesh(faces: sideFaces + bottomFaces + topFaces) { vertex in
+        self.init(faces: sideFaces + bottomFaces + topFaces) { vertex in
             let flatPoint = polygonGroups[vertex.polygonGroupIndex].polygons[vertex.layerIndex][vertex.pointIndex]
             return Vector3D(flatPoint, z: polygonGroups[vertex.polygonGroupIndex].zLevels[vertex.layerIndex])
         }
-    }
-}
-
-fileprivate extension SimplePolygon {
-    func needsSubdivision(next: SimplePolygon, z0: Double, z1: Double, minLength: Double) -> Bool {
-        (0..<count).contains { (Vector3D(next[$0], z: z1) - Vector3D(self[$0], z: z0)).magnitude > minLength }
     }
 }
