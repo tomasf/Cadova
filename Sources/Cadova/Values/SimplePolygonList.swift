@@ -63,6 +63,10 @@ extension SimplePolygonList {
     func transformed(_ transform: Transform2D) -> Self {
         Self(polygons.map { $0.transformed(transform) })
     }
+
+    func vertices(at z: Double) -> [Vector3D] {
+        polygons.flatMap { $0.vertices(at: z) }
+    }
 }
 
 extension SimplePolygonList {
@@ -77,7 +81,7 @@ extension SimplePolygonList {
             var bestScore = Double.infinity
 
             for offset in 0..<candidate.count {
-                let shifted = candidate.offset(offset)
+                let shifted = candidate.shifted(offset)
 
                 let score = shifted.vertices.enumerated().map { i, v in (v - reference[i]).magnitude }.reduce(0, +)
                 if score < bestScore {
@@ -86,7 +90,7 @@ extension SimplePolygonList {
                 }
             }
 
-            self[i] = candidate.offset(bestOffset)
+            self[i] = candidate.shifted(bestOffset)
         }
     }
 }

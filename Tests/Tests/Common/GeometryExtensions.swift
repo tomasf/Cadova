@@ -96,6 +96,12 @@ extension Geometry {
 
         #expect(computedGoldenRecord == goldenRecord)
     }
+
+    func writeVerificationModel(name: String) async throws {
+        if TestGeneratedOutputType.fromEnvironment?.contains(.model) == true {
+            try await writeOutputFiles(name, types: [.model])
+        }
+    }
 }
 
 extension BuildResult {

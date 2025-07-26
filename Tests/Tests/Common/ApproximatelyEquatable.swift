@@ -4,70 +4,68 @@ import Foundation
 infix operator ≈: ComparisonPrecedence
 
 protocol ApproximatelyEquatable {
-    static func ≈(_ lhs: Self, _ rhs: Self) -> Bool
+    func equals(_ other: Self, within tolerance: Double) -> Bool
+}
+
+extension ApproximatelyEquatable {
+    static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
+        lhs.equals(rhs, within: 1e-3)
+    }
 }
 
 extension Double: ApproximatelyEquatable {
-    static func ≈(lhs: Self, rhs: Self) -> Bool {
-        Swift.abs(lhs - rhs) < 0.001
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        Swift.abs(self - other) < tolerance
     }
 }
 
 extension Optional: ApproximatelyEquatable where Wrapped: ApproximatelyEquatable {
-    static func ≈(lhs: Self, rhs: Self) -> Bool {
-        switch (lhs, rhs) {
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        switch (self, other) {
         case (.none, .none): true
         case (.none, .some), (.some, .none): false
-        case (.some(let a), .some(let b)): a ≈ b
+        case (.some(let a), .some(let b)): a.equals(b, within: tolerance)
         }
     }
 }
 
 extension Collection where Element: ApproximatelyEquatable {
-    static func ≈(lhs: Self, rhs: Self) -> Bool {
-        lhs.count == rhs.count
-        && lhs.indices.allSatisfy { lhs[$0] ≈ rhs[$0] }
-    }
-}
-
-extension Array: ApproximatelyEquatable where Element: ApproximatelyEquatable {}
-
-
-extension Vector {
-    static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
-        zip(lhs, rhs).allSatisfy(≈)
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        self.count == other.count
+        && self.indices.allSatisfy { self[$0].equals(other[$0], within: tolerance) }
     }
 }
 
 extension Vector2D: ApproximatelyEquatable {}
 extension Vector3D: ApproximatelyEquatable {}
+extension Array: ApproximatelyEquatable where Element: ApproximatelyEquatable {}
 
 extension Angle: ApproximatelyEquatable {
-    static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
-        lhs.radians ≈ rhs.radians
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        degrees.equals(other.degrees, within: tolerance)
     }
 }
 
 extension BoundingBox: ApproximatelyEquatable {
-    static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
-        lhs.minimum ≈ rhs.minimum && lhs.maximum ≈ rhs.maximum
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        self.minimum.equals(other.minimum, within: tolerance) && self.maximum.equals(other.maximum, within: tolerance)
     }
 }
 
 extension BezierPath: ApproximatelyEquatable where V: ApproximatelyEquatable {
-    static func ≈(lhs: Self, rhs: Self) -> Bool {
-        lhs.startPoint ≈ rhs.startPoint && lhs.curves ≈ rhs.curves
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        self.startPoint ≈ other.startPoint && self.curves ≈ other.curves
     }
 }
 
 extension BezierCurve: ApproximatelyEquatable where V: ApproximatelyEquatable {
-    static func ≈(lhs: Self, rhs: Self) -> Bool {
-        lhs.controlPoints ≈ rhs.controlPoints
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        self.controlPoints ≈ other.controlPoints
     }
 }
 
 extension Direction: ApproximatelyEquatable {
-    static func ≈(_ lhs: Self, _ rhs: Self) -> Bool {
-        lhs.unitVector ≈ rhs.unitVector
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        self.unitVector.equals(other.unitVector, within: tolerance)
     }
 }
