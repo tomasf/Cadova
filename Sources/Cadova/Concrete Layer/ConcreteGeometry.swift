@@ -19,19 +19,7 @@ extension CrossSection: ConcreteGeometry {
     }
 
     public func refine(edgeLength: Double) -> Self {
-        let inputPoints = polygons().map(\.vertices)
-
-        let newPoints = inputPoints.map { points in
-            [points[0]] + points.paired().flatMap { from, to -> [Vector2D] in
-                let length = from.distance(to: to)
-                let segmentCount = ceil(length / edgeLength)
-                guard segmentCount > 1 else { return [to] }
-                return (1...Int(segmentCount)).map { i in
-                    from.point(alongLineTo: to, at: Double(i) / Double(segmentCount))
-                }
-            }
-        }
-        return .init(polygons: newPoints.map { Manifold3D.Polygon(vertices: $0) }, fillRule: .nonZero)
+        Self(polygonList().refined(maxEdgeLength: edgeLength))
     }
 
     public func baked() -> Self {

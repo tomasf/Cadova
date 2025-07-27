@@ -60,6 +60,10 @@ extension SimplePolygonList {
         return triangles.map { (vertex(at: $0.a), vertex(at: $0.b), vertex(at: $0.c)) }
     }
 
+    func refined(maxEdgeLength: Double) -> Self {
+        Self(polygons.map { $0.refined(maxEdgeLength: maxEdgeLength) })
+    }
+
     func transformed(_ transform: Transform2D) -> Self {
         Self(polygons.map { $0.transformed(transform) })
     }
@@ -98,5 +102,9 @@ extension SimplePolygonList {
 extension D2.Concrete {
     func polygonList() -> SimplePolygonList {
         SimplePolygonList(polygons())
+    }
+
+    init(_ polygonList: SimplePolygonList) {
+        self.init(polygons: polygonList.polygons.map(\.manifoldPolygon), fillRule: .nonZero)
     }
 }
