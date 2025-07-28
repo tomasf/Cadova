@@ -93,7 +93,7 @@ public extension Transform3D {
 
     static func rotation(from: Direction3D, to: Direction3D) -> Transform3D {
         let axis = Direction3D(from.unitVector × to.unitVector)
-        let angle: Angle = acos(from.unitVector ⋅ to.unitVector)
+        let angle: Angle = acos((from.unitVector ⋅ to.unitVector).clamped(to: -1.0...1.0))
         return .rotation(angle: angle, around: axis)
     }
 
