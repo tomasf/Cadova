@@ -117,4 +117,20 @@ extension SimplePolygon {
             return (1...Int(segmentCount)).map { a + (b - a) * Double($0) / Double(segmentCount) }
         })
     }
+
+    var length: Double {
+        vertices.paired().map { $0.distance(to: $1) }.reduce(0, +)
+    }
+
+    var area: Double {
+        Swift.abs(
+            vertices.wrappedPairs()
+                .map { $0.x * $1.y - $0.y * $1.x }
+                .reduce(0, +)
+        ) / 2.0
+    }
+
+    var boundingBox: BoundingBox2D {
+        .init(vertices)
+    }
 }
