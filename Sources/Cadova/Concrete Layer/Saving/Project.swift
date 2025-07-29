@@ -8,7 +8,7 @@ import Foundation
 /// where consistent output format, compression, or metadata is desired.
 ///
 /// - Parameters:
-///   - root: An optional base directory where all models in the project will be saved. If `nil`, files are written
+///   - url: An optional base directory where all models in the project will be saved. If `nil`, files are written
 ///     relative to the working directory unless individually overridden.
 ///   - options: Shared `ModelOptions` applied to all models in the project unless overridden.
 ///   - content: A result builder that asynchronously returns an array of `Model` instances to be evaluated and saved.
