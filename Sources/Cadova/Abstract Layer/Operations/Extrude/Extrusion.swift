@@ -7,7 +7,7 @@ public extension Geometry2D {
     ///   - height: The height of the resulting geometry, in the Z axis
     ///   - twist: The rotation of the top surface, gradually rotating the geometry around the Z axis, resulting in a
     ///     twisted shape. Defaults to no twist.
-    ///   - scale: The final scale at the top of the extruded shape. The geometry is scaled linearly from 1.0 at the
+    ///   - topScale: The final scale at the top of the extruded shape. The geometry is scaled linearly from 1.0 at the
     ///     bottom.
     ///
     func extruded(height: Double, twist: Angle = 0°, topScale: Vector2D = [1, 1]) -> any Geometry3D {
