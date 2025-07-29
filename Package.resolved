@@ -1,5 +1,5 @@
 {
-  "originHash" : "95147699b50610ece0153bf82fb0d173ab789561d5c2eab4992db2b19732023f",
+  "originHash" : "f0ec796e0efe3eb0358e58e4baea3b9a5c4a5504c1622658e7c16cd1a5923da7",
   "pins" : [
     {
       "identity" : "findfont",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/manifold-swift.git",
       "state" : {
-        "revision" : "63425e809ac19c9b317fdb3fae2c1f923f8900a2",
-        "version" : "0.2.1"
+        "revision" : "f32492fc1d40597cd29aae063143fdf3490391f9",
+        "version" : "0.2.2"
       }
     },
     {
