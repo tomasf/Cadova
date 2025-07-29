@@ -247,3 +247,22 @@ public extension Geometry2D {
         }
     }
 }
+
+// MARK: - Deprecated in 0.1.4
+
+public extension Polygon {
+    @available(*, deprecated, message: "Use readMetrics(_:) instead.")
+    func boundingRect(in environment: EnvironmentValues) -> BoundingBox2D {
+        Polygon.Metrics(polygon: self, environment: environment).boundingBox
+    }
+
+    @available(*, deprecated, message: "Use readMetrics(_:) instead.")
+    func length(in environment: EnvironmentValues) -> Double {
+        Polygon.Metrics(polygon: self, environment: environment).length
+    }
+
+    @available(*, deprecated, message: "Use readMetrics(_:) instead.")
+    func area(in environment: EnvironmentValues) -> Double {
+        Polygon.Metrics(polygon: self, environment: environment).area
+    }
+}

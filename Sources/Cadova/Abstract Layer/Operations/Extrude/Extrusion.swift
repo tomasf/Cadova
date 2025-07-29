@@ -15,7 +15,7 @@ public extension Geometry2D {
             extruded(height: height, twist: twist, scale: topScale, divisions: 0)
         } else {
             measureBoundsIfNonEmpty { _, e, bounds in
-                let numRevolutions = twist / 360°
+                let numRevolutions = abs(twist) / 360°
                 let maxRadius = bounds.maximumDistanceToOrigin
 
                 let pitch = height / numRevolutions
