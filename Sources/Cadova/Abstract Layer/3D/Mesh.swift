@@ -79,21 +79,23 @@ public extension Mesh {
     init<
         Key: Hashable, Face: Sequence<Key>, FaceList: Sequence<Face>
     >(faces: FaceList, value: (Key) -> Vector3D) {
-        var pointValues: [Vector3D] = []
-        let orderedKeys = OrderedSet(faces.joined())
-        let keyIndices: [Key: Int] = orderedKeys.reduce(into: [:]) { table, key in
-            pointValues.append(value(key))
-            table[key] = pointValues.endIndex - 1
+        var vertices: [Vector3D] = []
+        var keyIndices: [Key: Int] = [:]
+
+        let indexedFaces = faces.map {
+            $0.map { key in
+                if let index = keyIndices[key] {
+                    return index
+                } else {
+                    vertices.append(value(key))
+                    let index = vertices.endIndex - 1
+                    keyIndices[key] = index
+                    return index
+                }
+            }
         }
 
-        self.init(vertices: pointValues, faces: faces.map {
-            $0.map {
-                guard let index = keyIndices[$0] else {
-                    preconditionFailure("Undefined point key: \($0)")
-                }
-                return index
-            }
-        })
+        self.init(vertices: vertices, faces: indexedFaces)
     }
 
     /// Creates a mesh from a list of polygonal faces defined directly by 3D coordinates.
