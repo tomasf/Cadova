@@ -1,5 +1,4 @@
 import Foundation
-internal import Collections
 import Manifold3D
 
 /// An arbitrary three-dimensional shape made up of flat polygonal faces.
