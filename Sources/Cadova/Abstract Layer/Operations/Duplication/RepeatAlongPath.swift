@@ -3,15 +3,20 @@ import Foundation
 public extension Geometry3D {
     /// Repeats a 3D geometry along a path.
     ///
-    /// This function places multiple copies of the geometry along a path, spaced evenly,
-    /// with each instance optionally aligned to a reference direction.
+    /// This function places multiple copies of the geometry along a path, spaced evenly. If `target` is provided,
+    /// each instance is oriented so that the geometry's local positive Z-axis points forward along the path
+    /// direction. The rotation around the Z-axis is determined by the `target` and `reference` parameters:
+    ///
+    /// `reference` defines a direction in the geometry's local XY-plane, and `target` specifies what that
+    /// direction should align with at each point along the path. If `target` is `nil`, then the geometry is not
+    /// rotated, only translated along the path.
     ///
     /// - Parameters:
     ///   - path: The Bezier path to follow.
-    ///   - target: The optional target direction or point to align each instance to. If `nil`,
-    ///     the geometry is only translated, not rotated.
-    ///   - reference: The 2D direction in the geometry that should align with the path direction (default is `.down`).
-    ///                Ignored if `target` is nil.
+    ///   - target: The optional direction or point to align the geometry with, controlling rotation around the
+    ///             Z-axis. If `nil`, the geometry is only translated.
+    ///   - reference: A local 2D direction in the XY-plane of the geometry used to resolve rotation when `target`
+    ///                is specified. Defaults to `.down`.
     ///   - count: The number of instances to repeat.
     ///   - spacing: The distance between each instance along the path.
     /// - Returns: A composite 3D geometry containing all repeated instances.
@@ -31,7 +36,7 @@ public extension Geometry3D {
                 targetReference: reference,
                 perpendicularBounds: bounds.bounds2D
             )
-
+            
             for i in 0..<count {
                 let distance = Double(i) * spacing
                 var transform = frames.binarySearchInterpolate(target: distance, key: \.distance, result: \.transform)
@@ -66,7 +71,7 @@ public extension Geometry2D {
         measureBoundsIfNonEmpty { _, e, bounds in
             let path = path.path3D.extendedToMinimumLength(Double(count) * spacing)
             let frames = path.frames(environment: e, target: .direction(.down), targetReference: .down, perpendicularBounds: nil)
-
+            
             for i in 0..<count {
                 var transform = frames.binarySearchInterpolate(target: Double(i) * spacing, key: \.distance, result: \.transform)
                 if rotating {
