@@ -1,5 +1,5 @@
 {
-  "originHash" : "eba451e96c92c067feb965eaf43839485017a99bab0ddecf909a89c5feb79c87",
+  "originHash" : "d4aa0857185c435df5c8d31a635bc1e06d0225054540d986c131dbed3a516410",
   "pins" : [
     {
       "identity" : "findfont",
@@ -35,15 +35,6 @@
       "state" : {
         "revision" : "763efeebe6bf1c26958dcbb29661a9af45cced52",
         "version" : "0.3.1"
-      }
-    },
-    {
-      "identity" : "swift-collections",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-collections.git",
-      "state" : {
-        "revision" : "8c0c0a8b49e080e54e5e328cc552821ff07cd341",
-        "version" : "1.2.1"
       }
     },
     {
