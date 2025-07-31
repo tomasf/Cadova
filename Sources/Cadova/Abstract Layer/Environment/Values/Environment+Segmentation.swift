@@ -8,7 +8,15 @@ public extension EnvironmentValues {
     /// If not explicitly set, this defaults to `Segmentation.defaults`.
     var segmentation: Segmentation {
         get { self[Self.environmentKey] as? Segmentation ?? .defaults }
-        set { self[Self.environmentKey] = newValue }
+        set {
+            switch newValue {
+            case .adaptive (let minAngle, let minSize):
+                precondition(minAngle > 0° && minSize > 0)
+            case .fixed (let count):
+                precondition(count > 0)
+            }
+            self[Self.environmentKey] = newValue
+        }
     }
 
     /// Returns a modified environment with the specified segmentation strategy.
