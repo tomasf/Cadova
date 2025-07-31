@@ -58,7 +58,6 @@ public extension Geometry2D {
         }
     }
 
-
     /// Revolves a two-dimensional geometry around the Z-axis to create three-dimensional solid geometry.
     ///
     /// This operation takes the portion of the 2D shape lying on or to the right of the X=0 line (positive X-axis)
