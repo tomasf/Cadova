@@ -20,11 +20,32 @@ public extension Geometry2D {
 
                 let pitch = height / numRevolutions
                 let helixLength = sqrt(pow(maxRadius * 2 * .pi, 2) + pow(pitch, 2)) * numRevolutions
+                let maxCrease = 15°
 
                 let segmentsPerRevolution = e.segmentation.segmentCount(circleRadius: maxRadius)
                 let twistSegments = Int(Double(segmentsPerRevolution) * numRevolutions)
                 let lengthSegments = e.segmentation.segmentCount(length: helixLength)
-                extruded(height: height, twist: twist, scale: topScale, divisions: max(twistSegments, lengthSegments))
+                let segmentCount = max(twistSegments, lengthSegments)
+                var maxEdgeLength = maxEdgeLength(
+                    radius: maxRadius,
+                    segmentHeight: height / Double(segmentCount),
+                    segmentTwist: abs(twist) / Double(segmentCount),
+                    maxCrease: maxCrease
+                )
+
+                let base: any Geometry2D
+                if maxEdgeLength < maxRadius, maxEdgeLength > 0 {
+                    switch e.segmentation {
+                    case .fixed (let count):
+                        maxEdgeLength = max(maxRadius / Double(count), maxEdgeLength)
+                    case .adaptive (let angle, let length):
+                        maxEdgeLength = max(length, maxEdgeLength)
+                    }
+                    base = self.refined(maxEdgeLength: maxEdgeLength)
+                } else {
+                    base = self
+                }
+                base.extruded(height: height, twist: twist, scale: topScale, divisions: segmentCount)
             }
         }
     }
@@ -54,7 +75,7 @@ public extension Geometry2D {
     /// ```swift
     /// let hemisphere = Circle(radius: 10).revolved(in: 0°..<180°)
     /// ```
-    /// 
+    ///
     func revolved(in range: Range<Angle> = 0°..<360°) -> any Geometry3D {
         readEnvironment(\.segmentation) { segmentation in
             self.measuringBounds { geometry, bounds in
@@ -72,4 +93,46 @@ public extension Geometry2D {
             }
         }
     }
+}
+
+fileprivate func dihedralAngle(radius r: Double, height h: Double, twist φ: Angle, dTheta θ: Angle) -> Angle {
+    let v0 = Vector3D(r, 0, 0)
+    let v1 = Vector3D(r * cos(θ.radians), r * sin(θ.radians), 0)
+    let v3 = Vector3D(r * cos(φ.radians), r * sin(φ.radians), h)
+    let v2 = Vector3D(r * cos(θ.radians + φ.radians), r * sin(θ.radians + φ.radians), h)
+
+    let e20 = v2 - v0
+    let n1  = (v1 - v0) × e20
+    let n2  = e20 × (v3 - v0)
+
+    // dΘ→0 degeneracy (length→0 vector)
+    if n1.squaredEuclideanNorm == 0 || n2.squaredEuclideanNorm == 0 {
+        return 0°
+    }
+
+    let raw: Angle = acos((n1.normalized ⋅ n2.normalized).clamped(to: -1...1))
+    return min(raw, 180° - raw)
+}
+
+fileprivate func maxEdgeLength(radius r: Double, segmentHeight h: Double, segmentTwist φ: Angle, maxCrease αmax: Angle) -> Double {
+    let angleTolerance = 0.1°
+    let iterations = 25
+
+    guard dihedralAngle(radius: r, height: h, twist: φ, dTheta: 180°) > αmax else {
+        return r * 2
+    }
+
+    var low = 0°, high = 180°
+
+    for _ in 0..<iterations {
+        let mid = 0.5 * (low + high)
+        if dihedralAngle(radius: r, height: h, twist: φ, dTheta: mid) <= αmax {
+            low = mid
+        } else {
+            high = mid
+        }
+        if high - low < angleTolerance { break }
+    }
+
+    return 2 * r * sin(low * 0.5)
 }
