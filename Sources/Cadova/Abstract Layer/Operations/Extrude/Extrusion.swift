@@ -38,7 +38,7 @@ public extension Geometry2D {
                     switch e.segmentation {
                     case .fixed (let count):
                         maxEdgeLength = max(maxRadius / Double(count), maxEdgeLength)
-                    case .adaptive (let angle, let length):
+                    case .adaptive (_, let length):
                         maxEdgeLength = max(length, maxEdgeLength)
                     }
                     base = self.refined(maxEdgeLength: maxEdgeLength)
