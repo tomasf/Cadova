@@ -69,9 +69,14 @@ extension Geometry {
     ///   - count: The number of geometries to generate
     /// - Returns: A new geometry with this geometry repeated
     ///
+    @GeometryBuilder<D>
     public func repeated(along axis: D.Axis, spacing: Double, count: Int) -> D.Geometry {
-        measuringBounds { _, bounds in
-            self.repeated(along: axis, step: bounds.size[axis] + spacing, count: count)
+        if count == 1 {
+            self
+        } else if count > 0 {
+            measuringBounds { _, bounds in
+                self.repeated(along: axis, step: bounds.size[axis] + spacing, count: count)
+            }
         }
     }
 
