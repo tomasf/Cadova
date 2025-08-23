@@ -2,13 +2,27 @@ import Foundation
 import Manifold3D
 
 public extension Geometry2D {
-    /// Extrude two-dimensional geometry in the Z axis, creating three-dimensional geometry
+    /// Extrude two-dimensional geometry in the Z axis, creating three-dimensional geometry.
+    ///
+    /// When a twist is applied (`twist != 0°`), vertical (Z) divisions are determined by the current
+    /// segmentation environment (see `withSegmentation(...)`). The algorithm combines circle‑based
+    /// segmentation at the shape’s maximum radius with length‑based segmentation of the helical path
+    /// and uses whichever yields more divisions.
+    ///
+    /// Before extrusion, the 2D shape may be refined to keep the dihedral angle between adjacent
+    /// helical faces at or below the environment's `twistSubdivisionThreshold`. This computes a
+    /// maximum allowed base edge length from the per‑division height and twist and refines the 2D shape.
+    ///
+    /// A threshold of `0°` disables refinement of the 2D base. Vertical (Z) segmentation still follows
+    /// `.withSegmentation(...)` and related settings. When `twist == 0°`, the threshold is ignored and
+    /// no automatic base refinement is performed.
+    ///
     /// - Parameters:
     ///   - height: The height of the resulting geometry, in the Z axis
-    ///   - twist: The rotation of the top surface, gradually rotating the geometry around the Z axis, resulting in a
-    ///     twisted shape. Defaults to no twist.
-    ///   - topScale: The final scale at the top of the extruded shape. The geometry is scaled linearly from 1.0 at the
-    ///     bottom.
+    ///   - twist: The rotation of the top surface, gradually rotating the geometry around the Z axis,
+    ///     resulting in a twisted shape. Defaults to no twist.
+    ///   - topScale: The final scale at the top of the extruded shape. The geometry is scaled linearly
+    ///     from 1.0 at the bottom.
     ///
     func extruded(height: Double, twist: Angle = 0°, topScale: Vector2D = [1, 1]) -> any Geometry3D {
         if twist.isZero {
@@ -17,16 +31,16 @@ public extension Geometry2D {
             measureBoundsIfNonEmpty { _, e, bounds in
                 let numRevolutions = abs(twist) / 360°
                 let maxRadius = bounds.maximumDistanceToOrigin
+                @Environment(\.twistSubdivisionThreshold) var maxCrease
 
                 let pitch = height / numRevolutions
                 let helixLength = sqrt(pow(maxRadius * 2 * .pi, 2) + pow(pitch, 2)) * numRevolutions
-                let maxCrease = 15°
 
                 let segmentsPerRevolution = e.segmentation.segmentCount(circleRadius: maxRadius)
                 let twistSegments = Int(Double(segmentsPerRevolution) * numRevolutions)
                 let lengthSegments = e.segmentation.segmentCount(length: helixLength)
                 let segmentCount = max(twistSegments, lengthSegments)
-                var maxEdgeLength = maxEdgeLength(
+                let maxEdgeLength = maxEdgeLength(
                     radius: maxRadius,
                     segmentHeight: height / Double(segmentCount),
                     segmentTwist: abs(twist) / Double(segmentCount),
@@ -34,13 +48,7 @@ public extension Geometry2D {
                 )
 
                 let base: any Geometry2D
-                if maxEdgeLength < maxRadius, maxEdgeLength > 0 {
-                    switch e.segmentation {
-                    case .fixed (let count):
-                        maxEdgeLength = max(maxRadius / Double(count), maxEdgeLength)
-                    case .adaptive (_, let length):
-                        maxEdgeLength = max(length, maxEdgeLength)
-                    }
+                if maxEdgeLength.isFinite, maxEdgeLength > .ulpOfOne, maxEdgeLength < 2 * maxRadius {
                     base = self.refined(maxEdgeLength: maxEdgeLength)
                 } else {
                     base = self
@@ -94,6 +102,34 @@ public extension Geometry2D {
     }
 }
 
+/// Compute the minimum number of vertical subdivisions ("divisions") required
+/// so that the worst-case dihedral angle between adjacent helical faces does not
+/// exceed `αmax`, assuming the worst base edge span of 180°.
+fileprivate func subdivisionsNeeded(radius r: Double, height h: Double, twist φ: Angle, maxCrease αmax: Angle) -> Int {
+    guard αmax > 0° else { return 1 }
+    // If a single segment already satisfies the crease threshold, no extra subdivision is needed.
+    if dihedralAngle(radius: r, height: h, twist: φ, dTheta: 180°) <= αmax {
+        return 1
+    }
+    var low = 1
+    var high = 2
+    // Exponentially search for an upper bound that satisfies the threshold.
+    while dihedralAngle(radius: r, height: h / Double(high), twist: φ / Double(high), dTheta: 180°) > αmax {
+        if high >= 1 << 20 { break } // Safety cap
+        high *= 2
+    }
+    // Binary search for the minimal subdivision count in (low, high].
+    while low + 1 < high {
+        let mid = (low + high) / 2
+        if dihedralAngle(radius: r, height: h / Double(mid), twist: φ / Double(mid), dTheta: 180°) > αmax {
+            low = mid
+        } else {
+            high = mid
+        }
+    }
+    return max(high, 1)
+}
+
 fileprivate func dihedralAngle(radius r: Double, height h: Double, twist φ: Angle, dTheta θ: Angle) -> Angle {
     let v0 = Vector3D(r, 0, 0)
     let v1 = Vector3D(r * cos(θ.radians), r * sin(θ.radians), 0)
@@ -117,8 +153,8 @@ fileprivate func maxEdgeLength(radius r: Double, segmentHeight h: Double, segmen
     let angleTolerance = 0.1°
     let iterations = 25
 
-    guard dihedralAngle(radius: r, height: h, twist: φ, dTheta: 180°) > αmax else {
-        return r * 2
+    guard αmax > 0°, dihedralAngle(radius: r, height: h, twist: φ, dTheta: 180°) > αmax else {
+        return .infinity // No refinement needed; treat as unbounded edge length
     }
 
     var low = 0°, high = 180°
@@ -133,5 +169,6 @@ fileprivate func maxEdgeLength(radius r: Double, segmentHeight h: Double, segmen
         if high - low < angleTolerance { break }
     }
 
-    return 2 * r * sin(low * 0.5)
+    let length = 2 * r * sin(low * 0.5)
+    return max(length, .leastNonzeroMagnitude) // Avoid zero which would disable refinement
 }
