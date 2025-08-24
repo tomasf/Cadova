@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/manifold-swift.git",
       "state" : {
-        "revision" : "c3aac10171294fd9f1a8cd5db7aa4fce174c51d7",
-        "version" : "0.2.2"
+        "revision" : "8d030bc8bf11b274f7dfbc1215ad04f74098b38b",
+        "version" : "0.2.3"
       }
     },
     {
