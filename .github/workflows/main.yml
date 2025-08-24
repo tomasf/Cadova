@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: SwiftyLab/setup-swift@latest
+      with:
+        visual-studio-components: Microsoft.VisualStudio.Component.Windows11SDK.22621
     - uses: actions/checkout@v4
 
     - name: Install Linux dependencies
