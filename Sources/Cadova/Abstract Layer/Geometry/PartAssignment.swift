@@ -61,10 +61,8 @@ public extension Geometry3D {
     ///
     /// Highlighted parts are still included in the output, but styled to visually indicate they are not for printing.
     func highlighted() -> any Geometry3D {
-        readEnvironment(\.outputIncludesVisualSemantic) { supportsVisual in
-            PartAssignment(body: self, isSeparated: supportsVisual == false, identifier: .highlight)
-                .colored(.transparent)
-        }
+        PartAssignment(body: self, isSeparated: false, identifier: .highlight)
+            .colored(.transparent)
     }
 
     /// Marks this geometry as background context.
