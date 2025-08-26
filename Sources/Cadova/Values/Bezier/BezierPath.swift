@@ -29,6 +29,10 @@ internal extension BezierPath {
         curves.last?.controlPoints.last ?? startPoint
     }
 
+    var endDirection: Direction<V.D>? {
+        curves.last?.tangent(at: 1)
+    }
+
     func adding(curve: Curve) -> BezierPath {
         BezierPath(startPoint: startPoint, curves: curves + [curve])
     }

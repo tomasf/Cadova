@@ -30,6 +30,21 @@ struct BezierPathBuilderTests {
         #expect(builderPath ≈ manualPath)
     }
 
+    @Test func relativeArc() async throws {
+        let builderPath = BezierPath2D(from: [-5, 0], mode: .relative) {
+            line(y: 10)
+            clockwiseArc(centerX: 5, angle: 180°)
+            line(y: -10)
+        }
+
+        let manualPath = BezierPath2D(startPoint: [-5, 0])
+            .addingLine(to: [-5, 10])
+            .addingArc(center: [0, 10], to: 0°, clockwise: true)
+            .addingLine(to: [5, 0])
+
+        #expect(builderPath ≈ manualPath)
+    }
+
     @Test func testRelative() {
         let builderPath = BezierPath2D(from: [10, 4], mode: .relative) {
             line(x: 22, y: 1)
