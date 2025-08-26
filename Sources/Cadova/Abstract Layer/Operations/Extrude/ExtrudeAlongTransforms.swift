@@ -10,19 +10,25 @@ fileprivate struct Vertex: Hashable {
 internal extension Mesh {
     // Sweep the polygons along the path of transforms
     init(extruding polygons: SimplePolygonList, along transforms: [Transform3D]) {
+        precondition(transforms.count >= 2, "A sweep needs at least two transforms")
+
         let faceTriangles = polygons.triangulate()
+        let isClosed = transforms.last!.isApproximatelyEqual(to: transforms.first!)
+        let closedLastPolygon = isClosed ? transforms.count - 1 : -1
 
         let sideFaces = transforms.enumerated().dropFirst().flatMap { step, transform in
-            polygons.polygons.enumerated().flatMap { polygonIndex, polygon in
+            let thisStepIndex = step == closedLastPolygon ? 0 : step
+            let previousStepIndex = step - 1
+            return polygons.polygons.enumerated().flatMap { polygonIndex, polygon in
                 polygon.vertices.indices.wrappedPairs().flatMap { pointIndex1, pointIndex2 in [
                     [
-                        Vertex(stepIndex: step-1, polygonIndex: polygonIndex, pointIndex: pointIndex2),
-                        Vertex(stepIndex: step, polygonIndex: polygonIndex, pointIndex: pointIndex2),
-                        Vertex(stepIndex: step, polygonIndex: polygonIndex, pointIndex: pointIndex1),
+                        Vertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
+                        Vertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
+                        Vertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex1),
                     ],[
-                        Vertex(stepIndex: step, polygonIndex: polygonIndex, pointIndex: pointIndex1),
-                        Vertex(stepIndex: step-1, polygonIndex: polygonIndex, pointIndex: pointIndex1),
-                        Vertex(stepIndex: step-1, polygonIndex: polygonIndex, pointIndex: pointIndex2),
+                        Vertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex1),
+                        Vertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex1),
+                        Vertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
                     ]
                 ]}
             }
@@ -31,21 +37,23 @@ internal extension Mesh {
         var startFace: [[Vertex]] = []
         var endFace: [[Vertex]] = []
 
-        for triangle in faceTriangles {
-            let (polygon1, point1) = triangle.0
-            let (polygon2, point2) = triangle.1
-            let (polygon3, point3) = triangle.2
+        if isClosed == false {
+            for triangle in faceTriangles {
+                let (polygon1, point1) = triangle.0
+                let (polygon2, point2) = triangle.1
+                let (polygon3, point3) = triangle.2
 
-            startFace.append([
-                Vertex(stepIndex: 0, polygonIndex: polygon3, pointIndex: point3),
-                Vertex(stepIndex: 0, polygonIndex: polygon2, pointIndex: point2),
-                Vertex(stepIndex: 0, polygonIndex: polygon1, pointIndex: point1),
-            ])
-            endFace.append([
-                Vertex(stepIndex: transforms.count - 1, polygonIndex: polygon1, pointIndex: point1),
-                Vertex(stepIndex: transforms.count - 1, polygonIndex: polygon2, pointIndex: point2),
-                Vertex(stepIndex: transforms.count - 1, polygonIndex: polygon3, pointIndex: point3),
-            ])
+                startFace.append([
+                    Vertex(stepIndex: 0, polygonIndex: polygon3, pointIndex: point3),
+                    Vertex(stepIndex: 0, polygonIndex: polygon2, pointIndex: point2),
+                    Vertex(stepIndex: 0, polygonIndex: polygon1, pointIndex: point1),
+                ])
+                endFace.append([
+                    Vertex(stepIndex: transforms.count - 1, polygonIndex: polygon1, pointIndex: point1),
+                    Vertex(stepIndex: transforms.count - 1, polygonIndex: polygon2, pointIndex: point2),
+                    Vertex(stepIndex: transforms.count - 1, polygonIndex: polygon3, pointIndex: point3),
+                ])
+            }
         }
 
         self = Mesh(faces: sideFaces + startFace + endFace) { vertex in
