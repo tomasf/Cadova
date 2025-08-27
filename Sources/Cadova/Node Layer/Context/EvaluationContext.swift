@@ -42,25 +42,33 @@ internal extension EvaluationContext {
 internal extension EvaluationContext {
     // MARK: - Materialized results
 
-    func cachedMaterializedResult<D: Dimensionality, Key: CacheKey>(
-        key: Key
-    ) async throws -> EvaluationResult<D>? {
-        try await cache().cachedResult(for: .materialized(cacheKey: OpaqueKey(key)))
+    func materializedResult<D: Dimensionality, Key: CacheKey>(
+        key: Key,
+        generator: @escaping @Sendable () async throws -> D.Node.Result
+    ) async throws -> D.BuildResult {
+        let materializedNode = D.Node.materialized(cacheKey: OpaqueKey(key))
+        try await cache().declareGenerator(for: materializedNode, generator: generator)
+        return D.BuildResult(.materialized(cacheKey: OpaqueKey(key)))
     }
 
-    func hasCachedResult<D: Dimensionality, Key: CacheKey>(
+    func materializedResult<D: Dimensionality, Input: Dimensionality, Key: CacheKey>(
+        buildResult: Input.BuildResult,
+        key: Key,
+        generator: @escaping @Sendable () async throws -> D.Node.Result
+    ) async throws -> D.BuildResult {
+        return try await materializedResult(key: key, generator: generator)
+            .replacing(elements: buildResult.elements)
+    }
+
+    func multipartMaterializedResults<D: Dimensionality, Key: CacheKey>(
         for key: Key,
-        with dimensionality: D.Type
-    ) async throws -> Bool {
-        (try await cachedMaterializedResult(key: key) as EvaluationResult<D>?) != nil
-    }
-
-    func storeMaterializedResult<D: Dimensionality, Key: CacheKey>(
-        _ result: EvaluationResult<D>,
-        key: Key
-    ) async -> D.Node {
-        let node = D.Node.materialized(cacheKey: OpaqueKey(key))
-        await cache().setCachedResult(result, for: node)
-        return node
+        from source: D.BuildResult,
+        generator: @escaping @Sendable () async throws -> [D.Node.Result]
+    ) async throws -> [BuildResult<D>] {
+        let count = try await cache().multipartCount(for: key, generator: generator)
+        return (0..<count).map {
+            let key = IndexedCacheKey(base: key, index: $0)
+            return source.replacing(cacheKey: key)
+        }
     }
 }
