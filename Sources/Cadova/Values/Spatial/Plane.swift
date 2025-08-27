@@ -51,9 +51,7 @@ public extension Plane {
     ///   - point2: Second point on the plane.
     ///   - point3: Third point on the plane. Must not be collinear with the other two.
     init(point1: Vector3D, point2: Vector3D, point3: Vector3D) {
-        let vector1 = point2 - point1
-        let vector2 = point3 - point1
-        let normalVector = (vector1 × vector2).normalized
+        let normalVector = ((point2 - point1) × (point3 - point1)).normalized
         precondition(normalVector.magnitude > 0, "The points must not be collinear.")
         self.offset = point1
         self.normal = .init(normalVector)

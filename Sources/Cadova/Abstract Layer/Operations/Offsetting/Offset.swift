@@ -1,27 +1,37 @@
 import Foundation
 import Manifold3D
 
-/// Describes the style of line joins in geometric shapes.
+/// Describes how corners between joined line segments should be treated when offsetting geometry.
 ///
-/// The `LineJoinStyle` enum is used to specify how the joining points between line segments or edges of a geometry
-/// should be rendered.
+/// The `LineJoinStyle` enum specifies the style of join applied to the corners between adjacent
+/// edges during offset operations. These styles affect the appearance of corners in expanded or
+/// contracted outlines, especially for convex joins.
 ///
 public enum LineJoinStyle: Hashable, Sendable, Codable {
-    /// Joins lines with a rounded edge, creating smooth transitions between segments.
+    /// Joins lines with a rounded corner. An arc is inserted between the edges using the offset
+    /// distance as the radius.
     case round
 
-    /// Extends the outer edges of the lines until they meet at a sharp point, limited by the miter limit set in the
-    /// environment.
+    /// Extends offset edges to their intersection point, producing a sharp corner.
+    /// If the distance between the original vertex and the intersection exceeds the miter limit
+    /// set in the environment, the join will fall back to a squared join to prevent extreme spikes.
     case miter
 
-    /// Joins lines by connecting their endpoints with a straight line, resulting in a flat, cut-off corner.
+    /// Joins lines with a flat edge connecting the endpoints of adjacent offset edges. This creates
+    /// a simple, clipped appearance without extending edges.
     case bevel
+
+    /// Truncates convex corners using a straight edge, with the midpoint of the squaring edge
+    /// being exactly the offset distance from the original vertex. Produces visually neat corners
+    /// similar to bevels but with more consistent spacing.
+    case square
 
     internal var manifoldRepresentation: CrossSection.JoinType {
         switch self {
         case .round: .round
         case .miter: .miter
-        case .bevel: .square
+        case .square: .square
+        case .bevel: .bevel
         }
     }
 }
@@ -42,9 +52,11 @@ public extension Geometry2D {
     func offset(amount: Double, style: LineJoinStyle) -> any Geometry2D {
         readEnvironment(\.miterLimit, \.segmentation) { miterLimit, segmentation in
             GeometryNodeTransformer(body: self) {
-                .offset(
-                    $0, amount: amount, joinStyle: style, miterLimit: miterLimit,
-                    segmentCount: segmentation.segmentCount(circleRadius: Swift.abs(amount))
+                .offset($0,
+                        amount: amount,
+                        joinStyle: style,
+                        miterLimit: miterLimit,
+                        segmentCount: segmentation.segmentCount(circleRadius: Swift.abs(amount))
                 )
             }
         }

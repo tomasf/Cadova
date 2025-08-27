@@ -21,7 +21,7 @@ internal extension BezierPath3D {
         environment: EnvironmentValues,
         target: ReferenceTarget,
         targetReference: Direction2D,
-        perpendicularBounds: BoundingBox2D
+        perpendicularBounds: BoundingBox2D?
     ) -> [Frame] {
         let derivative = self.derivative
         let fractionsAndPoints = self.pointsAtPositions(segmentation: environment.segmentation)
@@ -48,7 +48,9 @@ internal extension BezierPath3D {
         frames.interpolateMissingAngles()
         frames.normalizeAngles()
         frames.applyTwistDamping(maxTwistRate: environment.maxTwistRate)
-        frames.pruneStraightRuns(bounds: perpendicularBounds, segmentation: environment.segmentation)
+        if let perpendicularBounds {
+            frames.pruneStraightRuns(bounds: perpendicularBounds, segmentation: environment.segmentation)
+        }
         return frames
     }
 

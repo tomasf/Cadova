@@ -1,5 +1,5 @@
 {
-  "originHash" : "95147699b50610ece0153bf82fb0d173ab789561d5c2eab4992db2b19732023f",
+  "originHash" : "d4aa0857185c435df5c8d31a635bc1e06d0225054540d986c131dbed3a516410",
   "pins" : [
     {
       "identity" : "findfont",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/manifold-swift.git",
       "state" : {
-        "revision" : "63425e809ac19c9b317fdb3fae2c1f923f8900a2",
-        "version" : "0.2.1"
+        "revision" : "8d030bc8bf11b274f7dfbc1215ad04f74098b38b",
+        "version" : "0.2.3"
       }
     },
     {
@@ -38,21 +38,12 @@
       }
     },
     {
-      "identity" : "swift-collections",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-collections.git",
-      "state" : {
-        "revision" : "c1805596154bb3a265fd91b8ac0c4433b4348fb0",
-        "version" : "1.2.0"
-      }
-    },
-    {
       "identity" : "swift-log",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log.git",
       "state" : {
-        "revision" : "3d8596ed08bd13520157f0355e35caed215ffbfa",
-        "version" : "1.6.3"
+        "revision" : "ce592ae52f982c847a4efc0dd881cc9eb32d29f2",
+        "version" : "1.6.4"
       }
     },
     {

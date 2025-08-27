@@ -4,47 +4,45 @@ public extension BezierPath {
     typealias Builder = ArrayBuilder<BezierPath<V>.Component>
 
     init(from: V = .zero, mode defaultMode: PathBuilderPositioning = .absolute, @Builder builder: () -> [Component]) {
-        var start = from
-        var direction: Direction<V.D>? = nil
-        self.init(startPoint: from, curves: builder().map {
-            $0.bezierCurve(start: &start, direction: &direction, defaultMode: defaultMode)
-        })
+        var path = BezierPath(startPoint: from)
+        for component in builder() {
+            path = component.appendAction(path, defaultMode)
+        }
+        self = path
     }
 
     struct Component {
-        private let continuousDistance: Double?
-        private let points: [PathBuilderVector<V>]
+        internal let appendAction: (BezierPath, PathBuilderPositioning) -> BezierPath
 
-        internal init(continuousDistance: Double? = nil, _ points: [PathBuilderVector<V>]) {
-            self.continuousDistance = continuousDistance
-            self.points = points
+        internal init(appendAction: @escaping (BezierPath, PathBuilderPositioning) -> BezierPath) {
+            self.appendAction = appendAction
         }
 
-        internal func bezierCurve(
-            start: inout V,
-            direction: inout Direction<V.D>?,
-            defaultMode: PathBuilderPositioning
-        ) -> Curve {
-            var controlPoints = [start]
+        internal init(continuousDistance: Double? = nil, _ points: [PathBuilderVector<V>]) {
+            self.init { path, defaultMode in
+                let start = path.endPoint
+                var controlPoints: [V] = []
 
-            if let continuousDistance {
-                guard let direction else {
-                    preconditionFailure("Adding a continuous segment requires a previous segment to match")
+                if let continuousDistance {
+                    guard let direction = path.endDirection else {
+                        preconditionFailure("Adding a continuous segment requires a previous segment to match")
+                    }
+                    controlPoints.append(start + direction.unitVector * continuousDistance)
                 }
-                controlPoints.append(start + direction.unitVector * continuousDistance)
-            }
 
-            controlPoints += points.map {
-                $0.value(relativeTo: start, defaultMode: defaultMode)
+                controlPoints += points.map {
+                    $0.value(relativeTo: start, defaultMode: defaultMode)
+                }
+
+                return path.addingCurve(controlPoints)
             }
-            start = controlPoints.last!
-            let curve = Curve(controlPoints: controlPoints)
-            direction = curve.tangent(at: 1)
-            return curve
         }
 
         internal func withDefaultMode(_ mode: PathBuilderPositioning) -> Self {
-            .init(points.map { $0.withDefaultMode(mode) })
+            let oldAction = self.appendAction
+            return Self { path, _ in
+                oldAction(path, mode)
+            }
         }
 
         public var relative: Component { withDefaultMode(.relative) }
