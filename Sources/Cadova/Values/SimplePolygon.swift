@@ -109,4 +109,28 @@ extension SimplePolygon {
     func transformed(_ transform: Transform2D) -> Self {
         Self(vertices.map { transform.apply(to: $0) })
     }
+
+    func refined(maxEdgeLength: Double) -> Self {
+        Self([vertices[0]] + vertices.paired().flatMap { a, b -> [Vector2D] in
+            let segmentCount = ceil((b - a).magnitude / maxEdgeLength)
+            guard segmentCount > 1 else { return [b] }
+            return (1...Int(segmentCount)).map { a + (b - a) * Double($0) / Double(segmentCount) }
+        })
+    }
+
+    var length: Double {
+        vertices.paired().map { $0.distance(to: $1) }.reduce(0, +)
+    }
+
+    var area: Double {
+        Swift.abs(
+            vertices.wrappedPairs()
+                .map { $0.x * $1.y - $0.y * $1.x }
+                .reduce(0, +)
+        ) / 2.0
+    }
+
+    var boundingBox: BoundingBox2D {
+        .init(vertices)
+    }
 }

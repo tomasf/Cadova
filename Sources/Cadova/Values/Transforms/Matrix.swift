@@ -1,7 +1,7 @@
 import Foundation
 
-// If Accelerate is available, we use SIMD types for our matrices.  Otherwise, we implement the basic operations
-// we need ourselves
+// If Accelerate is available, we use SIMD types for our matrices.
+// Otherwise, we implement the basic operations we need ourselves
 
 #if canImport(simd)
 

@@ -97,3 +97,40 @@ public extension Transform {
         self.init(try decoder.singleValueContainer().decode([[Double]].self))
     }
 }
+
+public extension Transform {
+    /// The Frobenius norm of the transform matrix.
+    ///
+    /// This is defined as the square root of the sum of the squares of all entries in the
+    /// underlying matrix. It provides a convenient scalar measure of the matrix’s overall
+    /// magnitude and is useful for constructing relative tolerances when comparing transforms.
+    ///
+    var frobeniusNorm: Double {
+        var acc = 0.0
+        for r in 0..<Self.size.rows {
+            for c in 0..<Self.size.columns {
+                let v = self[r, c]
+                acc += v * v
+            }
+        }
+        return acc.squareRoot()
+    }
+
+    /// Returns true if `self` and `other` represent (nearly) the same transform.
+    ///
+    /// The relative term is scaled by the magnitude of `other` (its `frobeniusNorm`),
+    /// with a floor of 1.0 to avoid zero-scale edge cases.
+    ///
+    func isApproximatelyEqual(to other: Self) -> Bool {
+        let d = self.inverse.concatenated(with: other)
+        var errSq = 0.0
+        for r in 0..<Self.size.rows {
+            for c in 0..<Self.size.columns {
+                let diff = d[r, c] - (r == c ? 1.0 : 0.0)
+                errSq += diff * diff
+            }
+        }
+        return errSq.squareRoot() <= 1e-9 + max(other.frobeniusNorm, 1.0) * 1e-12
+    }
+}
+

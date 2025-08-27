@@ -106,6 +106,10 @@ public func atan2(_ y: Double, _ x: Double) -> Angle {
     Angle(radians: atan2(y, x))
 }
 
+public func atan2(_ v: Vector2D) -> Angle {
+    Angle(radians: atan2(v.y, v.x))
+}
+
 /// Calculate the arcsecant (inverse of secant) of a value.
 ///
 /// - Parameter value: The value for which to calculate the arcsecant.

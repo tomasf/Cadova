@@ -26,7 +26,7 @@ public extension Circle {
     ///
     /// - Parameter method: The overhang relief method to use. If `nil`, the method is
     ///   inherited from the environment’s `circularOverhangMethod`.
-
+    ///
     func overhangSafe(_ method: CircularOverhangMethod? = nil) -> any Geometry2D {
         OverhangCircle(radius: radius)
             .withEnvironment {
@@ -64,11 +64,11 @@ public extension Cylinder {
     /// - Parameter method: The overhang relief method to use. If `nil`, the method is
     ///   inherited from the environment’s `circularOverhangMethod`.
     ///
-    func overhangSafe(_ style: CircularOverhangMethod? = nil) -> any Geometry3D {
+    func overhangSafe(_ method: CircularOverhangMethod? = nil) -> any Geometry3D {
         OverhangCylinder(source: self)
             .withEnvironment {
-                if let style {
-                    $0.circularOverhangMethod = style
+                if let method {
+                    $0.circularOverhangMethod = method
                 }
             }
     }

@@ -59,6 +59,38 @@ public func continuousCurve(
     .init(continuousDistance: distance, [.init(x2, y2), .init(endX, endY)])
 }
 
+internal func arc(center: PathBuilderVector<Vector2D>, angle: Angle, clockwise: Bool) -> BezierPath2D.Component {
+    return .init { path, positioning in
+        let absoluteCenter = center.value(relativeTo: path.endPoint, defaultMode: positioning)
+        let absoluteAngle = positioning == .relative ? atan2(path.endPoint - absoluteCenter) + angle : angle
+        return path.addingArc(center: absoluteCenter, to: absoluteAngle, clockwise: clockwise)
+    }
+}
+
+public func clockwiseArc(center: Vector2D, angle: Angle) -> BezierPath2D.Component {
+    arc(center: .init(center), angle: angle, clockwise: true)
+}
+
+public func counterclockwiseArc(center: Vector2D, angle: Angle) -> BezierPath2D.Component {
+    arc(center: .init(center), angle: angle, clockwise: false)
+}
+
+public func clockwiseArc(
+    centerX: any PathBuilderValue = .unchanged,
+    centerY: any PathBuilderValue = .unchanged,
+    angle: Angle
+) -> BezierPath2D.Component {
+    arc(center: .init(centerX, centerY), angle: angle, clockwise: true)
+}
+
+public func counterclockwiseArc(
+    centerX: any PathBuilderValue = .unchanged,
+    centerY: any PathBuilderValue = .unchanged,
+    angle: Angle
+) -> BezierPath2D.Component {
+    arc(center: .init(centerX, centerY), angle: angle, clockwise: false)
+}
+
 
 // MARK: - 3D
 

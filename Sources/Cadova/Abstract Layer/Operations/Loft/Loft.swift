@@ -115,9 +115,9 @@ public struct Loft: Geometry {
 ///
 /// - Parameters:
 ///   - z: The Z height at which to place the 2D shape.
-///   - interpolation: An optional shaping function that controls how the transition progresses between
-///                    the previous layer and this one. Only used when `Loft.LayerInterpolation.resampled`
-///                    is selected. Defaults to `nil`, which uses the shaping function for the Loft.
+///   - shapingFunction: An optional shaping function that controls how the transition progresses between
+///                      the previous layer and this one. Only used when `Loft.LayerInterpolation.resampled`
+///                      is selected. Defaults to `nil`, which uses the shaping function for the Loft.
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
 public func layer(
@@ -137,7 +137,7 @@ public extension Geometry2D {
     ///   - method: The interpolation method to use. Defaults to `.automatic`, which selects an appropriate strategy
     ///     based on shape complexity.
     ///   - height: The vertical distance between the two layers.
-    ///   - with: A builder that returns the 2D shape to use for the second layer, placed at the specified height.
+    ///   - other: A builder that returns the 2D shape to use for the second layer, placed at the specified height.
     ///
     /// - Returns: A lofted 3D shape connecting the two 2D layers.
     ///
