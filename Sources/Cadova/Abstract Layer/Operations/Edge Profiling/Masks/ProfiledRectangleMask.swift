@@ -31,6 +31,8 @@ internal struct ProfiledRectangleMask: Shape2D {
                             .flipped(along: corner.flippedAxes)
                     }
                 }
+        } empty: {
+            Rectangle(size).aligned(at: .center)
         }
     }
 }
