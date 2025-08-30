@@ -34,20 +34,23 @@ public extension Geometry {
     ///
     /// If the geometry has a bounding box (i.e., it's not empty), it is passed to the closure
     /// along with the geometry itself. If the geometry is empty and has no bounds,
-    /// the method just produces an empty geometry.
+    /// the `empty` closure is evaluated to provide a fallback geometry instead.
     ///
-    /// - Parameter builder: A closure that receives the geometry and its bounding box,
-    ///   and returns a new geometry.
-    /// - Returns: A modified geometry based on the bounding box, or an empty geometry if none exists.
-    ///
+    /// - Parameters:
+    ///   - builder: A closure that receives the geometry and its bounding box,
+    ///              and returns a new geometry.
+    ///   - empty: A closure that provides fallback geometry when the original geometry is empty.
+    ///            Defaults to producing an empty geometry.
+    /// - Returns: A modified geometry based on the bounding box, or the result of `empty` if no bounds exist.
     func measuringBounds<Output: Dimensionality>(
-        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.BoundingBox) -> Output.Geometry
+        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.BoundingBox) -> Output.Geometry,
+        @GeometryBuilder<Output> empty emptyBuilder: @Sendable @escaping () -> Output.Geometry = { Empty() },
     ) -> Output.Geometry {
         measuring { geometry, measurements in
             if let box = measurements.boundingBox {
                 builder(geometry, box)
             } else {
-                Empty()
+                emptyBuilder()
             }
         }
     }
