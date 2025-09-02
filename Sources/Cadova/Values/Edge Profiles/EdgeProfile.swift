@@ -35,6 +35,8 @@ internal extension EdgeProfile {
                 .subtracting { shape }
 
             reader(negativeShape, bounds.size)
+        } empty: {
+            reader(Empty(), .zero)
         }
     }
 
