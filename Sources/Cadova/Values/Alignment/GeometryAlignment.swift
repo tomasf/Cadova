@@ -62,7 +62,7 @@ public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
     }
 
     internal var factors: D.Vector {
-        values.map { $0?.factor ?? 0 }.vector
+        values.map { $0?.fraction ?? 0 }.vector
     }
 
     internal func defaultingToOrigin() -> Self {

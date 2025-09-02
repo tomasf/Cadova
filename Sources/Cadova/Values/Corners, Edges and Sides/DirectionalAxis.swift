@@ -4,7 +4,7 @@ import Foundation
 ///
 /// This type is useful for identifying oriented directions, such as the sides of a box (e.g., +X, -Z).
 /// 
-public struct DirectionalAxis<D: Dimensionality>: Sendable {
+public struct DirectionalAxis<D: Dimensionality>: Sendable, Hashable {
 
     /// The axis this direction is aligned with.
     public let axis: D.Axis

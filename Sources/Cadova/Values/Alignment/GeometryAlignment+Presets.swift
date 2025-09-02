@@ -43,6 +43,10 @@ public extension GeometryAlignment2D {
 public extension GeometryAlignment3D {
     /// Centers the geometry in the XY plane.
     static let centerXY = Self(x: .mid, y: .mid)
+    /// Aligns the geometry's minimum X and minimum Y boundaries to the coordinate system's origin (X = 0, Y = 0).
+    static let minXY = Self(x: .min, y: .min)
+    /// Aligns the geometry's maximum X and maximum Y boundaries to the coordinate system's origin (X = 0, Y = 0).
+    static let maxXY = Self(x: .min, y: .min)
 
     /// Aligns the geometry's minimum X boundary to the coordinate system's origin (X = 0).
     static let minX = Self(x: .min)

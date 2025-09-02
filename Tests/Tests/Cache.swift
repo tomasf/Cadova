@@ -59,14 +59,34 @@ struct GeometryCacheTests {
         await #expect(context.cache3D.count == 6) // box, 2x splits, 2x translated splits, split union
     }
 
-    @Test func materialized() async throws {
-        let cacheKey = 12
+    // CachedConcreteTransformer should preserve elements
+    @Test func hullPreservesParts() async throws {
+        let model = Sphere(diameter: 10)
+            .convexHull(adding: [0, 0, 20])
+            .adding {
+                Box(5)
+                    .colored(.yellow)
+                    .inPart(named: "box")
+            }
 
-        await #expect(try context.hasCachedResult(for: cacheKey, with: D3.self) == false)
-        _ = await context.storeMaterializedResult(
-            try D3.Node.Result(.sphere(radius: 1, segmentCount: 10)),
-            key: cacheKey
-        ) as D3.Node
-        await #expect(try context.hasCachedResult(for: cacheKey, with: D3.self) == true)
+        let partNames = try await model.parts.map(\.key.name)
+        #expect(partNames == ["box"])
+    }
+
+    // CachedConcreteArrayTransformer should preserve elements
+    @Test func splitPreservesParts() async throws {
+        let model = Sphere(diameter: 10)
+            .adding {
+                Box(5)
+                    .colored(.yellow)
+                    .inPart(named: "box")
+            }
+            .split(along: .z(0)) { over, under in
+                over.colored(.red)
+                under.colored(.blue)
+            }
+
+        let partNames = try await model.parts.map(\.key.name)
+        #expect(partNames == ["box"])
     }
 }

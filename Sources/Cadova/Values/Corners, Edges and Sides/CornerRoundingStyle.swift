@@ -83,16 +83,18 @@ internal struct FilletCorner: Shape2D {
         @Environment(\.segmentation) var segmentation
         @Environment(\.cornerRoundingStyle) var style
 
-        let radius = max(size.x, size.y)
-        let scale = size / radius
+        if size.x > 0, size.y > 0 {
+            let radius = max(size.x, size.y)
+            let scale = size / radius
 
-        let points = switch style {
-        case .circular:
-            CornerRoundingStyle.circularCornerPoints(radius: radius, segmentation: segmentation)
-        case .squircular, .superelliptical:
-            CornerRoundingStyle.squircularCornerPoints(radius: radius, exponent: style.exponent, segmentation: segmentation)
+            let points = switch style {
+            case .circular:
+                CornerRoundingStyle.circularCornerPoints(radius: radius, segmentation: segmentation)
+            case .squircular, .superelliptical:
+                CornerRoundingStyle.squircularCornerPoints(radius: radius, exponent: style.exponent, segmentation: segmentation)
+            }
+
+            Polygon(points + [.zero]).scaled(scale)
         }
-
-        Polygon(points + [.zero]).scaled(scale)
     }
 }
