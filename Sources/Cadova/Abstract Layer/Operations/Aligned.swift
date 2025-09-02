@@ -14,7 +14,7 @@ public extension Geometry {
     ///
     /// Example:
     /// ```
-    /// let square = Rectangle([10, 10])
+    /// let square = Rectangle(x: 20, y: 10)
     ///     .aligned(at: .centerX, .bottom)
     /// ```
     /// This example centers the square along the X-axis and aligns its bottom edge with the Y=0 line.
