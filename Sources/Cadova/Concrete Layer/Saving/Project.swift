@@ -35,7 +35,7 @@ import Foundation
 ///
 public func Project(
     root url: URL?,
-    options: ModelOptions = [],
+    options: ModelOptions...,
     @ArrayBuilder<Model> content: @Sendable @escaping () async -> [Model],
     environment environmentBuilder: (@Sendable (inout EnvironmentValues) -> Void)? = nil
 ) async {
@@ -47,7 +47,7 @@ public func Project(
     }
 
     let outputContext = OutputContext(
-        directory: url, environmentValues: environment, evaluationContext: .init(), options: options
+        directory: url, environmentValues: environment, evaluationContext: .init(), options: .init(options)
     )
     let models = await outputContext.whileCurrent {
         await content()
@@ -63,13 +63,13 @@ public func Project(
 
 public func Project(
     root: String? = nil,
-    options: ModelOptions = [],
+    options: ModelOptions...,
     @ArrayBuilder<Model> content: @Sendable @escaping () async -> [Model],
     environment environmentBuilder: (@Sendable (inout EnvironmentValues) -> Void)? = nil
 ) async {
     await Project(
         root: root.map { URL(expandingFilePath: $0) },
-        options: options,
+        options: .init(options),
         content: content,
         environment: environmentBuilder
     )
