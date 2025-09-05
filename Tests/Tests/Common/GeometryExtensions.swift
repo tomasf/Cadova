@@ -31,12 +31,14 @@ extension Geometry {
         }
     }
 
+    func measurements(for scope: MeasurementScope) async throws -> D.Measurements {
+        let context = EvaluationContext()
+        let buildResult = try await context.buildResult(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
+        return try await D.Measurements(buildResult: buildResult, scope: scope, context: context)
+    }
+
     var measurements: D.Measurements {
-        get async throws {
-            let context = EvaluationContext()
-            let concreteResult = try await context.result(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
-            return D.Measurements(concrete: concreteResult.concrete)
-        }
+        get async throws { try await measurements(for: .solidParts) }
     }
 
     var parts: [PartIdentifier: D3.BuildResult] {

@@ -22,6 +22,18 @@ extension Sequence {
     }
 }
 
+extension Sequence {
+    func sum<Value: AdditiveArithmetic>(_ accessor: (Element) -> Value) -> Value {
+        map(accessor).reduce(Value.zero, +)
+    }
+}
+
+extension Sequence where Element: AdditiveArithmetic {
+    func sum() -> Element {
+        reduce(.zero, +)
+    }
+}
+
 extension Collection where Element: Sendable {
     func wrappedTriplets() -> [(Element, Element, Element)] where Index == Int {
         let n = count

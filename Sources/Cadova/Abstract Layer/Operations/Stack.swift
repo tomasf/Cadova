@@ -67,10 +67,14 @@ extension Stack: Geometry {
 
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         let union = try await Union {
+            let itemsAndBounds = try await items().asyncMap {
+                let buildResult = try await context.buildResult(for: $0, in: environment)
+                let measurements = try await Measurements(buildResult: buildResult, scope: .solidParts, context: context)
+                return ($0, measurements.boundingBox ?? .zero)
+            }
+
             var offset = 0.0
-            for geometry in items() {
-                let concreteResult = try await context.result(for: geometry, in: environment)
-                let bounds: D.BoundingBox = concreteResult.concrete.isEmpty ? .zero : .init(concreteResult.concrete.bounds)
+            for (geometry, bounds) in itemsAndBounds {
                 geometry.translated(bounds.translation(for: alignment) + .init(axis, value: offset))
                 offset += bounds.size[axis] + spacing
             }
