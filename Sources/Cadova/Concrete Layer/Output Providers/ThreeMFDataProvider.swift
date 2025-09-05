@@ -172,17 +172,6 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         return data
     }
-
-    func writeOutput(to url: URL, context: EvaluationContext) async throws {
-        let model = try await makeModel(context: context)
-        let writer = try PackageWriter(url: url)
-        writer.compressionLevel = options[ModelOptions.Compression.self].zipCompression
-        writer.model = model
-        let duration = try ContinuousClock().measure {
-            try writer.finalize()
-        }
-        logger.debug("Generated 3MF archive in \(duration)")
-    }
 }
 
 fileprivate extension Color {
