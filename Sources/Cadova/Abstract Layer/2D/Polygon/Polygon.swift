@@ -16,11 +16,10 @@ import Manifold3D
 ///     let polygonFromBezierPath = Polygon(bezierPath)
 ///     ```
 
-public struct Polygon: Shape {
-    public typealias D = D2
-    internal let pointsProvider: any PolygonPointsProvider
+public struct Polygon: Shape2D {
+    internal let pointsProvider: PolygonPoints
 
-    internal init(provider: any PolygonPointsProvider) {
+    internal init(provider: PolygonPoints) {
         pointsProvider = provider
     }
 
@@ -28,49 +27,42 @@ public struct Polygon: Shape {
     ///
     /// - Parameter points: An array of `Vector2D` that defines the vertices of the polygon.
     public init(_ points: [Vector2D]) {
-        self.init(provider: points)
+        self.init(provider: .literal(points))
     }
 
     /// Creates a new `Polygon` instance with the specified 2D Bezier path.
     ///
     /// - Parameter bezierPath: A `BezierPath2D` that defines the shape of the polygon.
     public init(_ bezierPath: BezierPath2D) {
-        self.init(provider: bezierPath)
+        self.init(provider: .bezierPath(bezierPath))
     }
 
     public init(_ polygons: [Polygon]) {
-        self.init(provider: JoinedPolygonPoints(providers: polygons.map(\.pointsProvider)))
+        self.init(provider: .concatenated(polygons.map(\.pointsProvider)))
     }
 
     public var body: any Geometry2D {
-        @Environment var environment
-
-        let polygonList = SimplePolygonList([SimplePolygon(points(in: environment))])
-        return NodeBasedGeometry(.shape(.polygons(polygonList, fillRule: environment.fillRule)))
+        CachedNode(name: "polygon", parameters: pointsProvider) { environment, context in
+            let polygonList = SimplePolygonList([SimplePolygon(points(in: environment))])
+            return .shape(.polygons(polygonList, fillRule: environment.fillRule))
+        }
     }
 }
 
 public extension Polygon {
-    /// Applies a transformation function to each vertex of the polygon.
-    /// - Parameter transformation: A closure that takes a `Vector2D` and returns a transformed `Vector2D`.
-    /// - Returns: A new `Polygon` instance with transformed vertices.
-    func applying(_ transformation: @Sendable @escaping (Vector2D) -> Vector2D) -> Polygon {
-        Polygon(provider: TransformedPolygonPoints(innerProvider: pointsProvider, transformation: transformation))
-    }
-
     /// Transforms the polygon using an affine transformation.
     /// - Parameter transform: An `Transform2D` to apply to the polygon.
     /// - Returns: A new `Polygon` instance with transformed vertices.
     func transformed(_ transform: Transform2D) -> Polygon {
-        applying { transform.apply(to: $0) }
+        Polygon(provider: .transformed(pointsProvider, transform))
     }
 
     func appending(_ other: Polygon) -> Polygon {
-        .init(provider: JoinedPolygonPoints(providers: [pointsProvider, other.pointsProvider]))
+        Polygon(provider: .concatenated([pointsProvider, other.pointsProvider]))
     }
 
     func reversed() -> Polygon {
-        .init(provider: ReversedPolygonPoints(innerProvider: pointsProvider))
+        Polygon(provider: .reversed(pointsProvider))
     }
 
     static func +(_ lhs: Polygon, _ rhs: Polygon) -> Polygon {

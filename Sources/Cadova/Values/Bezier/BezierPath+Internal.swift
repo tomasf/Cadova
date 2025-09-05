@@ -8,6 +8,10 @@ internal extension BezierPath {
                 .dropFirst(index > 0 ? 1 : 0)
         }
     }
+
+    func simplePolygon(in environment: EnvironmentValues) -> SimplePolygon where V == Vector2D {
+        SimplePolygon(points(segmentation: environment.segmentation))
+    }
 }
 
 // For paths that are monotonic over axis
