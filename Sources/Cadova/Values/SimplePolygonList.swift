@@ -12,6 +12,10 @@ internal struct SimplePolygonList: Sendable, Hashable, Codable {
         self.polygons = polygons
     }
 
+    init(_ polygonLists: [SimplePolygonList]) {
+        self.polygons = polygonLists.flatMap(\.polygons)
+    }
+
     subscript(index: Int) -> SimplePolygon {
         get { polygons[index] }
         set { polygons[index] = newValue }

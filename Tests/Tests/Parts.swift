@@ -76,10 +76,68 @@ struct PartTests {
                 }
             }
             .readingPartNames { #expect($0 == ["cylinder"]) }
-            .measurements
+            .measurements(for: .mainPart)
 
         #expect(measurements.boundingBox ≈ .init(minimum: [-6, -6, -6], maximum: [10, 10, 10]))
         #expect(measurements.volume ≈ 1676.119)
         #expect(measurements.surfaceArea ≈ 882.572)
+    }
+
+    @Test func partMeasurements() async throws {
+        try await Sphere(diameter: 10)
+            .adding {
+                Box(10)
+                    .inPart(named: "box")
+                Box(20)
+                    .background()
+            }
+            .measuringBounds(scope: .mainPart) { g, bounds in
+                g
+                #expect(bounds ≈ .init(minimum: [-5, -5, -5], maximum: [5, 5, 5]))
+            }
+            .measuringBounds(scope: .allParts) { g, bounds in
+                g
+                #expect(bounds ≈ .init(minimum: [-5, -5, -5], maximum: [20, 20, 20]))
+            }
+            .measuringBounds { g, bounds in
+                g
+                #expect(bounds ≈ .init(minimum: [-5, -5, -5], maximum: [10, 10, 10]))
+            }
+            .triggerEvaluation()
+    }
+
+    @Test func stackWithParts() async throws {
+        let stack = Stack(.x) {
+            Sphere(diameter: 10)
+                .inPart(named: "sphere")
+            Box(20)
+                .inPart(named: "box")
+            Cylinder(diameter: 10, height: 20)
+                .background()
+            Circle(diameter: 5)
+                .extruded(height: 30)
+        }
+
+        let solidMeasurements = try await stack.measurements
+        #expect(solidMeasurements.boundingBox ≈ .init(minimum: [0, -5, -5], maximum: [35, 20, 30]))
+    }
+
+    @Test func transformedPartMeasurement() async throws {
+        let geometry = Box(1)
+            .adding {
+                Box(2)
+                    .translated(x: 3, y: 5, z: 8)
+                    .inPart(named: "foo")
+                Sphere(diameter: 10)
+                    .background()
+            }
+            .translated(x: 3)
+            .rotated(z: 90°)
+
+        let measurements = try await geometry.measurements
+        #expect(measurements.boundingBox ≈ .init(minimum: [-7, 3, 0], maximum: [0, 8, 10]))
+
+        let measurementsMain = try await geometry.measurements(for: .mainPart)
+        #expect(measurementsMain.boundingBox ≈ .init(minimum: [-1, 3, 0], maximum: [0, 4, 1]))
     }
 }
