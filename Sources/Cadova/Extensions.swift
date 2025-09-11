@@ -360,3 +360,18 @@ extension Collection where Index == Int {
         return self[m >= 0 ? m : m + count]
     }
 }
+
+extension String {
+    var simpleIdentifier: String {
+        var string = lowercased()
+        string = string.applyingTransform(.toLatin, reverse: false) ?? string
+        string = string.applyingTransform(.stripDiacritics, reverse: false) ?? string
+        string = string.replacingOccurrences(of: " ", with: "-")
+
+        let allowedCharacters = CharacterSet(charactersIn: "a"..."z")
+            .union(CharacterSet(charactersIn: "0"..."9"))
+            .union(CharacterSet(charactersIn: "_-"))
+
+        return String(string.unicodeScalars.filter { allowedCharacters.contains($0) })
+    }
+}

@@ -95,7 +95,7 @@ internal extension ThreeMF.Model {
                 return try node(for: item)
             }
         } else {
-            try buildItems.map { try node(for: $0) }
+            try build.items.map { try node(for: $0) }
         }
         return .boolean(nodes, type: .union)
     }
@@ -131,7 +131,7 @@ internal extension ThreeMF.Model {
     }
 
     func firstItem(matching identifier: Import.PartIdentifier) -> ThreeMF.Item? {
-        buildItems.first { item in
+        build.items.first { item in
             switch identifier {
             case let .partNumber (partNumber):
                 return item.partNumber == partNumber
