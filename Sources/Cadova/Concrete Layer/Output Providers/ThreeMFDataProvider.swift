@@ -23,12 +23,6 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     let fileExtension = "3mf"
 
-    fileprivate struct PartData {
-        let id: PartIdentifier
-        let manifold: Manifold
-        let materials: [Manifold.OriginalID: Material]
-    }
-
     fileprivate enum StaticResourceID: ResourceID {
         case object = 1
         case mainColorGroup
@@ -36,7 +30,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
         case metallicColorGroup
     }
 
-    private func makeModel(_ part: PartData) async -> (ThreeMF.Model, Item) {
+    private func makeModel(
+        for id: PartIdentifier,
+        manifold: Manifold,
+        materials: [Manifold.OriginalID: Material]
+    ) async -> (ThreeMF.Model, Item) {
         var mainColorGroup = ColorGroup(id: StaticResourceID.mainColorGroup.rawValue)
         var metallicProperties = MetallicDisplayProperties(id: StaticResourceID.metallicProperties.rawValue)
         var metallicColorGroup = ColorGroup(id: StaticResourceID.metallicColorGroup.rawValue, displayPropertiesID: metallicProperties.id)
@@ -45,11 +43,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
             .addMaterial(material, mainColorGroup: &mainColorGroup, metallicColorGroup: &metallicColorGroup, metallicProperties: &metallicProperties)
         }
 
-        let (vertices, manifoldTriangles, originalIDs) = part.manifold.readMesh()
+        let (vertices, manifoldTriangles, originalIDs) = manifold.readMesh()
 
         let triangleOIDs = TriangleOIDMapping(indexSets: originalIDs)
-        let propertyReferencesByOID = part.materials.mapValues(addMaterial)
-        let defaultProperty = addMaterial(part.id.defaultMaterial)
+        let propertyReferencesByOID = materials.mapValues(addMaterial)
+        let defaultProperty = addMaterial(id.defaultMaterial)
 
         let triangles = manifoldTriangles.enumerated().map { index, t in
             let originalID = triangleOIDs.originalID(for: index)
@@ -66,15 +64,15 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let object = ThreeMF.Object(
             id: StaticResourceID.object.rawValue,
             type: .model,
-            name: part.id.name,
+            name: id.name,
             propertyGroupID: defaultProperty.groupID,
             propertyIndex: defaultProperty.index,
             content: .mesh(mesh)
         )
 
-        var item = Item(objectID: object.id, partNumber: part.id.name)
-        item.printable = part.id.type == .solid
-        item.semantic = part.id.type
+        var item = Item(objectID: object.id, partNumber: id.name)
+        item.printable = id.type == .solid
+        item.semantic = id.type
 
         var resources: [any ThreeMF.Resource] = [object]
         if !mainColorGroup.colors.isEmpty {
@@ -94,75 +92,61 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var outputs = result.elements[PartCatalog.self].mergedOutputs
         let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
         outputs[.main] = result
-        outputs = outputs.filter { acceptedSemantics.contains($0.key.type) }
+        outputs = outputs.filter { acceptedSemantics.contains($0.key.type) && $0.value.node.isEmpty == false }
 
-        let parts = try await ContinuousClock().measure {
-            try await outputs.asyncCompactMap { partIdentifier, result -> PartData? in
-                guard !result.node.isEmpty else { return nil }
+        let modelsAndItems = try await ContinuousClock().measure {
+            try await outputs.asyncCompactMap { partIdentifier, result -> (ThreeMF.Model, ThreeMF.Item, Int)? in
                 let nodeResult = try await context.result(for: result.node)
-
-                return PartData(
-                    id: partIdentifier,
-                    manifold: nodeResult.concrete,
-                    materials: nodeResult.materialMapping
-                )
+                let (model, item) = await makeModel(for: partIdentifier, manifold: nodeResult.concrete, materials: nodeResult.materialMapping)
+                return (model, item, nodeResult.concrete.triangleCount)
             }
-            .sorted(using: [
-                KeyPathComparator(\.id.name),
-                KeyPathComparator(\.id.type.rawValue),
-            ])
-        } results: { duration, meshData in
-            let triangleCount = meshData.map { $0.manifold.triangleCount }.reduce(0, +)
-            logger.debug("Built meshes with \(triangleCount) triangles in \(duration)")
+        } results: { duration, results in
+            let triangleCount = results.map { $0.2 }.reduce(0, +)
+            logger.debug("Built 3MF structures and meshes with \(triangleCount) triangles in \(duration)")
         }
 
-        try await ContinuousClock().measure {
-            var uniqueIDs: Set<String> = []
-            let modelsAndItems = await parts.asyncMap { await makeModel($0) }
+        var uniqueIDs: Set<String> = []
 
-            if modelsAndItems.count > 1 {
-                let items = try modelsAndItems.enumerated().map(unpacked).map { index, model, item in
-                    let nameBase = item.partNumber?.simpleIdentifier ?? "part-\(index)"
-                    var id = nameBase
-                    var nameIndex = 1
-                    while uniqueIDs.contains(id) {
-                        nameIndex += 1
-                        id = nameBase + "_\(nameIndex)"
-                    }
-                    uniqueIDs.insert(id)
-
-                    var item = item
-                    item.partNumber = id
-                    item.path = try archive.addAdditionalModel(model, named: id)
-                    return item
+        if modelsAndItems.count > 1 {
+            let items = try modelsAndItems.enumerated().map(unpacked).map { index, model, item, _ in
+                let nameBase = item.partNumber?.simpleIdentifier ?? "part-\(index)"
+                var id = nameBase
+                var nameIndex = 1
+                while uniqueIDs.contains(id) {
+                    nameIndex += 1
+                    id = nameBase + "_\(nameIndex)"
                 }
+                uniqueIDs.insert(id)
 
-                archive.model = ThreeMF.Model(
-                    unit: .millimeter,
-                    requiredExtensions: [.production],
-                    recommendedExtensions: [.materials],
-                    customNamespaces: ["c": CadovaNamespace.uri],
-                    metadata: options[Metadata.self].threeMFMetadata,
-                    buildItems: items
-                )
-            } else if modelsAndItems.count == 1 {
-                var (model, item) = modelsAndItems[0]
-                item.partNumber = item.partNumber?.simpleIdentifier
-
-                archive.model = ThreeMF.Model(
-                    unit: .millimeter,
-                    recommendedExtensions: [.materials],
-                    customNamespaces: ["c": CadovaNamespace.uri],
-                    metadata: options[Metadata.self].threeMFMetadata,
-                    resources: model.resources.resources,
-                    buildItems: [item]
-                )
-            } else {
-                logger.warning("Model contains no objects. Exporting an empty 3MF file.")
-                archive.model = ThreeMF.Model(metadata: options[Metadata.self].threeMFMetadata)
+                var item = item
+                item.partNumber = id
+                item.path = try archive.addAdditionalModel(model, named: id)
+                return item
             }
-        } results: { duration, _ in
-            logger.debug("Built 3MF structure in \(duration)")
+
+            archive.model = ThreeMF.Model(
+                unit: .millimeter,
+                requiredExtensions: [.production],
+                recommendedExtensions: [.materials],
+                customNamespaces: ["c": CadovaNamespace.uri],
+                metadata: options[Metadata.self].threeMFMetadata,
+                buildItems: items
+            )
+        } else if modelsAndItems.count == 1 {
+            var (model, item, _) = modelsAndItems[0]
+            item.partNumber = item.partNumber?.simpleIdentifier
+
+            archive.model = ThreeMF.Model(
+                unit: .millimeter,
+                recommendedExtensions: [.materials],
+                customNamespaces: ["c": CadovaNamespace.uri],
+                metadata: options[Metadata.self].threeMFMetadata,
+                resources: model.resources.resources,
+                buildItems: [item]
+            )
+        } else {
+            logger.warning("Model contains no objects. Exporting an empty 3MF file.")
+            archive.model = ThreeMF.Model(metadata: options[Metadata.self].threeMFMetadata)
         }
     }
 
