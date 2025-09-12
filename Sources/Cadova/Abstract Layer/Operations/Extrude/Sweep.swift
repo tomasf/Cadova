@@ -61,5 +61,6 @@ internal struct Sweep: Shape3D {
             let mesh = Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform))
             return GeometryNode.shape(.mesh(mesh.meshData))
         }
+        .simplified()
     }
 }
