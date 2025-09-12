@@ -33,7 +33,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
     private func makeModel(
         for id: PartIdentifier,
         manifold: Manifold,
-        materials: [Manifold.OriginalID: Material]
+        materials: [Manifold.OriginalID: Material],
+        transform: Transform3D?
     ) async -> (ThreeMF.Model, Item) {
         var mainColorGroup = ColorGroup(id: StaticResourceID.mainColorGroup.rawValue)
         var metallicProperties = MetallicDisplayProperties(id: StaticResourceID.metallicProperties.rawValue)
@@ -70,7 +71,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             content: .mesh(mesh)
         )
 
-        var item = Item(objectID: object.id, partNumber: id.name)
+        var item = Item(objectID: object.id, transform: transform?.matrix3D, partNumber: id.name)
         item.printable = id.type == .solid
         item.semantic = id.type
 
@@ -96,8 +97,9 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         let modelsAndItems = try await ContinuousClock().measure {
             try await outputs.asyncCompactMap { partIdentifier, result -> (ThreeMF.Model, ThreeMF.Item, Int)? in
-                let nodeResult = try await context.result(for: result.node)
-                let (model, item) = await makeModel(for: partIdentifier, manifold: nodeResult.concrete, materials: nodeResult.materialMapping)
+                let (node, transform) = result.node.deconstructTransform()
+                let nodeResult = try await context.result(for: node)
+                let (model, item) = await makeModel(for: partIdentifier, manifold: nodeResult.concrete, materials: nodeResult.materialMapping, transform: transform)
                 return (model, item, nodeResult.concrete.triangleCount)
             }
         } results: { duration, results in
@@ -337,5 +339,25 @@ fileprivate extension ThreeMF.Item {
         set {
             customAttributes[.semantic] = newValue?.xmlAttributeValue
         }
+    }
+}
+
+fileprivate extension GeometryNode<D3> {
+    func deconstructTransform() -> (Self, Transform3D?) {
+        if case .transform (let node, let transform) = contents {
+            (node, transform)
+        } else {
+            (self, nil)
+        }
+    }
+}
+
+fileprivate extension Transform3D {
+    var matrix3D: Matrix3D {
+        Matrix3D(values: (0..<4).map { column in
+            (0..<3).map { row in
+                self[row, column]
+            }
+        })
     }
 }
