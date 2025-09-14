@@ -3,7 +3,7 @@ import Foundation
 internal extension BezierPath {
     func pointsAtPositions(segmentation: Segmentation) -> [(fraction: Fraction, point: V)] {
         curves.indices.flatMap { index in
-            curves[index].points(segmentation: segmentation)
+            curves[index].points(segmentation: segmentation, subdividingStraightLines: true)
                 .map { ($0 + Double(index), $1) }
                 .dropFirst(index > 0 ? 1 : 0)
         }
