@@ -29,13 +29,13 @@ fileprivate struct Vertex: Hashable {
 }
 
 fileprivate extension BezierPatch {
-    private enum ExtrusionMode {
+    private enum EnclosureMode {
         case plane (Plane)
         case point (Vector3D)
         case offset (Vector3D)
     }
 
-    private func extrusion(_ mode: ExtrusionMode, segmentation: Segmentation) -> any Geometry3D {
+    private func enclosed(to mode: EnclosureMode, segmentation: Segmentation) -> any Geometry3D {
         let points = points(segmentation: segmentation)
         let lastRow = points.count - 1
         let lastColumn = points[0].count - 1
@@ -120,21 +120,62 @@ fileprivate extension BezierPatch {
 }
 
 public extension BezierPatch {
-    func extruded(to plane: Plane) -> any Geometry3D {
+    /// Encloses this Bézier patch against a plane, producing a closed 3D solid.
+    ///
+    /// The method spans ruled side faces from the patch’s boundary to the given `plane`, then
+    /// closes the shape with a planar face on the plane. This converts the open surface into a
+    /// volumetric body.
+    ///
+    /// The tessellation density of the curved patch is controlled by the current environment’s
+    /// ``EnvironmentValues/segmentation``.
+    ///
+    /// - Parameter plane: The plane used to cap the patch; side walls are built from the patch edge to this plane.
+    /// - Returns: A 3D geometry representing the enclosed solid.
+    ///
+    /// - SeeAlso: ``enclosed(to:)``
+    /// - SeeAlso: ``enclosed(offset:)``
+    func enclosed(against plane: Plane) -> any Geometry3D {
         readEnvironment(\.segmentation) { segments in
-            extrusion(.plane(plane), segmentation: segments)
+            enclosed(to: .plane(plane), segmentation: segments)
         }
     }
 
-    func extruded(to point: Vector3D) -> any Geometry3D {
+    /// Encloses this Bézier patch to an apex point, producing a closed 3D solid.
+    ///
+    /// The method spans ruled side faces from the patch’s boundary to the single apex `point`.
+    /// This yields a tapered, tent‑like solid whose base is the original patch.
+    ///
+    /// The tessellation density of the curved patch is controlled by the current environment’s
+    /// ``EnvironmentValues/segmentation``.
+    ///
+    /// - Parameter point: The apex point to which the patch boundary is connected.
+    /// - Returns: A 3D geometry representing the enclosed solid.
+    ///
+    /// - SeeAlso: ``enclosed(against:)``
+    /// - SeeAlso: ``enclosed(offset:)``
+    func enclosed(to point: Vector3D) -> any Geometry3D {
         readEnvironment(\.segmentation) { segments in
-            extrusion(.point(point), segmentation: segments)
+            enclosed(to: .point(point), segmentation: segments)
         }
     }
 
-    func extruded(offset: Vector3D) -> any Geometry3D {
+    /// Encloses this Bézier patch with an offset copy of itself, producing a closed 3D solid.
+    ///
+    /// The method constructs a second patch translated by `offset`, then spans ruled side faces
+    /// between the two patches and caps the opposite side with the offset patch, forming a thickened
+    /// volume.
+    ///
+    /// The tessellation density of the curved patches is controlled by the current environment’s
+    /// ``EnvironmentValues/segmentation``.
+    ///
+    /// - Parameter offset: The translation applied to form the second patch used to close the volume.
+    /// - Returns: A 3D geometry representing the enclosed solid.
+    ///
+    /// - SeeAlso: ``enclosed(against:)``
+    /// - SeeAlso: ``enclosed(to:)``
+    func enclosed(offset: Vector3D) -> any Geometry3D {
         readEnvironment(\.segmentation) { segments in
-            extrusion(.offset(offset), segmentation: segments)
+            enclosed(to: .offset(offset), segmentation: segments)
         }
     }
 }
