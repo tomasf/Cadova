@@ -109,14 +109,35 @@ public extension BezierPath {
         BezierPath(startPoint: startPoint, curves: curves.map { $0.derivative })
     }
 
-    /// Generates a sequence of points representing the path.
+    /// Generates a sequence of points representing the path by sampling each curve.
     ///
-    /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of
-    ///   curves.
-    /// - Returns: An array of points that approximate the Bezier path.
+    /// Straight line segments are represented minimally (start/end only); they are not subdivided.
+    /// Use ``subdividedPoints(segmentation:)`` to subdivide straight segments as well.
+    ///
+    /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
+    /// - Returns: An array of points that approximate the Bézier path.
+    /// - SeeAlso: ``subdividedPoints(segmentation:)``
+    ///
     func points(segmentation: Segmentation) -> [V] {
         curves.indices.flatMap { index in
-            curves[index].points(segmentation: segmentation)
+            curves[index].points(segmentation: segmentation, subdividingStraightLines: false)
+                .map(\.1)
+                .dropFirst(index > 0 ? 1 : 0)
+        }
+    }
+
+    /// Samples the entire Bézier path, subdividing both curved and straight segments according to the given segmentation.
+    ///
+    /// This method produces a denser set of points than ``points(segmentation:)`` by also subdividing straight line segments.
+    ///
+    /// - Parameter segmentation: The desired level of detail for the generated points, influencing the density of the output.
+    /// - Returns: An array of points representing the subdivided Bézier path, including both curved and straight segments.
+    ///
+    /// - SeeAlso: ``points(segmentation:)``
+    ///
+    func subdividedPoints(segmentation: Segmentation) -> [V] {
+        curves.indices.flatMap { index in
+            curves[index].points(segmentation: segmentation, subdividingStraightLines: true)
                 .map(\.1)
                 .dropFirst(index > 0 ? 1 : 0)
         }

@@ -53,8 +53,14 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         }
     }
 
-    func points(in range: Range<Double> = 0..<1, segmentation: Segmentation) -> [(Double, V)] {
-        switch segmentation {
+    func points(in range: Range<Double> = 0..<1, segmentation: Segmentation, subdividingStraightLines: Bool) -> [(Double, V)] {
+        guard subdividingStraightLines || controlPoints.count > 2 else {
+            let p1 = controlPoints[0] + (controlPoints[1] - controlPoints[0]) * range.lowerBound
+            let p2 = controlPoints[0] + (controlPoints[1] - controlPoints[0]) * range.upperBound
+            return [(range.lowerBound, p1), (range.upperBound, p2)]
+        }
+
+        return switch segmentation {
         case .fixed (let count):
             points(in: range, segmentCount: count)
         case .adaptive(_, let minSize):
@@ -73,7 +79,8 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     }
 
     func approximateLength(segmentCount: Int) -> Double {
-        points(segmentation: .fixed(segmentCount)).paired().map { ($1.0 - $0.0).magnitude }.reduce(0, +)
+        points(segmentation: .fixed(segmentCount), subdividingStraightLines: false)
+            .paired().map { ($1.0 - $0.0).magnitude }.reduce(0, +)
     }
 
     func reversed() -> Self {
