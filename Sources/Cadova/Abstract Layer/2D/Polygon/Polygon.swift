@@ -69,3 +69,16 @@ public extension Polygon {
         lhs.appending(rhs)
     }
 }
+
+public extension Polygon {
+    /// Creates a right triangle `Polygon` with its right angle at the origin and legs aligned to the axes.
+    ///
+    /// - Parameters:
+    ///   - x: The length of the horizontal leg along the x-axis. Positive values extend in the +x direction; negative values extend in the −x direction.
+    ///   - y: The length of the vertical leg along the y-axis. Positive values extend in the +y direction; negative values extend in the −y direction.
+    /// - Returns: A `Polygon` representing the specified right triangle.
+    /// 
+    static func rightTriangle(x: Double, y: Double) -> Self {
+        Self([.zero, [x, 0], [0, y]])
+    }
+}
