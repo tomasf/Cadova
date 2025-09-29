@@ -38,28 +38,29 @@ internal struct FollowPath3D: Shape3D {
         } else {
             geometry.measuringBounds { body, bounds in
                 let pathLength = path.length(segmentation: .fixed(10))
-                let lengthFactor = pathLength / bounds.size.z
 
                 body.refined(maxEdgeLength: bounds.size.z / Double(segmentation.segmentCount(length: pathLength)))
                     .warped(
                         operationName: "followPath",
                         cacheParameters: path, reference, target, segmentation, maxTwistRate
                     ) {
-                        path.frames(
+                        let frames = path.frames(
                             environment: environment,
                             target: target,
                             targetReference: reference,
                             perpendicularBounds: bounds.bounds2D
                         )
-                    } transform: { p, frames in
-                        let distanceTarget = (p.z - bounds.minimum.z) * lengthFactor
-                        let (index, fraction) = frames.binarySearch(target: distanceTarget, key: \.distance)
+                        return (frames, frames.last!.distance / bounds.size.z)
+                    } transform: { (p: Vector3D, result: (frames: [BezierPath3D.Frame], lengthFactor: Double)) in
+                        let distanceTarget = (p.z - bounds.minimum.z) * result.lengthFactor
+                        let (index, fraction) = result.frames.binarySearch(target: distanceTarget, key: \.distance)
+
                         let transform: Transform3D = if fraction > .ulpOfOne {
-                            .linearInterpolation(frames[index].transform, frames[index + 1].transform, factor: fraction)
+                            .linearInterpolation(result.frames[index].transform, result.frames[index + 1].transform, factor: fraction)
                         } else {
-                            frames[index].transform
+                            result.frames[index].transform
                         }
-                        return transform.apply(to: Vector3D(p))
+                        return transform.apply(to: Vector3D(p.x, p.y, 0))
                     }
                     .simplified()
             }
