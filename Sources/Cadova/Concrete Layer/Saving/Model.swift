@@ -107,7 +107,7 @@ public struct Model: Sendable {
                 try await provider.writeOutput(to: url, context: context)
                 logger.info("Wrote model to \(url.path)")
             } catch {
-                logger.error("Failed to save model file to \(url.path): \(error)")
+                logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
             }
 
             return fileExisted ? nil : url
@@ -117,6 +117,16 @@ public struct Model: Sendable {
             if let url = await writer(Self.defaultContext) {
                 try? Platform.revealFiles([url])
             }
+        }
+    }
+}
+
+extension Error {
+    var descriptiveString: String {
+        if let localized = self as? any LocalizedError, let desc = localized.errorDescription {
+            String(describing: self) + ": " + desc
+        } else {
+            String(describing: self)
         }
     }
 }
