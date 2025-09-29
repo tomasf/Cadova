@@ -2,7 +2,7 @@ import Foundation
 
 public extension Geometry {
     func replaced(
-        if condition: Bool = true,
+        if condition: Bool,
         @GeometryBuilder<D> with replacement: @Sendable @escaping (_ input: D.Geometry) -> D.Geometry
     ) -> D.Geometry {
         if condition {
@@ -21,5 +21,11 @@ public extension Geometry {
         } else {
             self
         }
+    }
+
+    func replaced<Output: Dimensionality>(
+        @GeometryBuilder<Output> with replacement: @Sendable @escaping (_ input: D.Geometry) -> Output.Geometry
+    ) -> Output.Geometry {
+        Deferred { replacement(self) }
     }
 }
