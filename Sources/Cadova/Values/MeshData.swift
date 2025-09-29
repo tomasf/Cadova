@@ -20,6 +20,8 @@ public struct MeshData: Sendable, Hashable, Codable {
     }
 
     private func triangulatedFaces() -> [Face] {
+        guard faces.contains(where: { $0.count > 3 }) else { return faces }
+        
         return faces.flatMap { face in
             guard face.count > 3 else { return [face] }
             let flat = Manifold3D.Polygon(vertices: face.map { vertices[$0] }.flattenCoplanar())
@@ -58,12 +60,12 @@ internal extension [Vector3D] {
     func flattenCoplanar() -> [Vector2D] {
         assert(count >= 3)
 
-        let firstToSecond = self[1] - self[0]
-        let firstToThird = self[2] - self[0]
-        let planeNormal = (firstToSecond × firstToThird).normalized
-        let v1 = firstToSecond.normalized
-        let v2 = planeNormal × v1
+        let v1 = (self[1] - self[0]).normalized
+        let v2 = ((self[1] - self[0]) × (self[2] - self[0])).normalized × v1
 
-        return map { Vector2D(($0 - self[0]) ⋅ v1, ($0 - self[0]) ⋅ v2) }
+        return map { Vector2D(
+            ($0 - self[0]) ⋅ v1,
+            ($0 - self[0]) ⋅ v2
+        )}
     }
 }
