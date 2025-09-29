@@ -12,7 +12,7 @@ internal extension Mesh {
     init(extruding polygons: SimplePolygonList, along transforms: [Transform3D]) {
         precondition(transforms.count >= 2, "A sweep needs at least two transforms")
 
-        let faceTriangles = polygons.triangulate()
+        let faceTriangles = polygons.triangulated()
         let isClosed = transforms.last!.isApproximatelyEqual(to: transforms.first!)
         let closedLastPolygon = isClosed ? transforms.count - 1 : -1
 

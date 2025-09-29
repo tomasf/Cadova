@@ -26,6 +26,12 @@ extension SimplePolygon {
     }
 }
 
+extension SimplePolygon: Collection {
+    func index(after i: Int) -> Int { i + 1 }
+    var startIndex: Int { 0 }
+    var endIndex: Int { vertices.count }
+}
+
 extension SimplePolygon {
     var perimeter: Double {
         vertices.wrappedPairs().map { ($1 - $0).magnitude }.reduce(0, +)
@@ -132,5 +138,10 @@ extension SimplePolygon {
 
     var boundingBox: BoundingBox2D {
         .init(vertices)
+    }
+
+    func triangulated() -> [(Int, Int, Int)] {
+        ManifoldPolygon(vertices: vertices).triangulate(epsilon: 1e-8)
+            .map { ($0.a, $0.b, $0.c) }
     }
 }
