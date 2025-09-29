@@ -117,13 +117,14 @@ public extension Geometry3D {
         _ edgeProfile: EdgeProfile,
         to side: DirectionalAxis<D3>,
         offset: Double = 0,
-        type: ProfilingType = .subtractive
+        type: ProfilingType = .subtractive,
+        @GeometryBuilder2D using shape: @escaping @Sendable () -> any Geometry2D = { Empty() }
     ) -> any Geometry3D {
         edgeProfile.profile.measuringBounds { _, profileBounds in
             measuringBounds { body, bounds in
                 let plane = Plane(side: side, on: bounds, offset: offset * side.axisDirection.factor)
-                let shape = sliced(along: plane.offset(-profileBounds.size.y))
-                applyingEdgeProfile(edgeProfile, with: shape, at: plane, type: type)
+                let slicedShape = sliced(along: plane.offset(-profileBounds.size.y))
+                applyingEdgeProfile(edgeProfile, with: shape().ifEmpty { slicedShape }, at: plane, type: type)
             }
         }
     }

@@ -52,11 +52,12 @@ public extension Geometry2D {
     func offset(amount: Double, style: LineJoinStyle) -> any Geometry2D {
         readEnvironment(\.miterLimit, \.segmentation) { miterLimit, segmentation in
             GeometryNodeTransformer(body: self) {
-                .offset($0,
-                        amount: amount,
-                        joinStyle: style,
-                        miterLimit: miterLimit,
-                        segmentCount: segmentation.segmentCount(circleRadius: Swift.abs(amount))
+                .offset(
+                    $0,
+                    amount: amount,
+                    joinStyle: style,
+                    miterLimit: miterLimit,
+                    segmentCount: segmentation.segmentCount(circleRadius: Swift.abs(amount))
                 )
             }
         }
