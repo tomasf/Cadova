@@ -19,9 +19,9 @@ import Foundation
 /// await Project(root: "pieces", options: .format3D(.stl)) {
 ///     await Model("example") {
 ///         Box(x: 100, y: 3, z: 20)
-///             .deformed(using: BezierPath2D {
+///             .deformed(by: BezierPath2D {
 ///                 curve(controlX: 50, controlY: 50, endX: 100, endY: 0)
-///             }, with: .x)
+///             })
 ///     } environment: {
 ///         $0.segmentation = .adaptive(minAngle: 4°, minSize: 0.2)
 ///         $0.maxTwistRate = 5°

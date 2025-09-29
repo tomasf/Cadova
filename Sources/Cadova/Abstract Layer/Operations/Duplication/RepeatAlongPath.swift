@@ -171,7 +171,7 @@ public extension Geometry2D {
 fileprivate extension BezierPath {
     func extendedToMinimumLength(_ length: Double) -> Self {
         var path = self
-        while path.length(segmentation: .fixed(10)) < length {
+        while path.approximateLength < length {
             path = path[0..<(path.fractionRange.upperBound + 1)]
         }
         return path

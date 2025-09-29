@@ -33,9 +33,9 @@ public struct Model: Sendable {
     /// ```swift
     /// await Model("example") {
     ///     Box(x: 100, y: 3, z: 20)
-    ///         .deformed(using: BezierPath2D {
+    ///         .deformed(by: BezierPath2D {
     ///             curve(controlX: 50, controlY: 50, endX: 100, endY: 0)
-    ///         }, with: .x)
+    ///         })
     /// }
     /// ```
     ///

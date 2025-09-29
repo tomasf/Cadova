@@ -37,7 +37,7 @@ internal struct FollowPath3D: Shape3D {
             Empty()
         } else {
             geometry.measuringBounds { body, bounds in
-                let pathLength = path.length(segmentation: .fixed(10))
+                let pathLength = path.approximateLength
 
                 body.refined(maxEdgeLength: bounds.size.z / Double(segmentation.segmentCount(length: pathLength)))
                     .warped(

@@ -221,13 +221,6 @@ public extension Geometry3D {
 
 // MARK: - Deprecated in 0.1.2
 
-public extension Geometry3D {
-    @available(*, deprecated, message: "Use deforming(_:along:using:) instead.")
-    func deformed(using path: BezierPath2D, with referenceAxis: Axis2D) -> any Geometry3D {
-        deformed(using: path.path3D, with: Axis3D(referenceAxis))
-    }
-}
-
 public extension Geometry2D {
     @available(*, deprecated, message: "Use whileMasked(using:do:) + regular rounding instead.")
     func rounded(radius: Double, @GeometryBuilder2D in mask: @Sendable @escaping () -> any Geometry2D) -> any Geometry2D {
