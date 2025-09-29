@@ -32,6 +32,12 @@ internal struct SimplePolygonList: Sendable, Hashable, Codable {
     }
 }
 
+extension SimplePolygonList: Collection {
+    func index(after i: Int) -> Int { i + 1 }
+    var startIndex: Int { 0 }
+    var endIndex: Int { polygons.count }
+}
+
 extension SimplePolygonList {
     init(_ manifoldPolygons: [ManifoldPolygon]) {
         self.init(manifoldPolygons.map { SimplePolygon($0) })
@@ -58,7 +64,7 @@ extension SimplePolygonList {
         preconditionFailure("Index out of range")
     }
 
-    func triangulate() -> [(Vertex, Vertex, Vertex)] {
+    func triangulated() -> [(Vertex, Vertex, Vertex)] {
         let polygons = polygons.map(\.manifoldPolygon)
         let triangles = ManifoldPolygon.triangulate(polygons, epsilon: 1e-8)
         return triangles.map { (vertex(at: $0.a), vertex(at: $0.b), vertex(at: $0.c)) }

@@ -170,14 +170,14 @@ fileprivate extension Mesh {
         }
 
         let bottomPolygons = SimplePolygonList(polygonGroups.map { $0.polygons[0] })
-        let bottomFaces = bottomPolygons.triangulate().map { a, b, c in [
+        let bottomFaces = bottomPolygons.triangulated().map { a, b, c in [
             Vertex(polygonGroupIndex: c.polygon, layerIndex: 0, pointIndex: c.vertex),
             Vertex(polygonGroupIndex: b.polygon, layerIndex: 0, pointIndex: b.vertex),
             Vertex(polygonGroupIndex: a.polygon, layerIndex: 0, pointIndex: a.vertex),
         ]}
 
         let topPolygons = SimplePolygonList(polygonGroups.map { $0.polygons[$0.polygons.count - 1] })
-        let topFaces = topPolygons.triangulate().map { a, b, c in [
+        let topFaces = topPolygons.triangulated().map { a, b, c in [
             Vertex(polygonGroupIndex: a.polygon, layerIndex: polygonGroups[a.polygon].polygons.count - 1, pointIndex: a.vertex),
             Vertex(polygonGroupIndex: b.polygon, layerIndex: polygonGroups[b.polygon].polygons.count - 1, pointIndex: b.vertex),
             Vertex(polygonGroupIndex: c.polygon, layerIndex: polygonGroups[c.polygon].polygons.count - 1, pointIndex: c.vertex),
