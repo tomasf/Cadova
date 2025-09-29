@@ -30,7 +30,7 @@ internal struct FollowPath2D: Shape2D {
         @Environment(\.segmentation) var segmentation
 
         geometry.measuringBounds { body, bounds in
-            let pathLength = path.length(segmentation: .fixed(10))
+            let pathLength = path.approximateLength
             let lengthFactor = pathLength / bounds.size.x
 
             body.refined(maxEdgeLength: bounds.size.x / Double(segmentation.segmentCount(length: pathLength)))

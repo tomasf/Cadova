@@ -18,20 +18,20 @@ public extension Geometry3D {
     ///
     /// ```swift
     /// Box([40, 40, 2])
-    ///     .deformed(using: myPatch)
+    ///     .deformed(by: myPatch)
     /// ```
     ///
     /// In this example, a flat box is bent into the shape of `myPatch`,
     /// with its thickness stacked vertically on top of the patch’s surface.
     ///
-    func deformed(using patch: BezierPatch) -> any Geometry3D {
+    func deformed(by patch: BezierPatch) -> any Geometry3D {
         readingEnvironment(\.segmentation) { _, segmentation in
             measuringBounds { geometry, bounds in
                 let maxLength = max(bounds.size.x, bounds.size.y)
 
                 geometry
                     .refined(maxEdgeLength: maxLength / Double(segmentation.segmentCount(length: maxLength)))
-                    .warped(operationName: "applyBezierPatch", cacheParameters: patch) { point in
+                    .warped(operationName: "deformByPatch", cacheParameters: patch) { point in
                         let uv = ((point - bounds.minimum) / bounds.size).xy
                         return patch.point(at: uv) + .z(point.z)
                     }

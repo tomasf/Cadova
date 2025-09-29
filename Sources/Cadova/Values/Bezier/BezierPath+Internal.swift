@@ -46,4 +46,8 @@ internal extension BezierPath {
             return (Int(index), position - index)
         }
     }
+
+    var approximateLength: Double {
+        length(segmentation: .fixed(10))
+    }
 }
