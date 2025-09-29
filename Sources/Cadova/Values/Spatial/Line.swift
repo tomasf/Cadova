@@ -113,7 +113,7 @@ public extension Line<D2> {
     /// Computes the intersection point with another line, if one exists.
     ///
     /// - Parameter other: Another line to intersect with.
-    /// - Returns: The point of intersection, or `nil` if the lines are parallel or do not intersect.
+    /// - Returns: The point of intersection, or `nil` if the lines are parallel.
     func intersection(with other: Line<D>) -> D.Vector? {
         let p = point
         let r = direction.unitVector
@@ -127,6 +127,17 @@ public extension Line<D2> {
 
         let t = ((q - p).x * s.y - (q - p).y * s.x) / cross
         return p + r * t
+    }
+
+    /// Offsets the line by a signed distance, keeping the same direction.
+    ///
+    /// Positive amounts move the line to its clockwise side relative to its direction.
+    /// Reversing the line's direction flips the offset side.
+    ///
+    /// - Parameter amount: The signed offset distance.
+    /// - Returns: A new line parallel to this one, at the given distance.
+    func offset(_ amount: Double) -> Line {
+        Line(point: point + direction.clockwiseNormal.unitVector * amount, direction: direction)
     }
 
     /// A line extending along the X axis from the origin.
