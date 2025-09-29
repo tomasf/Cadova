@@ -70,8 +70,8 @@ extension GeometryNode.PrimitiveShape3D {
     }
 }
 
-struct MeshNotManifoldError: Error {
-    var localizedDescription: String {
+struct MeshNotManifoldError: LocalizedError {
+    var errorDescription: String? {
 """
 Mesh creation failed: The mesh is not manifold.
 

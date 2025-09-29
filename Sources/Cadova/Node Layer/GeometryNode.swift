@@ -1,13 +1,19 @@
 import Foundation
 import Manifold3D
 
-internal struct GeometryNode<D: Dimensionality>: Sendable {
+internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
     internal let contents: Contents
+    internal let hash: Int
 
     internal init(_ contents: Contents) {
         self.contents = contents
+        self.hash = contents.hashValue
     }
 
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(hash)
+    }
+    
     internal indirect enum Contents: Sendable {
         case empty
         case boolean ([D.Node], type: BooleanOperationType)

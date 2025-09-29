@@ -1,8 +1,8 @@
 import Foundation
 
-extension GeometryNode: Equatable {
-    static func == (lhs: GeometryNode, rhs: GeometryNode) -> Bool {
-        switch (lhs.contents, rhs.contents) {
+extension GeometryNode.Contents: Equatable {
+    static func == (lhs: GeometryNode.Contents, rhs: GeometryNode.Contents) -> Bool {
+        switch (lhs, rhs) {
         case (.empty, .empty): true
         case let (.boolean(a, ta), .boolean(b, tb)): ta == tb && a == b
         case let (.transform(a1, t1), .transform(a2, t2)): a1 == a2 && t1 == t2
@@ -24,56 +24,56 @@ extension GeometryNode: Equatable {
     }
 }
 
-extension GeometryNode: Hashable {
+extension GeometryNode.Contents: Hashable {
     func hash(into hasher: inout Hasher) {
-        switch contents {
+        switch self {
         case .empty:
-            hasher.combine(Kind.empty)
+            hasher.combine(GeometryNode.Kind.empty)
         case .boolean(let children, let type):
-            hasher.combine(Kind.boolean)
+            hasher.combine(GeometryNode.Kind.boolean)
             hasher.combine(type)
             hasher.combine(children)
         case .transform(let body, let transform):
-            hasher.combine(Kind.transform)
+            hasher.combine(GeometryNode.Kind.transform)
             hasher.combine(body)
             hasher.combine(transform)
         case .convexHull(let body):
-            hasher.combine(Kind.convexHull)
+            hasher.combine(GeometryNode.Kind.convexHull)
             hasher.combine(body)
         case .refine(let body, let edgeLength):
-            hasher.combine(Kind.refine)
+            hasher.combine(GeometryNode.Kind.refine)
             hasher.combine(body)
             hasher.combine(edgeLength)
         case .simplify(let body, let tolerance):
-            hasher.combine(Kind.simplify)
+            hasher.combine(GeometryNode.Kind.simplify)
             hasher.combine(body)
             hasher.combine(tolerance)
         case .materialized(let key):
-            hasher.combine(Kind.materialized)
+            hasher.combine(GeometryNode.Kind.materialized)
             hasher.combine(key)
         case .shape2D(let shape):
-            hasher.combine(Kind.shape2D)
+            hasher.combine(GeometryNode.Kind.shape2D)
             hasher.combine(shape)
         case .offset(let body, let amount, let joinStyle, let miterLimit, let segmentCount):
-            hasher.combine(Kind.offset)
+            hasher.combine(GeometryNode.Kind.offset)
             hasher.combine(body)
             hasher.combine(amount.roundedForHash)
             hasher.combine(joinStyle)
             hasher.combine(miterLimit.roundedForHash)
             hasher.combine(segmentCount)
         case .projection(let body, let kind):
-            hasher.combine(Kind.projection)
+            hasher.combine(GeometryNode.Kind.projection)
             hasher.combine(body)
             hasher.combine(kind)
         case .shape3D(let shape):
-            hasher.combine(Kind.shape3D)
+            hasher.combine(GeometryNode.Kind.shape3D)
             hasher.combine(shape)
         case .applyMaterial(let body, let material):
-            hasher.combine(Kind.applyMaterial)
+            hasher.combine(GeometryNode.Kind.applyMaterial)
             hasher.combine(body)
             hasher.combine(material)
         case .extrusion(let body, let type):
-            hasher.combine(Kind.extrusion)
+            hasher.combine(GeometryNode.Kind.extrusion)
             hasher.combine(body)
             hasher.combine(type)
         }
