@@ -15,7 +15,7 @@ public extension BezierPath {
     ///
     /// - Parameter controlPoints: A list of control points defining the Bezier curve.
     /// - Returns: A new `BezierPath` instance with the added Bezier curve.
-    func addingCurve(_ controlPoints: [V]) -> BezierPath {
+    func addingCurve<Points: Sequence<V>>(_ controlPoints: Points) -> BezierPath {
         adding(curve: Curve(controlPoints: [endPoint] + controlPoints))
     }
 
