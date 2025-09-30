@@ -23,6 +23,9 @@ public protocol Vector: Hashable, Sendable, Codable, CustomDebugStringConvertibl
     static func *(_ v: Self, _ d: Double) -> Self
     static func /(_ v: Self, _ d: Double) -> Self
 
+    static func +(_ s: Double, _ v: Self) -> Self
+    static func *(_ d: Double, _ v: Self) -> Self
+
     static func ⋅(_ v1: Self, _ v2: Self) -> Double
 
     // Magnitude and normalization

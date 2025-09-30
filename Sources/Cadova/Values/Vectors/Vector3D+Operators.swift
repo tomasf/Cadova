@@ -14,7 +14,21 @@ public extension Vector3D {
             z: v.z + s
         )
     }
-    
+
+    /// Returns a new vector by adding a scalar to each component of the vector.
+    ///
+    /// - Parameters:
+    ///   - s: The scalar to add.
+    ///   - v: The vector to add to.
+    /// - Returns: A new vector with each component increased by `s`.
+    static func +(_ s: Double, _ v: Vector3D) -> Vector3D {
+        Vector3D(
+            x: v.x + s,
+            y: v.y + s,
+            z: v.z + s
+        )
+    }
+
     /// Returns a new vector by subtracting a scalar from each component of the vector.
     ///
     /// - Parameters:
