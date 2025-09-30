@@ -125,7 +125,6 @@ extension BezierCurve {
 
         return nil
     }
-
 }
 
 extension BezierCurve: CustomDebugStringConvertible {
