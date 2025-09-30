@@ -12,6 +12,21 @@ internal extension BezierPath {
     func simplePolygon(in environment: EnvironmentValues) -> SimplePolygon where V == Vector2D {
         SimplePolygon(points(segmentation: environment.segmentation))
     }
+
+    func curveIndexAndFraction(for position: Fraction) -> (index: Int, fraction: Double) {
+        if position < 0 {
+            return (0, position)
+        } else if position >= Double(curves.count) {
+            return (curves.count - 1, position - Double(curves.count - 1))
+        } else {
+            let index = floor(position)
+            return (Int(index), position - index)
+        }
+    }
+
+    var approximateLength: Double {
+        length(segmentation: .fixed(10))
+    }
 }
 
 // For paths that are monotonic over axis
@@ -34,20 +49,5 @@ internal extension BezierPath {
             return nil
         }
         return Double(curveIndex) + t
-    }
-
-    func curveIndexAndFraction(for position: Fraction) -> (index: Int, fraction: Double) {
-        if position < 0 {
-            return (0, position)
-        } else if position >= Double(curves.count) {
-            return (curves.count - 1, position - Double(curves.count - 1))
-        } else {
-            let index = floor(position)
-            return (Int(index), position - index)
-        }
-    }
-
-    var approximateLength: Double {
-        length(segmentation: .fixed(10))
     }
 }
