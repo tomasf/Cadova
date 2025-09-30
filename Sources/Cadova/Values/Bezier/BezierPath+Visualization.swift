@@ -63,9 +63,11 @@ extension BezierPath {
 
             // Lines between control points
             for curve in curves {
-                for (cp1, cp2) in curve.controlPoints.paired() {
-                    makeLine(from: cp1, to: cp2, thickness: 0.08 * scale)
-                        .colored(.red, alpha: 0.2)
+                if curve.degree > 1 {
+                    for (cp1, cp2) in curve.controlPoints.paired() {
+                        makeLine(from: cp1, to: cp2, thickness: 0.08 * scale)
+                            .colored(.red, alpha: 0.2)
+                    }
                 }
             }
 
