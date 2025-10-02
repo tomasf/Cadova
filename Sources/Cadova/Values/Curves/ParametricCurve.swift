@@ -6,6 +6,8 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     associatedtype V: Vector
     typealias Axis = V.D.Axis
 
+    var isEmpty: Bool { get }
+
     /// The parameter interval over which the curve is naturally defined.
     ///
     /// - Note: Conformers may choose to extrapolate outside this range.

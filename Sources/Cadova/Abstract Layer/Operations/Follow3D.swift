@@ -3,7 +3,7 @@ import Foundation
 public extension Geometry3D {
     /// Warps the 3D geometry to follow a path in 3D space, with controlled orientation.
     ///
-    /// This method bends and stretches the geometry along a `BezierPath` so that its local Z axis follows
+    /// This method bends and stretches the geometry along a `ParametricCurve` so that its local Z axis follows
     /// the shape of the path. The geometry is stretched along its local Z axis to match the total length of
     /// the path, while the `reference` direction in the geometry is continuously reoriented to point
     /// toward the specified target at each step.
@@ -16,15 +16,20 @@ public extension Geometry3D {
     ///   - reference: A direction in the geometry's local space that should point toward the target.
     ///   - target: The target the reference direction should point toward at each step.
     /// - Returns: A warped version of the geometry that follows the given path and orientation control.
-    func following(path: BezierPath3D, pointing reference: Direction2D, toward target: ReferenceTarget) -> any Geometry3D {
+    ///
+    func following<Path: ParametricCurve<Vector3D>>(
+        path: Path,
+        pointing reference: Direction2D,
+        toward target: ReferenceTarget
+    ) -> any Geometry3D {
         FollowPath3D(geometry: self, path: path, reference: reference, target: target)
     }
 }
 
 // Makes the Z axis follow a path
-internal struct FollowPath3D: Shape3D {
+internal struct FollowPath3D<Path: D3.Curve>: Shape3D {
     let geometry: any Geometry3D
-    let path: BezierPath3D
+    let path: Path
     let reference: Direction2D
     let target: ReferenceTarget
 
