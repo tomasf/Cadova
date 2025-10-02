@@ -47,11 +47,18 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     ///   not from the start of the curve’s domain.
     func samples(segmentation: Segmentation) -> [CurveSample<V>]
 
+    var derivativeView: any CurveDerivativeView<V> { get }
+
     func length(in range: ClosedRange<Double>?, segmentation: Segmentation) -> Double
 
     func mapPoints<Output: Vector>(_ transformer: (V) -> Output) -> any ParametricCurve<Output>
 
     var sampleCountForLengthApproximation: Int { get }
+}
+
+public protocol CurveDerivativeView<V> {
+    associatedtype V: Vector
+    func tangent(at u: Double) -> Direction<V.D>
 }
 
 /// A structured sample of a parametric curve at a specific parameter value.
