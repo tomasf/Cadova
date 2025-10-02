@@ -47,12 +47,7 @@ internal extension BezierPath {
     var path3D: BezierPath3D {
         switch self {
         case let self as BezierPath3D: self
-        case is BezierPath2D:
-            BezierPath3D(
-                startPoint: startPoint.vector3D,
-                curves: curves.map { $0.map(\.vector3D) }
-            )
-        default: fatalError()
+        default: mapPoints(\.vector3D)
         }
     }
 }
@@ -96,5 +91,9 @@ extension BezierPath: ParametricCurve {
 
     public var approximateLength: Double {
         length(segmentation: .fixed(10))
+    }
+
+    public func mapPoints<Output: Vector>(_ transformer: (V) -> Output) -> any ParametricCurve<Output> {
+        mapPoints(transformer) as BezierPath<Output>
     }
 }

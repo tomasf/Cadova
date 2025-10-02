@@ -1,8 +1,8 @@
 import Foundation
 
 internal extension Geometry3D {
-    func repeatedInternal(
-        along path: BezierPath3D,
+    func repeatedInternal<Path: D3.Curve>(
+        along path: Path,
         target: ReferenceTarget?,
         reference: Direction2D,
         calculator: @escaping @Sendable (_ pathLength: Double) -> (count: Int, spacing: Double)
@@ -42,7 +42,7 @@ public extension Geometry3D {
     /// rotated, only translated along the path.
     ///
     /// - Parameters:
-    ///   - path: The Bezier path to follow.
+    ///   - path: The ParametricCurve to follow.
     ///   - target: The optional direction or point to align the geometry with, controlling rotation around the
     ///             Z-axis. If `nil`, the geometry is only translated.
     ///   - reference: A local 2D direction in the XY-plane of the geometry used to resolve rotation when `target`
@@ -51,19 +51,14 @@ public extension Geometry3D {
     ///   - spacing: The distance between the origin of each instance along the path.
     /// - Returns: A composite 3D geometry containing all repeated instances.
     ///
-    func repeated<V: Vector>(
-        along path: BezierPath<V>,
+    func repeated<Path: ParametricCurve>(
+        along path: Path,
         target: ReferenceTarget? = nil,
         reference: Direction2D = .down,
         count: Int,
         spacing: Double
     ) -> any Geometry3D {
-        repeatedInternal(
-            along: path.path3D.extendedToMinimumLength(Double(count) * spacing),
-            target: target,
-            reference: reference,
-            calculator: { _ in (count, spacing) }
-        )
+        repeatedInternal(along: path.curve3D, target: target, reference: reference) { _ in (count, spacing) }
     }
 
     /// Repeats a 3D geometry along a path using an exact instance count.
@@ -75,7 +70,7 @@ public extension Geometry3D {
     /// are only translated.
     ///
     /// - Parameters:
-    ///   - path: The Bézier path to follow.
+    ///   - path: The ParametricCurve to follow.
     ///   - target: Optional orientation target used to resolve rotation around the path tangent. If `nil`,
     ///             instances are not rotated.
     ///   - reference: A local 2D direction used with `target` to resolve roll about the tangent. Defaults to
@@ -83,20 +78,17 @@ public extension Geometry3D {
     ///   - count: The number of instances to place. Must be ≥ 2 so the first and last land on the path ends.
     /// - Returns: A composite 3D geometry containing all instances.
     ///
-    func repeated<V: Vector>(
-        along path: BezierPath<V>,
+    func repeated<Path: ParametricCurve>(
+        along path: Path,
         target: ReferenceTarget? = nil,
         reference: Direction2D = .down,
         count: Int
     ) -> any Geometry3D {
         precondition(count >= 2, "Repeating along a path without an explicit spacing requires at least two instances.")
 
-        return repeatedInternal(
-            along: path.path3D,
-            target: target,
-            reference: reference,
-            calculator: { (count, $0 / Double(count - 1)) }
-        )
+        return repeatedInternal(along: path.curve3D, target: target, reference: reference) {
+            (count, $0 / Double(count - 1))
+        }
     }
 
     /// Repeats a 3D geometry along a path using a fixed spacing.
@@ -107,7 +99,7 @@ public extension Geometry3D {
     /// are only translated.
     ///
     /// - Parameters:
-    ///   - path: The Bézier path to follow (2D or 3D; 2D paths are lifted to 3D along Z).
+    ///   - path: The ParametricCurve to follow.
     ///   - target: Optional orientation target used to resolve rotation around the path tangent. If `nil`,
     ///             instances are not rotated.
     ///   - reference: A local 2D direction used with `target` to resolve roll about the tangent. Defaults
@@ -115,20 +107,17 @@ public extension Geometry3D {
     ///   - spacing: The distance between successive instances along the path. Must be > 0.
     /// - Returns: A composite 3D geometry containing all instances.
     ///
-    func repeated<V: Vector>(
-        along path: BezierPath<V>,
+    func repeated<Path: ParametricCurve>(
+        along path: Path,
         target: ReferenceTarget? = nil,
         reference: Direction2D = .down,
         spacing: Double
     ) -> any Geometry3D {
         precondition(spacing > 0, "Spacing needs to be greater than zero.")
 
-        return repeatedInternal(
-            along: path.path3D,
-            target: target,
-            reference: reference,
-            calculator: { (Int(floor($0 / spacing)), spacing) }
-        )
+        return repeatedInternal(along: path.curve3D, target: target, reference: reference) {
+            (Int(floor($0 / spacing)), spacing)
+        }
     }
 }
 
@@ -139,21 +128,20 @@ public extension Geometry2D {
     /// Each instance can optionally be rotated to align with the path direction.
     ///
     /// - Parameters:
-    ///   - path: The 2D Bezier path to follow.
+    ///   - path: The 2D ParametricCurve to follow.
     ///   - rotating: If `true`, each instance is rotated to align with the path direction (default is `true`).
     ///   - count: The number of instances to repeat.
     ///   - spacing: The distance between each instance along the path.
     /// - Returns: A 2D composite geometry containing all repeated instances.
     ///
-    func repeated(
-        along path: BezierPath2D,
+    func repeated<Path: ParametricCurve<Vector2D>>(
+        along path: Path,
         rotating: Bool = true,
         count: Int,
         spacing: Double
     ) -> any Geometry2D {
         measureBoundsIfNonEmpty { _, e, bounds in
-            let path = path.path3D.extendedToMinimumLength(Double(count) * spacing)
-            let frames = path.frames(environment: e, target: .direction(.down), targetReference: .down, perpendicularBounds: nil)
+            let frames = path.curve3D.frames(environment: e, target: .direction(.down), targetReference: .down, perpendicularBounds: nil)
 
             for i in 0..<count {
                 var transform = frames.binarySearchInterpolate(target: Double(i) * spacing, key: \.distance, result: \.transform)
@@ -165,15 +153,5 @@ public extension Geometry2D {
                 self.transformed(Transform2D(transform))
             }
         }
-    }
-}
-
-fileprivate extension BezierPath {
-    func extendedToMinimumLength(_ length: Double) -> Self {
-        var path = self
-        while path.approximateLength < length {
-            path = path[0..<(path.fractionRange.upperBound + 1)]
-        }
-        return path
     }
 }
