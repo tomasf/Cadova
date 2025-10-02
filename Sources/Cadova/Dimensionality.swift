@@ -20,6 +20,7 @@ public protocol Dimensionality {
 
 internal extension Dimensionality {
     typealias Node = GeometryNode<Self>
+    typealias Curve = ParametricCurve<Vector>
 }
 
 // 2D-related types
