@@ -102,4 +102,16 @@ extension BezierPath: ParametricCurve {
             .map { ($1 - $0).magnitude }
             .reduce(0, +)
     }
+
+    public var derivativeView: any CurveDerivativeView<V> {
+        BezierPathDerivativeView(derivative: derivative)
+    }
+}
+
+internal struct BezierPathDerivativeView<V: Vector>: CurveDerivativeView {
+    let derivative: BezierPath<V>
+
+    func tangent(at u: Double) -> Direction<V.D> {
+        Direction(derivative.point(at: u))
+    }
 }

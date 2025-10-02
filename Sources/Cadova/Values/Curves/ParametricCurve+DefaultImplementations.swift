@@ -17,14 +17,16 @@ public extension ParametricCurve {
 
         var previousPosition: V? = nil
         var accumulatedDistance = 0.0
+        let derivative = derivativeView
 
         for u in params {
-            let sample = sample(at: u)
+            let position = point(at: u)
+            let tangent = derivative.tangent(at: u)
             if let previousPosition {
-                accumulatedDistance += (sample.position - previousPosition).magnitude
+                accumulatedDistance += (position - previousPosition).magnitude
             }
-            samples.append(CurveSample(u: sample.u, position: sample.position, tangent: sample.tangent, distance: accumulatedDistance))
-            previousPosition = sample.position
+            samples.append(CurveSample(u: u, position: position, tangent: tangent, distance: accumulatedDistance))
+            previousPosition = position
         }
         return samples
     }
