@@ -24,25 +24,11 @@ internal extension BezierPath3D {
         perpendicularBounds: BoundingBox2D?
     ) -> [Frame] {
         let derivative = self.derivative
-        let fractionsAndPoints = self.pointsAtPositions(segmentation: environment.segmentation)
+        let samples = samples(segmentation: environment.segmentation)
         var frames: [Frame] = []
 
-        var distance = 0.0
-        var lastPoint: Vector3D?
-        for (t, point) in fractionsAndPoints {
-            if let last = lastPoint {
-                distance += (point - last).magnitude
-            }
-            frames.append(Frame(
-                t: t,
-                distance: distance,
-                point: point,
-                tangent: derivative.point(at: t),
-                reference: targetReference,
-                target: target,
-                previousSample: frames.last
-            ))
-            lastPoint = point
+        for sample in samples {
+            frames.append(Frame(sample: sample, reference: targetReference, target: target, previousSample: frames.last))
         }
 
         frames.interpolateMissingAngles()
@@ -63,19 +49,11 @@ internal extension BezierPath3D {
         let zAxis: Vector3D
         var angle: Angle?
 
-        init(
-            t: Double,
-            distance: Double,
-            point: Vector3D,
-            tangent: Vector3D,
-            reference: Direction2D,
-            target: ReferenceTarget,
-            previousSample: Frame?
-        ) {
-            self.t = t
-            self.distance = distance
-            zAxis = tangent.normalized
-            self.point = point
+        init(sample: CurveSample<Vector3D>, reference: Direction2D, target: ReferenceTarget, previousSample: Frame?) {
+            self.t = sample.u
+            self.distance = sample.distance
+            zAxis = sample.tangent.unitVector
+            self.point = sample.position
             let plane = Plane(offset: point, normal: Direction3D(zAxis))
 
             if let previousSample {
