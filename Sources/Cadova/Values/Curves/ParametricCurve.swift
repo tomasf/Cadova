@@ -47,6 +47,8 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
 
     func length(segmentation: Segmentation) -> Double
 
+    func mapPoints<Output: Vector>(_ transformer: (V) -> Output) -> any ParametricCurve<Output>
+
     var approximateLength: Double { get }
 }
 
@@ -75,5 +77,11 @@ public struct CurveSample<V: Vector>: Sendable, Hashable, Codable {
             tangent: Direction(tangent.unitVector + (other.tangent.unitVector - tangent.unitVector) * fraction),
             distance: distance + (other.distance - distance) * fraction,
         )
+    }
+}
+
+internal extension ParametricCurve {
+    var curve3D: any ParametricCurve<Vector3D> {
+        mapPoints(\.vector3D)
     }
 }
