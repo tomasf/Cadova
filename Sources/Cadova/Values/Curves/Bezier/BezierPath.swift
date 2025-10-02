@@ -89,11 +89,17 @@ extension BezierPath: ParametricCurve {
         CurveSample(u: u, position: point(at: u), tangent: tangent(at: u), distance: 0)
     } 
 
-    public var approximateLength: Double {
-        length(segmentation: .fixed(10))
-    }
+    public var sampleCountForLengthApproximation: Int { 10 }
 
     public func mapPoints<Output: Vector>(_ transformer: (V) -> Output) -> any ParametricCurve<Output> {
         mapPoints(transformer) as BezierPath<Output>
+    }
+
+    public func length(in range: ClosedRange<Double>?, segmentation: Segmentation) -> Double {
+        let path = range.map { self[$0] } ?? self
+        return path.points(segmentation: segmentation)
+            .paired()
+            .map { ($1 - $0).magnitude }
+            .reduce(0, +)
     }
 }
