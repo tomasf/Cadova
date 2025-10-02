@@ -183,6 +183,10 @@ extension RangeExpression {
     }
 }
 
+extension Collection where Element: Comparable {
+    var isSortedNondecreasing: Bool { zip(self, dropFirst()).allSatisfy(<=) }
+}
+
 extension Comparable {
     func clamped(to range: ClosedRange<Self>) -> Self {
         max(range.lowerBound, min(range.upperBound, self))
