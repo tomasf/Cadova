@@ -2,6 +2,8 @@ import Foundation
 
 /// A curve evaluated by a single scalar parameter `u`.
 ///
+/// - SeeAlso: `BezierPath`
+///
 public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     associatedtype V: Vector
     typealias Axis = V.D.Axis
