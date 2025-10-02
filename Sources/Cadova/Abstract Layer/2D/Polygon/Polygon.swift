@@ -2,14 +2,14 @@ import Foundation
 import Manifold3D
 
 /// Represents a two-dimensional shape defined by a series of connected points.
-/// It supports initialization from an array of ``Vector2D`` points or a two-dimensional ``BezierPath``.
+/// It supports initialization from an array of ``Vector2D`` points or a two-dimensional ``ParametricCurve``.
 ///
 /// - Example:
 ///   - Creating a Polygon from points:
 ///     ```
 ///     let polygonFromPoints = Polygon([Vector2D(x: 0, y: 0), Vector2D(x: 10, y: 0), Vector2D(x: 5, y: 10)])
 ///     ```
-///   - Creating a Polygon from a Bezier path:
+///   - Creating a Polygon from a curve:
 ///     ```
 ///     let bezierPath = BezierPath2D(startPoint: .zero)
 ///                      .addingCubicCurve(controlPoint1: [10, 65], controlPoint2: [55, -20], end: [60, 40])
@@ -30,11 +30,11 @@ public struct Polygon: Shape2D {
         self.init(provider: .literal(points))
     }
 
-    /// Creates a new `Polygon` instance with the specified 2D Bezier path.
+    /// Creates a new `Polygon` instance with the specified parametric curve.
     ///
-    /// - Parameter bezierPath: A `BezierPath2D` that defines the shape of the polygon.
-    public init(_ bezierPath: BezierPath2D) {
-        self.init(provider: .bezierPath(bezierPath))
+    /// - Parameter curve: A `ParametricCurve<Vector2D>` that defines the shape of the polygon.
+    public init<Curve: ParametricCurve<Vector2D>>(_ curve: Curve) {
+        self.init(provider: .curve(.init(curve)))
     }
 
     public init(_ polygons: [Polygon]) {
