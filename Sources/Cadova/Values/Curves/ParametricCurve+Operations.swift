@@ -27,4 +27,8 @@ public extension ParametricCurve {
             return reader(frames.map(\.transform))
         }
     }
+
+    var approximateLength: Double {
+        length(in: nil, segmentation: .fixed(sampleCountForLengthApproximation))
+    }
 }

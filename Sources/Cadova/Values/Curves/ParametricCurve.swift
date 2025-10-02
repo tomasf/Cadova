@@ -45,11 +45,11 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     ///   not from the start of the curve’s domain.
     func samples(segmentation: Segmentation) -> [CurveSample<V>]
 
-    func length(segmentation: Segmentation) -> Double
+    func length(in range: ClosedRange<Double>?, segmentation: Segmentation) -> Double
 
     func mapPoints<Output: Vector>(_ transformer: (V) -> Output) -> any ParametricCurve<Output>
 
-    var approximateLength: Double { get }
+    var sampleCountForLengthApproximation: Int { get }
 }
 
 /// A structured sample of a parametric curve at a specific parameter value.
