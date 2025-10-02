@@ -35,10 +35,6 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     /// - Returns: The parameter `u` if a solution is found, otherwise `nil`.
     func parameter(matching value: Double, along axis: Axis) -> Double?
 
-    /// Returns a rich sample (position, tangent, accumulated arc length, etc.)
-    /// at parameter `u`. The returned sample’s `distance` is `0`.
-    func sample(at u: Double) -> CurveSample<V>
-
     /// Returns rich samples along the curve.
     ///
     /// - Note: The first sample’s `arcLengthFromStart` must be `0`. Each
