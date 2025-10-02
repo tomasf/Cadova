@@ -16,19 +16,18 @@ internal extension ReferenceTarget {
     }
 }
 
-internal extension BezierPath3D {
+internal extension ParametricCurve<Vector3D> {
     func frames(
         environment: EnvironmentValues,
         target: ReferenceTarget,
         targetReference: Direction2D,
         perpendicularBounds: BoundingBox2D?
-    ) -> [Frame] {
-        let derivative = self.derivative
+    ) -> [ParametricCurveFrame] {
         let samples = samples(segmentation: environment.segmentation)
-        var frames: [Frame] = []
+        var frames: [ParametricCurveFrame] = []
 
         for sample in samples {
-            frames.append(Frame(sample: sample, reference: targetReference, target: target, previousSample: frames.last))
+            frames.append(ParametricCurveFrame(sample: sample, reference: targetReference, target: target, previousSample: frames.last))
         }
 
         frames.interpolateMissingAngles()
@@ -39,65 +38,66 @@ internal extension BezierPath3D {
         }
         return frames
     }
+}
 
-    struct Frame {
-        let t: Double
-        let distance: Double
-        let point: Vector3D
-        let xAxis: Vector3D
-        let yAxis: Vector3D
-        let zAxis: Vector3D
-        var angle: Angle?
+struct ParametricCurveFrame {
+    let t: Double
+    let distance: Double
+    let point: Vector3D
+    let xAxis: Vector3D
+    let yAxis: Vector3D
+    let zAxis: Vector3D
+    var angle: Angle?
 
-        init(sample: CurveSample<Vector3D>, reference: Direction2D, target: ReferenceTarget, previousSample: Frame?) {
-            self.t = sample.u
-            self.distance = sample.distance
-            zAxis = sample.tangent.unitVector
-            self.point = sample.position
-            let plane = Plane(offset: point, normal: Direction3D(zAxis))
+    init(sample: CurveSample<Vector3D>, reference: Direction2D, target: ReferenceTarget, previousSample: Self?) {
+        self.t = sample.u
+        self.distance = sample.distance
+        zAxis = sample.tangent.unitVector
+        self.point = sample.position
+        let plane = Plane(offset: point, normal: Direction3D(zAxis))
 
-            if let previousSample {
-                let rotation = Transform3D.rotation(from: Direction3D(previousSample.zAxis), to: Direction3D(zAxis))
-                xAxis = rotation.apply(to: previousSample.xAxis).normalized
-                yAxis = rotation.apply(to: previousSample.yAxis).normalized
-            } else {
-                let provisionalX = (Swift.abs(zAxis.x) < 0.9) ? Vector3D(x: 1) : Vector3D(y: 1)
-                yAxis = (zAxis × provisionalX).normalized
-                xAxis = (yAxis × zAxis).normalized
-            }
-
-            let referenceVector = (reference.x * xAxis + reference.y * yAxis).normalized
-            let globalTargetPoint = target.targetPoint(from: plane)
-            let targetDirection = (globalTargetPoint - point).normalized
-
-            let projectedReference = referenceVector - zAxis * (referenceVector ⋅ zAxis)
-            let projectedTarget = targetDirection - zAxis * (targetDirection ⋅ zAxis)
-
-            let referenceLength = projectedReference.squaredEuclideanNorm
-            let targetLength = projectedTarget.squaredEuclideanNorm
-
-            let epsilon = 1e-10
-            if referenceLength > epsilon, targetLength > epsilon {
-                let referenceInPlane = projectedReference.normalized
-                let targetInPlane = projectedTarget.normalized
-
-                let sinTheta = (referenceInPlane × targetInPlane) ⋅ zAxis
-                let cosTheta = referenceInPlane ⋅ targetInPlane
-                angle = atan2(sinTheta, cosTheta)
-            } else {
-                angle = nil
-            }
+        if let previousSample {
+            let rotation = Transform3D.rotation(from: Direction3D(previousSample.zAxis), to: Direction3D(zAxis))
+            xAxis = rotation.apply(to: previousSample.xAxis).normalized
+            yAxis = rotation.apply(to: previousSample.yAxis).normalized
+        } else {
+            let provisionalX = (Swift.abs(zAxis.x) < 0.9) ? Vector3D(x: 1) : Vector3D(y: 1)
+            yAxis = (zAxis × provisionalX).normalized
+            xAxis = (yAxis × zAxis).normalized
         }
 
-        var transform: Transform3D {
-            let alignedX = Direction3D(xAxis).rotated(angle: angle!, around: Direction3D(zAxis))
-            let alignedY = Direction3D(zAxis × alignedX.unitVector)
-            return Transform3D(orthonormalBasisOrigin: point, x: alignedX, y: alignedY, z: Direction3D(zAxis))
+        let referenceVector = (reference.x * xAxis + reference.y * yAxis).normalized
+        let globalTargetPoint = target.targetPoint(from: plane)
+        let targetDirection = (globalTargetPoint - point).normalized
+
+        let projectedReference = referenceVector - zAxis * (referenceVector ⋅ zAxis)
+        let projectedTarget = targetDirection - zAxis * (targetDirection ⋅ zAxis)
+
+        let referenceLength = projectedReference.squaredEuclideanNorm
+        let targetLength = projectedTarget.squaredEuclideanNorm
+
+        let epsilon = 1e-10
+        if referenceLength > epsilon, targetLength > epsilon {
+            let referenceInPlane = projectedReference.normalized
+            let targetInPlane = projectedTarget.normalized
+
+            let sinTheta = (referenceInPlane × targetInPlane) ⋅ zAxis
+            let cosTheta = referenceInPlane ⋅ targetInPlane
+            angle = atan2(sinTheta, cosTheta)
+        } else {
+            angle = nil
         }
+    }
+
+    var transform: Transform3D {
+        let alignedX = Direction3D(xAxis).rotated(angle: angle!, around: Direction3D(zAxis))
+        let alignedY = Direction3D(zAxis × alignedX.unitVector)
+        return Transform3D(orthonormalBasisOrigin: point, x: alignedX, y: alignedY, z: Direction3D(zAxis))
     }
 }
 
-extension [BezierPath3D.Frame] {
+
+extension [ParametricCurveFrame] {
     mutating func interpolateMissingAngles() {
         var offset = 0
         while let start = self[offset...].firstIndex(where: { $0.angle == nil }) {

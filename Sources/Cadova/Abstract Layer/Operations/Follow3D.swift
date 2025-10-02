@@ -51,7 +51,7 @@ internal struct FollowPath3D: Shape3D {
                             perpendicularBounds: bounds.bounds2D
                         )
                         return (frames, frames.last!.distance / bounds.size.z)
-                    } transform: { (p: Vector3D, result: (frames: [BezierPath3D.Frame], lengthFactor: Double)) in
+                    } transform: { (p: Vector3D, result: (frames: [ParametricCurveFrame], lengthFactor: Double)) in
                         let distanceTarget = (p.z - bounds.minimum.z) * result.lengthFactor
                         let (index, fraction) = result.frames.binarySearch(target: distanceTarget, key: \.distance)
 
