@@ -84,3 +84,17 @@ extension BezierPath: CustomDebugStringConvertible {
         "Start point: \(startPoint)\n" + curves.enumerated().map { "\($0): " + $1.debugDescription }.joined(separator: "\n")
     }
 }
+
+extension BezierPath: ParametricCurve {
+    public var domain: ClosedRange<Double> {
+        fractionRange
+    }
+    
+    public func sample(at u: Double) -> CurveSample<V> {
+        CurveSample(u: u, position: point(at: u), tangent: tangent(at: u), distance: 0)
+    } 
+
+    public var approximateLength: Double {
+        length(segmentation: .fixed(10))
+    }
+}

@@ -1,14 +1,6 @@
 import Foundation
 
 internal extension BezierPath {
-    func pointsAtPositions(segmentation: Segmentation) -> [(fraction: Fraction, point: V)] {
-        curves.indices.flatMap { index in
-            curves[index].points(segmentation: segmentation, subdividingStraightLines: true)
-                .map { ($0 + Double(index), $1) }
-                .dropFirst(index > 0 ? 1 : 0)
-        }
-    }
-
     func simplePolygon(in environment: EnvironmentValues) -> SimplePolygon where V == Vector2D {
         SimplePolygon(points(segmentation: environment.segmentation))
     }
@@ -22,10 +14,6 @@ internal extension BezierPath {
             let index = floor(position)
             return (Int(index), position - index)
         }
-    }
-
-    var approximateLength: Double {
-        length(segmentation: .fixed(10))
     }
 }
 
