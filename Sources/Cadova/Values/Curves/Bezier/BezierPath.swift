@@ -104,6 +104,14 @@ extension BezierPath: ParametricCurve {
     public func points(in range: ClosedRange<Double>, segmentation: Segmentation) -> [V] {
         subpath(in: range).points(segmentation: segmentation)
     }
+
+    public var labeledControlPoints: [(V, label: String?)]? {
+        [(startPoint, "Start")] + curves.enumerated().flatMap { curveIndex, curve in
+            curve.controlPoints.enumerated().dropFirst().map { controlPointIndex, controlPoint in
+                (controlPoint, "c\(curveIndex)p\(controlPointIndex)")
+            }
+        }
+    }
 }
 
 internal struct BezierPathDerivativeView<V: Vector>: CurveDerivativeView {

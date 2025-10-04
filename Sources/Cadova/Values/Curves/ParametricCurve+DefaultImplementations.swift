@@ -1,6 +1,8 @@
 import Foundation
 
 public extension ParametricCurve {
+    var labeledControlPoints: [(V, label: String?)]? { nil }
+
     /// Returns rich samples along the curve.
     ///
     /// The first sample’s `distance` is `0`. Each subsequent sample’s `distance`

@@ -70,6 +70,8 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     func mapPoints(_ transformer: (V) -> Vector3D) -> Curve3D
 
     var sampleCountForLengthApproximation: Int { get }
+
+    var labeledControlPoints: [(V, label: String?)]? { get }
 }
 
 public protocol CurveDerivativeView<V> {
