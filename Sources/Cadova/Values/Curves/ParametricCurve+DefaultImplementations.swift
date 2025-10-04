@@ -31,6 +31,21 @@ public extension ParametricCurve {
         return samples
     }
 
+    func length(segmentation: Segmentation) -> Double {
+        points(segmentation: segmentation)
+            .paired()
+            .map { ($1 - $0).magnitude }
+            .reduce(0, +)
+    }
+
+    func points(segmentation: Segmentation) -> [V] {
+        points(in: domain, segmentation: segmentation)
+    }
+
+    subscript(range: any RangeExpression<Double>) -> Subcurve<Self> {
+        Subcurve(base: self, domain: range.resolved(with: domain))
+    }
+
     /// Solves for a parameter `u` whose point has the given coordinate value
     /// along an axis (only valid when the curve is monotone in that axis).
     ///

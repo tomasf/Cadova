@@ -5,7 +5,7 @@ internal extension BezierPath {
         SimplePolygon(points(segmentation: environment.segmentation))
     }
 
-    func curveIndexAndFraction(for position: Fraction) -> (index: Int, fraction: Double) {
+    func curveIndexAndFraction(for position: Double) -> (index: Int, fraction: Double) {
         if position < 0 {
             return (0, position)
         } else if position >= Double(curves.count) {
@@ -31,7 +31,7 @@ internal extension BezierPath {
         }) ?? curves.count - 1
     }
 
-    func position(for target: Double, in axis: V.D.Axis) -> Fraction? {
+    func position(for target: Double, in axis: V.D.Axis) -> Double? {
         let curveIndex = curveIndex(for: target, in: axis)
         guard let t = curves[curveIndex].t(for: target, in: axis) else {
             return nil

@@ -6,8 +6,12 @@ import Foundation
 ///
 public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     associatedtype V: Vector
+    associatedtype Curve2D: ParametricCurve<Vector2D>
+    associatedtype Curve3D: ParametricCurve<Vector3D>
     typealias Axis = V.D.Axis
 
+    // add dpcs-does this curve represent an actual curve with a length? A bezier path without curves inside does not, for example.
+    // A subcurve with the same lowerBound and upperBounds also does not
     var isEmpty: Bool { get }
 
     /// The parameter interval over which the curve is naturally defined.
@@ -26,6 +30,9 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     /// - Parameter segmentation: Controls sampling density.
     func points(segmentation: Segmentation) -> [V]
 
+    // add docs
+    func points(in range: ClosedRange<Double>, segmentation: Segmentation) -> [V]
+
     /// Solves for a parameter `u` whose point has the given coordinate value
     /// along an axis (only valid when the curve is monotone in that axis).
     ///
@@ -37,17 +44,30 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
 
     /// Returns rich samples along the curve.
     ///
-    /// - Note: The first sample’s `arcLengthFromStart` must be `0`. Each
-    ///   subsequent sample’s `arcLengthFromStart` is the accumulated arc length
+    /// - Note: The first sample’s `distance` must be `0`. Each
+    ///   subsequent sample’s `distance` is the accumulated arc length
     ///   measured from that first sample (i.e., the start of this extraction),
     ///   not from the start of the curve’s domain.
     func samples(segmentation: Segmentation) -> [CurveSample<V>]
 
+    // add docs. this is for efficently repeatedly evaluating tangents along the curve
     var derivativeView: any CurveDerivativeView<V> { get }
 
-    func length(in range: ClosedRange<Double>?, segmentation: Segmentation) -> Double
+    /// Calculates the total length of the curve.
+    ///
+    /// - Parameter segmentation: The desired level of detail for the generated points, which influences the accuracy
+    ///   of the length calculation. More detailed segmentation results in more points being generated, leading to a
+    ///   more accurate length approximation.
+    /// - Returns: A `Double` value representing the total length of the curve.
+    /// 
+    func length(segmentation: Segmentation) -> Double
 
-    func mapPoints<Output: Vector>(_ transformer: (V) -> Output) -> any ParametricCurve<Output>
+    // get a subrange of the curve as a new curve
+    subscript(range: any RangeExpression<Double>) -> Subcurve<Self> { get }
+
+    // apply an operation to a curve's points
+    func mapPoints(_ transformer: (V) -> Vector2D) -> Curve2D
+    func mapPoints(_ transformer: (V) -> Vector3D) -> Curve3D
 
     var sampleCountForLengthApproximation: Int { get }
 }
@@ -57,36 +77,3 @@ public protocol CurveDerivativeView<V> {
     func tangent(at u: Double) -> Direction<V.D>
 }
 
-/// A structured sample of a parametric curve at a specific parameter value.
-public struct CurveSample<V: Vector>: Sendable, Hashable, Codable {
-    /// The parameter value at which this sample was taken.
-    public let u: Double
-    /// The position on the curve.
-    public let position: V
-    /// The unit tangent direction at `u`.
-    public let tangent: Direction<V.D>
-    /// The accumulated arc length from the first sample in the current extraction up to `u`.
-    public let distance: Double
-
-    public init(u: Double, position: V, tangent: Direction<V.D>, distance: Double) {
-        self.u = u
-        self.position = position
-        self.tangent = tangent
-        self.distance = distance
-    }
-
-    func interpolated(with other: CurveSample, fraction: Double) -> Self {
-        Self(
-            u: u + (other.u - u) * fraction,
-            position: position.point(alongLineTo: other.position, at: fraction),
-            tangent: Direction(tangent.unitVector + (other.tangent.unitVector - tangent.unitVector) * fraction),
-            distance: distance + (other.distance - distance) * fraction,
-        )
-    }
-}
-
-internal extension ParametricCurve {
-    var curve3D: any ParametricCurve<Vector3D> {
-        mapPoints(\.vector3D)
-    }
-}
