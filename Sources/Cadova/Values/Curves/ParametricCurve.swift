@@ -37,8 +37,8 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
 
     /// Returns rich samples along the curve.
     ///
-    /// - Note: The first sample’s `arcLengthFromStart` must be `0`. Each
-    ///   subsequent sample’s `arcLengthFromStart` is the accumulated arc length
+    /// - Note: The first sample’s `distance` must be `0`. Each
+    ///   subsequent sample’s `distance` is the accumulated arc length
     ///   measured from that first sample (i.e., the start of this extraction),
     ///   not from the start of the curve’s domain.
     func samples(segmentation: Segmentation) -> [CurveSample<V>]

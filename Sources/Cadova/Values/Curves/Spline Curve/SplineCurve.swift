@@ -93,7 +93,7 @@ extension SplineCurve: ParametricCurve {
     public var sampleCountForLengthApproximation: Int { controlPoints.count * 3 }
 
     public var domain: ClosedRange<Double> {
-        knots[degree] ... knots[knots.count - degree - 1]
+        knots[degree]...knots[knots.count - degree - 1]
     }
     
     public var derivativeView: any CurveDerivativeView<V> {
@@ -188,24 +188,9 @@ private extension SplineCurve {
 public extension SplineCurve {
     func withWeight(_ weight: Double, forControlPointAtIndex index: Int) -> Self {
         precondition(weight > 0 && weight.isFinite, "Weights must be positive and finite")
-        
+
         var controlPoints = self.controlPoints
         controlPoints[index].weight = weight
         return Self(degree: degree, knots: knots, controlPoints: controlPoints)
-    }
-    
-    /// Creates a **uniform clamped cubic** NURBS from control points.
-    ///
-    /// Knots are `[0,0,0,0, 1/k, 2/k, …, 1, 1,1,1]` where `k = n − p + 1` (internal spans).
-    /// If `weights` is omitted, all weights default to `1` (ordinary B‑spline behavior).
-    static func uniformCubic(controlPoints: [V]) -> SplineCurve {
-        let p = 3
-        let n = controlPoints.count - 1
-        precondition(n >= p, "Need at least p+1 control points")
-        
-        let k = n - p + 1
-        let interior = (1..<k).map { Double($0) / Double(k) }
-        let U = Array(repeating: 0.0, count: p + 1) + interior + Array(repeating: 1.0, count: p + 1)
-        return SplineCurve(degree: p, knots: U, controlPoints: controlPoints.map { ($0, 1) })
     }
 }
