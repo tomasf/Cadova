@@ -158,6 +158,16 @@ extension SplineCurve: ParametricCurve {
     public func mapPoints(_ transformer: (V) -> Vector3D) -> SplineCurve<Vector3D> {
         map(transformer)
     }
+
+    public var labeledControlPoints: [(V, label: String?)]? {
+        controlPoints.enumerated().map(unpacked).map { controlPointIndex, controlPoint, weight in
+            if weight - 1.0 > .ulpOfOne {
+                (controlPoint, String(format: "%d (%g)", controlPointIndex, weight))
+            } else {
+                (controlPoint, "\(controlPointIndex)")
+            }
+        }
+    }
 }
 
 internal struct SplineCurveDerivativeView<V: Vector>: CurveDerivativeView {

@@ -68,7 +68,7 @@ public extension Direction <D3> {
     }
 
     /// Rotates the direction by euler angles.
-    func rotated(x: Angle, y: Angle, z: Angle) -> Self {
+    func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> Self {
         .init(Transform3D.rotation(x: x, y: y, z: z).apply(to: unitVector))
     }
 
