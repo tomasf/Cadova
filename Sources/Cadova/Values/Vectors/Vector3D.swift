@@ -10,7 +10,7 @@ import Manifold3D
 /// ```
 public struct Vector3D: ExpressibleByArrayLiteral, Hashable, Sendable, Codable {
     public typealias D = D3
-    
+
     /// The x-component of the vector.
     public var x: Double
     /// The y-component of the vector.
