@@ -43,13 +43,6 @@ internal extension BezierPath {
         }
         return endPoint + previousCurve.tangent(at: 1).unitVector * distance
     }
-
-    var path3D: BezierPath3D {
-        switch self {
-        case let self as BezierPath3D: self
-        default: mapPoints(\.vector3D)
-        }
-    }
 }
 
 public extension BezierPath {
@@ -81,26 +74,35 @@ extension BezierPath: CustomDebugStringConvertible {
 }
 
 extension BezierPath: ParametricCurve {
+    /// A `Double` value that represents a fractional position along a Bézier path.
+    /// The integer part of the value represents the index of the Bézier curve within the path,
+    /// and the fractional part represents a position within that specific curve.
+    ///
+    /// For example:
+    /// - `0.0` represents the start of the first curve.
+    /// - `1.0` represents the start of the second curve.
+    /// - `1.5` represents the midpoint of the second curve.
+    ///
     public var domain: ClosedRange<Double> {
-        fractionRange
+        0...Double(curves.count)
     }
 
     public var sampleCountForLengthApproximation: Int { 10 }
 
-    public func mapPoints<Output: Vector>(_ transformer: (V) -> Output) -> any ParametricCurve<Output> {
-        mapPoints(transformer) as BezierPath<Output>
+    public func mapPoints(_ transformer: (V) -> Vector2D) -> BezierPath2D {
+        map(transformer)
     }
 
-    public func length(in range: ClosedRange<Double>?, segmentation: Segmentation) -> Double {
-        let path = range.map { self[$0] } ?? self
-        return path.points(segmentation: segmentation)
-            .paired()
-            .map { ($1 - $0).magnitude }
-            .reduce(0, +)
+    public func mapPoints(_ transformer: (V) -> Vector3D) -> BezierPath3D {
+        map(transformer)
     }
 
     public var derivativeView: any CurveDerivativeView<V> {
         BezierPathDerivativeView(derivative: derivative)
+    }
+
+    public func points(in range: ClosedRange<Double>, segmentation: Segmentation) -> [V] {
+        subpath(in: range).points(segmentation: segmentation)
     }
 }
 

@@ -28,7 +28,65 @@ public extension ParametricCurve {
         }
     }
 
+    /// Converts a sequence of points along the curve into a custom geometry using a geometry builder.
+    ///
+    /// - Parameters:
+    ///   - reader: A closure that transforms points into a geometry value.
+    /// - Returns: A constructed geometry object based on the sampled points.
+    ///
+    func readPoints<D: Dimensionality>(
+        @GeometryBuilder<D> _ reader: @Sendable @escaping ([V]) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment { e in
+            reader(points(segmentation: e.segmentation))
+        }
+    }
+
+    /// Converts a sequence of samples along the curve into a custom geometry using a geometry builder.
+    ///
+    /// - Parameters:
+    ///   - reader: A closure that transforms samples into a geometry value.
+    /// - Returns: A constructed geometry object based on the samples.
+    ///
+    func readSamples<D: Dimensionality>(
+        @GeometryBuilder<D> _ reader: @Sendable @escaping ([CurveSample<V>]) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment { e in
+            reader(samples(segmentation: e.segmentation))
+        }
+    }
+
     var approximateLength: Double {
-        length(in: nil, segmentation: .fixed(sampleCountForLengthApproximation))
+        length(segmentation: .fixed(sampleCountForLengthApproximation))
+    }
+
+    var curve3D: Curve3D {
+        switch self {
+        case let self as Curve3D: self
+        default: mapPoints(\.vector3D)
+        }
+    }
+
+    /// Applies an affine transform to all control points (weights unchanged).
+    func transformed(using transform: V.D.Transform) -> Self where Self == Curve2D {
+        mapPoints(transform.apply(to:))
+    }
+
+    /// Applies an affine transform to all control points (weights unchanged).
+    func transformed(using transform: V.D.Transform) -> Self where Self == Curve3D {
+        mapPoints(transform.apply(to:))
+    }
+
+    subscript(parameter: Double) -> V {
+        point(at: parameter)
+    }
+
+    /// Returns the tangent direction at a specific position along the curve.
+    ///
+    /// - Parameter parameter: The position along the curve where the tangent is evaluated.
+    /// - Returns: A `Direction` representing the tangent vector at the given position.
+    ///
+    func tangent(at fraction: Double) -> Direction<V.D> {
+        derivativeView.tangent(at: fraction)
     }
 }

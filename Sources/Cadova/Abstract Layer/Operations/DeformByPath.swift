@@ -17,7 +17,7 @@ public extension Geometry2D {
             @Environment(\.segmentation) var segmentation
             let min = curve.parameter(matching: bounds.minimum.x, along: .x) ?? curve.domain.lowerBound
             let max = curve.parameter(matching: bounds.maximum.x, along: .x) ?? curve.domain.upperBound
-            let approximateLength = curve.length(in: min...max, segmentation: .fixed(curve.sampleCountForLengthApproximation))
+            let approximateLength = curve[min...max].approximateLength
             let segmentCount = segmentation.segmentCount(length: approximateLength)
             let segmentLength = bounds.size.x / Double(segmentCount)
 
@@ -58,7 +58,7 @@ public extension Geometry3D {
             @Environment(\.segmentation) var segmentation
             let min = curve.parameter(matching: bounds.minimum.z, along: .z) ?? curve.domain.lowerBound
             let max = curve.parameter(matching: bounds.maximum.z, along: .z) ?? curve.domain.upperBound
-            let approximateLength = curve.length(in: min...max, segmentation: .fixed(curve.sampleCountForLengthApproximation))
+            let approximateLength = curve[min...max].approximateLength
             let segmentCount = segmentation.segmentCount(length: approximateLength)
             let segmentLength = bounds.size.z / Double(segmentCount)
 

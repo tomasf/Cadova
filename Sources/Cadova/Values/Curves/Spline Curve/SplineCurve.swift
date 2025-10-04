@@ -32,6 +32,22 @@ public struct SplineCurve<V: Vector>: Sendable {
     
     /// Evaluates the curve point at parameter `u` using homogeneous De Boor.
     public func point(at u: Double) -> V {
+        func findSpan(u: Double) -> Int {
+            let p = degree
+            let n = controlPoints.count - 1
+            let U = knots
+            let uMin = U[p], uMax = U[n + 1]
+            if u <= uMin { return p }
+            if u >= uMax { return n }
+
+            var low = p, high = n + 1, mid = (low + high) / 2
+            while !(u >= U[mid] && u < U[mid + 1]) {
+                if u < U[mid] { high = mid } else { low = mid }
+                mid = (low + high) / 2
+            }
+            return mid
+        }
+
         let p = degree
         let span = findSpan(u: u)
         // Local homogeneous control points: (wP, w)
@@ -77,61 +93,19 @@ public struct SplineCurve<V: Vector>: Sendable {
     public func map<V2: Vector>(_ f: (V) -> V2) -> SplineCurve<V2> {
         .init(degree: degree, knots: knots, controlPoints: controlPoints.map { (p, w) in (f(p), w) })
     }
-
-    /// Applies an affine transform to all control points (weights unchanged).
-    public func transformed<T: Transform>(using transform: T) -> Self where T == V.D.Transform, T.V == V {
-        map(transform.apply(to:))
-    }
 }
 
 extension SplineCurve: ParametricCurve {
-    public func points(segmentation: Segmentation) -> [V] {
-        points(in: nil, segmentation: segmentation)
-    }
-
-    public var isEmpty: Bool { false }
-    public var sampleCountForLengthApproximation: Int { controlPoints.count * 3 }
-
-    public var domain: ClosedRange<Double> {
-        knots[degree] ... knots[knots.count - degree - 1]
-    }
-    
-    public var derivativeView: any CurveDerivativeView<V> {
-        SplineCurveDerivativeView(splineCurve: self)
-    }
-    
-    public func length(in range: ClosedRange<Double>?, segmentation: Segmentation) -> Double {
-        points(in: range, segmentation: segmentation)
-            .paired()
-            .map { ($1 - $0).magnitude }
-            .reduce(0, +)
-    }
-    
-    public func mapPoints<Output: Vector>(_ transformer: (V) -> Output) -> any ParametricCurve<Output> {
-        map(transformer)
-    }
-}
-
-internal struct SplineCurveDerivativeView<V: Vector>: CurveDerivativeView {
-    let splineCurve: SplineCurve<V>
-
-    func tangent(at u: Double) -> Direction<V.D> {
-        splineCurve.tangent(at: u)
-    }
-}
-
-public extension SplineCurve {
     /// Samples points along the curve using a `Segmentation`.
     ///
     /// - Parameters:
-    ///   - range: Optional parameter subrange to restrict sampling. If `nil`, the full `domain` is used.
     ///   - segmentation: The segmentation strategy.
     ///
     /// For `.fixed`, samples `n` segments uniformly in parameter space.
     /// For `.adaptive`, recursively subdivides parameter intervals based on chord length.
     ///
-    func points(in range: ClosedRange<Double>? = nil, segmentation: Segmentation) -> [V] {
-        let span = (range ?? domain).clamped(to: domain)
+    public func points(in range: ClosedRange<Double>, segmentation: Segmentation) -> [V] {
+        let span = range.clamped(to: domain)
 
         switch segmentation {
         case .fixed(let n):
@@ -164,48 +138,42 @@ public extension SplineCurve {
             return out
         }
     }
+
+
+    public var isEmpty: Bool { false }
+    public var sampleCountForLengthApproximation: Int { controlPoints.count * 3 }
+
+    public var domain: ClosedRange<Double> {
+        knots[degree]...knots[knots.count - degree - 1]
+    }
+    
+    public var derivativeView: any CurveDerivativeView<V> {
+        SplineCurveDerivativeView(splineCurve: self)
+    }
+
+    public func mapPoints(_ transformer: (V) -> Vector2D) -> SplineCurve<Vector2D> {
+        map(transformer)
+    }
+
+    public func mapPoints(_ transformer: (V) -> Vector3D) -> SplineCurve<Vector3D> {
+        map(transformer)
+    }
 }
 
-private extension SplineCurve {
-    // Finds i such that u ∈ [U[i], U[i+1]), with special case at the right end.
-    func findSpan(u: Double) -> Int {
-        let p = degree
-        let n = controlPoints.count - 1
-        let U = knots
-        let uMin = U[p], uMax = U[n + 1]
-        if u <= uMin { return p }
-        if u >= uMax { return n }
-        
-        var low = p, high = n + 1, mid = (low + high) / 2
-        while !(u >= U[mid] && u < U[mid + 1]) {
-            if u < U[mid] { high = mid } else { low = mid }
-            mid = (low + high) / 2
-        }
-        return mid
+internal struct SplineCurveDerivativeView<V: Vector>: CurveDerivativeView {
+    let splineCurve: SplineCurve<V>
+
+    func tangent(at u: Double) -> Direction<V.D> {
+        splineCurve.tangent(at: u)
     }
 }
 
 public extension SplineCurve {
     func withWeight(_ weight: Double, forControlPointAtIndex index: Int) -> Self {
         precondition(weight > 0 && weight.isFinite, "Weights must be positive and finite")
-        
+
         var controlPoints = self.controlPoints
         controlPoints[index].weight = weight
         return Self(degree: degree, knots: knots, controlPoints: controlPoints)
-    }
-    
-    /// Creates a **uniform clamped cubic** NURBS from control points.
-    ///
-    /// Knots are `[0,0,0,0, 1/k, 2/k, …, 1, 1,1,1]` where `k = n − p + 1` (internal spans).
-    /// If `weights` is omitted, all weights default to `1` (ordinary B‑spline behavior).
-    static func uniformCubic(controlPoints: [V]) -> SplineCurve {
-        let p = 3
-        let n = controlPoints.count - 1
-        precondition(n >= p, "Need at least p+1 control points")
-        
-        let k = n - p + 1
-        let interior = (1..<k).map { Double($0) / Double(k) }
-        let U = Array(repeating: 0.0, count: p + 1) + interior + Array(repeating: 1.0, count: p + 1)
-        return SplineCurve(degree: p, knots: U, controlPoints: controlPoints.map { ($0, 1) })
     }
 }
