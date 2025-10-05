@@ -183,27 +183,3 @@ public extension Plane {
         return Line(point: .init(point[0], point[1], point[2]), direction: Direction3D(direction))
     }
 }
-
-public extension Plane {
-    /// Visualizes the plane as a thin, large cylinder, useful for debugging or presentation.
-    /// - Parameters:
-    ///   - radius: Radius of the cylinder used to represent the plane.
-    ///   - thickness: Thickness of the cylinder.
-    /// - Returns: A geometry object representing the plane.
-    func visualized(radius: Double = 100, thickness: Double = 0.05) -> any Geometry3D {
-
-        Cylinder(radius: radius, height: thickness)
-            .withMaterial(.visualizedPlane)
-            .adding {
-                Cylinder(diameter: 0.5, height: 3)
-                    .adding {
-                        Cylinder(bottomDiameter: 2, topDiameter: 0, height: 2)
-                            .translated(z: 3)
-                    }
-                    .colored(.red.with(alpha: 0.3))
-            }
-            .rotated(from: .up, to: normal)
-            .translated(offset)
-            .inPart(named: "Visualized Plane", type: .visual)
-    }
-}
