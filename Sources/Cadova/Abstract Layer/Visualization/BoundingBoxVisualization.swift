@@ -76,5 +76,5 @@ fileprivate struct BoundingBoxVisualization: Shape3D {
 }
 
 fileprivate extension Color {
-    static let borderColorDefault: Color = .blue.with(alpha: 0.5)
+    static let borderColorDefault: Color = .blue.with(alpha: 0.7)
 }

@@ -10,10 +10,10 @@ public extension Geometry3D {
     ///
     /// See EnvironmentValues for how environment values flow through geometry.
     ///
-    /// - Parameter length: The length of each axis arrow. Default is `10`.
+    /// - Parameter length: The length of each axis arrow. Default is `15`.
     /// - Returns: The original geometry with visualized axes added.
     ///
-    func visualizingAxes(length: Double = 10) -> any Geometry3D {
+    func visualizingAxes(length: Double = 15) -> any Geometry3D {
         adding { AxesVisualization(length: length) }
     }
 }
@@ -27,7 +27,7 @@ fileprivate struct AxesVisualization: Shape3D {
 
         let arrow = Stack(.z) {
             Cylinder(diameter: 0.1 * scale, height: length)
-            Cylinder(bottomDiameter: 0.2 * scale, topDiameter: 0, height: 0.2 * scale)
+            Cylinder(bottomDiameter: 0.4 * scale, topDiameter: 0, height: 0.4 * scale)
         }
 
         Box(0.2 * scale)
