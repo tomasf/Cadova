@@ -53,7 +53,8 @@ fileprivate struct CurveVisualization<Curve: ParametricCurve>: Shape3D {
                             if let label {
                                 Label(text: label)
                                     .scaled(scale)
-                                    .rotated(from: .up, to: labelDirection)
+                                    .rotated(x: 90°)
+                                    .rotated(from: .back, to: labelDirection)
                                     .translated(controlPoint.vector3D)
                             }
                         }
@@ -90,16 +91,15 @@ fileprivate struct CurveVisualization<Curve: ParametricCurve>: Shape3D {
                 .colored(.black)
 
             Text(text).measuringBounds { text, bounds in
-                Box(x: bounds.size.x + 1.0, y: 2, z: 0.1)
-                    .applyingEdgeProfile(.fillet(radius: 1), along: .z)
-                    .aligned(at: .center)
-                    .colored(.white)
-                    .adding {
-                        text.extruded(height: 0.01)
-                            .translated(z: 0.1)
-                            .colored(.black)
-                    }
-                    .translated(y: 1)
+                Stack(.z) {
+                    Capsule(bounds.size + 1)
+                        .extruded(height: 0.1)
+                        .colored(.white)
+
+                    text.extruded(height: 0.01)
+                        .colored(.black)
+                }
+                .aligned(at: .minY)
             }
         }
     }
@@ -111,5 +111,5 @@ fileprivate extension Color {
 }
 
 fileprivate extension Direction3D {
-    static let labelDefault: Self = .up.rotated(x: 45°, z: -45°)
+    static let labelDefault: Self = .up.rotated(x: 60°, z: -30°)
 }
