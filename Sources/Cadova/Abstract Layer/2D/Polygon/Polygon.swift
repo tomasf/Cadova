@@ -50,13 +50,6 @@ public struct Polygon: Shape2D {
 }
 
 public extension Polygon {
-    /// Transforms the polygon using an affine transformation.
-    /// - Parameter transform: An `Transform2D` to apply to the polygon.
-    /// - Returns: A new `Polygon` instance with transformed vertices.
-    func transformed(_ transform: Transform2D) -> Polygon {
-        Polygon(provider: .transformed(pointsProvider, transform))
-    }
-
     func appending(_ other: Polygon) -> Polygon {
         Polygon(provider: .concatenated([pointsProvider, other.pointsProvider]))
     }
