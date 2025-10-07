@@ -34,33 +34,65 @@ fileprivate extension Geometry {
 }
 
 public extension Geometry {
-    // set the scale of visualization geometry. The default scale is 1.0. If the visualization is too small or large in relation
-    // to your model, decrease or increase this value
+    /// Sets the visualization scale for helper/diagnostic geometry derived from this geometry.
+    ///
+    /// Use this to make visualizations appear larger or smaller relative to the model, without affecting the model itself.
+    /// A value of `1.0` means default size; values greater than `1.0` enlarge visualizations; values less than `1.0` shrink them.
+    ///
+    /// - Parameter scale: The relative scale to apply to visualization elements.
+    /// - Returns: Geometry with the visualization scale applied in its environment.
     func withVisualizationScale(_ scale: Double) -> D.Geometry {
         withVisualizationOption(.scale, value: scale)
     }
 
-    // sets the primary color of visualizations. this can be applied in different ways depending on the type of visualization
+    /// Sets the primary visualization color used by helper/diagnostic elements.
+    ///
+    /// Depending on the type of visualization, this color may be used for outlines, markers, or text.
+    /// This does not affect the material or color of the model itself.
+    ///
+    /// - Parameter color: The color to use for visualization elements.
+    /// - Returns: Geometry with the visualization color applied in its environment.
     func withVisualizationColor(_ color: Color) -> D.Geometry {
         withVisualizationOption(.primaryColor, value: color)
     }
 
-    // are labels hidden?
+    /// Controls whether visualization labels are hidden.
+    ///
+    /// Pass `true` to hide labels, or `false` to show them. The default behavior is visualization-dependent.
+    ///
+    /// - Parameter hidden: Whether labels should be hidden.
+    /// - Returns: Geometry with the label visibility preference applied in its environment.
     func withVisualizationLabels(hidden: Bool) -> D.Geometry {
         withVisualizationOption(.labelsEnabled, value: !hidden)
     }
 
-    // which direction are visualization labels facing?
+    /// Sets the facing direction for visualization labels.
+    ///
+    /// Some visualizations display text or arrows that can be oriented. Use this to influence which direction
+    /// labels should face.
+    ///
+    /// - Parameter direction: The desired facing direction for labels.
+    /// - Returns: Geometry with the label facing preference applied in its environment.
     func withVisualizationLabels(facing direction: Direction3D) -> D.Geometry {
         withVisualizationOption(.labelDirection, value: direction)
     }
 
-    // hide control points?
+    /// Controls whether visualization control points are hidden.
+    ///
+    /// Pass `true` to hide control points/handles, or `false` to show them. The default behavior is visualization-dependent.
+    ///
+    /// - Parameter hidden: Whether control points should be hidden.
+    /// - Returns: Geometry with the control point visibility preference applied in its environment.
     func withVisualizationControlPoints(hidden: Bool) -> D.Geometry {
         withVisualizationOption(.controlPointsEnabled, value: !hidden)
     }
 
-    // control point color
+    /// Sets the color used for visualization control points.
+    ///
+    /// This color applies to helper markers such as control points or handles and does not affect the model itself.
+    ///
+    /// - Parameter color: The color to use for control points.
+    /// - Returns: Geometry with the control point color preference applied in its environment.
     func withVisualizationControlPoints(color: Color) -> D.Geometry {
         withVisualizationOption(.controlPointsColor, value: color)
     }
