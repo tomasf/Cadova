@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Transformable<D2> {
+public extension Transformable<Transform2D> {
     /// Applies a shearing transformation to this 2D object.
     /// - Parameters:
     ///   - axis: The primary axis that will be affected by the shear.
@@ -20,7 +20,7 @@ public extension Transformable<D2> {
     }
 }
 
-public extension Transformable<D3> {
+public extension Transformable<Transform3D> {
     /// Applies a shearing transformation to this 3D object.
     /// - Parameters:
     ///   - axis: The primary axis that will be affected by the shear.

@@ -9,12 +9,12 @@ public extension Transformable {
     /// - Parameters:
     ///   - distance: A `Vector2D`/`Vector3D` representing the distance to move along the axes.
     /// - Returns: A translated object.
-    func translated(_ distance: D.Vector) -> Transformed {
+    func translated(_ distance: T.D.Vector) -> Transformed {
         transformed(.translation(distance))
     }
 }
 
-public extension Transformable<D2> {
+public extension Transformable<Transform2D> {
     /// Translate object in 2D space using individual components.
     ///
     /// This method moves the object by specifying the individual distance components along the x and y axes. It
@@ -29,7 +29,7 @@ public extension Transformable<D2> {
     }
 }
 
-public extension Transformable<D3> {
+public extension Transformable<Transform3D> {
     /// Translate object in 3D space using a 2D vector for the x and y axes and an individual z-axis component.
     ///
     /// This method allows specifying a 2D vector for the x and y components and an individual value for the z-axis,

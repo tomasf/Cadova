@@ -32,7 +32,7 @@ import Manifold3D
 ///
 /// This will create an intersection where the box and cylinder overlap.
 ///
-public struct Intersection<D: Dimensionality>: Shape {
+public struct Intersection<D: Dimensionality>: Shape, Transformable {
     internal let children: @Sendable () -> [D.Geometry]
 
     internal init(children: @Sendable @escaping () -> [D.Geometry]) {

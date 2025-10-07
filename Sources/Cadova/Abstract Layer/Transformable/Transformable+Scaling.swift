@@ -9,7 +9,7 @@ public extension Transformable {
     /// - Parameters:
     ///   - scale: A `Vector2D`/`Vector3D` representing the scaling factors along the axes.
     /// - Returns: A scaled object.
-    func scaled(_ scale: D.Vector) -> Transformed {
+    func scaled(_ scale: T.D.Vector) -> Transformed {
         transformed(.scaling(scale))
     }
 
@@ -21,7 +21,7 @@ public extension Transformable {
     ///   - factor: The uniform scaling factor.
     /// - Returns: A uniformly scaled object.
     func scaled(_ factor: Double) -> Transformed {
-        scaled(D.Vector(factor))
+        scaled(T.D.Vector(factor))
     }
 
     /// Flips the object along the specified axes.
@@ -31,12 +31,12 @@ public extension Transformable {
     ///
     /// - Parameter axes: The axes across which to flip the object.
     /// - Returns: A new object that is mirrored across the specified axes.
-    func flipped(along axes: D.Axes) -> Transformed {
-        scaled(D.Vector(1).with(axes, as: -1))
+    func flipped(along axes: T.D.Axes) -> Transformed {
+        scaled(T.D.Vector(1).with(axes, as: -1))
     }
 }
 
-public extension Transformable<D2> {
+public extension Transformable<Transform2D> {
     /// Scale object non-uniformly.
     ///
     /// This method allows non-uniform scaling of the object by specifying individual scaling factors for the x and
@@ -51,7 +51,7 @@ public extension Transformable<D2> {
     }
 }
 
-public extension Transformable<D3> {
+public extension Transformable<Transform3D> {
     /// Scale object non-uniformly.
     ///
     /// This method allows non-uniform scaling of the object by specifying individual scaling factors for the x, y,
