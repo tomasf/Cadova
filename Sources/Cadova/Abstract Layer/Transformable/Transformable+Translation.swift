@@ -25,7 +25,7 @@ public extension Transformable<Transform2D> {
     ///   - y: The distance to move along the y-axis.
     /// - Returns: A translated object.
     func translated(x: Double = 0, y: Double = 0) -> Transformed {
-        translated([x, y])
+        translated(Vector2D(x, y))
     }
 }
 
@@ -55,6 +55,6 @@ public extension Transformable<Transform3D> {
     ///   - z: The distance to move along the z-axis.
     /// - Returns: A translated object.
     func translated(x: Double = 0, y: Double = 0, z: Double = 0) -> Transformed {
-        translated([x, y, z])
+        translated(Vector3D(x, y, z))
     }
 }
