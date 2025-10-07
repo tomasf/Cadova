@@ -68,13 +68,14 @@ public struct BezierPatch: Sendable, Hashable, Codable {
             }
         }
     }
+}
 
+extension BezierPatch: Transformable {
     /// Transform all control points using an affine transform
-    public func transformed(using transform: Transform3D) -> Self {
-        let transformedPoints = controlPoints.map { row in
+    public func transformed(_ transform: Transform3D) -> Self {
+        Self(controlPoints: controlPoints.map { row in
             row.map { transform.apply(to: $0) }
-        }
-        return Self(controlPoints: transformedPoints)
+        })
     }
 }
 
