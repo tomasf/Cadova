@@ -67,16 +67,6 @@ public extension ParametricCurve {
         }
     }
 
-    /// Applies an affine transform to all control points (weights unchanged).
-    func transformed(using transform: V.D.Transform) -> Self where Self == Curve2D {
-        mapPoints(transform.apply(to:))
-    }
-
-    /// Applies an affine transform to all control points (weights unchanged).
-    func transformed(using transform: V.D.Transform) -> Self where Self == Curve3D {
-        mapPoints(transform.apply(to:))
-    }
-
     subscript(parameter: Double) -> V {
         point(at: parameter)
     }
