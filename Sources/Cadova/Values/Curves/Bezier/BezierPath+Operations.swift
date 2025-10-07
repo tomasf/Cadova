@@ -26,42 +26,11 @@ public extension BezierPath {
 }
 
 public extension BezierPath {
-    var isEmpty: Bool {
-        curves.isEmpty
-    }
-
-    /// Returns the point at a specific fractional position along the path.
-    ///
-    /// - Parameter fraction: A fractional value indicating the position along the path.
-    ///   The integer part indicates the curve index; the fractional part specifies the location within that curve.
-    /// - Returns: The interpolated point along the path at the specified position.
-    func point(at fraction: Double) -> V {
-        guard !isEmpty else { return startPoint }
-        let (curveIndex, t) = curveIndexAndFraction(for: fraction)
-        return curves[curveIndex].point(at: t)
-    }
-
     /// Computes the derivative path of the Bézier path.
     ///
     /// - Returns: A new `BezierPath` where each curve is replaced by its derivative.
     var derivative: BezierPath {
         BezierPath(startPoint: startPoint, curves: curves.map { $0.derivative })
-    }
-
-    /// Generates a sequence of points representing the path by sampling each curve.
-    ///
-    /// Straight line segments are represented minimally (start/end only); they are not subdivided.
-    /// Use ``subdividedPoints(segmentation:)`` to subdivide straight segments as well.
-    ///
-    /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
-    /// - Returns: An array of points that approximate the Bézier path.
-    /// - SeeAlso: ``subdividedPoints(segmentation:)``
-    ///
-    func points(segmentation: Segmentation) -> [V] {
-        [startPoint] + curves.flatMap {
-            $0.points(segmentation: segmentation, subdividingStraightLines: false)
-                .dropFirst(1).map(\.1)
-        }
     }
 
     /// Samples the entire Bézier path, subdividing both curved and straight segments according to the given segmentation.
@@ -93,26 +62,5 @@ public extension BezierPath {
             startPoint: transformer(startPoint),
             curves: curves.map { $0.map(transformer) }
         )
-    }
-}
-
-public extension BezierPath {
-    internal func subpath(in range: ClosedRange<Double>) -> BezierPath {
-        guard !isEmpty else { return self }
-        let (lowerIndex, lowerFraction) = curveIndexAndFraction(for: range.lowerBound)
-        var (upperIndex, upperFraction) = curveIndexAndFraction(for: range.upperBound)
-
-        if upperIndex > 0, upperFraction < Double.ulpOfOne {
-            upperIndex -= 1
-            upperFraction = 1.0
-        }
-
-        let newCurves: [BezierCurve<V>] = (lowerIndex...upperIndex).map { i in
-            let start = (i == lowerIndex) ? lowerFraction : 0
-            let end = (i == upperIndex) ? upperFraction : 1
-            return (start == 0 && end == 1) ? curves[i] : curves[i].subcurve(in: start...end)
-        }
-        let newStartPoint = newCurves.first?.controlPoints[0] ?? startPoint
-        return BezierPath(startPoint: newStartPoint, curves: newCurves)
     }
 }
