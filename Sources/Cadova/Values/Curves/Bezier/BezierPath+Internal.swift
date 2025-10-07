@@ -1,8 +1,44 @@
 import Foundation
 
 internal extension BezierPath {
-    func simplePolygon(in environment: EnvironmentValues) -> SimplePolygon where V == Vector2D {
-        SimplePolygon(points(segmentation: environment.segmentation))
+    typealias Curve = BezierCurve<V>
+
+    var endPoint: V {
+        curves.last?.controlPoints.last ?? startPoint
+    }
+
+    var endDirection: Direction<V.D>? {
+        curves.last?.tangent(at: 1)
+    }
+
+    func adding(curve: Curve) -> BezierPath {
+        BezierPath(startPoint: startPoint, curves: curves + [curve])
+    }
+
+    func continuousControlPoint(distance: Double) -> V {
+        guard let previousCurve = curves.last else {
+            preconditionFailure("Adding a continuous segment requires a previous segment to match")
+        }
+        return endPoint + previousCurve.tangent(at: 1).unitVector * distance
+    }
+
+    func subpath(in range: ClosedRange<Double>) -> BezierPath {
+        guard !isEmpty else { return self }
+        let (lowerIndex, lowerFraction) = curveIndexAndFraction(for: range.lowerBound)
+        var (upperIndex, upperFraction) = curveIndexAndFraction(for: range.upperBound)
+
+        if upperIndex > 0, upperFraction < Double.ulpOfOne {
+            upperIndex -= 1
+            upperFraction = 1.0
+        }
+
+        let newCurves: [BezierCurve<V>] = (lowerIndex...upperIndex).map { i in
+            let start = (i == lowerIndex) ? lowerFraction : 0
+            let end = (i == upperIndex) ? upperFraction : 1
+            return (start == 0 && end == 1) ? curves[i] : curves[i].subcurve(in: start...end)
+        }
+        let newStartPoint = newCurves.first?.controlPoints[0] ?? startPoint
+        return BezierPath(startPoint: newStartPoint, curves: newCurves)
     }
 
     func curveIndexAndFraction(for position: Double) -> (index: Int, fraction: Double) {
@@ -14,28 +50,5 @@ internal extension BezierPath {
             let index = floor(position)
             return (Int(index), position - index)
         }
-    }
-}
-
-// For paths that are monotonic over axis
-internal extension BezierPath {
-    func range(for axis: V.D.Axis) -> Range<Double> {
-        guard let lastCurve = curves.last else { return 0..<0 }
-        let lastPoint = lastCurve.controlPoints.last!
-        return startPoint[axis]..<lastPoint[axis]
-    }
-
-    func curveIndex(for value: Double, in axis: V.D.Axis) -> Int {
-        curves.firstIndex(where: {
-            value <= $0.controlPoints.last![axis]
-        }) ?? curves.count - 1
-    }
-
-    func position(for target: Double, in axis: V.D.Axis) -> Double? {
-        let curveIndex = curveIndex(for: target, in: axis)
-        guard let t = curves[curveIndex].t(for: target, in: axis) else {
-            return nil
-        }
-        return Double(curveIndex) + t
     }
 }

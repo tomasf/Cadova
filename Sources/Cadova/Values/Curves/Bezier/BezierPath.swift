@@ -22,29 +22,6 @@ public struct BezierPath <V: Vector>: Sendable, Hashable, Codable {
     }
 }
 
-internal extension BezierPath {
-    typealias Curve = BezierCurve<V>
-
-    var endPoint: V {
-        curves.last?.controlPoints.last ?? startPoint
-    }
-
-    var endDirection: Direction<V.D>? {
-        curves.last?.tangent(at: 1)
-    }
-
-    func adding(curve: Curve) -> BezierPath {
-        BezierPath(startPoint: startPoint, curves: curves + [curve])
-    }
-
-    func continuousControlPoint(distance: Double) -> V {
-        guard let previousCurve = curves.last else {
-            preconditionFailure("Adding a continuous segment requires a previous segment to match")
-        }
-        return endPoint + previousCurve.tangent(at: 1).unitVector * distance
-    }
-}
-
 public extension BezierPath {
     /// Initializes a new `BezierPath` starting at the given point.
     ///
@@ -85,6 +62,37 @@ extension BezierPath: ParametricCurve {
     ///
     public var domain: ClosedRange<Double> {
         0...Double(curves.count)
+    }
+
+    /// Returns the point at a specific fractional position along the path.
+    ///
+    /// - Parameter fraction: A fractional value indicating the position along the path.
+    ///   The integer part indicates the curve index; the fractional part specifies the location within that curve.
+    /// - Returns: The interpolated point along the path at the specified position.
+    public func point(at fraction: Double) -> V {
+        guard !isEmpty else { return startPoint }
+        let (curveIndex, t) = curveIndexAndFraction(for: fraction)
+        return curves[curveIndex].point(at: t)
+    }
+
+    /// Generates a sequence of points representing the path by sampling each curve.
+    ///
+    /// Straight line segments are represented minimally (start/end only); they are not subdivided.
+    /// Use ``subdividedPoints(segmentation:)`` to subdivide straight segments as well.
+    ///
+    /// - Parameter segmentation: The desired level of detail for the generated points, affecting the smoothness of curves.
+    /// - Returns: An array of points that approximate the Bézier path.
+    /// - SeeAlso: ``subdividedPoints(segmentation:)``
+    ///
+    public func points(segmentation: Segmentation) -> [V] {
+        [startPoint] + curves.flatMap {
+            $0.points(segmentation: segmentation, subdividingStraightLines: false)
+                .dropFirst(1).map(\.1)
+        }
+    }
+
+    public var isEmpty: Bool {
+        curves.isEmpty
     }
 
     public var sampleCountForLengthApproximation: Int { 10 }
