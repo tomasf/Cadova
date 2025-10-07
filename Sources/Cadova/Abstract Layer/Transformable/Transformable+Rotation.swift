@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Transformable<D2> {
+public extension Transformable<Transform2D> {
     /// Rotate object
     ///
     /// - Parameters:
@@ -11,7 +11,7 @@ public extension Transformable<D2> {
     }
 }
 
-public extension Transformable<D3> {
+public extension Transformable<Transform3D> {
     /// Rotate object
     ///
     /// When using multiple axes, the object is rotated around the axes in order (first X, then Y, then Z).

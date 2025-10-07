@@ -8,9 +8,9 @@ import Foundation
 /// - Note: The dimensionality `D` determines the kinds of transforms and vectors that
 ///   apply to the instance (for example, 2D vs. 3D).
 ///
-public protocol Transformable<D> {
+public protocol Transformable<T> {
     /// The dimensionality associated with this transformable value.
-    associatedtype D: Dimensionality
+    associatedtype T: Transform
 
     /// The result type produced when a transform is applied.
     ///
@@ -22,5 +22,5 @@ public protocol Transformable<D> {
     ///
     /// - Parameter transform: A transform in the same dimensionality as this instance.
     /// - Returns: The transformed result.
-    func transformed(_ transform: D.Transform) -> Transformed
+    func transformed(_ transform: T) -> Transformed
 }
