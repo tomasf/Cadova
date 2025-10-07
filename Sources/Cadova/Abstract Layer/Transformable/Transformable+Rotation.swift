@@ -33,9 +33,9 @@ public extension Transformable<Transform3D> {
     /// - Returns: A rotated object
     func rotated(angle: Angle, axis: Axis3D) -> Transformed {
         switch axis {
-        case .x: return rotated(x: angle)
-        case .y: return rotated(y: angle)
-        case .z: return rotated(z: angle)
+        case .x: rotated(x: angle)
+        case .y: rotated(y: angle)
+        case .z: rotated(z: angle)
         }
     }
 

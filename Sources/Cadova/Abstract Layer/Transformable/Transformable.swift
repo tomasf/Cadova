@@ -5,11 +5,8 @@ import Foundation
 /// Conforming types represent values that support geometric-style transforms such as
 /// translation, rotation, scaling, shearing, and more.
 ///
-/// - Note: The dimensionality `D` determines the kinds of transforms and vectors that
-///   apply to the instance (for example, 2D vs. 3D).
-///
 public protocol Transformable<T> {
-    /// The dimensionality associated with this transformable value.
+    /// The transform type associated with this transformable value.
     associatedtype T: Transform
 
     /// The result type produced when a transform is applied.
