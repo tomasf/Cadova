@@ -35,11 +35,9 @@ public extension Geometry3D {
 fileprivate struct BoundingBoxVisualization: Shape3D {
     let box: BoundingBox3D
 
-    @Environment(\.visualizationOptions) var options
-
     var body: any Geometry3D {
-        let scale = options[.scale] as? Double ?? 1.0
-        let borderColor = options[.primaryColor] as? Color ?? .borderColorDefault
+        @Environment(\.visualizationOptions.scale) var scale = 1.0
+        @Environment(\.visualizationOptions.primaryColor) var borderColor = .borderColorDefault
 
         let borderWidth = 0.1 * scale
         let size = box.maximum - box.minimum
