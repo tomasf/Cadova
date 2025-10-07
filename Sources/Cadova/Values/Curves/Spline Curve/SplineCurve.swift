@@ -187,3 +187,14 @@ public extension SplineCurve {
         return Self(degree: degree, knots: knots, controlPoints: controlPoints)
     }
 }
+
+
+extension SplineCurve: Transformable {
+    /// Applies the given transform to the `SplineCurve`.
+    ///
+    /// - Parameter transform: The affine transform to apply.
+    /// - Returns: A new `SplineCurve` instance with the transformed points.
+    public func transformed(_ transform: V.D.Transform) -> SplineCurve {
+        map(transform.apply(to:))
+    }
+}

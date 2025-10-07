@@ -1,17 +1,6 @@
 import Foundation
 
 public extension BezierPath {
-    /// Applies the given 2D affine transform to the `BezierPath`.
-    ///
-    /// - Parameter transform: The affine transform to apply.
-    /// - Returns: A new `BezierPath` instance with the transformed points.
-    func transformed<T: Transform>(using transform: T) -> BezierPath where T.V == V, T == V.D.Transform {
-        BezierPath(
-            startPoint: transform.apply(to: startPoint),
-            curves: curves.map { $0.transformed(using: transform) }
-        )
-    }
-
     /// Returns a new `BezierPath` with all curves reversed in order and direction.
     ///
     /// - Returns: A new `BezierPath` with the start point and curves reversed.

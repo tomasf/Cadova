@@ -121,3 +121,16 @@ internal struct BezierPathDerivativeView<V: Vector>: CurveDerivativeView {
         Direction(derivative.point(at: u))
     }
 }
+
+extension BezierPath: Transformable {
+    /// Applies the given transform to the `BezierPath`.
+    ///
+    /// - Parameter transform: The affine transform to apply.
+    /// - Returns: A new `BezierPath` instance with the transformed points.
+    public func transformed(_ transform: V.D.Transform) -> BezierPath {
+        BezierPath(
+            startPoint: transform.apply(to: startPoint),
+            curves: curves.map { $0.transformed(using: transform) }
+        )
+    }
+}
