@@ -15,18 +15,22 @@ import Foundation
 /// - Parameters:
 ///   - keyPath: A key path to the value in `EnvironmentValues`, which determines the specific value to read.
 ///
-@propertyWrapper public struct Environment<T>: Sendable {
-    private let keyPath: KeyPath<EnvironmentValues, T>
+@propertyWrapper public struct Environment<T: Sendable>: Sendable {
+    private let getter: @Sendable (EnvironmentValues) -> T
 
     public init() where T == EnvironmentValues {
-        self.init(\.self)
+        getter = { $0 }
     }
 
     public init(_ keyPath: KeyPath<EnvironmentValues, T>) {
-        self.keyPath = keyPath
+        getter = { $0[keyPath: keyPath] }
+    }
+
+    public init(wrappedValue defaultValue: T, _ keyPath: KeyPath<EnvironmentValues, T?>) {
+        getter = { $0[keyPath: keyPath] ?? defaultValue }
     }
 
     public var wrappedValue: T {
-        EnvironmentValues.current[keyPath: keyPath]
+        getter(EnvironmentValues.current)
     }
 }
