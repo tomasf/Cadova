@@ -138,10 +138,6 @@ public extension BoundingBox {
     func offset(_ expansion: D.Vector) -> BoundingBox {
         .init(minimum: minimum - expansion, maximum: maximum + expansion)
     }
-
-    func transformed(_ transform: D.Transform) -> BoundingBox {
-        .init([transform.apply(to: minimum), transform.apply(to: maximum)])
-    }
 }
 
 public extension BoundingBox2D {

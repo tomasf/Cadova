@@ -62,7 +62,7 @@ extension TextAttributes {
 
                 guard let polygons = glyphRenderer.polygons(for: glyph.outline, in: environment) else { return nil }
 
-                let offsetPolygons = polygons.transformed(.translation(glyphOffset))
+                let offsetPolygons = polygons.translated(glyphOffset)
                 glyphOffset += glyph.advance.cadovaVector
                 return offsetPolygons
             }
@@ -90,10 +90,10 @@ extension TextAttributes {
         }
 
         let adjustedPolygons = lines.enumerated().map(unpacked).map { lineIndex, polygons, width in
-            polygons.transformed(.translation(
+            polygons.translated(
                 x: horizontalAdjustment * width,
                 y: lineHeight * -Double(lineIndex) + verticalOffset
-            ))
+            )
         }
 
         return SimplePolygonList(adjustedPolygons.flatMap(\.polygons))

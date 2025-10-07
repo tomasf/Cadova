@@ -38,6 +38,12 @@ extension SimplePolygonList: Collection {
     var endIndex: Int { polygons.count }
 }
 
+extension SimplePolygonList: Transformable {
+    func transformed(_ transform: Transform2D) -> Self {
+        Self(polygons.map { $0.transformed(transform) })
+    }
+}
+
 extension SimplePolygonList {
     init(_ manifoldPolygons: [ManifoldPolygon]) {
         self.init(manifoldPolygons.map { SimplePolygon($0) })
@@ -74,9 +80,6 @@ extension SimplePolygonList {
         Self(polygons.map { $0.refined(maxEdgeLength: maxEdgeLength) })
     }
 
-    func transformed(_ transform: Transform2D) -> Self {
-        Self(polygons.map { $0.transformed(transform) })
-    }
 
     func vertices(at z: Double) -> [Vector3D] {
         polygons.flatMap { $0.vertices(at: z) }
