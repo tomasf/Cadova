@@ -9,6 +9,7 @@ public protocol Transform: Sendable, Hashable, Codable {
     var inverse: Self { get }
     var offset: V { get }
     func concatenated(with: Self) -> Self
+    static func *(_ lhs: Self, _ rhs: Self) -> Self
     func apply(to point: V) -> V
 
     func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> Self
@@ -86,6 +87,10 @@ public extension Transform {
             }
         }
         return true
+    }
+
+    static func *(_ lhs: Self, _ rhs: Self) -> Self {
+        lhs.concatenated(with: rhs)
     }
 
     func encode(to encoder: any Encoder) throws {
