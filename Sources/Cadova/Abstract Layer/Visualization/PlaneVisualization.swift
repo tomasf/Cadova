@@ -20,11 +20,9 @@ public extension Plane {
 private struct PlaneVisualization: Shape3D {
     let plane: Plane
 
-    @Environment(\.visualizationOptions) var options
-
     var body: any Geometry3D {
-        let scale = options[.scale] as? Double ?? 1.0
-        let color = options[.primaryColor] as? Color ?? .defaultPlaneColor
+        @Environment(\.visualizationOptions.scale) var scale = 1.0
+        @Environment(\.visualizationOptions.primaryColor) var color = .defaultPlaneColor
 
         Stack(.z) {
             Cylinder(radius: 100.0 * scale, height: 0.05 * scale)

@@ -20,10 +20,9 @@ public extension Geometry3D {
 
 fileprivate struct AxesVisualization: Shape3D {
     let length: Double
-    @Environment(\.visualizationOptions) var options
 
     var body: any Geometry3D {
-        let scale = options[.scale] as? Double ?? 1.0
+        @Environment(\.visualizationOptions.scale) var scale = 1.0
 
         let arrow = Stack(.z) {
             Cylinder(diameter: 0.1 * scale, height: length)

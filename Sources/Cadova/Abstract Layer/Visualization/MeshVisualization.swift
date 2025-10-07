@@ -35,11 +35,9 @@ fileprivate struct MeshVisualization: Shape3D {
     struct Face: Shape3D {
         let vertices: (Vector3D, Vector3D, Vector3D)
 
-        @Environment(\.visualizationOptions) var options
-
         var body: any Geometry3D {
-            let scale = options[.scale] as? Double ?? 1.0
-            let backColor = options[.primaryColor] as? Color ?? .pink
+            @Environment(\.visualizationOptions.scale) var scale = 1.0
+            @Environment(\.visualizationOptions.primaryColor) var backColor = .backFace
 
             let thickness = 0.005 * scale
             let (v0, v1, v2) = vertices
@@ -68,4 +66,8 @@ fileprivate struct MeshVisualization: Shape3D {
             extruded.transformed(rotation.translated(v0))
         }
     }
+}
+
+fileprivate extension Color {
+    static let backFace: Self = .pink
 }

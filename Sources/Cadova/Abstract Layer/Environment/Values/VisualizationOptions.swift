@@ -18,6 +18,15 @@ internal extension EnvironmentValues {
     }
 }
 
+internal extension [VisualizationOptionKey: any Sendable] {
+    var scale: Double? { self[.scale] as? Double }
+    var primaryColor: Color? { self[.primaryColor] as? Color }
+    var labelsEnabled: Bool? { self[.labelsEnabled] as? Bool }
+    var labelDirection: Direction3D? { self[.labelDirection] as? Direction3D }
+    var controlPointsEnabled: Bool? { self[.controlPointsEnabled] as? Bool }
+    var controlPointsColor: Color? { self[.controlPointsColor] as? Color }
+}
+
 fileprivate extension Geometry {
     func withVisualizationOption(_ key: VisualizationOptionKey, value: (any Sendable)?) -> D.Geometry {
         withEnvironment { $0.visualizationOptions[key] = value }

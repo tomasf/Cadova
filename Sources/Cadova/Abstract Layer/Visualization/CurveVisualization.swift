@@ -28,15 +28,14 @@ extension ParametricCurve {
 
 fileprivate struct CurveVisualization<Curve: ParametricCurve>: Shape3D {
     let curve: Curve
-    @Environment(\.visualizationOptions) var options
 
     var body: any Geometry3D {
-        let scale = options[.scale] as? Double ?? 1.0
-        let curveColor = options[.primaryColor] as? Color ?? .curveDefault
-        let controlPointColor = options[.controlPointsColor] as? Color ?? .controlPointDefault
-        let controlPointsEnabled = options[.controlPointsEnabled] as? Bool ?? true
-        let labelsEnabled = options[.labelsEnabled] as? Bool ?? true
-        let labelDirection = options[.labelDirection] as? Direction3D ?? .labelDefault
+        @Environment(\.visualizationOptions.scale) var scale = 1.0
+        @Environment(\.visualizationOptions.primaryColor) var curveColor = .curveDefault
+        @Environment(\.visualizationOptions.controlPointsColor) var controlPointColor = .controlPointDefault
+        @Environment(\.visualizationOptions.controlPointsEnabled) var controlPointsEnabled = true
+        @Environment(\.visualizationOptions.labelsEnabled) var labelsEnabled = true
+        @Environment(\.visualizationOptions.labelDirection) var labelDirection = .labelDefault
 
         Circle(radius: 0.1 * scale)
             .swept(along: curve)
