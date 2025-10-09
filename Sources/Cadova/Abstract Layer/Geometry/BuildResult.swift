@@ -37,10 +37,18 @@ internal extension BuildResult {
         .init(node: node, elements: elements)
     }
 
+    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> New.BuildResult {
+        .init(node: modifier(node), elements: elements)
+    }
+
     func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (inout E) -> Void) -> Self {
         var element = elements[E.self]
         modifier(&element)
         return replacing(elements: elements.setting(element))
+    }
+
+    func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E) -> E) -> Self {
+        replacing(elements: elements.setting(modifier(elements[E.self])))
     }
 }
 

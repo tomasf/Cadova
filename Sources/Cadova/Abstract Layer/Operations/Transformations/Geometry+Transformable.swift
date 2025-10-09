@@ -5,13 +5,21 @@ public extension Geometry {
     /// - Parameter transform: The transformation to be applied.
     /// - Returns: A transformed `Geometry`.
     func transformed(_ transform: D.Transform) -> D.Geometry {
-        GeometryNodeTransformer(body: self) {
-            .transform($0, transform: transform)
-        } environment: {
-            $0.applyingTransform(transform.transform3D)
-        }
-        .modifyingResult(PartCatalog.self) {
-            $0 = $0.applyingTransform(transform.transform3D)
-        }
+        ApplyTransform(body: self, transform: transform)
+    }
+}
+
+internal struct ApplyTransform<D: Dimensionality>: Geometry {
+    let body: D.Geometry
+    let transform: D.Transform
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await context.buildResult(for: body, in: environment.applyingTransform(transform.transform3D))
+            .modifyingNode {
+                .transform($0, transform: transform)
+            }
+            .modifyingElement(PartCatalog.self) {
+                $0.applyingTransform(transform.transform3D)
+            }
     }
 }
