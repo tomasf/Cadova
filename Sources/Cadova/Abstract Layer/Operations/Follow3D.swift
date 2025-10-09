@@ -24,6 +24,21 @@ public extension Geometry3D {
     ) -> any Geometry3D {
         FollowPath3D(geometry: self, path: path, reference: reference, target: target)
     }
+
+    /// Warps the 3D geometry to follow a 2D path lying in the XY plane.
+    ///
+    /// This overload bends and stretches the geometry so that its local X axis follows the given
+    /// 2D `ParametricCurve`, interpreted in the XY plane. The geometry is stretched along its local X
+    /// to match the path’s total length, and is oriented consistently along the path with smoothed twist.
+    ///
+    /// - Parameter path: A 2D parametric curve interpreted in the XY plane that the geometry should follow.
+    /// - Returns: A warped version of the geometry that follows the 2D path.
+    ///
+    /// - SeeAlso: ``following(path:pointing:toward:)``, ``Geometry2D/swept(along:pointing:toward:)``, ``Geometry3D/deformed(by:)``
+    func following<Path: ParametricCurve<Vector2D>>(path: Path) -> any Geometry3D {
+        rotated(y: -90°)
+            .following(path: path.curve3D, pointing: .positiveX, toward: .direction(.negativeZ))
+    }
 }
 
 // Makes the Z axis follow a path
