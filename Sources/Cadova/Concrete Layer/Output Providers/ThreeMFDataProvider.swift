@@ -23,22 +23,28 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     let fileExtension = "3mf"
 
-    fileprivate enum StaticResourceID: ResourceID {
+    fileprivate enum ResourceIDOffset: ResourceID, CaseIterable {
         case object = 1
         case mainColorGroup
         case metallicProperties
         case metallicColorGroup
+
+        static var count: Int { allCases.last!.rawValue }
     }
 
     private func makeModel(
         for id: PartIdentifier,
+        modelIndex: Int,
         manifold: Manifold,
         materials: [Manifold.OriginalID: Material],
         transform: Transform3D?
     ) async -> (ThreeMF.Model, Item) {
-        var mainColorGroup = ColorGroup(id: StaticResourceID.mainColorGroup.rawValue)
-        var metallicProperties = MetallicDisplayProperties(id: StaticResourceID.metallicProperties.rawValue)
-        var metallicColorGroup = ColorGroup(id: StaticResourceID.metallicColorGroup.rawValue, displayPropertiesID: metallicProperties.id)
+        // BambuStudio does not properly handle objects with the same ID in different model files,
+        // so assign unique IDs for each until that bug is fixed
+        let startID = modelIndex * ResourceIDOffset.count
+        var mainColorGroup = ColorGroup(id: startID + ResourceIDOffset.mainColorGroup.rawValue)
+        var metallicProperties = MetallicDisplayProperties(id: startID + ResourceIDOffset.metallicProperties.rawValue)
+        var metallicColorGroup = ColorGroup(id: startID + ResourceIDOffset.metallicColorGroup.rawValue, displayPropertiesID: metallicProperties.id)
 
         func addMaterial(_ material: Material) -> PropertyReference {
             .addMaterial(material, mainColorGroup: &mainColorGroup, metallicColorGroup: &metallicColorGroup, metallicProperties: &metallicProperties)
@@ -63,7 +69,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         let mesh = ThreeMF.Mesh(vertices: vertices.map(\.threeMFVector), triangles: triangles)
         let object = ThreeMF.Object(
-            id: StaticResourceID.object.rawValue,
+            id: startID + ResourceIDOffset.object.rawValue,
             type: .model,
             name: id.name,
             propertyGroupID: defaultProperty.groupID,
@@ -95,11 +101,18 @@ struct ThreeMFDataProvider: OutputDataProvider {
         outputs[.main] = result
         outputs = outputs.filter { acceptedSemantics.contains($0.key.type) && $0.value.node.isEmpty == false }
 
-        let modelsAndItems = try await ContinuousClock().measure {
-            try await outputs.asyncCompactMap { partIdentifier, result -> (ThreeMF.Model, ThreeMF.Item, Int)? in
+        var modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
+            try await outputs.enumerated().asyncCompactMap { modelIndex, content -> (ThreeMF.Model, ThreeMF.Item, Int)? in
+                let (partIdentifier, result) = content
                 let (node, transform) = result.node.deconstructTransform()
                 let nodeResult = try await context.result(for: node)
-                let (model, item) = await makeModel(for: partIdentifier, manifold: nodeResult.concrete, materials: nodeResult.materialMapping, transform: transform)
+                let (model, item) = await makeModel(
+                    for: partIdentifier,
+                    modelIndex: modelIndex,
+                    manifold: nodeResult.concrete,
+                    materials: nodeResult.materialMapping,
+                    transform: transform
+                )
                 return (model, item, nodeResult.concrete.triangleCount)
             }
         } results: { duration, results in
