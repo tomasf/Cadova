@@ -41,17 +41,21 @@ extension Collection where Element: Sendable {
             (self[i], self[(i + 1) % n], self[(i + 2) % n])
         }
     }
+}
 
+extension Sequence where Element: Sendable {
     func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T) async rethrows -> [T] {
         try await withThrowingTaskGroup(of: (Int, T).self) { group in
+            var count = 0
             for (index, element) in self.enumerated() {
                 group.addTask {
                     let value = try await transform(element)
                     return (index, value)
                 }
+                count += 1
             }
 
-            var results = Array<T?>(repeating: nil, count: self.count)
+            var results = Array<T?>(repeating: nil, count: count)
             for try await (index, result) in group {
                 results[index] = result
             }
@@ -62,14 +66,16 @@ extension Collection where Element: Sendable {
 
     func asyncCompactMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T?) async rethrows -> [T] {
         try await withThrowingTaskGroup(of: (Int, T?).self) { group in
+            var count = 0
             for (index, element) in self.enumerated() {
                 group.addTask {
                     let value = try await transform(element)
                     return (index, value)
                 }
+                count += 1
             }
 
-            var results = Array<T?>(repeating: nil, count: self.count)
+            var results = Array<T?>(repeating: nil, count: count)
             for try await (index, result) in group {
                 results[index] = result
             }
@@ -77,9 +83,7 @@ extension Collection where Element: Sendable {
             return results.compactMap { $0 }
         }
     }
-}
-
-extension Sequence where Element: Sendable {
+    
     @inlinable
     public func concurrentAsyncForEach(
         _ operation: @Sendable @escaping (Element) async throws -> Void
