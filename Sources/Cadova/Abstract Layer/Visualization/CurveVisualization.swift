@@ -91,7 +91,7 @@ fileprivate struct CurveVisualization<Curve: ParametricCurve>: Shape3D {
 
             Text(text).measuringBounds { text, bounds in
                 Stack(.z) {
-                    Capsule(bounds.size + 1)
+                    Stadium(bounds.size + 1)
                         .extruded(height: 0.1)
                         .colored(.white)
 
