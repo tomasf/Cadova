@@ -11,16 +11,16 @@ internal extension Geometry {
         }
     }
 
-    func warped<Shared>(
+    func warped<each Shared>(
         operationName name: String,
         cacheParameters params: any Hashable & Sendable & Codable...,
-        initialization: @Sendable @escaping () -> Shared,
-        transform: @Sendable @escaping (D.Vector, Shared) -> D.Vector
+        initialization: @Sendable @escaping () -> (repeat each Shared),
+        transform: @Sendable @escaping (D.Vector, repeat each Shared) -> D.Vector
     ) -> D.Geometry {
         CachedConcreteTransformer(body: self, key: LabeledCacheKey(operationName: name, parameters: params)) {
             let initData = initialization()
             return $0.warp { v in
-                transform(v, initData)
+                transform(v, repeat each initData)
             }
         }
     }
