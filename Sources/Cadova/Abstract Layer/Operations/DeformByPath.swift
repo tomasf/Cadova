@@ -33,8 +33,8 @@ public extension Geometry2D {
                         point.x = 0
                         return (x, point)
                     }
-                } transform: {
-                    $0 + $1.binarySearchInterpolate(key: $0.x)
+                } transform: { p, table in
+                    p + table.binarySearchInterpolate(key: p.x)
                 }
                 .simplified()
         }
@@ -74,8 +74,8 @@ public extension Geometry3D {
                         point.z = 0
                         return (z, point)
                     }
-                } transform: {
-                    $0 + $1.binarySearchInterpolate(key: $0.z)
+                } transform: { p, table in
+                    p + table.binarySearchInterpolate(key: p.z)
                 }
                 .simplified()
         }
