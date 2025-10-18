@@ -101,7 +101,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         outputs[.main] = result
         outputs = outputs.filter { acceptedSemantics.contains($0.key.type) && $0.value.node.isEmpty == false }
 
-        var modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
+        let modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
             try await outputs.enumerated().asyncCompactMap { modelIndex, content -> (ThreeMF.Model, ThreeMF.Item, Int)? in
                 let (partIdentifier, result) = content
                 let (node, transform) = result.node.deconstructTransform()

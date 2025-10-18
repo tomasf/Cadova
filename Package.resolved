@@ -1,5 +1,5 @@
 {
-  "originHash" : "8557cb028a21530277c3c90433ca969114832fad0adcdbe2f3525ec2b3ad8cd0",
+  "originHash" : "7e17e4e8e58cee1bf9a9407631baef68ace3fe9b092574aabb9ceb28e39e1498",
   "pins" : [
     {
       "identity" : "findfont",
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/ThreeMF.git",
       "state" : {
-        "branch" : "dev",
-        "revision" : "22edd3a7176baf2426081d533950efb2dbf8d839"
+        "revision" : "a7b65b1c8960602f4bc954bfc334b98c6a5e9099",
+        "version" : "0.2.0"
       }
     },
     {
