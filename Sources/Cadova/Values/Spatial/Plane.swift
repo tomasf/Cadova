@@ -23,7 +23,7 @@ public struct Plane: Hashable, Sendable, Codable {
     /// - Parameters:
     ///   - offset: A point lying on the plane.
     ///   - normal: The plane's normal direction.
-    public init(offset: Vector3D, normal: D3.Direction) {
+    public init(offset: Vector3D, normal: Direction3D) {
         self.offset = offset
         self.normal = normal
     }
@@ -79,6 +79,22 @@ public extension Plane {
         self.init(
             offset: .init(side.axis, value: box[side.axis, side.axisDirection] + offset * side.axisDirection.factor),
             normal: side.direction
+        )
+    }
+
+    /// Initializes a vertical plane in 3D from a 2D line that lies in the XY plane.
+    ///
+    /// The resulting plane passes through `line.point` (lifted to Z = 0) and has a normal that is the
+    /// clockwise normal of the line’s direction embedded in 3D (i.e., lying in the XY plane). Its
+    /// intersection with the XY plane is exactly the provided line, and the plane extends infinitely
+    /// along the Z axis.
+    ///
+    /// - Parameter line: The 2D line to lift into 3D as a plane.
+    ///
+    init(line: Line<D2>) {
+        self.init(
+            offset: Vector3D(line.point),
+            normal: Direction3D(Vector3D(line.direction.clockwiseNormal.unitVector))
         )
     }
 

@@ -35,6 +35,20 @@ public extension Direction {
     init(_ axis: D.Axis, _ direction: LinearDirection) {
         self.init(.zero.with(axis, as: direction == .positive ? 1 : -1))
     }
+
+    /// Creates a direction that bisects the angle between two vectors.
+    ///
+    /// This initializer computes a direction that lies halfway between the
+    /// directions of the provided vectors `a` and `b`. Both vectors are normalized
+    /// before averaging, so their magnitudes do not affect the result.
+    ///
+    /// - Parameters:
+    ///   - a: The first vector to bisect.
+    ///   - b: The second vector to bisect.
+    ///   
+    init(bisecting a: D.Vector, _ b: D.Vector) {
+        self.init((a.normalized + b.normalized) / 2.0)
+    }
 }
 
 public extension Direction <D3> {
