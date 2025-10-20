@@ -18,6 +18,7 @@ extension GeometryNode.Contents: Equatable {
         case let (.shape3D(a), .shape3D(b)): a == b
         case let (.applyMaterial(ba, aa), .applyMaterial(bb, ab)): ba == bb && aa == ab
         case let (.extrusion(a1, k1), .extrusion(a2, k2)): a1 == a2 && k1 == k2
+        case let (.trim(a1, p1), .trim(a2, p2)): a1 == a2 && p1 == p2
 
         default: false
         }
@@ -76,6 +77,10 @@ extension GeometryNode.Contents: Hashable {
             hasher.combine(GeometryNode.Kind.extrusion)
             hasher.combine(body)
             hasher.combine(type)
+        case .trim(let body, let plane):
+            hasher.combine(GeometryNode.Kind.trim)
+            hasher.combine(body)
+            hasher.combine(plane)
         }
     }
 }
