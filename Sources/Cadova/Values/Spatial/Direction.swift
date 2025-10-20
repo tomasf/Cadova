@@ -67,6 +67,25 @@ public extension Direction <D3> {
         .init(Transform3D.rotation(angle: angle, around: other).apply(to: unitVector))
     }
 
+    /// Creates a 3D direction from a 2D direction in the XY plane and an elevation angle from that plane.
+    ///
+    /// The resulting direction points in the given 2D direction, angled upward or downward
+    /// by the specified amount relative to the XY plane.
+    ///
+    /// - Parameters:
+    ///   - direction2D: The base 2D direction in the XY plane.
+    ///   - elevation: The angle above (positive) or below (negative) the XY plane.
+    /// - Returns: A normalized 3D direction pointing in the given orientation.
+    ///
+    init(from direction2D: Direction2D, elevation: Angle = 0°) {
+        let cosEl = cos(elevation)
+        self.init(Vector3D(
+            direction2D.unitVector.x * cosEl,
+            direction2D.unitVector.y * cosEl,
+            sin(elevation))
+        )
+    }
+
     /// Rotates the direction by euler angles.
     func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> Self {
         .init(Transform3D.rotation(x: x, y: y, z: z).apply(to: unitVector))
