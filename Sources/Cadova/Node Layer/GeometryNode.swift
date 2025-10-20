@@ -32,6 +32,7 @@ internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
         case shape3D (PrimitiveShape3D)
         case applyMaterial (D3.Node, Material)
         case extrusion (D2.Node, type: Extrusion)
+        case trim (D3.Node, Plane)
     }
 }
 
@@ -146,6 +147,15 @@ extension GeometryNode {
             }
 
             return try EvaluationResult(manifold)
+
+        case .trim (let node, let plane):
+            let result = try await context.result(for: node)
+            return try result.modified {
+                $0.translate(-plane.offset)
+                    .trim(by: plane.normal.unitVector, originOffset: 0)
+                    .translate(plane.offset)
+            }
+
         default:
             preconditionFailure("Invalid dimensionality for node type")
         }
