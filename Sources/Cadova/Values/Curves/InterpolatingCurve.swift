@@ -56,8 +56,8 @@ public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable
         let t = t1 + localFraction * (t2 - t1)
 
         // Tangents (general CR with centripetal times)
-        var m1 = (p2 - p0) * (1.0 / max(t2, .leastNonzeroMagnitude))
-        var m2 = (p3 - p1) * (1.0 / max(t3 - t1, .leastNonzeroMagnitude))
+        let m1 = (p2 - p0) * (1.0 / max(t2, .leastNonzeroMagnitude))
+        let m2 = (p3 - p1) * (1.0 / max(t3 - t1, .leastNonzeroMagnitude))
 
         // Cubic Hermite basis over s in [0,1]
         let s = (t - t1) / max(t2 - t1, .leastNonzeroMagnitude)
