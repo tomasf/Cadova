@@ -64,89 +64,66 @@ public struct Import: Shape3D {
         /// A requested part was not found in the model.
         case missingPart (Import.PartIdentifier)
 
-        /// A referenced object could not be resolved.
-        case missingObject (ThreeMF.ResourceID)
-
         var localizedDescription: String {
             switch self {
             case .missingPart (let partIdentifier):
                 "A part matching \(partIdentifier) was not found in the model."
-            case .missingObject (let id):
-                "A referenced object with ID \(id) could not be resolved."
             }
         }
     }
 
     public var body: any Geometry3D {
         CachedNode(name: "import", parameters: url, parts) { _, _ in
-            let model = try PackageReader(url: url).model()
-            return try model.node(for: parts)
+            let loadedModel = try await ModelLoader(url: url).load()
+            let loadedItems = try loadedModel.loadedItems(for: parts)
+            return D3.Node.boolean(loadedItems.map {
+                $0.buildNode(model: loadedModel)
+            }, type: .union)
         }
     }
 }
 
-internal extension ThreeMF.Model {
-    func node(for parts: [Import.PartIdentifier]?) throws -> D3.Node {
-        let nodes = if let partsIDs = parts {
-            try partsIDs.map {
-                guard let item = firstItem(matching: $0) else {
-                    throw Import.Error.missingPart($0)
-                }
-                return try node(for: item)
+internal extension ModelLoader.LoadedModel {
+    func loadedItems(for identifiers: [Import.PartIdentifier]?) throws -> [LoadedItem] {
+        var remainingItems = items
+        guard let identifiers else { return remainingItems }
+
+        return try identifiers.map { identifier in
+            guard let itemIndex = remainingItems.firstIndex(where: { $0.matches(identifier) }) else {
+                throw Import.Error.missingPart(identifier)
             }
+            return remainingItems.remove(at: itemIndex)
+        }
+    }
+}
+
+internal extension ModelLoader.LoadedModel.LoadedItem {
+    func matches(_ identifier: Import.PartIdentifier) -> Bool {
+        switch identifier {
+        case .name (let name): rootObject.name == name
+        case .partNumber (let partNumber): item.partNumber == partNumber
+        }
+    }
+
+    func buildNode(model: ModelLoader.LoadedModel) -> D3.Node {
+        .boolean(components.map { $0.buildNode(model: model) }, type: .union)
+    }
+}
+
+internal extension ModelLoader.LoadedModel.LoadedComponent {
+    func buildNode(model: ModelLoader.LoadedModel) -> D3.Node {
+        let meshNode = D3.Node.shape(.mesh(MeshData(model.meshes[meshIndex].mesh)))
+        return if let transform = cadovaTransform {
+            .transform(meshNode, transform: transform)
         } else {
-            try build.items.map { try node(for: $0) }
-        }
-        return .boolean(nodes, type: .union)
-    }
-
-    func node(for item: ThreeMF.Item) throws -> D3.Node {
-        let object = try self.object(for: item.objectID)
-        let geometry = try self.node(for: object)
-
-        return if let transform = item.transform {
-            .transform(geometry, transform: transform.cadovaTransform)
-        } else {
-            geometry
+            meshNode
         }
     }
 
-    func node(for object: ThreeMF.Object) throws -> D3.Node {
-        switch object.content {
-        case .mesh (let mesh):
-            return .shape(.mesh(.init(mesh)))
-
-        case .components (let components):
-            let subnodes = try components.map { component -> D3.Node in
-                let subobject = try self.object(for: component.objectID)
-                let subgeometry = try self.node(for: subobject)
-                return if let transform = component.transform {
-                    .transform(subgeometry, transform: transform.cadovaTransform)
-                } else {
-                    subgeometry
-                }
-            }
-            return .boolean(subnodes, type: .union)
-        }
-    }
-
-    func firstItem(matching identifier: Import.PartIdentifier) -> ThreeMF.Item? {
-        build.items.first { item in
-            switch identifier {
-            case let .partNumber (partNumber):
-                return item.partNumber == partNumber
-            case let .name (name):
-                guard let object = try? self.object(for: item.objectID) else { return false }
-                return object.name == name
-            }
-        }
-    }
-
-    func object(for id: ResourceID) throws -> Object {
-        guard let object = resources.resource(for: id) as? Object else {
-            throw Import.Error.missingObject(id)
-        }
-        return object
+    var cadovaTransform: Transform3D? {
+        guard !transforms.isEmpty else { return nil }
+        return transforms.map(\.cadovaTransform)
+            .reduce(Transform3D.identity) { $0.concatenated(with: $1) }
     }
 }
 
@@ -161,8 +138,7 @@ internal extension MeshData {
 
 internal extension ThreeMF.Matrix3D {
     var cadovaTransform: Transform3D {
-        guard values.count == 4, values.allSatisfy({ $0.count == 3 }) else { return .identity }
-        return Transform3D([
+        Transform3D([
             [values[0][0], values[1][0], values[2][0], values[3][0]],
             [values[0][1], values[1][1], values[2][1], values[3][1]],
             [values[0][2], values[1][2], values[2][2], values[3][2]],
