@@ -6,11 +6,21 @@ import Foundation
 /// control points `P₀ … Pₙ` (with `n = controlPoints.count − 1`, `m = n + p + 1`), and positive
 /// weights `w₀ … wₙ`. Setting all weights to `1` yields an ordinary (non‑rational) B‑spline.
 ///
-public struct SplineCurve<V: Vector>: Sendable {
+public struct SplineCurve<V: Vector>: Sendable, Hashable, Codable {
     let degree: Int
     let knots: [Double]
-    let controlPoints: [(V, weight: Double)]
-    
+    let controlPoints: [ControlPoint]
+
+    internal struct ControlPoint: Sendable, Hashable, Codable {
+        var point: V
+        var weight: Double
+
+        init(_ point: V, weight: Double) {
+            self.point = point
+            self.weight = weight
+        }
+    }
+
     /// Creates a clamped NURBS curve.
     ///
     /// - Parameters:
@@ -19,6 +29,12 @@ public struct SplineCurve<V: Vector>: Sendable {
     ///   - controlPoints: Control points `P₀ … Pₙ` (count `n + 1`).
     ///   - weights: Positive weights `w₀ … wₙ`. If omitted, defaults to `1` for each control point.
     public init(degree: Int, knots: [Double], controlPoints: [(V, weight: Double)]) {
+        self.init(degree: degree, knots: knots, controlPoints: controlPoints.map {
+            ControlPoint($0.0, weight: $0.weight)
+        })
+    }
+
+    private init(degree: Int, knots: [Double], controlPoints: [ControlPoint]) {
         precondition(degree >= 1, "Degree must be ≥ 1")
         precondition(!controlPoints.isEmpty, "Need at least one control point")
         precondition(knots.count == degree + controlPoints.count + 1, "Invalid knot count: expected degree + cp + 1")
@@ -52,9 +68,8 @@ public struct SplineCurve<V: Vector>: Sendable {
         let span = findSpan(u: u)
         // Local homogeneous control points: (wP, w)
         var d: [(V, Double)] = (0...p).map { j in
-            let idx = span - p + j
-            let (p, w) = controlPoints[idx]
-            return (p * w, w)
+            let p = controlPoints[span - p + j]
+            return (p.point * p.weight, p.weight)
         }
         // De Boor in homogeneous space
         for r in 1...p {
@@ -91,7 +106,9 @@ public struct SplineCurve<V: Vector>: Sendable {
 
     /// Maps all control points to a new vector type (weights unchanged).
     public func map<V2: Vector>(_ f: (V) -> V2) -> SplineCurve<V2> {
-        .init(degree: degree, knots: knots, controlPoints: controlPoints.map { (p, w) in (f(p), w) })
+        .init(degree: degree, knots: knots, controlPoints: controlPoints.map {
+            SplineCurve<V2>.ControlPoint(f($0.point), weight: $0.weight)
+        })
     }
 }
 
@@ -160,11 +177,11 @@ extension SplineCurve: ParametricCurve {
     }
 
     public var labeledControlPoints: [(V, label: String?)]? {
-        controlPoints.enumerated().map(unpacked).map { controlPointIndex, controlPoint, weight in
-            if weight - 1.0 > .ulpOfOne {
-                (controlPoint, String(format: "%d (%g)", controlPointIndex, weight))
+        controlPoints.enumerated().map { controlPointIndex, controlPoint in
+            if controlPoint.weight - 1.0 > .ulpOfOne {
+                (controlPoint.point, String(format: "%d (%g)", controlPointIndex, controlPoint.weight))
             } else {
-                (controlPoint, "\(controlPointIndex)")
+                (controlPoint.point, "\(controlPointIndex)")
             }
         }
     }

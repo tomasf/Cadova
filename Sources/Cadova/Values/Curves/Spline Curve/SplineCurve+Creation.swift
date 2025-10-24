@@ -30,20 +30,4 @@ public extension SplineCurve {
         let U = Array(repeating: 0.0, count: degree + 1) + interior + Array(repeating: 1.0, count: degree + 1)
         return SplineCurve(degree: degree, knots: U, controlPoints: controlPoints.map { ($0, 1) })
     }
-
-    /// Creates a closed uniform cubic NURBS (periodic).
-    ///
-    /// Useful for smooth loops. Wraps the control points and repeats the first `degree` points.
-    ///
-    static func closedUniformCubic(controlPoints: [V]) -> SplineCurve {
-        let p = 3
-        let n = controlPoints.count - 1
-        precondition(n >= p, "Need at least p+1 control points")
-
-        // Duplicate first p control points at end
-        let cps = controlPoints + controlPoints.prefix(p)
-        let m = cps.count - 1
-        let U = (0...m+p).map { Double($0) / Double(m+p) }
-        return SplineCurve(degree: p, knots: U, controlPoints: cps.map { ($0, 1) })
-    }
 }
