@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Collection where Self: Sendable {
+public extension Sequence where Self: Sendable {
     /// Transforms each element of the collection into geometry and returns a union of all resulting geometries.
     ///
     /// This method applies a transformation to each element in the collection, then merges all the
