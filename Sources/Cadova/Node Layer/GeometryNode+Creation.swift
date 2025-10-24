@@ -5,8 +5,14 @@ extension GeometryNode {
         Self(.empty)
     }
 
+    private var unionChildren: [D.Node]? {
+        guard case let .boolean(children, type) = contents, type == .union else { return nil }
+        return children
+    }
+
     static func boolean(_ children: [D.Node], type: BooleanOperationType) -> GeometryNode {
         guard children.isEmpty == false else { return .empty }
+        var children = children
 
         switch type {
         case .difference:
@@ -18,7 +24,9 @@ extension GeometryNode {
             guard children.contains(where: \.isEmpty) == false else { return .empty }
             return Self(.boolean(children, type: type))
 
-        case .union: break
+        case .union:
+            // Flatten unions
+            children = children.flatMap { $0.unionChildren ?? [$0] }
         }
 
         let filteredChildren = children.filter { !$0.isEmpty }
