@@ -51,15 +51,9 @@ internal extension EdgeProfile {
                 )
 
             shape.simplified().readingConcrete { crossSection in
-                let polygons = crossSection.polygonList()
-
-                @Sendable func extraLength(_ u: Vector2D, _ v: Vector2D) -> Double {
-                    profileSize.x * cot(acos((u.normalized ⋅ v.normalized).clamped(to: -1.0...1.0)) / 2)
-                }
-
-                return polygons.polygons.mapUnion { polygon in
+                crossSection.polygonList().polygons.mapUnion { polygon in
                     let overshoot = polygon.boundingBox.size.magnitude
-                    let vertices = type == .subtraction ? polygon.vertices : polygon.vertices.reversed()
+                    let vertices = type == .subtraction ? polygon.vertices : Array(polygon.vertices.reversed())
                     for index in vertices.indices {
                         let a = vertices[wrap: index - 1]
                         let b = vertices[wrap: index]
@@ -70,13 +64,12 @@ internal extension EdgeProfile {
                         let cb = c - b
                         let dc = d - c
 
-                        let edgeAngle = b.angle(to: c)
                         let startLine = Line(point: b, direction: .init(bisecting: ba, cb).counterclockwiseNormal)
                         let endLine = Line(point: c, direction: .init(bisecting: cb, dc).counterclockwiseNormal)
 
-                        unitProfile.scaled(x: cb.magnitude + overshoot + overshoot)
+                        unitProfile.scaled(x: cb.magnitude + 2 * overshoot)
                             .translated(x: -overshoot)
-                            .rotated(z: edgeAngle)
+                            .rotated(z: b.angle(to: c))
                             .translated(b, z: 0)
                             .trimmed(along: Plane(line: startLine).offset(-1e-6))
                             .trimmed(along: Plane(line: endLine).flipped.offset(-1e-6))

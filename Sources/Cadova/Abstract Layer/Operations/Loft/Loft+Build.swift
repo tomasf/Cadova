@@ -58,7 +58,7 @@ internal extension Loft.LayerInterpolation {
         switch self {
         case .convexHull:
             let layerPoints = layers.map { $0.tree.flattened().vertices(at: $0.z) }
-            return layerPoints.paired().mapUnion { ($0 + $1).convexHull() }
+            return Array(layerPoints.paired()).mapUnion { ($0 + $1).convexHull() }
 
         case .resampled (let function):
             let resamplingLayers = layers.map { $0.resamplingLayer(with: function) }
