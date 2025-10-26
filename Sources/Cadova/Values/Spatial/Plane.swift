@@ -3,26 +3,26 @@ import Foundation
 import simd
 #endif
 
-/// A geometric plane in 3D space, defined by an offset point and a normal vector.
+/// A geometric plane in 3D space, defined by a point on the plane and a unit normal.
 ///
-/// The plane is represented in the form: `ax + by + cz + d = 0`, where `(a, b, c)` is the normal vector and `d` is
-/// derived from the offset point.
+/// The implicit form is `ax + by + cz + d = 0`, where `(a, b, c)` is the unit normal and `d` is derived from the offset point.
 ///
-/// You can initialize a `Plane` in several ways:
-/// - Using a point and a normal vector.
-/// - Using three points (non-collinear) lying on the plane.
-/// - Using a plane perpendicular to a specific Cartesian axis at a specified offset.
+/// ### Construction
+/// You can create a `Plane` by:
+/// - Providing a point (`offset`) and a normal (`normal`).
+/// - Providing three non‑collinear points.
+/// - Choosing a Cartesian axis the plane is perpendicular to, at a given offset.
 public struct Plane: Hashable, Sendable, Codable {
-    /// A point lying on the plane.
+    /// A point lying on the plane (not necessarily the closest to the origin).
     public let offset: Vector3D
 
-    /// The unit normal vector of the plane.
+    /// The plane's outward unit normal.
     public let normal: Direction3D
 
-    /// Creates a plane from an offset point and a normal vector.
+    /// Creates a plane from a point and a unit normal.
     /// - Parameters:
-    ///   - offset: A point lying on the plane.
-    ///   - normal: The plane's normal direction.
+    ///   - offset: Any point on the plane.
+    ///   - normal: The plane's unit normal (direction is preserved as given).
     public init(offset: Vector3D, normal: Direction3D) {
         self.offset = offset
         self.normal = normal
@@ -43,13 +43,13 @@ internal extension Plane {
 }
 
 public extension Plane {
-    /// Initializes a plane using three non-collinear points.
+    /// Creates a plane through three non‑collinear points.
     ///
-    /// The normal vector is computed using the cross product of vectors defined by the three points.
+    /// The normal is computed as `(point2 - point1) × (point3 - point1)` and normalized.
     /// - Parameters:
     ///   - point1: First point on the plane.
     ///   - point2: Second point on the plane.
-    ///   - point3: Third point on the plane. Must not be collinear with the other two.
+    ///   - point3: Third point (must not be collinear with the first two).
     init(point1: Vector3D, point2: Vector3D, point3: Vector3D) {
         let normalVector = ((point2 - point1) × (point3 - point1)).normalized
         precondition(normalVector.magnitude > 0, "The points must not be collinear.")
@@ -57,24 +57,23 @@ public extension Plane {
         self.normal = .init(normalVector)
     }
 
-    /// Initializes a plane perpendicular to the specified Cartesian axis at the given offset.
+    /// Creates a plane perpendicular to a Cartesian axis at a given offset.
     /// - Parameters:
-    ///   - axis: The axis perpendicular to the plane.
-    ///   - offset: The plane's offset along the axis.
+    ///   - axis: The axis the plane is perpendicular to.
+    ///   - offset: Distance along `axis` from the origin to the plane.
     init(perpendicularTo axis: Axis3D, at offset: Double = 0) {
         let direction = Direction<D3>(axis, .positive)
         self.init(offset: direction.unitVector * offset, normal: direction)
     }
 
-    /// Initializes a plane at a given side of a bounding box, with an optional offset.
+    /// Creates a plane coincident with a face of a bounding box, optionally offset outward.
     ///
-    /// The plane is perpendicular to the given side's axis and passes through the box's corresponding face, offset by
-    /// a specified amount.
-    ///
+    /// The plane is perpendicular to `side.axis` and passes through the corresponding box face, shifted
+    /// by `offset` in the direction of `side`.
     /// - Parameters:
     ///   - side: The directional axis (axis + direction) the plane is perpendicular to.
-    ///   - box: The bounding box to use as a reference.
-    ///   - offset: An additional distance to offset the plane from the box's face, in the same direction as the side.
+    ///   - box: The reference bounding box.
+    ///   - offset: Additional distance from the box face along `side` (default: `0`).
     init(side: DirectionalAxis<D3>, on box: BoundingBox3D, offset: Double = 0) {
         self.init(
             offset: .init(side.axis, value: box[side.axis, side.axisDirection] + offset * side.axisDirection.factor),
@@ -82,12 +81,10 @@ public extension Plane {
         )
     }
 
-    /// Initializes a vertical plane in 3D from a 2D line that lies in the XY plane.
+    /// Creates a vertical plane from a 2D line lying in the XY plane.
     ///
-    /// The resulting plane passes through `line.point` (lifted to Z = 0) and has a normal that is the
-    /// clockwise normal of the line’s direction embedded in 3D (i.e., lying in the XY plane). Its
-    /// intersection with the XY plane is exactly the provided line, and the plane extends infinitely
-    /// along the Z axis.
+    /// The plane passes through `line.point` (lifted to `Z = 0`) and has a normal equal to the line’s
+    /// clockwise 2D normal embedded in 3D. Its intersection with the XY plane is exactly the given line.
     ///
     /// - Parameter line: The 2D line to lift into 3D as a plane.
     ///
@@ -98,35 +95,42 @@ public extension Plane {
         )
     }
 
-    /// Creates a plane perpendicular to the X-axis.
+    /// Plane perpendicular to +X at `x = offset`.
     static func x(_ offset: Double) -> Self {
         .init(perpendicularTo: .x, at: offset)
     }
 
-    /// Creates a plane perpendicular to the Y-axis.
+    /// Plane perpendicular to +Y at `y = offset`.
     static func y(_ offset: Double) -> Self {
         .init(perpendicularTo: .y, at: offset)
     }
 
-    /// Creates a plane perpendicular to the Z-axis.
+    /// Plane perpendicular to +Z at `z = offset`.
     static func z(_ offset: Double) -> Self {
         .init(perpendicularTo: .z, at: offset)
     }
 
-    /// The same plane, but with the normal pointing in the opposite direction
+    /// Canonical coordinate planes through the origin.
+    static let xy = Plane(perpendicularTo: .z, at: 0)
+    static let xz = Plane(perpendicularTo: .y, at: 0)
+    static let yz = Plane(perpendicularTo: .x, at: 0)
+
+    /// Returns the same plane with its normal reversed.
     var flipped: Self {
         Self(offset: offset, normal: normal.opposite)
     }
 
+    /// Returns a parallel plane shifted by `amount` along this plane’s normal.
+    ///
+    /// Positive values move in the direction of `normal`; negative values move opposite.
+    /// - Parameter amount: Signed distance along the normal.
     func offset(_ amount: Double) -> Self {
         Self(offset: offset + normal.unitVector * amount, normal: normal)
     }
 }
 
 public extension Plane {
-    /// Computes the signed distance from a point to the plane.
-    ///
-    /// Positive values indicate the point lies in the direction of the normal vector.
+    /// Signed distance from a point to the plane (positive in the direction of the normal).
     /// - Parameter point: The point whose distance to the plane is measured.
     /// - Returns: The signed distance.
     func distance(to point: Vector3D) -> Double {
@@ -134,14 +138,7 @@ public extension Plane {
         return (a * point.x + b * point.y + c * point.z + d)
     }
 
-    /// Projects a 3D point orthogonally onto the plane.
-    ///
-    /// This method computes the closest point on the plane to the input point by dropping a perpendicular line from
-    /// the point to the plane.
-    ///
-    /// The projection is calculated by determining the signed distance from the point to the plane and moving the
-    /// point along the plane's normal vector by that distance.
-    ///
+    /// Orthogonally projects a 3D point onto the plane (closest point).
     /// - Parameter point: The point to be projected onto the plane.
     /// - Returns: The closest point on the plane.
     func project(point: Vector3D) -> Vector3D {
@@ -149,14 +146,17 @@ public extension Plane {
         return point - normal.unitVector * distanceToPlane
     }
 
-    /// Returns a transformation that aligns the plane with the XY plane.
+    /// A transform that places XY‑plane geometry onto this plane.
+    ///
+    /// Applying this transform to geometry rotates it so +Z aligns with `normal`
+    /// and then translates it to `offset`.
     var transform: Transform3D {
         .rotation(from: .positiveZ, to: normal).translated(offset)
     }
 
-    /// Computes the intersection point between the plane and a given line, if it exists.
+    /// Intersects the plane with a 3D line.
     ///
-    /// - Parameter line: The line to intersect with the plane.
+    /// - Parameter line: The line to test.
     /// - Returns: The intersection point, or `nil` if the line is parallel to the plane.
     func intersection(with line: Line<D3>) -> Vector3D? {
         let lineDir = line.direction.unitVector
@@ -172,10 +172,10 @@ public extension Plane {
         return line.point + lineDir * t
     }
 
-    /// Computes the intersection line between this plane and another plane, if it exists.
+    /// Intersects this plane with another plane.
     ///
-    /// - Parameter other: The second plane to intersect with.
-    /// - Returns: A `Line<D3>` representing the intersection line, or `nil` if the planes are parallel or coincident.
+    /// - Parameter other: The second plane.
+    /// - Returns: The intersection line, or `nil` if the planes are parallel or coincident.
     func intersection(with other: Plane) -> Line<D3>? {
         let n1 = self.normal.unitVector
         let n2 = other.normal.unitVector
