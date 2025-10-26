@@ -34,7 +34,7 @@ public extension Geometry3D {
             measuringBounds { _, selfBounds in
                 let plane = Plane(side: side, on: selfBounds, offset: offset * side.axisDirection.factor)
                 let slicedShape = sliced(along: plane.offset(-profileBounds.size.y))
-                    .ifEmpty { sliced(along: plane) }
+                    .ifEmpty { sliced(along: plane.offset(-1e-6)) }
                 cuttingEdgeProfile(edgeProfile, with: slicedShape, at: plane)
             }
         }
