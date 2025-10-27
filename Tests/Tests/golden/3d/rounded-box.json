@@ -37,7 +37,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -54,6 +54,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 19
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -93,7 +101,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -110,6 +118,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 19
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -149,7 +165,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -166,6 +182,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 19
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -205,7 +229,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -222,6 +246,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 19
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -261,7 +293,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -278,6 +310,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 19
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -317,7 +357,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -334,6 +374,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 19
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -373,7 +421,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -390,6 +438,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 19
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -429,7 +485,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -446,6 +502,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 19
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -567,7 +631,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -584,6 +648,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -623,7 +695,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -640,6 +712,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -679,7 +759,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -696,6 +776,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -735,7 +823,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -752,6 +840,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -791,7 +887,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -808,6 +904,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -847,7 +951,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -864,6 +968,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -903,7 +1015,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -920,6 +1032,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }
@@ -959,7 +1079,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "roundedBoxCornerMask",
+                            "operationName" : "RoundedBoxCornerMask",
                             "parameters" : [
                               {
                                 "type" : "6Cadova8Vector3DV",
@@ -976,6 +1096,14 @@
                               {
                                 "type" : "Si",
                                 "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
                               }
                             ]
                           }

@@ -58,7 +58,11 @@ internal struct Sweep<Path: ParametricCurve>: Shape3D {
                 targetReference: reference,
                 perpendicularBounds: .init(crossSection.bounds)
             )
-            let mesh = Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform))
+            let mesh = Mesh(
+                extruding: crossSection.polygonList(),
+                along: frames.map(\.transform),
+                cacheName: "Sweep"
+            )
             return GeometryNode.shape(.mesh(mesh.meshData))
         }
     }
