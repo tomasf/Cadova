@@ -28,6 +28,7 @@ public struct SplineCurve<V: Vector>: Sendable, Hashable, Codable {
     ///   - knots: Nondecreasing knot vector. Must have length `n + p + 2`.
     ///   - controlPoints: Control points `P₀ … Pₙ` (count `n + 1`).
     ///   - weights: Positive weights `w₀ … wₙ`. If omitted, defaults to `1` for each control point.
+    ///
     public init(degree: Int, knots: [Double], controlPoints: [(V, weight: Double)]) {
         self.init(degree: degree, knots: knots, controlPoints: controlPoints.map {
             ControlPoint($0.0, weight: $0.weight)
