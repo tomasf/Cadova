@@ -150,6 +150,12 @@ public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable
     }
 }
 
+extension InterpolatingCurve: Transformable {
+    public func transformed(_ transform: V.D.Transform) -> InterpolatingCurve {
+        InterpolatingCurve(through: points.map { transform.apply(to: $0) })
+    }
+}
+
 // MARK: - Derivative view
 
 internal struct InterpolatingCurveDerivativeView<V: Vector>: CurveDerivativeView {
