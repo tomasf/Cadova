@@ -46,7 +46,7 @@ internal extension EdgeProfile {
                 .rotated(x: 90°, z: -90°)
                 .translated(
                     x: 1,
-                    y: type == .subtraction ? -1e-2 : 0,
+                    y: type == .subtraction ? -1e-2 : -1e-6,
                     z: type == .subtraction ? 1e-4 : 0
                 )
 
