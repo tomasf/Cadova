@@ -71,6 +71,7 @@ public extension Geometry3D {
     ///   - partName: The name of the part in the 3MF file.
     ///   - type: The type of part, such as `.solid` or `.visual`.
     /// - Returns: A geometry wrapped as a named part.
+    /// 
     func inPart(named partName: String, type: PartSemantic = .solid) -> any Geometry3D {
         PartAssignment(body: self, isSeparated: true, identifier: .named(partName, type: type))
     }
