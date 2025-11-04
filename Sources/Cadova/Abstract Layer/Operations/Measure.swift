@@ -2,14 +2,16 @@ import Foundation
 
 
 fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
-    let target: Input.Geometry
-    let builder: @Sendable (Input.Geometry, Measurements<Input>) -> D.Geometry
+    let target: [Input.Geometry]
     let scope: MeasurementScope
+    let builder: @Sendable ([Measurements<Input>]) -> D.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let buildResult = try await context.buildResult(for: target, in: environment)
-        let measurements = try await Measurements(buildResult: buildResult, scope: scope, context: context)
-        let generatedGeometry = builder(target, measurements)
+        let buildResults = try await context.buildResults(for: target, in: environment)
+        let measurements = try await buildResults.asyncMap {
+            try await Measurements(buildResult: $0, scope: scope, context: context)
+        }
+        let generatedGeometry = builder(measurements)
         return try await context.buildResult(for: generatedGeometry, in: environment)
     }
 }
@@ -38,7 +40,9 @@ public extension Geometry {
         _ scope: MeasurementScope = .solidParts,
         @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.Measurements) -> Output.Geometry
     ) -> Output.Geometry {
-        Measure(target: self, builder: builder, scope: scope)
+        Measure(target: [self], scope: scope) {
+            builder(self, $0[0])
+        }
     }
 
     /// Measures the geometry and provides a bounding box to a closure, if available.
@@ -92,6 +96,35 @@ public extension Geometry {
         measuring { input, measurements in
             measurements.isEmpty ? replacement() : input
         }
+    }
+}
+
+/// Measures the bounding boxes of multiple geometries and forwards the results to a reader closure.
+///
+/// This utility evaluates each geometry in `targets` using the specified `scope`, computes an
+/// optional bounding box for each (some geometries may be empty and therefore have no bounds),
+/// and passes the array of results to `reader`. The `reader` closure can then return any geometry
+/// based on those measurements.
+///
+/// - Parameters:
+///   - targets: An array of geometries to measure. Each element is evaluated and measured independently,
+///              producing a corresponding optional bounding box.
+///   - scope: The measurement scope that determines which parts are included when computing bounding boxes.
+///            Use `.mainPart` to measure only the main geometry, `.solidParts` (default) to include solid/printable
+///            parts, or `.allParts` to include every part (solid, context, and visual). Note that parts are currently
+///            3D-only; when measuring 2D geometry, the scope has no effect.
+///   - reader: A closure that receives an array of optional bounding boxes (one per target, in the same order).
+///             Each element is `nil` if the corresponding geometry is empty or has no bounds. The closure should
+///             return a geometry derived from these measurements.
+/// - Returns: The geometry produced by the `reader` closure, typically constructed using the provided bounding boxes.
+///
+public func measureBounds<Input: Dimensionality, D: Dimensionality>(
+    of targets: [Input.Geometry],
+    scope: MeasurementScope = .solidParts,
+    reader: @Sendable @escaping ([BoundingBox<Input>?]) -> D.Geometry
+) -> D.Geometry {
+    Measure(target: targets, scope: scope) { measurements in
+        reader(measurements.map(\.boundingBox))
     }
 }
 
