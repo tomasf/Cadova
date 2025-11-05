@@ -1,7 +1,7 @@
 import Foundation
 
 /// A rectangular cuboid shape
-public struct Box: Shape3D {
+public struct Box: Geometry {
     public let size: Vector3D
 
     /// Initializes a new box with specific dimensions and centering options.
@@ -43,8 +43,8 @@ public struct Box: Shape3D {
         self.size = [side, side, side]
     }
 
-    public var body: any Geometry3D {
-        NodeBasedGeometry(.shape(.box(size: size)))
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+        .init(.shape(.box(size: size)))
     }
 }
 

@@ -11,8 +11,8 @@ public struct BuildResult<D: Dimensionality>: Sendable {
     }
 
     internal init(combining results: [Self], operationType: BooleanOperationType) {
-        self.node = .boolean(results.map(\.node), type: operationType)
-        self.elements = .init(combining: results.map(\.elements))
+        self.node = .boolean(results.map { $0.node }, type: operationType)
+        self.elements = .init(combining: results.map { $0.elements })
     }
 
     internal init(_ node: D.Node) {
@@ -49,6 +49,12 @@ internal extension BuildResult {
 
     func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E) -> E) -> Self {
         replacing(elements: elements.setting(modifier(elements[E.self])))
+    }
+
+    func applyingTransform(_ transform: D.Transform) -> Self {
+        let newNode = GeometryNode<D>.transform(node, transform: transform)
+        let newElements = elements.setting(elements[PartCatalog.self].applyingTransform(transform.transform3D))
+        return Self(node: newNode, elements: newElements)
     }
 }
 

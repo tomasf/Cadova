@@ -32,15 +32,16 @@ import Manifold3D
 ///
 /// This will create an intersection where the box and cylinder overlap.
 ///
-public struct Intersection<D: Dimensionality>: Shape, Transformable {
+public struct Intersection<D: Dimensionality>: Geometry, Transformable {
     internal let children: @Sendable () -> [D.Geometry]
 
     internal init(children: @Sendable @escaping () -> [D.Geometry]) {
         self.children = children
     }
 
-    public var body: D.Geometry {
-        BooleanGeometry(children: children(), type: .intersection)
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let childResults = try await children().asyncMap { try await context.buildResult(for: $0, in: environment) }
+        return .init(combining: childResults, operationType: .intersection)
     }
 
     /// Creates a intersection of multiple geometries.

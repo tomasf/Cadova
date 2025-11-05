@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The sphere's smoothness and number of faces can be adjusted by configuring the segmentation through the ``Geometry/withSegmentation(minAngle:minSize:)`` and ``Geometry/withSegmentation(count:)`` methods, allowing for customized geometric precision and rendering quality.
 
-public struct Sphere: Shape3D {
+public struct Sphere: Geometry {
     /// The radius of the sphere.
     ///
     /// This property defines the overall size of the sphere from its center to its surface.
@@ -26,10 +26,10 @@ public struct Sphere: Shape3D {
         self.radius = radius
     }
 
-    public var body: D3.Geometry {
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         @Environment(\.segmentation) var segmentation
 
-        NodeBasedGeometry(.shape(.sphere(
+        return .init(.shape(.sphere(
             radius: radius,
             segmentCount: segmentation.segmentCount(circleRadius: diameter / 2)
         )))

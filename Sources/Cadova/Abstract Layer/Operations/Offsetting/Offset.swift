@@ -77,11 +77,11 @@ public extension Geometry2D {
     ///
     /// - SeeAlso: ``offset(amount:style:)``
     ///
-    func offset<D: Dimensionality>(
+    func offset<Output: Dimensionality>(
         amount: Double,
         style: LineJoinStyle,
-        @GeometryBuilder<D> reader: @escaping @Sendable (_ original: any Geometry2D, _ offset: any Geometry2D) -> D.Geometry
-    ) -> D.Geometry {
+        @GeometryBuilder<Output> reader: @escaping @Sendable (_ original: any Geometry2D, _ offset: any Geometry2D) -> Output.Geometry
+    ) -> Output.Geometry {
         reader(self, offset(amount: amount, style: style))
     }
 }
