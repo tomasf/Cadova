@@ -80,6 +80,22 @@ public struct Transform2D: Transform {
             }
         )
     }
+
+    /// Fast exact identity check for 3x3 affine matrix.
+    public var isIdentity: Bool {
+        // Diagonal == 1
+        if self[0,0] != 1.0 { return false }
+        if self[1,1] != 1.0 { return false }
+        if self[2,2] != 1.0 { return false }
+        // Off-diagonals == 0
+        if self[0,1] != 0.0 { return false }
+        if self[0,2] != 0.0 { return false }
+        if self[1,0] != 0.0 { return false }
+        if self[1,2] != 0.0 { return false }
+        if self[2,0] != 0.0 { return false }
+        if self[2,1] != 0.0 { return false }
+        return true
+    }
 }
 
 public extension Transform2D {
