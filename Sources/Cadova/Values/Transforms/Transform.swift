@@ -24,6 +24,8 @@ public protocol Transform: Sendable, Hashable, Codable, Transformable where T ==
     static var size: (rows: Int, columns: Int) { get }
     init(_ transform3D: Transform3D)
     var transform3D: Transform3D { get }
+
+    var isIdentity: Bool { get }
 }
 
 public extension Transform {
@@ -139,4 +141,3 @@ public extension Transform {
         return errSq.squareRoot() <= 1e-9 + max(other.frobeniusNorm, 1.0) * 1e-12
     }
 }
-

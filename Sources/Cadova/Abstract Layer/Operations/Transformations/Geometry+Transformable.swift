@@ -5,7 +5,13 @@ public extension Geometry {
     /// - Parameter transform: The transformation to be applied.
     /// - Returns: A transformed `Geometry`.
     func transformed(_ transform: D.Transform) -> D.Geometry {
-        ApplyTransform(body: self, transform: transform)
+        if transform.isIdentity {
+            return self
+        } else if let innerTransformer = self as? ApplyTransform<D> {
+            return ApplyTransform(body: innerTransformer.body, transform: innerTransformer.transform.transformed(transform))
+        } else {
+            return ApplyTransform(body: self, transform: transform)
+        }
     }
 }
 
