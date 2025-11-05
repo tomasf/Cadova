@@ -6,7 +6,7 @@ public extension Geometry {
         @GeometryBuilder<D> with replacement: @Sendable @escaping (_ input: D.Geometry) -> D.Geometry
     ) -> D.Geometry {
         if condition {
-            Deferred { replacement(self) }
+            replacement(self)
         } else {
             self
         }
@@ -17,7 +17,7 @@ public extension Geometry {
         @GeometryBuilder<D> with replacement: @Sendable @escaping (_ input: D.Geometry, _ value: T) -> D.Geometry
     ) -> D.Geometry {
         if let optional {
-            Deferred { replacement(self, optional) }
+            replacement(self, optional)
         } else {
             self
         }
@@ -26,6 +26,6 @@ public extension Geometry {
     func replaced<Output: Dimensionality>(
         @GeometryBuilder<Output> with replacement: @Sendable @escaping (_ input: D.Geometry) -> Output.Geometry
     ) -> Output.Geometry {
-        Deferred { replacement(self) }
+        replacement(self)
     }
 }

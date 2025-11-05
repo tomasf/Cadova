@@ -15,7 +15,7 @@ public struct EdgeProfile: Sendable {
     ///   aligned so that its bottom-right corner is at the origin.
     ///
     public init(@GeometryBuilder2D profile: @Sendable @escaping () -> any Geometry2D) {
-        self.profile = Deferred(profile).aligned(at: .max)
+        self.profile = profile().aligned(at: .max)
     }
 
     public var negativeShape: any Geometry2D {

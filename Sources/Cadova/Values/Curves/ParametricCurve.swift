@@ -78,4 +78,3 @@ public protocol CurveDerivativeView<V> {
     associatedtype V: Vector
     func tangent(at u: Double) -> Direction<V.D>
 }
-

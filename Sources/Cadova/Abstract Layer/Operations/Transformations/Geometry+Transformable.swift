@@ -15,11 +15,6 @@ internal struct ApplyTransform<D: Dimensionality>: Geometry {
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         try await context.buildResult(for: body, in: environment.applyingTransform(transform.transform3D))
-            .modifyingNode {
-                .transform($0, transform: transform)
-            }
-            .modifyingElement(PartCatalog.self) {
-                $0.applyingTransform(transform.transform3D)
-            }
+            .applyingTransform(transform)
     }
 }

@@ -57,6 +57,7 @@ internal struct PartCatalog: ResultElement {
     }
 
     func applyingTransform(_ transform: Transform3D) -> Self {
-        modifyingNodes { .transform($0, transform: transform) }
+        guard !parts.isEmpty else { return self }
+        return modifyingNodes { .transform($0, transform: transform) }
     }
 }

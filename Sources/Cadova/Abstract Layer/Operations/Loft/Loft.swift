@@ -125,7 +125,7 @@ public func layer(
     interpolation shapingFunction: ShapingFunction? = nil,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Layer {
-    Loft.Layer(z: z, shapingFunction: shapingFunction, geometry: Deferred(shape))
+    Loft.Layer(z: z, shapingFunction: shapingFunction, geometry: shape())
 }
 
 public extension Geometry2D {

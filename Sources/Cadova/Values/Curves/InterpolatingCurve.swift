@@ -162,9 +162,9 @@ internal struct InterpolatingCurveDerivativeView<V: Vector>: CurveDerivativeView
     let curve: InterpolatingCurve<V>
 
     func tangent(at u: Double) -> Direction<V.D> {
-        let eps = max(1e-6, 1e-6 * curve.domain.length)
-        let a = curve.point(at: (u - eps).clamped(to: curve.domain))
-        let b = curve.point(at: (u + eps).clamped(to: curve.domain))
-        return Direction(b - a)
+        Direction(
+            from: curve.point(at: (u - 1e-6).clamped(to: curve.domain)),
+            to: curve.point(at: (u + 1e-6).clamped(to: curve.domain))
+        )
     }
 }
