@@ -8,9 +8,12 @@ public extension Geometry {
     /// It's useful for selectively applying modifications such as rounding, offsetting, or translation.
     ///
     /// - Parameters:
-    ///   - mask: A closure that returns the mask geometry. The transformation will only be applied within this region.
-    ///   - operations: A closure that takes the *original geometry* and returns a modified version, to be restricted to the mask area.
-    /// - Returns: A new geometry where the specified transformation is applied only inside the masked region.
+    ///   - inverted: If `true`, inverts the mask logic so that the operations are applied to the complement of the mask
+    ///               (outside the masked region). If `false` (default), operations are applied only inside the mask.
+    ///   - mask: A closure that returns the mask geometry. The transformation will only be applied within this region
+    ///           unless `inverted` is `true`, in which case the transformation is applied outside this region.
+    ///   - operations: A closure that takes the *original geometry* and returns a modified version, to be restricted to the mask area (or its complement if `inverted` is `true`).
+    /// - Returns: A new geometry where the specified transformation is applied only inside the masked region, or outside it when `inverted` is `true`.
     ///
     /// ## Example
     /// Round only one point of a five-pointed star:
@@ -32,11 +35,16 @@ public extension Geometry {
     /// The `rounded` operation is applied only within that region. All other points remain sharp.
     ///
     func whileMasked(
+        inverted: Bool = false,
         @GeometryBuilder<D> using mask: @Sendable @escaping () -> D.Geometry,
         @GeometryBuilder<D> do operations: @Sendable @escaping (D.Geometry) -> D.Geometry
     ) -> D.Geometry {
         let mask = mask()
-        return subtracting(mask).adding(operations(self).intersecting(mask))
+        return if inverted {
+            intersecting(mask).adding(operations(self).subtracting(mask))
+        } else {
+            subtracting(mask).adding(operations(self).intersecting(mask))
+        }
     }
 }
 
@@ -50,15 +58,18 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - x: Optional range along the x-axis for the masked region. If `nil`, the mask is unbounded in x.
     ///   - y: Optional range along the y-axis for the masked region. If `nil`, the mask is unbounded in y.
-    ///   - operations: A closure that receives the full geometry and returns a new geometry to be inserted within the masked region.
+    ///   - inverted: If `true`, inverts the mask logic so that the operations are applied to the complement of the bounded region
+    ///               (outside the mask). If `false` (default), operations are applied only inside the bounded region.
+    ///   - operations: A closure that receives the full geometry and returns a new geometry to be inserted within the masked region (or its complement if `inverted` is `true`).
     ///
     func whileMasked(
         x: (any WithinRange)? = nil,
         y: (any WithinRange)? = nil,
+        inverted: Bool = false,
         @GeometryBuilder<D> do operations: @Sendable @escaping (D.Geometry) -> D.Geometry
     ) -> D.Geometry {
         measuringBounds { _, bounds in
-            whileMasked(using: {
+            whileMasked(inverted: inverted, using: {
                 bounds.within(x: x, y: y).mask
             }, do: operations)
         }
@@ -76,16 +87,19 @@ public extension Geometry3D {
     ///   - x: Optional range along the x-axis for the masked region. If `nil`, the mask is unbounded in x.
     ///   - y: Optional range along the y-axis for the masked region. If `nil`, the mask is unbounded in y.
     ///   - z: Optional range along the z-axis for the masked region. If `nil`, the mask is unbounded in z.
-    ///   - operations: A closure that receives the full geometry and returns a new geometry to be inserted within the masked region.
+    ///   - inverted: If `true`, inverts the mask logic so that the operations are applied to the complement of the bounded region
+    ///               (outside the mask). If `false` (default), operations are applied only inside the bounded region.
+    ///   - operations: A closure that receives the full geometry and returns a new geometry to be inserted within the masked region (or its complement if `inverted` is `true`).
     ///
     func whileMasked(
         x: (any WithinRange)? = nil,
         y: (any WithinRange)? = nil,
         z: (any WithinRange)? = nil,
+        inverted: Bool = false,
         @GeometryBuilder<D> do operations: @Sendable @escaping (D.Geometry) -> D.Geometry
     ) -> D.Geometry {
         measuringBounds { _, bounds in
-            whileMasked(using: {
+            whileMasked(inverted: inverted, using: {
                 bounds.within(x: x, y: y, z: z).mask
             }, do: operations)
         }
