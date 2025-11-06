@@ -96,70 +96,50 @@
             "children" : [
               {
                 "body" : {
-                  "body" : {
-                    "children" : [
-                      {
+                  "children" : [
+                    {
+                      "kind" : "shape2D",
+                      "primitive" : {
+                        "circle" : {
+                          "radius" : 2,
+                          "segmentCount" : 83
+                        }
+                      }
+                    },
+                    {
+                      "body" : {
                         "kind" : "shape2D",
                         "primitive" : {
                           "circle" : {
-                            "radius" : 2,
-                            "segmentCount" : 83
+                            "radius" : 1,
+                            "segmentCount" : 41
                           }
                         }
                       },
-                      {
-                        "body" : {
-                          "kind" : "shape2D",
-                          "primitive" : {
-                            "circle" : {
-                              "radius" : 1,
-                              "segmentCount" : 41
-                            }
-                          }
-                        },
-                        "kind" : "transform",
-                        "transform" : [
-                          [
-                            1,
-                            0,
-                            10
-                          ],
-                          [
-                            0,
-                            1,
-                            0
-                          ],
-                          [
-                            0,
-                            0,
-                            1
-                          ]
+                      "kind" : "transform",
+                      "transform" : [
+                        [
+                          1,
+                          0,
+                          10
+                        ],
+                        [
+                          0,
+                          1,
+                          0
+                        ],
+                        [
+                          0,
+                          0,
+                          1
                         ]
-                      }
-                    ],
-                    "kind" : "boolean",
-                    "type" : "union"
-                  },
-                  "kind" : "convexHull"
+                      ]
+                    }
+                  ],
+                  "kind" : "boolean",
+                  "type" : "union"
                 },
-                "kind" : "transform",
-                "transform" : [
-                  [
-                    1,
-                    -0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
+                "kind" : "convexHull"
               },
               {
                 "body" : {
