@@ -15,598 +15,569 @@
     {
       "children" : [
         {
-          "body" : {
-            "children" : [
-              {
-                "kind" : "shape3D",
-                "primitive" : {
-                  "box" : {
-                    "size" : {
-                      "x" : 10,
-                      "y" : 8,
-                      "z" : 5
-                    }
+          "children" : [
+            {
+              "kind" : "shape3D",
+              "primitive" : {
+                "box" : {
+                  "size" : {
+                    "x" : 10,
+                    "y" : 8,
+                    "z" : 5
                   }
                 }
-              },
-              {
-                "body" : {
-                  "children" : [
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 19
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          1,
-                          0,
-                          0,
-                          -5
-                        ],
-                        [
-                          0,
-                          1,
-                          0,
-                          -4
-                        ],
-                        [
-                          0,
-                          0,
-                          1,
-                          -2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 19
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          1,
-                          0,
-                          0,
-                          -5
-                        ],
-                        [
-                          0,
-                          1,
-                          0,
-                          -4
-                        ],
-                        [
-                          0,
-                          0,
-                          -1,
-                          2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 19
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          1,
-                          0,
-                          0,
-                          -5
-                        ],
-                        [
-                          0,
-                          -1,
-                          0,
-                          4
-                        ],
-                        [
-                          0,
-                          0,
-                          1,
-                          -2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 19
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          1,
-                          0,
-                          0,
-                          -5
-                        ],
-                        [
-                          0,
-                          -1,
-                          0,
-                          4
-                        ],
-                        [
-                          0,
-                          0,
-                          -1,
-                          2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 19
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          -1,
-                          0,
-                          0,
-                          5
-                        ],
-                        [
-                          0,
-                          1,
-                          0,
-                          -4
-                        ],
-                        [
-                          0,
-                          0,
-                          1,
-                          -2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 19
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          -1,
-                          0,
-                          0,
-                          5
-                        ],
-                        [
-                          0,
-                          1,
-                          0,
-                          -4
-                        ],
-                        [
-                          0,
-                          0,
-                          -1,
-                          2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 19
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          -1,
-                          0,
-                          0,
-                          5
-                        ],
-                        [
-                          0,
-                          -1,
-                          0,
-                          4
-                        ],
-                        [
-                          0,
-                          0,
-                          1,
-                          -2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 19
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          -1,
-                          0,
-                          0,
-                          5
-                        ],
-                        [
-                          0,
-                          -1,
-                          0,
-                          4
-                        ],
-                        [
-                          0,
-                          0,
-                          -1,
-                          2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    }
-                  ],
-                  "kind" : "boolean",
-                  "type" : "union"
-                },
-                "kind" : "transform",
-                "transform" : [
-                  [
-                    1,
-                    0,
-                    0,
-                    5
-                  ],
-                  [
-                    0,
-                    1,
-                    0,
-                    4
-                  ],
-                  [
-                    0,
-                    0,
-                    1,
-                    2.5
-                  ],
-                  [
-                    0,
-                    0,
-                    0,
-                    1
-                  ]
-                ]
               }
-            ],
-            "kind" : "boolean",
-            "type" : "intersection"
-          },
-          "kind" : "transform",
-          "transform" : [
-            [
-              1,
-              0,
-              0,
-              0
-            ],
-            [
-              0,
-              1,
-              0,
-              0
-            ],
-            [
-              0,
-              0,
-              1,
-              0
-            ],
-            [
-              0,
-              0,
-              0,
-              1
-            ]
-          ]
+            },
+            {
+              "body" : {
+                "children" : [
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        1,
+                        0,
+                        0,
+                        -5
+                      ],
+                      [
+                        0,
+                        1,
+                        0,
+                        -4
+                      ],
+                      [
+                        0,
+                        0,
+                        1,
+                        -2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  },
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        1,
+                        0,
+                        0,
+                        -5
+                      ],
+                      [
+                        0,
+                        1,
+                        0,
+                        -4
+                      ],
+                      [
+                        0,
+                        0,
+                        -1,
+                        2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  },
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        1,
+                        0,
+                        0,
+                        -5
+                      ],
+                      [
+                        0,
+                        -1,
+                        0,
+                        4
+                      ],
+                      [
+                        0,
+                        0,
+                        1,
+                        -2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  },
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        1,
+                        0,
+                        0,
+                        -5
+                      ],
+                      [
+                        0,
+                        -1,
+                        0,
+                        4
+                      ],
+                      [
+                        0,
+                        0,
+                        -1,
+                        2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  },
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        -1,
+                        0,
+                        0,
+                        5
+                      ],
+                      [
+                        0,
+                        1,
+                        0,
+                        -4
+                      ],
+                      [
+                        0,
+                        0,
+                        1,
+                        -2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  },
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        -1,
+                        0,
+                        0,
+                        5
+                      ],
+                      [
+                        0,
+                        1,
+                        0,
+                        -4
+                      ],
+                      [
+                        0,
+                        0,
+                        -1,
+                        2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  },
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        -1,
+                        0,
+                        0,
+                        5
+                      ],
+                      [
+                        0,
+                        -1,
+                        0,
+                        4
+                      ],
+                      [
+                        0,
+                        0,
+                        1,
+                        -2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  },
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        -1,
+                        0,
+                        0,
+                        5
+                      ],
+                      [
+                        0,
+                        -1,
+                        0,
+                        4
+                      ],
+                      [
+                        0,
+                        0,
+                        -1,
+                        2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                ],
+                "kind" : "boolean",
+                "type" : "union"
+              },
+              "kind" : "transform",
+              "transform" : [
+                [
+                  1,
+                  0,
+                  0,
+                  5
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  4
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  2.5
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "kind" : "boolean",
+          "type" : "intersection"
         },
         {
           "body" : {
@@ -1549,7 +1520,7 @@
                 "transform" : [
                   [
                     1,
-                    0,
+                    -0,
                     0,
                     0
                   ],
@@ -1560,7 +1531,7 @@
                     0
                   ],
                   [
-                    0,
+                    -0,
                     -1,
                     0,
                     0
