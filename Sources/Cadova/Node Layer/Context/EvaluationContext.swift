@@ -54,7 +54,7 @@ internal extension EvaluationContext {
     ) async throws -> D.BuildResult {
         let materializedNode = D.Node.materialized(cacheKey: OpaqueKey(key))
         try await cache().declareGenerator(for: materializedNode, generator: generator)
-        return D.BuildResult(.materialized(cacheKey: OpaqueKey(key)))
+        return D.BuildResult(materializedNode)
     }
 
     func materializedResult<D: Dimensionality, Input: Dimensionality, Key: CacheKey>(

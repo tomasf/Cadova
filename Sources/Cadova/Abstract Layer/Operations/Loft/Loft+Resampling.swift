@@ -185,7 +185,8 @@ fileprivate extension Mesh<PolygonGroupVertex> {
 
         self.init(
             faces: sideFaces + bottomFaces + topFaces,
-            name: "PolygonGroupMesh"
+            name: "PolygonGroupMesh",
+            cacheParameters: polygonGroups.map(\.polygons), polygonGroups.map(\.zLevels)
         ) { vertex in
             let flatPoint = polygonGroups[vertex.polygonGroupIndex].polygons[vertex.layerIndex][vertex.pointIndex]
             return Vector3D(flatPoint, z: polygonGroups[vertex.polygonGroupIndex].zLevels[vertex.layerIndex])
