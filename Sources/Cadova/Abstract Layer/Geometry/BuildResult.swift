@@ -51,6 +51,10 @@ internal extension BuildResult {
         replacing(elements: elements.setting(modifier(elements[E.self])))
     }
 
+    func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E) async throws -> E) async rethrows -> Self {
+        replacing(elements: elements.setting(try await modifier(elements[E.self])))
+    }
+
     func applyingTransform(_ transform: D.Transform) -> Self {
         let newNode = GeometryNode<D>.transform(node, transform: transform)
         let newElements = elements.setting(elements[PartCatalog.self].applyingTransform(transform.transform3D))

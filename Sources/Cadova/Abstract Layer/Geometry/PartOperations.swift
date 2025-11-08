@@ -33,6 +33,22 @@ internal struct PartReader<D: Dimensionality, Input: Dimensionality>: Geometry {
     }
 }
 
+internal struct PartModifier<D: Dimensionality>: Geometry {
+    let body: D.Geometry
+    let semantic: PartSemantic
+    let modifier: @Sendable (any Geometry3D, String) -> any Geometry3D
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let output = try await context.buildResult(for: body, in: environment)
+
+        return try await output.modifyingElement(PartCatalog.self) {
+            PartCatalog(parts: try await Dictionary(uniqueKeysWithValues: $0.parts.asyncMap {
+                ($0, [try await context.buildResult(for: modifier(Union($1), $0.name), in: environment)])
+            }))
+        }
+    }
+}
+
 public extension Geometry {
     /// Extracts a named part from the current geometry and allows further manipulation.
     ///
@@ -81,6 +97,30 @@ public extension Geometry {
         @GeometryBuilder<Output> reader: @Sendable @escaping (_ base: D.Geometry, _ parts: [String: D3.Geometry]) -> Output.Geometry
     ) -> Output.Geometry {
         PartReader(body: self, semantic: semantic, reader: reader)
+    }
+
+    /// Applies a transformation to each part of the specified semantic.
+    ///
+    /// This method locates parts previously marked with `.inPart(named:type:)` that match the given semantic
+    /// (such as `.solid`, `.visual`, or `.context`) and passes each part’s geometry along with its name to the
+    /// `reader` closure. The closure should return the modified geometry for that part. The resulting modified
+    /// parts replace the originals in the model; the base geometry is otherwise preserved.
+    ///
+    /// Use this to uniformly adjust or augment parts - for example, to recolor, add features, apply transforms,
+    /// or otherwise post-process parts before exporting a multi-part model.
+    ///
+    /// - Parameters:
+    ///   - semantic: The semantic of parts to modify. Defaults to `.solid`.
+    ///   - reader: A closure that receives:
+    ///       - part: The combined 3D geometry of a part matching `semantic`.
+    ///       - name: The part’s name.
+    ///     The closure should return new 3D geometry to replace the original part in the catalog.
+    ///
+    func modifyingParts(
+        ofType semantic: PartSemantic = .solid,
+        @GeometryBuilder<D3> reader: @Sendable @escaping (_ part: any Geometry3D, _ name: String) -> any Geometry3D
+    ) -> D.Geometry {
+        PartModifier(body: self, semantic: semantic, modifier: reader)
     }
 }
 
