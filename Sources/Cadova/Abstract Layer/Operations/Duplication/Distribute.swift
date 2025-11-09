@@ -42,6 +42,22 @@ extension Geometry {
         }
     }
 
+    /// Creates a series of transformed copies of this geometry using the provided transforms.
+    ///
+    /// This method duplicates the geometry and applies each transform in the sequence to a copy.
+    /// It is useful for building patterns or arrays where each instance may involve translation,
+    /// rotation, scaling, or any combination supported by `D.Transform`.
+    ///
+    /// - Parameter transforms: A sequence of transforms to apply to successive copies of the geometry.
+    /// - Returns: A composite geometry containing all instances of the original with the corresponding transforms applied.
+    ///
+    @GeometryBuilder<D>
+    public func distributed(at transforms: any Sequence<D.Transform>) -> D.Geometry {
+        for transform in transforms {
+            transformed(transform)
+        }
+    }
+
     /// Creates a series of translated copies of this geometry at specified vector offsets.
     ///
     /// This method duplicates the geometry and places each copy at the corresponding offset
