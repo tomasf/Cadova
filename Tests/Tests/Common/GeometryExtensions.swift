@@ -41,10 +41,20 @@ extension Geometry {
         get async throws { try await measurements(for: .solidParts) }
     }
 
+    var mainModelMeasurements: D.Measurements {
+        get async throws { try await measurements(for: .mainPart) }
+    }
+
     var parts: [PartIdentifier: D3.BuildResult] {
         get async throws {
             try await EvaluationContext().buildResult(for: self, in: .defaultEnvironment)
                 .elements[PartCatalog.self].mergedOutputs
+        }
+    }
+
+    var partNames: Set<String> {
+        get async throws {
+            try await Set(parts.keys.map(\.name))
         }
     }
 
