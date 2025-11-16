@@ -5,8 +5,14 @@ extension GeometryNode {
         Self(.empty)
     }
 
+    private var unionChildren: [D.Node]? {
+        guard case let .boolean(children, type) = contents, type == .union else { return nil }
+        return children
+    }
+
     static func boolean(_ children: [D.Node], type: BooleanOperationType) -> GeometryNode {
         guard children.isEmpty == false else { return .empty }
+        var children = children
 
         switch type {
         case .difference:
@@ -18,7 +24,9 @@ extension GeometryNode {
             guard children.contains(where: \.isEmpty) == false else { return .empty }
             return Self(.boolean(children, type: type))
 
-        case .union: break
+        case .union:
+            // Flatten unions
+            children = children.flatMap { $0.unionChildren ?? [$0] }
         }
 
         let filteredChildren = children.filter { !$0.isEmpty }
@@ -46,16 +54,6 @@ extension GeometryNode {
         return Self(.simplify(body, tolerance: tolerance))
     }
 
-    static func shape(_ shape: PrimitiveShape2D) -> GeometryNode where D == D2 {
-        guard shape.isEmpty == false else { return .empty }
-        return Self(.shape2D(shape))
-    }
-
-    static func shape(_ shape: PrimitiveShape3D) -> GeometryNode where D == D3 {
-        guard shape.isEmpty == false else { return .empty }
-        return Self(.shape3D(shape))
-    }
-
     static func transform(_ body: D.Node, transform: D.Transform) -> GeometryNode {
         guard body.isEmpty == false else { return .empty }
 
@@ -70,6 +68,13 @@ extension GeometryNode {
     static func materialized(cacheKey: OpaqueKey) -> GeometryNode {
         Self(.materialized(cacheKey: cacheKey))
     }
+}
+
+extension GeometryNode where D == D2 {
+    static func shape(_ shape: PrimitiveShape2D) -> GeometryNode {
+        guard shape.isEmpty == false else { return .empty }
+        return Self(.shape2D(shape))
+    }
 
     static func offset(_ body: D2.Node, amount: Double, joinStyle: LineJoinStyle, miterLimit: Double, segmentCount: Int) -> GeometryNode where D == D2 {
         guard !body.isEmpty else { return .empty }
@@ -81,16 +86,28 @@ extension GeometryNode {
         guard !body.isEmpty else { return .empty }
         return Self(.projection(body, type: type))
     }
+}
 
-    static func extrusion(_ body: D2.Node, type: Extrusion) -> GeometryNode where D == D3 {
+extension GeometryNode where D == D3 {
+    static func shape(_ shape: PrimitiveShape3D) -> GeometryNode {
+        guard shape.isEmpty == false else { return .empty }
+        return Self(.shape3D(shape))
+    }
+
+    static func extrusion(_ body: D2.Node, type: Extrusion) -> GeometryNode {
         guard body.isEmpty == false else { return .empty }
         guard type.isEmpty == false else { return .empty }
         return Self(.extrusion(body, type: type))
     }
 
-    static func applyMaterial(_ body: D3.Node, material: Material) -> GeometryNode where D == D3 {
+    static func applyMaterial(_ body: D3.Node, material: Material) -> GeometryNode {
         guard body.isEmpty == false else { return .empty }
         return Self(.applyMaterial(body, material))
+    }
+
+    static func trim(_ body: D3.Node, plane: Plane) -> GeometryNode {
+        guard body.isEmpty == false else { return .empty }
+        return Self(.trim(body, plane))
     }
 }
 

@@ -48,55 +48,35 @@
               ]
             },
             {
-              "body" : {
-                "cacheKey" : {
-                  "type" : "6Cadova12NodeCacheKeyVyAA07LabeledcD0VAA2D2VG",
-                  "value" : {
-                    "base" : {
-                      "operationName" : "Cadova.Hull",
-                      "parameters" : [
-                        {
-                          "type" : "Say6Cadova8Vector2DVG",
-                          "value" : [
-                            {
-                              "x" : 0,
-                              "y" : 7.0710678118654755
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "node" : {
-                      "kind" : "shape2D",
-                      "primitive" : {
-                        "circle" : {
-                          "radius" : 5,
-                          "segmentCount" : 180
-                        }
+              "cacheKey" : {
+                "type" : "6Cadova12NodeCacheKeyVyAA07LabeledcD0VAA2D2VG",
+                "value" : {
+                  "base" : {
+                    "operationName" : "Cadova.Hull",
+                    "parameters" : [
+                      {
+                        "type" : "Say6Cadova8Vector2DVG",
+                        "value" : [
+                          {
+                            "x" : 0,
+                            "y" : 7.0710678118654755
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "node" : {
+                    "kind" : "shape2D",
+                    "primitive" : {
+                      "circle" : {
+                        "radius" : 5,
+                        "segmentCount" : 180
                       }
                     }
                   }
-                },
-                "kind" : "materialized"
+                }
               },
-              "kind" : "transform",
-              "transform" : [
-                [
-                  1,
-                  -0,
-                  0
-                ],
-                [
-                  0,
-                  1,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ]
-              ]
+              "kind" : "materialized"
             }
           ],
           "kind" : "boolean",

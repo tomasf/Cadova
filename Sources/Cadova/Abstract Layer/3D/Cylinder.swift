@@ -10,29 +10,27 @@ import Foundation
 ///     .withSegmentation(count: 3)
 /// ```
 
-public struct Cylinder: Shape3D {
+public struct Cylinder: Geometry {
     public let height: Double
     public let bottomRadius: Double
     public let topRadius: Double
 
-    public var body: any Geometry3D {
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         @Environment(\.segmentation) var segmentation
         let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
         if height < .ulpOfOne {
-            Empty()
+            return .init(.empty)
 
         } else if bottomRadius < .ulpOfOne {
-            NodeBasedGeometry(.shape(.cylinder(
+            return .init(.transform(.shape(.cylinder(
                 bottomRadius: topRadius,
                 topRadius: bottomRadius,
                 height: height,
                 segmentCount: segmentCount
-            )))
-            .flipped(along: .z)
-            .translated(z: height)
+            )), transform: .scaling(z: -1).translated(z: height)))
         } else {
-            NodeBasedGeometry(.shape(.cylinder(
+            return .init(.shape(.cylinder(
                 bottomRadius: bottomRadius,
                 topRadius: topRadius,
                 height: height,

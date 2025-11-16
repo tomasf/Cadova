@@ -56,6 +56,8 @@ extension GeometryNode: CustomDebugStringConvertible {
             }
         case let .applyMaterial(body, material):
             "applyMaterial (\(material)) {\n\(body.debugDescription.indented)\n}"
+        case let .trim(body, plane):
+            "trimByPlane (\(plane)) {\n\(body.debugDescription.indented)\n}"
         }
     }
 }

@@ -77,8 +77,7 @@ internal class GlyphRenderer {
             FT_Outline_Decompose(&mutableOutline, &funcs, mutablePointer)
         }
         guard composeResult == 0 else { return nil }
-
-        return SimplePolygonList(paths.map { SimplePolygon($0.points(in: environment)) })
+        return SimplePolygonList(paths.map { SimplePolygon($0.points(segmentation: environment.segmentation)) })
     }
 }
 

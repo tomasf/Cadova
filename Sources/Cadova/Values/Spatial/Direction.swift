@@ -35,6 +35,20 @@ public extension Direction {
     init(_ axis: D.Axis, _ direction: LinearDirection) {
         self.init(.zero.with(axis, as: direction == .positive ? 1 : -1))
     }
+
+    /// Creates a direction that bisects the angle between two vectors.
+    ///
+    /// This initializer computes a direction that lies halfway between the
+    /// directions of the provided vectors `a` and `b`. Both vectors are normalized
+    /// before averaging, so their magnitudes do not affect the result.
+    ///
+    /// - Parameters:
+    ///   - a: The first vector to bisect.
+    ///   - b: The second vector to bisect.
+    ///   
+    init(bisecting a: D.Vector, _ b: D.Vector) {
+        self.init((a.normalized + b.normalized) / 2.0)
+    }
 }
 
 public extension Direction <D3> {
@@ -67,8 +81,27 @@ public extension Direction <D3> {
         .init(Transform3D.rotation(angle: angle, around: other).apply(to: unitVector))
     }
 
+    /// Creates a 3D direction from a 2D direction in the XY plane and an elevation angle from that plane.
+    ///
+    /// The resulting direction points in the given 2D direction, angled upward or downward
+    /// by the specified amount relative to the XY plane.
+    ///
+    /// - Parameters:
+    ///   - direction2D: The base 2D direction in the XY plane.
+    ///   - elevation: The angle above (positive) or below (negative) the XY plane.
+    /// - Returns: A normalized 3D direction pointing in the given orientation.
+    ///
+    init(from direction2D: Direction2D, elevation: Angle = 0°) {
+        let cosEl = cos(elevation)
+        self.init(Vector3D(
+            direction2D.unitVector.x * cosEl,
+            direction2D.unitVector.y * cosEl,
+            sin(elevation))
+        )
+    }
+
     /// Rotates the direction by euler angles.
-    func rotated(x: Angle, y: Angle, z: Angle) -> Self {
+    func rotated(x: Angle = 0°, y: Angle = 0°, z: Angle = 0°) -> Self {
         .init(Transform3D.rotation(x: x, y: y, z: z).apply(to: unitVector))
     }
 

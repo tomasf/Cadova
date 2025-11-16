@@ -32,9 +32,9 @@ struct Geometry3DTests {
                 .roundingBoxCorners(radius: 2)
                 .withSegmentation(count: 20)
             Box([3, 4, 18])
-                .applyingEdgeProfile(.fillet(radius: 2), to: .topRight, along: .x)
+                .cuttingEdgeProfile(.fillet(radius: 2), on: .topRight, along: .x)
             Box([8, 10, 6])
-                .applyingEdgeProfile(.fillet(radius: 2.5), to: .bottom, along: .y)
+                .cuttingEdgeProfile(.fillet(radius: 2.5), on: .bottom, along: .y)
         }
         .expectEquals(goldenFile: "3d/rounded-box")
     }

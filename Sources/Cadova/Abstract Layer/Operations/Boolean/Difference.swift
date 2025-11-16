@@ -1,12 +1,14 @@
 import Foundation
 import Manifold3D
 
-fileprivate struct Difference<D: Dimensionality>: Shape {
+fileprivate struct Difference<D: Dimensionality>: Geometry {
     let positive: @Sendable () -> D.Geometry
     let negative: @Sendable () -> D.Geometry
 
-    public var body: D.Geometry {
-        BooleanGeometry(children: [positive(), negative().invertingOperation()], type: .difference)
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        async let base = try await context.buildResult(for: positive(), in: environment)
+        async let subtraction = try await context.buildResult(for: negative(), in: environment.invertingOperation())
+        return try await .init(combining: [base, subtraction], operationType: .difference)
     }
 }
 

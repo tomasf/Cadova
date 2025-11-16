@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Transform: Sendable, Hashable, Codable {
+public protocol Transform: Sendable, Hashable, Codable, Transformable where T == Self, Transformed == Self {
     associatedtype D: Dimensionality
     typealias V = D.Vector
 
@@ -9,6 +9,7 @@ public protocol Transform: Sendable, Hashable, Codable {
     var inverse: Self { get }
     var offset: V { get }
     func concatenated(with: Self) -> Self
+    static func *(_ lhs: Self, _ rhs: Self) -> Self
     func apply(to point: V) -> V
 
     func mapValues(_ function: (_ row: Int, _ column: Int, _ value: Double) -> Double) -> Self
@@ -20,12 +21,11 @@ public protocol Transform: Sendable, Hashable, Codable {
     static func translation(_ v: V) -> Self
     static func scaling(_ v: V) -> Self
 
-    func translated(_ v: V) -> Self
-    func scaled(_ v: V) -> Self
-
     static var size: (rows: Int, columns: Int) { get }
     init(_ transform3D: Transform3D)
     var transform3D: Transform3D { get }
+
+    var isIdentity: Bool { get }
 }
 
 public extension Transform {
@@ -88,6 +88,10 @@ public extension Transform {
         return true
     }
 
+    static func *(_ lhs: Self, _ rhs: Self) -> Self {
+        lhs.concatenated(with: rhs)
+    }
+
     func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(values)
@@ -95,6 +99,10 @@ public extension Transform {
 
     init(from decoder: any Decoder) throws {
         self.init(try decoder.singleValueContainer().decode([[Double]].self))
+    }
+
+    func transformed(_ transform: Self) -> Self {
+        concatenated(with: transform)
     }
 }
 
@@ -133,4 +141,3 @@ public extension Transform {
         return errSq.squareRoot() <= 1e-9 + max(other.frobeniusNorm, 1.0) * 1e-12
     }
 }
-

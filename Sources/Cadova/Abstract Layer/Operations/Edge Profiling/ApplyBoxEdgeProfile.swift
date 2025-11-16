@@ -16,7 +16,7 @@ public extension Geometry3D {
     /// This method is designed for box-like geometries where adding a profile to a specific edge is desired, with the
     /// bounding box serving as a positional reference.
     ///
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to edge: Box.Edge) -> any Geometry3D {
+    func cuttingEdgeProfile(_ edgeProfile: EdgeProfile, on edge: Box.Edge) -> any Geometry3D {
         measuringBounds { _, bounds in
             let epsilon = 1e-6
 
@@ -52,8 +52,8 @@ public extension Geometry3D {
     /// This method is designed for box-like geometries where adding a profile to multiple edges is desired, with the
     /// bounding box serving as a positional reference.
     ///
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to edges: Box.Edges) -> any Geometry3D {
-        edges.reduce(self) { $0.applyingEdgeProfile(edgeProfile, to: $1) }
+    func cuttingEdgeProfile(_ edgeProfile: EdgeProfile, on edges: Box.Edges) -> any Geometry3D {
+        edges.reduce(self) { $0.cuttingEdgeProfile(edgeProfile, on: $1) }
     }
 }
 

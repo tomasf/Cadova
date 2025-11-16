@@ -20,8 +20,8 @@ public extension Geometry {
     /// This example centers the square along the X-axis and aligns its bottom edge with the Y=0 line.
     /// 
     func aligned(at alignment: D.Alignment...) -> D.Geometry {
-        measuring { child, measurements in
-            child.translated(measurements.boundingBox?.translation(for: .init(merging: alignment)) ?? .zero)
+        measuringBounds { child, bounds in
+            child.translated(bounds.translation(for: .init(merging: alignment)))
         }
     }
 }

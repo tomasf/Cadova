@@ -31,9 +31,9 @@ public struct Rectangle {
     }
 }
 
-extension Rectangle: Shape2D {
-    public var body: any Geometry2D {
-        NodeBasedGeometry(.shape(.rectangle(size: size)))
+extension Rectangle: Geometry {
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D2.BuildResult {
+        .init(.shape(.rectangle(size: size)))
     }
 }
 

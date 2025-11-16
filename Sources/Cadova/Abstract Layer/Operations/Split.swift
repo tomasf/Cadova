@@ -108,6 +108,25 @@ public extension Geometry3D {
             }
         }
     }
+
+    /// Trims the geometry along the specified plane, keeping only the portion facing the plane's normal direction.
+    ///
+    /// This method behaves like a one-sided split: it cuts the geometry by a plane and removes everything
+    /// on the opposite side of the plane's vector. The result is the portion of the geometry that remains
+    /// in the direction the plane is facing.
+    ///
+    /// - Parameter plane: The `Plane` defining the trimming boundary.
+    /// - Returns: A new geometry containing only the portion of the original shape facing the plane's normal.
+    ///
+    /// ## Example
+    /// ```swift
+    /// Sphere(diameter: 5)
+    ///     .trimmed(along: Plane(z: 0))
+    /// ```
+    ///
+    func trimmed(along plane: Plane) -> any Geometry3D {
+        GeometryNodeTransformer(body: self) { .trim($0, plane: plane) }
+    }
 }
 
 public extension Geometry {

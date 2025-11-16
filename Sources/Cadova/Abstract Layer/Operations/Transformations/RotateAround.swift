@@ -1,5 +1,8 @@
 import Foundation
 
+// A single `around` parameter label + the `_` parameter in these methods is needed in order for the normal rotated(x:y:[z:]) methods
+// to be prioritized over these. Without this, we get infinite recursion when these methods call themselves.
+
 public extension Geometry2D {
     /// Rotates the geometry around a specified pivot point in 2D space.
     ///
@@ -22,10 +25,11 @@ public extension Geometry2D {
     /// 
     func rotated(
         _ angle: Angle = 0°,
-        around pivot: GeometryAlignment2D...
+        around pivot: GeometryAlignment2D,
+        _ more: GeometryAlignment2D...
     ) -> any Geometry2D {
         measuringBounds { _, bounds in
-            let alignment = pivot.merged
+            let alignment = ([pivot] + more).merged
             let translation = bounds.translation(for: alignment)
             self
                 .translated(translation)
@@ -62,10 +66,11 @@ public extension Geometry3D {
         x: Angle = 0°,
         y: Angle = 0°,
         z: Angle = 0°,
-        around pivot: GeometryAlignment3D...
+        around pivot: GeometryAlignment3D,
+        _ more: GeometryAlignment3D...
     ) -> any Geometry3D {
         measuringBounds { _, box in
-            let alignment = pivot.merged
+            let alignment = ([pivot] + more).merged
             let translation = box.translation(for: alignment)
             self
                 .translated(translation)

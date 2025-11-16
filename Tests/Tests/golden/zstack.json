@@ -15,44 +15,15 @@
     {
       "children" : [
         {
-          "body" : {
-            "kind" : "shape3D",
-            "primitive" : {
-              "cylinder" : {
-                "bottomRadius" : 0.5,
-                "height" : 1,
-                "segmentCount" : 20,
-                "topRadius" : 0.5
-              }
+          "kind" : "shape3D",
+          "primitive" : {
+            "cylinder" : {
+              "bottomRadius" : 0.5,
+              "height" : 1,
+              "segmentCount" : 20,
+              "topRadius" : 0.5
             }
-          },
-          "kind" : "transform",
-          "transform" : [
-            [
-              1,
-              0,
-              0,
-              0
-            ],
-            [
-              0,
-              1,
-              0,
-              0
-            ],
-            [
-              0,
-              0,
-              1,
-              0
-            ],
-            [
-              0,
-              0,
-              0,
-              1
-            ]
-          ]
+          }
         },
         {
           "body" : {

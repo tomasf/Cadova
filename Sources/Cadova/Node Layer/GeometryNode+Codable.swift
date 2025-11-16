@@ -4,13 +4,13 @@ extension GeometryNode: Codable {
     enum Kind: String, Codable {
         case empty, boolean, transform, convexHull, refine, simplify, materialized
         case shape2D, offset, projection
-        case shape3D, applyMaterial, extrusion
+        case shape3D, applyMaterial, extrusion, trim
     }
 
     enum CodingKeys: String, CodingKey {
         case kind, type, primitive, children, body, transform, edgeLength, tolerance
         case amount, joinStyle, miterLimit, segmentCount, cacheKey
-        case material, crossSection
+        case material, crossSection, plane
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -78,6 +78,10 @@ extension GeometryNode: Codable {
             try container.encode(Kind.extrusion, forKey: .kind)
             try container.encode(node, forKey: .crossSection)
             try container.encode(type, forKey: .type)
+
+        case .trim(let node, let plane):
+            try container.encode(node, forKey: .body)
+            try container.encode(plane, forKey: .plane)
         }
     }
 
@@ -134,6 +138,10 @@ extension GeometryNode: Codable {
             let node = try container.decode(D2.Node.self, forKey: .crossSection)
             let type = try container.decode(Extrusion.self, forKey: .type)
             self.init(.extrusion(node, type: type))
+        case .trim:
+            let node = try container.decode(D3.Node.self, forKey: .body)
+            let plane = try container.decode(Plane.self, forKey: .plane)
+            self.init(.trim(node, plane))
         }
     }
 }

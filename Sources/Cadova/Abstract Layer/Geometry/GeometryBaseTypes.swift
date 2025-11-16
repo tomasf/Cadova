@@ -57,16 +57,6 @@ struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geomet
     }
 }
 
-struct BooleanGeometry<D: Dimensionality>: Geometry {
-    let children: [D.Geometry]
-    let type: BooleanOperationType
-
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let childResults = try await children.asyncMap { try await context.buildResult(for: $0, in: environment) }
-        return .init(combining: childResults, operationType: type)
-    }
-}
-
 struct Deferred<D: Dimensionality>: Geometry {
     let body: @Sendable () -> D.Geometry
 

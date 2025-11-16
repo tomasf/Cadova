@@ -52,13 +52,36 @@ public extension Geometry2D {
     func offset(amount: Double, style: LineJoinStyle) -> any Geometry2D {
         readEnvironment(\.miterLimit, \.segmentation) { miterLimit, segmentation in
             GeometryNodeTransformer(body: self) {
-                .offset($0,
-                        amount: amount,
-                        joinStyle: style,
-                        miterLimit: miterLimit,
-                        segmentCount: segmentation.segmentCount(circleRadius: Swift.abs(amount))
+                .offset(
+                    $0,
+                    amount: amount,
+                    joinStyle: style,
+                    miterLimit: miterLimit,
+                    segmentCount: segmentation.segmentCount(circleRadius: Swift.abs(amount))
                 )
             }
         }
+    }
+
+    /// Offsets the geometry by a specified amount, providing both the original and offset geometries to a builder closure.
+    ///
+    /// This method creates a new geometry offset from the original by the given amount and style, and passes both the original
+    /// and the offset geometry to the supplied builder closure. This enables further composition, such as visualizing both shapes,
+    /// combining them, or constructing additional geometry based on their relationship.
+    ///
+    /// - Parameters:
+    ///   - amount: The distance by which to offset the geometry. Positive values expand outward, negative values contract inward.
+    ///   - style: The line join style to use for the offset (e.g., `.round`, `.miter`, `.bevel`, or `.square`).
+    ///   - reader: A closure that receives both the original geometry and the offset geometry, and returns a new composed geometry.
+    /// - Returns: The result of the builder closure, which can combine or further process the original and offset geometries.
+    ///
+    /// - SeeAlso: ``offset(amount:style:)``
+    ///
+    func offset<Output: Dimensionality>(
+        amount: Double,
+        style: LineJoinStyle,
+        @GeometryBuilder<Output> reader: @escaping @Sendable (_ original: any Geometry2D, _ offset: any Geometry2D) -> Output.Geometry
+    ) -> Output.Geometry {
+        reader(self, offset(amount: amount, style: style))
     }
 }
