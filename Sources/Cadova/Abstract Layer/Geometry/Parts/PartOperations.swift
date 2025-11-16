@@ -42,8 +42,13 @@ internal struct PartModifier<D: Dimensionality>: Geometry {
         let output = try await context.buildResult(for: body, in: environment)
 
         return try await output.modifyingElement(PartCatalog.self) {
-            PartCatalog(parts: try await Dictionary(uniqueKeysWithValues: $0.parts.asyncMap {
-                ($0, [try await context.buildResult(for: modifier(Union($1), $0.name), in: environment)])
+            PartCatalog(parts: try await Dictionary(uniqueKeysWithValues: $0.parts.asyncCompactMap {
+                let buildResult = try await context.buildResult(for: modifier(Union($1), $0.name), in: environment)
+                if buildResult.node.isEmpty {
+                    return nil
+                } else {
+                    return ($0, [buildResult])
+                }
             }))
         }
     }
@@ -121,6 +126,10 @@ public extension Geometry {
         @GeometryBuilder<D3> reader: @Sendable @escaping (_ part: any Geometry3D, _ name: String) -> any Geometry3D
     ) -> D.Geometry {
         PartModifier(body: self, semantic: semantic, modifier: reader)
+    }
+
+    func removingParts(ofType semantic: PartSemantic = .solid) -> D.Geometry {
+        PartModifier(body: self, semantic: semantic) { _, _ in Empty() }
     }
 }
 
