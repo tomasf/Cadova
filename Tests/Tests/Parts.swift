@@ -140,4 +140,102 @@ struct PartTests {
         let measurementsMain = try await geometry.measurements(for: .mainPart)
         #expect(measurementsMain.boundingBox ≈ .init(minimum: [-1, 3, 0], maximum: [0, 4, 1]))
     }
+
+    @Test
+    func subtractingParts() async throws {
+        let geometry = Box(10)
+            .adding {
+                Box(4)
+                    .inPart(named: "box")
+                Cylinder(diameter: 3, height: 12)
+                    .inPart(named: "test", type: .context)
+            }
+            .subtractingParts()
+
+        #expect(try await geometry.measurements.volume ≈ 1000.0)
+        #expect(try await geometry.mainModelMeasurements.volume ≈ (1000.0 - 64.0))
+    }
+
+    @Test
+    func detachingParts() async throws {
+        let geometry = Box(10)
+            .adding {
+                Box(4)
+                    .inPart(named: "box")
+            }
+            .detachingPart(named: "box") { base, part in
+                Stack(.x) {
+                    base
+                    part
+                }
+            }
+
+        #expect(try await geometry.partNames.isEmpty)
+        #expect(try await geometry.mainModelMeasurements.volume ≈ 1064)
+        #expect(try await geometry.measurements.volume ≈ 1064)
+    }
+
+    @Test
+    func modifyingParts() async throws {
+        let geometry = Stack(.x) {
+            Box(10)
+            Box(4)
+                .inPart(named: "box1")
+            Box(2)
+                .inPart(named: "box2")
+        }.modifyingParts { part, name in
+            part.scaled(0.5)
+        }
+
+        #expect(try await geometry.partNames == ["box1", "box2"])
+        #expect(try await geometry.mainModelMeasurements.volume ≈ 1000)
+        #expect(try await geometry.measurements.volume ≈ 1009)
+    }
+
+    @Test
+    func modifyingSinglePart() async throws {
+        let geometry = Stack(.x) {
+            Box(10)
+            Box(4)
+                .inPart(named: "box1")
+            Box(2)
+                .inPart(named: "box2")
+        }.modifyingPart(named: "box1") {
+            $0.scaled(0.5)
+        }
+
+        #expect(try await geometry.partNames == ["box1", "box2"])
+        #expect(try await geometry.mainModelMeasurements.volume ≈ 1000)
+        #expect(try await geometry.measurements.volume ≈ 1016)
+    }
+
+    @Test
+    func removingParts() async throws {
+        let geometry = Stack(.x) {
+            Box(10)
+            Box(4)
+                .inPart(named: "box1")
+            Box(2)
+                .inPart(named: "box2")
+        }.removingParts()
+
+        #expect(try await geometry.partNames == [])
+        #expect(try await geometry.mainModelMeasurements.volume ≈ 1000)
+        #expect(try await geometry.measurements.volume ≈ 1000)
+    }
+
+    @Test
+    func removingSinglePart() async throws {
+        let geometry = Stack(.x) {
+            Box(10)
+            Box(4)
+                .inPart(named: "box1")
+            Box(2)
+                .inPart(named: "box2")
+        }.removingPart(named: "box1")
+
+        #expect(try await geometry.partNames == ["box2"])
+        #expect(try await geometry.mainModelMeasurements.volume ≈ 1000)
+        #expect(try await geometry.measurements.volume ≈ 1008)
+    }
 }
