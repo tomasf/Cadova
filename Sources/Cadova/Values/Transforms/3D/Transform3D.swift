@@ -77,6 +77,29 @@ public struct Transform3D: Transform {
             }
         )
     }
+
+    /// Fast exact identity check for 4x4 affine matrix.
+    public var isIdentity: Bool {
+        // Diagonal == 1
+        if self[0,0] != 1.0 { return false }
+        if self[1,1] != 1.0 { return false }
+        if self[2,2] != 1.0 { return false }
+        if self[3,3] != 1.0 { return false }
+        // Off-diagonals == 0
+        if self[0,1] != 0.0 { return false }
+        if self[0,2] != 0.0 { return false }
+        if self[0,3] != 0.0 { return false }
+        if self[1,0] != 0.0 { return false }
+        if self[1,2] != 0.0 { return false }
+        if self[1,3] != 0.0 { return false }
+        if self[2,0] != 0.0 { return false }
+        if self[2,1] != 0.0 { return false }
+        if self[2,3] != 0.0 { return false }
+        if self[3,0] != 0.0 { return false }
+        if self[3,1] != 0.0 { return false }
+        if self[3,2] != 0.0 { return false }
+        return true
+    }
 }
 
 public extension Transform3D {

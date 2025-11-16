@@ -33,6 +33,12 @@ internal extension EvaluationContext {
         }
     }
 
+    func buildResults<D: Dimensionality>(for geometries: [D.Geometry], in environment: EnvironmentValues) async throws -> [D.BuildResult] {
+        try await geometries.asyncMap {
+            try await buildResult(for: $0, in: environment)
+        }
+    }
+
     func result<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> EvaluationResult<D> {
         let buildResult = try await buildResult(for: geometry, in: environment)
         return try await result(for: buildResult.node)
@@ -48,7 +54,7 @@ internal extension EvaluationContext {
     ) async throws -> D.BuildResult {
         let materializedNode = D.Node.materialized(cacheKey: OpaqueKey(key))
         try await cache().declareGenerator(for: materializedNode, generator: generator)
-        return D.BuildResult(.materialized(cacheKey: OpaqueKey(key)))
+        return D.BuildResult(materializedNode)
     }
 
     func materializedResult<D: Dimensionality, Input: Dimensionality, Key: CacheKey>(

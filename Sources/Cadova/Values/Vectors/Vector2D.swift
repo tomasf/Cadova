@@ -116,7 +116,7 @@ public extension Vector2D {
     /// - Returns: The angle from this vector to the other vector as an `Angle` value.
     ///
     func angle(to other: Vector2D) -> Angle {
-        atan2(other.y - y, other.x - x)
+        atan2(other - self)
     }
 }
 

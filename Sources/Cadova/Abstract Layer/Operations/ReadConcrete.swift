@@ -15,14 +15,14 @@ internal struct ReadConcrete<Input: Dimensionality, Output: Dimensionality>: Geo
 internal extension Geometry {
     // Concrete + Result
     func readingConcrete<Output: Dimensionality>(
-        _ action: @Sendable @escaping (D.Concrete, D.BuildResult) -> Output.Geometry
+        @GeometryBuilder<Output> _ action: @Sendable @escaping (D.Concrete, D.BuildResult) -> Output.Geometry
     ) -> Output.Geometry {
         ReadConcrete(body: self, action: action)
     }
 
     // Concrete only
     func readingConcrete<Output: Dimensionality>(
-        _ action: @Sendable @escaping (D.Concrete) -> Output.Geometry
+        @GeometryBuilder<Output> _ action: @Sendable @escaping (D.Concrete) -> Output.Geometry
     ) -> Output.Geometry {
         readingConcrete { concrete, _ in
             action(concrete)

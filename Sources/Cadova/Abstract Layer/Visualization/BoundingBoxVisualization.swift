@@ -1,0 +1,78 @@
+import Foundation
+
+public extension BoundingBox3D {
+    /// Renders this box as a thin 3D frame for debugging.
+    ///
+    /// - Thickness is driven by the visualization scale in the environment.
+    ///   Use `withVisualizationScale(_:)` to adjust (default: 1.0).
+    /// - Color uses the visualization primary color.
+    ///   Use `withVisualizationColor(_:)` to override.
+    /// - Emitted as a visual-only part named “Visualized Bounding Box”.
+    ///
+    /// See EnvironmentValues for how environment values flow through geometry.
+    func visualized() -> any Geometry3D {
+        BoundingBoxVisualization(box: self)
+    }
+}
+
+public extension Geometry3D {
+    /// Overlays the geometry’s bounding box as a thin 3D frame for debugging.
+    ///
+    /// - Thickness is driven by the visualization scale in the environment
+    ///   (`withVisualizationScale(_:)`).
+    /// - Color uses the visualization primary color (`withVisualizationColor(_:)`).
+    /// - Adds a visual-only part named “Visualized Bounding Box”.
+    ///
+    /// See EnvironmentValues for how environment values flow through geometry.
+    func visualizingBounds() -> any Geometry3D {
+        measuringBounds { geometry, bounds in
+            geometry
+            BoundingBoxVisualization(box: bounds)
+        }
+    }
+}
+
+fileprivate struct BoundingBoxVisualization: Shape3D {
+    let box: BoundingBox3D
+
+    var body: any Geometry3D {
+        @Environment(\.visualizationOptions.scale) var scale = 1.0
+        @Environment(\.visualizationOptions.primaryColor) var borderColor = .borderColorDefault
+
+        let borderWidth = 0.1 * scale
+        let size = box.maximum - box.minimum
+
+        let half = Union {
+            frame([size.x, size.y], borderWidth: borderWidth)
+            frame([size.x, size.z], borderWidth: borderWidth)
+                .rotated(x: 90°)
+                .translated(y: borderWidth)
+            frame([size.z, size.y], borderWidth: borderWidth)
+                .rotated(y: -90°)
+                .translated(x: borderWidth)
+        }
+
+        half
+            .translated(box.minimum)
+            .adding {
+                half.flipped(along: .all)
+                    .translated(box.maximum)
+            }
+            .colored(borderColor)
+            .inPart(named: "Visualized Bounding Box", type: .visual)
+    }
+
+    func frame(_ size: Vector2D, borderWidth: Double) -> any Geometry3D {
+        Rectangle(size)
+            .offset(amount: 0.001, style: .bevel)
+            .subtracting {
+                Rectangle(size)
+                    .offset(amount: -borderWidth, style: .miter)
+            }
+            .extruded(height: borderWidth)
+    }
+}
+
+fileprivate extension Color {
+    static let borderColorDefault: Color = .blue.with(alpha: 0.7)
+}

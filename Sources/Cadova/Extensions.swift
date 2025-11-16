@@ -1,8 +1,8 @@
 import Foundation
 
 extension Sequence {
-    func paired() -> [(Element, Element)] {
-        .init(zip(self, dropFirst()))
+    func paired() -> some Sequence<(Element, Element)> {
+        zip(self, dropFirst())
     }
 
     func wrappedPairs() -> [(Element, Element)] {
@@ -22,6 +22,18 @@ extension Sequence {
     }
 }
 
+extension Sequence {
+    func sum<Value: AdditiveArithmetic>(_ accessor: (Element) -> Value) -> Value {
+        map(accessor).reduce(Value.zero, +)
+    }
+}
+
+extension Sequence where Element: AdditiveArithmetic {
+    func sum() -> Element {
+        reduce(.zero, +)
+    }
+}
+
 extension Collection where Element: Sendable {
     func wrappedTriplets() -> [(Element, Element, Element)] where Index == Int {
         let n = count
@@ -29,17 +41,21 @@ extension Collection where Element: Sendable {
             (self[i], self[(i + 1) % n], self[(i + 2) % n])
         }
     }
+}
 
+extension Sequence where Element: Sendable {
     func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T) async rethrows -> [T] {
         try await withThrowingTaskGroup(of: (Int, T).self) { group in
+            var count = 0
             for (index, element) in self.enumerated() {
                 group.addTask {
                     let value = try await transform(element)
                     return (index, value)
                 }
+                count += 1
             }
 
-            var results = Array<T?>(repeating: nil, count: self.count)
+            var results = Array<T?>(repeating: nil, count: count)
             for try await (index, result) in group {
                 results[index] = result
             }
@@ -50,14 +66,16 @@ extension Collection where Element: Sendable {
 
     func asyncCompactMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T?) async rethrows -> [T] {
         try await withThrowingTaskGroup(of: (Int, T?).self) { group in
+            var count = 0
             for (index, element) in self.enumerated() {
                 group.addTask {
                     let value = try await transform(element)
                     return (index, value)
                 }
+                count += 1
             }
 
-            var results = Array<T?>(repeating: nil, count: self.count)
+            var results = Array<T?>(repeating: nil, count: count)
             for try await (index, result) in group {
                 results[index] = result
             }
@@ -65,9 +83,7 @@ extension Collection where Element: Sendable {
             return results.compactMap { $0 }
         }
     }
-}
-
-extension Sequence where Element: Sendable {
+    
     @inlinable
     public func concurrentAsyncForEach(
         _ operation: @Sendable @escaping (Element) async throws -> Void
@@ -171,6 +187,10 @@ extension RangeExpression {
     }
 }
 
+extension Collection where Element: Comparable {
+    var isSortedNondecreasing: Bool { zip(self, dropFirst()).allSatisfy(<=) }
+}
+
 extension Comparable {
     func clamped(to range: ClosedRange<Self>) -> Self {
         max(range.lowerBound, min(range.upperBound, self))
@@ -241,19 +261,6 @@ func unpacked<A, B, C>(_ tuple: ((A, B), C)) -> (A, B, C) {
 
 func unpacked<A, B, C>(_ tuple: (A, (B, C))) -> (A, B, C) {
     (tuple.0, tuple.1.0, tuple.1.1)
-}
-
-func waitForTask(operation: @Sendable @escaping () async -> Void) {
-    let semaphore = DispatchSemaphore(value: 0)
-
-    Task {
-        await operation()
-        semaphore.signal()
-    }
-
-    while semaphore.wait(timeout: .now()) == .timedOut {
-        RunLoop.current.run(until: .now)
-    }
 }
 
 extension BidirectionalCollection where Index == Int {
@@ -346,5 +353,20 @@ extension Collection where Index == Int {
     subscript(wrap index: Int) -> Element {
         let m = index % count
         return self[m >= 0 ? m : m + count]
+    }
+}
+
+extension String {
+    var simpleIdentifier: String {
+        var string = lowercased()
+        string = string.applyingTransform(.toLatin, reverse: false) ?? string
+        string = string.applyingTransform(.stripDiacritics, reverse: false) ?? string
+        string = string.replacingOccurrences(of: " ", with: "-")
+
+        let allowedCharacters = CharacterSet(charactersIn: "a"..."z")
+            .union(CharacterSet(charactersIn: "0"..."9"))
+            .union(CharacterSet(charactersIn: "_-"))
+
+        return String(string.unicodeScalars.filter { allowedCharacters.contains($0) })
     }
 }

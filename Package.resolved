@@ -1,5 +1,5 @@
 {
-  "originHash" : "d4aa0857185c435df5c8d31a635bc1e06d0225054540d986c131dbed3a516410",
+  "originHash" : "7e17e4e8e58cee1bf9a9407631baef68ace3fe9b092574aabb9ceb28e39e1498",
   "pins" : [
     {
       "identity" : "findfont",
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/Nodal.git",
       "state" : {
-        "revision" : "763efeebe6bf1c26958dcbb29661a9af45cced52",
-        "version" : "0.3.1"
+        "revision" : "20fc1e770d8fe38f4c00536547d4c782824434fa",
+        "version" : "0.3.2"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/ThreeMF.git",
       "state" : {
-        "revision" : "f4cc160e736bb414acdabb5d148dac0f8f8598e1",
-        "version" : "0.1.0"
+        "revision" : "a7b65b1c8960602f4bc954bfc334b98c6a5e9099",
+        "version" : "0.2.0"
       }
     },
     {

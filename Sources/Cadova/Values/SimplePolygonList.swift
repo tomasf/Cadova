@@ -12,6 +12,10 @@ internal struct SimplePolygonList: Sendable, Hashable, Codable {
         self.polygons = polygons
     }
 
+    init(_ polygonLists: [SimplePolygonList]) {
+        self.polygons = polygonLists.flatMap(\.polygons)
+    }
+
     subscript(index: Int) -> SimplePolygon {
         get { polygons[index] }
         set { polygons[index] = newValue }
@@ -25,6 +29,18 @@ internal struct SimplePolygonList: Sendable, Hashable, Codable {
 
     static func +=(_ lhs: inout SimplePolygonList, _ rhs: SimplePolygonList) {
         lhs = lhs + rhs
+    }
+}
+
+extension SimplePolygonList: Collection {
+    func index(after i: Int) -> Int { i + 1 }
+    var startIndex: Int { 0 }
+    var endIndex: Int { polygons.count }
+}
+
+extension SimplePolygonList: Transformable {
+    func transformed(_ transform: Transform2D) -> Self {
+        Self(polygons.map { $0.transformed(transform) })
     }
 }
 
@@ -54,7 +70,7 @@ extension SimplePolygonList {
         preconditionFailure("Index out of range")
     }
 
-    func triangulate() -> [(Vertex, Vertex, Vertex)] {
+    func triangulated() -> [(Vertex, Vertex, Vertex)] {
         let polygons = polygons.map(\.manifoldPolygon)
         let triangles = ManifoldPolygon.triangulate(polygons, epsilon: 1e-8)
         return triangles.map { (vertex(at: $0.a), vertex(at: $0.b), vertex(at: $0.c)) }
@@ -64,9 +80,6 @@ extension SimplePolygonList {
         Self(polygons.map { $0.refined(maxEdgeLength: maxEdgeLength) })
     }
 
-    func transformed(_ transform: Transform2D) -> Self {
-        Self(polygons.map { $0.transformed(transform) })
-    }
 
     func vertices(at z: Double) -> [Vector3D] {
         polygons.flatMap { $0.vertices(at: z) }

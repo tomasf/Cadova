@@ -14,6 +14,19 @@ public extension Vector2D {
         )
     }
 
+    /// Adds a scalar to both components of the vector.
+    ///
+    /// - Parameters:
+    ///   - s: The scalar value to add.
+    ///   - v: The input vector.
+    /// - Returns: A new vector with each component increased by the scalar.
+    static func +(_ s: Double, _ v: Vector2D) -> Vector2D {
+        Vector2D(
+            x: v.x + s,
+            y: v.y + s
+        )
+    }
+
     /// Subtracts a scalar from both components of the vector.
     ///
     /// - Parameters:
@@ -36,6 +49,21 @@ public extension Vector2D {
     ///   - d: The scalar value to multiply with.
     /// - Returns: A new vector with each component multiplied by the scalar.
     static func *(_ v: Vector2D, _ d: Double) -> Vector2D {
+        Vector2D(
+            x: v.x * d,
+            y: v.y * d
+        )
+    }
+
+    /// Multiplies both components of the vector by a scalar.
+    ///
+    /// This scales the vector uniformly along both axes.
+    ///
+    /// - Parameters:
+    ///   - d: The scalar value to multiply with.
+    ///   - v: The input vector.
+    /// - Returns: A new vector with each component multiplied by the scalar.
+    static func *(_ d: Double, _ v: Vector2D) -> Vector2D {
         Vector2D(
             x: v.x * d,
             y: v.y * d

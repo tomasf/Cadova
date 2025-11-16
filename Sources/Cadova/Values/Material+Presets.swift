@@ -53,8 +53,6 @@ public extension Material {
 }
 
 internal extension Material {
-    static let visualizedPlane = Self(name: "Plane", baseColor: Color(0.3, 0.3, 0.5, 0.2), metallicness: 0.5, roughness: 0.2)
-
     static let highlightedGeometry = Self.plain(.red, alpha: 0.4)
     static let backgroundGeometry = Self.plain(.darkGray, alpha: 0.6)
 }

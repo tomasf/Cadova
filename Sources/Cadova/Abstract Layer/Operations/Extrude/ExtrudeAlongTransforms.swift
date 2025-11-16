@@ -1,18 +1,18 @@
 import Foundation
 import Manifold3D
 
-fileprivate struct Vertex: Hashable {
+internal struct SweepVertex: Hashable, Codable {
     let stepIndex: Int
     let polygonIndex: Int
     let pointIndex: Int
 }
 
-internal extension Mesh {
+internal extension Mesh<SweepVertex>  {
     // Sweep the polygons along the path of transforms
-    init(extruding polygons: SimplePolygonList, along transforms: [Transform3D]) {
+    init(extruding polygons: SimplePolygonList, along transforms: [Transform3D], cacheName: String, cacheParameters: any CacheKey...) {
         precondition(transforms.count >= 2, "A sweep needs at least two transforms")
 
-        let faceTriangles = polygons.triangulate()
+        let faceTriangles = polygons.triangulated()
         let isClosed = transforms.last!.isApproximatelyEqual(to: transforms.first!)
         let closedLastPolygon = isClosed ? transforms.count - 1 : -1
 
@@ -22,20 +22,20 @@ internal extension Mesh {
             return polygons.polygons.enumerated().flatMap { polygonIndex, polygon in
                 polygon.vertices.indices.wrappedPairs().flatMap { pointIndex1, pointIndex2 in [
                     [
-                        Vertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
-                        Vertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
-                        Vertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex1),
+                        SweepVertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
+                        SweepVertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
+                        SweepVertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex1),
                     ],[
-                        Vertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex1),
-                        Vertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex1),
-                        Vertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
+                        SweepVertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex1),
+                        SweepVertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex1),
+                        SweepVertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
                     ]
                 ]}
             }
         }
 
-        var startFace: [[Vertex]] = []
-        var endFace: [[Vertex]] = []
+        var startFace: [[SweepVertex]] = []
+        var endFace: [[SweepVertex]] = []
 
         if isClosed == false {
             for triangle in faceTriangles {
@@ -44,19 +44,23 @@ internal extension Mesh {
                 let (polygon3, point3) = triangle.2
 
                 startFace.append([
-                    Vertex(stepIndex: 0, polygonIndex: polygon3, pointIndex: point3),
-                    Vertex(stepIndex: 0, polygonIndex: polygon2, pointIndex: point2),
-                    Vertex(stepIndex: 0, polygonIndex: polygon1, pointIndex: point1),
+                    SweepVertex(stepIndex: 0, polygonIndex: polygon3, pointIndex: point3),
+                    SweepVertex(stepIndex: 0, polygonIndex: polygon2, pointIndex: point2),
+                    SweepVertex(stepIndex: 0, polygonIndex: polygon1, pointIndex: point1),
                 ])
                 endFace.append([
-                    Vertex(stepIndex: transforms.count - 1, polygonIndex: polygon1, pointIndex: point1),
-                    Vertex(stepIndex: transforms.count - 1, polygonIndex: polygon2, pointIndex: point2),
-                    Vertex(stepIndex: transforms.count - 1, polygonIndex: polygon3, pointIndex: point3),
+                    SweepVertex(stepIndex: transforms.count - 1, polygonIndex: polygon1, pointIndex: point1),
+                    SweepVertex(stepIndex: transforms.count - 1, polygonIndex: polygon2, pointIndex: point2),
+                    SweepVertex(stepIndex: transforms.count - 1, polygonIndex: polygon3, pointIndex: point3),
                 ])
             }
         }
 
-        self = Mesh(faces: sideFaces + startFace + endFace) { vertex in
+        self.init(
+            faces: sideFaces + startFace + endFace,
+            name: "ExtrudeAlongTransforms:" + cacheName,
+            cacheParameters: cacheParameters
+        ) { vertex in
             let point = polygons[vertex.polygonIndex][vertex.pointIndex]
             return transforms[vertex.stepIndex].apply(to: Vector3D(point))
         }
@@ -82,7 +86,13 @@ public extension Geometry2D {
 
         return readEnvironment { environment in
             readingConcrete { crossSection in
-                Mesh(extruding: crossSection.polygonList(), along: expandedPath)
+                let polygons = crossSection.polygonList()
+                return Mesh(
+                    extruding: crossSection.polygonList(),
+                    along: expandedPath,
+                    cacheName: "ExtrudeAlongTransforms",
+                    cacheParameters: path, steps, polygons
+                )
             }
         }
     }

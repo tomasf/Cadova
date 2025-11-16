@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol Shape: Geometry {
+public protocol Shape: Geometry, Transformable where T == D.Transform, Transformed == D.Geometry {
     @GeometryBuilder<D> var body: any Geometry<D> { get }
 }
 

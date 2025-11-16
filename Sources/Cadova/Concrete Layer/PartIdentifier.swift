@@ -35,8 +35,8 @@ internal struct PartCatalog: ResultElement {
         parts[identifier, default: []].append(part)
     }
 
-    mutating func detachPart(named name: String) -> D3.BuildResult? {
-        guard let identifier = parts.keys.first(where: { $0.name == name }) else {
+    mutating func detachPart(named name: String, ofType semantic: PartSemantic) -> D3.BuildResult? {
+        guard let identifier = parts.keys.first(where: { $0.name == name && $0.type == semantic }) else {
             return nil
         }
         let mergedResults = D3.BuildResult(combining: parts[identifier]!, operationType: .union)
@@ -57,6 +57,7 @@ internal struct PartCatalog: ResultElement {
     }
 
     func applyingTransform(_ transform: Transform3D) -> Self {
-        modifyingNodes { .transform($0, transform: transform) }
+        guard !parts.isEmpty else { return self }
+        return modifyingNodes { .transform($0, transform: transform) }
     }
 }

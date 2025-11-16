@@ -7,36 +7,82 @@ import Manifold3D
 /// Each face must consist of at least three vertices, and the combined faces must form a watertight surface
 /// of a solid 3D volume.
 ///
+/// This mesh system supports internal caching based on an operation name and parameters to avoid redundant
+/// geometry computation. The `name` and `cacheParameters` uniquely identify cached geometry results, enabling
+/// Cadova to reuse previous computations when the same parameters are provided.
+///
+/// > Important: The combination of `name` and `cacheParameters` *must uniquely identify* the resulting mesh.
+/// A good rule of thumb is: any inputs that affect faces or their vertex positions should be included in
+/// `cacheParameters`. Values that are closed over inside the lookup closure may be omitted only if they never
+/// change for the same operation. If different inputs can yield different geometry under the same cache key,
+/// Cadova may incorrectly reuse stale results.
+///
 /// Use this type when importing or constructing complex geometry manually, such as converting from external
 /// sources, procedural generation, or custom geometry definitions.
+///
+public struct Mesh<Vertex: Hashable & Sendable>: Shape3D {
+    let faces: [[Vertex]]
+    let lookup: @Sendable (Vertex) -> Vector3D
+    let cacheName: String
+    let cacheParameters: [any CacheKey]
 
-public struct Mesh: Shape3D {
-    let meshData: MeshData
-
-    internal init(_ meshData: MeshData) {
-        self.meshData = meshData
-    }
-
-    internal init(vertices: [Vector3D], faces: [MeshData.Face]) {
-        assert(vertices.count >= 4, "At least four points are needed for a Mesh")
-        assert(faces.allSatisfy { $0.count >= 3 }, "Each face must contain at least three points")
-
-        self.init(MeshData(vertices: vertices, faces: faces))
+    internal init<Face: Sequence<Vertex>, FaceList: Sequence<Face>>(
+        faces: FaceList,
+        name cacheName: String,
+        cacheParameters: [any Hashable & Sendable & Codable],
+        value lookup: @escaping @Sendable (Vertex) -> Vector3D
+    ){
+        self.faces = faces.map { Array($0) }
+        self.lookup = lookup
+        self.cacheName = cacheName
+        self.cacheParameters = cacheParameters
     }
 
     public var body: any Geometry3D {
-        NodeBasedGeometry(.shape(.mesh(meshData)))
+        CachedNode(labeledCacheKey: LabeledCacheKey(operationName: cacheName, parameters: cacheParameters)) {
+            NodeBasedGeometry(.shape(.mesh(meshData)))
+        }
+    }
+
+    internal var meshData: MeshData {
+        var vertices: [Vector3D] = []
+        var keyIndices: [Vertex: Int] = [:]
+
+        let indexedFaces = faces.map {
+            $0.map { key in
+                if let index = keyIndices[key] {
+                    return index
+                } else {
+                    vertices.append(lookup(key))
+                    let index = vertices.endIndex - 1
+                    keyIndices[key] = index
+                    return index
+                }
+            }
+        }
+
+        return MeshData(vertices: vertices, faces: indexedFaces)
     }
 }
 
 public extension Mesh {
     /// Creates a mesh from a list of polygonal faces, using hashable keys to define points.
     ///
-    /// This initializer is useful when you want to reference vertices by symbolic keys (e.g., enums, structs, numbers)
-    /// and provide their 3D positions via a closure. Vertices are automatically deduplicated and indexed.
+    /// The `name` and `cacheParameters` identify and differentiate cached geometry results,
+    /// allowing Cadova to reuse previous results when the same parameters are used.
+    ///
+    /// The `value` closure converts each symbolic vertex key into its 3D coordinate, effectively
+    /// defining the shape of the mesh by mapping keys to points in space.
+    ///
+    /// > Important: Ensure `name` + `cacheParameters` uniquely describe the produced mesh. Include in
+    /// `cacheParameters` any inputs that influence the included faces or the positions returned from
+    /// `value` and are not constant inside that closure. This prevents stale cache hits when modeling
+    /// parameters change.
     ///
     /// - Parameters:
     ///   - faces: A sequence of faces, where each face is a sequence of keys representing points.
+    ///   - name: A string identifying this mesh operation for caching purposes.
+    ///   - cacheParameters: Values that differentiate cached results to avoid redundant computation.
     ///   - value: A closure that resolves a key to a 3D position (`Vector3D`).
     ///
     /// - Important: All faces must be closed (at least 3 points), and together they must define a complete solid
@@ -63,7 +109,11 @@ public extension Mesh {
     ///           }
     ///           let baseFace = angles.reversed().map { Vertex.base($0) }
     ///
-    ///           Mesh(faces: sides + [baseFace]) { vertex in
+    ///           Mesh(
+    ///               faces: sides + [baseFace],
+    ///               name: "Pyramid",
+    ///               cacheParameters: sideCount, radius, height
+    ///           ) { vertex in
     ///               switch vertex {
     ///               case .apex:
     ///                   Vector3D(z: height)
@@ -74,38 +124,31 @@ public extension Mesh {
     ///           }
     ///       }
     ///   }
-
-    init<
-        Key: Hashable, Face: Sequence<Key>, FaceList: Sequence<Face>
-    >(faces: FaceList, value: (Key) -> Vector3D) {
-        var vertices: [Vector3D] = []
-        var keyIndices: [Key: Int] = [:]
-
-        let indexedFaces = faces.map {
-            $0.map { key in
-                if let index = keyIndices[key] {
-                    return index
-                } else {
-                    vertices.append(value(key))
-                    let index = vertices.endIndex - 1
-                    keyIndices[key] = index
-                    return index
-                }
-            }
-        }
-
-        self.init(vertices: vertices, faces: indexedFaces)
+    ///
+    init<Face: Sequence<Vertex>, FaceList: Sequence<Face>>(
+        faces: FaceList,
+        name: String,
+        cacheParameters: any Hashable & Sendable & Codable...,
+        value: @escaping @Sendable (Vertex) -> Vector3D
+    ) {
+        self.init(faces: faces, name: name, cacheParameters: cacheParameters, value: value)
     }
 
     /// Creates a mesh from a list of polygonal faces defined directly by 3D coordinates.
     ///
-    /// This initializer is useful for simpler use cases where each face is already defined by its vertex coordinates.
+    /// > Important: Ensure `name` + `cacheParameters` uniquely describe the produced mesh. Include
+    /// any variable inputs that affect the resulting geometry so Cadova can safely reuse cached
+    /// results without returning stale meshes.
     ///
     /// - Parameter faces: A sequence of polygonal faces, where each face is a sequence of `Vector3D` points.
     ///
     /// - Important: All faces must contain at least 3 points. The combined set of faces must define a closed and manifold solid.
-    init<Face: Sequence<Vector3D>, FaceList: Sequence<Face>>(faces: FaceList) {
-        self.init(faces: faces, value: \.self)
+    init<Face: Sequence<Vector3D>, FaceList: Sequence<Face>>(
+        faces: FaceList,
+        name: String,
+        cacheParameters: any Hashable & Sendable & Codable...
+    ) where Vertex == Vector3D {
+        self.init(faces: faces, name: name, cacheParameters: cacheParameters, value: \.self)
     }
 }
 
@@ -116,8 +159,13 @@ public extension Mesh {
     /// the face windings are flipped to ensure outward orientation.
     ///
     /// - Returns: A mesh with outward-facing normals.
-    func correctingFaceWinding() -> Mesh {
-        meshData.signedVolume < 0 ? Self(meshData.flipped()) : self
+    func correctingFaceWinding() -> Mesh<Vertex> {
+        Mesh<Vertex>(
+            faces: meshData.signedVolume < 0 ? faces.map { $0.reversed() } : faces,
+            name: cacheName,
+            cacheParameters: cacheParameters + ["flippedWinding"],
+            value: lookup
+        )
     }
 }
 

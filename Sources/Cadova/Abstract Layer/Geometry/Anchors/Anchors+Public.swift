@@ -57,10 +57,7 @@ public extension Geometry2D {
         readEnvironment { environment in
             readingResult(AnchorList.self) { body, anchorList in
                 if let transform = anchorList.anchors[anchor] {
-                    self.transformed(.init(Transform3D.identity
-                        .concatenated(with: environment.transform)
-                        .concatenated(with: transform)
-                    ))
+                    transformed(.init(environment.transform * transform))
                 } else {
                     preconditionFailure("Anchor \(anchor) not found. Did you define it somewhere inside this geometry using defineAnchor(...)?")
                 }
@@ -131,10 +128,7 @@ public extension Geometry3D {
         readEnvironment { environment in
             readingResult(AnchorList.self) { body, anchorList in
                 if let transform = anchorList.anchors[anchor] {
-                    self.transformed(Transform3D.identity
-                        .concatenated(with: environment.transform)
-                        .concatenated(with: transform)
-                    )
+                    transformed(environment.transform * transform)
                 } else {
                     preconditionFailure("Anchor \(anchor) not found. Did you define it somewhere inside this geometry using defineAnchor(...)?")
                 }

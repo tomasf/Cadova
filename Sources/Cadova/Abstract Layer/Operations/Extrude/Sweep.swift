@@ -4,12 +4,12 @@ import Manifold3D
 public extension Geometry2D {
     /// Sweeps the 2D geometry along a 3D path to create a 3D solid.
     ///
-    /// This method extrudes the shape along a `BezierPath` in 3D space, positioning and orienting
+    /// This method extrudes the shape along a `ParametricCurve` in 3D space, positioning and orienting
     /// it continuously along the path to form a smooth, connected 3D body. It can be used to model
     /// pipes, rails, bent sheets, or any geometry that follows a curved trajectory.
     ///
     /// - Parameters:
-    ///   - path: The path the shape should follow. This can be a 2D or 3D Bezier path. If 2D,
+    ///   - path: The path the shape should follow. This can be a 2D or 3D parametric curve. If 2D,
     ///     the path is interpreted as lying in the XY plane.
     ///   - reference: A direction within the 2D shape (usually `.down` or `.right`) that should be
     ///     kept facing toward the `target` during the sweep. This affects the rotation of the shape
@@ -29,18 +29,18 @@ public extension Geometry2D {
     /// rate of rotation between successive frames.
     ///
     /// - SeeAlso: ``Geometry/withMaxTwistRate(_:)``
-    func swept<V: Vector>(
-        along path: BezierPath<V>,
+    func swept<Path: ParametricCurve>(
+        along path: Path,
         pointing reference: Direction2D = .negativeY,
         toward target: ReferenceTarget = .direction(.negativeZ)
     ) -> any Geometry3D {
-        Sweep(shape: self, path: path.path3D, reference: reference, target: target)
+        Sweep(shape: self, path: path, reference: reference, target: target)
     }
 }
 
-internal struct Sweep: Shape3D {
+internal struct Sweep<Path: ParametricCurve>: Shape3D {
     let shape: any Geometry2D
-    let path: BezierPath3D
+    let path: Path
     let reference: Direction2D
     let target: ReferenceTarget
 
@@ -52,13 +52,17 @@ internal struct Sweep: Shape3D {
             body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation
         ) { node, environment, context in
             let crossSection = try await context.result(for: node).concrete
-            let frames = path.frames(
+            let frames = path.curve3D.frames(
                 environment: environment,
                 target: target,
                 targetReference: reference,
                 perpendicularBounds: .init(crossSection.bounds)
             )
-            let mesh = Mesh(extruding: crossSection.polygonList(), along: frames.map(\.transform))
+            let mesh = Mesh(
+                extruding: crossSection.polygonList(),
+                along: frames.map(\.transform),
+                cacheName: "Sweep"
+            )
             return GeometryNode.shape(.mesh(mesh.meshData))
         }
     }

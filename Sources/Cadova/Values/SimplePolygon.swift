@@ -26,6 +26,18 @@ extension SimplePolygon {
     }
 }
 
+extension SimplePolygon: Collection {
+    func index(after i: Int) -> Int { i + 1 }
+    var startIndex: Int { 0 }
+    var endIndex: Int { vertices.count }
+}
+
+extension SimplePolygon: Transformable {
+    func transformed(_ transform: Transform2D) -> Self {
+        Self(vertices.map { transform.apply(to: $0) })
+    }
+}
+
 extension SimplePolygon {
     var perimeter: Double {
         vertices.wrappedPairs().map { ($1 - $0).magnitude }.reduce(0, +)
@@ -106,10 +118,6 @@ extension SimplePolygon {
         Self(zip(vertices, other.vertices).map { $0 + ($1 - $0) * t })
     }
 
-    func transformed(_ transform: Transform2D) -> Self {
-        Self(vertices.map { transform.apply(to: $0) })
-    }
-
     func refined(maxEdgeLength: Double) -> Self {
         Self([vertices[0]] + vertices.paired().flatMap { a, b -> [Vector2D] in
             let segmentCount = ceil((b - a).magnitude / maxEdgeLength)
@@ -132,5 +140,10 @@ extension SimplePolygon {
 
     var boundingBox: BoundingBox2D {
         .init(vertices)
+    }
+
+    func triangulated() -> [(Int, Int, Int)] {
+        ManifoldPolygon(vertices: vertices).triangulate(epsilon: 1e-8)
+            .map { ($0.a, $0.b, $0.c) }
     }
 }

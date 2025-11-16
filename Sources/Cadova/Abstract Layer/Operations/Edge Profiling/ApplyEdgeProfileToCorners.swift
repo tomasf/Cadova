@@ -14,7 +14,7 @@ public extension Geometry2D {
     /// This method uses the bounding rectangle of the geometry to determine how to place and size the profile.
     /// It is suitable for geometries that are rectangular or similar enough for this approximation to be effective.
     ///
-    func applyingEdgeProfile(_ edgeProfile: EdgeProfile, to corners: Rectangle.Corners = .all) -> any Geometry2D {
+    func cuttingEdgeProfile(_ edgeProfile: EdgeProfile, on corners: Rectangle.Corners = .all) -> any Geometry2D {
         measuringBounds { child, bounds in
             child.intersecting {
                 ProfiledRectangleMask(size: bounds.size, profile: edgeProfile, corners: corners)
@@ -49,9 +49,9 @@ public extension Geometry3D {
     /// effective. The shape of fillets is determined by the environment’s `cornerRoundingStyle`, which controls whether
     /// corners are shaped as simple circular arcs or smoother, squircle-like transitions.
     ///
-    func applyingEdgeProfile(
+    func cuttingEdgeProfile(
         _ edgeProfile: EdgeProfile,
-        to corners: Rectangle.Corners = .all,
+        on corners: Rectangle.Corners = .all,
         along axis: Axis3D
     ) -> any Geometry3D {
         let adjustments = [90°, 0°, 180°]

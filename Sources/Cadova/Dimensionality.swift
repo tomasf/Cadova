@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-public protocol Dimensionality {
+public protocol Dimensionality: SendableMetatype {
     typealias Geometry = any Cadova.Geometry<Self>
     associatedtype Concrete: Manifold3D.Geometry, ConcreteGeometry where Concrete.D == Self
 
@@ -20,6 +20,7 @@ public protocol Dimensionality {
 
 internal extension Dimensionality {
     typealias Node = GeometryNode<Self>
+    typealias Curve = ParametricCurve<Vector>
 }
 
 // 2D-related types

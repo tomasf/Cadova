@@ -6,7 +6,7 @@ fileprivate struct SegmentedMask {
     let segmentCount: Int
     let cornerStyle: CornerRoundingStyle
 
-    fileprivate enum Vertex: Hashable {
+    fileprivate enum Vertex: Hashable, Codable {
         case surface (sector: Int, level: Int)
         case innerLower
         case innerUpper
@@ -98,14 +98,12 @@ internal struct RoundedBoxCornerMask: Shape3D {
         @Environment(\.cornerRoundingStyle) var cornerRoundingStyle
         let segmentCount = max(segmentation.segmentCount(circleRadius: radius) / 4 - 1, 1)
 
-        CachedNode(name: "roundedBoxCornerMask", parameters: boxSize, radius, segmentCount) {
-            let segmentedMask = SegmentedMask(
-                boxSize: boxSize, radius: radius, segmentCount: segmentCount, cornerStyle: cornerRoundingStyle
-            )
+        let segmentedMask = SegmentedMask(
+            boxSize: boxSize, radius: radius, segmentCount: segmentCount, cornerStyle: cornerRoundingStyle
+        )
 
-            return Mesh(faces: segmentedMask.faces) {
-                segmentedMask.resolve(vertex: $0)
-            }
+        Mesh(faces: segmentedMask.faces, name: "RoundedBoxCornerMask", cacheParameters: boxSize, radius, segmentCount, cornerRoundingStyle) {
+            segmentedMask.resolve(vertex: $0)
         }
     }
 }

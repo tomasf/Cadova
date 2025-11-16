@@ -11,8 +11,8 @@ public struct BuildResult<D: Dimensionality>: Sendable {
     }
 
     internal init(combining results: [Self], operationType: BooleanOperationType) {
-        self.node = .boolean(results.map(\.node), type: operationType)
-        self.elements = .init(combining: results.map(\.elements))
+        self.node = .boolean(results.map { $0.node }, type: operationType)
+        self.elements = .init(combining: results.map { $0.elements })
     }
 
     internal init(_ node: D.Node) {
@@ -37,10 +37,28 @@ internal extension BuildResult {
         .init(node: node, elements: elements)
     }
 
+    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> New.BuildResult {
+        .init(node: modifier(node), elements: elements)
+    }
+
     func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (inout E) -> Void) -> Self {
         var element = elements[E.self]
         modifier(&element)
         return replacing(elements: elements.setting(element))
+    }
+
+    func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E) -> E) -> Self {
+        replacing(elements: elements.setting(modifier(elements[E.self])))
+    }
+
+    func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E) async throws -> E) async rethrows -> Self {
+        replacing(elements: elements.setting(try await modifier(elements[E.self])))
+    }
+
+    func applyingTransform(_ transform: D.Transform) -> Self {
+        let newNode = GeometryNode<D>.transform(node, transform: transform)
+        let newElements = elements.setting(elements[PartCatalog.self].applyingTransform(transform.transform3D))
+        return Self(node: newNode, elements: newElements)
     }
 }
 

@@ -15,8 +15,7 @@ public extension Geometry {
     /// let originalShape = Rectangle([10, 5])
     /// let compositeShape = originalShape.cloned { $0.rotated(45°) }
     /// ```
-    /// In this example, `compositeShape` includes both the original rectangle and a version that has been translated
-    /// 15 units along the x-axis.
+    /// In this example, `compositeShape` includes both the original rectangle and a version that has been rotated by 45°.
     ///
     func cloned(@GeometryBuilder<D> _ transform: @Sendable @escaping (D.Geometry) -> D.Geometry) -> D.Geometry {
         adding { transform(self) }
@@ -43,7 +42,23 @@ public extension Geometry2D {
     /// This produces two circles: the original, and another shifted 10 mm to the right.
     ///
     func clonedAt(x: Double = 0, y: Double = 0) -> any Geometry2D {
-        cloned { $0.translated(x: x, y: y) }
+        cloned(at: Vector2D(x, y))
+    }
+
+    /// Creates a composite 2D geometry by adding a clone translated by the given 2D vector.
+    ///
+    /// The original geometry is preserved, and a translated clone is added at the specified offset.
+    ///
+    /// - Parameter offset: The 2D translation vector to apply to the cloned geometry.
+    /// - Returns: A composite 2D geometry containing the original and the translated clone.
+    ///
+    /// Example:
+    /// ```swift
+    /// let twoSquares = Square(5)
+    ///     .cloned(at: Vector2D(10, 0))
+    /// ```
+    func cloned(at offset: Vector2D) -> any Geometry2D {
+        cloned { $0.translated(offset) }
     }
 }
 
@@ -68,6 +83,22 @@ public extension Geometry3D {
     /// This produces two cylinders: the original, and one offset 10 mm above.
     ///
     func clonedAt(x: Double = 0, y: Double = 0, z: Double = 0) -> any Geometry3D {
-        cloned { $0.translated(x: x, y: y, z: z) }
+        cloned(at: Vector3D(x, y, z))
+    }
+
+    /// Creates a composite 3D geometry by adding a clone translated by the given 3D vector.
+    ///
+    /// The original geometry is preserved, and a translated clone is added at the specified offset.
+    ///
+    /// - Parameter offset: The 3D translation vector to apply to the cloned geometry.
+    /// - Returns: A composite 3D geometry containing the original and the translated clone.
+    ///
+    /// Example:
+    /// ```swift
+    /// let twoBoxes = Box([2, 2, 2])
+    ///     .cloned(at: Vector3D(0, 0, 10))
+    /// ```
+    func cloned(at offset: Vector3D) -> any Geometry3D {
+        cloned { $0.translated(offset) }
     }
 }

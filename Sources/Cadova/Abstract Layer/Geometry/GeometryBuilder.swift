@@ -42,7 +42,11 @@ import Foundation
     }
 
     public static func buildFinalResult(_ components: [G]) -> G {
-        Union(components)
+        if components.count == 1 {
+            components[0]
+        } else {
+            Union(components)
+        }
     }
 }
 
