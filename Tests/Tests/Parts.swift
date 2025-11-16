@@ -89,7 +89,7 @@ struct PartTests {
                 Box(10)
                     .inPart(named: "box")
                 Box(20)
-                    .background()
+                    .inBackground()
             }
             .measuringBounds(scope: .mainPart) { g, bounds in
                 g
@@ -113,7 +113,7 @@ struct PartTests {
             Box(20)
                 .inPart(named: "box")
             Cylinder(diameter: 10, height: 20)
-                .background()
+                .inBackground()
             Circle(diameter: 5)
                 .extruded(height: 30)
         }
@@ -129,7 +129,7 @@ struct PartTests {
                     .translated(x: 3, y: 5, z: 8)
                     .inPart(named: "foo")
                 Sphere(diameter: 10)
-                    .background()
+                    .inBackground()
             }
             .translated(x: 3)
             .rotated(z: 90°)

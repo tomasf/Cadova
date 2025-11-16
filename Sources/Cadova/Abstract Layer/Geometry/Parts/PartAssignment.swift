@@ -53,7 +53,7 @@ public extension Geometry3D {
     /// differently to indicate that it serves as a reference or environment element and is not intended for printing.
     ///
     /// This can be useful for spatial context, such as a device enclosure or mounting plate.
-    func background() -> any Geometry3D {
+    func inBackground() -> any Geometry3D {
         PartAssignment(body: self, isSeparated: true, identifier: .background)
     }
 
