@@ -99,6 +99,7 @@ extension Geometry {
             let count = Int(floor(availableLength / (boundsLength + minimumSpacing)))
             let step = availableLength / Double(count)
             self.repeated(along: axis, step: step, count: count + 1)
+                .translated(D.Vector(axis, value: range.lowerBound))
         }
     }
 }
