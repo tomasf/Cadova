@@ -1,9 +1,15 @@
 import Foundation
 
+/// An RGBA color represented with Double components in the range 0.0–1.0.
+///
 public struct Color: Hashable, Sendable, Codable {
+    /// The red component of the color, in the range 0.0–1.0.
     public let red: Double
+    /// The green component of the color, in the range 0.0–1.0.
     public let green: Double
+    /// The blue component of the color, in the range 0.0–1.0.
     public let blue: Double
+    /// The alpha (opacity) component of the color, in the range 0.0–1.0.
     public let alpha: Double
 
     /// Creates a new color with specified red, green, blue, and alpha components.
@@ -22,15 +28,32 @@ public struct Color: Hashable, Sendable, Codable {
         self.alpha = alpha
     }
 
+    /// Creates a new color with specified red, green, blue, and alpha components.
+    ///
+    /// - Parameters:
+    ///   - red: The red component, 0.0–1.0.
+    ///   - green: The green component, 0.0–1.0.
+    ///   - blue: The blue component, 0.0–1.0.
+    ///   - alpha: The alpha component, 0.0–1.0. Defaults to 1.0.
+    ///
     public init(_ red: Double, _ green: Double, _ blue: Double, _ alpha: Double = 1.0) {
         self.init(red: red, green: green, blue: blue, alpha: alpha)
     }
 
+    /// Creates a grayscale color with the same value for red, green, and blue.
+    ///
+    /// - Parameters:
+    ///   - brightness: The brightness value applied to red, green, and blue, 0.0–1.0.
+    ///   - alpha: The alpha component, 0.0–1.0. Defaults to 1.0.
+    ///
     public init(brightness: Double, alpha: Double = 1.0) {
         self.init(red: brightness, green: brightness, blue: brightness, alpha: alpha)
     }
 
-    /// Returns the RGBA components as a tuple
+    /// Returns the RGBA components as a tuple.
+    ///
+    /// - Returns: A tuple `(red, green, blue, alpha)` with each component in 0.0–1.0.
+    ///
     public var rgbaComponents: (red: Double, green: Double, blue: Double, alpha: Double) {
         (red: red, green: green, blue: blue, alpha: alpha)
     }
@@ -46,7 +69,7 @@ public struct Color: Hashable, Sendable, Codable {
     /// by extracting only the hex digits.
     ///
     /// - Parameter hex: A string containing 6 or 8 hexadecimal digits (optionally with a leading “#”).
-    /// 
+    ///
     public init(hex: String) {
         let values = hex.compactMap(\.hexDigitValue)
         guard values.count == 6 || values.count == 8 else {
@@ -84,14 +107,42 @@ public extension Color {
 }
 
 public extension Color {
+    /// Returns a copy of this color with its alpha component replaced.
+    ///
+    /// - Parameter alpha: The new alpha component, 0.0–1.0.
+    /// - Returns: A color with the same RGB components and the specified alpha.
+    ///
     func with(alpha: Double) -> Self {
         Color(red: red, green: green, blue: blue, alpha: alpha)
     }
 
+    /// Returns a copy of this color with specified components replaced.
+    ///
+    /// Any parameter left as `nil` retains its current value.
+    ///
+    /// - Parameters:
+    ///   - red: Optional new red component, 0.0–1.0.
+    ///   - green: Optional new green component, 0.0–1.0.
+    ///   - blue: Optional new blue component, 0.0–1.0.
+    ///   - alpha: Optional new alpha component, 0.0–1.0.
+    /// - Returns: A color with the provided components replaced.
+    ///
     func with(red: Double? = nil, green: Double? = nil, blue: Double? = nil, alpha: Double? = nil) -> Self {
         Color(red: red ?? self.red, green: green ?? self.green, blue: blue ?? self.blue, alpha: alpha ?? self.alpha)
     }
 
+    /// Returns a copy of this color using HSBA to replace components.
+    ///
+    /// The color is converted to HSBA, the provided values are substituted, and the result is converted back to RGBA.
+    /// Any parameter left as `nil` retains its current value.
+    ///
+    /// - Parameters:
+    ///   - hue: Optional new hue component, typically in 0.0–1.0.
+    ///   - saturation: Optional new saturation component, 0.0–1.0.
+    ///   - brightness: Optional new brightness component, 0.0–1.0.
+    ///   - alpha: Optional new alpha component, 0.0–1.0.
+    /// - Returns: A color with the provided HSBA components replaced.
+    ///
     func with(hue: Double? = nil, saturation: Double? = nil, brightness: Double? = nil, alpha: Double? = nil) -> Self {
         let hsba = hsbaComponents
         return Color(hue: hue ?? hsba.hue, saturation: saturation ?? hsba.saturation, brightness: brightness ?? hsba.brightness, alpha: alpha ?? hsba.alpha)
