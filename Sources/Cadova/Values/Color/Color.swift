@@ -34,6 +34,32 @@ public struct Color: Hashable, Sendable, Codable {
     public var rgbaComponents: (red: Double, green: Double, blue: Double, alpha: Double) {
         (red: red, green: green, blue: blue, alpha: alpha)
     }
+
+    /// Creates a color from a hexadecimal string.
+    ///
+    /// The string must contain either 6 or 8 hexadecimal digits:
+    /// - 6 digits represent RGB (red, green, blue), with alpha assumed to be 1.0.
+    /// - 8 digits represent RGBA (red, green, blue, alpha).
+    ///
+    /// Each pair of hex digits corresponds to a component in the range 00–FF, which is converted to a
+    /// Double in the range 0.0–1.0. The initializer ignores any non-hex prefix characters (such as “#”)
+    /// by extracting only the hex digits.
+    ///
+    /// - Parameter hex: A string containing 6 or 8 hexadecimal digits (optionally with a leading “#”).
+    /// 
+    public init(hex: String) {
+        let values = hex.compactMap(\.hexDigitValue)
+        guard values.count == 6 || values.count == 8 else {
+            fatalError("Invalid hex color code")
+        }
+
+        self.init(
+            Double(values[0] * 16 + values[1]) / 255.0,
+            Double(values[2] * 16 + values[3]) / 255.0,
+            Double(values[4] * 16 + values[5]) / 255.0,
+            Double(values.count == 8 ? values[6] * 16 + values[7] : 255) / 255.0
+        )
+    }
 }
 
 public extension Color {
