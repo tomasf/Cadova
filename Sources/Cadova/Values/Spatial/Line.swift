@@ -21,6 +21,9 @@ public struct Line<D: Dimensionality>: Sendable, Hashable, Codable {
     }
 }
 
+public typealias Line3D = Line<D3>
+public typealias Line2D = Line<D2>
+
 public extension Line {
     /// Creates a line that passes through two points.
     ///
