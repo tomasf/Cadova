@@ -28,17 +28,10 @@ public extension Geometry3D {
         along plane: Plane,
         @GeometryBuilder3D reader: @Sendable @escaping (_ over: any Geometry3D, _ under: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        CachedConcreteArrayTransformer(body: self, name: "Cadova.SplitAlongPlane", parameters: plane) { input in
-            let (a, b) = input.translate(-plane.offset)
-                .split(by: plane.normal.unitVector, originOffset: 0)
-            return [a, b]
-        } resultHandler: { geometries in
-            precondition(geometries.count == 2, "Split result should contain exactly two geometries")
-            return reader(
-                geometries[0].translated(plane.offset),
-                geometries[1].translated(plane.offset)
-            )
-        }
+        reader(
+            GeometryNodeTransformer(body: self) { .trim($0, plane: plane) },
+            GeometryNodeTransformer(body: self) { .trim($0, plane: plane.flipped) }
+        )
     }
 
     /// Splits the geometry into two parts along the specified plane and arranges them side-by-side.
@@ -94,19 +87,7 @@ public extension Geometry3D {
         @GeometryBuilder3D with mask: @escaping () -> any Geometry3D,
         @GeometryBuilder3D result: @Sendable @escaping (_ inside: any Geometry3D, _ outside: any Geometry3D) -> any Geometry3D
     ) -> any Geometry3D {
-        mask().readingConcrete { concrete, maskResult in
-            CachedConcreteArrayTransformer(body: self, name: "Cadova.SplitWithMask", parameters: maskResult.node) { input in
-                let (a, b) = input.split(by: concrete)
-                return [a, b]
-            } resultHandler: { geometries in
-                precondition(geometries.count == 2, "Split result should contain exactly two geometries")
-
-                return result(
-                    geometries[0].mergingResultElements(with: maskResult.elements),
-                    geometries[1].mergingResultElements(with: maskResult.elements)
-                )
-            }
-        }
+        result(intersecting(mask()), subtracting(mask()))
     }
 
     /// Trims the geometry along the specified plane, keeping only the portion facing the plane's normal direction.
