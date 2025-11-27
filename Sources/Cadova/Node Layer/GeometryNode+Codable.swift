@@ -80,6 +80,7 @@ extension GeometryNode: Codable {
             try container.encode(type, forKey: .type)
 
         case .trim(let node, let plane):
+            try container.encode(Kind.trim, forKey: .kind)
             try container.encode(node, forKey: .body)
             try container.encode(plane, forKey: .plane)
         }
