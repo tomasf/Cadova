@@ -16,11 +16,6 @@ struct ThreeMFDataProvider: OutputDataProvider {
         self.options = options
     }
 
-    init(result: D2.BuildResult, options: ModelOptions) {
-        self.result = result.replacing(node: D3.Node.extrusion(result.node, type: .linear(height: 0.001)))
-        self.options = options
-    }
-
     let fileExtension = "3mf"
 
     fileprivate enum ResourceIDOffset: ResourceID, CaseIterable {
