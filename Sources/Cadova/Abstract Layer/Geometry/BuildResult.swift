@@ -62,6 +62,12 @@ internal extension BuildResult {
     }
 }
 
+internal extension BuildResult<D2> {
+    func promotedTo3D() -> BuildResult<D3> {
+        replacing(node: .extrusion(node, type: .linear(height: 0.001)))
+    }
+}
+
 extension BuildResult: Geometry {
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         self
