@@ -93,7 +93,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
     private func write<T>(to archive: PackageWriter<T>, context: EvaluationContext) async throws {
         var outputs = result.elements[PartCatalog.self].mergedOutputs
         let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
-        outputs[.main] = result
+
+        let name = options[ModelName.self].name ?? "Model"
+        let mainPart = PartIdentifier(name: name, type: .solid, defaultMaterial: .plain(.white))
+
+        outputs[mainPart] = result
         outputs = outputs.filter { acceptedSemantics.contains($0.key.type) && $0.value.node.isEmpty == false }
 
         let modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
