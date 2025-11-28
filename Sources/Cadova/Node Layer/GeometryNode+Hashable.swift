@@ -10,6 +10,8 @@ extension GeometryNode.Contents: Equatable {
         case let (.refine(n1, l1), .refine(n2, l2)): n1 == n2 && l1 == l2
         case let (.simplify(n1, t1), .simplify(n2, t2)): n1 == n2 && t1 == t2
 
+        case let (.select(b1, i1), .select(b2, i2)): b1 == b2 && i1 == i2
+        case let (.decompose(a1), .decompose(a2)): a1 == a2
         case let (.materialized(k1), .materialized(k2)): k1 == k2
         case let (.shape2D(a), .shape2D(b)): a == b
         case let (.offset(a1, aa, aj, am, asc), .offset(a2, ba, bj, bm, bsc)):
@@ -49,6 +51,13 @@ extension GeometryNode.Contents: Hashable {
             hasher.combine(GeometryNode.Kind.simplify)
             hasher.combine(body)
             hasher.combine(tolerance)
+        case .select(let body, let index):
+            hasher.combine(GeometryNode.Kind.select)
+            hasher.combine(body)
+            hasher.combine(index)
+        case .decompose(let body):
+            hasher.combine(GeometryNode.Kind.decompose)
+            hasher.combine(body)
         case .materialized(let key):
             hasher.combine(GeometryNode.Kind.materialized)
             hasher.combine(key)

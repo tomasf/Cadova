@@ -2,13 +2,13 @@ import Foundation
 
 extension GeometryNode: Codable {
     enum Kind: String, Codable {
-        case empty, boolean, transform, convexHull, refine, simplify, materialized
+        case empty, boolean, transform, convexHull, refine, simplify, select, materialized
         case shape2D, offset, projection
-        case shape3D, applyMaterial, extrusion, trim
+        case shape3D, applyMaterial, extrusion, trim, decompose
     }
 
     enum CodingKeys: String, CodingKey {
-        case kind, type, primitive, children, body, transform, edgeLength, tolerance
+        case kind, type, primitive, children, body, transform, edgeLength, tolerance, index
         case amount, joinStyle, miterLimit, segmentCount, cacheKey
         case material, crossSection, plane
     }
@@ -43,6 +43,11 @@ extension GeometryNode: Codable {
             try container.encode(Kind.simplify, forKey: .kind)
             try container.encode(node, forKey: .body)
             try container.encode(tolerance, forKey: .tolerance)
+
+        case .select(let node, let index):
+            try container.encode(Kind.select, forKey: .kind)
+            try container.encode(node, forKey: .body)
+            try container.encode(index, forKey: .index)
 
         case .materialized(let cacheKey):
             try container.encode(Kind.materialized, forKey: .kind)
@@ -83,6 +88,10 @@ extension GeometryNode: Codable {
             try container.encode(Kind.trim, forKey: .kind)
             try container.encode(node, forKey: .body)
             try container.encode(plane, forKey: .plane)
+
+        case .decompose(let node):
+            try container.encode(Kind.decompose, forKey: .kind)
+            try container.encode(node, forKey: .body)
         }
     }
 
@@ -112,6 +121,13 @@ extension GeometryNode: Codable {
             let node = try container.decode(D.Node.self, forKey: .body)
             let tolerance = try container.decode(Double.self, forKey: .tolerance)
             self.init(.simplify(node, tolerance: tolerance))
+        case .select:
+            let node = try container.decode(D.Node.self, forKey: .body)
+            let index = try container.decode(Int.self, forKey: .index)
+            self.init(.select(node, index: index))
+        case .decompose:
+            let node = try container.decode(D.Node.self, forKey: .body)
+            self.init(.decompose(node))
         case .materialized:
             let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
             self.init(.materialized(cacheKey: cacheKey))

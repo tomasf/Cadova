@@ -29,6 +29,10 @@ extension GeometryNode: CustomDebugStringConvertible {
 
         case .convexHull(let body):
             "convexHull {\n\(body.debugDescription.indented)\n}"
+        case .select(let body, let index):
+            "select(\(index)) {\n\(body.debugDescription.indented)\n}"
+        case let .decompose(body):
+            "decompose {\n\(body.debugDescription.indented)\n}"
         case .materialized(let key):
             String(format: "materialized: %@", key.debugDescription)
         case .offset(let body, let amount, let joinStyle, let miterLimit, let segmentCount):
