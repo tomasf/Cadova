@@ -84,7 +84,7 @@ public func Project(
         await content()
     }
     let models = directives.compactMap(\.model)
-    let combinedOptions = ModelOptions(options + directives.flatMap(\.options))
+    let combinedOptions = ModelOptions(options + directives.compactMap(\.options))
     for builder in directives.compactMap(\.environment) {
         builder(&environment)
     }

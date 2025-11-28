@@ -21,6 +21,8 @@ internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
         case convexHull (D.Node)
         case refine (D.Node, edgeLength: Double)
         case simplify (D.Node, tolerance: Double)
+        case select (D.Node, index: Int)
+        case decompose (D.Node)
         case materialized (cacheKey: OpaqueKey)
 
         // 2D
@@ -85,6 +87,13 @@ extension GeometryNode {
 
         case .simplify(let node, let tolerance):
             return try await context.result(for: node).modified { $0.simplify(epsilon: tolerance) }
+
+        case .select(let node, let index):
+            return try await context.result(for: node).modified { $0.count > index ? $0[index] : .empty }
+
+        case .decompose (let node):
+            let result = try await context.result(for: node)
+            return try result.modified { $0.decompose() }
 
         case .materialized (_):
             preconditionFailure("Materialized geometry nodes are pre-cached and cannot be evaluated")
