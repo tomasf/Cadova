@@ -36,7 +36,7 @@ struct BinarySTLDataProvider: OutputDataProvider {
         func double(at vertexIndex: Int, offset: Int) -> Double { properties[vertexIndex * propertyCount + offset] }
         func position(at index: Int) -> Vector3D { Vector3D(x: double(at: index, offset: 0), y: double(at: index, offset: 1), z: double(at: index, offset: 2)) }
         func normal(at index: Int) -> Vector3D { Vector3D(x: double(at: index, offset: 3), y: double(at: index, offset: 4), z: double(at: index, offset: 5)) }
-        func triangleNormal(_ triangle: Triangle) -> Vector3D { (normal(at: triangle.a) + normal(at: triangle.b) + normal(at: triangle.c)).normalized }
+        func triangleNormal(_ triangle: Manifold3D.Triangle) -> Vector3D { (normal(at: triangle.a) + normal(at: triangle.b) + normal(at: triangle.c)).normalized }
 
         func append(_ int: UInt32) {
             var value = int.littleEndian
