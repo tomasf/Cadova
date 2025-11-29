@@ -65,16 +65,4 @@ internal extension EvaluationContext {
         return try await materializedResult(key: key, generator: generator)
             .replacing(elements: buildResult.elements)
     }
-
-    func multipartMaterializedResults<D: Dimensionality, Key: CacheKey>(
-        for key: Key,
-        from source: D.BuildResult,
-        generator: @escaping @Sendable () async throws -> [D.Node.Result]
-    ) async throws -> [BuildResult<D>] {
-        let count = try await cache().multipartCount(for: key, generator: generator)
-        return (0..<count).map {
-            let key = IndexedCacheKey(base: key, index: $0)
-            return source.replacing(cacheKey: key)
-        }
-    }
 }

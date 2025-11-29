@@ -14,6 +14,11 @@ public struct EnvironmentValues: Sendable {
         self.values = values
     }
 
+    init<T: Sendable>(keyPath: WritableKeyPath<Self, T>, value: T) {
+        self.init()
+        self[keyPath: keyPath] = value
+    }
+
     /// Returns a new environment by adding new values to the current environment.
     ///
     /// - Parameter newValues: A dictionary of values to add to the environment.

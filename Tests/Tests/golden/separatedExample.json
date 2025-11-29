@@ -16,77 +16,67 @@
       "children" : [
         {
           "body" : {
-            "cacheKey" : {
-              "type" : "6Cadova15IndexedCacheKeyVyAA04NodecD0VyAA07LabeledcD0VAA2D3VGG",
-              "value" : {
-                "base" : {
-                  "base" : {
-                    "operationName" : "Cadova.Separate",
-                    "parameters" : [
-
-                    ]
+            "body" : {
+              "body" : {
+                "children" : [
+                  {
+                    "kind" : "shape3D",
+                    "primitive" : {
+                      "sphere" : {
+                        "radius" : 5,
+                        "segmentCount" : 180
+                      }
+                    }
                   },
-                  "node" : {
-                    "children" : [
-                      {
-                        "kind" : "shape3D",
-                        "primitive" : {
-                          "sphere" : {
-                            "radius" : 5,
-                            "segmentCount" : 180
+                  {
+                    "body" : {
+                      "kind" : "shape3D",
+                      "primitive" : {
+                        "box" : {
+                          "size" : {
+                            "x" : 12,
+                            "y" : 12,
+                            "z" : 1
                           }
                         }
-                      },
-                      {
-                        "body" : {
-                          "kind" : "shape3D",
-                          "primitive" : {
-                            "box" : {
-                              "size" : {
-                                "x" : 12,
-                                "y" : 12,
-                                "z" : 1
-                              }
-                            }
-                          }
-                        },
-                        "kind" : "transform",
-                        "transform" : [
-                          [
-                            1,
-                            0,
-                            0,
-                            -6
-                          ],
-                          [
-                            0,
-                            1,
-                            0,
-                            -6
-                          ],
-                          [
-                            0,
-                            0,
-                            1,
-                            -0.5
-                          ],
-                          [
-                            0,
-                            0,
-                            0,
-                            1
-                          ]
-                        ]
                       }
-                    ],
-                    "kind" : "boolean",
-                    "type" : "difference"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        1,
+                        0,
+                        0,
+                        -6
+                      ],
+                      [
+                        0,
+                        1,
+                        0,
+                        -6
+                      ],
+                      [
+                        0,
+                        0,
+                        1,
+                        -0.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
                   }
-                },
-                "index" : 0
-              }
+                ],
+                "kind" : "boolean",
+                "type" : "difference"
+              },
+              "kind" : "decompose"
             },
-            "kind" : "materialized"
+            "index" : 0,
+            "kind" : "select"
           },
           "kind" : "transform",
           "transform" : [
@@ -118,77 +108,67 @@
         },
         {
           "body" : {
-            "cacheKey" : {
-              "type" : "6Cadova15IndexedCacheKeyVyAA04NodecD0VyAA07LabeledcD0VAA2D3VGG",
-              "value" : {
-                "base" : {
-                  "base" : {
-                    "operationName" : "Cadova.Separate",
-                    "parameters" : [
-
-                    ]
+            "body" : {
+              "body" : {
+                "children" : [
+                  {
+                    "kind" : "shape3D",
+                    "primitive" : {
+                      "sphere" : {
+                        "radius" : 5,
+                        "segmentCount" : 180
+                      }
+                    }
                   },
-                  "node" : {
-                    "children" : [
-                      {
-                        "kind" : "shape3D",
-                        "primitive" : {
-                          "sphere" : {
-                            "radius" : 5,
-                            "segmentCount" : 180
+                  {
+                    "body" : {
+                      "kind" : "shape3D",
+                      "primitive" : {
+                        "box" : {
+                          "size" : {
+                            "x" : 12,
+                            "y" : 12,
+                            "z" : 1
                           }
                         }
-                      },
-                      {
-                        "body" : {
-                          "kind" : "shape3D",
-                          "primitive" : {
-                            "box" : {
-                              "size" : {
-                                "x" : 12,
-                                "y" : 12,
-                                "z" : 1
-                              }
-                            }
-                          }
-                        },
-                        "kind" : "transform",
-                        "transform" : [
-                          [
-                            1,
-                            0,
-                            0,
-                            -6
-                          ],
-                          [
-                            0,
-                            1,
-                            0,
-                            -6
-                          ],
-                          [
-                            0,
-                            0,
-                            1,
-                            -0.5
-                          ],
-                          [
-                            0,
-                            0,
-                            0,
-                            1
-                          ]
-                        ]
                       }
-                    ],
-                    "kind" : "boolean",
-                    "type" : "difference"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        1,
+                        0,
+                        0,
+                        -6
+                      ],
+                      [
+                        0,
+                        1,
+                        0,
+                        -6
+                      ],
+                      [
+                        0,
+                        0,
+                        1,
+                        -0.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
                   }
-                },
-                "index" : 1
-              }
+                ],
+                "kind" : "boolean",
+                "type" : "difference"
+              },
+              "kind" : "decompose"
             },
-            "kind" : "materialized"
+            "index" : 1,
+            "kind" : "select"
           },
           "kind" : "transform",
           "transform" : [
