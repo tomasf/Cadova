@@ -6,12 +6,11 @@ extension Triangle: Shape2D {
     /// - Place vertex A at the origin (0, 0).
     /// - Side `a` lies along the positive X axis; vertex B is at (a, 0).
     /// - Vertex C is placed at (b * cos(alpha), b * sin(alpha)), so that `alpha` is at A and is opposite side `a`.
-    /// - The polygon is oriented counterclockwise.
     public var body: any Geometry2D {
         Polygon([
             .zero,
             Vector2D(a, 0),
-            Vector2D(b * cos(alpha), b * sin(alpha))
+            Vector2D(b * cos(gamma), b * sin(gamma))
         ])
     }
 }
