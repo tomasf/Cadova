@@ -5,13 +5,13 @@ import Testing
 struct LoftTests {
     @Test func threeLayers() async throws {
         let loft = Loft {
-            layer(z: 0) {
+            layer(at: 0) {
                 Circle(diameter: 20)
                     .subtracting {
                         Circle(diameter: 12)
                     }
             }
-            layer(z: 30) {
+            layer(at: 30) {
                 Rectangle(x: 25, y: 6)
                     .aligned(at: .center)
                     .repeated(in: 0°..<180°, count: 2)
@@ -19,7 +19,7 @@ struct LoftTests {
                         RegularPolygon(sideCount: 8, circumradius: 2)
                     }
             }
-            layer(z: 35) {
+            layer(at: 35) {
                 Circle(diameter: 12)
                     .subtracting {
                         Circle(diameter: 10)
@@ -37,16 +37,16 @@ struct LoftTests {
 
     @Test func layerSpecificShaping() async throws {
         let loft = Loft {
-            layer(z: 0) {
+            layer(at: 0) {
                 Circle(diameter: 5)
             }
-            layer(z: 5) {
+            layer(at: 5) {
                 Circle(diameter: 12)
             }
-            layer(z: 15, interpolation: .circularEaseOut) {
+            layer(at: 15, interpolation: .circularEaseOut) {
                 Circle(diameter: 20)
             }
-            layer(z: 20) {
+            layer(at: 20) {
                 Circle(diameter: 10)
             }
         }
@@ -61,16 +61,16 @@ struct LoftTests {
 
     @Test func layerSpecificShapingWithDefault() async throws {
         let loft = Loft(interpolation: .smoothstep) {
-            layer(z: 0) {
+            layer(at: 0) {
                 Circle(diameter: 5)
             }
-            layer(z: 5, interpolation: .linear) {
+            layer(at: 5, interpolation: .linear) {
                 Circle(diameter: 12)
             }
-            layer(z: 15, interpolation: .circularEaseIn) {
+            layer(at: 15, interpolation: .circularEaseIn) {
                 Circle(diameter: 20)
             }
-            layer(z: 20) {
+            layer(at: 20) {
                 Circle(diameter: 10)
             }
         }

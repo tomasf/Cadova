@@ -24,10 +24,10 @@ import Foundation
 /// - Example:
 ///   ```swift
 ///   Loft {
-///       layer(z: 0) {
+///       layer(at: 0) {
 ///           Circle(radius: 10)
 ///       }
-///       layer(z: 20) {
+///       layer(at: 20) {
 ///           Rectangle(20)
 ///               .aligned(at: .center)
 ///       }
@@ -38,13 +38,13 @@ import Foundation
 /// - Example with three layers. Each layer has one hole each, fulfilling the requirement for compatible topology.
 ///   ```swift
 ///   Loft {
-///       layer(z: 0) {
+///       layer(at: 0) {
 ///           Circle(diameter: 20)
 ///               .subtracting {
 ///                   Circle(diameter: 12)
 ///               }
 ///       }
-///       layer(z: 30) {
+///       layer(at: 30) {
 ///           Rectangle(x: 25, y: 6)
 ///               .aligned(at: .center)
 ///               .repeated(in: 0°..<180°, count: 2)
@@ -52,7 +52,7 @@ import Foundation
 ///                   RegularPolygon(sideCount: 8, circumradius: 2)
 ///               }
 ///       }
-///       layer(z: 35) {
+///       layer(at: 35) {
 ///           Circle(diameter: 12)
 ///               .subtracting {
 ///                   Circle(diameter: 10)
@@ -103,11 +103,11 @@ public struct Loft: Geometry {
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
 public func layer(
-    z: Double,
+    at level: Double,
     interpolation shapingFunction: ShapingFunction? = nil,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Layer {
-    Loft.Layer(z: z, shapingFunction: shapingFunction, geometry: shape())
+    Loft.Layer(z: level, shapingFunction: shapingFunction, geometry: shape())
 }
 
 public extension Geometry2D {
@@ -141,8 +141,8 @@ public extension Geometry2D {
         @GeometryBuilder2D with other: @Sendable @escaping () -> any Geometry2D
     ) -> any Geometry3D {
         Loft(interpolation: shapingFunction) {
-            layer(z: 0) { self }
-            layer(z: height, shape: other)
+            layer(at: 0) { self }
+            layer(at: height, shape: other)
         }
     }
 }
