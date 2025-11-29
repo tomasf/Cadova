@@ -5,7 +5,6 @@ internal struct PartIdentifier: Hashable, Sendable, Codable {
     let type: PartSemantic
     let defaultMaterial: Material
 
-    static let main = PartIdentifier(name: "Model", type: .solid, defaultMaterial: .plain(.white))
     static let highlight = PartIdentifier(name: "Highlighted", type: .visual, defaultMaterial: .highlightedGeometry)
     static let background = PartIdentifier(name: "Background", type: .context, defaultMaterial: .backgroundGeometry)
 

@@ -63,55 +63,6 @@ struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     }
 }
 
-// Apply an arbitrary transformation to a body's concrete, returning a variable number
-// of resulting concretes, individually cached based on node + key + index
-
-struct CachedConcreteArrayTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
-    let body: D.Geometry
-    let key: Key
-    let generator: @Sendable (D.Concrete) throws -> [D.Concrete]
-    let resultHandler: @Sendable ([D.Geometry]) -> D.Geometry
-
-    init(
-        body: D.Geometry,
-        key: Key, generator: @Sendable @escaping (D.Concrete) throws -> [D.Concrete],
-        resultHandler: @Sendable @escaping ([D.Geometry]) -> D.Geometry
-    ) {
-        self.body = body
-        self.key = key
-        self.generator = generator
-        self.resultHandler = resultHandler
-    }
-
-    init(
-        body: D.Geometry,
-        name: String,
-        parameters: any CacheKey...,
-        generator: @Sendable @escaping (D.Concrete) throws -> [D.Concrete],
-        resultHandler: @Sendable @escaping ([D.Geometry]) -> D.Geometry
-    ) where Key == LabeledCacheKey {
-        self.init(
-            body: body,
-            key: LabeledCacheKey(operationName: name, parameters: parameters),
-            generator: generator,
-            resultHandler: resultHandler
-        )
-    }
-
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let bodyResult = try await context.buildResult(for: body, in: environment)
-        let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
-
-        let geometries = try await context.multipartMaterializedResults(for: bakedKey, from: bodyResult) {
-            let nodeResult = try await context.result(for: bodyResult.node)
-            let concretes = try generator(nodeResult.concrete)
-            return try concretes.map { try D.Node.Result($0) }
-        }
-
-        return try await context.buildResult(for: resultHandler(geometries), in: environment)
-    }
-}
-
 // Apply an arbitrary transformation to a node, cached based on node + key
 
 struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry {

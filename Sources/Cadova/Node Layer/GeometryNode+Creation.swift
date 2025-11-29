@@ -65,6 +65,15 @@ extension GeometryNode {
         return Self(.transform(body, transform: transform))
     }
 
+    static func select(_ body: D.Node, index: Int) -> GeometryNode {
+        Self(.select(body, index: index))
+    }
+
+    static func decompose(_ body: D.Node) -> GeometryNode {
+        guard body.isEmpty == false else { return .empty }
+        return Self(.decompose(body))
+    }
+
     static func materialized(cacheKey: OpaqueKey) -> GeometryNode {
         Self(.materialized(cacheKey: cacheKey))
     }

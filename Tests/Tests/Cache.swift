@@ -56,7 +56,7 @@ struct GeometryCacheTests {
         }
 
         _ = try await context.concrete(for: split1)
-        await #expect(context.cache3D.count == 6) // box, 2x splits, 2x translated splits, split union
+        await #expect(context.cache3D.count == 4) // box, 2x trims, split union
     }
 
     // CachedConcreteTransformer should preserve elements

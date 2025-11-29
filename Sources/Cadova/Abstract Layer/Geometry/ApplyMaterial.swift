@@ -37,6 +37,14 @@ public extension Geometry3D {
     func colored(red: Double, green: Double, blue: Double, alpha: Double = 1) -> any Geometry3D {
         colored(.init(red: red, green: green, blue: blue, alpha: alpha))
     }
+
+    /// Applies a color to the geometry using a hexadecimal string.
+    ///
+    /// - Parameter hex: A string containing 6 or 8 hexadecimal digits (optionally with a leading “#”).
+    /// - Returns: A geometry instance with the given color applied.
+    func colored(hex: String) -> any Geometry3D {
+        colored(Color(hex: hex))
+    }
 }
 
 public extension Geometry3D {

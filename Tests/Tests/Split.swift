@@ -13,6 +13,22 @@ struct SplitTests {
         try await split.expectEquals(goldenFile: "splitAlongPlane")
     }
 
+    @Test func splitMeasurements() async throws {
+        let topMeasurements = try await Box(10)
+            .split(along: .z(2)) { a, _ in a }
+            .measurements
+
+        #expect(topMeasurements.volume ≈ 800.0)
+        #expect(topMeasurements.boundingBox?.minimum.z ≈ 2)
+
+        let bottomMeasurements = try await Box(10)
+            .split(along: .z(2)) { _, b in b }
+            .measurements
+
+        #expect(bottomMeasurements.volume ≈ 200.0)
+        #expect(bottomMeasurements.boundingBox?.minimum.z ≈ 0)
+    }
+
     @Test func separated() async throws {
         try await Box(1).adding { Box(1).translated(x: 0.5) }
             .separated { #expect($0.count == 1) }

@@ -26,3 +26,7 @@ struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
         try encoder.encode(self).write(to: url)
     }
 }
+
+extension PartIdentifier {
+    static let main = PartIdentifier(name: "Model", type: .solid, defaultMaterial: .plain(.white))
+}

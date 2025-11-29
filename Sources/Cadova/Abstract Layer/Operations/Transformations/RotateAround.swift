@@ -77,6 +77,21 @@ public extension Geometry3D {
                 .rotated(x: x, y: y, z: z)
                 .translated(-translation)
         }
+    }
 
+    /// Rotates the geometry around an arbitrary axis defined by a 3D line.
+    ///
+    /// The axis of rotation is given by the line’s direction and passes through a point on the line.
+    ///
+    /// - Parameters:
+    ///   - angle: The angle to rotate around the axis.
+    ///   - axis: A line in 3D defining the rotation axis (direction) and the point it passes through.
+    /// - Returns: A new geometry that is the result of applying the specified rotation around the line.
+    ///
+    func rotated(_ angle: Angle, around axis: Line<D3>) -> any Geometry3D {
+        self
+            .translated(-axis.point)
+            .transformed(.rotation(angle: angle, around: axis.direction))
+            .translated(axis.point)
     }
 }

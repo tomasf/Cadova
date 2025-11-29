@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct Metadata: Sendable {
+public struct Metadata: Sendable {
     let title: String?
     let description: String?
     let author: String?
@@ -8,7 +8,14 @@ internal struct Metadata: Sendable {
     let date: String?
     let application: String?
 
-    init(title: String?, description: String?, author: String?, license: String?, date: String?, application: String?) {
+    public init(
+        title: String? = nil,
+        description: String? = nil,
+        author: String? = nil,
+        license: String? = nil,
+        date: String? = nil,
+        application: String? = nil
+    ) {
         self.title = title
         self.description = description
         self.author = author

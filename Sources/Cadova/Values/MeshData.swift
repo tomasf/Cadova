@@ -14,7 +14,7 @@ public struct MeshData: Sendable, Hashable, Codable {
 
     internal func meshGL() -> MeshGL {
         let triangles = triangulatedFaces().map { indices in
-            Triangle(.init(indices[0]), .init(indices[1]), .init(indices[2]))
+            Manifold3D.Triangle(.init(indices[0]), .init(indices[1]), .init(indices[2]))
         }
         return MeshGL(vertices: vertices, triangles: triangles)
     }
