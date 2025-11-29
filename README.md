@@ -39,7 +39,7 @@ let package = Package(
     name: "<#name#>",
     platforms: [.macOS(.v14)],
     dependencies: [
-        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.2.0")),
+        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.2.1")),
     ],
     targets: [
         .executableTarget(
