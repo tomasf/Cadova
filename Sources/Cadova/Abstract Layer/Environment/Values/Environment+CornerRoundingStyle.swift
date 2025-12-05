@@ -1,5 +1,4 @@
 import Foundation
-import Manifold3D
 
 public extension EnvironmentValues {
     static private let environmentKey = Key("Cadova.CornerRoundingStyle")

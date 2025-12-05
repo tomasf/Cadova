@@ -36,6 +36,12 @@ internal extension ResultElements {
         set { self[ObjectIdentifier(type)] = newValue }
     }
 
+    subscript<E: ResultElement>(ifPresent type: E.Type) -> E? {
+        get {
+            self[ObjectIdentifier(type)] as! E?
+        }
+    }
+
     func setting<E: ResultElement>(_ value: E) -> Self {
         var dict = self
         dict[E.self] = value
