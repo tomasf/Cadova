@@ -18,27 +18,32 @@ public struct Anchor: Hashable, Sendable, CustomStringConvertible {
 }
 
 public extension Geometry3D {
-    /// Defines an anchor point
+    /// Defines an anchor point.
     ///
-    /// Use this method to mark the current coordinate system as an anchor. This anchor can then be used to position
-    /// and orient the geometry tree by aligning the saved transform to the origin. The anchor captures the current
-    /// transformation state and applies an additional transform.
+    /// Use this method to mark the current coordinate system as an anchor. The anchor captures the current
+    /// transformation state and applies the provided transform.
+    ///
+    /// - Important: The same `Anchor` can be defined multiple times across a geometry tree. Each definition records
+    ///   a separate transform. When you later call `anchored(to:)` with that anchor, the geometry is duplicated and
+    ///   placed at all recorded transforms (one instance per definition).
     ///
     /// - Parameters:
     ///   - anchor: The `Anchor` to define on this geometry.
-    ///   - transform: A transform applied relative to the current transformation state
+    ///   - transform: A transform applied relative to the current transformation state.
     /// - Returns: The geometry with a defined anchor.
     ///
     func definingAnchor(_ anchor: Anchor, transform: Transform3D) -> any Geometry3D {
         definingAnchor(anchor, alignment: .none, transform: transform)
     }
 
-    /// Defines an anchor point
+    /// Defines an anchor point.
     ///
-    /// Use this method to mark a specific coordinate system as an anchor. This anchor can then be used to position and
-    /// orient the geometry tree by aligning the saved transform to the origin. The anchor captures the current
+    /// Use this method to mark a specific coordinate system as an anchor. The anchor captures the current
     /// transformation state, optionally applying an additional alignment, offset, direction and rotation around the
     /// direction vector.
+    ///
+    /// - Important: The same `Anchor` can be defined multiple times. Each call records another transform. When you
+    ///   later call `anchored(to:)` with that anchor, the geometry is duplicated and placed at all recorded transforms.
     ///
     /// - Parameters:
     ///   - anchor: The `Anchor` to define on this geometry.
@@ -70,10 +75,11 @@ public extension Geometry3D {
     /// Aligns this 3D geometry to a previously defined anchor.
     ///
     /// This method transforms the geometry so that the specified anchor point aligns with the origin of the coordinate
-    /// system. It's used to position this geometry based on the location and orientation of an anchor.
+    /// system. If the anchor has been defined multiple times, the geometry is duplicated and distributed to each
+    /// recorded transform, producing one instance per definition.
     ///
     /// - Parameter anchor: The `Anchor` to which this geometry should be aligned.
-    /// - Returns: A modified version of the geometry, transformed to align with the specified anchor.
+    /// - Returns: A modified version of the geometry, transformed to align with all definitions of the specified anchor.
     ///
     func anchored(to anchor: Anchor) -> any Geometry3D {
         readEnvironment { environment in
