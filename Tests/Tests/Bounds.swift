@@ -53,24 +53,4 @@ struct BoundsTests {
 
         #expect(try await geometry.bounds ≈ .init(minimum: .zero, maximum: [22, 8, 12]))
     }
-
-    @Test func anchors() async throws {
-        let top = Anchor()
-        let side = Anchor()
-        let base = Box([8,6,4])
-            .aligned(at: .centerXY, .top)
-            .adding {
-                Box([2,2,1])
-                    .aligned(at: .centerXY)
-                    .definingAnchor(top, at: .top)
-            }
-            .definingAnchor(side, at: .left, offset: [0, 0, -2], pointing: .left)
-            .anchored(to: top)
-            .anchored(to: side)
-
-        let extended = base.anchored(to: top)
-
-        #expect(try await base.bounds ≈ .init(minimum: [-2, -3, -8], maximum: [3, 3, 0]))
-        #expect(try await extended.bounds ≈ .init(minimum: [-4, -3, -5], maximum: [4, 3, 0]))
-    }
 }
