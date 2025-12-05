@@ -3,7 +3,7 @@ import Foundation
 public struct Model: Sendable {
     let name: String
 
-    private let directives: [BuildDirective]
+    private let directives: @Sendable () -> [BuildDirective]
     private let environmentBuilder: (@Sendable (inout EnvironmentValues) -> ())?
     private let options: ModelOptions
 
@@ -73,7 +73,7 @@ public struct Model: Sendable {
     ) async {
         self.name = name
         self.environmentBuilder = environmentBuilder
-        directives = content()
+        directives = content
         self.options = .init(options)
 
         if ModelContext.current.isCollectingModels == false {
@@ -91,6 +91,9 @@ public struct Model: Sendable {
     ) async -> URL? {
         logger.info("Generating \"\(name)\"...")
 
+        let directives = inheritedEnvironment.whileCurrent {
+            self.directives()
+        }
         let localOptions: ModelOptions = [
             .init(ModelName(name: name)),
             inheritedOptions ?? [],
@@ -161,13 +164,15 @@ public struct Model: Sendable {
         in environment: EnvironmentValues,
         context: EvaluationContext
     ) async throws -> BuildResult<D> {
-        try await ContinuousClock().measure {
+        let result = try await ContinuousClock().measure {
             try await environment.whileCurrent {
                 try await context.buildResult(for: geometry, in: environment)
             }
         } results: { duration, _ in
             logger.debug("Built geometry node tree in \(duration)")
         }
+        result.printWarnings()
+        return result
     }
 }
 
@@ -184,5 +189,11 @@ extension Error {
 fileprivate extension Geometry2D {
     func promotedTo3D() -> any Geometry3D {
         extruded(height: 0.001)
+    }
+}
+
+fileprivate extension BuildResult {
+    func printWarnings() {
+        elements[ReferenceState.self].printWarningsAtTopLevel()
     }
 }

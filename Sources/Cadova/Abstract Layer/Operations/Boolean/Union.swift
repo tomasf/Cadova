@@ -44,8 +44,12 @@ public struct Union<D: Dimensionality>: Geometry {
 
     // Union can't be a Shape because Shape uses a geometry builder which uses Union
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let childResults = try await children().asyncMap { try await context.buildResult(for: $0, in: environment) }
-        return .init(combining: childResults, operationType: .union)
+        try await .init(
+            booleanOperation: .union,
+            geometries: try await children(),
+            environment: environment,
+            context: context
+        )
     }
 }
 

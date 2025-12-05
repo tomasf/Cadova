@@ -40,8 +40,12 @@ public struct Intersection<D: Dimensionality>: Geometry, Transformable {
     }
 
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let childResults = try await children().asyncMap { try await context.buildResult(for: $0, in: environment) }
-        return .init(combining: childResults, operationType: .intersection)
+        try await .init(
+            booleanOperation: .intersection,
+            geometries: children(),
+            environment: environment,
+            context: context
+        )
     }
 
     /// Creates a intersection of multiple geometries.
