@@ -103,11 +103,38 @@ public struct Loft: Geometry {
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
 public func layer(
-    at level: Double,
+    z: Double,
     interpolation shapingFunction: ShapingFunction? = nil,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Layer {
-    Loft.Layer(z: level, shapingFunction: shapingFunction, geometry: shape())
+    Loft.Layer(z: z, shapingFunction: shapingFunction, geometry: shape())
+}
+
+/// Creates two layers spanning a Z range using the same 2D shape.
+///
+/// This convenience overload generates a pair of `Loft.Layer` entries from a single shape:
+/// one at `range.lowerBound` using the provided `shapingFunction` (or the `Loft` default if `nil`),
+/// and one at `range.upperBound` using a linear shaping function. This is useful when you want a
+/// straight shape across the specified interval.
+///
+/// - Parameters:
+///   - range: The Z range defining the lower and upper bounds where the shape will be placed.
+///   - shapingFunction: An optional shaping function that controls how the transition progresses between
+///                      the previous layer and the lower bound of this range. If `nil`, the `Loft`'s shaping
+///                      function is used for the first layer.
+///   - shape: A builder that returns the 2D geometry to use for both layers.
+/// - Returns: Two `Loft.Layer` values, one at the lower bound and one at the upper bound.
+///
+public func layer(
+    z range: Range<Double>,
+    interpolation shapingFunction: ShapingFunction? = nil,
+    @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
+) -> [Loft.Layer] {
+    let content = shape()
+    return [
+        Loft.Layer(z: range.lowerBound, shapingFunction: shapingFunction, geometry: content),
+        Loft.Layer(z: range.upperBound, shapingFunction: .linear, geometry: content)
+    ]
 }
 
 public extension Geometry2D {
@@ -141,8 +168,8 @@ public extension Geometry2D {
         @GeometryBuilder2D with other: @Sendable @escaping () -> any Geometry2D
     ) -> any Geometry3D {
         Loft(interpolation: shapingFunction) {
-            layer(at: 0) { self }
-            layer(at: height, shape: other)
+            layer(z: 0) { self }
+            layer(z: height, shape: other)
         }
     }
 }
