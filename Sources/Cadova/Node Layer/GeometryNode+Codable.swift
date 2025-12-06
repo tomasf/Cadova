@@ -104,7 +104,12 @@ extension GeometryNode: Codable {
             self.init(.empty)
         case .boolean:
             let type = try container.decode(BooleanOperationType.self, forKey: .type)
-            let children = try container.decode([D.Node].self, forKey: .children)
+            var children = try container.decode([D.Node].self, forKey: .children)
+
+            if type == .union {
+                children.sort(using: KeyPathComparator(\.hashValue))
+            }
+
             self.init(.boolean(children, type: type))
         case .transform:
             let node = try container.decode(D.Node.self, forKey: .body)
