@@ -1,0 +1,155 @@
+{
+  "parts" : [
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 1,
+          "blue" : 1,
+          "green" : 1,
+          "red" : 1
+        }
+      },
+      "name" : "Model",
+      "type" : "solid"
+    },
+    {
+      "body" : {
+        "children" : [
+          {
+            "body" : {
+              "body" : {
+                "kind" : "shape3D",
+                "primitive" : {
+                  "box" : {
+                    "size" : {
+                      "x" : 4,
+                      "y" : 4,
+                      "z" : 4
+                    }
+                  }
+                }
+              },
+              "kind" : "applyMaterial",
+              "material" : {
+                "baseColor" : {
+                  "alpha" : 1,
+                  "blue" : 0,
+                  "green" : 0.502,
+                  "red" : 0
+                }
+              }
+            },
+            "kind" : "transform",
+            "transform" : [
+              [
+                1,
+                0,
+                0,
+                -2
+              ],
+              [
+                0,
+                1,
+                0,
+                -2
+              ],
+              [
+                0,
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "body" : {
+              "body" : {
+                "kind" : "shape3D",
+                "primitive" : {
+                  "box" : {
+                    "size" : {
+                      "x" : 10,
+                      "y" : 10,
+                      "z" : 10
+                    }
+                  }
+                }
+              },
+              "kind" : "applyMaterial",
+              "material" : {
+                "baseColor" : {
+                  "alpha" : 1,
+                  "blue" : 1,
+                  "green" : 0,
+                  "red" : 0
+                }
+              }
+            },
+            "kind" : "transform",
+            "transform" : [
+              [
+                1,
+                0,
+                0,
+                -5
+              ],
+              [
+                0,
+                1,
+                0,
+                -5
+              ],
+              [
+                0,
+                0,
+                1,
+                4
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        ],
+        "kind" : "boolean",
+        "type" : "union"
+      },
+      "kind" : "transform",
+      "transform" : [
+        [
+          0,
+          0,
+          -1,
+          9
+        ],
+        [
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          -5
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    }
+  ]
+}
