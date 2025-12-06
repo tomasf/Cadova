@@ -1,0 +1,176 @@
+{
+  "parts" : [
+    {
+      "defaultMaterial" : {
+        "baseColor" : {
+          "alpha" : 1,
+          "blue" : 1,
+          "green" : 1,
+          "red" : 1
+        }
+      },
+      "name" : "Model",
+      "type" : "solid"
+    },
+    {
+      "children" : [
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape3D",
+                  "primitive" : {
+                    "box" : {
+                      "size" : {
+                        "x" : 1,
+                        "y" : 1,
+                        "z" : 1
+                      }
+                    }
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.5
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    -0.5
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape3D",
+                  "primitive" : {
+                    "cylinder" : {
+                      "bottomRadius" : 0.5,
+                      "height" : 10,
+                      "segmentCount" : 20,
+                      "topRadius" : 0.5
+                    }
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    0,
+                    0,
+                    1,
+                    1.5
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    -0.5
+                  ],
+                  [
+                    -1,
+                    0,
+                    0,
+                    3
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0.5
+            ],
+            [
+              0,
+              1,
+              0,
+              0.5
+            ],
+            [
+              0,
+              0,
+              1,
+              -0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "kind" : "shape3D",
+            "primitive" : {
+              "sphere" : {
+                "radius" : 2,
+                "segmentCount" : 83
+              }
+            }
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              3
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        }
+      ],
+      "kind" : "boolean",
+      "type" : "union"
+    }
+  ]
+}
