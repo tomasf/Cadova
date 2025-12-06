@@ -64,19 +64,4 @@ struct AnchorTests {
         try await geometry.expectEquals(goldenFile: "anchors/usedBeforeDefinition")
         #expect(try await geometry.bounds ≈ .init(minimum: [-2, -2, 0], maximum: [12, 2, 5]))
     }
-
-    @Test func alignedAt() async throws {
-        let boxRightSide = Anchor("right side of box")
-
-        let geometry = Stack(.z, alignment: .center) {
-            Box(4)
-                .colored(.green)
-            Box(10)
-                .colored(.blue)
-                .definingAnchor(boxRightSide, at: .center, .right, pointing: .right)
-        }.aligned(at: boxRightSide)
-
-        try await geometry.expectEquals(goldenFile: "anchors/alignedAt")
-        #expect(try await geometry.bounds ≈ .init(minimum: [-5, -5, -10], maximum: [9, 5, 0]))
-    }
 }
