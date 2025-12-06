@@ -16,11 +16,11 @@ import Foundation
 ///   provides its own overrides.
 ///
 /// Precedence and merging rules:
-/// - The `environment` closure parameter to `Project` establishes a base environment for the project.
+/// - Environment defaults start from `EnvironmentValues.defaultEnvironment`.
 /// - Any `Environment` directives inside the project's content builder are applied on top of that base,
 ///   affecting all models unless overridden at the model level.
-/// - Per-model environment (either via the model’s own `environment:` closure or `Environment` directives
-///   inside the model’s result builder) takes precedence over project-level settings.
+/// - Per-model environment specified via `Environment` directives inside the model’s result builder
+///   takes precedence over project-level settings.
 /// - `Metadata` specified in the project builder is merged into shared `ModelOptions` and applied to all models,
 ///   and can be further augmented or overridden by per-model options/metadata.
 ///
@@ -30,7 +30,6 @@ import Foundation
 ///   - options: Shared `ModelOptions` applied to all models in the project unless overridden.
 ///   - content: A result builder that asynchronously returns an array of directives. It can include `Model` instances
 ///     to be evaluated and saved, as well as `Environment` and `Metadata` directives that set project-wide defaults.
-///   - environmentBuilder: An optional closure to customize default `EnvironmentValues` for all models in the project.
 ///
 /// ### Example
 /// ```swift
@@ -60,20 +59,15 @@ import Foundation
 ///     await Model("box") {
 ///         Box(10)
 ///     }
-/// } environment: {
-///     // Base environment for the project (lowest precedence)
-///     $0.tolerance = 0.2
 /// }
 /// ```
 ///
 public func Project(
     root url: URL?,
     options: ModelOptions...,
-    @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective],
-    environment environmentBuilder: (@Sendable (inout EnvironmentValues) -> Void)? = nil
+    @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
 ) async {
     var environment = EnvironmentValues.defaultEnvironment
-    environmentBuilder?(&environment)
 
     if let url {
         try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
@@ -103,13 +97,11 @@ public func Project(
 public func Project(
     root: String? = nil,
     options: ModelOptions...,
-    @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective],
-    environment environmentBuilder: (@Sendable (inout EnvironmentValues) -> Void)? = nil
+    @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
 ) async {
     await Project(
         root: root.map { URL(expandingFilePath: $0) },
         options: .init(options),
-        content: content,
-        environment: environmentBuilder
+        content: content
     )
 }
