@@ -90,18 +90,21 @@ public extension Geometry3D {
         )
     }
 
-    /// Aligns this 3D geometry to a previously defined anchor (or anchors).
+    /// Moves this geometry’s origin to an anchor defined elsewhere.
     ///
-    /// This method transforms the geometry so that the specified anchor point aligns with the origin of the coordinate
-    /// system. If the anchor has been defined multiple times, the geometry is duplicated and distributed to each
-    /// recorded world transform, producing one instance per definition at the same world-space location and orientation
-    /// as captured by the anchor.
+    /// Use this to orient and position a geometry so that its origin coincides with the world‑space transform(s)
+    /// captured by a given anchor. In other words: “Move this geometry’s origin to an anchor.”
     ///
-    /// If the anchor has no definitions available by the time the model is fully built, no instances are produced and
-    /// a warning is printed.
+    /// - Behavior:
+    ///   - If the anchor has been defined multiple times, the geometry is duplicated and distributed to each recorded
+    ///     world transform, producing one instance per definition at the same world‑space location and orientation.
+    ///   - If the anchor has no definitions available by the time the model is fully built, no instances are produced
+    ///     and a warning is printed.
     ///
-    /// - Parameter anchor: The `Anchor` to which this geometry should be aligned.
+    /// - Parameter anchor: The `Anchor` whose recorded world transform(s) should be applied to this geometry.
     /// - Returns: A modified version of the geometry, transformed to align with all definitions of the specified anchor.
+    ///
+    /// - SeeAlso: aligned(at:)
     ///
     func anchored(to anchor: Anchor) -> any Geometry3D {
         readEnvironment { environment in
@@ -112,6 +115,38 @@ public extension Geometry3D {
                 let localTransforms = globalTransforms.map { $0.concatenated(with: reset) }
 
                 body.distributed(at: localTransforms)
+            }
+        }
+    }
+
+    /// Moves one of this geometry’s own anchors to the origin.
+    ///
+    /// Use this to orient and position a geometry so that a single anchor defined within this geometry tree
+    /// coincides with the origin. In other words: “Move this geometry’s anchor to the origin.”
+    ///
+    /// If multiple definitions exist for the anchor, only the first one is used and a warning is logged.
+    /// If no definition is found within this geometry’s tree, the geometry is ignored.
+    ///
+    /// - Parameter anchor: The `Anchor` defined inside this geometry tree whose world transform should be used.
+    /// - Returns: A geometry transformed so that its origin matches the anchor’s world‑space transform, or an empty
+    ///   geometry if no definition is available.
+    ///
+    /// - SeeAlso: anchored(to:)
+    ///
+    func aligned(at anchor: Anchor) -> any Geometry3D {
+        readEnvironment { environment in
+            modifyingResult(ReferenceState.self) { body, anchorState in
+                let reset = environment.transform.inverse
+                let globalTransforms = anchorState.read(anchor: anchor)
+
+                if globalTransforms.count == 1 {
+                    let localTransform = globalTransforms.first!.concatenated(with: reset).inverse
+                    self.transformed(localTransform)
+                } else if globalTransforms.count > 1 {
+                    logger.warning("\(anchor) has multiple definitions, but only the first will be used for alignment")
+                } else {
+                    logger.error("\(anchor) has no definition, which is required for alignment.")
+                }
             }
         }
     }
