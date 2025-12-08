@@ -76,7 +76,7 @@ public extension Geometry {
             if let box = measurements.boundingBox {
                 builder(geometry, box)
             } else {
-                emptyBuilder()
+                geometry.replaced { _ in emptyBuilder() }
             }
         }
     }
@@ -94,7 +94,7 @@ public extension Geometry {
     /// - Returns: Either the original geometry or the result of the replacement closure.
     func ifEmpty(@GeometryBuilder<D> _ replacement: @Sendable @escaping () -> D.Geometry) -> D.Geometry {
         measuring { input, measurements in
-            measurements.isEmpty ? replacement() : input
+            measurements.isEmpty ? input.replaced { _ in replacement() } : input
         }
     }
 }

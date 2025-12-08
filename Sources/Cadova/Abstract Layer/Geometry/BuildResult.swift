@@ -55,11 +55,51 @@ internal extension BuildResult {
         replacing(elements: elements.setting(try await modifier(elements[E.self])))
     }
 
+    func mergingElements(_ newElements: ResultElements) -> Self {
+        .init(node: node, elements: .init(combining: [newElements, elements]))
+    }
+
     func applyingTransform(_ transform: D.Transform) -> Self {
         let newNode = GeometryNode<D>.transform(node, transform: transform)
         let newElements = elements.setting(elements[PartCatalog.self].applyingTransform(transform.transform3D))
         return Self(node: newNode, elements: newElements)
     }
+}
+
+internal extension BuildResult {
+    init(
+        booleanOperation: BooleanOperationType,
+        geometries: [D.Geometry],
+        environment: EnvironmentValues,
+        context: EvaluationContext
+    ) async throws {
+        let childResults = try await geometries.asyncMap {
+            try await context.buildResult(for: $0, in: environment)
+        }
+
+        let newChildResults = try await childResults.enumerated().asyncMap { index, childResult in
+            guard
+                let referenceState = childResult.elements[ifPresent: ReferenceState.self],
+                referenceState.hasUsedReferences
+            else { return childResult }
+
+
+            let otherChildren = childResults.enumerated().filter { $0.offset != index }.map(\.element)
+            let otherReferenceStates = otherChildren.compactMap { $0.elements[ifPresent: ReferenceState.self]}
+            let combinedReferenceState = ReferenceState(combining: otherReferenceStates)
+
+            guard combinedReferenceState.definesReferences(usedIn: referenceState) else {
+                return childResult
+            }
+
+            // Re-evaluate geometry with newly found references
+            let newEnvironment = environment.withDefinedReferences(combinedReferenceState)
+            return try await context.buildResult(for: geometries[index], in: newEnvironment)
+        }
+
+        self = .init(combining: newChildResults, operationType: booleanOperation)
+    }
+
 }
 
 internal extension BuildResult<D2> {

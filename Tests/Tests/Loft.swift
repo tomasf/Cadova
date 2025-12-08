@@ -60,7 +60,7 @@ struct LoftTests {
     }
 
     @Test func layerSpecificShapingWithDefault() async throws {
-        let loft = Loft(.resampled(.smoothstep)) {
+        let loft = Loft(interpolation: .smoothstep) {
             layer(z: 0) {
                 Circle(diameter: 5)
             }

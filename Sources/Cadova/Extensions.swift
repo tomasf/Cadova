@@ -153,6 +153,12 @@ extension Dictionary {
     init<S: Sequence<Key>>(keys: S, values: (Key) -> Value) {
         self.init(keys.map { ($0, values($0)) }) { $1 }
     }
+
+    init(merging dictionaries: [Self]) {
+        self = dictionaries.reduce(into: Self()) {
+            $0.merge($1) { $1 }
+        }
+    }
 }
 
 extension RangeExpression {

@@ -26,7 +26,9 @@ extension GeometryNode {
 
         case .union:
             // Flatten unions
-            children = children.flatMap { $0.unionChildren ?? [$0] }
+            children = children
+                .flatMap { $0.unionChildren ?? [$0] }
+                .sorted(using: KeyPathComparator(\.hashValue))
         }
 
         let filteredChildren = children.filter { !$0.isEmpty }

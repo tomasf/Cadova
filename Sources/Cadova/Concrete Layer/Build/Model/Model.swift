@@ -3,8 +3,7 @@ import Foundation
 public struct Model: Sendable {
     let name: String
 
-    private let directives: [BuildDirective]
-    private let environmentBuilder: (@Sendable (inout EnvironmentValues) -> ())?
+    private let directives: @Sendable () -> [BuildDirective]
     private let options: ModelOptions
 
     /// Creates and exports a model based on the provided geometry.
@@ -22,8 +21,7 @@ public struct Model: Sendable {
     ///
     /// Precedence and merging rules:
     /// - Any environment inherited from a parent `Project` (if present) forms the base.
-    /// - The `environment` closure parameter on `Model` is applied on top of the inherited environment.
-    /// - `Environment` directives inside the model’s builder then apply last and take precedence.
+    /// - `Environment` directives inside the model’s builder apply on top of the inherited environment and take precedence.
     /// - `Metadata` inside the model’s builder is merged into the model’s options and can augment or override
     ///   metadata inherited from the project.
     ///
@@ -31,15 +29,6 @@ public struct Model: Sendable {
     ///   - name: The base filename (without extension) or a relative/full path to where the model should be saved.
     ///   - options: One or more `ModelOptions` used to customize output format, compression, metadata, etc.
     ///   - content: A result builder that builds the model geometry, and may also include `Environment` and `Metadata`.
-    ///   - environmentBuilder: An optional closure for customizing environment values. This lets you control
-    ///     evaluation parameters such as segmentation detail or geometric constraints. For example, you might set:
-    ///
-    ///     ```swift
-    ///     environment: {
-    ///         $0.segmentation = .adaptive(minAngle: 4°, minSize: 0.2)
-    ///         $0.maxTwistRate = 5°
-    ///     }
-    ///     ```
     ///
     /// ### Examples
     /// ```swift
@@ -68,12 +57,10 @@ public struct Model: Sendable {
     public init(
         _ name: String,
         options: ModelOptions...,
-        @ModelContentBuilder content: @Sendable @escaping () -> [BuildDirective],
-        environment environmentBuilder: (@Sendable (inout EnvironmentValues) -> Void)? = nil
+        @ModelContentBuilder content: @Sendable @escaping () -> [BuildDirective]
     ) async {
         self.name = name
-        self.environmentBuilder = environmentBuilder
-        directives = content()
+        directives = content
         self.options = .init(options)
 
         if ModelContext.current.isCollectingModels == false {
@@ -91,6 +78,9 @@ public struct Model: Sendable {
     ) async -> URL? {
         logger.info("Generating \"\(name)\"...")
 
+        let directives = inheritedEnvironment.whileCurrent {
+            self.directives()
+        }
         let localOptions: ModelOptions = [
             .init(ModelName(name: name)),
             inheritedOptions ?? [],
@@ -99,7 +89,6 @@ public struct Model: Sendable {
         ]
 
         var mutatingEnvironment = inheritedEnvironment
-        environmentBuilder?(&mutatingEnvironment)
         for builder in directives.compactMap(\.environment) {
             builder(&mutatingEnvironment)
         }
@@ -161,13 +150,15 @@ public struct Model: Sendable {
         in environment: EnvironmentValues,
         context: EvaluationContext
     ) async throws -> BuildResult<D> {
-        try await ContinuousClock().measure {
+        let result = try await ContinuousClock().measure {
             try await environment.whileCurrent {
                 try await context.buildResult(for: geometry, in: environment)
             }
         } results: { duration, _ in
             logger.debug("Built geometry node tree in \(duration)")
         }
+        result.printWarnings()
+        return result
     }
 }
 
@@ -184,5 +175,11 @@ extension Error {
 fileprivate extension Geometry2D {
     func promotedTo3D() -> any Geometry3D {
         extruded(height: 0.001)
+    }
+}
+
+fileprivate extension BuildResult {
+    func printWarnings() {
+        elements[ReferenceState.self].printWarningsAtTopLevel()
     }
 }

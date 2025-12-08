@@ -6,7 +6,7 @@ public extension Geometry {
         @GeometryBuilder<D> with replacement: @Sendable @escaping (_ input: D.Geometry) -> D.Geometry
     ) -> D.Geometry {
         if condition {
-            replacement(self)
+            Replace(source: self, replacement: replacement(self))
         } else {
             self
         }
@@ -17,7 +17,7 @@ public extension Geometry {
         @GeometryBuilder<D> with replacement: @Sendable @escaping (_ input: D.Geometry, _ value: T) -> D.Geometry
     ) -> D.Geometry {
         if let optional {
-            replacement(self, optional)
+            Replace(source: self, replacement: replacement(self, optional))
         } else {
             self
         }
@@ -26,6 +26,17 @@ public extension Geometry {
     func replaced<Output: Dimensionality>(
         @GeometryBuilder<Output> with replacement: @Sendable @escaping (_ input: D.Geometry) -> Output.Geometry
     ) -> Output.Geometry {
-        replacement(self)
+        Replace(source: self, replacement: replacement(self))
+    }
+}
+
+internal struct Replace<D: Dimensionality, Input: Dimensionality>: Geometry {
+    let source: Input.Geometry
+    let replacement: D.Geometry
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let sourceResult = try await context.buildResult(for: source, in: environment)
+        let replacementResult = try await context.buildResult(for: replacement, in: environment)
+        return replacementResult.mergingElements(sourceResult.elements)
     }
 }
