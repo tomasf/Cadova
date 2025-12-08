@@ -34,13 +34,14 @@ public extension Geometry {
     /// In this example, a vertical rectangle defines a mask over one of the star’s points.
     /// The `rounded` operation is applied only within that region. All other points remain sharp.
     ///
+    @GeometryBuilder<D>
     func whileMasked(
         inverted: Bool = false,
         @GeometryBuilder<D> using mask: @Sendable @escaping () -> D.Geometry,
         @GeometryBuilder<D> do operations: @Sendable @escaping (D.Geometry) -> D.Geometry
     ) -> D.Geometry {
         let mask = mask()
-        return if inverted {
+        if inverted {
             intersecting(mask).adding(operations(self).subtracting(mask))
         } else {
             subtracting(mask).adding(operations(self).intersecting(mask))
