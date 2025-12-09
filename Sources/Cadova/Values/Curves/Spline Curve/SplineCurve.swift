@@ -114,13 +114,13 @@ public struct SplineCurve<V: Vector>: Sendable, Hashable, Codable {
 }
 
 extension SplineCurve: ParametricCurve {
-    /// Samples points along the curve using a `Segmentation`.
+    /// Returns points sampled along a parameter subrange.
     ///
     /// - Parameters:
-    ///   - segmentation: The segmentation strategy.
-    ///
-    /// For `.fixed`, samples `n` segments uniformly in parameter space.
-    /// For `.adaptive`, recursively subdivides parameter intervals based on chord length.
+    ///   - range: The parameter range to sample within.
+    ///   - segmentation: The sampling strategy. For `.fixed`, samples uniformly in parameter space.
+    ///     For `.adaptive`, recursively subdivides based on chord length.
+    /// - Returns: An array of points covering the specified range.
     ///
     public func points(in range: ClosedRange<Double>, segmentation: Segmentation) -> [V] {
         let span = range.clamped(to: domain)
@@ -158,21 +158,34 @@ extension SplineCurve: ParametricCurve {
     }
 
 
+    /// Always returns `false` since a spline curve requires at least one control point.
     public var isEmpty: Bool { false }
+
     public var sampleCountForLengthApproximation: Int { controlPoints.count * 3 }
 
+    /// The parameter range over which the curve is defined.
     public var domain: ClosedRange<Double> {
         knots[degree]...knots[knots.count - degree - 1]
     }
-    
+
     public var derivativeView: any CurveDerivativeView<V> {
         SplineCurveDerivativeView(splineCurve: self)
     }
 
+    /// Creates a 2D curve by transforming each control point.
+    ///
+    /// - Parameter transformer: A closure that converts each point to 2D.
+    /// - Returns: A new 2D spline curve with transformed points.
+    ///
     public func mapPoints(_ transformer: (V) -> Vector2D) -> SplineCurve<Vector2D> {
         map(transformer)
     }
 
+    /// Creates a 3D curve by transforming each control point.
+    ///
+    /// - Parameter transformer: A closure that converts each point to 3D.
+    /// - Returns: A new 3D spline curve with transformed points.
+    ///
     public func mapPoints(_ transformer: (V) -> Vector3D) -> SplineCurve<Vector3D> {
         map(transformer)
     }

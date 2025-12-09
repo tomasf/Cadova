@@ -84,8 +84,14 @@ public struct Loft: Geometry {
         precondition(self.layers.count >= 2, "Loft requires at least two layers")
     }
 
+    /// A result builder for composing loft layers.
     public typealias LayerBuilder = ArrayBuilder<Layer>
 
+    /// A single cross-section in a lofted shape.
+    ///
+    /// Each layer defines a 2D shape at a specific Z height. Layers are created using the
+    /// ``layer(z:interpolation:shape:)`` function within a ``Loft`` builder.
+    ///
     public struct Layer: Sendable {
         internal let z: Double
         internal let shapingFunction: ShapingFunction?
