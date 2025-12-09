@@ -1,7 +1,36 @@
 import Foundation
 
+/// A typed, mergeable piece of build metadata, traveling alongside the actual geometry
+/// output.
+///
+/// Result elements let you attach auxiliary information to the result of building
+/// a geometry. They propagate through the pipeline together with the geometry’s
+/// node representation.
+///
+/// Conforming types must be `Sendable`, and provide:
+/// - A default initializer used when a value of this type is requested but not present.
+/// - A combining initializer to resolve multiple values of the same type (e.g., when
+///   merging results from multiple children).
+///
+/// Typical usage:
+/// - Use helpers like `withResult(_:)` and `modifyingResult(_:modifier:)` to set or update
+///   elements on a geometry.
+/// - When multiple values are merged, elements of the same type are combined using
+///   `init(combining:)`.
+///
 public protocol ResultElement: Sendable {
+    /// Creates a default value for this element type.
+    ///
+    /// Called when a build result does not contain a value of this type but one is requested.
     init()
+
+    /// Creates a value by combining multiple instances of the same element type.
+    ///
+    /// This is used when multiple build results are merged and more than one value of this type
+    /// is present. Implementations should define a stable, deterministic merge policy
+    /// (such as last-wins, union, intersection, or accumulation) appropriate to the element’s meaning.
+    ///
+    /// - Parameter elements: The instances to be combined.
     init(combining: [Self])
 }
 
