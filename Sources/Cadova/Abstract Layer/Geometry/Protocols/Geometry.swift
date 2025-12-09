@@ -17,5 +17,8 @@ public typealias Geometry2D = Geometry<D2>
 public typealias Geometry3D = Geometry<D3>
 
 
+/// A result builder for composing 2D geometry.
 public typealias GeometryBuilder2D = GeometryBuilder<D2>
+
+/// A result builder for composing 3D geometry.
 public typealias GeometryBuilder3D = GeometryBuilder<D3>
