@@ -135,7 +135,7 @@ public extension BezierPatch {
     /// - SeeAlso: ``enclosed(to:)``
     /// - SeeAlso: ``enclosed(offset:)``
     func enclosed(against plane: Plane) -> any Geometry3D {
-        readEnvironment(\.segmentation) { segments in
+        readEnvironment(\.scaledSegmentation) { segments in
             enclosed(to: .plane(plane), segmentation: segments)
         }
     }
@@ -154,7 +154,7 @@ public extension BezierPatch {
     /// - SeeAlso: ``enclosed(against:)``
     /// - SeeAlso: ``enclosed(offset:)``
     func enclosed(to point: Vector3D) -> any Geometry3D {
-        readEnvironment(\.segmentation) { segments in
+        readEnvironment(\.scaledSegmentation) { segments in
             enclosed(to: .point(point), segmentation: segments)
         }
     }
@@ -174,7 +174,7 @@ public extension BezierPatch {
     /// - SeeAlso: ``enclosed(against:)``
     /// - SeeAlso: ``enclosed(to:)``
     func enclosed(offset: Vector3D) -> any Geometry3D {
-        readEnvironment(\.segmentation) { segments in
+        readEnvironment(\.scaledSegmentation) { segments in
             enclosed(to: .offset(offset), segmentation: segments)
         }
     }

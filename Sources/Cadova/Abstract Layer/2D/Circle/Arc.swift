@@ -30,7 +30,7 @@ public struct Arc: Shape2D {
     }
 
     public var body: any Geometry2D {
-        @Environment(\.segmentation) var segmentation
+        @Environment(\.scaledSegmentation) var segmentation
         Polygon([.zero] + arcPoints(segmentation: segmentation))
     }
 

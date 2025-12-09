@@ -26,6 +26,7 @@ public protocol Transform: Sendable, Hashable, Codable, Transformable where T ==
     var transform3D: Transform3D { get }
 
     var isIdentity: Bool { get }
+    var scale: V { get }
 }
 
 public extension Transform {
