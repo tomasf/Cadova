@@ -10,7 +10,7 @@ internal indirect enum PolygonPoints: Sendable, Hashable, Codable {
     func points(in environment: EnvironmentValues) -> [Vector2D] {
         switch self {
         case .literal (let array): array
-        case .curve (let curve): curve.curve.points(segmentation: environment.segmentation)
+        case .curve (let curve): curve.curve.points(segmentation: environment.scaledSegmentation)
         case .transformed (let polygonPoints, let transform):
             polygonPoints.points(in: environment)
                 .map { transform.apply(to: $0) }

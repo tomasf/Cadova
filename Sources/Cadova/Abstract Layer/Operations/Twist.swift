@@ -9,7 +9,8 @@ public extension Geometry3D {
     /// - Parameter amount: The total twist applied from bottom to top, expressed as an `Angle`.
     /// - Returns: A new geometry with the twist deformation applied.
     func twisted(by amount: Angle) -> any Geometry3D {
-        measureBoundsIfNonEmpty { geometry, e, bounds in
+        measuringBounds { geometry, bounds in
+            @Environment(\.scaledSegmentation) var segmentation
             let height = bounds.size.z
             let radius = bounds.bounds2D.maximumDistanceToOrigin
             let totalRevolutions = amount / 360°
@@ -18,8 +19,8 @@ public extension Geometry3D {
             let helixLength = sqrt(pow(radius * 2 * .pi, 2) + pow(pitch, 2)) * totalRevolutions
 
             let totalSegments = max(
-                Double(e.segmentation.segmentCount(circleRadius: radius)) * totalRevolutions,
-                Double(e.segmentation.segmentCount(length: helixLength))
+                Double(segmentation.segmentCount(circleRadius: radius)) * totalRevolutions,
+                Double(segmentation.segmentCount(length: helixLength))
             )
             
             geometry

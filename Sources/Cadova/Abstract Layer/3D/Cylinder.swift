@@ -16,7 +16,7 @@ public struct Cylinder: Geometry {
     public let topRadius: Double
 
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
-        @Environment(\.segmentation) var segmentation
+        @Environment(\.scaledSegmentation) var segmentation
         let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
         if height < .ulpOfOne {

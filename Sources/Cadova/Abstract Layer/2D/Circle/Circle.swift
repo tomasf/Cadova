@@ -50,7 +50,7 @@ public struct Circle {
 
 extension Circle: Shape2D {
     public var body: any Geometry2D {
-        @Environment(\.segmentation) var segmentation
+        @Environment(\.scaledSegmentation) var segmentation
         NodeBasedGeometry(.shape(.circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius))))
     }
 }

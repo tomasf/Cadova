@@ -25,18 +25,17 @@ public extension Geometry3D {
     /// with its thickness stacked vertically on top of the patch’s surface.
     ///
     func deformed(by patch: BezierPatch) -> any Geometry3D {
-        readingEnvironment(\.segmentation) { _, segmentation in
-            measuringBounds { geometry, bounds in
-                let maxLength = max(bounds.size.x, bounds.size.y)
+        @Environment(\.scaledSegmentation) var segmentation
+        return measuringBounds { geometry, bounds in
+            let maxLength = max(bounds.size.x, bounds.size.y)
 
-                geometry
-                    .refined(maxEdgeLength: maxLength / Double(segmentation.segmentCount(length: maxLength)))
-                    .warped(operationName: "deformByPatch", cacheParameters: patch) { point in
-                        let uv = ((point - bounds.minimum) / bounds.size).xy
-                        return patch.point(at: uv) + .z(point.z)
-                    }
-                    .simplified()
-            }
+            geometry
+                .refined(maxEdgeLength: maxLength / Double(segmentation.segmentCount(length: maxLength)))
+                .warped(operationName: "deformByPatch", cacheParameters: patch) { point in
+                    let uv = ((point - bounds.minimum) / bounds.size).xy
+                    return patch.point(at: uv) + .z(point.z)
+                }
+                .simplified()
         }
     }
 }

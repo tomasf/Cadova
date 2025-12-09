@@ -15,7 +15,7 @@ internal extension Loft {
             // Determine target count based on longest perimeter
             let maxPerimeter = layerPolygons.polygons.map(\.perimeter).max()!
 
-            let targetCount = environment.segmentation.segmentCount(length: maxPerimeter)
+            let targetCount = environment.scaledSegmentation.segmentCount(length: maxPerimeter)
             var newPolygons = SimplePolygonList(layerPolygons.polygons.map {
                 $0.resampled(count: targetCount)
             })
@@ -78,7 +78,7 @@ internal extension Loft {
         layers: [ResamplingLayer],
         environment: EnvironmentValues
     ) -> [(polygons: SimplePolygonList, zLevels: [Double])] {
-        let segmentation = environment.segmentation
+        let segmentation = environment.scaledSegmentation
         var refinedGroups: [(polygons: SimplePolygonList, zLevels: [Double])] = []
 
         for polygons in polygonGroups {

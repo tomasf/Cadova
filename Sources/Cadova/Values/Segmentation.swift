@@ -78,4 +78,4 @@ public enum Segmentation: Sendable, Hashable, Codable {
             return Int(ceil(max(length / minSize, 5)))
         }
     }
-    }
+}

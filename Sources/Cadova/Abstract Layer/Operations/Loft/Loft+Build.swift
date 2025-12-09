@@ -6,7 +6,7 @@ extension Loft {
             LayerNode(
                 z: $0.z,
                 function: $0.shapingFunction,
-                node: try await context.buildResult(for: $0.geometry, in: environment).node
+                node: try await context.buildResult(for: $0.geometry(), in: environment).node
             )
         }
 

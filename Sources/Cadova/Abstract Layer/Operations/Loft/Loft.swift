@@ -89,7 +89,7 @@ public struct Loft: Geometry {
     public struct Layer: Sendable {
         internal let z: Double
         internal let shapingFunction: ShapingFunction?
-        internal let geometry: any Geometry2D
+        internal let geometry: @Sendable () -> any Geometry2D
     }
 }
 
@@ -107,7 +107,7 @@ public func layer(
     interpolation shapingFunction: ShapingFunction? = nil,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Layer {
-    Loft.Layer(z: z, shapingFunction: shapingFunction, geometry: shape())
+    Loft.Layer(z: z, shapingFunction: shapingFunction, geometry: shape)
 }
 
 /// Creates two layers spanning a Z range using the same 2D shape.
@@ -130,10 +130,9 @@ public func layer(
     interpolation shapingFunction: ShapingFunction? = nil,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> [Loft.Layer] {
-    let content = shape()
-    return [
-        Loft.Layer(z: range.lowerBound, shapingFunction: shapingFunction, geometry: content),
-        Loft.Layer(z: range.upperBound, shapingFunction: .linear, geometry: content)
+    [
+        Loft.Layer(z: range.lowerBound, shapingFunction: shapingFunction, geometry: shape),
+        Loft.Layer(z: range.upperBound, shapingFunction: .linear, geometry: shape)
     ]
 }
 
