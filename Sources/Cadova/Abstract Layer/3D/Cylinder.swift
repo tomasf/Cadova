@@ -11,8 +11,13 @@ import Foundation
 /// ```
 
 public struct Cylinder: Geometry {
+    /// The height of the cylinder along the Z axis.
     public let height: Double
+
+    /// The radius at the bottom of the cylinder (at Z = 0).
     public let bottomRadius: Double
+
+    /// The radius at the top of the cylinder (at Z = height).
     public let topRadius: Double
 
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
