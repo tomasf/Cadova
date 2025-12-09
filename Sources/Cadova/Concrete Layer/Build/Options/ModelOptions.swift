@@ -1,5 +1,6 @@
 import Foundation
 
+/// Configuration options for model building and export.
 public struct ModelOptions: Sendable, ExpressibleByArrayLiteral {
     private let items: [any ModelOptionItem]
 

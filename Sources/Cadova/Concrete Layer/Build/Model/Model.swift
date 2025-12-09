@@ -1,5 +1,19 @@
 import Foundation
 
+/// A model that can be exported to a file.
+///
+/// Use `Model` to build geometry and write it to disk in formats like 3MF, STL, or SVG.
+/// The model is created and exported in a single step using an async initializer.
+///
+/// ```swift
+/// await Model("my-part") {
+///     Box(x: 10, y: 10, z: 5)
+/// }
+/// ```
+///
+/// Models can also be grouped within a ``Project`` to share environment settings and metadata
+/// across multiple output files.
+///
 public struct Model: Sendable {
     let name: String
 
