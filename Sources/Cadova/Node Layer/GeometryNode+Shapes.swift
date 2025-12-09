@@ -2,14 +2,14 @@ import Foundation
 import Manifold3D
 
 extension GeometryNode {
-    public enum PrimitiveShape2D: Hashable, Sendable, Codable {
+    internal enum PrimitiveShape2D: Hashable, Sendable, Codable {
         case rectangle (size: Vector2D)
         case circle (radius: Double, segmentCount: Int)
         case polygons (SimplePolygonList, fillRule: FillRule)
         case convexHull (points: [Vector2D])
     }
 
-    public enum PrimitiveShape3D: Hashable, Sendable, Codable {
+    internal enum PrimitiveShape3D: Hashable, Sendable, Codable {
         case box (size: Vector3D)
         case sphere (radius: Double, segmentCount: Int)
         case cylinder (bottomRadius: Double, topRadius: Double, height: Double, segmentCount: Int)
