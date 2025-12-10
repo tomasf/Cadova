@@ -60,6 +60,7 @@ public struct Import: Shape3D {
         case partNumber (String)
     }
 
+    /// Errors that can occur when importing a 3MF model.
     public enum Error: Swift.Error {
         /// A requested part was not found in the model.
         case missingPart (Import.PartIdentifier)

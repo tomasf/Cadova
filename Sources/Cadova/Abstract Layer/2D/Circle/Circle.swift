@@ -12,6 +12,7 @@ public struct Circle {
     /// The diameter of the circle.
     public let diameter: Double
 
+    /// The radius of the circle (half of the diameter).
     public var radius: Double { diameter / 2 }
 
     /// Creates a new `Circle` instance with the specified diameter.

@@ -1,7 +1,26 @@
 import Foundation
 
-/// A shaping function maps a value in the range 0...1 to a new value in the same range, commonly used for easing and
-/// interpolation.
+/// A function that maps values from 0...1 to 0...1, used for easing and interpolation.
+///
+/// Shaping functions control how values transition between start and end points. They are used
+/// throughout Cadova for operations like lofting, sweeping, and other interpolated transformations.
+///
+/// Use one of the built-in functions like ``linear``, ``easeIn``, ``easeOut``, or ``smoothstep``,
+/// or create a custom function with ``bezier(_:_:)`` or ``custom(name:parameters:function:)``.
+///
+/// ```swift
+/// // Use a shaping function to control loft interpolation
+/// Loft {
+///     layer(z: 0) { Circle(diameter: 10) }
+///     layer(z: 20, interpolation: .easeInOut) { Circle(diameter: 20) }
+/// }
+/// ```
+///
+/// You can call shaping functions directly:
+/// ```swift
+/// let eased = ShapingFunction.easeInOut(0.5)  // Returns ~0.5
+/// ```
+///
 public struct ShapingFunction: Sendable, Hashable, Codable {
     internal let curve: Curve
 
@@ -28,6 +47,11 @@ public struct ShapingFunction: Sendable, Hashable, Codable {
         }
     }
 
+    /// Evaluates the shaping function at the given input value.
+    ///
+    /// - Parameter input: A value typically in the range 0...1.
+    /// - Returns: The shaped output value.
+    ///
     public func callAsFunction(_ input: Double) -> Double {
         function(input)
     }
