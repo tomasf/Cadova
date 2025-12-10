@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-public struct MeshData: Sendable, Hashable, Codable {
+internal struct MeshData: Sendable, Hashable, Codable {
     internal let vertices: [Vector3D]
     internal let faces: [Face]
 
