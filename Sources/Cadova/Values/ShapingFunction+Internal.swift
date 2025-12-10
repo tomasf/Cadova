@@ -13,6 +13,7 @@ extension ShapingFunction {
         case bezier
         case circularEaseIn
         case circularEaseOut
+        case sine
         case mix
         case custom
     }
@@ -43,6 +44,8 @@ extension ShapingFunction {
             hasher.combine(Kind.circularEaseIn)
         case .circularEaseOut:
             hasher.combine(Kind.circularEaseOut)
+        case .sine:
+            hasher.combine(Kind.sine)
         case .mix (let a, let b, let weight):
             hasher.combine(Kind.mix)
             hasher.combine(a)
@@ -69,7 +72,8 @@ extension ShapingFunction {
             (.smoothstep, .smoothstep),
             (.smootherstep, .smootherstep),
             (.circularEaseIn, .circularEaseIn),
-            (.circularEaseOut, .circularEaseOut):
+            (.circularEaseOut, .circularEaseOut),
+            (.sine, .sine):
             return true
 
         case (.custom(let aKey, _), .custom(let bKey, _)):
@@ -123,6 +127,8 @@ extension ShapingFunction.Curve: Codable {
             self = .circularEaseIn
         case .circularEaseOut:
             self = .circularEaseOut
+        case .sine:
+            self = .sine
 
         case .mix:
             self = .mix(
@@ -165,6 +171,8 @@ extension ShapingFunction.Curve: Codable {
             try container.encode(ShapingFunction.Kind.circularEaseIn, forKey: .kind)
         case .circularEaseOut:
             try container.encode(ShapingFunction.Kind.circularEaseOut, forKey: .kind)
+        case .sine:
+            try container.encode(ShapingFunction.Kind.sine, forKey: .kind)
 
         case .mix(let a, let b, let weight):
             try container.encode(a, forKey: .a)
