@@ -41,6 +41,7 @@ public struct ShapingFunction: Sendable, Hashable, Codable {
         case .smootherstep: { $0 * $0 * $0 * ($0 * (6 * $0 - 15) + 10) }
         case .circularEaseIn: { 1 - sqrt(1 - $0 * $0) }
         case .circularEaseOut: { sqrt(1 - (1 - $0) * (1 - $0)) }
+        case .sine: { (1 - cos($0 * .pi)) / 2 }
         case .bezier (let curve): { curve.point(at: curve.t(for: $0, in: .x) ?? $0).y }
         case .mix (let a, let b, let weight): { (1 - weight) * a.function($0) + weight * b.function($0) }
         case .custom (_, let function): function
@@ -69,6 +70,7 @@ internal extension ShapingFunction {
         case smootherstep
         case circularEaseIn
         case circularEaseOut
+        case sine
         case bezier (BezierCurve<Vector2D>)
         case mix (ShapingFunction, ShapingFunction, Double)
         case custom (cacheKey: LabeledCacheKey, function: @Sendable (Double) -> Double)
@@ -141,6 +143,14 @@ public extension ShapingFunction {
     /// Starts sharply and levels out.
     static var circularEaseOut: Self {
         ShapingFunction(curve: .circularEaseOut)
+    }
+
+    /// A sine-based shaping function using a half cosine wave.
+    ///
+    /// Produces smooth acceleration and deceleration with continuous derivatives at all points.
+    /// This creates a natural-feeling ease-in-out effect based on trigonometric functions.
+    static var sine: Self {
+        ShapingFunction(curve: .sine)
     }
 
     /// A cubic Bézier-based shaping function mapping input from 0 to 1 onto the curve defined by two control points.
