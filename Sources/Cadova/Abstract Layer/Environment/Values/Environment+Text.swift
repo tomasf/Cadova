@@ -153,30 +153,40 @@ public extension Geometry {
     }
 }
 
+/// Horizontal alignment options for text relative to the origin.
+///
+/// Use with ``Geometry/withTextAlignment(horizontal:vertical:)`` to control how
+/// text is positioned horizontally relative to the X origin.
+///
 public enum HorizontalTextAlignment: Sendable, Hashable, Codable {
-    /// Aligns each line of text to the left edge.
+    /// Places the left edge of the text at the origin.
     case left
 
-    /// Centers each line of text horizontally.
+    /// Centers the text horizontally on the origin.
     case center
 
-    /// Aligns each line of text to the right edge.
+    /// Places the right edge of the text at the origin.
     case right
 }
 
+/// Vertical alignment options for text relative to the origin.
+///
+/// Use with ``Geometry/withTextAlignment(horizontal:vertical:)`` to control how
+/// text is positioned vertically relative to the Y origin.
+///
 public enum VerticalTextAlignment: Sendable, Hashable, Codable {
-    /// Aligns the baseline of the first line of text to the origin.
+    /// Places the baseline of the first line at the origin.
     case firstBaseline
 
-    /// Aligns the baseline of the last line of text to the origin.
+    /// Places the baseline of the last line at the origin.
     case lastBaseline
 
-    /// Aligns the top of the text block to the origin.
+    /// Places the top of the text (ascender) at the origin.
     case top
 
-    /// Aligns the vertical center of the text block to the origin.
+    /// Centers the text vertically on the origin.
     case center
 
-    /// Aligns the bottom of the text block to the origin.
+    /// Places the bottom of the text (descender) at the origin.
     case bottom
 }

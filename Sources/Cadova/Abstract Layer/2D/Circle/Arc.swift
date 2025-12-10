@@ -9,7 +9,10 @@ import Foundation
 /// let arcWithDiameter = Arc(range: 0°..<90°, diameter: 10)
 /// ```
 public struct Arc: Shape2D {
+    /// The angular range of the arc.
     public let range: Range<Angle>
+
+    /// The radius of the arc.
     public let radius: Double
 
     /// Creates a new `Arc` instance with the specified range of angles and radius.
@@ -45,6 +48,9 @@ public struct Arc: Shape2D {
 }
 
 extension Arc: Area {
+    /// The angular span of the arc.
     public var angularDistance: Angle { range.length }
+
+    /// The area of the circular sector.
     public var area: Double { radius * radius * .pi * (angularDistance / 360°) }
 }

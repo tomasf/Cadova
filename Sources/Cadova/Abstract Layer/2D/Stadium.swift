@@ -54,11 +54,13 @@ public struct Stadium: Shape2D {
 }
 
 extension Stadium: Area, Perimeter {
+    /// The area of the stadium.
     public var area: Double {
         let diameter = min(size.x, size.y)
         return Double.pi * (diameter / 2) * (diameter / 2) + (max(size.x, size.y) - diameter) * diameter
     }
 
+    /// The perimeter of the stadium.
     public var perimeter: Double {
         let diameter = min(size.x, size.y)
         return Double.pi * diameter + 2.0 * (max(size.x, size.y) - diameter)
