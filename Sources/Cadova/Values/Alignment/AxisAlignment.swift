@@ -1,7 +1,20 @@
 import Foundation
 
+/// Specifies alignment along a single axis.
+///
+/// Use `AxisAlignment` to indicate where geometry should be positioned relative to its
+/// bounding box along one axis. This is typically combined with ``GeometryAlignment`` to
+/// specify alignment across multiple axes.
+///
 public enum AxisAlignment: Equatable, Hashable, Sendable {
-    case min, mid, max
+    /// Align to the minimum edge (e.g., left, front, or bottom).
+    case min
+
+    /// Align to the center.
+    case mid
+
+    /// Align to the maximum edge (e.g., right, back, or top).
+    case max
 
     /// A normalized fraction representing the alignment position along an axis.
     ///

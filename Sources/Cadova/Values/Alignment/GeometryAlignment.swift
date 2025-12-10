@@ -35,14 +35,31 @@ public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
         self.values = values
     }
 
+    /// Creates a 2D alignment with the specified values for each axis.
+    ///
+    /// - Parameters:
+    ///   - x: The alignment along the X axis, or `nil` for no alignment.
+    ///   - y: The alignment along the Y axis, or `nil` for no alignment.
+    ///
     public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil) where D == D2 {
         values = .init(x: x, y: y)
     }
 
+    /// Creates a 3D alignment with the specified values for each axis.
+    ///
+    /// - Parameters:
+    ///   - x: The alignment along the X axis, or `nil` for no alignment.
+    ///   - y: The alignment along the Y axis, or `nil` for no alignment.
+    ///   - z: The alignment along the Z axis, or `nil` for no alignment.
+    ///
     public init(x: AxisAlignment? = nil, y: AxisAlignment? = nil, z: AxisAlignment? = nil) where D == D3 {
         values = .init(x: x, y: y, z: z)
     }
 
+    /// Creates an alignment with the same value for all axes.
+    ///
+    /// - Parameter value: The alignment to apply to all axes, or `nil` for no alignment.
+    ///
     public init(all value: AxisAlignment?) {
         values = .init { _ in value }
     }
@@ -53,10 +70,18 @@ public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
         }
     }
 
+    /// Returns the alignment for the specified axis.
     public subscript(axis: D.Axis) -> AxisAlignment? {
         values[axis]
     }
 
+    /// Returns a copy with the alignment for one axis changed.
+    ///
+    /// - Parameters:
+    ///   - axis: The axis to modify.
+    ///   - newValue: The new alignment for that axis.
+    /// - Returns: A new alignment with the specified axis updated.
+    ///
     public func with(axis: D.Axis, as newValue: AxisAlignment) -> Self {
         .init(values.map { $0 == axis ? newValue : $1 })
     }
@@ -74,7 +99,10 @@ public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
     }
 }
 
+/// A 2D geometry alignment.
 public typealias GeometryAlignment2D = GeometryAlignment<D2>
+
+/// A 3D geometry alignment.
 public typealias GeometryAlignment3D = GeometryAlignment<D3>
 
 internal extension [GeometryAlignment2D] {
