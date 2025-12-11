@@ -74,7 +74,8 @@ extension TextAttributes {
         FT_Done_Face(face)
         FT_Done_FreeType(library)
 
-        let lineHeight = Double(metrics.height) / 64.0 / GlyphRenderer.scaleFactor
+        let baseLineHeight = Double(metrics.height) / 64.0 / GlyphRenderer.scaleFactor
+        let lineHeight = baseLineHeight + (lineSpacingAdjustment ?? 0)
         let ascender = Double(metrics.ascender) / 64.0 / GlyphRenderer.scaleFactor
         let descender = Double(metrics.descender) / 64.0 / GlyphRenderer.scaleFactor
         let horizontalAdjustment = horizontalAlignment!.adjustmentFactor
