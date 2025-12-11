@@ -15,13 +15,15 @@ internal struct TextAttributes: Sendable, Hashable, Codable {
     var fontFile: URL?
     var horizontalAlignment: HorizontalTextAlignment?
     var verticalAlignment: VerticalTextAlignment?
+    var lineSpacingAdjustment: Double?
 
-    init(fontFace: FontFace? = nil, fontSize: Double? = nil, fontFile: URL? = nil, horizontalAlignment: HorizontalTextAlignment? = nil, verticalAlignment: VerticalTextAlignment? = nil) {
+    init(fontFace: FontFace? = nil, fontSize: Double? = nil, fontFile: URL? = nil, horizontalAlignment: HorizontalTextAlignment? = nil, verticalAlignment: VerticalTextAlignment? = nil, lineSpacingAdjustment: Double? = nil) {
         self.fontFace = fontFace
         self.fontSize = fontSize
         self.fontFile = fontFile
         self.horizontalAlignment = horizontalAlignment
         self.verticalAlignment = verticalAlignment
+        self.lineSpacingAdjustment = lineSpacingAdjustment
     }
 
     func applyingDefaults() -> Self {
@@ -30,7 +32,8 @@ internal struct TextAttributes: Sendable, Hashable, Codable {
             fontSize: fontSize ?? 12,
             fontFile: fontFile,
             horizontalAlignment: horizontalAlignment ?? .left,
-            verticalAlignment: verticalAlignment ?? .lastBaseline
+            verticalAlignment: verticalAlignment ?? .lastBaseline,
+            lineSpacingAdjustment: lineSpacingAdjustment ?? 0
         )
     }
 }
