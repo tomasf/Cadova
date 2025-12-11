@@ -22,24 +22,36 @@ public extension EdgeProfile {
     }
 
     /// Creates a chamfered edge profile with a specified width and angle.
+    ///
+    /// The angle specifies how the chamfer is oriented within the corner. At 45°, the chamfer
+    /// bisects the corner angle. Smaller angles cut more into the horizontal face, larger
+    /// angles cut more into the vertical face.
+    ///
     /// - Parameters:
     ///   - depth: The horizontal depth of the chamfer.
-    ///   - angle: The angle between 0° and 90°, measured from the top of the extrusion.
+    ///   - angle: The angle of the chamfer, measured from the horizontal face.
+    ///     Must be between 0° (exclusive) and 90° (exclusive).
     /// - Returns: An edge profile representing the chamfer with the specified angle.
     ///
     static func chamfer(depth: Double, angle: Angle) -> Self {
-        assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
+        precondition((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90° (exclusive)")
         return .chamfer(depth: depth, height: depth * tan(angle))
     }
 
     /// Creates a chamfered edge profile with a specified height and angle.
+    ///
+    /// The angle specifies how the chamfer is oriented within the corner. At 45°, the chamfer
+    /// bisects the corner angle. Smaller angles cut more into the horizontal face, larger
+    /// angles cut more into the vertical face.
+    ///
     /// - Parameters:
     ///   - height: The vertical height of the chamfer.
-    ///   - angle: The angle between 0° and 90°, measured from the top of the extrusion.
+    ///   - angle: The angle of the chamfer, measured from the horizontal face.
+    ///     Must be between 0° (exclusive) and 90° (exclusive).
     /// - Returns: An edge profile representing the chamfer with the specified angle.
     ///
     static func chamfer(height: Double, angle: Angle) -> Self {
-        assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
+        precondition((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90° (exclusive)")
         return .chamfer(depth: height / tan(angle), height: height)
     }
 }
@@ -51,14 +63,17 @@ public extension EdgeProfile {
     /// which can be set using `.withCornerRoundingStyle(...)`. This allows for circular, squircular,
     /// or superelliptical rounding styles. The default style is `.circular`.
     ///
+    /// The fillet automatically adapts to different edge angles, generating a proper arc that spans
+    /// the actual corner angle rather than using a transformed 90° arc.
+    ///
     /// - Parameters:
     ///   - depth: The horizontal distance from the original edge to the fillet's farthest point.
     ///   - height: The vertical height from the base of the edge to the top of the fillet.
     /// - Returns: An edge profile representing the rounded fillet.
     ///
     static func fillet(depth: Double, height: Double) -> Self {
-        Self {
-            FilletCorner(size: Vector2D(depth, height))
+        Self(referenceAngle: 90°) { cornerAngle in
+            FilletCorner(size: Vector2D(depth, height), cornerAngle: cornerAngle)
         }
     }
 
@@ -67,6 +82,9 @@ public extension EdgeProfile {
     /// This method creates a rounded fillet profile where both depth and height equal the given radius.
     /// The specific shape of the fillet is controlled by the current `CornerRoundingStyle` environment setting,
     /// which supports circular, squircular, or superelliptical corner shapes. The default style is `.circular`.
+    ///
+    /// The fillet automatically adapts to different edge angles, generating a proper arc that spans
+    /// the actual corner angle rather than using a transformed 90° arc.
     ///
     /// - Parameter radius: The radius defining the size of the corner.
     /// - Returns: An edge profile representing the rounded fillet.

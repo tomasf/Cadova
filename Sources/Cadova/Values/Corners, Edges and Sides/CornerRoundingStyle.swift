@@ -54,23 +54,26 @@ internal extension CornerRoundingStyle {
         return Polygon(points)
     }
 
-    static func circularCornerPoints(radius: Double, segmentation: Segmentation) -> [Vector2D] {
-        let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: 90°)
+    static func circularCornerPoints(radius: Double, cornerAngle: Angle = 90°, segmentation: Segmentation) -> [Vector2D] {
+        let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: cornerAngle)
 
         return (0...segmentCount).map { i -> Vector2D in
-            let angle = Double(i) / Double(segmentCount) * 90°
+            let angle = Double(i) / Double(segmentCount) * cornerAngle
             return Vector2D(x: cos(angle) * radius, y: sin(angle) * radius)
         }
     }
 
-    static func squircularCornerPoints(radius: Double, exponent n: Double, segmentation: Segmentation) -> [Vector2D] {
-        let segmentCount = segmentation.segmentCount(circleRadius: radius) / 4
-        let radius4th = pow(radius, n)
+    static func squircularCornerPoints(radius: Double, exponent n: Double, cornerAngle: Angle = 90°, segmentation: Segmentation) -> [Vector2D] {
+        let segmentCount = max(1, segmentation.segmentCount(circleRadius: radius) * Int(cornerAngle.degrees) / 360)
+        let radiusNth = pow(radius, n)
 
         return (0...segmentCount).map { i -> Vector2D in
-            let angle = Double(i) / Double(segmentCount) * 90°
+            let angle = Double(i) / Double(segmentCount) * cornerAngle
             let x = cos(angle) * radius
-            let y = pow(radius4th - pow(x, n), 1.0 / n)
+            // For angles > 90°, the y formula needs adjustment
+            let xTerm = pow(Swift.abs(x), n)
+            let yTerm = Swift.max(0, radiusNth - xTerm)
+            let y = pow(yTerm, 1.0 / n) * (sin(angle) >= 0 ? 1 : -1)
             return Vector2D(x, y)
         }
     }
@@ -78,6 +81,12 @@ internal extension CornerRoundingStyle {
 
 internal struct FilletCorner: Shape2D {
     let size: Vector2D
+    let cornerAngle: Angle
+
+    init(size: Vector2D, cornerAngle: Angle = 90°) {
+        self.size = size
+        self.cornerAngle = cornerAngle
+    }
 
     var body: any Geometry2D {
         @Environment(\.scaledSegmentation) var segmentation
@@ -89,9 +98,9 @@ internal struct FilletCorner: Shape2D {
 
             let points = switch style {
             case .circular:
-                CornerRoundingStyle.circularCornerPoints(radius: radius, segmentation: segmentation)
+                CornerRoundingStyle.circularCornerPoints(radius: radius, cornerAngle: cornerAngle, segmentation: segmentation)
             case .squircular, .superelliptical:
-                CornerRoundingStyle.squircularCornerPoints(radius: radius, exponent: style.exponent, segmentation: segmentation)
+                CornerRoundingStyle.squircularCornerPoints(radius: radius, exponent: style.exponent, cornerAngle: cornerAngle, segmentation: segmentation)
             }
 
             Polygon(points + [.zero]).scaled(scale)
