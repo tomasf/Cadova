@@ -33,29 +33,31 @@ public extension EdgeChain {
 
         // Find the starting vertex and build the ordered list
         if isClosed {
-            // For closed loops, start anywhere
-            var current = edges[0].v0
+            // For closed loops, start at the smallest vertex index for determinism
+            let allVertices = edges.flatMap { [$0.v0, $0.v1] }
+            var current = allVertices.min()!
             for edge in edges {
                 indices.append(current)
                 current = edge.v0 == current ? edge.v1 : edge.v0
             }
         } else {
-            // For open chains, find the endpoint
+            // For open chains, find endpoints (vertices that appear only once)
             let allVertices = edges.flatMap { [$0.v0, $0.v1] }
             let vertexCounts = Dictionary(grouping: allVertices, by: { $0 }).mapValues { $0.count }
-            guard let startVertex = vertexCounts.first(where: { $0.value == 1 })?.key else {
+            let endpoints = vertexCounts.filter { $0.value == 1 }.map { $0.key }
+            guard let startVertex = endpoints.min() else {
                 return []
             }
 
             var current = startVertex
             indices.append(current)
-            var remaining = Set(edges)
+            var remaining = edges
 
             while !remaining.isEmpty {
-                guard let nextEdge = remaining.first(where: { $0.v0 == current || $0.v1 == current }) else {
+                guard let nextEdgeIndex = remaining.firstIndex(where: { $0.v0 == current || $0.v1 == current }) else {
                     break
                 }
-                remaining.remove(nextEdge)
+                let nextEdge = remaining.remove(at: nextEdgeIndex)
                 current = nextEdge.v0 == current ? nextEdge.v1 : nextEdge.v0
                 indices.append(current)
             }
@@ -97,7 +99,8 @@ public extension MeshTopology {
         var remaining = Set(edges)
         var chains: [EdgeChain] = []
 
-        while let startEdge = remaining.first {
+        // Process edges in deterministic order (by vertex indices)
+        while let startEdge = remaining.min(by: { ($0.v0, $0.v1) < ($1.v0, $1.v1) }) {
             remaining.remove(startEdge)
 
             var chainEdges: [MeshEdge] = [startEdge]

@@ -6,7 +6,7 @@ struct EdgeSelectionTests {
     @Test func meshTopologyFromBox() async throws {
         // Use measuring to capture results from the readingEdges closure
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 // Encode counts in box dimensions
                 Box(
                     x: Double(edges.topology.vertices.count),
@@ -37,7 +37,7 @@ struct EdgeSelectionTests {
         // For a box: corner edges are ~90°, diagonal edges on flat faces are ~0°
 
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 // Count edges with angles in different ranges
                 let flatEdgeCount = edges.withDihedralAngle(in: 0°...10°).count // Near 0° = flat
                 let cornerEdgeCount = edges.withDihedralAngle(in: 85°...95°).count // ~90° = box corners
@@ -57,7 +57,7 @@ struct EdgeSelectionTests {
 
     @Test func dihedralAngleCalculation() async throws {
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 // Find a sharp edge (box corner edge)
                 let sharpEdges = edges.sharp(threshold: 100°).edges
 
@@ -77,7 +77,7 @@ struct EdgeSelectionTests {
 
     @Test func edgeChainingOnBox() async throws {
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 // Get sharp edges and chain them
                 let sharpEdges = edges.sharp(threshold: 100°)
                 let chains = sharpEdges.chained(continuityThreshold: 30°)
@@ -99,7 +99,7 @@ struct EdgeSelectionTests {
 
     @Test func edgeChainingWithHighThreshold() async throws {
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 // Get sharp edges and chain them with a high continuity threshold
                 let sharpEdges = edges.sharp(threshold: 100°)
                 let chains = sharpEdges.chained(continuityThreshold: 100°)
@@ -124,7 +124,7 @@ struct EdgeSelectionTests {
 
     @Test func spatialFiltering() async throws {
         let result = try await Box(x: 20, y: 20, z: 10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 let totalEdgeCount = edges.count
 
                 // Filter edges within the upper half of the box
@@ -145,7 +145,7 @@ struct EdgeSelectionTests {
 
     @Test func directionFiltering() async throws {
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 // Filter for vertical edges (aligned with Z axis)
                 let verticalEdgeCount = edges.aligned(with: .z, tolerance: 10°).count
 
@@ -169,7 +169,7 @@ struct EdgeSelectionTests {
 
     @Test func setOperations() async throws {
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 let sharpEdges = edges.sharp(threshold: 100°)
                 let verticalEdges = edges.aligned(with: .z, tolerance: 10°)
 
@@ -205,7 +205,7 @@ struct EdgeSelectionTests {
 
     @Test func readingEdgesIntegration() async throws {
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 let sharpCount = edges.sharp(threshold: 100°).count
                 // Return a simple geometry based on the count
                 return Box(Double(sharpCount)) as any Geometry3D
@@ -218,7 +218,7 @@ struct EdgeSelectionTests {
 
     @Test func edgeLengthFiltering() async throws {
         let result = try await Box(x: 10, y: 20, z: 30)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 // Filter for edges with length around 10 (short edges)
                 let shortEdgeCount = edges.withLength(in: 9...11).count
 
@@ -241,7 +241,7 @@ struct EdgeSelectionTests {
 
     @Test func nearPointFiltering() async throws {
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 let totalCount = edges.count
 
                 // Filter for edges near the top-front-right corner
@@ -262,7 +262,7 @@ struct EdgeSelectionTests {
 
     @Test func bisectorNormal() async throws {
         let result = try await Box(10)
-            .readingEdges { edges in
+            .readingEdges { _, edges in
                 // Get a sharp edge (box corner)
                 let sharpEdges = edges.sharp(threshold: 100°).edges
 
@@ -288,10 +288,10 @@ struct EdgeSelectionTests {
 
     @Test func readingEdgeChainsConvenience() async throws {
         let result = try await Box(10)
-            .readingEdgeChains(sharpnessThreshold: 100°, continuityThreshold: 30°) { chains, _ in
+            .readingEdgeChains(sharpnessThreshold: 100°, continuityThreshold: 30°) { _, chains, _ in
                 let chainCount = chains.count
                 let totalEdgesInChains = chains.reduce(0) { $0 + $1.edges.count }
-                return Box(x: Double(chainCount), y: Double(totalEdgesInChains), z: 1) as any Geometry3D
+                Box(x: Double(chainCount), y: Double(totalEdgesInChains), z: 1) as any Geometry3D
             }
             .measurements
 

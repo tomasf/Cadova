@@ -8,26 +8,25 @@ public extension Geometry3D {
     /// to its edge topology for selection and filtering operations.
     ///
     /// ```swift
-    /// myGeometry.readingEdges { edges in
+    /// myGeometry.readingEdges { geometry, edges in
     ///     let sharpEdges = edges
     ///         .sharp(threshold: 160°)
     ///         .within(boundingBox)
-    ///     // Use sharpEdges.edges or sharpEdges.chained()
-    ///     ...
+    ///     geometry.cuttingEdgeProfile(.chamfer(depth: 2), along: sharpEdges.chained(), in: edges.topology)
     /// }
     /// ```
     ///
-    /// - Parameter reader: A closure that receives an `EdgeSelection` containing all edges
-    ///   in the mesh. Apply filters to narrow down the selection.
+    /// - Parameter reader: A closure that receives the geometry and an `EdgeSelection` containing
+    ///   all edges in the mesh. Apply filters to narrow down the selection.
     /// - Returns: The geometry returned by the reader closure.
     ///
     func readingEdges<Output: Dimensionality>(
-        @GeometryBuilder<Output> _ reader: @Sendable @escaping (EdgeSelection) -> Output.Geometry
+        @GeometryBuilder<Output> _ reader: @Sendable @escaping (_ geometry: any Geometry3D, _ edges: EdgeSelection) -> Output.Geometry
     ) -> Output.Geometry {
         readingConcrete { (manifold: Manifold) in
             let topology = MeshTopology(manifold: manifold)
             let selection = EdgeSelection(topology)
-            return reader(selection)
+            return reader(self, selection)
         }
     }
 
@@ -37,11 +36,8 @@ public extension Geometry3D {
     /// and chains them into connected sequences.
     ///
     /// ```swift
-    /// myGeometry.readingEdgeChains(sharpnessThreshold: 160°) { chains in
-    ///     for chain in chains {
-    ///         // Process each chain
-    ///     }
-    ///     ...
+    /// myGeometry.readingEdgeChains(sharpnessThreshold: 160°) { geometry, chains, topology in
+    ///     geometry.cuttingEdgeProfile(.fillet(radius: 2), along: chains, in: topology)
     /// }
     /// ```
     ///
@@ -50,19 +46,19 @@ public extension Geometry3D {
     ///     Default is 170°.
     ///   - continuityThreshold: The maximum angle between edges for them to be chained together.
     ///     Default is 30°.
-    ///   - reader: A closure that receives the edge chains and mesh topology.
+    ///   - reader: A closure that receives the geometry, edge chains, and mesh topology.
     /// - Returns: The geometry returned by the reader closure.
     ///
     func readingEdgeChains<Output: Dimensionality>(
         sharpnessThreshold: Angle = 170°,
         continuityThreshold: Angle = 30°,
-        @GeometryBuilder<Output> _ reader: @Sendable @escaping ([EdgeChain], MeshTopology) -> Output.Geometry
+        @GeometryBuilder<Output> _ reader: @Sendable @escaping (_ geometry: any Geometry3D, _ chains: [EdgeChain], _ topology: MeshTopology) -> Output.Geometry
     ) -> Output.Geometry {
-        readingEdges { selection in
+        readingEdges { geometry, selection in
             let chains = selection
                 .sharp(threshold: sharpnessThreshold)
                 .chained(continuityThreshold: continuityThreshold)
-            return reader(chains, selection.topology)
+            return reader(geometry, chains, selection.topology)
         }
     }
 }
