@@ -47,7 +47,7 @@ public extension Geometry3D {
     ) -> any Geometry3D {
         measuringBounds { geometry, bounds in
             geometry
-            BoundingBoxVisualization(box: bounds.within(x: x, y: y, z: z))
+            BoundingBoxVisualization(box: bounds.within(x: x, y: y, z: z, margin: 0))
         }
     }
 }
