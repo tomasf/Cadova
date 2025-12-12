@@ -434,4 +434,142 @@ struct EdgeChainProfilingTests {
 
         #expect(result.boundingBox != nil)
     }
+
+    // MARK: - EdgeCriteria Tests
+
+    @Test func edgeCriteriaBasicUsage() async throws {
+        let originalVolume = 20.0 * 20.0 * 20.0
+
+        // Use EdgeCriteria for a simple case
+        let result = try await Box(20)
+            .cuttingEdgeProfile(.chamfer(depth: 2), along: .sharp())
+            .measurements
+
+        #expect(result.boundingBox != nil)
+        #expect(result.volume < originalVolume, "Chamfer should reduce volume")
+    }
+
+    @Test func edgeCriteriaVerticalEdges() async throws {
+        let originalVolume = 20.0 * 20.0 * 20.0
+
+        // Use EdgeCriteria to select only vertical edges
+        let result = try await Box(20)
+            .cuttingEdgeProfile(.chamfer(depth: 2), along: .sharp().aligned(with: .z))
+            .measurements
+
+        #expect(result.boundingBox != nil)
+        #expect(result.volume < originalVolume, "Chamfer should reduce volume")
+
+        // Should remove less volume than chamfering all edges
+        let allEdgesResult = try await Box(20)
+            .cuttingEdgeProfile(.chamfer(depth: 2), along: .sharp())
+            .measurements
+
+        #expect(result.volume > allEdgesResult.volume, "Vertical-only should remove less than all edges")
+    }
+
+    @Test func edgeCriteriaHorizontalEdges() async throws {
+        let originalVolume = 20.0 * 20.0 * 20.0
+
+        // Use EdgeCriteria to select only horizontal edges
+        let result = try await Box(20)
+            .cuttingEdgeProfile(.fillet(radius: 2), along: .sharp().perpendicular(to: .z))
+            .measurements
+
+        #expect(result.boundingBox != nil)
+        #expect(result.volume < originalVolume, "Fillet should reduce volume")
+    }
+
+    @Test func edgeCriteriaSpatialFilter() async throws {
+        let originalVolume = 20.0 * 20.0 * 20.0
+
+        // Use EdgeCriteria to select edges only on the top face (z > 5, for a centered 20-unit box)
+        let result = try await Box(20)
+            .cuttingEdgeProfile(.chamfer(depth: 2), along: .sharp().within(z: 5...))
+            .measurements
+
+        #expect(result.boundingBox != nil)
+        #expect(result.volume < originalVolume, "Chamfer should reduce volume")
+
+        // Should remove less volume than chamfering all edges
+        let allEdgesResult = try await Box(20)
+            .cuttingEdgeProfile(.chamfer(depth: 2), along: .sharp())
+            .measurements
+
+        #expect(result.volume > allEdgesResult.volume, "Top-face-only should remove less than all edges")
+    }
+
+    @Test func edgeCriteriaChaining() async throws {
+        let originalVolume = 20.0 * 20.0 * 20.0
+
+        // Chain multiple criteria: sharp, vertical, in upper half
+        let result = try await Box(20)
+            .cuttingEdgeProfile(
+                .chamfer(depth: 2),
+                along: .sharp().aligned(with: .z).within(z: 0...)
+            )
+            .measurements
+
+        #expect(result.boundingBox != nil)
+        #expect(result.volume < originalVolume, "Chamfer should reduce volume")
+    }
+
+    @Test func edgeCriteriaMatchesManualSelection() async throws {
+        // Verify that EdgeCriteria produces the same result as manual selection
+
+        // Manual selection using readingEdges
+        let manualResult = try await Box(20)
+            .readingEdges { geometry, edges in
+                let verticalEdges = edges
+                    .sharp(threshold: 100°)
+                    .aligned(with: .z, tolerance: 15°)
+                    .edges
+                geometry.cuttingEdgeProfile(.chamfer(depth: 2), along: verticalEdges, in: edges.topology)
+            }
+            .measurements
+
+        // EdgeCriteria selection
+        let criteriaResult = try await Box(20)
+            .cuttingEdgeProfile(
+                .chamfer(depth: 2),
+                along: .sharp(threshold: 100°).aligned(with: .z, tolerance: 15°)
+            )
+            .measurements
+
+        // Results should be identical (within floating point tolerance)
+        #expect(manualResult.volume ≈ criteriaResult.volume)
+    }
+
+    @Test func edgeCriteriaCylinderHorizontal() async throws {
+        // Test EdgeCriteria with a cylinder (closed edges)
+        let result = try await Cylinder(diameter: 10, height: 20)
+            .cuttingEdgeProfile(.fillet(radius: 2), along: .sharp().perpendicular(to: .z))
+            .measurements
+
+        #expect(result.boundingBox != nil)
+    }
+
+    @Test func edgeCriteriaImplicitSharpness() async throws {
+        // Verify that criteria without explicit .sharp() still filter out flat edges
+        // A box has 12 sharp edges and 6 flat diagonal edges from triangulation
+
+        // Using .aligned(with: .z) without .sharp() should still only select
+        // the 4 sharp vertical edges, not any flat internal edges
+        let criteriaResult = try await Box(20)
+            .cuttingEdgeProfile(.chamfer(depth: 2), along: .aligned(with: .z))
+            .measurements
+
+        // Explicitly using .sharp() should give the same result
+        let explicitResult = try await Box(20)
+            .cuttingEdgeProfile(.chamfer(depth: 2), along: .sharp().aligned(with: .z))
+            .measurements
+
+        // Both should produce valid geometry with similar volume
+        #expect(criteriaResult.boundingBox != nil)
+        #expect(explicitResult.boundingBox != nil)
+
+        // The implicit sharpness (170°) is more permissive than explicit (100°),
+        // but for a box they should select the same edges since box edges are ~90°
+        #expect(criteriaResult.volume ≈ explicitResult.volume)
+    }
 }

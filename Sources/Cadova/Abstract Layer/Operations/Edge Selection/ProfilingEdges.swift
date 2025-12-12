@@ -124,4 +124,77 @@ public extension Geometry3D {
         }
         return adding { profileGeometry }
     }
+
+    /// Cuts an edge profile along edges matching the specified criteria.
+    ///
+    /// This method provides a declarative way to select and profile edges without
+    /// needing to use the `readingEdges` closure.
+    ///
+    /// ```swift
+    /// // Chamfer only the vertical edges
+    /// Box(10).cuttingEdgeProfile(.chamfer(depth: 1), along: .sharp().aligned(with: .z))
+    ///
+    /// // Fillet edges in the upper half
+    /// Box(10).cuttingEdgeProfile(.fillet(radius: 2), along: .sharp().within(z: 0...))
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - profile: The edge profile to apply.
+    ///   - criteria: The criteria for selecting edges to profile.
+    ///   - continuityThreshold: The maximum angle between segments for them to form a single edge.
+    ///     Default is 30°.
+    /// - Returns: A new geometry with the profile cut along matching edges.
+    ///
+    func cuttingEdgeProfile(
+        _ profile: EdgeProfile,
+        along criteria: EdgeCriteria,
+        continuityThreshold: Angle = 30°
+    ) -> any Geometry3D {
+        readingConcrete { (manifold: Manifold) in
+            let topology = MeshTopology(manifold: manifold)
+            let selection = criteria.apply(to: EdgeSelection(topology))
+            let edges = selection.edges(continuityThreshold: continuityThreshold)
+
+            let profileGeometry = edges.mapUnion { edge in
+                edge.profileGeometry(profile, in: topology, type: .subtraction)
+            }
+
+            self.subtracting { profileGeometry }
+        }
+    }
+
+    /// Forms an edge profile along edges matching the specified criteria.
+    ///
+    /// This method provides a declarative way to select and profile edges without
+    /// needing to use the `readingEdges` closure.
+    ///
+    /// ```swift
+    /// // Add material along vertical edges
+    /// Box(10).formingEdgeProfile(.chamfer(depth: 1), along: .sharp().aligned(with: .z))
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - profile: The edge profile to apply.
+    ///   - criteria: The criteria for selecting edges to profile.
+    ///   - continuityThreshold: The maximum angle between segments for them to form a single edge.
+    ///     Default is 30°.
+    /// - Returns: A new geometry with the profile formed along matching edges.
+    ///
+    func formingEdgeProfile(
+        _ profile: EdgeProfile,
+        along criteria: EdgeCriteria,
+        continuityThreshold: Angle = 30°
+    ) -> any Geometry3D {
+        readingConcrete { (manifold: Manifold) in
+            let topology = MeshTopology(manifold: manifold)
+            let selection = criteria.apply(to: EdgeSelection(topology))
+            let edges = selection.edges(continuityThreshold: continuityThreshold)
+
+            let profileGeometry = edges.mapUnion { edge in
+                edge.profileGeometry(profile, in: topology, type: .addition)
+            }
+
+            self.adding { profileGeometry }
+        }
+    }
 }
