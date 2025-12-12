@@ -4,7 +4,7 @@ import Manifold3D
 /// A mesh topology structure that provides efficient edge-to-face lookups.
 ///
 /// This structure pre-computes adjacency information from a triangle mesh,
-/// enabling O(1) lookup of which faces share a given edge.
+/// enabling O(1) lookup of which faces share a given edge segment.
 ///
 public struct MeshTopology: Sendable {
     /// The vertices of the mesh.
@@ -13,12 +13,12 @@ public struct MeshTopology: Sendable {
     /// The triangles of the mesh, each containing three vertex indices.
     public let triangles: [Manifold3D.Triangle]
 
-    /// Maps each edge to the indices of triangles that share it.
-    /// For a manifold mesh, each edge should have exactly 2 adjacent triangles.
-    public let edgeToTriangles: [MeshEdge: [Int]]
+    /// Maps each edge segment to the indices of triangles that share it.
+    /// For a manifold mesh, each segment should have exactly 2 adjacent triangles.
+    public let segmentToTriangles: [EdgeSegment: [Int]]
 
-    /// All unique edges in the mesh.
-    public let edges: [MeshEdge]
+    /// All unique edge segments in the mesh.
+    public let allSegments: [EdgeSegment]
 
     /// Pre-computed face normals for each triangle.
     public let faceNormals: [Vector3D]
@@ -28,20 +28,20 @@ public struct MeshTopology: Sendable {
         self.vertices = vertices
         self.triangles = triangles
 
-        // Build edge-to-triangle mapping
-        var edgeMap: [MeshEdge: [Int]] = [:]
-        edgeMap.reserveCapacity(triangles.count * 3 / 2) // Euler's formula approximation
+        // Build segment-to-triangle mapping
+        var segmentMap: [EdgeSegment: [Int]] = [:]
+        segmentMap.reserveCapacity(triangles.count * 3 / 2) // Euler's formula approximation
 
         for (triangleIndex, triangle) in triangles.enumerated() {
             let indices = [triangle.a, triangle.b, triangle.c]
             for i in 0..<3 {
-                let edge = MeshEdge(indices[i], indices[(i + 1) % 3])
-                edgeMap[edge, default: []].append(triangleIndex)
+                let segment = EdgeSegment(indices[i], indices[(i + 1) % 3])
+                segmentMap[segment, default: []].append(triangleIndex)
             }
         }
 
-        self.edgeToTriangles = edgeMap
-        self.edges = Array(edgeMap.keys)
+        self.segmentToTriangles = segmentMap
+        self.allSegments = Array(segmentMap.keys)
 
         // Pre-compute face normals
         self.faceNormals = triangles.map { triangle in
@@ -60,33 +60,33 @@ public struct MeshTopology: Sendable {
 }
 
 public extension MeshTopology {
-    /// Returns the triangles adjacent to the given edge.
-    func adjacentTriangles(for edge: MeshEdge) -> [Int] {
-        edgeToTriangles[edge] ?? []
+    /// Returns the triangles adjacent to the given segment.
+    func adjacentTriangles(for segment: EdgeSegment) -> [Int] {
+        segmentToTriangles[segment] ?? []
     }
 
-    /// Returns whether the edge is a boundary edge (only one adjacent triangle).
-    func isBoundaryEdge(_ edge: MeshEdge) -> Bool {
-        adjacentTriangles(for: edge).count == 1
+    /// Returns whether the segment is a boundary segment (only one adjacent triangle).
+    func isBoundarySegment(_ segment: EdgeSegment) -> Bool {
+        adjacentTriangles(for: segment).count == 1
     }
 
-    /// Returns whether the edge is a manifold edge (exactly two adjacent triangles).
-    func isManifoldEdge(_ edge: MeshEdge) -> Bool {
-        adjacentTriangles(for: edge).count == 2
+    /// Returns whether the segment is a manifold segment (exactly two adjacent triangles).
+    func isManifoldSegment(_ segment: EdgeSegment) -> Bool {
+        adjacentTriangles(for: segment).count == 2
     }
 
-    /// Calculates the dihedral angle between the two faces sharing an edge.
+    /// Calculates the dihedral angle between the two faces sharing a segment.
     ///
     /// The dihedral angle is the angle between the face normals.
     /// - For a flat surface, the angle is 180° (normals point the same direction).
     /// - For a sharp 90° edge, the angle is 90°.
     /// - For a very sharp edge, the angle approaches 0°.
     ///
-    /// - Parameter edge: The edge to calculate the dihedral angle for.
-    /// - Returns: The dihedral angle, or `nil` if the edge doesn't have exactly 2 adjacent faces.
+    /// - Parameter segment: The segment to calculate the dihedral angle for.
+    /// - Returns: The dihedral angle, or `nil` if the segment doesn't have exactly 2 adjacent faces.
     ///
-    func dihedralAngle(for edge: MeshEdge) -> Angle? {
-        let triangleIndices = adjacentTriangles(for: edge)
+    func dihedralAngle(for segment: EdgeSegment) -> Angle? {
+        let triangleIndices = adjacentTriangles(for: segment)
         guard triangleIndices.count == 2 else { return nil }
 
         let n0 = faceNormals[triangleIndices[0]]
@@ -98,35 +98,35 @@ public extension MeshTopology {
         return acos(dotProduct.clamped(to: -1...1))
     }
 
-    /// Returns whether the edge is "sharp" based on the dihedral angle threshold.
+    /// Returns whether the segment is "sharp" based on the dihedral angle threshold.
     ///
-    /// A "sharp" edge is one where the dihedral angle is significantly different from both
+    /// A "sharp" segment is one where the dihedral angle is significantly different from both
     /// 0° (coplanar faces) and 180° (impossible for outward-facing normals).
     ///
     /// - Parameters:
-    ///   - edge: The edge to check.
-    ///   - threshold: The maximum dihedral angle for an edge to be considered sharp.
-    ///     Defaults to 170°. Edges with angles between 10° and `threshold` are sharp.
-    /// - Returns: `true` if the edge is sharp, `false` otherwise.
+    ///   - segment: The segment to check.
+    ///   - threshold: The maximum dihedral angle for a segment to be considered sharp.
+    ///     Defaults to 170°. Segments with angles between 10° and `threshold` are sharp.
+    /// - Returns: `true` if the segment is sharp, `false` otherwise.
     ///
-    func isSharpEdge(_ edge: MeshEdge, threshold: Angle = 170°) -> Bool {
-        guard let angle = dihedralAngle(for: edge) else { return false }
-        // Edges near 0° are on flat surfaces (coplanar triangles), not sharp
+    func isSharpSegment(_ segment: EdgeSegment, threshold: Angle = 170°) -> Bool {
+        guard let angle = dihedralAngle(for: segment) else { return false }
+        // Segments near 0° are on flat surfaces (coplanar triangles), not sharp
         return angle > 10° && angle < threshold
     }
 
-    /// Returns the outward-pointing bisector normal for an edge.
+    /// Returns the outward-pointing bisector normal for a segment.
     ///
-    /// The bisector normal is the direction perpendicular to the edge that bisects
+    /// The bisector normal is the direction perpendicular to the segment that bisects
     /// the two adjacent face normals. This is the direction an edge profile (chamfer,
     /// fillet, etc.) would "bulge" outward toward.
     ///
-    /// - Parameter edge: The edge to get the bisector normal for.
-    /// - Returns: The normalized bisector direction, or `nil` if the edge doesn't have
+    /// - Parameter segment: The segment to get the bisector normal for.
+    /// - Returns: The normalized bisector direction, or `nil` if the segment doesn't have
     ///   exactly 2 adjacent faces.
     ///
-    func bisectorNormal(for edge: MeshEdge) -> Vector3D? {
-        let triangleIndices = adjacentTriangles(for: edge)
+    func bisectorNormal(for segment: EdgeSegment) -> Vector3D? {
+        let triangleIndices = adjacentTriangles(for: segment)
         guard triangleIndices.count == 2 else { return nil }
 
         let n0 = faceNormals[triangleIndices[0]]

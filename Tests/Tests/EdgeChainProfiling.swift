@@ -51,12 +51,12 @@ struct EdgeChainProfilingTests {
         // Use readingEdges to apply chamfer only to vertical edges
         let result = try await Box(20)
             .readingEdges { geometry, edges in
-                let verticalChains = edges
+                let verticalEdges = edges
                     .sharp(threshold: 100°)
                     .aligned(with: .z, tolerance: 10°)
-                    .chained()
+                    .edges
 
-                geometry.cuttingEdgeProfile(.chamfer(depth: 2), along: verticalChains, in: edges.topology)
+                geometry.cuttingEdgeProfile(.chamfer(depth: 2), along: verticalEdges, in: edges.topology)
             }
             .measurements
 
@@ -73,9 +73,9 @@ struct EdgeChainProfilingTests {
         let result = try await Box(20)
             .readingConcrete { (manifold: Manifold) in
                 let topology = MeshTopology(manifold: manifold)
-                let chains = EdgeSelection(topology).sharp(threshold: 100°).chained()
-                let profileGeom = chains.mapUnion { chain in
-                    chain.profileGeometry(.chamfer(depth: 2), in: topology, type: .subtraction)
+                let selectedEdges = EdgeSelection(topology).sharp(threshold: 100°).edges
+                let profileGeom = selectedEdges.mapUnion { edge in
+                    edge.profileGeometry(.chamfer(depth: 2), in: topology, type: .subtraction)
                 }
                 Box(20).subtracting { profileGeom }
             }
@@ -88,9 +88,9 @@ struct EdgeChainProfilingTests {
         let result = try await Box(20)
             .readingConcrete { (manifold: Manifold) in
                 let topology = MeshTopology(manifold: manifold)
-                let chains = EdgeSelection(topology).sharp(threshold: 100°).aligned(with: .z, tolerance: 10°).chained()
-                let profileGeom = chains.mapUnion { chain in
-                    chain.profileGeometry(.chamfer(depth: 2), in: topology, type: .subtraction)
+                let selectedEdges = EdgeSelection(topology).sharp(threshold: 100°).aligned(with: .z, tolerance: 10°).edges
+                let profileGeom = selectedEdges.mapUnion { edge in
+                    edge.profileGeometry(.chamfer(depth: 2), in: topology, type: .subtraction)
                 }
                 Box(20).subtracting { profileGeom }
             }
@@ -118,18 +118,18 @@ struct EdgeChainProfilingTests {
         // Check if the profile geometry for vertical edges produces valid manifold
         let result = try await Box(20)
             .readingEdges { _, edges in
-                let verticalChains = edges
+                let verticalEdges = edges
                     .sharp(threshold: 100°)
                     .aligned(with: .z, tolerance: 10°)
-                    .chained()
+                    .edges
 
-                // Get just ONE chain
-                guard let chain = verticalChains.first else {
+                // Get just ONE edge
+                guard let edge = verticalEdges.first else {
                     return Box(0) as any Geometry3D
                 }
 
                 // Generate profile for just one edge
-                return chain.profileGeometry(.chamfer(depth: 2), in: edges.topology, type: .subtraction)
+                return edge.profileGeometry(.chamfer(depth: 2), in: edges.topology, type: .subtraction)
             }
             .measurements
 
@@ -142,9 +142,9 @@ struct EdgeChainProfilingTests {
         let result = try await Box(20)
             .readingConcrete { (manifold: Manifold) in
                 let topology = MeshTopology(manifold: manifold)
-                let chains = EdgeSelection(topology).sharp(threshold: 100°).perpendicular(to: .z, tolerance: 10°).chained()
-                let profileGeom = chains.mapUnion { chain in
-                    chain.profileGeometry(.chamfer(depth: 2), in: topology, type: .subtraction)
+                let selectedEdges = EdgeSelection(topology).sharp(threshold: 100°).perpendicular(to: .z, tolerance: 10°).edges
+                let profileGeom = selectedEdges.mapUnion { edge in
+                    edge.profileGeometry(.chamfer(depth: 2), in: topology, type: .subtraction)
                 }
                 Box(20).subtracting { profileGeom }
             }
@@ -160,34 +160,34 @@ struct EdgeChainProfilingTests {
             .readingEdges { _, edges in
                 let sharpEdges = edges.sharp(threshold: 100°)
                 let verticalEdges = sharpEdges.aligned(with: .z, tolerance: 10°)
-                let chains = verticalEdges.chained()
+                let selectedEdges = verticalEdges.edges
 
                 // Encode counts in a box
                 Box(
-                    x: Double(sharpEdges.count),
-                    y: Double(verticalEdges.count),
-                    z: Double(chains.count)
+                    x: Double(sharpEdges.segmentCount),
+                    y: Double(verticalEdges.segmentCount),
+                    z: Double(selectedEdges.count)
                 ) as any Geometry3D
             }
             .measurements
 
         let sharpCount = Int(diagnostics.boundingBox!.size.x)
         let verticalCount = Int(diagnostics.boundingBox!.size.y)
-        let chainCount = Int(diagnostics.boundingBox!.size.z)
+        let edgeCount = Int(diagnostics.boundingBox!.size.z)
 
-        #expect(sharpCount == 12, "Box should have 12 sharp edges, got \(sharpCount)")
-        #expect(verticalCount == 4, "Box should have 4 vertical edges, got \(verticalCount)")
-        #expect(chainCount == 4, "Should have 4 chains (one per vertical edge), got \(chainCount)")
+        #expect(sharpCount == 12, "Box should have 12 sharp edge segments, got \(sharpCount)")
+        #expect(verticalCount == 4, "Box should have 4 vertical edge segments, got \(verticalCount)")
+        #expect(edgeCount == 4, "Should have 4 edges (one per vertical edge), got \(edgeCount)")
 
         // Now test the actual profiling
         let result = try await Box(20)
             .readingEdges { geometry, edges in
-                let verticalChains = edges
+                let verticalEdges = edges
                     .sharp(threshold: 100°)
                     .aligned(with: .z, tolerance: 10°)
-                    .chained()
+                    .edges
 
-                geometry.cuttingEdgeProfile(.fillet(radius: 2), along: verticalChains, in: edges.topology)
+                geometry.cuttingEdgeProfile(.fillet(radius: 2), along: verticalEdges, in: edges.topology)
             }
             .measurements
 
@@ -206,13 +206,13 @@ struct EdgeChainProfilingTests {
         // Test that edge chain generates profile geometry correctly
         let result = try await Box(20)
             .readingEdges { _, edges in
-                let sharpChains = edges
+                let sharpEdges = edges
                     .sharp(threshold: 100°)
-                    .chained(continuityThreshold: 30°)
+                    .edges(continuityThreshold: 30°)
 
                 // Generate profile geometry for visualization
-                let profileGeom = sharpChains.mapUnion { chain in
-                    chain.profileGeometry(.chamfer(depth: 2), in: edges.topology, type: .subtraction)
+                let profileGeom = sharpEdges.mapUnion { edge in
+                    edge.profileGeometry(.chamfer(depth: 2), in: edges.topology, type: .subtraction)
                 }
 
                 profileGeom
@@ -236,21 +236,21 @@ struct EdgeChainProfilingTests {
         // Diagnostic test to understand vertical edge properties
         let result = try await Box(20)
             .readingEdges { _, edges in
-                let verticalChains = edges
+                let verticalEdges = edges
                     .sharp(threshold: 100°)
                     .aligned(with: .z, tolerance: 10°)
-                    .chained()
+                    .edges
 
-                // Get info about the first vertical chain
-                guard let chain = verticalChains.first else {
+                // Get info about the first vertical edge
+                guard let edge = verticalEdges.first else {
                     return Box(0) as any Geometry3D
                 }
 
-                let vertexIndices = chain.vertexIndices()
+                let vertexIndices = edge.vertexIndices()
                 let vertices = vertexIndices.map { edges.topology.vertices[$0] }
 
-                // Encode: x = edge count, y = vertex count, z = chain length
-                let chainLength = chain.length(in: edges.topology)
+                // Encode: x = segment count, y = vertex count, z = edge length
+                let edgeLength = edge.length(in: edges.topology)
 
                 // Also encode first vertex Z and last vertex Z in the volume
                 let firstZ = vertices.first?.z ?? 0
@@ -258,21 +258,21 @@ struct EdgeChainProfilingTests {
 
                 // Return diagnostics encoded in geometry
                 // Use translation to encode vertex Z positions
-                return Box(x: Double(chain.edges.count), y: Double(vertices.count), z: chainLength)
+                return Box(x: Double(edge.segments.count), y: Double(vertices.count), z: edgeLength)
                     .translated(x: firstZ, y: lastZ, z: 0) as any Geometry3D
             }
             .measurements
 
         let bounds = result.boundingBox!
-        let edgeCount = Int(bounds.size.x)
+        let segmentCount = Int(bounds.size.x)
         let vertexCount = Int(bounds.size.y)
-        let chainLength = bounds.size.z
+        let edgeLength = bounds.size.z
         let firstZ = bounds.center.x - bounds.size.x / 2  // Recover translation
         let lastZ = bounds.center.y - bounds.size.y / 2
 
-        #expect(edgeCount == 1, "Each vertical chain should have 1 edge, got \(edgeCount)")
-        #expect(vertexCount == 2, "Each vertical chain should have 2 vertices, got \(vertexCount)")
-        #expect(chainLength >= 19.9 && chainLength <= 20.1, "Chain length should be ~20, got \(chainLength)")
+        #expect(segmentCount == 1, "Each vertical edge should have 1 segment, got \(segmentCount)")
+        #expect(vertexCount == 2, "Each vertical edge should have 2 vertices, got \(vertexCount)")
+        #expect(edgeLength >= 19.9 && edgeLength <= 20.1, "Edge length should be ~20, got \(edgeLength)")
 
         // Box(20) is centered, so Z should span -10 to +10
         // Note: min/max Z could be in either order
@@ -284,14 +284,14 @@ struct EdgeChainProfilingTests {
         // Test profile geometry for vertical edges specifically
         let result = try await Box(20)
             .readingEdges { _, edges in
-                let verticalChains = edges
+                let verticalEdges = edges
                     .sharp(threshold: 100°)
                     .aligned(with: .z, tolerance: 10°)
-                    .chained()
+                    .edges
 
                 // Generate profile geometry for vertical edges only
-                let profileGeom = verticalChains.mapUnion { chain in
-                    chain.profileGeometry(.fillet(radius: 2), in: edges.topology, type: .subtraction)
+                let profileGeom = verticalEdges.mapUnion { edge in
+                    edge.profileGeometry(.fillet(radius: 2), in: edges.topology, type: .subtraction)
                 }
 
                 profileGeom
@@ -314,7 +314,7 @@ struct EdgeChainProfilingTests {
         #expect(result.volume > 50, "Profile geometry should have significant volume, got \(result.volume). Bounds: min=\(bounds.minimum), max=\(bounds.maximum)")
     }
 
-    @Test func emptyChainHandling() async throws {
+    @Test func emptyEdgeHandling() async throws {
         // Test with geometry that has no sharp edges meeting threshold
         let result = try await Sphere(radius: 10)
             .cuttingEdgeProfile(.chamfer(depth: 1), sharpnessThreshold: 10°)
@@ -328,13 +328,13 @@ struct EdgeChainProfilingTests {
         // Check if vertical edge profile actually overlaps with the box
         let result = try await Box(20)
             .readingEdges { _, edges in
-                let verticalChains = edges
+                let verticalEdges = edges
                     .sharp(threshold: 100°)
                     .aligned(with: .z, tolerance: 10°)
-                    .chained()
+                    .edges
 
-                let profileGeom = verticalChains.mapUnion { chain in
-                    chain.profileGeometry(.chamfer(depth: 2), in: edges.topology, type: .subtraction)
+                let profileGeom = verticalEdges.mapUnion { edge in
+                    edge.profileGeometry(.chamfer(depth: 2), in: edges.topology, type: .subtraction)
                 }
 
                 // Intersect profile geometry with the box
@@ -352,17 +352,17 @@ struct EdgeChainProfilingTests {
         // Check position of a single vertical edge's profile
         let result = try await Box(20)
             .readingEdges { _, edges in
-                let verticalChains = edges
+                let verticalEdges = edges
                     .sharp(threshold: 100°)
                     .aligned(with: .z, tolerance: 10°)
-                    .chained()
+                    .edges
 
-                guard let chain = verticalChains.first else {
+                guard let edge = verticalEdges.first else {
                     return Box(0) as any Geometry3D
                 }
 
                 // Get profile for single edge
-                let profileGeom = chain.profileGeometry(.chamfer(depth: 2), in: edges.topology, type: .subtraction)
+                let profileGeom = edge.profileGeometry(.chamfer(depth: 2), in: edges.topology, type: .subtraction)
 
                 // Return the profile, not an intersection
                 return profileGeom
@@ -392,33 +392,46 @@ struct EdgeChainProfilingTests {
     }
 
     @Test func continuityThresholdEffect() async throws {
-        // Test that continuity threshold affects chain grouping
+        // Test that continuity threshold affects edge grouping
         let lowThresholdResult = try await Box(20)
             .readingEdges { _, edges in
-                let chains = edges
+                let selectedEdges = edges
                     .sharp(threshold: 100°)
-                    .chained(continuityThreshold: 30°)
+                    .edges(continuityThreshold: 30°)
 
                 // Return count encoded in box size
-                Box(Double(chains.count)) as any Geometry3D
+                Box(Double(selectedEdges.count)) as any Geometry3D
             }
             .measurements
 
         let highThresholdResult = try await Box(20)
             .readingEdges { _, edges in
-                let chains = edges
+                let selectedEdges = edges
                     .sharp(threshold: 100°)
-                    .chained(continuityThreshold: 100°)
+                    .edges(continuityThreshold: 100°)
 
                 // Return count encoded in box size
-                Box(Double(chains.count)) as any Geometry3D
+                Box(Double(selectedEdges.count)) as any Geometry3D
             }
             .measurements
 
         let lowCount = Int(lowThresholdResult.boundingBox!.size.x)
         let highCount = Int(highThresholdResult.boundingBox!.size.x)
 
-        // With higher threshold, edges should be more connected, resulting in fewer chains
+        // With higher threshold, edges should be more connected, resulting in fewer edges
         #expect(highCount <= lowCount)
+    }
+
+    @Test func cylinderHorizontalEdges() async throws {
+        let result = try await Cylinder(diameter: 10, height: 20).readingEdges { geometry, edges in
+            let horizontalEdges = edges
+                .sharp(threshold: 100°)
+                .perpendicular(to: .z)
+                .edges
+            geometry.cuttingEdgeProfile(.fillet(radius: 2), along: horizontalEdges, in: edges.topology)
+        }
+        .measurements
+
+        #expect(result.boundingBox != nil)
     }
 }

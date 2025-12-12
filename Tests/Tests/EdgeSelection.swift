@@ -10,7 +10,7 @@ struct EdgeSelectionTests {
                 // Encode counts in box dimensions
                 Box(
                     x: Double(edges.topology.vertices.count),
-                    y: Double(edges.topology.edges.count),
+                    y: Double(edges.topology.allSegments.count),
                     z: Double(edges.topology.triangles.count)
                 ) as any Geometry3D
             }
@@ -38,151 +38,152 @@ struct EdgeSelectionTests {
 
         let result = try await Box(10)
             .readingEdges { _, edges in
-                // Count edges with angles in different ranges
-                let flatEdgeCount = edges.withDihedralAngle(in: 0°...10°).count // Near 0° = flat
-                let cornerEdgeCount = edges.withDihedralAngle(in: 85°...95°).count // ~90° = box corners
+                // Count segments with angles in different ranges
+                let flatSegmentCount = edges.withDihedralAngle(in: 0°...10°).segmentCount // Near 0° = flat
+                let cornerSegmentCount = edges.withDihedralAngle(in: 85°...95°).segmentCount // ~90° = box corners
 
-                Box(x: Double(flatEdgeCount + 1), y: Double(cornerEdgeCount + 1), z: 1) as any Geometry3D
+                Box(x: Double(flatSegmentCount + 1), y: Double(cornerSegmentCount + 1), z: 1) as any Geometry3D
             }
             .measurements
 
-        let flatEdgeCount = Int(result.boundingBox!.size.x) - 1
-        let cornerEdgeCount = Int(result.boundingBox!.size.y) - 1
+        let flatSegmentCount = Int(result.boundingBox!.size.x) - 1
+        let cornerSegmentCount = Int(result.boundingBox!.size.y) - 1
 
-        // 6 diagonal edges (one per box face from triangulation) have ~0° dihedral
-        #expect(flatEdgeCount == 6)
-        // 12 box corner edges have ~90° dihedral
-        #expect(cornerEdgeCount == 12)
+        // 6 diagonal segments (one per box face from triangulation) have ~0° dihedral
+        #expect(flatSegmentCount == 6)
+        // 12 box corner segments have ~90° dihedral
+        #expect(cornerSegmentCount == 12)
     }
 
     @Test func dihedralAngleCalculation() async throws {
         let result = try await Box(10)
             .readingEdges { _, edges in
-                // Find a sharp edge (box corner edge)
-                let sharpEdges = edges.sharp(threshold: 100°).edges
+                // Find a sharp segment (box corner segment)
+                let sharpSegments = edges.sharp(threshold: 100°).segments
 
-                if let edge = sharpEdges.first,
-                   let angle = edges.topology.dihedralAngle(for: edge) {
+                if let segment = sharpSegments.first,
+                   let angle = edges.topology.dihedralAngle(for: segment) {
                     // Return box with size = angle in degrees
-                    return Box(angle.degrees) as any Geometry3D
+                    Box(angle.degrees) as any Geometry3D
+                } else {
+                    Box(0) as any Geometry3D
                 }
-                return Box(0) as any Geometry3D
             }
             .measurements
 
-        // Box edges should be approximately 90°
+        // Box segments should be approximately 90°
         let angle = result.boundingBox!.size.x
         #expect(angle >= 89 && angle <= 91)
     }
 
     @Test func edgeChainingOnBox() async throws {
         let result = try await Box(10)
-            .readingEdges { _, edges in
-                // Get sharp edges and chain them
-                let sharpEdges = edges.sharp(threshold: 100°)
-                let chains = sharpEdges.chained(continuityThreshold: 30°)
+            .readingEdges { _, selection in
+                // Get sharp edges and build edges from them
+                let sharpSelection = selection.sharp(threshold: 100°)
+                let selectedEdges = sharpSelection.edges(continuityThreshold: 30°)
 
-                let chainCount = chains.count
-                let allSingleEdge = chains.allSatisfy { $0.edges.count == 1 } ? 1.0 : 0.0
-                return Box(x: Double(chainCount), y: allSingleEdge, z: 1) as any Geometry3D
+                let edgeCount = selectedEdges.count
+                let allSingleSegment = selectedEdges.allSatisfy { $0.segments.count == 1 } ? 1.0 : 0.0
+                return Box(x: Double(edgeCount), y: allSingleSegment, z: 1) as any Geometry3D
             }
             .measurements
 
-        // Box edges form 12 separate chains (each edge is its own chain since corners are 90°)
-        // because the continuity threshold of 30° won't connect edges meeting at 90°
-        let chainCount = Int(result.boundingBox!.size.x)
-        let allSingleEdge = result.boundingBox!.size.y > 0.5
+        // Box edges form 12 separate edges (each is a single segment since corners are 90°)
+        // because the continuity threshold of 30° won't connect segments meeting at 90°
+        let edgeCount = Int(result.boundingBox!.size.x)
+        let allSingleSegment = result.boundingBox!.size.y > 0.5
 
-        #expect(chainCount == 12)
-        #expect(allSingleEdge)
+        #expect(edgeCount == 12)
+        #expect(allSingleSegment)
     }
 
     @Test func edgeChainingWithHighThreshold() async throws {
         let result = try await Box(10)
-            .readingEdges { _, edges in
-                // Get sharp edges and chain them with a high continuity threshold
-                let sharpEdges = edges.sharp(threshold: 100°)
-                let chains = sharpEdges.chained(continuityThreshold: 100°)
+            .readingEdges { _, selection in
+                // Get sharp edges and build edges with a high continuity threshold
+                let sharpSelection = selection.sharp(threshold: 100°)
+                let selectedEdges = sharpSelection.edges(continuityThreshold: 100°)
 
-                let chainCount = chains.count
-                let totalEdgesInChains = chains.reduce(0) { $0 + $1.edges.count }
+                let edgeCount = selectedEdges.count
+                let totalSegmentsInEdges = selectedEdges.reduce(0) { $0 + $1.segments.count }
                 // Add 1 to avoid zero-size box
-                return Box(x: Double(chainCount) + 1, y: Double(totalEdgesInChains) + 1, z: 1) as any Geometry3D
+                return Box(x: Double(edgeCount) + 1, y: Double(totalSegmentsInEdges) + 1, z: 1) as any Geometry3D
             }
             .measurements
 
-        // With high threshold (100°), edges meeting at 90° corners should be chained
-        // together, resulting in fewer chains than individual edges
-        let chainCount = Int(result.boundingBox!.size.x) - 1
-        let totalEdgesInChains = Int(result.boundingBox!.size.y) - 1
+        // With high threshold (100°), segments meeting at 90° corners should be connected
+        // together, resulting in fewer edges than individual segments
+        let edgeCount = Int(result.boundingBox!.size.x) - 1
+        let totalSegmentsInEdges = Int(result.boundingBox!.size.y) - 1
 
-        // Should have fewer chains than edges (since some are chained together)
-        #expect(chainCount < 12)
-        // All 12 sharp edges should still be accounted for in the chains
-        #expect(totalEdgesInChains == 12)
+        // Should have fewer edges than segments (since some are connected)
+        #expect(edgeCount < 12)
+        // All 12 sharp segments should still be accounted for in the edges
+        #expect(totalSegmentsInEdges == 12)
     }
 
     @Test func spatialFiltering() async throws {
         let result = try await Box(x: 20, y: 20, z: 10)
             .readingEdges { _, edges in
-                let totalEdgeCount = edges.count
+                let totalSegmentCount = edges.segmentCount
 
-                // Filter edges within the upper half of the box
+                // Filter segments within the upper half of the box
                 let upperBox = BoundingBox3D(minimum: Vector3D(-15, -15, 5), maximum: Vector3D(15, 15, 15))
-                let upperEdgeCount = edges.within(upperBox).count
+                let upperSegmentCount = edges.within(upperBox).segmentCount
 
-                return Box(x: Double(upperEdgeCount), y: Double(totalEdgeCount), z: 1) as any Geometry3D
+                return Box(x: Double(upperSegmentCount), y: Double(totalSegmentCount), z: 1) as any Geometry3D
             }
             .measurements
 
-        let upperEdgeCount = Int(result.boundingBox!.size.x)
-        let totalEdgeCount = Int(result.boundingBox!.size.y)
+        let upperSegmentCount = Int(result.boundingBox!.size.x)
+        let totalSegmentCount = Int(result.boundingBox!.size.y)
 
-        // Should find edges on the top face and upper parts of vertical edges
-        #expect(upperEdgeCount > 0)
-        #expect(upperEdgeCount < totalEdgeCount)
+        // Should find segments on the top face and upper parts of vertical edges
+        #expect(upperSegmentCount > 0)
+        #expect(upperSegmentCount < totalSegmentCount)
     }
 
     @Test func directionFiltering() async throws {
         let result = try await Box(10)
             .readingEdges { _, edges in
-                // Filter for vertical edges (aligned with Z axis)
-                let verticalEdgeCount = edges.aligned(with: .z, tolerance: 10°).count
+                // Filter for vertical segments (aligned with Z axis)
+                let verticalSegmentCount = edges.aligned(with: .z, tolerance: 10°).segmentCount
 
-                // Filter for horizontal edges (perpendicular to Z)
-                let horizontalEdgeCount = edges.perpendicular(to: .z, tolerance: 10°).count
+                // Filter for horizontal segments (perpendicular to Z)
+                let horizontalSegmentCount = edges.perpendicular(to: .z, tolerance: 10°).segmentCount
 
-                return Box(x: Double(verticalEdgeCount), y: Double(horizontalEdgeCount), z: 1) as any Geometry3D
+                return Box(x: Double(verticalSegmentCount), y: Double(horizontalSegmentCount), z: 1) as any Geometry3D
             }
             .measurements
 
-        let verticalEdgeCount = Int(result.boundingBox!.size.x)
-        let horizontalEdgeCount = Int(result.boundingBox!.size.y)
+        let verticalSegmentCount = Int(result.boundingBox!.size.x)
+        let horizontalSegmentCount = Int(result.boundingBox!.size.y)
 
-        // A box has 4 vertical edges
-        #expect(verticalEdgeCount == 4)
+        // A box has 4 vertical segments
+        #expect(verticalSegmentCount == 4)
 
-        // A box has 8 horizontal edges (4 top + 4 bottom)
-        // Plus diagonal edges from triangulation that lie in horizontal planes
-        #expect(horizontalEdgeCount >= 8)
+        // A box has 8 horizontal segments (4 top + 4 bottom)
+        // Plus diagonal segments from triangulation that lie in horizontal planes
+        #expect(horizontalSegmentCount >= 8)
     }
 
     @Test func setOperations() async throws {
         let result = try await Box(10)
             .readingEdges { _, edges in
-                let sharpEdges = edges.sharp(threshold: 100°)
-                let verticalEdges = edges.aligned(with: .z, tolerance: 10°)
+                let sharpSelection = edges.sharp(threshold: 100°)
+                let verticalSelection = edges.aligned(with: .z, tolerance: 10°)
 
-                let sharpCount = sharpEdges.count
+                let sharpCount = sharpSelection.segmentCount
 
-                // Intersection: sharp vertical edges
-                let sharpVerticalCount = sharpEdges.intersection(verticalEdges).count
+                // Intersection: sharp vertical segments
+                let sharpVerticalCount = sharpSelection.intersection(verticalSelection).segmentCount
 
-                // Subtracting: sharp edges that are not vertical
-                let sharpNonVerticalCount = sharpEdges.subtracting(verticalEdges).count
+                // Subtracting: sharp segments that are not vertical
+                let sharpNonVerticalCount = sharpSelection.subtracting(verticalSelection).segmentCount
 
-                // Union should contain all edges from both sets
-                let combinedCount = sharpEdges.union(verticalEdges).count
+                // Union should contain all segments from both sets
+                let combinedCount = sharpSelection.union(verticalSelection).segmentCount
 
                 // Pack results into a box
                 // We need 4 values, so use volume creatively
@@ -200,53 +201,53 @@ struct EdgeSelectionTests {
 
         #expect(sharpVerticalCount == 4)
         #expect(sharpNonVerticalCount == 8)
-        #expect(combinedCount == 12) // All vertical edges are sharp, so union == sharp count
+        #expect(combinedCount == 12) // All vertical segments are sharp, so union == sharp count
     }
 
     @Test func readingEdgesIntegration() async throws {
         let result = try await Box(10)
             .readingEdges { _, edges in
-                let sharpCount = edges.sharp(threshold: 100°).count
+                let sharpCount = edges.sharp(threshold: 100°).segmentCount
                 // Return a simple geometry based on the count
                 return Box(Double(sharpCount)) as any Geometry3D
             }
             .measurements
 
-        // The resulting box should have size 12 (number of sharp edges)
+        // The resulting box should have size 12 (number of sharp segments)
         #expect(result.volume ≈ (12.0 * 12.0 * 12.0))
     }
 
     @Test func edgeLengthFiltering() async throws {
         let result = try await Box(x: 10, y: 20, z: 30)
             .readingEdges { _, edges in
-                // Filter for edges with length around 10 (short edges)
-                let shortEdgeCount = edges.withLength(in: 9...11).count
+                // Filter for segments with length around 10 (short segments)
+                let shortSegmentCount = edges.withLength(in: 9...11).segmentCount
 
-                // Filter for long edges (around 30)
-                let longEdgeCount = edges.withLength(in: 29...31).count
+                // Filter for long segments (around 30)
+                let longSegmentCount = edges.withLength(in: 29...31).segmentCount
 
-                return Box(x: Double(shortEdgeCount), y: Double(longEdgeCount), z: 1) as any Geometry3D
+                return Box(x: Double(shortSegmentCount), y: Double(longSegmentCount), z: 1) as any Geometry3D
             }
             .measurements
 
-        let shortEdgeCount = Int(result.boundingBox!.size.x)
-        let longEdgeCount = Int(result.boundingBox!.size.y)
+        let shortSegmentCount = Int(result.boundingBox!.size.x)
+        let longSegmentCount = Int(result.boundingBox!.size.y)
 
-        // Should find the 4 edges along X dimension
-        #expect(shortEdgeCount >= 4)
+        // Should find the 4 segments along X dimension
+        #expect(shortSegmentCount >= 4)
 
-        // Should find the 4 edges along Z dimension
-        #expect(longEdgeCount >= 4)
+        // Should find the 4 segments along Z dimension
+        #expect(longSegmentCount >= 4)
     }
 
     @Test func nearPointFiltering() async throws {
         let result = try await Box(10)
             .readingEdges { _, edges in
-                let totalCount = edges.count
+                let totalCount = edges.segmentCount
 
-                // Filter for edges near the top-front-right corner
+                // Filter for segments near the top-front-right corner
                 let cornerPoint = Vector3D(5, 5, 5)
-                let nearCornerCount = edges.nearPoint(cornerPoint, distance: 6).count
+                let nearCornerCount = edges.nearPoint(cornerPoint, distance: 6).segmentCount
 
                 return Box(x: Double(nearCornerCount), y: Double(totalCount), z: 1) as any Geometry3D
             }
@@ -255,7 +256,7 @@ struct EdgeSelectionTests {
         let nearCornerCount = Int(result.boundingBox!.size.x)
         let totalCount = Int(result.boundingBox!.size.y)
 
-        // Should find edges that have midpoints within 6 units of the corner
+        // Should find segments that have midpoints within 6 units of the corner
         #expect(nearCornerCount > 0)
         #expect(nearCornerCount < totalCount)
     }
@@ -263,20 +264,20 @@ struct EdgeSelectionTests {
     @Test func bisectorNormal() async throws {
         let result = try await Box(10)
             .readingEdges { _, edges in
-                // Get a sharp edge (box corner)
-                let sharpEdges = edges.sharp(threshold: 100°).edges
+                // Get a sharp segment (box corner)
+                let sharpSegments = edges.sharp(threshold: 100°).segments
 
-                guard let edge = sharpEdges.first,
-                      let bisector = edges.topology.bisectorNormal(for: edge) else {
-                    return Box(1) as any Geometry3D
+                if let segment = sharpSegments.first,
+                   let bisector = edges.topology.bisectorNormal(for: segment) {
+                    // The bisector should be normalized (magnitude ~1)
+                    let magnitude = bisector.magnitude
+
+                    // For a box corner segment, the bisector should point diagonally outward
+                    // at 45° from each face. Its magnitude should be 1.
+                    Box(x: magnitude + 1, y: 2, z: 1) as any Geometry3D
+                } else {
+                    Box(1) as any Geometry3D
                 }
-
-                // The bisector should be normalized (magnitude ~1)
-                let magnitude = bisector.magnitude
-
-                // For a box corner edge, the bisector should point diagonally outward
-                // at 45° from each face. Its magnitude should be 1.
-                return Box(x: magnitude + 1, y: 2, z: 1) as any Geometry3D
             }
             .measurements
 
@@ -286,20 +287,20 @@ struct EdgeSelectionTests {
         #expect(magnitude >= 0.99 && magnitude <= 1.01)
     }
 
-    @Test func readingEdgeChainsConvenience() async throws {
+    @Test func readingSharpEdgesConvenience() async throws {
         let result = try await Box(10)
-            .readingEdgeChains(sharpnessThreshold: 100°, continuityThreshold: 30°) { _, chains, _ in
-                let chainCount = chains.count
-                let totalEdgesInChains = chains.reduce(0) { $0 + $1.edges.count }
-                Box(x: Double(chainCount), y: Double(totalEdgesInChains), z: 1) as any Geometry3D
+            .readingSharpEdges(sharpnessThreshold: 100°, continuityThreshold: 30°) { _, edges, _ in
+                let edgeCount = edges.count
+                let totalSegmentsInEdges = edges.reduce(0) { $0 + $1.segments.count }
+                Box(x: Double(edgeCount), y: Double(totalSegmentsInEdges), z: 1) as any Geometry3D
             }
             .measurements
 
-        let chainCount = Int(result.boundingBox!.size.x)
-        let totalEdgesInChains = Int(result.boundingBox!.size.y)
+        let edgeCount = Int(result.boundingBox!.size.x)
+        let totalSegmentsInEdges = Int(result.boundingBox!.size.y)
 
-        // 12 sharp edges, each in its own chain (30° threshold doesn't chain 90° corners)
-        #expect(chainCount == 12)
-        #expect(totalEdgesInChains == 12)
+        // 12 sharp segments, each in its own edge (30° threshold doesn't connect 90° corners)
+        #expect(edgeCount == 12)
+        #expect(totalSegmentsInEdges == 12)
     }
 }

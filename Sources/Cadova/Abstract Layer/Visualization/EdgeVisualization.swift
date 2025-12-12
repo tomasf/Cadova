@@ -1,76 +1,76 @@
 import Foundation
 
-public extension EdgeChain {
-    /// Produces a 3D visualization of this edge chain for debugging and inspection.
+public extension Edge {
+    /// Produces a 3D visualization of this edge for debugging and inspection.
     ///
-    /// The visualization shows the edges as a series of connected cylinders.
+    /// The visualization shows the edge as a series of connected cylinders.
     ///
     /// Configure appearance using the public Geometry modifiers:
     /// - `withVisualizationScale(_:)` adjusts overall thickness of the cylinders.
-    /// - `withVisualizationColor(_:)` sets the color of the edges.
+    /// - `withVisualizationColor(_:)` sets the color of the edge.
     ///
     /// - Parameter topology: The mesh topology containing the vertex positions.
-    /// - Returns: A 3D geometry representing the edge chain.
+    /// - Returns: A 3D geometry representing the edge.
     ///
     func visualized(in topology: MeshTopology) -> any Geometry3D {
-        EdgeChainVisualization(chain: self, topology: topology)
+        EdgeVisualization(edge: self, topology: topology)
     }
 }
 
-public extension Array where Element == EdgeChain {
-    /// Produces a 3D visualization of multiple edge chains for debugging and inspection.
+public extension Array where Element == Edge {
+    /// Produces a 3D visualization of multiple edges for debugging and inspection.
     ///
-    /// Each chain is rendered as a series of connected cylinders.
+    /// Each edge is rendered as a series of connected cylinders.
     ///
     /// Configure appearance using the public Geometry modifiers:
     /// - `withVisualizationScale(_:)` adjusts overall thickness of the cylinders.
     /// - `withVisualizationColor(_:)` sets the color of the edges.
     ///
     /// - Parameter topology: The mesh topology containing the vertex positions.
-    /// - Returns: A 3D geometry representing all edge chains.
+    /// - Returns: A 3D geometry representing all edges.
     ///
     func visualized(in topology: MeshTopology) -> any Geometry3D {
         Union {
-            for chain in self {
-                chain.visualized(in: topology)
+            for edge in self {
+                edge.visualized(in: topology)
             }
         }
     }
 }
 
 public extension EdgeSelection {
-    /// Produces a 3D visualization of the selected edges for debugging and inspection.
+    /// Produces a 3D visualization of the selected edge segments for debugging and inspection.
     ///
-    /// The visualization shows each edge as a cylinder.
+    /// The visualization shows each segment as a cylinder.
     ///
     /// Configure appearance using the public Geometry modifiers:
     /// - `withVisualizationScale(_:)` adjusts overall thickness of the cylinders.
-    /// - `withVisualizationColor(_:)` sets the color of the edges.
+    /// - `withVisualizationColor(_:)` sets the color of the segments.
     ///
-    /// - Returns: A 3D geometry representing the selected edges.
+    /// - Returns: A 3D geometry representing the selected segments.
     ///
     func visualized() -> any Geometry3D {
         EdgeSelectionVisualization(selection: self)
     }
 }
 
-fileprivate struct EdgeChainVisualization: Shape3D {
-    let chain: EdgeChain
+fileprivate struct EdgeVisualization: Shape3D {
+    let edge: Edge
     let topology: MeshTopology
 
     var body: any Geometry3D {
         @Environment(\.visualizationOptions.scale) var scale = 1.0
         @Environment(\.visualizationOptions.primaryColor) var color = .edgeDefault
 
-        let vertices = chain.vertices(in: topology)
+        let vertices = edge.vertices(in: topology)
 
         Union {
             for (v1, v2) in vertices.paired() {
-                VisualizedEdge(from: v1, to: v2, thickness: 0.15 * scale)
+                VisualizedSegment(from: v1, to: v2, thickness: 0.15 * scale)
             }
         }
         .colored(color)
-        .inPart(named: "Visualized Edge Chain", type: .visual)
+        .inPart(named: "Visualized Edge", type: .visual)
     }
 }
 
@@ -82,17 +82,17 @@ fileprivate struct EdgeSelectionVisualization: Shape3D {
         @Environment(\.visualizationOptions.primaryColor) var color = .edgeDefault
 
         Union {
-            for edge in selection.edges {
-                let (v1, v2) = edge.vertices(in: selection.topology)
-                VisualizedEdge(from: v1, to: v2, thickness: 0.15 * scale)
+            for segment in selection.segments {
+                let (v1, v2) = segment.vertices(in: selection.topology)
+                VisualizedSegment(from: v1, to: v2, thickness: 0.15 * scale)
             }
         }
         .colored(color)
-        .inPart(named: "Visualized Edges", type: .visual)
+        .inPart(named: "Visualized Segments", type: .visual)
     }
 }
 
-fileprivate struct VisualizedEdge: Shape3D {
+fileprivate struct VisualizedSegment: Shape3D {
     let from: Vector3D
     let to: Vector3D
     let thickness: Double
