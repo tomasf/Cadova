@@ -92,35 +92,46 @@ internal extension Loft {
                 let layer1 = layers[i]
                 let interpolatedLayers: [(polygon: SimplePolygon, z: Double)]
 
-                switch segmentation {
-                case .fixed(let count):
-                    interpolatedLayers = (1..<count).map { j in
-                        let t = Double(j) / Double(count)
-                        let z = layer0.z + (layer1.z - layer0.z) * t
-                        let polygon = lower.blended(with: upper, t: layer1.function(t))
-                        return (polygon, z)
-                    }
+                // Optimization: When shapes are identical, no intermediate layers are needed.
+                // Blending identical shapes produces the same shape regardless of the
+                // shaping function, so all intermediate layers would be duplicates.
+                // The mesh faces between layers will be planar rectangles (split into
+                // triangles), which is geometrically correct for identical cross-sections.
+                let canSkipIntermediate = lower == upper
 
-                case .adaptive(_, let minLength):
-                    var results: [(polygon: SimplePolygon, z: Double)] = []
-
-                    func subdivide(range: Range<Double>) {
-                        let zStart = layer0.z + (layer1.z - layer0.z) * range.lowerBound
-                        let zEnd = layer0.z + (layer1.z - layer0.z) * range.upperBound
-                        let pStart = lower.blended(with: upper, t: layer1.function(range.lowerBound))
-                        let pEnd = lower.blended(with: upper, t: layer1.function(range.upperBound))
-
-                        if pStart.needsSubdivision(next: pEnd, z0: zStart, z1: zEnd, minLength: minLength) {
-                            let tMid = range.mid
-                            subdivide(range: range.lowerBound..<tMid)
-                            subdivide(range: tMid..<range.upperBound)
-                        } else {
-                            results.append((pStart, zStart))
+                if canSkipIntermediate {
+                    interpolatedLayers = []
+                } else {
+                    switch segmentation {
+                    case .fixed(let count):
+                        interpolatedLayers = (1..<count).map { j in
+                            let t = Double(j) / Double(count)
+                            let z = layer0.z + (layer1.z - layer0.z) * t
+                            let polygon = lower.blended(with: upper, t: layer1.function(t))
+                            return (polygon, z)
                         }
-                    }
 
-                    subdivide(range: 0..<1)
-                    interpolatedLayers = results
+                    case .adaptive(_, let minLength):
+                        var results: [(polygon: SimplePolygon, z: Double)] = []
+
+                        func subdivide(range: Range<Double>) {
+                            let zStart = layer0.z + (layer1.z - layer0.z) * range.lowerBound
+                            let zEnd = layer0.z + (layer1.z - layer0.z) * range.upperBound
+                            let pStart = lower.blended(with: upper, t: layer1.function(range.lowerBound))
+                            let pEnd = lower.blended(with: upper, t: layer1.function(range.upperBound))
+
+                            if pStart.needsSubdivision(next: pEnd, z0: zStart, z1: zEnd, minLength: minLength) {
+                                let tMid = range.mid
+                                subdivide(range: range.lowerBound..<tMid)
+                                subdivide(range: tMid..<range.upperBound)
+                            } else {
+                                results.append((pStart, zStart))
+                            }
+                        }
+
+                        subdivide(range: 0..<1)
+                        interpolatedLayers = results
+                    }
                 }
 
                 newPolygons.append(contentsOf: interpolatedLayers.map(\.polygon))
@@ -134,6 +145,7 @@ internal extension Loft {
 
         return refinedGroups
     }
+
 }
 
 fileprivate extension SimplePolygon {
