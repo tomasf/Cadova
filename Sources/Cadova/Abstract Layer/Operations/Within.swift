@@ -25,7 +25,7 @@ public extension Geometry2D {
         y: (any WithinRange)? = nil
     ) -> any Geometry2D {
         measuringBounds { body, bounds in
-            body.intersecting { bounds.within(x: x, y: y).mask }
+            body.intersecting { bounds.within(x: x, y: y, margin: 1).mask }
         }
     }
 }
@@ -55,7 +55,7 @@ public extension Geometry3D {
         z: (any WithinRange)? = nil
     ) -> any Geometry3D {
         measuringBounds { body, bounds in
-            body.intersecting { bounds.within(x: x, y: y, z: z).mask }
+            body.intersecting { bounds.within(x: x, y: y, z: z, margin: 1).mask }
         }
     }
 }
@@ -87,7 +87,7 @@ public extension Geometry2D {
         @GeometryBuilder<D> do operations: @escaping @Sendable (D.Geometry) -> D.Geometry
     ) -> any Geometry2D {
         measuringBounds { body, bounds in
-            let mask = bounds.within(x: x, y: y).mask
+            let mask = bounds.within(x: x, y: y, margin: 1).mask
             body
                 .subtracting(mask)
                 .adding {
@@ -127,7 +127,7 @@ public extension Geometry3D {
         @GeometryBuilder<D> do operations: @escaping @Sendable (D.Geometry) -> D.Geometry
     ) -> any Geometry3D {
         measuringBounds { _, bounds in
-            let mask = bounds.within(x: x, y: y, z: z).mask
+            let mask = bounds.within(x: x, y: y, z: z, margin: 1).mask
 
             self
                 .subtracting(mask)
