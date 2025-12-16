@@ -74,6 +74,21 @@ public extension Edge {
     func vertices(in topology: MeshTopology) -> [Vector3D] {
         vertexIndices().map { topology.vertices[$0] }
     }
+
+    /// Determines whether this edge is convex (outer corner) or concave (inner corner).
+    ///
+    /// A convex edge is like the outside corner of a box - cutting removes material.
+    /// A concave edge is like an inside corner - forming adds material.
+    ///
+    /// - Parameter topology: The mesh topology containing vertex and face data.
+    /// - Returns: `true` if convex, `false` if concave, or `nil` if undetermined.
+    ///
+    func isConvex(in topology: MeshTopology) -> Bool? {
+        // Check the first segment to determine convexity
+        // (all segments in a continuous edge should have the same convexity)
+        guard let firstSegment = segments.first else { return nil }
+        return topology.isConvexEdge(firstSegment)
+    }
 }
 
 // MARK: - Edge Building from Segments

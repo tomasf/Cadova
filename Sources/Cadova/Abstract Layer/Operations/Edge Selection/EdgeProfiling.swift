@@ -36,8 +36,11 @@ public extension Edge {
             guard triangleIndices.count == 2 else {
                 return Empty() as any Geometry3D
             }
-            let n0 = topology.faceNormals[triangleIndices[0]]
-            let n1 = topology.faceNormals[triangleIndices[1]]
+            // Get face normals. For addition operations, negate them to flip the profile orientation.
+            // This is because for concave edges, we're filling the gap rather than cutting into solid.
+            let normalSign: Double = type == .subtraction ? 1.0 : -1.0
+            let n0 = topology.faceNormals[triangleIndices[0]] * normalSign
+            let n1 = topology.faceNormals[triangleIndices[1]] * normalSign
 
             // Get the segment endpoints (in edge order, with wrapping for closed edges)
             let startVertex = Self.vertex(at: segmentIndex, in: vertices, isClosed: self.isClosed)
@@ -53,8 +56,10 @@ public extension Edge {
 
             // Create profile negative shape for this segment's angle
             return profile.readingNegativeShape(for: dihedralAngle) { negativeShape, profileSize in
-                // Extrude to unit length
+                // Extrude to unit length, with small offset to prevent coplanar slivers
+                let sliverOffset = type == .subtraction ? 1e-3 : 1e-6
                 let unitProfile = negativeShape.extruded(height: 1.0)
+                    .translated(x: sliverOffset, y: sliverOffset)
 
                 // Build transform to position and orient the profile
                 let transform = Self.profileTransform(
@@ -71,7 +76,7 @@ public extension Edge {
                     .translated(z: -overshoot)
                     .transformed(transform)
 
-                // Trim at start and end vertices if not at edge endpoints
+                // Trim at segment junctions within the edge
                 self.trimProfile(
                     profileGeom,
                     segmentIndex: segmentIndex,
@@ -152,7 +157,7 @@ public extension Edge {
         var result: any Geometry3D = profile
         let segmentCount = segments.count
 
-        // Trim at start vertex
+        // Trim at start vertex (junction with previous segment)
         if isClosed || segmentIndex > 0 {
             let prevVertex = Self.vertex(at: segmentIndex - 1, in: vertices, isClosed: isClosed)
             let currentVertex = Self.vertex(at: segmentIndex, in: vertices, isClosed: isClosed)
@@ -170,7 +175,7 @@ public extension Edge {
             result = result.trimmed(along: orientedPlane.offset(-1e-6))
         }
 
-        // Trim at end vertex
+        // Trim at end vertex (junction with next segment)
         if isClosed || segmentIndex < segmentCount - 1 {
             let prevVertex = Self.vertex(at: segmentIndex, in: vertices, isClosed: isClosed)
             let currentVertex = Self.vertex(at: segmentIndex + 1, in: vertices, isClosed: isClosed)
@@ -186,6 +191,51 @@ public extension Edge {
             // Flip based on operation type
             let orientedPlane = type == .subtraction ? trimPlane : trimPlane.flipped
             result = result.trimmed(along: orientedPlane.offset(-1e-6))
+        }
+
+        // For addition operations on open edges, trim at the endpoints
+        // to prevent the profile from extending beyond the adjacent faces
+        if type == .addition && !isClosed {
+            result = trimAtEdgeEndpoints(
+                result,
+                segmentIndex: segmentIndex,
+                vertices: vertices
+            )
+        }
+
+        return result
+    }
+
+    /// Trims profile geometry at edge endpoints perpendicular to the edge direction.
+    ///
+    /// For addition operations, this prevents the formed profile from extending
+    /// beyond the top/bottom faces of the geometry.
+    private func trimAtEdgeEndpoints(
+        _ profile: any Geometry3D,
+        segmentIndex: Int,
+        vertices: [Vector3D]
+    ) -> any Geometry3D {
+        var result: any Geometry3D = profile
+        let segmentCount = segments.count
+
+        // At the first segment, trim at the start vertex
+        if segmentIndex == 0 {
+            let startVertex = vertices[0]
+            let edgeDir = (vertices[1] - vertices[0]).normalized
+
+            // Trim plane perpendicular to edge, facing inward (keeping material on the edge side)
+            let trimPlane = Plane(offset: startVertex, normal: Direction3D(edgeDir))
+            result = result.trimmed(along: trimPlane.offset(-1e-6))
+        }
+
+        // At the last segment, trim at the end vertex
+        if segmentIndex == segmentCount - 1 {
+            let endVertex = vertices[segmentCount]
+            let edgeDir = (vertices[segmentCount] - vertices[segmentCount - 1]).normalized
+
+            // Trim plane perpendicular to edge, facing inward (keeping material on the edge side)
+            let trimPlane = Plane(offset: endVertex, normal: Direction3D(-edgeDir))
+            result = result.trimmed(along: trimPlane.offset(-1e-6))
         }
 
         return result

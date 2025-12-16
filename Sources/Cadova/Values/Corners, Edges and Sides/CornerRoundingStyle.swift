@@ -89,7 +89,7 @@ internal struct FilletCorner: Shape2D {
     }
 
     var body: any Geometry2D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         @Environment(\.cornerRoundingStyle) var style
 
         if size.x > 0, size.y > 0 {

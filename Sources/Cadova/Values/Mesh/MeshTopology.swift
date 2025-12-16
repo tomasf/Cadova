@@ -141,4 +141,62 @@ public extension MeshTopology {
 
         return bisector / magnitude
     }
+
+    /// Determines whether an edge segment is convex (outer corner) or concave (inner corner).
+    ///
+    /// A convex edge is where the solid material is "inside" the corner (like the outside
+    /// corner of a box). A concave edge is where the solid material wraps around the corner
+    /// (like an inside corner where two walls meet).
+    ///
+    /// - Parameter segment: The segment to check.
+    /// - Returns: `true` if convex, `false` if concave, or `nil` if undetermined.
+    ///
+    func isConvexEdge(_ segment: EdgeSegment) -> Bool? {
+        let triangleIndices = adjacentTriangles(for: segment)
+        guard triangleIndices.count == 2 else { return nil }
+
+        let n0 = faceNormals[triangleIndices[0]]
+        let n1 = faceNormals[triangleIndices[1]]
+
+        // Bisector points outward for convex edges, inward for concave edges
+        let bisector = n0 + n1
+        guard bisector.magnitude > 1e-10 else { return nil }
+
+        // Get segment midpoint
+        let midpoint = segment.midpoint(in: self)
+
+        // Get opposite vertices (the vertex not on the segment for each triangle)
+        let tri0 = triangles[triangleIndices[0]]
+        let tri1 = triangles[triangleIndices[1]]
+
+        let c0 = oppositeVertex(in: tri0, for: segment)
+        let c1 = oppositeVertex(in: tri1, for: segment)
+
+        // Vectors from midpoint to opposite vertices
+        let toC0 = c0 - midpoint
+        let toC1 = c1 - midpoint
+
+        // For convex edge: opposite vertices are "behind" the bisector direction
+        // (negative dot product means they're on the solid side, away from the bisector)
+        let dot0 = toC0 ⋅ bisector
+        let dot1 = toC1 ⋅ bisector
+
+        if dot0 < 0 && dot1 < 0 {
+            return true // convex
+        } else if dot0 > 0 && dot1 > 0 {
+            return false // concave
+        } else {
+            return nil // ambiguous
+        }
+    }
+
+    private func oppositeVertex(in triangle: Manifold3D.Triangle, for segment: EdgeSegment) -> Vector3D {
+        if triangle.a != segment.v0 && triangle.a != segment.v1 {
+            return vertices[triangle.a]
+        } else if triangle.b != segment.v0 && triangle.b != segment.v1 {
+            return vertices[triangle.b]
+        } else {
+            return vertices[triangle.c]
+        }
+    }
 }
