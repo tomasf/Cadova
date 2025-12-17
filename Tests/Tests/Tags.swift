@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct TagTests {
-    @Test func tags() async throws {
+    @Test func `tagged geometry can be referenced elsewhere in tree`() async throws {
         let blueBoxInside = Tag("blue box inside")
 
         let geometry = Stack(.z, spacing: 3, alignment: .center) {

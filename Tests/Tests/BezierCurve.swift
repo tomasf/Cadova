@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct BezierCurveTests {
-    @Test func quadraticCurvePoints() {
+    @Test func `quadratic curve generates correct sample points`() {
         let curve = BezierPath2D.Curve(controlPoints: [
             [2.5, 8], [19.3, 25], [27, 10]
         ])
@@ -11,7 +11,7 @@ struct BezierCurveTests {
         #expect(points ≈ [[2.5, 8], [5.769, 11.08], [8.856, 13.52], [11.761, 15.32], [14.484, 16.48], [17.025, 17], [19.384, 16.88], [21.561, 16.12], [23.556, 14.72], [25.369, 12.68], [27, 10]])
     }
 
-    @Test func cubicCurvePoints() {
+    @Test func `cubic curve generates correct sample points`() {
         let curve = BezierPath2D.Curve(controlPoints: [
             [12.5, 8], [19.3, 25], [30.2, 12], [27, 10]
         ])
@@ -20,7 +20,7 @@ struct BezierCurveTests {
         #expect(points ≈ [[12.5, 8], [14.6448, 12.241], [16.9264, 14.928], [19.2356, 16.307], [21.4632, 16.624], [23.5, 16.125], [25.2368, 15.056], [26.5644, 13.663], [27.3736, 12.192], [27.5552, 10.889], [27, 10]])
     }
 
-    @Test func quartic3DCurvePoints() {
+    @Test func `quartic 3D curve generates correct sample points`() {
         let curve = BezierPath3D.Curve(controlPoints: [
             [11, 12.5, 8], [19.3, 56, 25], [30.2, 41.5, 12], [-12, 3.5, 20], [19, 27, 10]
         ])

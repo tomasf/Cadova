@@ -3,7 +3,7 @@ import Testing
 @testable import Cadova
 
 struct ImportTests {
-    @Test func importCubeGears() async throws {
+    @Test func `3MF file can be imported with part filtering`() async throws {
         let modelURL = Bundle.module.url(forResource: "cube_gears", withExtension: "3mf", subdirectory: "resources")!
 
         try await Import(model: modelURL)
@@ -23,7 +23,7 @@ struct ImportTests {
             .triggerEvaluation()
     }
 
-    @Test func threeMFRoundTrip() async throws {
+    @Test func `3MF export and import preserves geometry`() async throws {
         let geometry: any Geometry3D = Box(x: 10, y: 20, z: 30)
             .subtracting {
                 Cylinder(diameter: 5, height: 100)
@@ -48,7 +48,7 @@ struct ImportTests {
         #expect(importedMeasurements.surfaceArea ≈ originalMeasurements.surfaceArea)
     }
 
-    @Test func stlRoundTrip() async throws {
+    @Test func `STL export and import preserves geometry`() async throws {
         let geometry: any Geometry3D = Box(x: 10, y: 20, z: 30)
             .subtracting {
                 Cylinder(diameter: 5, height: 100)
@@ -73,7 +73,7 @@ struct ImportTests {
         #expect(importedMeasurements.surfaceArea ≈ originalMeasurements.surfaceArea)
     }
 
-    @Test func stlPartsNotSupported() async throws {
+    @Test func `STL import with parts throws appropriate error`() async throws {
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("cadova-test-\(UUID().uuidString)")
             .appendingPathExtension("stl")

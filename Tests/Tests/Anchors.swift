@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct AnchorTests {
-    @Test func anchor() async throws {
+    @Test func `geometry can be positioned at an anchor point`() async throws {
         let boxRightSide = Anchor("right side of box")
 
         let geometry = Stack(.z, alignment: .center) {
@@ -21,7 +21,7 @@ struct AnchorTests {
         #expect(try await geometry.bounds ≈ .init(minimum: [-5, -5, 0], maximum: [15, 5, 14]))
     }
 
-    @Test func multipleDefinitions() async throws {
+    @Test func `anchor can be defined at multiple points on a shape`() async throws {
         let sphereSurface = Anchor("sphere's surface")
 
         let geometry = Box(1)
@@ -44,7 +44,7 @@ struct AnchorTests {
         #expect(try await geometry.bounds ≈ .init(minimum: .zero, maximum: [14, 14, 15]))
     }
 
-    @Test func usedBeforeDefinition() async throws {
+    @Test func `anchor can be used before it is defined`() async throws {
         let rightAnchor = Anchor("sphere's right side")
 
         let geometry = Box(1)

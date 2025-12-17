@@ -7,7 +7,7 @@ struct GeometryCacheTests {
     let sphere = Sphere(diameter: 1)
     let box = Box(4)
 
-    @Test func basics() async throws {
+    @Test func `cache stores and reuses evaluation results`() async throws {
         _ = try await context.concrete(for: sphere)
         await #expect(context.cache3D.count == 1)
 
@@ -20,7 +20,7 @@ struct GeometryCacheTests {
         await #expect(context.cache3D.count == 3)
     }
 
-    @Test func differentEnvironments() async throws {
+    @Test func `different environments produce separate cache entries`() async throws {
         _ = try await context.concrete(for: sphere)
         await #expect(context.cache3D.count == 1)
 
@@ -28,7 +28,7 @@ struct GeometryCacheTests {
         await #expect(context.cache3D.count == 2)
     }
 
-    @Test func warp() async throws {
+    @Test func `warp operations with same parameters share cache`() async throws {
         let scale = 2.0
         let warp1 = box.warped(operationName: "test", cacheParameters: scale) {
             Vector3D($0.x + $0.z * scale, $0.y, $0.z)
@@ -48,7 +48,7 @@ struct GeometryCacheTests {
         await #expect(context.cache3D.count == 2)
     }
 
-    @Test func split() async throws {
+    @Test func `split operation creates expected cache entries`() async throws {
         await #expect(context.cache3D.count == 0)
 
         let split1 = box.split(along: .z(2).rotated(x: 10°)) { g1, g2 in
@@ -59,8 +59,7 @@ struct GeometryCacheTests {
         await #expect(context.cache3D.count == 4) // box, 2x trims, split union
     }
 
-    // CachedConcreteTransformer should preserve elements
-    @Test func hullPreservesParts() async throws {
+    @Test func `convex hull preserves part information`() async throws {
         let model = Sphere(diameter: 10)
             .convexHull(adding: [0, 0, 20])
             .adding {
@@ -73,8 +72,7 @@ struct GeometryCacheTests {
         #expect(partNames == ["box"])
     }
 
-    // CachedConcreteArrayTransformer should preserve elements
-    @Test func splitPreservesParts() async throws {
+    @Test func `split preserves part information`() async throws {
         let model = Sphere(diameter: 10)
             .adding {
                 Box(5)

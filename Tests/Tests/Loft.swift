@@ -3,7 +3,7 @@ import Testing
 @testable import Cadova
 
 struct LoftTests {
-    @Test func threeLayers() async throws {
+    @Test func `loft with three layers and holes produces correct geometry`() async throws {
         let loft = Loft {
             layer(z: 0) {
                 Circle(diameter: 20)
@@ -35,7 +35,7 @@ struct LoftTests {
         #expect(m.boundingBox ≈ .init(minimum: [-12.5, -12.5, 0], maximum: [12.5, 12.5, 35]))
     }
 
-    @Test func layerSpecificShaping() async throws {
+    @Test func `layer can specify custom shaping function`() async throws {
         let loft = Loft {
             layer(z: 0) {
                 Circle(diameter: 5)
@@ -59,7 +59,7 @@ struct LoftTests {
         #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
 
-    @Test func layerSpecificShapingWithDefault() async throws {
+    @Test func `layer shaping overrides loft default shaping`() async throws {
         let loft = Loft(interpolation: .smoothstep) {
             layer(z: 0) {
                 Circle(diameter: 5)

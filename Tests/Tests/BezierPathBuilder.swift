@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct BezierPathBuilderTests {
-    @Test func testAbsolute() {
+    @Test func `builder with absolute coordinates matches manual construction`() {
         let builderPath = BezierPath2D(from: [10, 4]) {
             line(x: 22, y: 1)
             line(x: 2)
@@ -30,7 +30,7 @@ struct BezierPathBuilderTests {
         #expect(builderPath ≈ manualPath)
     }
 
-    @Test func relativeArc() async throws {
+    @Test func `builder supports relative arc commands`() async throws {
         let builderPath = BezierPath2D(from: [-5, 0], mode: .relative) {
             line(y: 10)
             clockwiseArc(centerX: 5, angle: 180°)
@@ -45,7 +45,7 @@ struct BezierPathBuilderTests {
         #expect(builderPath ≈ manualPath)
     }
 
-    @Test func testRelative() {
+    @Test func `builder with relative coordinates matches manual construction`() {
         let builderPath = BezierPath2D(from: [10, 4], mode: .relative) {
             line(x: 22, y: 1)
             line(x: 2)
