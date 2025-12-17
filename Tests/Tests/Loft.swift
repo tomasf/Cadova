@@ -130,5 +130,30 @@ struct LoftTests {
         // Bounding box should span from the circle at bottom to rectangle at top
         #expect(m.boundingBox ≈ .init(minimum: [-10, -10, 0], maximum: [10, 10, 30]))
     }
+
+    @Test func `visualized loft shows layers at correct positions`() async throws {
+        let loft = Loft {
+            layer(z: 0) {
+                Circle(diameter: 20)
+            }
+            layer(z: 10) {
+                Rectangle([15, 15])
+                    .aligned(at: .center)
+            }
+            layer(z: 25) {
+                Circle(diameter: 10)
+            }
+        }
+
+        let visualization = loft.visualized()
+        try await visualization.writeVerificationModel(name: "loftVisualized")
+        let m = try await visualization.measurements(for: .allParts)
+
+        // The visualization should span approximately from z=0 to z=25
+        #expect(m.boundingBox!.minimum.z ≈ 0)
+        #expect(m.boundingBox!.maximum.z ≈ 25)
+        // Should have some volume (the extruded layer slabs)
+        #expect(m.volume > 0)
+    }
 }
 
