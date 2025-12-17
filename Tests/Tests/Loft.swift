@@ -82,5 +82,53 @@ struct LoftTests {
         #expect(m.surfaceArea ≈ 1118.009)
         #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
+
+    @Test func `convex hull transition creates hull between layers`() async throws {
+        let loft = Loft {
+            layer(z: 0) {
+                Circle(diameter: 20)
+            }
+            layer(z: 10, interpolation: .convexHull) {
+                Rectangle([10, 10])
+                    .aligned(at: .center)
+            }
+        }
+
+        try await loft.writeVerificationModel(name: "loftConvexHull")
+        let m = try await loft.measurements
+
+        // The convex hull of a circle at z=0 and a square at z=10
+        // should produce a solid that's larger than a simple loft
+        #expect(m.volume > 0)
+        #expect(m.surfaceArea > 0)
+        #expect(m.boundingBox ≈ .init(minimum: [-10, -10, 0], maximum: [10, 10, 10]))
+    }
+
+    @Test func `mixed interpolation and convex hull transitions work together`() async throws {
+        let loft = Loft {
+            layer(z: 0) {
+                Circle(diameter: 10)
+            }
+            layer(z: 10) {
+                Circle(diameter: 20)
+            }
+            layer(z: 20, interpolation: .convexHull) {
+                Rectangle([8, 8])
+                    .aligned(at: .center)
+            }
+            layer(z: 30) {
+                Rectangle([15, 15])
+                    .aligned(at: .center)
+            }
+        }
+
+        try await loft.writeVerificationModel(name: "loftMixedTransitions")
+        let m = try await loft.measurements
+
+        #expect(m.volume > 0)
+        #expect(m.surfaceArea > 0)
+        // Bounding box should span from the circle at bottom to rectangle at top
+        #expect(m.boundingBox ≈ .init(minimum: [-10, -10, 0], maximum: [10, 10, 30]))
+    }
 }
 
