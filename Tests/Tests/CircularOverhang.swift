@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct CircularOverhangTests {
-    @Test func styles() async throws {
+    @Test func `circular overhang methods produce correct geometry`() async throws {
         try await Circle(diameter: 10)
             .overhangSafe()
             .extruded(height: 1)

@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct NaturalUpDirectionTests {
-    @Test func basics() async throws {
+    @Test func `natural up direction propagates through geometry tree`() async throws {
         try await Stack(.z, alignment: .center) {
             Cylinder(diameter: 1, height: 5)
             Cylinder(bottomDiameter: 2, topDiameter: 0, height: 2)
@@ -16,7 +16,7 @@ struct NaturalUpDirectionTests {
         .expectEquals(goldenFile: "naturalUpDirection")
     }
 
-    @Test func testDefault() async throws {
+    @Test func `natural up direction defaults to positive Z`() async throws {
         try await Box(1)
             .readingEnvironment(\.naturalUpDirection) { body, direction in
                 #expect(direction ≈ .up)
@@ -24,7 +24,7 @@ struct NaturalUpDirectionTests {
             .triggerEvaluation()
     }
 
-    @Test func perpendicularDirection() async throws {
+    @Test func `perpendicular direction returns nil XY angle`() async throws {
         try await Box(1)
             .readingEnvironment(\.naturalUpDirectionXYAngle) { body, angle in
                 #expect(angle == nil)

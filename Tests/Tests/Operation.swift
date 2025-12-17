@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct OperationTests {
-    @Test func operations() async throws {
+    @Test func `operation context tracks addition and subtraction correctly`() async throws {
         try await Box(1)
             .readingOperation { #expect($0 == .addition) }
             .subtracting {

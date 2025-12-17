@@ -3,7 +3,7 @@ import Testing
 @testable import Cadova
 
 struct Geometry3DTests {
-    @Test func basic3D() async throws {
+    @Test func `3D boolean operations produce correct geometry`() async throws {
         try await Box([20, 20, 20])
             .aligned(at: .center)
             .intersecting {
@@ -17,14 +17,14 @@ struct Geometry3DTests {
             .expectEquals(goldenFile: "3d/basics")
     }
 
-    @Test func empty3D() async throws {
+    @Test func `empty boolean operations have no effect`() async throws {
         try await Box([10, 20, 30])
             .subtracting {}
             .adding {}
             .expectEquals(goldenFile: "3d/empty")
     }
 
-    @Test func roundedBoxes() async throws {
+    @Test func `box corners and edges can be rounded`() async throws {
         try await Stack(.x, spacing: 1) {
             Box([10, 8, 5])
                 .roundingBoxCorners(radius: 2)
@@ -39,7 +39,7 @@ struct Geometry3DTests {
         .expectEquals(goldenFile: "3d/rounded-box")
     }
 
-    @Test func cylinders() async throws {
+    @Test func `cylinders support various dimension specifications`() async throws {
         try await Stack(.y, spacing: 1) {
             Cylinder(bottomRadius: 3, topRadius: 6, height: 10)
             Cylinder(largerDiameter: 10, apexAngle: 10°, height: 20)

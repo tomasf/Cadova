@@ -5,7 +5,7 @@ import Testing
 import simd
 
 struct MatrixTests {
-    @Test func equalImplementations3x3() {
+    @Test func `3x3 basic matrix matches simd implementation`() {
         let simdMatrix1 = simd_double3x3(rows: [
             .init(45.3, 4565, -94.245),
             .init(12.4, 0, -15),
@@ -43,7 +43,7 @@ struct MatrixTests {
         #expect(basicMatrix1.values ≈ basicInverse.inverse.values)
     }
 
-    @Test func equalImplementations4x4() {
+    @Test func `4x4 basic matrix matches simd implementation`() {
         let simdMatrix1 = simd_double4x4(rows: [
             .init(45.3, 67.2, 4565, -94.245),
             .init(12.4, 0, 45.1, -15),

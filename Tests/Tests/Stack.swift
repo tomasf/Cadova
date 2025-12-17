@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct StackTests {
-    @Test func ignoreAlignmentOfStackAxis() async throws {
+    @Test func `stack ignores alignment on its own axis`() async throws {
         // The Z part of the alignment should be ignored
         try await Stack(.z, alignment: .center) {
             Cylinder(diameter: 1, height: 1)
