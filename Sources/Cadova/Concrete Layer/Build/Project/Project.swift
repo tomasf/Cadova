@@ -105,3 +105,58 @@ public func Project(
         content: content
     )
 }
+
+/// Creates a project with the output directory relative to the Swift package root.
+///
+/// This convenience initializer derives the package root from the source file path by finding
+/// the `Sources` directory and using its parent. The output directory is then created at
+/// `<package-root>/<packageRelative>`.
+///
+/// - Parameters:
+///   - packageRelative: The path relative to the package root where models will be saved.
+///   - sourceFile: The path to the source file. Defaults to `#filePath`, which expands to the caller's file path.
+///   - options: Shared `ModelOptions` applied to all models in the project unless overridden.
+///   - content: A result builder that asynchronously returns an array of directives.
+///
+/// ### Example
+/// ```swift
+/// await Project(packageRelative: "Models") {
+///     await Model("example") {
+///         Box(10)
+///     }
+/// }
+/// ```
+///
+/// This will save models to `<package-root>/Models/`.
+///
+public func Project(
+    packageRelative root: String,
+    sourceFile: String = #filePath,
+    options: ModelOptions...,
+    @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
+) async {
+    let sourceURL = URL(filePath: sourceFile)
+    let packageRoot = sourceURL.packageRootURL ?? sourceURL.deletingLastPathComponent()
+    let outputURL = packageRoot.appending(path: root, directoryHint: .isDirectory)
+
+    await Project(
+        root: outputURL,
+        options: .init(options),
+        content: content
+    )
+}
+
+private extension URL {
+    /// Finds the package root by locating the last `Sources` component in the path
+    /// and returning its parent directory.
+    var packageRootURL: URL? {
+        var url = self
+        while url.pathComponents.count > 1 {
+            if url.lastPathComponent == "Sources" {
+                return url.deletingLastPathComponent()
+            }
+            url = url.deletingLastPathComponent()
+        }
+        return nil
+    }
+}
