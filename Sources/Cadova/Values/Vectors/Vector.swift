@@ -1,5 +1,10 @@
 import Foundation
 
+/// A geometric vector in 2D or 3D space.
+///
+/// This protocol defines common vector operations. You typically work with the concrete types
+/// ``Vector2D`` and ``Vector3D`` rather than this protocol directly.
+///
 public protocol Vector: Hashable, Sendable, Codable, CustomDebugStringConvertible,
                         Collection where Element == Double {
     associatedtype D: Dimensionality where D.Vector == Self
@@ -109,6 +114,14 @@ internal extension Vector {
     }
 }
 
+/// Linearly interpolates between two vectors.
+///
+/// - Parameters:
+///   - a: The starting vector.
+///   - b: The ending vector.
+///   - t: The interpolation factor, where 0 returns `a` and 1 returns `b`.
+/// - Returns: The interpolated vector.
+///
 public func lerp<V: Vector>(_ a: V, _ b: V, t: Double) -> V {
     a + (b - a) * t
 }

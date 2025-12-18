@@ -100,6 +100,28 @@ public struct Transform3D: Transform {
         if self[3,2] != 0.0 { return false }
         return true
     }
+
+    /// Per-axis scale of the linear 3×3 part (ignoring translation).
+    ///
+    /// Computed as the Euclidean norms of the three column vectors of the upper-left 3×3 submatrix.
+    /// For the identity transform, this is [1, 1, 1].
+    ///
+    /// Notes:
+    /// - If the transform contains shear, these values are approximations based on column norms.
+    /// - Reflections are handled via absolute magnitudes.
+    public var scale: Vector3D {
+        if isIdentity { return Vector3D(1, 1, 1) }
+
+        let c0x = self[0,0], c0y = self[1,0], c0z = self[2,0]
+        let c1x = self[0,1], c1y = self[1,1], c1z = self[2,1]
+        let c2x = self[0,2], c2y = self[1,2], c2z = self[2,2]
+
+        let sx = sqrt(c0x * c0x + c0y * c0y + c0z * c0z)
+        let sy = sqrt(c1x * c1x + c1y * c1y + c1z * c1z)
+        let sz = sqrt(c2x * c2x + c2y * c2y + c2z * c2z)
+
+        return Vector3D(sx, sy, sz)
+    }
 }
 
 public extension Transform3D {

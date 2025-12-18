@@ -25,15 +25,24 @@ public struct Material: Hashable, Sendable, Codable {
         self.physicalProperties = properties
     }
 
+    /// Physically based rendering (PBR) properties using the metallic/roughness model.
+    ///
+    /// These properties define how a material interacts with light, allowing you to create
+    /// realistic metals, plastics, and other surface types.
+    ///
     public struct PhysicalProperties: Hashable, Sendable, Codable {
+        /// How metallic the surface appears, from 0 (non-metallic) to 1 (fully metallic).
         let metallicness: Double
+
+        /// How rough the surface appears, from 0 (smooth and reflective) to 1 (fully matte).
         let roughness: Double
 
-        /// Initializes PBR properties using a metallic/roughness model.
+        /// Creates PBR properties using a metallic/roughness model.
         ///
         /// - Parameters:
         ///   - metallicness: A value between 0 (non-metallic) and 1 (fully metallic).
         ///   - roughness: A value between 0 (smooth and reflective) and 1 (fully matte).
+        ///
         init(metallicness: Double, roughness: Double) {
             self.metallicness = metallicness
             self.roughness = roughness

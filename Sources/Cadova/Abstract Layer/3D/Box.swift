@@ -1,7 +1,8 @@
 import Foundation
 
-/// A rectangular cuboid shape
+/// A rectangular cuboid shape.
 public struct Box: Geometry {
+    /// The dimensions of the box along each axis.
     public let size: Vector3D
 
     /// Initializes a new box with specific dimensions and centering options.

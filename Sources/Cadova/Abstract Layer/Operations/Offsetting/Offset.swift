@@ -50,7 +50,7 @@ public extension Geometry2D {
     /// - Returns: A new geometry object that is the result of the offset operation.
     ///
     func offset(amount: Double, style: LineJoinStyle) -> any Geometry2D {
-        readEnvironment(\.miterLimit, \.segmentation) { miterLimit, segmentation in
+        readEnvironment(\.miterLimit, \.scaledSegmentation) { miterLimit, segmentation in
             GeometryNodeTransformer(body: self) {
                 .offset(
                     $0,

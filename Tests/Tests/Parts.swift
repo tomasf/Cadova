@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct PartTests {
-    @Test func separatePart() async throws {
+    @Test func `parts are exported separately from main geometry`() async throws {
         try await Box(10)
             .adding {
                 Sphere(diameter: 5)
@@ -12,7 +12,7 @@ struct PartTests {
             .expectEquals(goldenFile: "separatePart")
     }
 
-    @Test func nestedPartsSurvive() async throws {
+    @Test func `nested parts survive evaluation`() async throws {
         let g = Box(10)
             .adding {
                 Sphere(diameter: 10)
@@ -28,7 +28,7 @@ struct PartTests {
         #expect(Set(partNames) == ["inner", "outer"])
     }
 
-    @Test func partsWithEqualNamesAreMerged() async throws {
+    @Test func `parts with same name are merged`() async throws {
         let g = Box(10)
             .adding {
                 Sphere(diameter: 5)
@@ -44,7 +44,7 @@ struct PartTests {
         #expect(BoundingBox3D(concrete.bounds) ≈ BoundingBox3D(minimum: [-2.5, -2.5, -2.5], maximum: [20, 4, 4]))
     }
 
-    @Test func rootOperationShouldBePositive() async throws {
+    @Test func `part root operation is always addition`() async throws {
         try await Box(10)
             .subtracting {
                 Sphere(diameter: 10)
@@ -56,7 +56,7 @@ struct PartTests {
             .triggerEvaluation()
     }
 
-    @Test func detachment() async throws {
+    @Test func `parts can be detached and reattached`() async throws {
         let measurements = try await Box(10)
             .readingPartNames { #expect($0.isEmpty) }
             .adding {
@@ -83,7 +83,7 @@ struct PartTests {
         #expect(measurements.surfaceArea ≈ 882.572)
     }
 
-    @Test func partMeasurements() async throws {
+    @Test func `measurement scopes correctly filter parts`() async throws {
         try await Sphere(diameter: 10)
             .adding {
                 Box(10)
@@ -106,7 +106,7 @@ struct PartTests {
             .triggerEvaluation()
     }
 
-    @Test func stackWithParts() async throws {
+    @Test func `stack correctly handles children with parts`() async throws {
         let stack = Stack(.x) {
             Sphere(diameter: 10)
                 .inPart(named: "sphere")
@@ -122,7 +122,7 @@ struct PartTests {
         #expect(solidMeasurements.boundingBox ≈ .init(minimum: [0, -5, -5], maximum: [35, 20, 30]))
     }
 
-    @Test func transformedPartMeasurement() async throws {
+    @Test func `transformed geometry measures parts correctly`() async throws {
         let geometry = Box(1)
             .adding {
                 Box(2)
@@ -141,8 +141,7 @@ struct PartTests {
         #expect(measurementsMain.boundingBox ≈ .init(minimum: [-1, 3, 0], maximum: [0, 4, 1]))
     }
 
-    @Test
-    func subtractingParts() async throws {
+    @Test func `parts can be subtracted from main geometry`() async throws {
         let geometry = Box(10)
             .adding {
                 Box(4)
@@ -156,8 +155,7 @@ struct PartTests {
         #expect(try await geometry.mainModelMeasurements.volume ≈ (1000.0 - 64.0))
     }
 
-    @Test
-    func detachingParts() async throws {
+    @Test func `detaching parts removes them from parts list`() async throws {
         let geometry = Box(10)
             .adding {
                 Box(4)
@@ -175,8 +173,7 @@ struct PartTests {
         #expect(try await geometry.measurements.volume ≈ 1064)
     }
 
-    @Test
-    func modifyingParts() async throws {
+    @Test func `modifyingParts transforms all parts`() async throws {
         let geometry = Stack(.x) {
             Box(10)
             Box(4)
@@ -192,8 +189,7 @@ struct PartTests {
         #expect(try await geometry.measurements.volume ≈ 1009)
     }
 
-    @Test
-    func modifyingSinglePart() async throws {
+    @Test func `modifyingPart transforms single named part`() async throws {
         let geometry = Stack(.x) {
             Box(10)
             Box(4)
@@ -209,8 +205,7 @@ struct PartTests {
         #expect(try await geometry.measurements.volume ≈ 1016)
     }
 
-    @Test
-    func removingParts() async throws {
+    @Test func `removingParts removes all parts`() async throws {
         let geometry = Stack(.x) {
             Box(10)
             Box(4)
@@ -224,8 +219,7 @@ struct PartTests {
         #expect(try await geometry.measurements.volume ≈ 1000)
     }
 
-    @Test
-    func removingSinglePart() async throws {
+    @Test func `removingPart removes single named part`() async throws {
         let geometry = Stack(.x) {
             Box(10)
             Box(4)

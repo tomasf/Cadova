@@ -28,17 +28,18 @@ public extension Geometry2D {
         if twist.isZero {
             extruded(height: height, twist: twist, scale: topScale, divisions: 0)
         } else {
-            measureBoundsIfNonEmpty { _, e, bounds in
+            measuringBounds { _, bounds in
                 let numRevolutions = abs(twist) / 360°
                 let maxRadius = bounds.maximumDistanceToOrigin
                 @Environment(\.twistSubdivisionThreshold) var maxCrease
+                @Environment(\.scaledSegmentation) var segmentation
 
                 let pitch = height / numRevolutions
                 let helixLength = sqrt(pow(maxRadius * 2 * .pi, 2) + pow(pitch, 2)) * numRevolutions
 
-                let segmentsPerRevolution = e.segmentation.segmentCount(circleRadius: maxRadius)
+                let segmentsPerRevolution = segmentation.segmentCount(circleRadius: maxRadius)
                 let twistSegments = Int(Double(segmentsPerRevolution) * numRevolutions)
-                let lengthSegments = e.segmentation.segmentCount(length: helixLength)
+                let lengthSegments = segmentation.segmentCount(length: helixLength)
                 let segmentCount = max(twistSegments, lengthSegments)
                 let maxEdgeLength = maxEdgeLength(
                     radius: maxRadius,
@@ -84,7 +85,7 @@ public extension Geometry2D {
     /// ```
     ///
     func revolved(in range: Range<Angle> = 0°..<360°) -> any Geometry3D {
-        readEnvironment(\.segmentation) { segmentation in
+        readEnvironment(\.scaledSegmentation) { segmentation in
             self.measuringBounds { geometry, bounds in
                 let radius = max(bounds.maximum.x, 0)
 

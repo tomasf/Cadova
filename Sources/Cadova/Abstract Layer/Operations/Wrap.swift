@@ -21,10 +21,11 @@ public extension Geometry3D {
     ///     maximum X extent as one full turn of the circle.
     ///
     func wrappedAroundCylinder(diameter: Double? = nil) -> any Geometry3D {
-        measureBoundsIfNonEmpty { geometry, e, bounds in
+        measuringBounds { geometry, bounds in
+            @Environment(\.scaledSegmentation) var segmentation
             let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
             let maximumRadius = innerRadius + bounds.maximum.z
-            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.segmentation.segmentCount(circleRadius: maximumRadius))
+            let segmentLength = (maximumRadius * 2 * .pi) / Double(segmentation.segmentCount(circleRadius: maximumRadius))
             let innerCircumference = innerRadius * 2 * .pi
 
             geometry
@@ -63,10 +64,11 @@ public extension Geometry2D {
     ///     the resulting wrapped geometry faces upward.
     ///
     func wrappedAroundCircle(radius: Double? = nil) -> any Geometry2D {
-        measureBoundsIfNonEmpty { geometry, e, bounds in
+        measuringBounds { geometry, bounds in
+            @Environment(\.scaledSegmentation) var segmentation
             let innerRadius = radius ?? bounds.maximum.x / .pi
             let maximumRadius = innerRadius + bounds.maximum.y
-            let segmentLength = (maximumRadius * 2 * .pi) / Double(e.segmentation.segmentCount(circleRadius: maximumRadius))
+            let segmentLength = (maximumRadius * 2 * .pi) / Double(segmentation.segmentCount(circleRadius: maximumRadius))
             let innerCircumference = innerRadius * 2 * .pi
 
             geometry
@@ -156,7 +158,8 @@ public extension Geometry3D {
     /// This creates a thin, curved shell wrapping around a sphere.
     ///
     func wrappedAroundSphere(radius: Double? = nil) -> any Geometry3D {
-        measureBoundsIfNonEmpty { geometry, e, bounds in
+        measuringBounds { geometry, bounds in
+            @Environment(\.scaledSegmentation) var segmentation
             let naturalCircumference = bounds.maximum.x
             let baseRadius = radius ?? (naturalCircumference / .pi / 2.0)
             let circumference = baseRadius * 2.0 * .pi
@@ -164,7 +167,7 @@ public extension Geometry3D {
             let yExtent = max(bounds.maximum.y, -bounds.minimum.y)
             let maximumRadius = baseRadius + bounds.maximum.z
 
-            let sphereSegmentLength = maximumRadius * 2 * .pi / Double(e.segmentation.segmentCount(circleRadius: maximumRadius)) / circumferenceScale
+            let sphereSegmentLength = maximumRadius * 2 * .pi / Double(segmentation.segmentCount(circleRadius: maximumRadius)) / circumferenceScale
 
             geometry
                 .refined(maxEdgeLength: sphereSegmentLength)

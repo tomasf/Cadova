@@ -12,6 +12,7 @@ public struct Circle {
     /// The diameter of the circle.
     public let diameter: Double
 
+    /// The radius of the circle (half of the diameter).
     public var radius: Double { diameter / 2 }
 
     /// Creates a new `Circle` instance with the specified diameter.
@@ -50,7 +51,7 @@ public struct Circle {
 
 extension Circle: Shape2D {
     public var body: any Geometry2D {
-        @Environment(\.segmentation) var segmentation
+        @Environment(\.scaledSegmentation) var segmentation
         NodeBasedGeometry(.shape(.circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius))))
     }
 }

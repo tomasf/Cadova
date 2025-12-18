@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct ResultTests {
-    @Test func resultElementCombination() async throws {
+    @Test func `result elements are combined through boolean operations`() async throws {
         try await Box(1)
             .withTestValue(1)
             .adding {
@@ -18,7 +18,7 @@ struct ResultTests {
             .triggerEvaluation()
     }
 
-    @Test func resultElementReplacement() async throws {
+    @Test func `result elements can be replaced`() async throws {
         try await Box(1)
             .withTestValue(1)
             .adding { Box(2) }

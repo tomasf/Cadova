@@ -1,5 +1,9 @@
 import Foundation
 
+/// Base protocol for custom shapes.
+///
+/// Don't conform to this protocol directly; instead, use ``Shape2D`` or ``Shape3D``.
+///
 public protocol Shape: Geometry, Transformable where T == D.Transform, Transformed == D.Geometry {
     @GeometryBuilder<D> var body: any Geometry<D> { get }
 }

@@ -1,6 +1,18 @@
 import Foundation
 import Manifold3D
 
+/// A 3D shape defined by sampling a signed distance function (SDF).
+///
+/// `LevelSet` creates geometry by evaluating a scalar field over a 3D volume and extracting
+/// the surface at a specified threshold (typically zero). This is useful for modeling smooth,
+/// organic surfaces like metaballs or procedurally generated shapes.
+///
+/// The shape uses the Marching Tetrahedra algorithm internally to extract a manifold surface
+/// from the SDF samples.
+///
+/// - Note: This is a computationally intensive operation. Use appropriate grid resolution
+///   to balance quality and performance.
+///
 public struct LevelSet: Shape3D {
     let function: @Sendable (Vector3D) -> Double
     let bounds: BoundingBox3D

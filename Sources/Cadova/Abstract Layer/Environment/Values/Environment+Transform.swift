@@ -29,3 +29,38 @@ public extension EnvironmentValues {
         setting(key: Self.environmentKey, value:newTransform.concatenated(with: transform))
     }
 }
+
+public extension EnvironmentValues {
+    /// A single scalar that summarizes the overall scale of the current transform.
+    ///
+    /// This value is suitable for adapting tolerances and thresholds to the local coordinate system.
+    /// It is computed from the per‑axis scales (ignoring translation) by taking the maximum component.
+    /// For the identity transform, this is `1.0`.
+    ///
+    var scale: Double {
+        let s = transform.scale
+        return min(s.x, s.y, s.z)
+    }
+
+    /// Returns a segmentation adjusted to the current environment scale.
+    ///
+    /// - For `.fixed`, the value is returned unchanged.
+    /// - For `.adaptive(minAngle:minSize:)`, the `minSize` is multiplied by `scale`.
+    ///
+    /// This helps keep geometric detail consistent under scaled coordinate systems.
+    var scaledSegmentation: Segmentation {
+        switch segmentation {
+        case .fixed:
+            return segmentation
+        case .adaptive(let minAngle, let minSize):
+            return .adaptive(minAngle: minAngle, minSize: minSize / scale)
+        }
+    }
+
+    /// The environment’s tolerance scaled by the current transform’s scalar scale.
+    ///
+    /// Useful for adapting tolerances to the local coordinate system.
+    var scaledTolerance: Double {
+        tolerance / scale
+    }
+}

@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct WrapTests {
-    @Test func wrapAroundSphere() async throws {
+    @Test func `geometry can be wrapped around sphere`() async throws {
         try await Box([40, 30, 3])
             .aligned(at: .centerXY)
             .adding {

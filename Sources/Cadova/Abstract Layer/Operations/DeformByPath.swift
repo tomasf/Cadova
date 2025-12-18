@@ -14,7 +14,7 @@ public extension Geometry2D {
     ///
     func deformed<Curve: ParametricCurve<Vector2D>>(by curve: Curve) -> D.Geometry {
         measuringBounds { body, bounds in
-            @Environment(\.segmentation) var segmentation
+            @Environment(\.scaledSegmentation) var segmentation
             let min = curve.parameter(matching: bounds.minimum.x, along: .x) ?? curve.domain.lowerBound
             let max = curve.parameter(matching: bounds.maximum.x, along: .x) ?? curve.domain.upperBound
             let approximateLength = curve[min...max].approximateLength
@@ -55,7 +55,7 @@ public extension Geometry3D {
     ///
     func deformed<Curve: ParametricCurve<Vector3D>>(by curve: Curve) -> D.Geometry {
         measuringBounds { body, bounds in
-            @Environment(\.segmentation) var segmentation
+            @Environment(\.scaledSegmentation) var segmentation
             let min = curve.parameter(matching: bounds.minimum.z, along: .z) ?? curve.domain.lowerBound
             let max = curve.parameter(matching: bounds.maximum.z, along: .z) ?? curve.domain.upperBound
             let approximateLength = curve[min...max].approximateLength

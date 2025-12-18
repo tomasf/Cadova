@@ -3,7 +3,7 @@ import Testing
 @testable import Cadova
 
 struct SweepTests {
-    @Test func twist() async throws {
+    @Test func `shape can be swept along 3D bezier path`() async throws {
         let shape = Rectangle(x: 10, y: 6)
             .aligned(at: .center)
             .adding {
@@ -33,8 +33,7 @@ struct SweepTests {
         #expect(m.boundingBox ≈ .init(minimum: [0, -5.595, -3], maximum: [105.831, 100, 155.5]))
     }
 
-    // Star from example4
-    @Test func exampleStar() async throws {
+    @Test func `star shape can be swept along 2D path`() async throws {
         let path = BezierPath2D {
             curve([10, 65], [50, -20], [60, 50])
         }

@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct SplitTests {
-    @Test func splitAlongPlane() async throws {
+    @Test func `geometry can be split along angled plane`() async throws {
         let split = Box(10)
             .aligned(at: .center)
             .split(along: .z(0).rotated(x: 20°)) {
@@ -13,7 +13,7 @@ struct SplitTests {
         try await split.expectEquals(goldenFile: "splitAlongPlane")
     }
 
-    @Test func splitMeasurements() async throws {
+    @Test func `split parts have correct measurements`() async throws {
         let topMeasurements = try await Box(10)
             .split(along: .z(2)) { a, _ in a }
             .measurements
@@ -29,7 +29,7 @@ struct SplitTests {
         #expect(bottomMeasurements.boundingBox?.minimum.z ≈ 0)
     }
 
-    @Test func separated() async throws {
+    @Test func `separated correctly identifies disjoint components`() async throws {
         try await Box(1).adding { Box(1).translated(x: 0.5) }
             .separated { #expect($0.count == 1) }
             .triggerEvaluation()
@@ -39,7 +39,7 @@ struct SplitTests {
             .triggerEvaluation()
     }
 
-    @Test func separatedExample() async throws {
+    @Test func `separated components can be stacked`() async throws {
         let model = Sphere(diameter: 10)
             .subtracting {
                 Box([12, 12, 1])

@@ -48,6 +48,9 @@ public struct Mesh<Vertex: Hashable & Sendable>: Shape3D {
         var vertices: [Vector3D] = []
         var keyIndices: [Vertex: Int] = [:]
 
+        vertices.reserveCapacity(faces.count * 2)
+        keyIndices.reserveCapacity(faces.count * 2)
+
         let indexedFaces = faces.map {
             $0.map { key in
                 if let index = keyIndices[key] {

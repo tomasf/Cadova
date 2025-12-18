@@ -38,15 +38,15 @@ internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
     }
 }
 
-extension GeometryNode {
-    public enum Projection: Hashable, Sendable, Codable {
+internal extension GeometryNode {
+    enum Projection: Hashable, Sendable, Codable {
         case full
         case slice (z: Double)
     }
 }
 
-extension GeometryNode {
-    public enum Extrusion: Hashable, Sendable, Codable {
+internal extension GeometryNode {
+    enum Extrusion: Hashable, Sendable, Codable {
         case linear (height: Double, twist: Angle = 0°, divisions: Int = 0, scaleTop: Vector2D = [1,1])
         case rotational (angle: Angle, segments: Int)
 
@@ -171,7 +171,7 @@ extension GeometryNode {
     }
 }
 
-public enum BooleanOperationType: String, Hashable, Sendable, Codable {
+internal enum BooleanOperationType: String, Hashable, Sendable, Codable {
     case union
     case difference
     case intersection

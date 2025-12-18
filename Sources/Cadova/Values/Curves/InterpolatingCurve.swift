@@ -26,6 +26,7 @@ public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable
     /// Number of distinct support points used for wrapping at the seam.
     private var wrappedSupportCount: Int { isClosed ? (points.count - 1) : points.count }
 
+    /// Always returns `false` since an interpolating curve requires at least two points.
     public var isEmpty: Bool { false }
 
     /// Domain measured in segment units (e.g. `1.25` is 25% into the second segment).
@@ -35,6 +36,12 @@ public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable
 
     public var sampleCountForLengthApproximation: Int { (points.count - 1) * 4 }
 
+    /// Returns the point on the curve at parameter `u`.
+    ///
+    /// - Parameter u: A parameter value where the integer part indicates the segment index
+    ///   and the fractional part indicates position within that segment.
+    /// - Returns: The interpolated point on the curve.
+    ///
     public func point(at u: Double) -> V {
         let uClamped = u.clamped(to: domain)
         let segmentIndex = min(Int(floor(uClamped)), max(points.count - 2, 0))
@@ -76,10 +83,22 @@ public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable
 
     // MARK: - Sampling
 
+    /// Returns points sampled along the entire curve.
+    ///
+    /// - Parameter segmentation: Controls the sampling density and strategy.
+    /// - Returns: An array of points from start to end of the curve.
+    ///
     public func points(segmentation: Segmentation) -> [V] {
         points(in: domain, segmentation: segmentation)
     }
 
+    /// Returns points sampled along a parameter subrange.
+    ///
+    /// - Parameters:
+    ///   - range: The parameter range to sample within.
+    ///   - segmentation: Controls the sampling density and strategy.
+    /// - Returns: An array of points covering the specified range.
+    ///
     public func points(in range: ClosedRange<Double>, segmentation: Segmentation) -> [V] {
         let span = range.clamped(to: domain)
         switch segmentation {
@@ -134,10 +153,20 @@ public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable
         InterpolatingCurveDerivativeView(curve: self)
     }
 
+    /// Creates a 2D curve by transforming each control point.
+    ///
+    /// - Parameter transformer: A closure that converts each point to 2D.
+    /// - Returns: A new 2D interpolating curve with transformed points.
+    ///
     public func mapPoints(_ transformer: (V) -> Vector2D) -> InterpolatingCurve<Vector2D> {
         InterpolatingCurve<Vector2D>(through: points.map(transformer))
     }
 
+    /// Creates a 3D curve by transforming each control point.
+    ///
+    /// - Parameter transformer: A closure that converts each point to 3D.
+    /// - Returns: A new 3D interpolating curve with transformed points.
+    ///
     public func mapPoints(_ transformer: (V) -> Vector3D) -> InterpolatingCurve<Vector3D> {
         InterpolatingCurve<Vector3D>(through: points.map(transformer))
     }
