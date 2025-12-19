@@ -11,12 +11,12 @@ struct GeometryNodeSimplificationTests {
     let emptyUnion2D = GeometryNode<D2>.boolean([], type: .union)
     let emptyUnion3D = GeometryNode<D3>.boolean([], type: .union)
 
-    @Test func emptyUnion() {
+    @Test func `empty union simplifies to empty`() {
         #expect(emptyUnion2D.isEmpty)
         #expect(emptyUnion3D.isEmpty)
     }
 
-    @Test func singleUnion() {
+    @Test func `single child union simplifies to child`() {
         let singleUnion2D = GeometryNode.boolean([rectangle], type: .union)
         #expect(singleUnion2D == rectangle)
 
@@ -24,7 +24,7 @@ struct GeometryNodeSimplificationTests {
         #expect(singleUnion3D == box)
     }
 
-    @Test func emptyBaseDifference() {
+    @Test func `difference with empty base simplifies correctly`() {
         let emptyBase2D = GeometryNode.boolean([.empty, rectangle], type: .difference)
         #expect(emptyBase2D.isEmpty)
 
@@ -38,7 +38,7 @@ struct GeometryNodeSimplificationTests {
         #expect(nonEmptyBase3D == box)
     }
 
-    @Test func emptyChildrenDifference() {
+    @Test func `difference with empty children simplifies to base`() {
         let emptyChildren2D = GeometryNode.boolean([rectangle, .empty, .empty], type: .difference)
         #expect(emptyChildren2D == rectangle)
 
@@ -46,12 +46,12 @@ struct GeometryNodeSimplificationTests {
         #expect(emptyChildren3D == box)
     }
 
-    @Test func zeroSizes() {
+    @Test func `zero-sized shapes simplify to empty`() {
         #expect(zeroBox.isEmpty)
         #expect(zeroCircle.isEmpty)
     }
 
-    @Test func zeroSizesInUnion() {
+    @Test func `union of zero-sized shapes simplifies to empty`() {
         let zeroUnion2D = GeometryNode.boolean([zeroCircle, .empty], type: .union)
         #expect(zeroUnion2D.isEmpty)
 
@@ -59,7 +59,7 @@ struct GeometryNodeSimplificationTests {
         #expect(zeroUnion3D.isEmpty)
     }
 
-    @Test func emptyOperands() {
+    @Test func `operations on empty operands simplify to empty`() {
         let emptyOffset = GeometryNode.offset(.empty, amount: 1.0, joinStyle: .miter, miterLimit: 4.0, segmentCount: 8)
         #expect(emptyOffset.isEmpty)
 
@@ -76,7 +76,7 @@ struct GeometryNodeSimplificationTests {
         #expect(emptyConvexHull.isEmpty)
     }
 
-    @Test func nestedEmptyChildren() {
+    @Test func `nested empty children simplify correctly`() {
         let nestedUnion = GeometryNode.boolean([
             .empty,
             emptyUnion3D,

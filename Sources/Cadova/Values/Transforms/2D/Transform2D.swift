@@ -96,6 +96,26 @@ public struct Transform2D: Transform {
         if self[2,1] != 0.0 { return false }
         return true
     }
+
+    /// Per-axis scale of the linear 2×2 part (ignoring translation).
+    ///
+    /// Computed as the Euclidean norms of the two column vectors of the upper-left 2×2 submatrix.
+    /// For the identity transform, this is [1, 1].
+    ///
+    /// Notes:
+    /// - If the transform contains shear, these values are approximations based on column norms.
+    /// - Reflections are handled via absolute magnitudes.
+    public var scale: Vector2D {
+        if isIdentity { return Vector2D(1, 1) }
+
+        let c0x = self[0,0], c0y = self[1,0]
+        let c1x = self[0,1], c1y = self[1,1]
+
+        let sx = sqrt(c0x * c0x + c0y * c0y)
+        let sy = sqrt(c1x * c1x + c1y * c1y)
+
+        return Vector2D(sx, sy)
+    }
 }
 
 public extension Transform2D {

@@ -22,15 +22,16 @@ public extension Geometry2D {
     /// - Returns: A 3D geometry representing the 2D shape swept along the helical path.
     ///
     func sweptAlongHelix(pitch: Double, height: Double) -> any Geometry3D {
-        measureBoundsIfNonEmpty { _, e, bounds in
+        measuringBounds { _, bounds in
+            @Environment(\.scaledSegmentation) var segmentation
             let revolutions = height / pitch
             let outerRadius = bounds.maximum.x
             let lengthPerRev = outerRadius * 2 * .pi
 
             let helixLength = sqrt(pow(lengthPerRev, 2) + pow(pitch, 2)) * revolutions
             let totalSegments = Int(max(
-                Double(e.segmentation.segmentCount(circleRadius: outerRadius)) * revolutions,
-                Double(e.segmentation.segmentCount(length: helixLength))
+                Double(segmentation.segmentCount(circleRadius: outerRadius)) * revolutions,
+                Double(segmentation.segmentCount(length: helixLength))
             ))
 
             extruded(height: lengthPerRev * revolutions, divisions: totalSegments)

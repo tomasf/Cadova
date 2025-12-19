@@ -46,7 +46,7 @@ internal struct Sweep<Path: ParametricCurve>: Shape3D {
 
     var body: any Geometry3D {
         @Environment(\.maxTwistRate) var maxTwistRate
-        @Environment(\.segmentation) var segmentation
+        @Environment(\.scaledSegmentation) var segmentation
 
         CachedNodeTransformer(
             body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation

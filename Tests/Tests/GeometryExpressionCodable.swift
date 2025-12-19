@@ -3,7 +3,7 @@ import Foundation
 @testable import Cadova
 
 struct GeometryNodeCodableTests {
-    @Test func testCodableRoundTrip2D() throws {
+    @Test func `2D geometry node encodes and decodes correctly`() throws {
         let node: GeometryNode = .boolean([
             .shape(.rectangle(size: .init(x: 10, y: 5))),
             .transform(
@@ -32,7 +32,7 @@ struct GeometryNodeCodableTests {
     }
 
     @Test
-    func testCodableRoundTrip3D() throws {
+    func `3D geometry node encodes and decodes correctly`() throws {
         let node = GeometryNode.boolean([
             .shape(.box(size: .init(x: 5, y: 5, z: 1))),
             .transform(

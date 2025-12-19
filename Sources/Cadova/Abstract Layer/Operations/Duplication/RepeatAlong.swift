@@ -84,22 +84,34 @@ extension Geometry {
     /// - Parameters:
     ///   - axis: The axis to repeat along
     ///   - range: The range of offsets to repeat within. The last repetition will occur at the upper bound of this range.
-    ///   - minimumSpacing: The minimum spacing between instances, not including the geometry’s own size
+    ///   - minimumSpacing: The minimum spacing between instances, not including the geometry's own size
+    ///   - cyclically: When `true`, spacing is distributed as if the range wraps around (e.g., for circular
+    ///     arrangements). The last instance will not be placed at the upper bound; instead, there will be
+    ///     spacing after it equal to the spacing before the first instance. Defaults to `false`.
     /// - Returns: A new geometry with this geometry repeated
     ///
     /// This method calculates the number of repetitions that can fit within the given range
     /// while maintaining at least the specified minimum spacing between each instance.
-    /// The geometry’s bounding box is measured to determine its size along the specified axis.
+    /// The geometry's bounding box is measured to determine its size along the specified axis.
     /// The final spacing is adjusted to fill the available range evenly.
-    /// 
-    public func repeated(along axis: D.Axis, in range: ClosedRange<Double>, minimumSpacing: Double) -> D.Geometry {
+    ///
+    public func repeated(along axis: D.Axis, in range: ClosedRange<Double>, minimumSpacing: Double, cyclically: Bool = false) -> D.Geometry {
         measuringBounds { _, bounds in
             let boundsLength = bounds.size[axis]
-            let availableLength = range.upperBound - range.lowerBound - boundsLength
-            let count = Int(floor(availableLength / (boundsLength + minimumSpacing)))
-            let step = availableLength / Double(count)
-            self.repeated(along: axis, step: step, count: count + 1)
-                .translated(D.Vector(axis, value: range.lowerBound))
+            let rangeLength = range.upperBound - range.lowerBound
+
+            if cyclically {
+                let count = Int(floor(rangeLength / (boundsLength + minimumSpacing)))
+                let step = rangeLength / Double(count)
+                self.repeated(along: axis, step: step, count: count)
+                    .translated(D.Vector(axis, value: range.lowerBound))
+            } else {
+                let availableLength = rangeLength - boundsLength
+                let count = Int(floor(availableLength / (boundsLength + minimumSpacing)))
+                let step = availableLength / Double(count)
+                self.repeated(along: axis, step: step, count: count + 1)
+                    .translated(D.Vector(axis, value: range.lowerBound))
+            }
         }
     }
 }

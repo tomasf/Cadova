@@ -1,6 +1,9 @@
 import Foundation
 
+/// A 2D Bezier path.
 public typealias BezierPath2D = BezierPath<Vector2D>
+
+/// A 3D Bezier path.
 public typealias BezierPath3D = BezierPath<Vector3D>
 
 /// A `BezierPath` represents a sequence of connected Bezier curves, forming a path.
@@ -91,16 +94,27 @@ extension BezierPath: ParametricCurve {
         }
     }
 
+    /// Whether the path contains no curves.
     public var isEmpty: Bool {
         curves.isEmpty
     }
 
     public var sampleCountForLengthApproximation: Int { 10 }
 
+    /// Creates a 2D path by transforming each point.
+    ///
+    /// - Parameter transformer: A closure that converts each point to 2D.
+    /// - Returns: A new 2D Bezier path with transformed points.
+    ///
     public func mapPoints(_ transformer: (V) -> Vector2D) -> BezierPath2D {
         map(transformer)
     }
 
+    /// Creates a 3D path by transforming each point.
+    ///
+    /// - Parameter transformer: A closure that converts each point to 3D.
+    /// - Returns: A new 3D Bezier path with transformed points.
+    ///
     public func mapPoints(_ transformer: (V) -> Vector3D) -> BezierPath3D {
         map(transformer)
     }
@@ -109,6 +123,13 @@ extension BezierPath: ParametricCurve {
         BezierPathDerivativeView(derivative: derivative)
     }
 
+    /// Returns points sampled along a parameter subrange.
+    ///
+    /// - Parameters:
+    ///   - range: The parameter range to sample within.
+    ///   - segmentation: Controls the sampling density.
+    /// - Returns: An array of points covering the specified range.
+    ///
     public func points(in range: ClosedRange<Double>, segmentation: Segmentation) -> [V] {
         subpath(in: range).points(segmentation: segmentation)
     }

@@ -105,6 +105,25 @@ public extension EnvironmentValues {
         get { textAttributes.verticalAlignment }
         set { textAttributes.verticalAlignment = newValue }
     }
+
+    /// An adjustment to the spacing between lines of text, in millimeters.
+    ///
+    /// This value modifies the default line height determined by the font's metrics.
+    /// A positive value increases the space between lines, while a negative value
+    /// decreases it.
+    ///
+    /// The default is `0`, meaning standard line spacing is used.
+    ///
+    /// ```swift
+    /// Text("Line 1\nLine 2\nLine 3")
+    ///     .withLineSpacing(2)  // Add 2mm between lines
+    /// ```
+    ///
+    /// - SeeAlso: `fontSize`
+    var lineSpacing: Double {
+        get { textAttributes.lineSpacingAdjustment ?? 0 }
+        set { textAttributes.lineSpacingAdjustment = newValue }
+    }
 }
 
 public extension Geometry {
@@ -151,32 +170,64 @@ public extension Geometry {
             }
         }
     }
+
+    /// Adjusts the spacing between lines of text.
+    ///
+    /// This modifier changes the vertical distance between lines in multiline text.
+    /// A positive value increases spacing, while a negative value decreases it.
+    ///
+    /// ```swift
+    /// Text("Hello\nWorld")
+    ///     .withLineSpacing(5)  // Add 5mm between lines
+    ///
+    /// Text("Compact\nText")
+    ///     .withLineSpacing(-2) // Reduce spacing by 2mm
+    /// ```
+    ///
+    /// - Parameter adjustment: The amount to adjust line spacing, in millimeters.
+    ///   Positive values increase spacing, negative values decrease it.
+    /// - Returns: A new geometry with the adjusted line spacing.
+    func withLineSpacing(_ adjustment: Double) -> D.Geometry {
+        withEnvironment {
+            $0.lineSpacing = adjustment
+        }
+    }
 }
 
+/// Horizontal alignment options for text relative to the origin.
+///
+/// Use with ``Geometry/withTextAlignment(horizontal:vertical:)`` to control how
+/// text is positioned horizontally relative to the X origin.
+///
 public enum HorizontalTextAlignment: Sendable, Hashable, Codable {
-    /// Aligns each line of text to the left edge.
+    /// Places the left edge of the text at the origin.
     case left
 
-    /// Centers each line of text horizontally.
+    /// Centers the text horizontally on the origin.
     case center
 
-    /// Aligns each line of text to the right edge.
+    /// Places the right edge of the text at the origin.
     case right
 }
 
+/// Vertical alignment options for text relative to the origin.
+///
+/// Use with ``Geometry/withTextAlignment(horizontal:vertical:)`` to control how
+/// text is positioned vertically relative to the Y origin.
+///
 public enum VerticalTextAlignment: Sendable, Hashable, Codable {
-    /// Aligns the baseline of the first line of text to the origin.
+    /// Places the baseline of the first line at the origin.
     case firstBaseline
 
-    /// Aligns the baseline of the last line of text to the origin.
+    /// Places the baseline of the last line at the origin.
     case lastBaseline
 
-    /// Aligns the top of the text block to the origin.
+    /// Places the top of the text (ascender) at the origin.
     case top
 
-    /// Aligns the vertical center of the text block to the origin.
+    /// Centers the text vertically on the origin.
     case center
 
-    /// Aligns the bottom of the text block to the origin.
+    /// Places the bottom of the text (descender) at the origin.
     case bottom
 }

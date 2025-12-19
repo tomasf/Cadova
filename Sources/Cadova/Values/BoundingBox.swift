@@ -176,19 +176,19 @@ extension BoundingBox3D {
 }
 
 fileprivate extension BoundingBox {
-    func partialBox(from: Double?, to: Double?, in axis: D.Axis) -> BoundingBox {
+    func partialBox(from: Double?, to: Double?, in axis: D.Axis, margin: Double) -> BoundingBox {
         BoundingBox(
-            minimum: minimum.with(axis, as: from ?? minimum[axis] - 1),
-            maximum: maximum.with(axis, as: to ?? maximum[axis] + 1)
+            minimum: minimum.with(axis, as: from ?? minimum[axis] - margin),
+            maximum: maximum.with(axis, as: to ?? maximum[axis] + margin)
         )
     }
 }
 
 internal extension BoundingBox2D {
-    func within(x: (any WithinRange)? = nil, y: (any WithinRange)? = nil) -> Self {
+    func within(x: (any WithinRange)? = nil, y: (any WithinRange)? = nil, margin: Double) -> Self {
         self
-            .partialBox(from: x?.min, to: x?.max, in: .x)
-            .partialBox(from: y?.min, to: y?.max, in: .y)
+            .partialBox(from: x?.min, to: x?.max, in: .x, margin: margin)
+            .partialBox(from: y?.min, to: y?.max, in: .y, margin: margin)
     }
 
     var mask: any Geometry2D {
@@ -197,11 +197,11 @@ internal extension BoundingBox2D {
 }
 
 internal extension BoundingBox3D {
-    func within(x: (any WithinRange)? = nil, y: (any WithinRange)? = nil, z: (any WithinRange)? = nil) -> Self {
+    func within(x: (any WithinRange)? = nil, y: (any WithinRange)? = nil, z: (any WithinRange)? = nil, margin: Double) -> Self {
         self
-            .partialBox(from: x?.min, to: x?.max, in: .x)
-            .partialBox(from: y?.min, to: y?.max, in: .y)
-            .partialBox(from: z?.min, to: z?.max, in: .z)
+            .partialBox(from: x?.min, to: x?.max, in: .x, margin: margin)
+            .partialBox(from: y?.min, to: y?.max, in: .y, margin: margin)
+            .partialBox(from: z?.min, to: z?.max, in: .z, margin: margin)
     }
 
     var mask: any Geometry3D {

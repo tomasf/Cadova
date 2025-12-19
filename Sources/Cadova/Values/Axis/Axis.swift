@@ -1,7 +1,14 @@
 import Foundation
 
+/// A Cartesian axis in 2D or 3D space.
+///
+/// This protocol defines common axis operations. You typically work with the concrete types
+/// ``Axis2D`` and ``Axis3D`` rather than this protocol directly.
+///
 public protocol Axis: Equatable, Hashable, CaseIterable, Sendable, Codable {
     associatedtype D: Dimensionality where D.Axis == Self
+
+    /// The zero-based index of this axis (0 for X, 1 for Y, 2 for Z).
     var index: Int { get }
 }
 

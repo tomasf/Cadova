@@ -1,5 +1,10 @@
 import Foundation
 
+/// An affine transformation matrix for 2D or 3D space.
+///
+/// This protocol defines common transformation operations. You typically work with the concrete
+/// types ``Transform2D`` and ``Transform3D`` rather than this protocol directly.
+///
 public protocol Transform: Sendable, Hashable, Codable, Transformable where T == Self, Transformed == Self {
     associatedtype D: Dimensionality
     typealias V = D.Vector
@@ -26,6 +31,7 @@ public protocol Transform: Sendable, Hashable, Codable, Transformable where T ==
     var transform3D: Transform3D { get }
 
     var isIdentity: Bool { get }
+    var scale: V { get }
 }
 
 public extension Transform {

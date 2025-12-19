@@ -19,7 +19,7 @@ struct TransformTests {
     }
 */
     
-    @Test func transform2DTo3D() {
+    @Test func `2D transforms convert correctly to 3D`() {
         let transforms2D: [Transform2D] = [
             .translation(x: 10, y: 3),
             .scaling(x: 3, y: 9),

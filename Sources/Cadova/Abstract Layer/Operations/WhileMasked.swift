@@ -71,7 +71,7 @@ public extension Geometry2D {
     ) -> D.Geometry {
         measuringBounds { _, bounds in
             whileMasked(inverted: inverted, using: {
-                bounds.within(x: x, y: y).mask
+                bounds.within(x: x, y: y, margin: 1).mask
             }, do: operations)
         }
     }
@@ -101,7 +101,7 @@ public extension Geometry3D {
     ) -> D.Geometry {
         measuringBounds { _, bounds in
             whileMasked(inverted: inverted, using: {
-                bounds.within(x: x, y: y, z: z).mask
+                bounds.within(x: x, y: y, z: z, margin: 1).mask
             }, do: operations)
         }
     }

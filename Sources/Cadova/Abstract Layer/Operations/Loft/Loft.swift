@@ -1,5 +1,33 @@
 import Foundation
 
+/// Specifies how a loft layer transitions from the previous layer.
+///
+/// This enum provides control over the geometric operation used to connect two adjacent
+/// layers in a loft. By default, layers are connected via shape interpolation, but you
+/// can also specify a convex hull connection for certain segments.
+///
+public enum LayerTransition: Hashable, Sendable, Codable {
+    /// Interpolates between the previous layer's shape and this layer's shape using
+    /// the specified shaping function.
+    ///
+    /// The shaping function controls the rate of interpolation. For example, `.linear`
+    /// produces evenly spaced intermediate cross-sections, while `.easeIn` or `.easeOut`
+    /// can create more organic transitions.
+    ///
+    case interpolated(ShapingFunction)
+
+    /// Connects the previous layer to this layer using a 3D convex hull.
+    ///
+    /// Instead of interpolating intermediate cross-sections, this creates the smallest
+    /// convex shape that contains both layers. This is useful for creating tapered or
+    /// faceted transitions between shapes, especially when both shapes are convex.
+    ///
+    /// - Note: The convex hull operation ignores holes in the shapes. The result will
+    ///   be a solid convex polyhedron connecting the outer boundaries of both layers.
+    ///
+    case convexHull
+}
+
 /// A 3D shape constructed by interpolating between a series of 2D cross-sections layered at different Z positions.
 ///
 /// Lofting is a modeling technique that creates a smooth transition between multiple 2D shapes across different
@@ -84,12 +112,18 @@ public struct Loft: Geometry {
         precondition(self.layers.count >= 2, "Loft requires at least two layers")
     }
 
+    /// A result builder for composing loft layers.
     public typealias LayerBuilder = ArrayBuilder<Layer>
 
+    /// A single cross-section in a lofted shape.
+    ///
+    /// Each layer defines a 2D shape at a specific Z height. Layers are created using the
+    /// ``layer(z:interpolation:shape:)`` function within a ``Loft`` builder.
+    ///
     public struct Layer: Sendable {
         internal let z: Double
-        internal let shapingFunction: ShapingFunction?
-        internal let geometry: any Geometry2D
+        internal let transition: LayerTransition?
+        internal let geometry: @Sendable () -> any Geometry2D
     }
 }
 
@@ -107,7 +141,24 @@ public func layer(
     interpolation shapingFunction: ShapingFunction? = nil,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Layer {
-    Loft.Layer(z: z, shapingFunction: shapingFunction, geometry: shape())
+    Loft.Layer(z: z, transition: shapingFunction.map { .interpolated($0) }, geometry: shape)
+}
+
+/// Creates a single layer in a lofted shape at the specified Z height with a specified transition type.
+/// This function is intended to be used inside a `Loft` builder to define each horizontal cross-section.
+///
+/// - Parameters:
+///   - z: The Z height at which to place the 2D shape.
+///   - transition: The transition type that controls how this layer connects to the previous one.
+///                 Use `.interpolated(_:)` for shape interpolation or `.convexHull` for a convex hull connection.
+///   - shape: A builder that returns the 2D geometry to use for this layer.
+///
+public func layer(
+    z: Double,
+    interpolation transition: LayerTransition,
+    @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
+) -> Loft.Layer {
+    Loft.Layer(z: z, transition: transition, geometry: shape)
 }
 
 /// Creates two layers spanning a Z range using the same 2D shape.
@@ -130,10 +181,33 @@ public func layer(
     interpolation shapingFunction: ShapingFunction? = nil,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> [Loft.Layer] {
-    let content = shape()
-    return [
-        Loft.Layer(z: range.lowerBound, shapingFunction: shapingFunction, geometry: content),
-        Loft.Layer(z: range.upperBound, shapingFunction: .linear, geometry: content)
+    [
+        Loft.Layer(z: range.lowerBound, transition: shapingFunction.map { .interpolated($0) }, geometry: shape),
+        Loft.Layer(z: range.upperBound, transition: .interpolated(.linear), geometry: shape)
+    ]
+}
+
+/// Creates two layers spanning a Z range using the same 2D shape with a specified transition type.
+///
+/// This convenience overload generates a pair of `Loft.Layer` entries from a single shape:
+/// one at `range.lowerBound` using the provided transition, and one at `range.upperBound` using
+/// a linear interpolation. This is useful when you want a straight shape across the specified interval.
+///
+/// - Parameters:
+///   - range: The Z range defining the lower and upper bounds where the shape will be placed.
+///   - transition: The transition type that controls how this layer connects to the previous one.
+///                 Use `.interpolated(_:)` for shape interpolation or `.convexHull` for a convex hull connection.
+///   - shape: A builder that returns the 2D geometry to use for both layers.
+/// - Returns: Two `Loft.Layer` values, one at the lower bound and one at the upper bound.
+///
+public func layer(
+    z range: Range<Double>,
+    interpolation transition: LayerTransition,
+    @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
+) -> [Loft.Layer] {
+    [
+        Loft.Layer(z: range.lowerBound, transition: transition, geometry: shape),
+        Loft.Layer(z: range.upperBound, transition: .interpolated(.linear), geometry: shape)
     ]
 }
 

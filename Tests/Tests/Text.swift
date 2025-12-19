@@ -3,7 +3,7 @@ import Testing
 @testable import Cadova
 
 struct TextTests {
-    @Test func testBasics() async throws {
+    @Test func `text produces geometry with reasonable dimensions`() async throws {
         let text = Text("Hello tests!")
         let m = try await text.measurements
 

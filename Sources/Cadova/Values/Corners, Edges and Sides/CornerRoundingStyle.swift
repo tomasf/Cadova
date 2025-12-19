@@ -80,7 +80,7 @@ internal struct FilletCorner: Shape2D {
     let size: Vector2D
 
     var body: any Geometry2D {
-        @Environment(\.segmentation) var segmentation
+        @Environment(\.scaledSegmentation) var segmentation
         @Environment(\.cornerRoundingStyle) var style
 
         if size.x > 0, size.y > 0 {

@@ -2,7 +2,7 @@ import Testing
 @testable import Cadova
 
 struct Geometry2DTests {
-    @Test func basic2D() async throws {
+    @Test func `2D boolean operations produce correct geometry`() async throws {
         try await Union {
             Rectangle(Vector2D(30, 10))
                 .aligned(at: .centerY)
@@ -19,7 +19,7 @@ struct Geometry2DTests {
         .expectEquals(goldenFile: "2d/basics")
     }
 
-    @Test func circular() async throws {
+    @Test func `circular shapes and overhang methods work correctly`() async throws {
         try await Union {
             Circle(diameter: 8)
                 .scaled(x: 2)
@@ -40,7 +40,7 @@ struct Geometry2DTests {
         .expectEquals(goldenFile: "2d/circular")
     }
 
-    @Test func roundedRectangle() async throws {
+    @Test func `rectangle corners can be rounded with edge profiles`() async throws {
         try await Rectangle(x: 10, y: 10)
             .cuttingEdgeProfile(.fillet(radius: 5), on: .bottomLeft)
             .cuttingEdgeProfile(.fillet(radius: 3), on: .bottomRight)
