@@ -42,6 +42,6 @@ internal extension Triangle {
     }
 
     static func nonCollinear(_ A: Vector2D, _ B: Vector2D, _ C: Vector2D) -> Bool {
-        Swift.abs((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) > .ulpOfOne
+        abs((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) > .ulpOfOne
     }
 }

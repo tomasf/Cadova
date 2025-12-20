@@ -113,11 +113,11 @@ extension BezierCurve {
             let delta = derived.point(at: t)[axis]
 
             let error = value - target
-            if Swift.abs(error) < tolerance {
+            if abs(error) < tolerance {
                 return t
             }
 
-            guard Swift.abs(delta) > 1e-10 else {
+            guard abs(delta) > 1e-10 else {
                 break // Avoid division by zero
             }
             t -= error / delta
@@ -136,7 +136,7 @@ extension BezierCurve: CustomDebugStringConvertible {
 extension BezierCurve {
     // Returns a sub-curve spanning `range` using two De Casteljau splits.
     func subcurve(in range: ClosedRange<Double>) -> BezierCurve<V> {
-        guard Swift.abs(range.length) > .ulpOfOne else {
+        guard abs(range.length) > .ulpOfOne else {
             return BezierCurve(controlPoints: [point(at: range.lowerBound)])
         }
 
@@ -151,7 +151,7 @@ extension BezierCurve {
             return (left, right)
         }
 
-        if Swift.abs(range.upperBound) > .ulpOfOne {
+        if abs(range.upperBound) > .ulpOfOne {
             let (left, _) = split(controlPoints, at: range.upperBound)
             let (_, segment) = split(left, at: range.lowerBound / range.upperBound)
             return BezierCurve(controlPoints: segment)

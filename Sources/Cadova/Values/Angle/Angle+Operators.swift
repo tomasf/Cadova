@@ -74,5 +74,5 @@ public func stride(from start: Angle, to end: Angle, by stride: Angle) -> [Angle
 /// - Parameter angle: The angle for which to compute the absolute value.
 /// - Returns: An `Angle` instance representing the absolute value of the specified angle.
 public func abs(_ angle: Angle) -> Angle {
-    Angle(degrees: Swift.abs(angle.degrees))
+    Angle(degrees: abs(angle.degrees))
 }

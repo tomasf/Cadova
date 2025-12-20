@@ -163,7 +163,7 @@ public extension Plane {
         let denom = lineDir ⋅ normal.unitVector
 
         // If denom is close to zero, the line is parallel to the plane
-        guard Swift.abs(denom) > 1e-8 else {
+        guard abs(denom) > 1e-8 else {
             return nil
         }
 

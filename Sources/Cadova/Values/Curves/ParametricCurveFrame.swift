@@ -61,7 +61,7 @@ struct ParametricCurveFrame {
             xAxis = rotation.apply(to: previousSample.xAxis).normalized
             yAxis = rotation.apply(to: previousSample.yAxis).normalized
         } else {
-            let provisionalX = (Swift.abs(zAxis.x) < 0.9) ? Vector3D(x: 1) : Vector3D(y: 1)
+            let provisionalX = (abs(zAxis.x) < 0.9) ? Vector3D(x: 1) : Vector3D(y: 1)
             yAxis = (zAxis × provisionalX).normalized
             xAxis = (yAxis × zAxis).normalized
         }

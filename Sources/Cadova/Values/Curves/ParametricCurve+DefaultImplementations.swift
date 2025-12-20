@@ -72,7 +72,7 @@ public extension ParametricCurve {
         let endValue = point(at: domain.upperBound)[axis]
         let denom = endValue - startValue
         let initialU: Double
-        if Swift.abs(denom) > 1e-14 {
+        if abs(denom) > 1e-14 {
             initialU = domain.lowerBound + (value - startValue) / denom * span
         } else {
             initialU = (domain.lowerBound + domain.upperBound) / 2
@@ -82,11 +82,11 @@ public extension ParametricCurve {
         for _ in 0..<maxIterations {
             let p = point(at: u)
             let f = p[axis] - value
-            if Swift.abs(f) < tolerance {
+            if abs(f) < tolerance {
                 return u
             }
             let derivative = _centralDifference(at: u, h: max(1e-6, span * 1e-6), axis: axis)
-            if Swift.abs(derivative) <= minDerivativeMagnitude {
+            if abs(derivative) <= minDerivativeMagnitude {
                 break
             }
             u = u - f / derivative
