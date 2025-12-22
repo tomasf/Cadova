@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import freetype
+internal import freetype
 
 /// A 2D shape that renders text using vector outlines derived from a font.
 ///

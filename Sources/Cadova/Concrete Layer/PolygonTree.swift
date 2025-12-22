@@ -1,6 +1,6 @@
 import Foundation
-@_implementationOnly import ManifoldCPP
-@_implementationOnly import CadovaCPP
+internal import ManifoldCPP
+internal import CadovaCPP
 import Cxx
 
 // Corresponds to Clipper2's PolyTreeD
