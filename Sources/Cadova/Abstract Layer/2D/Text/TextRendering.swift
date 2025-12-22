@@ -1,6 +1,6 @@
 import Foundation
-import freetype
-import FindFont
+@_implementationOnly import freetype
+@_implementationOnly import FindFont
 
 internal enum TextError: Error {
     case fontNotFound (family: String, style: String?)
