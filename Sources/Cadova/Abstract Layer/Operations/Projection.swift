@@ -41,7 +41,7 @@ public extension Geometry3D {
     /// - SeeAlso: ``projected()``
     ///
     func projected<D: Dimensionality>(
-        @GeometryBuilder<D> _ reader: @escaping @Sendable (_ self: Self, _ projection: any Geometry2D) -> D.Geometry
+        @GeometryBuilder<D> _ reader: @escaping @Sendable (_ body: Self, _ projection: any Geometry2D) -> D.Geometry
     ) -> D.Geometry {
         reader(self, projected())
     }
@@ -82,7 +82,7 @@ public extension Geometry3D {
     ///
     func sliced<D: Dimensionality>(
         atZ z: Double,
-        @GeometryBuilder<D> _ reader: @escaping @Sendable (_ self: Self, _ slice: any Geometry2D) -> D.Geometry
+        @GeometryBuilder<D> _ reader: @escaping @Sendable (_ body: Self, _ slice: any Geometry2D) -> D.Geometry
     ) -> D.Geometry {
         reader(self, sliced(atZ: z))
     }
@@ -121,8 +121,44 @@ public extension Geometry3D {
     ///
     func sliced<D: Dimensionality>(
         along plane: Plane,
-        @GeometryBuilder<D> _ reader: @escaping @Sendable (_ self: Self, _ slice: any Geometry2D) -> D.Geometry
+        @GeometryBuilder<D> _ reader: @escaping @Sendable (_ body: Self, _ slice: any Geometry2D) -> D.Geometry
     ) -> D.Geometry {
         reader(self, sliced(along: plane))
+    }
+
+    /// Projects the 3D geometry orthogonally onto the specified plane.
+    ///
+    /// This method flattens the geometry by projecting all points along the plane's normal onto the plane.
+    /// The result is a 2D shape in the plane's local coordinate system, where the plane's origin
+    /// corresponds to the 2D origin.
+    ///
+    /// - Parameter plane: The plane onto which the geometry will be projected.
+    /// - Returns: A `Geometry2D` representing the 2D projection of the original 3D shape onto the plane.
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let sideView = Box(10).projected(onto: .yz)
+    ///   // Projects the box onto the YZ plane, giving a side view
+    ///   ```
+    ///
+    /// - SeeAlso: ``projected()``, ``projected(onto:_:)``
+    func projected(onto plane: Plane) -> any Geometry2D {
+        transformed(plane.transform.inverse).projected()
+    }
+
+    /// Projects the 3D geometry orthogonally onto the specified plane and passes
+    /// the original 3D geometry and the resulting 2D projection to a builder.
+    ///
+    /// - Parameters:
+    ///   - plane: The plane onto which the geometry will be projected.
+    ///   - reader: A geometry builder that takes `(self, projection)` and builds a new geometry.
+    /// - Returns: Whatever the builder produces.
+    ///
+    /// - SeeAlso: ``projected(onto:)``, ``projected(_:)``
+    func projected<D: Dimensionality>(
+        onto plane: Plane,
+        @GeometryBuilder<D> _ reader: @escaping @Sendable (_ body: Self, _ projection: any Geometry2D) -> D.Geometry
+    ) -> D.Geometry {
+        reader(self, projected(onto: plane))
     }
 }
