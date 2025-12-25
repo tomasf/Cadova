@@ -1,6 +1,6 @@
 import Manifold3D
 import Foundation
-import CadovaCPP
+internal import CadovaCPP
 
 public protocol ConcreteGeometry {
     associatedtype Vector

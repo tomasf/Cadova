@@ -1,9 +1,9 @@
 import Foundation
 import Manifold3D
-import ThreeMF
-import Zip
-import Nodal
-import CadovaCPP
+internal import ThreeMF
+internal import Zip
+internal import Nodal
+internal import CadovaCPP
 
 extension MeshGL: @retroactive @unchecked Sendable {}
 

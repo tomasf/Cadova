@@ -1,5 +1,5 @@
 import Foundation
-import ThreeMF
+internal import ThreeMF
 
 /// Loads 3MF files into mesh data.
 internal struct ThreeMFLoader {
