@@ -55,6 +55,7 @@ internal struct Logger: Sendable {
 
     private func log(_ level: Level, _ message: Message) {
         guard level >= Self.minimumLevel else { return }
+        let timestamp = Date.now.formatted(.iso8601.year().month().day().time(includingFractionalSeconds: true))
         let prefix: String
         switch level {
         case .debug: prefix = "[DEBUG]"
@@ -62,7 +63,7 @@ internal struct Logger: Sendable {
         case .warning: prefix = "[WARNING]"
         case .error: prefix = "[ERROR]"
         }
-        print("\(prefix) \(message.value)")
+        print("\(timestamp) \(prefix) \(message.value)")
     }
 }
 
