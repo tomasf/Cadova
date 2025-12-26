@@ -27,7 +27,9 @@ extension Geometry {
         get async throws {
             let context = EvaluationContext()
             let concreteResult = try await context.result(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
-            return D.BoundingBox(concreteResult.concrete.bounds)
+            let concrete = concreteResult.concrete
+            guard !concrete.isEmpty else { return nil }
+            return D.BoundingBox(concrete.bounds)
         }
     }
 
