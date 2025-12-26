@@ -45,6 +45,14 @@ extension Geometry {
         get async throws { try await measurements(for: .mainPart) }
     }
 
+    var partCount: Int {
+        get async throws {
+            let context = EvaluationContext()
+            let buildResult = try await context.buildResult(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
+            return try await context.result(for: .decompose(buildResult.node)).parts.count
+        }
+    }
+
     var parts: [PartIdentifier: D3.BuildResult] {
         get async throws {
             try await EvaluationContext().buildResult(for: self, in: .defaultEnvironment)
