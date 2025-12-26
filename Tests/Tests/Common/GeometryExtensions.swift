@@ -126,6 +126,15 @@ extension Geometry {
     }
 }
 
+extension Geometry where D == D2 {
+    /// Compares this 2D geometry to an expected shape using XOR.
+    /// Returns the area of the symmetric difference - should be near zero if shapes match.
+    func symmetricDifferenceArea(with expected: some Geometry2D) async throws -> Double {
+        let difference = self.adding(expected).subtracting(self.intersecting(expected))
+        return try await difference.measurements.area
+    }
+}
+
 extension BuildResult {
     var for3MFVerification: BuildResult<D3> {
         if let d3 = self as? BuildResult<D3> {
