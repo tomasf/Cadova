@@ -1,5 +1,5 @@
 import Foundation
-import Nodal
+internal import Nodal
 
 struct SVGDataProvider: OutputDataProvider {
     let result: D2.BuildResult

@@ -1,5 +1,5 @@
 import Foundation
-import freetype
+internal import freetype
 
 internal class GlyphRenderer {
     static let scaleFactor = 16.0

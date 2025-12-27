@@ -1,5 +1,16 @@
 import Foundation
 
+// Workaround for C++ interop importing Darwin's abs() which conflicts with Swift.abs()
+@inlinable
+internal func abs<T: SignedNumeric & Comparable>(_ x: T) -> T {
+    Swift.abs(x)
+}
+
+@inlinable
+internal func abs(_ x: Double) -> Double {
+    Swift.abs(x)
+}
+
 extension Sequence {
     func paired() -> some Sequence<(Element, Element)> {
         zip(self, dropFirst())

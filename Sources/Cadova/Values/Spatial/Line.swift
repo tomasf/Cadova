@@ -124,7 +124,7 @@ public extension Line<D2> {
         let s = other.direction.unitVector
 
         let cross = r.x * s.y - r.y * s.x
-        if Swift.abs(cross) < 1e-10 {
+        if abs(cross) < 1e-10 {
             return nil // Lines are parallel
         }
 

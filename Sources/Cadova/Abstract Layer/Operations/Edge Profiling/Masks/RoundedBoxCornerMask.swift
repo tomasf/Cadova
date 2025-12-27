@@ -36,7 +36,7 @@ fileprivate struct SegmentedMask {
 
             if cornerStyle != .circular {
                 let exponent = cornerStyle.exponent
-                let denom = pow(Swift.abs(point.x), exponent) + pow(Swift.abs(point.y), exponent) + pow(Swift.abs(point.z), exponent)
+                let denom = pow(abs(point.x), exponent) + pow(abs(point.y), exponent) + pow(abs(point.z), exponent)
                 point *= pow(pow(radius, exponent) / denom, 1.0 / exponent)
             }
 

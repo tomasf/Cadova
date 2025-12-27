@@ -131,7 +131,7 @@ extension SimplePolygon {
     }
 
     var area: Double {
-        Swift.abs(
+        abs(
             vertices.wrappedPairs()
                 .map { $0.x * $1.y - $0.y * $1.x }
                 .reduce(0, +)

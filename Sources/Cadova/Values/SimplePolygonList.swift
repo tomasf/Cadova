@@ -86,32 +86,6 @@ extension SimplePolygonList {
     }
 }
 
-extension SimplePolygonList {
-    // Align by minimizing total distance between consecutive layers
-    // This can totally be optimized
-    mutating func alignOffsets() {
-        for i in 1..<count {
-            let reference = self[i - 1]
-            let candidate = self[i]
-
-            var bestOffset = 0
-            var bestScore = Double.infinity
-
-            for offset in 0..<candidate.count {
-                let shifted = candidate.shifted(offset)
-
-                let score = shifted.vertices.enumerated().map { i, v in (v - reference[i]).magnitude }.reduce(0, +)
-                if score < bestScore {
-                    bestScore = score
-                    bestOffset = offset
-                }
-            }
-
-            self[i] = candidate.shifted(bestOffset)
-        }
-    }
-}
-
 extension D2.Concrete {
     func polygonList() -> SimplePolygonList {
         SimplePolygonList(polygons())

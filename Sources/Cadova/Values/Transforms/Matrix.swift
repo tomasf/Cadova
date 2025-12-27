@@ -40,7 +40,7 @@ internal func invertMatrix(matrix: [[Double]]) -> [[Double]] {
     for i in 0..<size {
         var maxRow = i
         for k in i + 1..<size {
-            if Swift.abs(augmentedMatrix[k][i]) > Swift.abs(augmentedMatrix[maxRow][i]) {
+            if abs(augmentedMatrix[k][i]) > abs(augmentedMatrix[maxRow][i]) {
                 maxRow = k
             }
         }

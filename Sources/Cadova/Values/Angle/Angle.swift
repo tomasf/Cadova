@@ -68,7 +68,7 @@ public struct Angle: Sendable, Comparable, AdditiveArithmetic, Hashable, Codable
 
     /// Returns `true` if the angle is effectively zero, within floating-point precision.
     public var isZero: Bool {
-        Swift.abs(degrees) < .ulpOfOne
+        abs(degrees) < .ulpOfOne
     }
 }
 

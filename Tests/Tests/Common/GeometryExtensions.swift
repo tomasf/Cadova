@@ -27,7 +27,9 @@ extension Geometry {
         get async throws {
             let context = EvaluationContext()
             let concreteResult = try await context.result(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
-            return D.BoundingBox(concreteResult.concrete.bounds)
+            let concrete = concreteResult.concrete
+            guard !concrete.isEmpty else { return nil }
+            return D.BoundingBox(concrete.bounds)
         }
     }
 
@@ -43,6 +45,14 @@ extension Geometry {
 
     var mainModelMeasurements: D.Measurements {
         get async throws { try await measurements(for: .mainPart) }
+    }
+
+    var partCount: Int {
+        get async throws {
+            let context = EvaluationContext()
+            let buildResult = try await context.buildResult(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
+            return try await context.result(for: .decompose(buildResult.node)).parts.count
+        }
     }
 
     var parts: [PartIdentifier: D3.BuildResult] {
@@ -113,6 +123,15 @@ extension Geometry {
         if TestGeneratedOutputType.fromEnvironment?.contains(.model) == true {
             try await writeOutputFiles(name, types: [.model])
         }
+    }
+}
+
+extension Geometry where D == D2 {
+    /// Compares this 2D geometry to an expected shape using XOR.
+    /// Returns the area of the symmetric difference - should be near zero if shapes match.
+    func symmetricDifferenceArea(with expected: some Geometry2D) async throws -> Double {
+        let difference = self.adding(expected).subtracting(self.intersecting(expected))
+        return try await difference.measurements.area
     }
 }
 

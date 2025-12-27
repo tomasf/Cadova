@@ -70,7 +70,7 @@ public extension Cylinder {
         assert(bottomDiameter >= 0 && topDiameter >= 0, "Diameters must be non-negative")
 
         // Calculate the radius difference between the bottom and top
-        let radiusDifference = Swift.abs(bottomDiameter - topDiameter) / 2
+        let radiusDifference = abs(bottomDiameter - topDiameter) / 2
         let height = radiusDifference / tan(abs(apexAngle) / 2)
 
         self.init(bottomDiameter: bottomDiameter, topDiameter: topDiameter, height: height)

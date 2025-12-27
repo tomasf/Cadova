@@ -81,7 +81,7 @@ public extension Triangle {
 
         // Non-collinear
         precondition(
-            Swift.abs((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) > .ulpOfOne,
+            abs((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) > .ulpOfOne,
             "Triangle points must be non-collinear"
         )
 

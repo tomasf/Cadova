@@ -57,7 +57,7 @@ public extension Geometry2D {
                     amount: amount,
                     joinStyle: style,
                     miterLimit: miterLimit,
-                    segmentCount: segmentation.segmentCount(circleRadius: Swift.abs(amount))
+                    segmentCount: segmentation.segmentCount(circleRadius: abs(amount))
                 )
             }
         }

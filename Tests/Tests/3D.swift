@@ -49,4 +49,27 @@ struct Geometry3DTests {
         }
         .expectEquals(goldenFile: "3d/cylinders")
     }
+
+    @Test func `projected onto plane produces correct 2D shape`() async throws {
+        // A box projected onto XY should give a rectangle matching the box's XY dimensions
+        let xyBounds = try await Box(x: 10, y: 20, z: 30)
+            .projected(onto: .xy)
+            .bounds
+        #expect(xyBounds?.size.x ≈ 10)
+        #expect(xyBounds?.size.y ≈ 20)
+
+        // Same box projected onto YZ plane - the 2D result has Y→X and Z→Y
+        let yzBounds = try await Box(x: 10, y: 20, z: 30)
+            .projected(onto: .yz)
+            .bounds
+        #expect(yzBounds?.size.x ≈ 30)
+        #expect(yzBounds?.size.y ≈ 20)
+
+        // Projected onto XZ plane - the 2D result has X→X and Z→Y
+        let xzBounds = try await Box(x: 10, y: 20, z: 30)
+            .projected(onto: .xz)
+            .bounds
+        #expect(xzBounds?.size.x ≈ 10)
+        #expect(xzBounds?.size.y ≈ 30)
+    }
 }
