@@ -41,6 +41,6 @@ fileprivate struct AxesVisualization: Shape3D {
                     .colored(.blue)
             }
             .withSegmentation(count: 8)
-            .inPart(named: "Visualized Axes", type: .visual)
+            .inPart(.visualizedAxes)
     }
 }

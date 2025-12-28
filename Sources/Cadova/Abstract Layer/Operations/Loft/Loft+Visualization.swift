@@ -36,7 +36,7 @@ fileprivate struct LoftVisualization: Shape3D {
                     .colored(Color.layerColors[index % Color.layerColors.count], alpha: 0.7)
             }
         }
-        .inPart(named: "Visualized Loft Layers", type: .visual)
+        .inPart(.visualizedLoftLayers)
     }
 }
 

@@ -1,6 +1,35 @@
 import Foundation
 
 public extension Geometry3D {
+    /// Splits the geometry into two parts along the specified plane, assigning one side to the given part.
+    ///
+    /// This variant is useful when you want to separate a portion of the geometry into a distinct part
+    /// for viewing or slicing. The side of the geometry that faces the direction of the plane's normal
+    /// is moved into the specified part, while the opposite side remains in place. This is useful as a way to
+    /// view a clean cross-section of the model.
+    ///
+    /// The part is detached from the geometry tree and appears as a separate object in the resulting
+    /// 3MF file. It will follow transformations applied to the overall geometry but is otherwise excluded
+    /// from subsequent operations like booleans or modifiers.
+    ///
+    /// - Parameters:
+    ///   - plane: The `Plane` used to split the geometry.
+    ///   - part: The part to assign to the detached geometry.
+    ///
+    /// - Returns: A new geometry with one side assigned to the specified part.
+    ///
+    /// ## Example
+    /// ```swift
+    /// let topHalf = Part("Top Half")
+    /// model.separating(along: Plane(z: 0), into: topHalf)
+    /// ```
+    func separating(along plane: Plane, into part: Part) -> any Geometry3D {
+        split(along: plane) { over, under in
+            over.inPart(part)
+            under
+        }
+    }
+
     /// Splits the geometry into two parts along the specified plane, assigning one side to a named part.
     ///
     /// This variant is useful when you want to separate a portion of the geometry into a named part
@@ -28,6 +57,37 @@ public extension Geometry3D {
         split(along: plane) { over, under in
             over.inPart(named: partName, type: type)
             under
+        }
+    }
+
+    /// Splits the geometry into two parts using a custom mask geometry, assigning one side to the given part.
+    ///
+    /// This method separates the portion of the geometry that lies within a user-provided mask and assigns it
+    /// to the specified part. The rest of the geometry remains part of the original object. The part is placed
+    /// in a separate group in the resulting 3MF file, which can be useful for visualizing cross-sections or
+    /// organizing multi-part prints.
+    ///
+    /// The part will follow transformations applied to the main geometry, but is excluded from subsequent
+    /// boolean operations or modifications.
+    ///
+    /// - Parameters:
+    ///   - part: The part to assign to the masked geometry.
+    ///   - mask: A closure that builds the mask geometry used for splitting.
+    ///
+    /// - Returns: A new geometry with the masked portion assigned to the specified part.
+    ///
+    /// ## Example
+    /// ```swift
+    /// let bottom = Part("Bottom")
+    /// model.separating(into: bottom) {
+    ///     Box(x: 10, y: 10, z: 2)
+    ///         .translated(z: 1)
+    /// }
+    /// ```
+    func separating(into part: Part, @GeometryBuilder3D mask: @escaping () -> any Geometry3D) -> any Geometry3D {
+        split(with: mask) { inside, outside in
+            inside.inPart(part)
+            outside
         }
     }
 

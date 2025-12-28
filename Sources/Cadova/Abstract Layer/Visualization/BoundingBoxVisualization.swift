@@ -79,7 +79,7 @@ fileprivate struct BoundingBoxVisualization: Shape3D {
                     .translated(box.maximum)
             }
             .colored(borderColor)
-            .inPart(named: "Visualized Bounding Box", type: .visual)
+            .inPart(.visualizedBoundingBox)
     }
 
     func frame(_ size: Vector2D, borderWidth: Double) -> any Geometry3D {

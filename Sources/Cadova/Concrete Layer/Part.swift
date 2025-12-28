@@ -122,6 +122,14 @@ extension Part: Codable {}
 internal extension Part {
     static let highlighted = Part("Highlighted", semantic: .visual, material: .highlightedGeometry)
     static let background = Part("Background", semantic: .context, material: .backgroundGeometry)
+
+    // Visualization parts
+    static let visualizedPlane = Part("Visualized Plane", semantic: .visual)
+    static let visualizedBoundingBox = Part("Visualized Bounding Box", semantic: .visual)
+    static let visualizedAxes = Part("Visualized Axes", semantic: .visual)
+    static let visualizedPath = Part("Visualized Path", semantic: .visual)
+    static let visualizedDirection = Part("Visualized Direction", semantic: .visual)
+    static let visualizedLoftLayers = Part("Visualized Loft Layers", semantic: .visual)
 }
 
 internal struct PartCatalog: ResultElement {

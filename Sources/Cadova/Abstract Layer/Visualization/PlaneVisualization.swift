@@ -32,7 +32,7 @@ private struct PlaneVisualization: Shape3D {
         .colored(color)
         .rotated(from: .up, to: plane.normal)
         .translated(plane.offset)
-        .inPart(named: "Visualized Plane", type: .visual)
+        .inPart(.visualizedPlane)
     }
 }
 
