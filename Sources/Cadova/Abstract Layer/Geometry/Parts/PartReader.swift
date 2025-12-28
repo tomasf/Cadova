@@ -75,4 +75,31 @@ public extension Geometry {
         }
     }
 
+    /// Reads all parts of the specified semantic without detaching them, and provides them for further composition.
+    ///
+    /// This method scans the current geometry for parts that match the given semantic (such as `.solid`,
+    /// `.visual`, or `.context`). Unlike `detachingPart`, this does not remove any parts from the input
+    /// geometry. All matching parts are collected and provided to the `reader` closure as a dictionary
+    /// keyed by part.
+    ///
+    /// Use this when you want to inspect or reuse parts while keeping the original geometry intact — for example,
+    /// to overlay, transform, or selectively include parts in additional structures.
+    ///
+    /// - Parameters:
+    ///   - type: The semantic of parts to read. Defaults to `.solid`.
+    ///   - reader: A closure that receives:
+    ///       - base: The original geometry (unchanged).
+    ///       - parts: A dictionary mapping parts to their combined geometries.
+    ///     The closure should return new geometry to be built.
+    /// - Returns: A geometry object resulting from the `reader` closure.
+    ///
+    func readingParts<Output: Dimensionality>(
+        ofType type: PartSemantic = .solid,
+        @GeometryBuilder<Output> reader: @Sendable @escaping (_ base: D.Geometry, _ parts: [Part: D3.Geometry]) -> Output.Geometry
+    ) -> Output.Geometry {
+        readingResult(PartCatalog.self) { base, catalog in
+            reader(base, catalog.asGeometry(filteredBy: type))
+        }
+    }
+
 }
