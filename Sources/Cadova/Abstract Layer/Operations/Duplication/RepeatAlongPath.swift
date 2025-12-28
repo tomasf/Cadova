@@ -7,9 +7,10 @@ internal extension Geometry3D {
         reference: Direction2D,
         calculator: @escaping @Sendable (_ pathLength: Double) -> (count: Int, spacing: Double)
     ) -> any Geometry3D {
-        measureBoundsIfNonEmpty { _, e, bounds in
+        measuringBounds { _, bounds in
+            @Environment var environment
             let frames = path.frames(
-                environment: e,
+                environment: environment,
                 target: target ?? .direction(.down),
                 targetReference: reference,
                 perpendicularBounds: bounds.bounds2D
@@ -140,8 +141,14 @@ public extension Geometry2D {
         count: Int,
         spacing: Double
     ) -> any Geometry2D {
-        measureBoundsIfNonEmpty { _, e, bounds in
-            let frames = path.curve3D.frames(environment: e, target: .direction(.down), targetReference: .down, perpendicularBounds: nil)
+        measuringBounds { _, bounds in
+            @Environment var environment
+            let frames = path.curve3D.frames(
+                environment: environment,
+                target: .direction(.down),
+                targetReference: .down,
+                perpendicularBounds: nil
+            )
 
             for i in 0..<count {
                 var transform = frames.binarySearchInterpolate(target: Double(i) * spacing, key: \.distance, result: \.transform)

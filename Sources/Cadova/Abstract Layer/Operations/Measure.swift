@@ -128,22 +128,6 @@ public func measureBounds<Input: Dimensionality, D: Dimensionality>(
     }
 }
 
-internal extension Geometry {
-    func measureBoundsIfNonEmpty<Output: Dimensionality>(
-        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, EnvironmentValues, D.BoundingBox) -> Output.Geometry
-    ) -> Output.Geometry {
-        readEnvironment { environment in
-            measuring { geometry, measurements in
-                if let box = measurements.boundingBox {
-                    builder(geometry, environment, box)
-                } else {
-                    Empty()
-                }
-            }
-        }
-    }
-}
-
 internal extension MeasurementScope {
     func includedConcretes<D: Dimensionality>(
         for buildResult: BuildResult<D>,
