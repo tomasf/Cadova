@@ -44,29 +44,4 @@ public extension Geometry {
         PartDetachment(body: self, part: part, reader: reader)
     }
 
-    /// Extracts a named part from the current geometry and allows further manipulation.
-    ///
-    /// This method detaches a part previously marked with `.inPart(named:type:)` that matches both the provided
-    /// `partName` and `type`. The detached part is removed from the input geometry and passed to the
-    /// `reader` closure for further use or composition. If no matching part is found, `part` will be `nil`.
-    ///
-    /// This is useful when you want to extract, reuse, or reposition specific parts of a model independently,
-    /// such as rearranging multi-part assemblies or isolating individual components. The detached part is no longer included in the final output unless it is explicitly reattached or otherwise incorporated again.
-    ///
-    /// - Parameters:
-    ///   - partName: The exact name of the part to detach.
-    ///   - type: The semantic of the part to detach (e.g., `.solid`, `.visual`, `.context`). Defaults to `.solid`.
-    ///   - reader: A closure that receives:
-    ///       - geometry: The original geometry with the matching part removed.
-    ///       - part: The detached part's combined geometry, or `nil` if no matching part exists.
-    ///     The closure should return new geometry to be built.
-    /// - Returns: A geometry object resulting from the `reader` closure.
-    ///
-    func detachingPart<Output: Dimensionality>(
-        named partName: String,
-        ofType type: PartSemantic = .solid,
-        @GeometryBuilder<Output> _ reader: @Sendable @escaping (_ geometry: D.Geometry, _ part: (any Geometry3D)?) -> Output.Geometry
-    ) -> Output.Geometry {
-        PartDetachment(body: self, part: .named(partName, semantic: type), reader: reader)
-    }
 }

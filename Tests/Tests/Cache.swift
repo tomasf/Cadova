@@ -60,12 +60,13 @@ struct GeometryCacheTests {
     }
 
     @Test func `convex hull preserves part information`() async throws {
+        let boxPart = Part("box")
         let model = Sphere(diameter: 10)
             .convexHull(adding: [0, 0, 20])
             .adding {
                 Box(5)
                     .colored(.yellow)
-                    .inPart(named: "box")
+                    .inPart(boxPart)
             }
 
         let partNames = try await model.parts.map(\.key.name)
@@ -73,11 +74,12 @@ struct GeometryCacheTests {
     }
 
     @Test func `split preserves part information`() async throws {
+        let boxPart = Part("box")
         let model = Sphere(diameter: 10)
             .adding {
                 Box(5)
                     .colored(.yellow)
-                    .inPart(named: "box")
+                    .inPart(boxPart)
             }
             .split(along: .z(0)) { over, under in
                 over.colored(.red)

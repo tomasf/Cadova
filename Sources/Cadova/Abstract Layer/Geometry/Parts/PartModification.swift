@@ -12,13 +12,7 @@ internal struct PartModifier<D: Dimensionality>: Geometry {
         }
 
         if let parts {
-            return parts.contains { requestedPart in
-                if let requestedID = requestedPart.id {
-                    return catalogPart.id == requestedID
-                } else {
-                    return catalogPart.name == requestedPart.name && catalogPart.semantic == requestedPart.semantic
-                }
-            }
+            return parts.contains { $0.id == catalogPart.id }
         }
 
         return true
@@ -69,10 +63,10 @@ public extension Geometry {
 
     /// Applies a transformation to each part of the specified semantic.
     ///
-    /// This method locates parts previously marked with `.inPart(named:type:)` that match the given semantic
-    /// (such as `.solid`, `.visual`, or `.context`) and passes each part's geometry along with the part itself to the
-    /// `reader` closure. The closure should return the modified geometry for that part. The resulting modified
-    /// parts replace the originals in the model; the base geometry is otherwise preserved.
+    /// This method locates parts that match the given semantic (such as `.solid`, `.visual`, or `.context`)
+    /// and passes each part's geometry along with the part itself to the `reader` closure. The closure should
+    /// return the modified geometry for that part. The resulting modified parts replace the originals in the
+    /// model; the base geometry is otherwise preserved.
     ///
     /// Use this to uniformly adjust or augment parts - for example, to recolor, add features, apply transforms,
     /// or otherwise post-process parts before exporting a multi-part model.
@@ -91,30 +85,6 @@ public extension Geometry {
         PartModifier(body: self, parts: nil, semantic: type, modifier: reader)
     }
 
-    /// Applies a transformation to a single named part of the specified semantic.
-    ///
-    /// This method finds exactly one part previously marked with `.inPart(named:type:)` that matches both
-    /// the provided `type` and `name`, and passes that part's geometry to the
-    /// `reader` closure. The closure should return the modified geometry for that part. Only the targeted
-    /// part is replaced in the catalog; the base geometry and other parts remain unchanged.
-    ///
-    /// - Parameters:
-    ///   - type: The semantic of the part to modify. Defaults to `.solid`.
-    ///   - name: The exact name of the part to modify.
-    ///   - reader: A closure that receives the 3D geometry of the named part.
-    ///     The closure should return new 3D geometry to replace the original part in the catalog.
-    /// - Returns: A geometry that preserves the base model but replaces the specified part with the closure's result.
-    ///
-    func modifyingPart(
-        ofType type: PartSemantic = .solid,
-        named name: String,
-        @GeometryBuilder<D3> reader: @Sendable @escaping (_ partGeometry: any Geometry3D) -> any Geometry3D
-    ) -> D.Geometry {
-        PartModifier(body: self, parts: [.named(name, semantic: type)], semantic: nil) { geometry, _ in
-            reader(geometry)
-        }
-    }
-
     /// Removes the specified part from the part catalog.
     ///
     /// This does not alter the base geometry of the receiver; it only removes the matching entry
@@ -130,26 +100,12 @@ public extension Geometry {
     /// Removes all parts of the specified semantic from the part catalog.
     ///
     /// This does not alter the base geometry of the receiver; it only removes matching entries
-    /// from the catalog created via `.inPart(named:type:)`.
+    /// from the catalog.
     ///
     /// - Parameter type: The semantic of parts to remove. Defaults to `.solid`.
     /// - Returns: A geometry that preserves the base model but omits the matching parts from the catalog.
     ///
     func removingParts(ofType type: PartSemantic = .solid) -> D.Geometry {
         PartModifier(body: self, parts: nil, semantic: type) { _, _ in Empty() }
-    }
-
-    /// Removes a single named part of the specified semantic from the part catalog.
-    ///
-    /// This targets a specific part previously created with `.inPart(named:type:)` and removes only
-    /// that entry. The underlying base geometry remains unchanged.
-    ///
-    /// - Parameters:
-    ///   - type: The semantic of the part to remove. Defaults to `.solid`.
-    ///   - name: The exact name of the part to remove.
-    /// - Returns: A geometry that preserves the base model but omits the specified part from the catalog.
-    ///
-    func removingPart(ofType type: PartSemantic = .solid, named name: String) -> D.Geometry {
-        PartModifier(body: self, parts: [.named(name, semantic: type)], semantic: nil) { _, _ in Empty() }
     }
 }

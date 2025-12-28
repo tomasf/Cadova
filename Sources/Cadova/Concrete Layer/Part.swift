@@ -25,7 +25,7 @@ import Foundation
 ///     geometry, `.visual` for reference-only display).
 ///
 public struct Part: Sendable {
-    internal let id: UUID?
+    internal let id: UUID
 
     /// The name of the part as it appears in the 3MF file.
     public let name: String
@@ -37,13 +37,6 @@ public struct Part: Sendable {
     ///
     /// Geometry can override this default using the `colored()` modifier.
     public let defaultMaterial: Material
-
-    internal init(id: UUID?, name: String, semantic: PartSemantic, defaultMaterial: Material) {
-        self.id = id
-        self.name = name
-        self.semantic = semantic
-        self.defaultMaterial = defaultMaterial
-    }
 
     /// Creates a new part with a unique identity.
     ///
@@ -57,7 +50,10 @@ public struct Part: Sendable {
     ///     Geometry can override this using the `colored()` modifier. Defaults to white.
     ///
     public init(_ name: String, semantic: PartSemantic = .solid, material: Material) {
-        self.init(id: UUID(), name: name, semantic: semantic, defaultMaterial: material)
+        self.id = UUID()
+        self.name = name
+        self.semantic = semantic
+        self.defaultMaterial = material
     }
 
     /// Creates a new part with a plain color as the default material.
@@ -89,31 +85,15 @@ public struct Part: Sendable {
     public init(_ name: String, semantic: PartSemantic = .solid, color: Color, metallicness: Double, roughness: Double) {
         self.init(name, semantic: semantic, material: .init(baseColor: color, metallicness: metallicness, roughness: roughness))
     }
-
-    /// Creates a part for the legacy string-based API.
-    /// Parts created this way are equal if they have the same name and semantic.
-    internal static func named(_ name: String, semantic: PartSemantic) -> Part {
-        Part(id: nil, name: name, semantic: semantic, defaultMaterial: .plain(.white))
-    }
 }
 
 extension Part: Hashable {
     public func hash(into hasher: inout Hasher) {
-        if let id {
-            id.hash(into: &hasher)
-        } else {
-            name.hash(into: &hasher)
-            semantic.hash(into: &hasher)
-        }
+        id.hash(into: &hasher)
     }
 
     public static func ==(lhs: Part, rhs: Part) -> Bool {
-        if let lid = lhs.id, let rid = rhs.id {
-            return lid == rid
-        } else if lhs.id == nil && rhs.id == nil {
-            return lhs.name == rhs.name && lhs.semantic == rhs.semantic
-        }
-        return false
+        lhs.id == rhs.id
     }
 }
 
@@ -154,16 +134,7 @@ internal struct PartCatalog: ResultElement {
     }
 
     mutating func detach(_ part: Part) -> D3.BuildResult? {
-        // For UUID Parts, use direct lookup
-        // For nil-UUID Parts, find by name+semantic
-        let key: Part?
-        if part.id != nil {
-            key = parts.keys.contains(part) ? part : nil
-        } else {
-            key = parts.keys.first { $0.name == part.name && $0.semantic == part.semantic }
-        }
-
-        guard let key, let results = parts.removeValue(forKey: key) else {
+        guard let results = parts.removeValue(forKey: part) else {
             return nil
         }
         return D3.BuildResult(combining: results, operationType: .union)

@@ -40,5 +40,5 @@ struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
 }
 
 private extension Part {
-    static let main = Part.named("Model", semantic: .solid)
+    static let main = Part("Model", semantic: .solid)
 }

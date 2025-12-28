@@ -58,22 +58,4 @@ public extension Geometry3D {
         PartAssignment(body: self, isSeparated: true, part: part)
     }
 
-    /// Marks this geometry as belonging to a named part in the 3MF output.
-    ///
-    /// This method groups geometry into a named part in the exported 3MF file. All geometry using the same part name
-    /// and type will be merged into a single part, which makes it easier to configure in a slicer or viewer.
-    ///
-    /// Named parts are useful for:
-    /// - Multi-material or multi-color printing.
-    /// - Selecting which parts to include or exclude from a print job.
-    /// - Applying different slicer settings to different parts (e.g. setting solid infill on a mechanical insert).
-    ///
-    /// - Parameters:
-    ///   - partName: The name of the part in the 3MF file.
-    ///   - type: The type of part, such as `.solid` or `.visual`.
-    /// - Returns: A geometry wrapped as a named part.
-    ///
-    func inPart(named partName: String, type: PartSemantic = .solid) -> any Geometry3D {
-        PartAssignment(body: self, isSeparated: true, part: .named(partName, semantic: type))
-    }
 }

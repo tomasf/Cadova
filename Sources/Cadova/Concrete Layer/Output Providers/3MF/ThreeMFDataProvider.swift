@@ -95,7 +95,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
 
         let name = options[ModelName.self].name ?? "Model"
-        let mainPart = Part.named(name, semantic: .solid)
+        let mainPart = Part(name, semantic: .solid)
 
         outputs[mainPart] = result
         outputs = outputs.filter { acceptedSemantics.contains($0.key.semantic) && $0.value.node.isEmpty == false }
