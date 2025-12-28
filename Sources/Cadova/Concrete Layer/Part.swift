@@ -1,0 +1,180 @@
+import Foundation
+
+/// A value used to identify a named part in the 3MF output.
+///
+/// Parts allow you to group geometry into separate objects in the exported file.
+/// Create a part once with its properties, then use it to mark geometry throughout your model.
+///
+/// ```swift
+/// let insert = Part("Metal Insert", material: .steel)
+///
+/// Box(10)
+///     .inPart(insert)
+/// ```
+///
+/// All geometry marked with the same `Part` instance is collected into a single part in the output.
+/// The part's name appears in the 3MF file and can be used by slicers to identify and configure
+/// the part separately.
+///
+/// - Multiple assignments:
+///   - Geometry can be assigned to a part multiple times. All assignments using the same `Part`
+///     instance are merged together.
+///
+/// - Part semantics:
+///   - The ``semantic`` property indicates the role of the part (e.g., `.solid` for printable
+///     geometry, `.visual` for reference-only display).
+///
+public struct Part: Sendable {
+    internal let id: UUID?
+
+    /// The name of the part as it appears in the 3MF file.
+    public let name: String
+
+    /// The semantic role of this part.
+    public let semantic: PartSemantic
+
+    /// The default material applied to geometry in this part that doesn't specify its own material.
+    ///
+    /// Geometry can override this default using the `colored()` modifier.
+    public let defaultMaterial: Material
+
+    internal init(id: UUID?, name: String, semantic: PartSemantic, defaultMaterial: Material) {
+        self.id = id
+        self.name = name
+        self.semantic = semantic
+        self.defaultMaterial = defaultMaterial
+    }
+
+    /// Creates a new part with a unique identity.
+    ///
+    /// Each call to this initializer creates a distinct part, even if the name is the same.
+    /// Use the same `Part` instance to group geometry together.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the part as it appears in the 3MF file.
+    ///   - semantic: The semantic role of this part. Defaults to `.solid`.
+    ///   - material: The default material for geometry that doesn't specify its own.
+    ///     Geometry can override this using the `colored()` modifier. Defaults to white.
+    ///
+    public init(_ name: String, semantic: PartSemantic = .solid, material: Material) {
+        self.init(id: UUID(), name: name, semantic: semantic, defaultMaterial: material)
+    }
+
+    /// Creates a new part with a plain color as the default material.
+    ///
+    /// Geometry in this part will use the specified color unless it specifies its own
+    /// material using the `colored()` modifier.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the part as it appears in the 3MF file.
+    ///   - semantic: The semantic role of this part. Defaults to `.solid`.
+    ///   - color: The default color for geometry that doesn't specify its own material.
+    ///
+    public init(_ name: String, semantic: PartSemantic = .solid, color: Color = .white) {
+        self.init(name, semantic: semantic, material: .plain(color))
+    }
+
+    /// Creates a new part with a physically-based default material.
+    ///
+    /// Geometry in this part will use the specified PBR material unless it specifies its own
+    /// material using the `colored()` modifier.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the part as it appears in the 3MF file.
+    ///   - semantic: The semantic role of this part. Defaults to `.solid`.
+    ///   - color: The default base color for geometry that doesn't specify its own material.
+    ///   - metallicness: A value between 0 (non-metallic) and 1 (fully metallic).
+    ///   - roughness: A value between 0 (smooth and reflective) and 1 (fully matte).
+    ///
+    public init(_ name: String, semantic: PartSemantic = .solid, color: Color, metallicness: Double, roughness: Double) {
+        self.init(name, semantic: semantic, material: .init(baseColor: color, metallicness: metallicness, roughness: roughness))
+    }
+
+    /// Creates a part for the legacy string-based API.
+    /// Parts created this way are equal if they have the same name and semantic.
+    internal static func named(_ name: String, semantic: PartSemantic) -> Part {
+        Part(id: nil, name: name, semantic: semantic, defaultMaterial: .plain(.white))
+    }
+}
+
+extension Part: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        if let id {
+            id.hash(into: &hasher)
+        } else {
+            name.hash(into: &hasher)
+            semantic.hash(into: &hasher)
+        }
+    }
+
+    public static func ==(lhs: Part, rhs: Part) -> Bool {
+        if let lid = lhs.id, let rid = rhs.id {
+            return lid == rid
+        } else if lhs.id == nil && rhs.id == nil {
+            return lhs.name == rhs.name && lhs.semantic == rhs.semantic
+        }
+        return false
+    }
+}
+
+extension Part: Codable {}
+
+internal extension Part {
+    static let highlighted = Part("Highlighted", semantic: .visual, material: .highlightedGeometry)
+    static let background = Part("Background", semantic: .context, material: .backgroundGeometry)
+}
+
+internal struct PartCatalog: ResultElement {
+    var parts: [Part: [D3.BuildResult]]
+
+    init(parts: [Part: [D3.BuildResult]]) {
+        self.parts = parts
+    }
+
+    init() {
+        self.init(parts: [:])
+    }
+
+    init(combining catalogs: [PartCatalog]) {
+        self.init(parts: catalogs.reduce(into: [:]) { result, catalog in
+            result.merge(catalog.parts, uniquingKeysWith: +)
+        })
+    }
+
+    mutating func add(result: D3.BuildResult, to part: Part) {
+        parts[part, default: []].append(result)
+    }
+
+    mutating func detach(_ part: Part) -> D3.BuildResult? {
+        // For UUID Parts, use direct lookup
+        // For nil-UUID Parts, find by name+semantic
+        let key: Part?
+        if part.id != nil {
+            key = parts.keys.contains(part) ? part : nil
+        } else {
+            key = parts.keys.first { $0.name == part.name && $0.semantic == part.semantic }
+        }
+
+        guard let key, let results = parts.removeValue(forKey: key) else {
+            return nil
+        }
+        return D3.BuildResult(combining: results, operationType: .union)
+    }
+
+    var mergedOutputs: [Part: D3.BuildResult] {
+        parts.mapValues { outputs in
+            D3.BuildResult(combining: outputs, operationType: .union)
+        }
+    }
+
+    func modifyingNodes(_ modifier: (D3.Node) -> D3.Node) -> Self {
+        .init(parts: parts.mapValues {
+            $0.map { $0.replacing(node: modifier($0.node)) }
+        })
+    }
+
+    func applyingTransform(_ transform: Transform3D) -> Self {
+        guard !parts.isEmpty else { return self }
+        return modifyingNodes { .transform($0, transform: transform) }
+    }
+}

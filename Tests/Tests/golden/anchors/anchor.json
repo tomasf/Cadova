@@ -1,16 +1,8 @@
 {
   "parts" : [
     {
-      "defaultMaterial" : {
-        "baseColor" : {
-          "alpha" : 1,
-          "blue" : 1,
-          "green" : 1,
-          "red" : 1
-        }
-      },
       "name" : "Model",
-      "type" : "solid"
+      "semantic" : "solid"
     },
     {
       "children" : [
@@ -19,12 +11,11 @@
             "body" : {
               "kind" : "shape3D",
               "primitive" : {
-                "box" : {
-                  "size" : {
-                    "x" : 4,
-                    "y" : 4,
-                    "z" : 4
-                  }
+                "cylinder" : {
+                  "bottomRadius" : 0.5,
+                  "height" : 10,
+                  "segmentCount" : 20,
+                  "topRadius" : 0.5
                 }
               }
             },
@@ -33,30 +24,30 @@
               "baseColor" : {
                 "alpha" : 1,
                 "blue" : 0,
-                "green" : 0.502,
-                "red" : 0
+                "green" : 0,
+                "red" : 1
               }
             }
           },
           "kind" : "transform",
           "transform" : [
             [
+              0,
+              0,
               1,
-              0,
-              0,
-              -2
+              5
             ],
             [
               0,
               1,
               0,
-              -2
-            ],
-            [
-              0,
-              0,
-              1,
               0
+            ],
+            [
+              -1,
+              0,
+              0,
+              9
             ],
             [
               0,
@@ -123,11 +114,12 @@
             "body" : {
               "kind" : "shape3D",
               "primitive" : {
-                "cylinder" : {
-                  "bottomRadius" : 0.5,
-                  "height" : 10,
-                  "segmentCount" : 20,
-                  "topRadius" : 0.5
+                "box" : {
+                  "size" : {
+                    "x" : 4,
+                    "y" : 4,
+                    "z" : 4
+                  }
                 }
               }
             },
@@ -136,30 +128,30 @@
               "baseColor" : {
                 "alpha" : 1,
                 "blue" : 0,
-                "green" : 0,
-                "red" : 1
+                "green" : 0.502,
+                "red" : 0
               }
             }
           },
           "kind" : "transform",
           "transform" : [
             [
-              0,
-              0,
               1,
-              5
+              0,
+              0,
+              -2
             ],
             [
               0,
               1,
               0,
+              -2
+            ],
+            [
+              0,
+              0,
+              1,
               0
-            ],
-            [
-              -1,
-              0,
-              0,
-              9
             ],
             [
               0,

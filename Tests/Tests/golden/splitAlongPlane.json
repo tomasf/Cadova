@@ -1,88 +1,11 @@
 {
   "parts" : [
     {
-      "defaultMaterial" : {
-        "baseColor" : {
-          "alpha" : 1,
-          "blue" : 1,
-          "green" : 1,
-          "red" : 1
-        }
-      },
       "name" : "Model",
-      "type" : "solid"
+      "semantic" : "solid"
     },
     {
       "children" : [
-        {
-          "body" : {
-            "body" : {
-              "body" : {
-                "kind" : "shape3D",
-                "primitive" : {
-                  "box" : {
-                    "size" : {
-                      "x" : 10,
-                      "y" : 10,
-                      "z" : 10
-                    }
-                  }
-                }
-              },
-              "kind" : "transform",
-              "transform" : [
-                [
-                  1,
-                  0,
-                  0,
-                  -5
-                ],
-                [
-                  0,
-                  1,
-                  0,
-                  -5
-                ],
-                [
-                  0,
-                  0,
-                  1,
-                  -5
-                ],
-                [
-                  0,
-                  0,
-                  0,
-                  1
-                ]
-              ]
-            },
-            "kind" : "trim",
-            "plane" : {
-              "normal" : {
-                "unitVector" : {
-                  "x" : 0,
-                  "y" : -0.3420201433256687,
-                  "z" : 0.9396926207859084
-                }
-              },
-              "offset" : {
-                "x" : 0,
-                "y" : 0,
-                "z" : 0
-              }
-            }
-          },
-          "kind" : "applyMaterial",
-          "material" : {
-            "baseColor" : {
-              "alpha" : 1,
-              "blue" : 0,
-              "green" : 0,
-              "red" : 1
-            }
-          }
-        },
         {
           "body" : {
             "body" : {
@@ -149,6 +72,75 @@
               "blue" : 1,
               "green" : 0,
               "red" : 0
+            }
+          }
+        },
+        {
+          "body" : {
+            "body" : {
+              "body" : {
+                "kind" : "shape3D",
+                "primitive" : {
+                  "box" : {
+                    "size" : {
+                      "x" : 10,
+                      "y" : 10,
+                      "z" : 10
+                    }
+                  }
+                }
+              },
+              "kind" : "transform",
+              "transform" : [
+                [
+                  1,
+                  0,
+                  0,
+                  -5
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  -5
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  -5
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            },
+            "kind" : "trim",
+            "plane" : {
+              "normal" : {
+                "unitVector" : {
+                  "x" : 0,
+                  "y" : -0.3420201433256687,
+                  "z" : 0.9396926207859084
+                }
+              },
+              "offset" : {
+                "x" : 0,
+                "y" : 0,
+                "z" : 0
+              }
+            }
+          },
+          "kind" : "applyMaterial",
+          "material" : {
+            "baseColor" : {
+              "alpha" : 1,
+              "blue" : 0,
+              "green" : 0,
+              "red" : 1
             }
           }
         }

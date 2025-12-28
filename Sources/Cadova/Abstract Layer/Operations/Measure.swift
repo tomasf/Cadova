@@ -161,7 +161,7 @@ internal extension MeasurementScope {
 
         switch self {
         case .mainPart: additionalParts = []
-        case .solidParts: additionalParts = allParts.filter { $0.key.type == .solid }.map(\.value)
+        case .solidParts: additionalParts = allParts.filter { $0.key.semantic == .solid }.map(\.value)
         case .allParts: additionalParts = Array(allParts.values)
         }
 

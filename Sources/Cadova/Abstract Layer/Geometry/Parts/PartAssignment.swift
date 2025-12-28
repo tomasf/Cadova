@@ -3,13 +3,13 @@ import Foundation
 internal struct PartAssignment: Geometry {
     let body: any Geometry3D
     let isSeparated: Bool
-    let identifier: PartIdentifier
+    let part: Part
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         let newEnvironment = environment.withOperation(.addition)
         let output = try await context.buildResult(for: body, in: newEnvironment)
         var newOutput = output.modifyingElement(PartCatalog.self) {
-            $0.add(part: output, to: identifier)
+            $0.add(result: output, to: part)
         }
         if isSeparated {
             newOutput = newOutput.replacing(node: .empty)
@@ -27,7 +27,7 @@ public extension Geometry3D {
     ///
     /// Highlighted parts are still included in the output, but styled to visually indicate they are not for printing.
     func highlighted() -> any Geometry3D {
-        PartAssignment(body: self, isSeparated: false, identifier: .highlight)
+        PartAssignment(body: self, isSeparated: false, part: .highlighted)
             .colored(.transparent)
     }
 
@@ -38,13 +38,30 @@ public extension Geometry3D {
     ///
     /// This can be useful for spatial context, such as a device enclosure or mounting plate.
     func inBackground() -> any Geometry3D {
-        PartAssignment(body: self, isSeparated: true, identifier: .background)
+        PartAssignment(body: self, isSeparated: true, part: .background)
+    }
+
+    /// Marks this geometry as belonging to the specified part in the 3MF output.
+    ///
+    /// This method groups geometry into a part in the exported 3MF file. All geometry using the same `Part`
+    /// instance will be merged into a single part, which makes it easier to configure in a slicer or viewer.
+    ///
+    /// Parts are useful for:
+    /// - Multi-material or multi-color printing.
+    /// - Selecting which parts to include or exclude from a print job.
+    /// - Applying different slicer settings to different parts (e.g. setting solid infill on a mechanical insert).
+    ///
+    /// - Parameter part: The part to assign this geometry to.
+    /// - Returns: A geometry wrapped as the specified part.
+    ///
+    func inPart(_ part: Part) -> any Geometry3D {
+        PartAssignment(body: self, isSeparated: true, part: part)
     }
 
     /// Marks this geometry as belonging to a named part in the 3MF output.
     ///
     /// This method groups geometry into a named part in the exported 3MF file. All geometry using the same part name
-    /// will be merged into a single part, which makes it easier to configure in a slicer or viewer.
+    /// and type will be merged into a single part, which makes it easier to configure in a slicer or viewer.
     ///
     /// Named parts are useful for:
     /// - Multi-material or multi-color printing.
@@ -55,8 +72,8 @@ public extension Geometry3D {
     ///   - partName: The name of the part in the 3MF file.
     ///   - type: The type of part, such as `.solid` or `.visual`.
     /// - Returns: A geometry wrapped as a named part.
-    /// 
+    ///
     func inPart(named partName: String, type: PartSemantic = .solid) -> any Geometry3D {
-        PartAssignment(body: self, isSeparated: true, identifier: .named(partName, type: type))
+        PartAssignment(body: self, isSeparated: true, part: .named(partName, semantic: type))
     }
 }

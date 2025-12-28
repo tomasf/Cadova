@@ -28,7 +28,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
     }
 
     private func makeModel(
-        for id: PartIdentifier,
+        for part: Part,
         modelIndex: Int,
         manifold: Manifold,
         materials: [Manifold.OriginalID: Material],
@@ -49,7 +49,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         let triangleOIDs = TriangleOIDMapping(indexSets: originalIDs)
         let propertyReferencesByOID = materials.mapValues(addMaterial)
-        let defaultProperty = addMaterial(id.defaultMaterial)
+        let defaultProperty = addMaterial(part.defaultMaterial)
 
         let triangles = manifoldTriangles.enumerated().map { index, t in
             let originalID = triangleOIDs.originalID(for: index)
@@ -66,15 +66,15 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let object = ThreeMF.Object(
             id: startID + ResourceIDOffset.object.rawValue,
             type: .model,
-            name: id.name,
+            name: part.name,
             propertyGroupID: defaultProperty.groupID,
             propertyIndex: defaultProperty.index,
             content: .mesh(mesh)
         )
 
-        var item = Item(objectID: object.id, transform: transform?.matrix3D, partNumber: id.name)
-        item.printable = id.type == .solid
-        item.semantic = id.type
+        var item = Item(objectID: object.id, transform: transform?.matrix3D, partNumber: part.name)
+        item.printable = part.semantic == .solid
+        item.semantic = part.semantic
 
         var resources: [any ThreeMF.Resource] = [object]
         if !mainColorGroup.colors.isEmpty {
@@ -95,18 +95,18 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
 
         let name = options[ModelName.self].name ?? "Model"
-        let mainPart = PartIdentifier(name: name, type: .solid, defaultMaterial: .plain(.white))
+        let mainPart = Part.named(name, semantic: .solid)
 
         outputs[mainPart] = result
-        outputs = outputs.filter { acceptedSemantics.contains($0.key.type) && $0.value.node.isEmpty == false }
+        outputs = outputs.filter { acceptedSemantics.contains($0.key.semantic) && $0.value.node.isEmpty == false }
 
         let modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
             try await outputs.enumerated().asyncCompactMap { modelIndex, content -> (ThreeMF.Model, ThreeMF.Item, Int)? in
-                let (partIdentifier, result) = content
+                let (part, result) = content
                 let (node, transform) = result.node.deconstructTransform()
                 let nodeResult = try await context.result(for: node)
                 let (model, item) = await makeModel(
-                    for: partIdentifier,
+                    for: part,
                     modelIndex: modelIndex,
                     manifold: nodeResult.concrete,
                     materials: nodeResult.materialMapping,

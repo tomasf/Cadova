@@ -1,16 +1,8 @@
 {
   "parts" : [
     {
-      "defaultMaterial" : {
-        "baseColor" : {
-          "alpha" : 1,
-          "blue" : 1,
-          "green" : 1,
-          "red" : 1
-        }
-      },
       "name" : "Model",
-      "type" : "solid"
+      "semantic" : "solid"
     },
     {
       "children" : [
@@ -134,6 +126,70 @@
                     "kind" : "transform",
                     "transform" : [
                       [
+                        -1,
+                        0,
+                        0,
+                        5
+                      ],
+                      [
+                        0,
+                        -1,
+                        0,
+                        4
+                      ],
+                      [
+                        0,
+                        0,
+                        -1,
+                        2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  },
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
                         1,
                         0,
                         0,
@@ -141,9 +197,9 @@
                       ],
                       [
                         0,
-                        1,
+                        -1,
                         0,
-                        -4
+                        4
                       ],
                       [
                         0,
@@ -262,70 +318,6 @@
                     "kind" : "transform",
                     "transform" : [
                       [
-                        1,
-                        0,
-                        0,
-                        -5
-                      ],
-                      [
-                        0,
-                        -1,
-                        0,
-                        4
-                      ],
-                      [
-                        0,
-                        0,
-                        -1,
-                        2.5
-                      ],
-                      [
-                        0,
-                        0,
-                        0,
-                        1
-                      ]
-                    ]
-                  },
-                  {
-                    "body" : {
-                      "cacheKey" : {
-                        "type" : "6Cadova15LabeledCacheKeyV",
-                        "value" : {
-                          "operationName" : "RoundedBoxCornerMask",
-                          "parameters" : [
-                            {
-                              "type" : "6Cadova8Vector3DV",
-                              "value" : {
-                                "x" : 5,
-                                "y" : 4,
-                                "z" : 2.5
-                              }
-                            },
-                            {
-                              "type" : "Sd",
-                              "value" : 2
-                            },
-                            {
-                              "type" : "Si",
-                              "value" : 19
-                            },
-                            {
-                              "type" : "6Cadova19CornerRoundingStyleO",
-                              "value" : {
-                                "circular" : {
-
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      "kind" : "materialized"
-                    },
-                    "kind" : "transform",
-                    "transform" : [
-                      [
                         -1,
                         0,
                         0,
@@ -342,70 +334,6 @@
                         0,
                         1,
                         -2.5
-                      ],
-                      [
-                        0,
-                        0,
-                        0,
-                        1
-                      ]
-                    ]
-                  },
-                  {
-                    "body" : {
-                      "cacheKey" : {
-                        "type" : "6Cadova15LabeledCacheKeyV",
-                        "value" : {
-                          "operationName" : "RoundedBoxCornerMask",
-                          "parameters" : [
-                            {
-                              "type" : "6Cadova8Vector3DV",
-                              "value" : {
-                                "x" : 5,
-                                "y" : 4,
-                                "z" : 2.5
-                              }
-                            },
-                            {
-                              "type" : "Sd",
-                              "value" : 2
-                            },
-                            {
-                              "type" : "Si",
-                              "value" : 19
-                            },
-                            {
-                              "type" : "6Cadova19CornerRoundingStyleO",
-                              "value" : {
-                                "circular" : {
-
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      "kind" : "materialized"
-                    },
-                    "kind" : "transform",
-                    "transform" : [
-                      [
-                        -1,
-                        0,
-                        0,
-                        5
-                      ],
-                      [
-                        0,
-                        1,
-                        0,
-                        -4
-                      ],
-                      [
-                        0,
-                        0,
-                        -1,
-                        2.5
                       ],
                       [
                         0,
@@ -525,9 +453,73 @@
                       ],
                       [
                         0,
-                        -1,
+                        1,
                         0,
-                        4
+                        -4
+                      ],
+                      [
+                        0,
+                        0,
+                        -1,
+                        2.5
+                      ],
+                      [
+                        0,
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  },
+                  {
+                    "body" : {
+                      "cacheKey" : {
+                        "type" : "6Cadova15LabeledCacheKeyV",
+                        "value" : {
+                          "operationName" : "RoundedBoxCornerMask",
+                          "parameters" : [
+                            {
+                              "type" : "6Cadova8Vector3DV",
+                              "value" : {
+                                "x" : 5,
+                                "y" : 4,
+                                "z" : 2.5
+                              }
+                            },
+                            {
+                              "type" : "Sd",
+                              "value" : 2
+                            },
+                            {
+                              "type" : "Si",
+                              "value" : 19
+                            },
+                            {
+                              "type" : "6Cadova19CornerRoundingStyleO",
+                              "value" : {
+                                "circular" : {
+
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "kind" : "materialized"
+                    },
+                    "kind" : "transform",
+                    "transform" : [
+                      [
+                        1,
+                        0,
+                        0,
+                        -5
+                      ],
+                      [
+                        0,
+                        1,
+                        0,
+                        -4
                       ],
                       [
                         0,
@@ -636,10 +628,138 @@
                       "kind" : "transform",
                       "transform" : [
                         [
+                          -1,
+                          0,
+                          0,
+                          5
+                        ],
+                        [
+                          0,
+                          -1,
+                          0,
+                          4
+                        ],
+                        [
+                          0,
+                          0,
+                          -1,
+                          2.5
+                        ],
+                        [
+                          0,
+                          0,
+                          0,
+                          1
+                        ]
+                      ]
+                    },
+                    {
+                      "body" : {
+                        "cacheKey" : {
+                          "type" : "6Cadova15LabeledCacheKeyV",
+                          "value" : {
+                            "operationName" : "RoundedBoxCornerMask",
+                            "parameters" : [
+                              {
+                                "type" : "6Cadova8Vector3DV",
+                                "value" : {
+                                  "x" : 5,
+                                  "y" : 4,
+                                  "z" : 2.5
+                                }
+                              },
+                              {
+                                "type" : "Sd",
+                                "value" : 2
+                              },
+                              {
+                                "type" : "Si",
+                                "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "kind" : "materialized"
+                      },
+                      "kind" : "transform",
+                      "transform" : [
+                        [
                           1,
                           0,
                           0,
                           -5
+                        ],
+                        [
+                          0,
+                          1,
+                          0,
+                          -4
+                        ],
+                        [
+                          0,
+                          0,
+                          1,
+                          -2.5
+                        ],
+                        [
+                          0,
+                          0,
+                          0,
+                          1
+                        ]
+                      ]
+                    },
+                    {
+                      "body" : {
+                        "cacheKey" : {
+                          "type" : "6Cadova15LabeledCacheKeyV",
+                          "value" : {
+                            "operationName" : "RoundedBoxCornerMask",
+                            "parameters" : [
+                              {
+                                "type" : "6Cadova8Vector3DV",
+                                "value" : {
+                                  "x" : 5,
+                                  "y" : 4,
+                                  "z" : 2.5
+                                }
+                              },
+                              {
+                                "type" : "Sd",
+                                "value" : 2
+                              },
+                              {
+                                "type" : "Si",
+                                "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "kind" : "materialized"
+                      },
+                      "kind" : "transform",
+                      "transform" : [
+                        [
+                          -1,
+                          0,
+                          0,
+                          5
                         ],
                         [
                           0,
@@ -828,266 +948,138 @@
                       "kind" : "transform",
                       "transform" : [
                         [
+                          -1,
+                          0,
+                          0,
+                          5
+                        ],
+                        [
+                          0,
+                          -1,
+                          0,
+                          4
+                        ],
+                        [
+                          0,
+                          0,
+                          1,
+                          -2.5
+                        ],
+                        [
+                          0,
+                          0,
+                          0,
+                          1
+                        ]
+                      ]
+                    },
+                    {
+                      "body" : {
+                        "cacheKey" : {
+                          "type" : "6Cadova15LabeledCacheKeyV",
+                          "value" : {
+                            "operationName" : "RoundedBoxCornerMask",
+                            "parameters" : [
+                              {
+                                "type" : "6Cadova8Vector3DV",
+                                "value" : {
+                                  "x" : 5,
+                                  "y" : 4,
+                                  "z" : 2.5
+                                }
+                              },
+                              {
+                                "type" : "Sd",
+                                "value" : 2
+                              },
+                              {
+                                "type" : "Si",
+                                "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "kind" : "materialized"
+                      },
+                      "kind" : "transform",
+                      "transform" : [
+                        [
+                          -1,
+                          0,
+                          0,
+                          5
+                        ],
+                        [
+                          0,
+                          1,
+                          0,
+                          -4
+                        ],
+                        [
+                          0,
+                          0,
+                          -1,
+                          2.5
+                        ],
+                        [
+                          0,
+                          0,
+                          0,
+                          1
+                        ]
+                      ]
+                    },
+                    {
+                      "body" : {
+                        "cacheKey" : {
+                          "type" : "6Cadova15LabeledCacheKeyV",
+                          "value" : {
+                            "operationName" : "RoundedBoxCornerMask",
+                            "parameters" : [
+                              {
+                                "type" : "6Cadova8Vector3DV",
+                                "value" : {
+                                  "x" : 5,
+                                  "y" : 4,
+                                  "z" : 2.5
+                                }
+                              },
+                              {
+                                "type" : "Sd",
+                                "value" : 2
+                              },
+                              {
+                                "type" : "Si",
+                                "value" : 4
+                              },
+                              {
+                                "type" : "6Cadova19CornerRoundingStyleO",
+                                "value" : {
+                                  "circular" : {
+
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "kind" : "materialized"
+                      },
+                      "kind" : "transform",
+                      "transform" : [
+                        [
                           1,
                           0,
                           0,
                           -5
-                        ],
-                        [
-                          0,
-                          -1,
-                          0,
-                          4
-                        ],
-                        [
-                          0,
-                          0,
-                          -1,
-                          2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 4
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          -1,
-                          0,
-                          0,
-                          5
-                        ],
-                        [
-                          0,
-                          1,
-                          0,
-                          -4
-                        ],
-                        [
-                          0,
-                          0,
-                          1,
-                          -2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 4
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          -1,
-                          0,
-                          0,
-                          5
-                        ],
-                        [
-                          0,
-                          1,
-                          0,
-                          -4
-                        ],
-                        [
-                          0,
-                          0,
-                          -1,
-                          2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 4
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          -1,
-                          0,
-                          0,
-                          5
-                        ],
-                        [
-                          0,
-                          -1,
-                          0,
-                          4
-                        ],
-                        [
-                          0,
-                          0,
-                          1,
-                          -2.5
-                        ],
-                        [
-                          0,
-                          0,
-                          0,
-                          1
-                        ]
-                      ]
-                    },
-                    {
-                      "body" : {
-                        "cacheKey" : {
-                          "type" : "6Cadova15LabeledCacheKeyV",
-                          "value" : {
-                            "operationName" : "RoundedBoxCornerMask",
-                            "parameters" : [
-                              {
-                                "type" : "6Cadova8Vector3DV",
-                                "value" : {
-                                  "x" : 5,
-                                  "y" : 4,
-                                  "z" : 2.5
-                                }
-                              },
-                              {
-                                "type" : "Sd",
-                                "value" : 2
-                              },
-                              {
-                                "type" : "Si",
-                                "value" : 4
-                              },
-                              {
-                                "type" : "6Cadova19CornerRoundingStyleO",
-                                "value" : {
-                                  "circular" : {
-
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        "kind" : "materialized"
-                      },
-                      "kind" : "transform",
-                      "transform" : [
-                        [
-                          -1,
-                          0,
-                          0,
-                          5
                         ],
                         [
                           0,
@@ -1182,333 +1174,6 @@
                   "primitive" : {
                     "box" : {
                       "size" : {
-                        "x" : 3,
-                        "y" : 4,
-                        "z" : 18
-                      }
-                    }
-                  }
-                },
-                "kind" : "transform",
-                "transform" : [
-                  [
-                    0,
-                    -1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    -1,
-                    0,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              },
-              {
-                "body" : {
-                  "crossSection" : {
-                    "children" : [
-                      {
-                        "children" : [
-                          {
-                            "body" : {
-                              "kind" : "shape2D",
-                              "primitive" : {
-                                "rectangle" : {
-                                  "size" : {
-                                    "x" : 4,
-                                    "y" : 18
-                                  }
-                                }
-                              }
-                            },
-                            "kind" : "transform",
-                            "transform" : [
-                              [
-                                1,
-                                0,
-                                -2
-                              ],
-                              [
-                                0,
-                                1,
-                                -9
-                              ],
-                              [
-                                0,
-                                0,
-                                1
-                              ]
-                            ]
-                          },
-                          {
-                            "body" : {
-                              "kind" : "shape2D",
-                              "primitive" : {
-                                "rectangle" : {
-                                  "size" : {
-                                    "x" : 2,
-                                    "y" : 2
-                                  }
-                                }
-                              }
-                            },
-                            "kind" : "transform",
-                            "transform" : [
-                              [
-                                1,
-                                0,
-                                0
-                              ],
-                              [
-                                0,
-                                1,
-                                7
-                              ],
-                              [
-                                0,
-                                0,
-                                1
-                              ]
-                            ]
-                          }
-                        ],
-                        "kind" : "boolean",
-                        "type" : "difference"
-                      },
-                      {
-                        "body" : {
-                          "cacheKey" : {
-                            "type" : "6Cadova15LabeledCacheKeyV",
-                            "value" : {
-                              "operationName" : "polygon",
-                              "parameters" : [
-                                {
-                                  "type" : "6Cadova13PolygonPointsO",
-                                  "value" : {
-                                    "literal" : {
-                                      "_0" : [
-                                        {
-                                          "x" : 2,
-                                          "y" : 0
-                                        },
-                                        {
-                                          "x" : 1.9944075943623603,
-                                          "y" : 0.14946018717284848
-                                        },
-                                        {
-                                          "x" : 1.977661652450257,
-                                          "y" : 0.29808453235234883
-                                        },
-                                        {
-                                          "x" : 1.9498558243636472,
-                                          "y" : 0.4450418679126288
-                                        },
-                                        {
-                                          "x" : 1.9111456115722816,
-                                          "y" : 0.5895103488218083
-                                        },
-                                        {
-                                          "x" : 1.8617474972884085,
-                                          "y" : 0.73068204873279
-                                        },
-                                        {
-                                          "x" : 1.8019377358048383,
-                                          "y" : 0.8677674782351162
-                                        },
-                                        {
-                                          "x" : 1.7320508075688774,
-                                          "y" : 0.9999999999999999
-                                        },
-                                        {
-                                          "x" : 1.6524775486319898,
-                                          "y" : 1.126640116127244
-                                        },
-                                        {
-                                          "x" : 1.56366296493606,
-                                          "y" : 1.246979603717467
-                                        },
-                                        {
-                                          "x" : 1.4661037436596527,
-                                          "y" : 1.3603454755418387
-                                        },
-                                        {
-                                          "x" : 1.360345475541839,
-                                          "y" : 1.4661037436596527
-                                        },
-                                        {
-                                          "x" : 1.2469796037174674,
-                                          "y" : 1.5636629649360596
-                                        },
-                                        {
-                                          "x" : 1.126640116127244,
-                                          "y" : 1.6524775486319898
-                                        },
-                                        {
-                                          "x" : 0.9999999999999999,
-                                          "y" : 1.7320508075688774
-                                        },
-                                        {
-                                          "x" : 0.8677674782351165,
-                                          "y" : 1.8019377358048383
-                                        },
-                                        {
-                                          "x" : 0.7306820487327905,
-                                          "y" : 1.8617474972884085
-                                        },
-                                        {
-                                          "x" : 0.5895103488218083,
-                                          "y" : 1.9111456115722816
-                                        },
-                                        {
-                                          "x" : 0.44504186791262895,
-                                          "y" : 1.9498558243636472
-                                        },
-                                        {
-                                          "x" : 0.2980845323523483,
-                                          "y" : 1.977661652450257
-                                        },
-                                        {
-                                          "x" : 0.1494601871728482,
-                                          "y" : 1.9944075943623603
-                                        },
-                                        {
-                                          "x" : -0,
-                                          "y" : 2
-                                        },
-                                        {
-                                          "x" : 0,
-                                          "y" : 0
-                                        }
-                                      ]
-                                    }
-                                  }
-                                }
-                              ]
-                            }
-                          },
-                          "kind" : "materialized"
-                        },
-                        "kind" : "transform",
-                        "transform" : [
-                          [
-                            1,
-                            0,
-                            0
-                          ],
-                          [
-                            0,
-                            1,
-                            7
-                          ],
-                          [
-                            0,
-                            0,
-                            1
-                          ]
-                        ]
-                      }
-                    ],
-                    "kind" : "boolean",
-                    "type" : "union"
-                  },
-                  "kind" : "extrusion",
-                  "type" : {
-                    "linear" : {
-                      "divisions" : 0,
-                      "height" : 3,
-                      "scaleTop" : {
-                        "x" : 1,
-                        "y" : 1
-                      },
-                      "twist" : {
-                        "degrees" : 0
-                      }
-                    }
-                  }
-                },
-                "kind" : "transform",
-                "transform" : [
-                  [
-                    1,
-                    0,
-                    0,
-                    -2
-                  ],
-                  [
-                    0,
-                    1,
-                    0,
-                    9
-                  ],
-                  [
-                    0,
-                    0,
-                    1,
-                    -3
-                  ],
-                  [
-                    0,
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            ],
-            "kind" : "boolean",
-            "type" : "intersection"
-          },
-          "kind" : "transform",
-          "transform" : [
-            [
-              0,
-              0,
-              -1,
-              22
-            ],
-            [
-              -1,
-              0,
-              0,
-              0
-            ],
-            [
-              0,
-              1,
-              0,
-              0
-            ],
-            [
-              0,
-              0,
-              0,
-              1
-            ]
-          ]
-        },
-        {
-          "body" : {
-            "children" : [
-              {
-                "body" : {
-                  "kind" : "shape3D",
-                  "primitive" : {
-                    "box" : {
-                      "size" : {
                         "x" : 8,
                         "y" : 10,
                         "z" : 6
@@ -1548,6 +1213,158 @@
                 "body" : {
                   "crossSection" : {
                     "children" : [
+                      {
+                        "body" : {
+                          "cacheKey" : {
+                            "type" : "6Cadova15LabeledCacheKeyV",
+                            "value" : {
+                              "operationName" : "polygon",
+                              "parameters" : [
+                                {
+                                  "type" : "6Cadova13PolygonPointsO",
+                                  "value" : {
+                                    "literal" : {
+                                      "_0" : [
+                                        {
+                                          "x" : 2.5,
+                                          "y" : 0
+                                        },
+                                        {
+                                          "x" : 2.495438885558294,
+                                          "y" : 0.15094624355571515
+                                        },
+                                        {
+                                          "x" : 2.481772185245135,
+                                          "y" : 0.3013417006383077
+                                        },
+                                        {
+                                          "x" : 2.4590497673678593,
+                                          "y" : 0.4506375945347644
+                                        },
+                                        {
+                                          "x" : 2.42735454356513,
+                                          "y" : 0.5982891607188944
+                                        },
+                                        {
+                                          "x" : 2.386802166271364,
+                                          "y" : 0.7437576346380076
+                                        },
+                                        {
+                                          "x" : 2.337540606713537,
+                                          "y" : 0.886512217606339
+                                        },
+                                        {
+                                          "x" : 2.2797496149802257,
+                                          "y" : 1.026032013631892
+                                        },
+                                        {
+                                          "x" : 2.213640064133025,
+                                          "y" : 1.1618079301094215
+                                        },
+                                        {
+                                          "x" : 2.139453180753619,
+                                          "y" : 1.293344535444142
+                                        },
+                                        {
+                                          "x" : 2.057459664734141,
+                                          "y" : 1.4201618668278897
+                                        },
+                                        {
+                                          "x" : 1.9679587015226256,
+                                          "y" : 1.5417971815713574
+                                        },
+                                        {
+                                          "x" : 1.8712768704277525,
+                                          "y" : 1.657806645601988
+                                        },
+                                        {
+                                          "x" : 1.7677669529663687,
+                                          "y" : 1.7677669529663687
+                                        },
+                                        {
+                                          "x" : 1.6578066456019882,
+                                          "y" : 1.8712768704277527
+                                        },
+                                        {
+                                          "x" : 1.5417971815713583,
+                                          "y" : 1.9679587015226252
+                                        },
+                                        {
+                                          "x" : 1.4201618668278893,
+                                          "y" : 2.057459664734141
+                                        },
+                                        {
+                                          "x" : 1.293344535444142,
+                                          "y" : 2.139453180753619
+                                        },
+                                        {
+                                          "x" : 1.1618079301094208,
+                                          "y" : 2.213640064133025
+                                        },
+                                        {
+                                          "x" : 1.026032013631892,
+                                          "y" : 2.279749614980225
+                                        },
+                                        {
+                                          "x" : 0.8865122176063391,
+                                          "y" : 2.337540606713537
+                                        },
+                                        {
+                                          "x" : 0.743757634638008,
+                                          "y" : 2.386802166271364
+                                        },
+                                        {
+                                          "x" : 0.5982891607188953,
+                                          "y" : 2.42735454356513
+                                        },
+                                        {
+                                          "x" : 0.4506375945347645,
+                                          "y" : 2.4590497673678593
+                                        },
+                                        {
+                                          "x" : 0.3013417006383069,
+                                          "y" : 2.481772185245135
+                                        },
+                                        {
+                                          "x" : 0.15094624355571476,
+                                          "y" : 2.495438885558294
+                                        },
+                                        {
+                                          "x" : -0,
+                                          "y" : 2.5
+                                        },
+                                        {
+                                          "x" : 0,
+                                          "y" : 0
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "kind" : "materialized"
+                        },
+                        "kind" : "transform",
+                        "transform" : [
+                          [
+                            1,
+                            0,
+                            1.5
+                          ],
+                          [
+                            0,
+                            -1,
+                            -0.5
+                          ],
+                          [
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
+                      },
                       {
                         "children" : [
                           {
@@ -1598,9 +1415,9 @@
                                 "kind" : "transform",
                                 "transform" : [
                                   [
-                                    -1,
+                                    1,
                                     0,
-                                    -1.5
+                                    1.5
                                   ],
                                   [
                                     0,
@@ -1629,9 +1446,9 @@
                                 "kind" : "transform",
                                 "transform" : [
                                   [
-                                    1,
+                                    -1,
                                     0,
-                                    1.5
+                                    -1.5
                                   ],
                                   [
                                     0,
@@ -1804,158 +1621,6 @@
                             1
                           ]
                         ]
-                      },
-                      {
-                        "body" : {
-                          "cacheKey" : {
-                            "type" : "6Cadova15LabeledCacheKeyV",
-                            "value" : {
-                              "operationName" : "polygon",
-                              "parameters" : [
-                                {
-                                  "type" : "6Cadova13PolygonPointsO",
-                                  "value" : {
-                                    "literal" : {
-                                      "_0" : [
-                                        {
-                                          "x" : 2.5,
-                                          "y" : 0
-                                        },
-                                        {
-                                          "x" : 2.495438885558294,
-                                          "y" : 0.15094624355571515
-                                        },
-                                        {
-                                          "x" : 2.481772185245135,
-                                          "y" : 0.3013417006383077
-                                        },
-                                        {
-                                          "x" : 2.4590497673678593,
-                                          "y" : 0.4506375945347644
-                                        },
-                                        {
-                                          "x" : 2.42735454356513,
-                                          "y" : 0.5982891607188944
-                                        },
-                                        {
-                                          "x" : 2.386802166271364,
-                                          "y" : 0.7437576346380076
-                                        },
-                                        {
-                                          "x" : 2.337540606713537,
-                                          "y" : 0.886512217606339
-                                        },
-                                        {
-                                          "x" : 2.2797496149802257,
-                                          "y" : 1.026032013631892
-                                        },
-                                        {
-                                          "x" : 2.213640064133025,
-                                          "y" : 1.1618079301094215
-                                        },
-                                        {
-                                          "x" : 2.139453180753619,
-                                          "y" : 1.293344535444142
-                                        },
-                                        {
-                                          "x" : 2.057459664734141,
-                                          "y" : 1.4201618668278897
-                                        },
-                                        {
-                                          "x" : 1.9679587015226256,
-                                          "y" : 1.5417971815713574
-                                        },
-                                        {
-                                          "x" : 1.8712768704277525,
-                                          "y" : 1.657806645601988
-                                        },
-                                        {
-                                          "x" : 1.7677669529663687,
-                                          "y" : 1.7677669529663687
-                                        },
-                                        {
-                                          "x" : 1.6578066456019882,
-                                          "y" : 1.8712768704277527
-                                        },
-                                        {
-                                          "x" : 1.5417971815713583,
-                                          "y" : 1.9679587015226252
-                                        },
-                                        {
-                                          "x" : 1.4201618668278893,
-                                          "y" : 2.057459664734141
-                                        },
-                                        {
-                                          "x" : 1.293344535444142,
-                                          "y" : 2.139453180753619
-                                        },
-                                        {
-                                          "x" : 1.1618079301094208,
-                                          "y" : 2.213640064133025
-                                        },
-                                        {
-                                          "x" : 1.026032013631892,
-                                          "y" : 2.279749614980225
-                                        },
-                                        {
-                                          "x" : 0.8865122176063391,
-                                          "y" : 2.337540606713537
-                                        },
-                                        {
-                                          "x" : 0.743757634638008,
-                                          "y" : 2.386802166271364
-                                        },
-                                        {
-                                          "x" : 0.5982891607188953,
-                                          "y" : 2.42735454356513
-                                        },
-                                        {
-                                          "x" : 0.4506375945347645,
-                                          "y" : 2.4590497673678593
-                                        },
-                                        {
-                                          "x" : 0.3013417006383069,
-                                          "y" : 2.481772185245135
-                                        },
-                                        {
-                                          "x" : 0.15094624355571476,
-                                          "y" : 2.495438885558294
-                                        },
-                                        {
-                                          "x" : -0,
-                                          "y" : 2.5
-                                        },
-                                        {
-                                          "x" : 0,
-                                          "y" : 0
-                                        }
-                                      ]
-                                    }
-                                  }
-                                }
-                              ]
-                            }
-                          },
-                          "kind" : "materialized"
-                        },
-                        "kind" : "transform",
-                        "transform" : [
-                          [
-                            1,
-                            0,
-                            1.5
-                          ],
-                          [
-                            0,
-                            -1,
-                            -0.5
-                          ],
-                          [
-                            0,
-                            0,
-                            1
-                          ]
-                        ]
                       }
                     ],
                     "kind" : "boolean",
@@ -2020,6 +1685,333 @@
               0,
               0,
               -1,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "children" : [
+              {
+                "body" : {
+                  "kind" : "shape3D",
+                  "primitive" : {
+                    "box" : {
+                      "size" : {
+                        "x" : 3,
+                        "y" : 4,
+                        "z" : 18
+                      }
+                    }
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    0,
+                    -1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    -1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "crossSection" : {
+                    "children" : [
+                      {
+                        "body" : {
+                          "cacheKey" : {
+                            "type" : "6Cadova15LabeledCacheKeyV",
+                            "value" : {
+                              "operationName" : "polygon",
+                              "parameters" : [
+                                {
+                                  "type" : "6Cadova13PolygonPointsO",
+                                  "value" : {
+                                    "literal" : {
+                                      "_0" : [
+                                        {
+                                          "x" : 2,
+                                          "y" : 0
+                                        },
+                                        {
+                                          "x" : 1.9944075943623603,
+                                          "y" : 0.14946018717284848
+                                        },
+                                        {
+                                          "x" : 1.977661652450257,
+                                          "y" : 0.29808453235234883
+                                        },
+                                        {
+                                          "x" : 1.9498558243636472,
+                                          "y" : 0.4450418679126288
+                                        },
+                                        {
+                                          "x" : 1.9111456115722816,
+                                          "y" : 0.5895103488218083
+                                        },
+                                        {
+                                          "x" : 1.8617474972884085,
+                                          "y" : 0.73068204873279
+                                        },
+                                        {
+                                          "x" : 1.8019377358048383,
+                                          "y" : 0.8677674782351162
+                                        },
+                                        {
+                                          "x" : 1.7320508075688774,
+                                          "y" : 0.9999999999999999
+                                        },
+                                        {
+                                          "x" : 1.6524775486319898,
+                                          "y" : 1.126640116127244
+                                        },
+                                        {
+                                          "x" : 1.56366296493606,
+                                          "y" : 1.246979603717467
+                                        },
+                                        {
+                                          "x" : 1.4661037436596527,
+                                          "y" : 1.3603454755418387
+                                        },
+                                        {
+                                          "x" : 1.360345475541839,
+                                          "y" : 1.4661037436596527
+                                        },
+                                        {
+                                          "x" : 1.2469796037174674,
+                                          "y" : 1.5636629649360596
+                                        },
+                                        {
+                                          "x" : 1.126640116127244,
+                                          "y" : 1.6524775486319898
+                                        },
+                                        {
+                                          "x" : 0.9999999999999999,
+                                          "y" : 1.7320508075688774
+                                        },
+                                        {
+                                          "x" : 0.8677674782351165,
+                                          "y" : 1.8019377358048383
+                                        },
+                                        {
+                                          "x" : 0.7306820487327905,
+                                          "y" : 1.8617474972884085
+                                        },
+                                        {
+                                          "x" : 0.5895103488218083,
+                                          "y" : 1.9111456115722816
+                                        },
+                                        {
+                                          "x" : 0.44504186791262895,
+                                          "y" : 1.9498558243636472
+                                        },
+                                        {
+                                          "x" : 0.2980845323523483,
+                                          "y" : 1.977661652450257
+                                        },
+                                        {
+                                          "x" : 0.1494601871728482,
+                                          "y" : 1.9944075943623603
+                                        },
+                                        {
+                                          "x" : -0,
+                                          "y" : 2
+                                        },
+                                        {
+                                          "x" : 0,
+                                          "y" : 0
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "kind" : "materialized"
+                        },
+                        "kind" : "transform",
+                        "transform" : [
+                          [
+                            1,
+                            0,
+                            0
+                          ],
+                          [
+                            0,
+                            1,
+                            7
+                          ],
+                          [
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
+                      },
+                      {
+                        "children" : [
+                          {
+                            "body" : {
+                              "kind" : "shape2D",
+                              "primitive" : {
+                                "rectangle" : {
+                                  "size" : {
+                                    "x" : 4,
+                                    "y" : 18
+                                  }
+                                }
+                              }
+                            },
+                            "kind" : "transform",
+                            "transform" : [
+                              [
+                                1,
+                                0,
+                                -2
+                              ],
+                              [
+                                0,
+                                1,
+                                -9
+                              ],
+                              [
+                                0,
+                                0,
+                                1
+                              ]
+                            ]
+                          },
+                          {
+                            "body" : {
+                              "kind" : "shape2D",
+                              "primitive" : {
+                                "rectangle" : {
+                                  "size" : {
+                                    "x" : 2,
+                                    "y" : 2
+                                  }
+                                }
+                              }
+                            },
+                            "kind" : "transform",
+                            "transform" : [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                7
+                              ],
+                              [
+                                0,
+                                0,
+                                1
+                              ]
+                            ]
+                          }
+                        ],
+                        "kind" : "boolean",
+                        "type" : "difference"
+                      }
+                    ],
+                    "kind" : "boolean",
+                    "type" : "union"
+                  },
+                  "kind" : "extrusion",
+                  "type" : {
+                    "linear" : {
+                      "divisions" : 0,
+                      "height" : 3,
+                      "scaleTop" : {
+                        "x" : 1,
+                        "y" : 1
+                      },
+                      "twist" : {
+                        "degrees" : 0
+                      }
+                    }
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    9
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    -3
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "intersection"
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              0,
+              0,
+              -1,
+              22
+            ],
+            [
+              -1,
+              0,
+              0,
               0
             ],
             [
