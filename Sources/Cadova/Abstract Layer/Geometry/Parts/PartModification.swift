@@ -2,28 +2,15 @@ import Foundation
 
 internal struct PartModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
-    let parts: [Part]?
-    let semantic: PartSemantic?
+    let predicate: @Sendable (Part) -> Bool
     let modifier: @Sendable (any Geometry3D, Part) -> any Geometry3D
-
-    private func shouldModify(_ catalogPart: Part) -> Bool {
-        if let semantic, catalogPart.semantic != semantic {
-            return false
-        }
-
-        if let parts {
-            return parts.contains { $0.id == catalogPart.id }
-        }
-
-        return true
-    }
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         let output = try await context.buildResult(for: body, in: environment)
 
         return try await output.modifyingElement(PartCatalog.self) {
             PartCatalog(parts: try await Dictionary(uniqueKeysWithValues: $0.parts.asyncCompactMap { catalogPart, results in
-                guard shouldModify(catalogPart) else { return (catalogPart, results) }
+                guard predicate(catalogPart) else { return (catalogPart, results) }
 
                 let buildResult = try await context.buildResult(for: modifier(Union(results), catalogPart), in: environment)
                 if buildResult.node.isEmpty {
@@ -56,7 +43,7 @@ public extension Geometry {
         _ part: Part,
         @GeometryBuilder<D3> reader: @Sendable @escaping (_ partGeometry: any Geometry3D) -> any Geometry3D
     ) -> D.Geometry {
-        PartModifier(body: self, parts: [part], semantic: nil) { geometry, _ in
+        PartModifier(body: self, predicate: { $0 == part }) { geometry, _ in
             reader(geometry)
         }
     }
@@ -82,7 +69,7 @@ public extension Geometry {
         ofType type: PartSemantic = .solid,
         @GeometryBuilder<D3> reader: @Sendable @escaping (_ partGeometry: any Geometry3D, _ part: Part) -> any Geometry3D
     ) -> D.Geometry {
-        PartModifier(body: self, parts: nil, semantic: type, modifier: reader)
+        PartModifier(body: self, predicate: { $0.semantic == type }, modifier: reader)
     }
 
     /// Removes the specified part from the part catalog.
@@ -94,7 +81,7 @@ public extension Geometry {
     /// - Returns: A geometry that preserves the base model but omits the specified part from the catalog.
     ///
     func removingPart(_ part: Part) -> D.Geometry {
-        PartModifier(body: self, parts: [part], semantic: nil) { _, _ in Empty() }
+        PartModifier(body: self, predicate: { $0 == part }) { _, _ in Empty() }
     }
 
     /// Removes all parts of the specified semantic from the part catalog.
@@ -106,6 +93,6 @@ public extension Geometry {
     /// - Returns: A geometry that preserves the base model but omits the matching parts from the catalog.
     ///
     func removingParts(ofType type: PartSemantic = .solid) -> D.Geometry {
-        PartModifier(body: self, parts: nil, semantic: type) { _, _ in Empty() }
+        PartModifier(body: self, predicate: { $0.semantic == type }) { _, _ in Empty() }
     }
 }
