@@ -110,6 +110,7 @@ internal extension Part {
     static let visualizedPath = Part("Visualized Path", semantic: .visual)
     static let visualizedDirection = Part("Visualized Direction", semantic: .visual)
     static let visualizedLoftLayers = Part("Visualized Loft Layers", semantic: .visual)
+    static let visualizedRuler = Part("Visualized Ruler", semantic: .visual)
 }
 
 internal struct PartCatalog: ResultElement {

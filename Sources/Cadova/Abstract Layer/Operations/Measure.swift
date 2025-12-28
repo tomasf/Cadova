@@ -151,7 +151,7 @@ internal extension MeasurementScope {
 
         let partResults = try await additionalParts.asyncMap { try await context.result(for: $0.node) }
 
-        let foo = [main3D.concrete] + partResults.map(\.concrete)
-        return foo as! [D.Concrete]
+        let concretes = [main3D.concrete] + partResults.map(\.concrete)
+        return concretes as! [D.Concrete]
     }
 }
