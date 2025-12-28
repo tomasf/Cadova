@@ -15,7 +15,7 @@ fileprivate struct DirectionVisualization: Shape3D {
         .rotated(from: .up, to: direction)
         .withSegmentation(count: 8)
         .colored(color)
-        .inPart(named: "Visualized Direction", type: .visual)
+        .inPart(.visualizedDirection)
     }
 }
 

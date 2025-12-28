@@ -1,103 +1,11 @@
 {
   "parts" : [
     {
-      "defaultMaterial" : {
-        "baseColor" : {
-          "alpha" : 1,
-          "blue" : 1,
-          "green" : 1,
-          "red" : 1
-        }
-      },
       "name" : "Model",
-      "type" : "solid"
+      "semantic" : "solid"
     },
     {
       "children" : [
-        {
-          "children" : [
-            {
-              "children" : [
-                {
-                  "body" : {
-                    "kind" : "shape2D",
-                    "primitive" : {
-                      "rectangle" : {
-                        "size" : {
-                          "x" : 30,
-                          "y" : 10
-                        }
-                      }
-                    }
-                  },
-                  "kind" : "transform",
-                  "transform" : [
-                    [
-                      1,
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      1,
-                      -5
-                    ],
-                    [
-                      0,
-                      0,
-                      1
-                    ]
-                  ]
-                },
-                {
-                  "kind" : "shape2D",
-                  "primitive" : {
-                    "circle" : {
-                      "radius" : 4,
-                      "segmentCount" : 167
-                    }
-                  }
-                }
-              ],
-              "kind" : "boolean",
-              "type" : "difference"
-            },
-            {
-              "cacheKey" : {
-                "type" : "6Cadova15LabeledCacheKeyV",
-                "value" : {
-                  "operationName" : "polygon",
-                  "parameters" : [
-                    {
-                      "type" : "6Cadova13PolygonPointsO",
-                      "value" : {
-                        "literal" : {
-                          "_0" : [
-                            {
-                              "x" : 0,
-                              "y" : -10
-                            },
-                            {
-                              "x" : 20,
-                              "y" : 2
-                            },
-                            {
-                              "x" : 0,
-                              "y" : 10
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  ]
-                }
-              },
-              "kind" : "materialized"
-            }
-          ],
-          "kind" : "boolean",
-          "type" : "intersection"
-        },
         {
           "cacheKey" : {
             "type" : "6Cadova15LabeledCacheKeyV",
@@ -453,6 +361,90 @@
             }
           },
           "kind" : "materialized"
+        },
+        {
+          "children" : [
+            {
+              "children" : [
+                {
+                  "body" : {
+                    "kind" : "shape2D",
+                    "primitive" : {
+                      "rectangle" : {
+                        "size" : {
+                          "x" : 30,
+                          "y" : 10
+                        }
+                      }
+                    }
+                  },
+                  "kind" : "transform",
+                  "transform" : [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      -5
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                },
+                {
+                  "kind" : "shape2D",
+                  "primitive" : {
+                    "circle" : {
+                      "radius" : 4,
+                      "segmentCount" : 167
+                    }
+                  }
+                }
+              ],
+              "kind" : "boolean",
+              "type" : "difference"
+            },
+            {
+              "cacheKey" : {
+                "type" : "6Cadova15LabeledCacheKeyV",
+                "value" : {
+                  "operationName" : "polygon",
+                  "parameters" : [
+                    {
+                      "type" : "6Cadova13PolygonPointsO",
+                      "value" : {
+                        "literal" : {
+                          "_0" : [
+                            {
+                              "x" : 0,
+                              "y" : -10
+                            },
+                            {
+                              "x" : 20,
+                              "y" : 2
+                            },
+                            {
+                              "x" : 0,
+                              "y" : 10
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "kind" : "materialized"
+            }
+          ],
+          "kind" : "boolean",
+          "type" : "intersection"
         }
       ],
       "kind" : "boolean",

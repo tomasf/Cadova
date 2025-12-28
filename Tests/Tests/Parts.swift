@@ -3,24 +3,28 @@ import Testing
 
 struct PartTests {
     @Test func `parts are exported separately from main geometry`() async throws {
+        let separatePart = Part("separate")
         try await Box(10)
             .adding {
                 Sphere(diameter: 5)
-                    .inPart(named: "separate")
+                    .inPart(separatePart)
             }
             .translated(y: 10)
             .expectEquals(goldenFile: "separatePart")
     }
 
     @Test func `nested parts survive evaluation`() async throws {
+        let innerPart = Part("inner")
+        let outerPart = Part("outer")
+
         let g = Box(10)
             .adding {
                 Sphere(diameter: 10)
-                    .inPart(named: "inner")
+                    .inPart(innerPart)
                     .adding {
                         Sphere(diameter: 5)
                     }
-                    .inPart(named: "outer")
+                    .inPart(outerPart)
             }
             .translated(x: 10)
 
@@ -28,54 +32,75 @@ struct PartTests {
         #expect(Set(partNames) == ["inner", "outer"])
     }
 
-    @Test func `parts with same name are merged`() async throws {
+    @Test func `same Part instance merges geometry`() async throws {
+        let mergedPart = Part("merged")
+
         let g = Box(10)
             .adding {
                 Sphere(diameter: 5)
-                    .inPart(named: "merged")
+                    .inPart(mergedPart)
             }
             .subtracting {
                 Box(x: 20, y: 4, z: 4)
-                    .inPart(named: "merged")
+                    .inPart(mergedPart)
             }
 
-        let node = try await #require(g.parts[.named("merged", type: .solid)]?.node)
-        let concrete = try await node.evaluate(in: .init()).concrete
+        let parts = try await g.parts
+        #expect(parts.count == 1)
+        let part = try #require(parts.first { $0.key.name == "merged" })
+        let concrete = try await part.value.node.evaluate(in: .init()).concrete
         #expect(BoundingBox3D(concrete.bounds) ≈ BoundingBox3D(minimum: [-2.5, -2.5, -2.5], maximum: [20, 4, 4]))
     }
 
+    @Test func `different Part instances with same name are separate`() async throws {
+        let part1 = Part("box")
+        let part2 = Part("box")
+
+        let geometry = Stack(.x) {
+            Box(10)
+            Box(4)
+                .inPart(part1)
+            Box(2)
+                .inPart(part2)
+        }
+
+        let parts = try await geometry.parts
+        #expect(parts.count == 2)
+        #expect(parts.keys.allSatisfy { $0.name == "box" })
+    }
+
     @Test func `part root operation is always addition`() async throws {
+        let subtractedPart = Part("subtracted")
         try await Box(10)
             .subtracting {
                 Sphere(diameter: 10)
                     .readingOperation { op in
                         #expect(op == .addition)
                     }
-                    .inPart(named: "subtracted")
+                    .inPart(subtractedPart)
             }
             .triggerEvaluation()
     }
 
     @Test func `parts can be detached and reattached`() async throws {
+        let spherePart = Part("sphere")
+        let cylinderPart = Part("cylinder")
+
         let measurements = try await Box(10)
-            .readingPartNames { #expect($0.isEmpty) }
             .adding {
                 Sphere(diameter: 12)
                     .withSegmentation(count: 10)
-                    .inPart(named: "sphere")
+                    .inPart(spherePart)
             }
-            .readingPartNames { #expect($0 == ["sphere"]) }
             .subtracting {
                 Cylinder(diameter: 4, height: 20)
-                    .inPart(named: "cylinder")
+                    .inPart(cylinderPart)
             }
-            .readingPartNames { #expect($0 == ["sphere", "cylinder"]) }
-            .detachingPart(named: "sphere") { geometry, part in
+            .detachingPart(spherePart) { geometry, part in
                 geometry.adding {
                     part
                 }
             }
-            .readingPartNames { #expect($0 == ["cylinder"]) }
             .measurements(for: .mainPart)
 
         #expect(measurements.boundingBox ≈ .init(minimum: [-6, -6, -6], maximum: [10, 10, 10]))
@@ -84,10 +109,11 @@ struct PartTests {
     }
 
     @Test func `measurement scopes correctly filter parts`() async throws {
+        let boxPart = Part("box")
         try await Sphere(diameter: 10)
             .adding {
                 Box(10)
-                    .inPart(named: "box")
+                    .inPart(boxPart)
                 Box(20)
                     .inBackground()
             }
@@ -107,11 +133,14 @@ struct PartTests {
     }
 
     @Test func `stack correctly handles children with parts`() async throws {
+        let spherePart = Part("sphere")
+        let boxPart = Part("box")
+
         let stack = Stack(.x) {
             Sphere(diameter: 10)
-                .inPart(named: "sphere")
+                .inPart(spherePart)
             Box(20)
-                .inPart(named: "box")
+                .inPart(boxPart)
             Cylinder(diameter: 10, height: 20)
                 .inBackground()
             Circle(diameter: 5)
@@ -123,11 +152,13 @@ struct PartTests {
     }
 
     @Test func `transformed geometry measures parts correctly`() async throws {
+        let fooPart = Part("foo")
+
         let geometry = Box(1)
             .adding {
                 Box(2)
                     .translated(x: 3, y: 5, z: 8)
-                    .inPart(named: "foo")
+                    .inPart(fooPart)
                 Sphere(diameter: 10)
                     .inBackground()
             }
@@ -142,26 +173,31 @@ struct PartTests {
     }
 
     @Test func `parts can be subtracted from main geometry`() async throws {
+        let boxPart = Part("box")
+        let contextPart = Part("test", semantic: .context)
+
         let geometry = Box(10)
             .adding {
                 Box(4)
-                    .inPart(named: "box")
+                    .inPart(boxPart)
                 Cylinder(diameter: 3, height: 12)
-                    .inPart(named: "test", type: .context)
+                    .inPart(contextPart)
             }
-            .subtractingParts()
+            .subtractingParts([boxPart])
 
         #expect(try await geometry.measurements.volume ≈ 1000.0)
         #expect(try await geometry.mainModelMeasurements.volume ≈ (1000.0 - 64.0))
     }
 
     @Test func `detaching parts removes them from parts list`() async throws {
+        let boxPart = Part("box")
+
         let geometry = Box(10)
             .adding {
                 Box(4)
-                    .inPart(named: "box")
+                    .inPart(boxPart)
             }
-            .detachingPart(named: "box") { base, part in
+            .detachingPart(boxPart) { base, part in
                 Stack(.x) {
                     base
                     part
@@ -174,13 +210,16 @@ struct PartTests {
     }
 
     @Test func `modifyingParts transforms all parts`() async throws {
+        let box1Part = Part("box1")
+        let box2Part = Part("box2")
+
         let geometry = Stack(.x) {
             Box(10)
             Box(4)
-                .inPart(named: "box1")
+                .inPart(box1Part)
             Box(2)
-                .inPart(named: "box2")
-        }.modifyingParts { part, name in
+                .inPart(box2Part)
+        }.modifyingParts { part, _ in
             part.scaled(0.5)
         }
 
@@ -189,14 +228,17 @@ struct PartTests {
         #expect(try await geometry.measurements.volume ≈ 1009)
     }
 
-    @Test func `modifyingPart transforms single named part`() async throws {
+    @Test func `modifyingPart transforms single part`() async throws {
+        let box1Part = Part("box1")
+        let box2Part = Part("box2")
+
         let geometry = Stack(.x) {
             Box(10)
             Box(4)
-                .inPart(named: "box1")
+                .inPart(box1Part)
             Box(2)
-                .inPart(named: "box2")
-        }.modifyingPart(named: "box1") {
+                .inPart(box2Part)
+        }.modifyingPart(box1Part) {
             $0.scaled(0.5)
         }
 
@@ -205,13 +247,16 @@ struct PartTests {
         #expect(try await geometry.measurements.volume ≈ 1016)
     }
 
-    @Test func `removingParts removes all parts`() async throws {
+    @Test func `removingParts removes all parts of semantic`() async throws {
+        let box1Part = Part("box1")
+        let box2Part = Part("box2")
+
         let geometry = Stack(.x) {
             Box(10)
             Box(4)
-                .inPart(named: "box1")
+                .inPart(box1Part)
             Box(2)
-                .inPart(named: "box2")
+                .inPart(box2Part)
         }.removingParts()
 
         #expect(try await geometry.partNames == [])
@@ -219,17 +264,175 @@ struct PartTests {
         #expect(try await geometry.measurements.volume ≈ 1000)
     }
 
-    @Test func `removingPart removes single named part`() async throws {
+    @Test func `removingPart removes single part`() async throws {
+        let box1Part = Part("box1")
+        let box2Part = Part("box2")
+
         let geometry = Stack(.x) {
             Box(10)
             Box(4)
-                .inPart(named: "box1")
+                .inPart(box1Part)
             Box(2)
-                .inPart(named: "box2")
-        }.removingPart(named: "box1")
+                .inPart(box2Part)
+        }.removingPart(box1Part)
 
         #expect(try await geometry.partNames == ["box2"])
         #expect(try await geometry.mainModelMeasurements.volume ≈ 1000)
         #expect(try await geometry.measurements.volume ≈ 1008)
+    }
+
+    @Test func `Part with custom material and semantic`() async throws {
+        let visualPart = Part("reference", semantic: .visual, material: .plain(.red))
+
+        let geometry = Box(10)
+            .adding {
+                Sphere(diameter: 20)
+                    .inPart(visualPart)
+            }
+
+        let parts = try await geometry.parts
+        let part = try #require(parts.keys.first { $0.name == "reference" })
+        #expect(part.semantic == .visual)
+        #expect(part.defaultMaterial == .plain(.red))
+    }
+
+    // MARK: - Reading parts tests
+
+    @Test func `readingPart reads single part by instance`() async throws {
+        let myPart = Part("box")
+
+        let geometry = Box(10)
+            .adding {
+                Box(4)
+                    .inPart(myPart)
+            }
+            .readingPart(myPart) { base, part in
+                // Part should exist and be added to base
+                base.adding { part }
+            }
+
+        // If the part was read correctly, the bounds should include both boxes
+        let bounds = try await geometry.bounds
+        #expect(bounds ≈ .init(minimum: [0, 0, 0], maximum: [10, 10, 10]))
+    }
+
+    @Test func `readingPart returns nil for missing part`() async throws {
+        let myPart = Part("nonexistent")
+
+        let geometry = Box(10)
+            .readingPart(myPart) { base, part in
+                // Should return base with added sphere only if part is nil
+                if part == nil {
+                    base.adding { Sphere(diameter: 20) }
+                } else {
+                    base
+                }
+            }
+
+        // Sphere was added because part was nil
+        let bounds = try await geometry.bounds
+        #expect(bounds ≈ .init(minimum: [-10, -10, -10], maximum: [10, 10, 10]))
+    }
+
+    @Test func `readingParts reads multiple parts by instance`() async throws {
+        let part1 = Part("box1")
+        let part2 = Part("box2")
+
+        let geometry = Stack(.x) {
+            Box(10)
+            Box(4)
+                .inPart(part1)
+            Box(2)
+                .inPart(part2)
+        }.readingParts(matching: [part1, part2]) { base, parts in
+            // Stack the parts vertically if both exist
+            if parts.count == 2 {
+                base.adding {
+                    Sphere(diameter: 1)
+                        .translated(y: 100)
+                }
+            } else {
+                base
+            }
+        }
+
+        // Sphere was added because both parts were found
+        let bounds = try await geometry.bounds
+        #expect(bounds?.maximum.y ≈ 100.5)
+    }
+
+    @Test func `reading parts does not remove them`() async throws {
+        let myPart = Part("box")
+
+        let geometry = Box(10)
+            .adding {
+                Box(4)
+                    .inPart(myPart)
+            }
+            .readingPart(myPart) { base, _ in base }
+
+        #expect(try await geometry.partNames == ["box"])
+    }
+
+    // MARK: - Subtraction tests
+
+    @Test func `subtractingParts with Part instances`() async throws {
+        let holePart = Part("hole")
+
+        let geometry = Box(10)
+            .adding {
+                Cylinder(diameter: 4, height: 12)
+                    .inPart(holePart)
+            }
+            .subtractingParts([holePart])
+
+        let mainVolume = try await geometry.mainModelMeasurements.volume
+        #expect(mainVolume < 1000.0)  // Cylinder was subtracted
+        #expect(try await geometry.partNames == ["hole"])  // Part still exists
+    }
+
+    // MARK: - Highlighted and background tests
+
+    @Test func `highlighted geometry is placed in visual part`() async throws {
+        let geometry = Box(10)
+            .adding {
+                Sphere(diameter: 5)
+                    .highlighted()
+            }
+
+        let parts = try await geometry.parts
+        let highlightedPart = parts.keys.first { $0.name == "Highlighted" }
+        #expect(highlightedPart != nil)
+        #expect(highlightedPart?.semantic == .visual)
+    }
+
+    @Test func `background geometry is placed in context part`() async throws {
+        let geometry = Box(10)
+            .adding {
+                Sphere(diameter: 20)
+                    .inBackground()
+            }
+
+        let parts = try await geometry.parts
+        let backgroundPart = parts.keys.first { $0.name == "Background" }
+        #expect(backgroundPart != nil)
+        #expect(backgroundPart?.semantic == .context)
+    }
+
+    // MARK: - Removal by semantic tests
+
+    @Test func `removingParts by semantic removes only matching semantic`() async throws {
+        let solidPart = Part("solid1")
+        let visualPart = Part("visual1", semantic: .visual)
+
+        let geometry = Stack(.x) {
+            Box(10)
+            Box(4)
+                .inPart(solidPart)
+            Box(2)
+                .inPart(visualPart)
+        }.removingParts(ofType: .solid)
+
+        #expect(try await geometry.partNames == ["visual1"])
     }
 }

@@ -1,16 +1,8 @@
 {
   "parts" : [
     {
-      "defaultMaterial" : {
-        "baseColor" : {
-          "alpha" : 1,
-          "blue" : 1,
-          "green" : 1,
-          "red" : 1
-        }
-      },
       "name" : "Model",
-      "type" : "solid"
+      "semantic" : "solid"
     },
     {
       "body" : {
@@ -360,74 +352,6 @@
                 "body" : {
                   "children" : [
                     {
-                      "children" : [
-                        {
-                          "body" : {
-                            "kind" : "shape2D",
-                            "primitive" : {
-                              "rectangle" : {
-                                "size" : {
-                                  "x" : 10,
-                                  "y" : 10
-                                }
-                              }
-                            }
-                          },
-                          "kind" : "transform",
-                          "transform" : [
-                            [
-                              1,
-                              0,
-                              -5
-                            ],
-                            [
-                              0,
-                              1,
-                              -5
-                            ],
-                            [
-                              0,
-                              0,
-                              1
-                            ]
-                          ]
-                        },
-                        {
-                          "body" : {
-                            "kind" : "shape2D",
-                            "primitive" : {
-                              "rectangle" : {
-                                "size" : {
-                                  "x" : 3,
-                                  "y" : 3
-                                }
-                              }
-                            }
-                          },
-                          "kind" : "transform",
-                          "transform" : [
-                            [
-                              1,
-                              0,
-                              2
-                            ],
-                            [
-                              0,
-                              -1,
-                              -2
-                            ],
-                            [
-                              0,
-                              0,
-                              1
-                            ]
-                          ]
-                        }
-                      ],
-                      "kind" : "boolean",
-                      "type" : "difference"
-                    },
-                    {
                       "body" : {
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
@@ -602,6 +526,74 @@
                           1
                         ]
                       ]
+                    },
+                    {
+                      "children" : [
+                        {
+                          "body" : {
+                            "kind" : "shape2D",
+                            "primitive" : {
+                              "rectangle" : {
+                                "size" : {
+                                  "x" : 10,
+                                  "y" : 10
+                                }
+                              }
+                            }
+                          },
+                          "kind" : "transform",
+                          "transform" : [
+                            [
+                              1,
+                              0,
+                              -5
+                            ],
+                            [
+                              0,
+                              1,
+                              -5
+                            ],
+                            [
+                              0,
+                              0,
+                              1
+                            ]
+                          ]
+                        },
+                        {
+                          "body" : {
+                            "kind" : "shape2D",
+                            "primitive" : {
+                              "rectangle" : {
+                                "size" : {
+                                  "x" : 3,
+                                  "y" : 3
+                                }
+                              }
+                            }
+                          },
+                          "kind" : "transform",
+                          "transform" : [
+                            [
+                              1,
+                              0,
+                              2
+                            ],
+                            [
+                              0,
+                              -1,
+                              -2
+                            ],
+                            [
+                              0,
+                              0,
+                              1
+                            ]
+                          ]
+                        }
+                      ],
+                      "kind" : "boolean",
+                      "type" : "difference"
                     }
                   ],
                   "kind" : "boolean",

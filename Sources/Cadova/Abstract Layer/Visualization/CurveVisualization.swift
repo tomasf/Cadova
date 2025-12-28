@@ -62,7 +62,7 @@ fileprivate struct CurveVisualization<Curve: ParametricCurve>: Shape3D {
             }
             .withFontSize(1.5)
             .withTextAlignment(horizontal: .center, vertical: .center)
-            .inPart(named: "Visualized Path", type: .visual)
+            .inPart(.visualizedPath)
     }
 
     struct VisualizedLine<V: Vector>: Shape3D {

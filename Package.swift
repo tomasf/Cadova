@@ -11,8 +11,7 @@ let package = Package(
         .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "0.2.3")),
         .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.2.0")),
         .package(url: "https://github.com/tomasf/freetype-spm.git", from: "1.0.1"),
-        .package(url: "https://github.com/tomasf/FindFont.git", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+        .package(url: "https://github.com/tomasf/FindFont.git", from: "1.0.0")
     ],
     targets: [
         .target(
@@ -22,8 +21,7 @@ let package = Package(
                 .product(name: "freetype", package: "freetype-spm"),
                 .product(name: "FindFont", package: "FindFont"),
                 .product(name: "Manifold", package: "manifold-swift"),
-                .product(name: "ThreeMF", package: "ThreeMF"),
-                .product(name: "Logging", package: "swift-log"),
+                .product(name: "ThreeMF", package: "ThreeMF")
             ],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         ),

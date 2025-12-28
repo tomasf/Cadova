@@ -1,72 +1,105 @@
 import Foundation
 
-internal struct PartReader<D: Dimensionality, Input: Dimensionality>: Geometry {
-    let body: Input.Geometry
-    let semantic: PartSemantic
-    let name: String?
-    let reader: @Sendable (Input.Geometry, [String: D3.Geometry]) -> D.Geometry
+private extension PartCatalog {
+    func filtered(by semantic: PartSemantic?, matching requestedParts: [Part]?) -> [Part: [D3.BuildResult]] {
+        var result = parts
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let output = try await context.buildResult(for: body, in: environment)
-        let parts = Dictionary(uniqueKeysWithValues: output.elements[PartCatalog.self].parts.compactMap {
-            $0.type == semantic && (name == nil || name == $0.name) ? ($0.name, Union($1)) : nil
-        })
+        if let semantic {
+            result = result.filter { $0.key.semantic == semantic }
+        }
 
-        return try await context.buildResult(for: reader(output, parts), in: environment)
+        if let requestedParts {
+            result = result.filter { catalogPart, _ in
+                requestedParts.contains { $0.id == catalogPart.id }
+            }
+        }
+
+        return result
+    }
+
+    func asGeometry(filteredBy semantic: PartSemantic? = nil, matching parts: [Part]? = nil) -> [Part: D3.Geometry] {
+        filtered(by: semantic, matching: parts).mapValues { Union($0) }
     }
 }
 
 public extension Geometry {
-    /// Reads parts of a given semantic without detaching them, and provides them for further composition.
+    /// Reads the specified parts without detaching them, and provides them for further composition.
     ///
-    /// This method scans the current geometry for parts previously marked with `.inPart(named:type:)` that match
-    /// the specified semantic (e.g. `.solid`, `.visual`, `.context`). Unlike `detachingPart`, this does not remove
-    /// any parts from the input geometry. Instead, all matching parts are collected and provided to the `reader`
-    /// closure as a dictionary keyed by part name.
+    /// This method scans the current geometry for the specified parts previously marked with `.inPart(_:)`.
+    /// Unlike `detachingPart`, this does not remove any parts from the input geometry. Instead, all matching
+    /// parts are collected and provided to the `reader` closure as a dictionary keyed by part.
     ///
     /// Use this when you want to inspect or reuse parts while keeping the original geometry intact — for example,
     /// to overlay, transform, or selectively include parts in additional structures.
     ///
     /// - Parameters:
-    ///   - semantic: The semantic type of parts to read. Defaults to `.solid`.
+    ///   - parts: The parts to read.
     ///   - reader: A closure that receives:
     ///       - base: The original geometry (unchanged).
-    ///       - parts: A dictionary mapping part names to their combined geometries for the given semantic.
+    ///       - parts: A dictionary mapping parts to their combined geometries.
     ///     The closure should return new geometry to be built.
     /// - Returns: A geometry object resulting from the `reader` closure.
     ///
     func readingParts<Output: Dimensionality>(
-        ofType semantic: PartSemantic = .solid,
-        @GeometryBuilder<Output> reader: @Sendable @escaping (_ base: D.Geometry, _ parts: [String: D3.Geometry]) -> Output.Geometry
+        matching parts: [Part],
+        @GeometryBuilder<Output> reader: @Sendable @escaping (_ base: D.Geometry, _ parts: [Part: D3.Geometry]) -> Output.Geometry
     ) -> Output.Geometry {
-        PartReader(body: self, semantic: semantic, name: nil, reader: reader)
+        readingResult(PartCatalog.self) { base, catalog in
+            reader(base, catalog.asGeometry(matching: parts))
+        }
     }
 
-    /// Reads a single named part of a given semantic without detaching it, and provides it for further composition.
+    /// Reads a single part without detaching it, and provides it for further composition.
     ///
-    /// This method looks for a part previously marked with `.inPart(named:type:)` that matches both the provided
-    /// `semantic` and `name`. Unlike `detachingPart`, it does not remove the part from the input geometry. If a
-    /// matching part exists, its geometry is passed to the `reader` closure; otherwise, `nil` is passed.
+    /// This method looks for a part previously marked with `.inPart(_:)`. Unlike `detachingPart`, it does not
+    /// remove the part from the input geometry. If a matching part exists, its geometry is passed to the
+    /// `reader` closure; otherwise, `nil` is passed.
     ///
     /// Use this to selectively inspect or reuse one specific part while keeping the base geometry intact — for
     /// example, to overlay annotations, apply transforms, or conditionally include the part in derived geometry.
     ///
     /// - Parameters:
-    ///   - semantic: The semantic type of the part to read. Defaults to `.solid`.
-    ///   - name: The exact name of the part to read.
+    ///   - part: The part to read.
     ///   - reader: A closure that receives:
     ///       - base: The original geometry (unchanged).
-    ///       - part: The combined geometry of the named part, or `nil` if the part is not present.
+    ///       - part: The combined geometry of the part, or `nil` if the part is not present.
     ///     The closure should return new geometry to be built.
     /// - Returns: A geometry object resulting from the `reader` closure.
     ///
     func readingPart<Output: Dimensionality>(
-        ofType semantic: PartSemantic = .solid,
-        named name: String,
+        _ part: Part,
         @GeometryBuilder<Output> reader: @Sendable @escaping (_ base: D.Geometry, _ part: D3.Geometry?) -> Output.Geometry
     ) -> Output.Geometry {
-        PartReader(body: self, semantic: semantic, name: name) { input, parts in
-            reader(input, parts.first?.value)
+        readingResult(PartCatalog.self) { base, catalog in
+            reader(base, catalog.asGeometry(matching: [part]).values.first)
         }
     }
+
+    /// Reads all parts of the specified semantic without detaching them, and provides them for further composition.
+    ///
+    /// This method scans the current geometry for parts that match the given semantic (such as `.solid`,
+    /// `.visual`, or `.context`). Unlike `detachingPart`, this does not remove any parts from the input
+    /// geometry. All matching parts are collected and provided to the `reader` closure as a dictionary
+    /// keyed by part.
+    ///
+    /// Use this when you want to inspect or reuse parts while keeping the original geometry intact — for example,
+    /// to overlay, transform, or selectively include parts in additional structures.
+    ///
+    /// - Parameters:
+    ///   - type: The semantic of parts to read. Defaults to `.solid`.
+    ///   - reader: A closure that receives:
+    ///       - base: The original geometry (unchanged).
+    ///       - parts: A dictionary mapping parts to their combined geometries.
+    ///     The closure should return new geometry to be built.
+    /// - Returns: A geometry object resulting from the `reader` closure.
+    ///
+    func readingParts<Output: Dimensionality>(
+        ofType type: PartSemantic = .solid,
+        @GeometryBuilder<Output> reader: @Sendable @escaping (_ base: D.Geometry, _ parts: [Part: D3.Geometry]) -> Output.Geometry
+    ) -> Output.Geometry {
+        readingResult(PartCatalog.self) { base, catalog in
+            reader(base, catalog.asGeometry(filteredBy: type))
+        }
+    }
+
 }

@@ -1,15 +1,27 @@
 import Foundation
 @testable import Cadova
 
+/// A simplified key for golden record comparison that ignores Part's UUID
+private struct PartKey: Hashable, Codable {
+    let name: String
+    let semantic: PartSemantic
+
+    init(_ part: Part) {
+        self.name = part.name
+        self.semantic = part.semantic
+    }
+}
+
 struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
-    let parts: [PartIdentifier: D.Node]
+    private let parts: [PartKey: D.Node]
 
     init(result: BuildResult<D>) {
         if let result2D = result as? D2.BuildResult {
-            parts = [.main: result2D.node as! D.Node]
+            parts = [PartKey(.main): result2D.node as! D.Node]
         } else if let result3D = result as? D3.BuildResult {
-            var parts = result.elements[PartCatalog.self].mergedOutputs.mapValues(\.node) as! [PartIdentifier: D.Node]
-            parts[.main] = (result3D.node as! D.Node)
+            var parts: [PartKey: D.Node] = result.elements[PartCatalog.self].mergedOutputs
+                .reduce(into: [:]) { $0[PartKey($1.key)] = $1.value.node as? D.Node }
+            parts[PartKey(.main)] = (result3D.node as! D.Node)
             self.parts = parts
         } else {
             fatalError("Invalid geometry type")
@@ -27,6 +39,6 @@ struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
     }
 }
 
-extension PartIdentifier {
-    static let main = PartIdentifier(name: "Model", type: .solid, defaultMaterial: .plain(.white))
+private extension Part {
+    static let main = Part("Model", semantic: .solid)
 }

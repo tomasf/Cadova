@@ -3,7 +3,7 @@ import Foundation
 public extension Geometry2D {
     /// Skews the geometry by repositioning the corners of its bounding rectangle.
     ///
-    /// This method lets you move one or more corners of the geometry’s bounding box to new **absolute positions**.
+    /// This method lets you move one or more corners of the geometry’s bounding box to new positions.
     /// The geometry is then smoothly warped to match the new shape using bilinear interpolation.
     ///
     /// Any corner you don’t specify will stay at its original location.
@@ -28,7 +28,7 @@ public extension Geometry2D {
         topRight maxXmaxY: Vector2D? = nil,
         topLeft minXmaxY: Vector2D? = nil
     ) -> any Geometry2D {
-        measureBoundsIfNonEmpty { _, _, bounds in
+        measuringBounds { _, bounds in
             let original: [Vector2D] = [
                 Vector2D(bounds.minimum.x, bounds.minimum.y),
                 Vector2D(bounds.maximum.x, bounds.minimum.y),
@@ -43,7 +43,7 @@ public extension Geometry2D {
                 minXmaxY ?? original[3]
             ]
 
-            return skewingCorners(from: original, to: target)
+            skewingCorners(from: original, to: target)
         }
     }
 
@@ -63,7 +63,7 @@ public extension Geometry2D {
         relativeTopRight maxXmaxY: Vector2D = .zero,
         relativeTopLeft minXmaxY: Vector2D = .zero
     ) -> any Geometry2D {
-        measureBoundsIfNonEmpty { _, _, bounds in
+        measuringBounds { _, bounds in
             let original = [
                 Vector2D(bounds.minimum.x, bounds.minimum.y), Vector2D(bounds.maximum.x, bounds.minimum.y),
                 Vector2D(bounds.maximum.x, bounds.maximum.y), Vector2D(bounds.minimum.x, bounds.maximum.y)
@@ -75,7 +75,7 @@ public extension Geometry2D {
                 original[2] + maxXmaxY,
                 original[3] + minXmaxY
             ]
-            return skewingCorners(from: original, to: target)
+            skewingCorners(from: original, to: target)
         }
     }
 }

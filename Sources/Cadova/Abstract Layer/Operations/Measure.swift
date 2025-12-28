@@ -128,22 +128,6 @@ public func measureBounds<Input: Dimensionality, D: Dimensionality>(
     }
 }
 
-internal extension Geometry {
-    func measureBoundsIfNonEmpty<Output: Dimensionality>(
-        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, EnvironmentValues, D.BoundingBox) -> Output.Geometry
-    ) -> Output.Geometry {
-        readEnvironment { environment in
-            measuring { geometry, measurements in
-                if let box = measurements.boundingBox {
-                    builder(geometry, environment, box)
-                } else {
-                    Empty()
-                }
-            }
-        }
-    }
-}
-
 internal extension MeasurementScope {
     func includedConcretes<D: Dimensionality>(
         for buildResult: BuildResult<D>,
@@ -161,13 +145,13 @@ internal extension MeasurementScope {
 
         switch self {
         case .mainPart: additionalParts = []
-        case .solidParts: additionalParts = allParts.filter { $0.key.type == .solid }.map(\.value)
+        case .solidParts: additionalParts = allParts.filter { $0.key.semantic == .solid }.map(\.value)
         case .allParts: additionalParts = Array(allParts.values)
         }
 
         let partResults = try await additionalParts.asyncMap { try await context.result(for: $0.node) }
 
-        let foo = [main3D.concrete] + partResults.map(\.concrete)
-        return foo as! [D.Concrete]
+        let concretes = [main3D.concrete] + partResults.map(\.concrete)
+        return concretes as! [D.Concrete]
     }
 }

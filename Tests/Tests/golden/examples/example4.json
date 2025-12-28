@@ -1,16 +1,8 @@
 {
   "parts" : [
     {
-      "defaultMaterial" : {
-        "baseColor" : {
-          "alpha" : 1,
-          "blue" : 1,
-          "green" : 1,
-          "red" : 1
-        }
-      },
       "name" : "Model",
-      "type" : "solid"
+      "semantic" : "solid"
     },
     {
       "cacheKey" : {
@@ -98,15 +90,6 @@
                 "body" : {
                   "children" : [
                     {
-                      "kind" : "shape2D",
-                      "primitive" : {
-                        "circle" : {
-                          "radius" : 2,
-                          "segmentCount" : 83
-                        }
-                      }
-                    },
-                    {
                       "body" : {
                         "kind" : "shape2D",
                         "primitive" : {
@@ -134,6 +117,15 @@
                           1
                         ]
                       ]
+                    },
+                    {
+                      "kind" : "shape2D",
+                      "primitive" : {
+                        "circle" : {
+                          "radius" : 2,
+                          "segmentCount" : 83
+                        }
+                      }
                     }
                   ],
                   "kind" : "boolean",
@@ -146,15 +138,6 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 2,
-                            "segmentCount" : 83
-                          }
-                        }
-                      },
-                      {
                         "body" : {
                           "kind" : "shape2D",
                           "primitive" : {
@@ -182,6 +165,15 @@
                             1
                           ]
                         ]
+                      },
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
+                        }
                       }
                     ],
                     "kind" : "boolean",
@@ -193,11 +185,11 @@
                 "transform" : [
                   [
                     0.3090169943749474,
-                    -0.9510565162951535,
+                    0.9510565162951535,
                     0
                   ],
                   [
-                    0.9510565162951535,
+                    -0.9510565162951535,
                     0.3090169943749474,
                     0
                   ],
@@ -213,15 +205,6 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 2,
-                            "segmentCount" : 83
-                          }
-                        }
-                      },
-                      {
                         "body" : {
                           "kind" : "shape2D",
                           "primitive" : {
@@ -249,6 +232,15 @@
                             1
                           ]
                         ]
+                      },
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
+                        }
                       }
                     ],
                     "kind" : "boolean",
@@ -280,15 +272,6 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 2,
-                            "segmentCount" : 83
-                          }
-                        }
-                      },
-                      {
                         "body" : {
                           "kind" : "shape2D",
                           "primitive" : {
@@ -316,6 +299,15 @@
                             1
                           ]
                         ]
+                      },
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
+                        }
                       }
                     ],
                     "kind" : "boolean",
@@ -347,15 +339,6 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 2,
-                            "segmentCount" : 83
-                          }
-                        }
-                      },
-                      {
                         "body" : {
                           "kind" : "shape2D",
                           "primitive" : {
@@ -383,6 +366,15 @@
                             1
                           ]
                         ]
+                      },
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
+                        }
                       }
                     ],
                     "kind" : "boolean",
@@ -394,11 +386,11 @@
                 "transform" : [
                   [
                     0.3090169943749474,
-                    0.9510565162951535,
+                    -0.9510565162951535,
                     0
                   ],
                   [
-                    -0.9510565162951535,
+                    0.9510565162951535,
                     0.3090169943749474,
                     0
                   ],

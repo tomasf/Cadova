@@ -25,10 +25,10 @@ public extension Geometry3D {
     /// and the cylinder is warped to match. The result is a deformed cylinder.
     ///
     func skewingCorners(_ positions: [Box.Corner: Vector3D]) -> any Geometry3D {
-        measureBoundsIfNonEmpty { _, _, bounds in
+        measuringBounds { _, bounds in
             let fromCorners = bounds.corners
             let toCorners = fromCorners.merging(positions) { $1 }
-            return skewingCorners(from: fromCorners.cornerList, to: toCorners.cornerList)
+            skewingCorners(from: fromCorners.cornerList, to: toCorners.cornerList)
         }
     }
 
@@ -42,10 +42,10 @@ public extension Geometry3D {
     /// - Returns: A new, skewed geometry.
     ///
     func skewingCorners(relative positions: [Box.Corner: Vector3D]) -> any Geometry3D {
-        measureBoundsIfNonEmpty { _, _, bounds in
+        measuringBounds { _, bounds in
             let fromCorners = bounds.corners
             let toCorners = fromCorners.merging(positions) { $0 + $1 }
-            return skewingCorners(from: fromCorners.cornerList, to: toCorners.cornerList)
+            skewingCorners(from: fromCorners.cornerList, to: toCorners.cornerList)
         }
     }
 }

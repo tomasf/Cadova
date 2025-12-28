@@ -1,16 +1,8 @@
 {
   "parts" : [
     {
-      "defaultMaterial" : {
-        "baseColor" : {
-          "alpha" : 1,
-          "blue" : 1,
-          "green" : 1,
-          "red" : 1
-        }
-      },
       "name" : "Model",
-      "type" : "solid"
+      "semantic" : "solid"
     },
     {
       "children" : [
@@ -20,15 +12,6 @@
               {
                 "body" : {
                   "children" : [
-                    {
-                      "kind" : "shape2D",
-                      "primitive" : {
-                        "circle" : {
-                          "radius" : 2,
-                          "segmentCount" : 83
-                        }
-                      }
-                    },
                     {
                       "body" : {
                         "kind" : "shape2D",
@@ -57,6 +40,15 @@
                           1
                         ]
                       ]
+                    },
+                    {
+                      "kind" : "shape2D",
+                      "primitive" : {
+                        "circle" : {
+                          "radius" : 2,
+                          "segmentCount" : 83
+                        }
+                      }
                     }
                   ],
                   "kind" : "boolean",
@@ -69,15 +61,6 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 2,
-                            "segmentCount" : 83
-                          }
-                        }
-                      },
-                      {
                         "body" : {
                           "kind" : "shape2D",
                           "primitive" : {
@@ -105,6 +88,15 @@
                             1
                           ]
                         ]
+                      },
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
+                        }
                       }
                     ],
                     "kind" : "boolean",
@@ -116,11 +108,11 @@
                 "transform" : [
                   [
                     0.3090169943749474,
-                    -0.9510565162951535,
+                    0.9510565162951535,
                     0
                   ],
                   [
-                    0.9510565162951535,
+                    -0.9510565162951535,
                     0.3090169943749474,
                     0
                   ],
@@ -136,15 +128,6 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 2,
-                            "segmentCount" : 83
-                          }
-                        }
-                      },
-                      {
                         "body" : {
                           "kind" : "shape2D",
                           "primitive" : {
@@ -172,6 +155,15 @@
                             1
                           ]
                         ]
+                      },
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
+                        }
                       }
                     ],
                     "kind" : "boolean",
@@ -203,15 +195,6 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 2,
-                            "segmentCount" : 83
-                          }
-                        }
-                      },
-                      {
                         "body" : {
                           "kind" : "shape2D",
                           "primitive" : {
@@ -239,6 +222,15 @@
                             1
                           ]
                         ]
+                      },
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
+                        }
                       }
                     ],
                     "kind" : "boolean",
@@ -270,15 +262,6 @@
                   "body" : {
                     "children" : [
                       {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 2,
-                            "segmentCount" : 83
-                          }
-                        }
-                      },
-                      {
                         "body" : {
                           "kind" : "shape2D",
                           "primitive" : {
@@ -306,6 +289,15 @@
                             1
                           ]
                         ]
+                      },
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 2,
+                            "segmentCount" : 83
+                          }
+                        }
                       }
                     ],
                     "kind" : "boolean",
@@ -317,11 +309,11 @@
                 "transform" : [
                   [
                     0.3090169943749474,
-                    0.9510565162951535,
+                    -0.9510565162951535,
                     0
                   ],
                   [
-                    -0.9510565162951535,
+                    0.9510565162951535,
                     0.3090169943749474,
                     0
                   ],
@@ -358,6 +350,140 @@
         {
           "body" : {
             "children" : [
+              {
+                "body" : {
+                  "body" : {
+                    "children" : [
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 1,
+                            "segmentCount" : 41
+                          }
+                        }
+                      },
+                      {
+                        "body" : {
+                          "kind" : "shape2D",
+                          "primitive" : {
+                            "circle" : {
+                              "radius" : 0.001,
+                              "segmentCount" : 5
+                            }
+                          }
+                        },
+                        "kind" : "transform",
+                        "transform" : [
+                          [
+                            1,
+                            0,
+                            8
+                          ],
+                          [
+                            0,
+                            1,
+                            0
+                          ],
+                          [
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
+                      }
+                    ],
+                    "kind" : "boolean",
+                    "type" : "union"
+                  },
+                  "kind" : "convexHull"
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    0.49999999999999994,
+                    -0.8660254037844387,
+                    0
+                  ],
+                  [
+                    0.8660254037844387,
+                    0.49999999999999994,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "body" : {
+                    "children" : [
+                      {
+                        "kind" : "shape2D",
+                        "primitive" : {
+                          "circle" : {
+                            "radius" : 1,
+                            "segmentCount" : 41
+                          }
+                        }
+                      },
+                      {
+                        "body" : {
+                          "kind" : "shape2D",
+                          "primitive" : {
+                            "circle" : {
+                              "radius" : 0.001,
+                              "segmentCount" : 5
+                            }
+                          }
+                        },
+                        "kind" : "transform",
+                        "transform" : [
+                          [
+                            1,
+                            0,
+                            8
+                          ],
+                          [
+                            0,
+                            1,
+                            0
+                          ],
+                          [
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
+                      }
+                    ],
+                    "kind" : "boolean",
+                    "type" : "union"
+                  },
+                  "kind" : "convexHull"
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    0.49999999999999994,
+                    0.8660254037844387,
+                    0
+                  ],
+                  [
+                    -0.8660254037844387,
+                    0.49999999999999994,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
               {
                 "body" : {
                   "children" : [
@@ -404,140 +530,6 @@
                   "type" : "union"
                 },
                 "kind" : "convexHull"
-              },
-              {
-                "body" : {
-                  "body" : {
-                    "children" : [
-                      {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 1,
-                            "segmentCount" : 41
-                          }
-                        }
-                      },
-                      {
-                        "body" : {
-                          "kind" : "shape2D",
-                          "primitive" : {
-                            "circle" : {
-                              "radius" : 0.001,
-                              "segmentCount" : 5
-                            }
-                          }
-                        },
-                        "kind" : "transform",
-                        "transform" : [
-                          [
-                            1,
-                            0,
-                            8
-                          ],
-                          [
-                            0,
-                            1,
-                            0
-                          ],
-                          [
-                            0,
-                            0,
-                            1
-                          ]
-                        ]
-                      }
-                    ],
-                    "kind" : "boolean",
-                    "type" : "union"
-                  },
-                  "kind" : "convexHull"
-                },
-                "kind" : "transform",
-                "transform" : [
-                  [
-                    0.49999999999999994,
-                    -0.8660254037844387,
-                    0
-                  ],
-                  [
-                    0.8660254037844387,
-                    0.49999999999999994,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              },
-              {
-                "body" : {
-                  "body" : {
-                    "children" : [
-                      {
-                        "kind" : "shape2D",
-                        "primitive" : {
-                          "circle" : {
-                            "radius" : 1,
-                            "segmentCount" : 41
-                          }
-                        }
-                      },
-                      {
-                        "body" : {
-                          "kind" : "shape2D",
-                          "primitive" : {
-                            "circle" : {
-                              "radius" : 0.001,
-                              "segmentCount" : 5
-                            }
-                          }
-                        },
-                        "kind" : "transform",
-                        "transform" : [
-                          [
-                            1,
-                            0,
-                            8
-                          ],
-                          [
-                            0,
-                            1,
-                            0
-                          ],
-                          [
-                            0,
-                            0,
-                            1
-                          ]
-                        ]
-                      }
-                    ],
-                    "kind" : "boolean",
-                    "type" : "union"
-                  },
-                  "kind" : "convexHull"
-                },
-                "kind" : "transform",
-                "transform" : [
-                  [
-                    -0.49999999999999994,
-                    -0.8660254037844387,
-                    0
-                  ],
-                  [
-                    0.8660254037844387,
-                    -0.49999999999999994,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
               },
               {
                 "body" : {
@@ -724,13 +716,13 @@
                 "kind" : "transform",
                 "transform" : [
                   [
-                    0.49999999999999994,
-                    0.8660254037844387,
+                    -0.49999999999999994,
+                    -0.8660254037844387,
                     0
                   ],
                   [
-                    -0.8660254037844387,
-                    0.49999999999999994,
+                    0.8660254037844387,
+                    -0.49999999999999994,
                     0
                   ],
                   [
