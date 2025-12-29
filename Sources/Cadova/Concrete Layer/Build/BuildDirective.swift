@@ -7,6 +7,7 @@ public struct BuildDirective: Sendable {
         case geometry2D (any Geometry2D)
         case geometry3D (any Geometry3D)
         case model (Model)
+        case group (Group)
         case options (ModelOptions)
         case environment (@Sendable (inout EnvironmentValues) -> ())
     }
@@ -21,6 +22,10 @@ public struct BuildDirective: Sendable {
 
     var model: Model? {
         if case .model(let model) = payload { model } else { nil }
+    }
+
+    var group: Group? {
+        if case .group(let group) = payload { group } else { nil }
     }
 
     var options: ModelOptions? {

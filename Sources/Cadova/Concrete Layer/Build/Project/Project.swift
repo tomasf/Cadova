@@ -83,14 +83,25 @@ public func Project(
         builder(&environment)
     }
 
-    // Build models
-    guard models.isEmpty == false else { return }
+    // Build models and groups
+    let groups = directives.compactMap(\.group)
+    guard models.isEmpty == false || groups.isEmpty == false else { return }
     let context = EvaluationContext()
 
     let constantEnvironment = environment
-    let urls = await models.asyncCompactMap { model in
-        await model.build(environment: constantEnvironment, context: context, options: combinedOptions, URL: url)
+    var urls: [URL] = []
+
+    for model in models {
+        if let modelUrl = await model.build(environment: constantEnvironment, context: context, options: combinedOptions, URL: url) {
+            urls.append(modelUrl)
+        }
     }
+
+    for group in groups {
+        let groupUrls = await group.build(environment: constantEnvironment, context: context, options: combinedOptions, URL: url)
+        urls.append(contentsOf: groupUrls)
+    }
+
     try? Platform.revealFiles(urls)
 }
 
