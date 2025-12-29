@@ -85,8 +85,10 @@ public struct Group: Sendable {
         options inheritedOptions: ModelOptions,
         URL directory: URL?
     ) async -> [URL] {
-        let directives = await inheritedEnvironment.whileCurrent {
-            await self.directives()
+        let directives = await ModelContext(isCollectingModels: true).whileCurrent {
+            await inheritedEnvironment.whileCurrent {
+                await self.directives()
+            }
         }
         let combinedOptions = ModelOptions([
             inheritedOptions,

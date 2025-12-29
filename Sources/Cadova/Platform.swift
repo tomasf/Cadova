@@ -30,9 +30,12 @@ struct WindowsError: Error {
 #endif
 
 extension Platform {
+    nonisolated(unsafe) static var revealingFilesDisabled = false
+
     static func revealFiles(_ urls: [URL]) throws {
         guard !urls.isEmpty else { return }
-        
+        guard !revealingFilesDisabled else { return }
+
 #if os(macOS)
         NSWorkspace.shared.activateFileViewerSelecting(urls.map(\.absoluteURL))
 
