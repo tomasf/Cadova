@@ -43,6 +43,16 @@ internal extension EvaluationContext {
         let buildResult = try await buildResult(for: geometry, in: environment)
         return try await result(for: buildResult.node)
     }
+
+    /// Builds geometry as a top-level model, resolving `only()` modifiers.
+    ///
+    /// Use this method when building geometry for final output (e.g., in Model or for testing).
+    /// Unlike `buildResult`, this method:
+    /// - Resolves any `only()` modifier, returning the isolated geometry if present
+    ///
+    func buildModelResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D.BuildResult {
+        try await buildResult(for: geometry, in: environment).resolvingOnly
+    }
 }
 
 internal extension EvaluationContext {

@@ -26,7 +26,9 @@ extension Geometry {
     var bounds: D.BoundingBox? {
         get async throws {
             let context = EvaluationContext()
-            let concreteResult = try await context.result(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
+            let buildResult = try await context.buildModelResult(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
+
+            let concreteResult = try await context.result(for: buildResult.node)
             let concrete = concreteResult.concrete
             guard !concrete.isEmpty else { return nil }
             return D.BoundingBox(concrete.bounds)
@@ -57,7 +59,7 @@ extension Geometry {
 
     var parts: [Part: D3.BuildResult] {
         get async throws {
-            try await EvaluationContext().buildResult(for: self, in: .defaultEnvironment)
+            try await EvaluationContext().buildModelResult(for: self, in: .defaultEnvironment)
                 .elements[PartCatalog.self].mergedOutputs
         }
     }
