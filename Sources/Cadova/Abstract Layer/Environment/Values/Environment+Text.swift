@@ -200,13 +200,13 @@ public extension Geometry {
 /// text is positioned horizontally relative to the X origin.
 ///
 public enum HorizontalTextAlignment: Sendable, Hashable, Codable {
-    /// Places the left edge of the text at the origin.
+    /// Places the left (minimum X) edge of the text at the origin.
     case left
 
-    /// Centers the text horizontally on the origin.
+    /// Centers the text horizontally (center X) on the origin.
     case center
 
-    /// Places the right edge of the text at the origin.
+    /// Places the right edge (maximum X) of the text at the origin.
     case right
 }
 

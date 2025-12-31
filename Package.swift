@@ -10,16 +10,14 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "0.2.3")),
         .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.2.0")),
-        .package(url: "https://github.com/tomasf/freetype-spm.git", from: "1.0.1"),
-        .package(url: "https://github.com/tomasf/FindFont.git", from: "1.0.0")
+        .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.1.0")),
     ],
     targets: [
         .target(
             name: "Cadova",
             dependencies: [
                 .byName(name: "CadovaCPP"),
-                .product(name: "freetype", package: "freetype-spm"),
-                .product(name: "FindFont", package: "FindFont"),
+                .product(name: "Apus", package: "Apus"),
                 .product(name: "Manifold", package: "manifold-swift"),
                 .product(name: "ThreeMF", package: "ThreeMF")
             ],
