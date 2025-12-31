@@ -124,6 +124,27 @@ public extension EnvironmentValues {
         get { textAttributes.lineSpacingAdjustment ?? 0 }
         set { textAttributes.lineSpacingAdjustment = newValue }
     }
+
+    /// The tracking (letter-spacing) adjustment between characters, in millimeters.
+    ///
+    /// Tracking adjusts the uniform spacing between all characters in the text.
+    /// A positive value increases spacing, while a negative value decreases it.
+    ///
+    /// The default is `0`, meaning standard character spacing is used.
+    ///
+    /// ```swift
+    /// Text("SPACED")
+    ///     .withTracking(1)  // Add 1mm between each character
+    ///
+    /// Text("TIGHT")
+    ///     .withTracking(-0.5) // Reduce spacing by 0.5mm
+    /// ```
+    ///
+    /// - SeeAlso: `fontSize`, `lineSpacing`
+    var tracking: Double {
+        get { textAttributes.tracking ?? 0 }
+        set { textAttributes.tracking = newValue }
+    }
 }
 
 public extension Geometry {
@@ -190,6 +211,28 @@ public extension Geometry {
     func withLineSpacing(_ adjustment: Double) -> D.Geometry {
         withEnvironment {
             $0.lineSpacing = adjustment
+        }
+    }
+
+    /// Adjusts the tracking (letter-spacing) between characters in text.
+    ///
+    /// This modifier changes the uniform spacing between all characters.
+    /// A positive value increases spacing, while a negative value decreases it.
+    ///
+    /// ```swift
+    /// Text("SPACED")
+    ///     .withTracking(1)  // Add 1mm between each character
+    ///
+    /// Text("TIGHT")
+    ///     .withTracking(-0.5) // Reduce spacing by 0.5mm
+    /// ```
+    ///
+    /// - Parameter adjustment: The amount to adjust character spacing, in millimeters.
+    ///   Positive values increase spacing, negative values decrease it.
+    /// - Returns: A new geometry with the adjusted tracking.
+    func withTracking(_ adjustment: Double) -> D.Geometry {
+        withEnvironment {
+            $0.tracking = adjustment
         }
     }
 }

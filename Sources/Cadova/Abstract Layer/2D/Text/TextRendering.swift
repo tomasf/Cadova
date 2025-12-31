@@ -30,10 +30,22 @@ extension TextAttributes {
 
         let textLines = text.components(separatedBy: "\n")
 
+        let trackingAmount = tracking ?? 0
+
         let lines = textLines.map { line -> (SimplePolygonList, width: Double) in
             let shapedGlyphs = font.glyphs(for: line)
 
+            // Count unique clusters for tracking calculation
+            var clusterIndex = 0
+            var previousCluster: UInt32?
+
             let glyphPolygons = shapedGlyphs.compactMap { glyph -> SimplePolygonList? in
+                // Increment cluster index when we encounter a new cluster
+                if let prev = previousCluster, glyph.cluster != prev {
+                    clusterIndex += 1
+                }
+                previousCluster = glyph.cluster
+
                 let positionedPath = glyph.positionedPath
                 guard !positionedPath.isEmpty else { return nil }
 
@@ -41,15 +53,22 @@ extension TextAttributes {
                 let polygons = bezierPaths.map { path in
                     SimplePolygon(path.points(segmentation: environment.scaledSegmentation))
                 }
-                return SimplePolygonList(polygons)
+                let glyphPolygonList = SimplePolygonList(polygons)
+
+                // Apply tracking offset based on cluster index
+                let trackingOffset = Double(clusterIndex) * trackingAmount
+                return glyphPolygonList.translated(x: trackingOffset, y: 0)
             }
 
             let totalPolygons = SimplePolygonList(glyphPolygons.flatMap(\.polygons))
 
-            // Calculate line width from the last glyph's position + advance
+            // Calculate line width from the last glyph's position + advance, plus total tracking
             let lineWidth: Double
             if let lastGlyph = shapedGlyphs.last {
-                lineWidth = (lastGlyph.position.x + lastGlyph.advance.x) * scale
+                let baseWidth = (lastGlyph.position.x + lastGlyph.advance.x) * scale
+                // clusterIndex now represents the number of cluster transitions (= unique clusters - 1)
+                let totalTracking = Double(clusterIndex) * trackingAmount
+                lineWidth = baseWidth + totalTracking
             } else {
                 lineWidth = 0
             }
