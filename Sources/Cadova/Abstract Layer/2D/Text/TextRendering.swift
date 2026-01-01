@@ -12,14 +12,19 @@ extension TextAttributes {
             preconditionFailure("render(text:) called on unresolved TextAttributes")
         }
 
+        // Convert Cadova FontVariation to Apus FontVariation
+        let apusVariations = (fontVariations ?? []).map { variation in
+            Apus.FontVariation(tag: variation.tag, value: variation.value)
+        }
+
         // Load font using Apus
         let font: Font
         if let fontFile {
             let fontData = try Data(contentsOf: fontFile)
-            font = try Font(data: fontData, family: family, style: fontFace?.style)
+            font = try Font(data: fontData, family: family, style: fontFace?.style, variations: apusVariations)
         } else {
             do {
-                font = try Font(family: family, style: fontFace?.style)
+                font = try Font(family: family, style: fontFace?.style, variations: apusVariations)
             } catch Font.FontError.fontNotFound {
                 throw TextError.fontNotFound(family: family, style: fontFace?.style)
             }
