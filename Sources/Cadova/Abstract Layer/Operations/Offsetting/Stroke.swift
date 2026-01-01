@@ -60,4 +60,36 @@ public extension Geometry2D {
                 }
         }
     }
+
+    /// Converts the shape's outline into a filled stroke, providing both the original and stroked geometries to a builder closure.
+    ///
+    /// This method creates a stroked version of the geometry and passes both the original
+    /// and the stroke to the supplied builder closure. This enables further composition,
+    /// such as combining the fill with its outline or constructing additional geometry.
+    ///
+    /// ```swift
+    /// Circle(diameter: 20)
+    ///     .stroked(width: 2, alignment: .outside, style: .round) { original, stroke in
+    ///         original  // The filled circle
+    ///         stroke    // The ring around it
+    ///     }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - width: The thickness of the stroke. Must be positive.
+    ///   - alignment: How the stroke is positioned relative to the original boundary.
+    ///   - style: The line join style for corners (e.g., `.round`, `.miter`, `.bevel`).
+    ///   - reader: A closure that receives both the original geometry and the stroked geometry, and returns a new composed geometry.
+    /// - Returns: The result of the builder closure.
+    ///
+    /// - SeeAlso: ``stroked(width:alignment:style:)``
+    ///
+    func stroked<Output: Dimensionality>(
+        width: Double,
+        alignment: StrokeAlignment,
+        style: LineJoinStyle,
+        @GeometryBuilder<Output> reader: @escaping @Sendable (_ original: any Geometry2D, _ stroked: any Geometry2D) -> Output.Geometry
+    ) -> Output.Geometry {
+        reader(self, stroked(width: width, alignment: alignment, style: style))
+    }
 }
