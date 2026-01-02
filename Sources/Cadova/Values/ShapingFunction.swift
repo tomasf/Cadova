@@ -44,6 +44,22 @@ public struct ShapingFunction: Sendable, Hashable, Codable {
         case .sine: { (1 - cos($0 * .pi)) / 2 }
         case .bezier (let curve): { curve.point(at: curve.t(for: $0, in: .x) ?? $0).y }
         case .mix (let a, let b, let weight): { (1 - weight) * a.function($0) + weight * b.function($0) }
+        case .inverted (let base): { t in 1 - base.function(1 - t) }
+        case .mirrored (let base): { t in
+            // Find t' such that base(t') = t using binary search
+            var low = 0.0
+            var high = 1.0
+            let f = base.function
+            for _ in 0..<50 { // Enough iterations for Double precision
+                let mid = (low + high) / 2
+                if f(mid) < t {
+                    low = mid
+                } else {
+                    high = mid
+                }
+            }
+            return (low + high) / 2
+        }
         case .custom (_, let function): function
         }
     }
@@ -73,6 +89,8 @@ internal extension ShapingFunction {
         case sine
         case bezier (BezierCurve<Vector2D>)
         case mix (ShapingFunction, ShapingFunction, Double)
+        case inverted (ShapingFunction)
+        case mirrored (ShapingFunction)
         case custom (cacheKey: LabeledCacheKey, function: @Sendable (Double) -> Double)
     }
 }
@@ -212,5 +230,42 @@ public extension ShapingFunction {
     func mixed(with other: ShapingFunction, weight: Double) -> Self {
         precondition(weight >= 0 && weight <= 1)
         return ShapingFunction(curve: .mix(self, other, weight))
+    }
+
+    /// Returns an inverted version of this shaping function.
+    ///
+    /// The inverted function is reflected about the point (0.5, 0.5), computed as `g(t) = 1 - f(1 - t)`.
+    /// This swaps the behavior at the start and end of the curve:
+    /// - Ease-in becomes ease-out
+    /// - Ease-out becomes ease-in
+    /// - Linear and symmetric functions (like `sine`) remain unchanged
+    ///
+    /// ```swift
+    /// let easeOut = ShapingFunction.easeIn.inverted  // Equivalent to .easeOut
+    /// ```
+    ///
+    var inverted: Self {
+        ShapingFunction(curve: .inverted(self))
+    }
+
+    /// Returns a mirrored version of this shaping function.
+    ///
+    /// The mirrored function is geometrically reflected across the line y = x,
+    /// computed as the inverse function `g(t) = f⁻¹(t)`. This produces true visual
+    /// symmetry when the original and mirrored curves are plotted together.
+    ///
+    /// - Ease-in (below diagonal) becomes a curve above the diagonal
+    /// - Ease-out (above diagonal) becomes a curve below the diagonal
+    /// - Linear remains unchanged
+    ///
+    /// The inverse is computed numerically using binary search, which works for
+    /// any monotonic shaping function.
+    ///
+    /// ```swift
+    /// let reflected = ShapingFunction.easeIn.mirrored  // Visually symmetric across y = x
+    /// ```
+    ///
+    var mirrored: Self {
+        ShapingFunction(curve: .mirrored(self))
     }
 }
