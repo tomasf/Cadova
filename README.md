@@ -40,8 +40,7 @@ For more code examples, see [Examples](https://github.com/tomasf/Cadova/wiki/Exa
 * [Cadova Viewer](https://github.com/tomasf/CadovaViewer) - A native macOS 3MF viewer application
 * [Helical](https://github.com/tomasf/Helical) - A Cadova library providing customizable threads, screws, bolts, nuts and related parts.
 
-Cadova uses [Manifold-Swift](https://github.com/tomasf/manifold-swift), [ThreeMF](https://github.com/tomasf/ThreeMF),
-[freetype-spm](https://github.com/tomasf/freetype-spm) and [FindFont](https://github.com/tomasf/FindFont).
+Cadova uses [Manifold-Swift](https://github.com/tomasf/manifold-swift), [Apus](https://github.com/tomasf/Apus) and [ThreeMF](https://github.com/tomasf/ThreeMF).
 
 
 ## Versioning and Stability
