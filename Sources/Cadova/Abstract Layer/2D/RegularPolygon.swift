@@ -49,8 +49,8 @@ public struct RegularPolygon: Shape2D {
 
     /// Creates a new `RegularPolygon` instance with the specified number of sides and width across flats.
     ///
-    /// The width across flats is the distance between two parallel sides of the polygon,
-    /// commonly used for sizing hex nuts and similar hardware.
+    /// The width across flats is the distance between two parallel sides of the polygon
+    /// (the diameter of the incircle), commonly used for sizing hex nuts and similar hardware.
     ///
     /// - Parameters:
     ///   - sideCount: The number of sides in the polygon.
@@ -78,8 +78,8 @@ public extension RegularPolygon {
 
     /// The distance between two parallel sides of the polygon.
     ///
-    /// This is twice the apothem and is commonly used for sizing
-    /// hex nuts, bolt heads, and similar hardware.
+    /// This is twice the apothem (the diameter of the incircle) and is
+    /// commonly used for sizing hex nuts, bolt heads, and similar hardware.
     var widthAcrossFlats: Double {
         apothem * 2
     }
