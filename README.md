@@ -7,12 +7,36 @@ Cadova models are written entirely in Swift, making them easy to version, reuse,
 
 Cadova runs on macOS, Windows, and Linux. To get started, read the [Getting Started guide](https://github.com/tomasf/Cadova/wiki/Getting-Started).
 
-More documentation is available in the [Wiki](https://github.com/tomasf/Cadova/wiki). Read [What is Cadova?](https://github.com/tomasf/Cadova/wiki/What-is-Cadova%3F) for an introduction. For code examples, see [Examples](https://github.com/tomasf/Cadova/wiki/Examples).
+More documentation is available in the [Wiki](https://github.com/tomasf/Cadova/wiki). Read [What is Cadova?](https://github.com/tomasf/Cadova/wiki/What-is-Cadova%3F) for an introduction.
 
 [![Swift](https://github.com/tomasf/Cadova/actions/workflows/main.yml/badge.svg)](https://github.com/tomasf/Cadova/actions/workflows/main.yml)
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
 
-## Related Projects
+## Example
+<img src="https://github.com/user-attachments/assets/c8ae2128-621a-4d26-8f9a-1c277e525633" width="27%" align="right">
+
+```swift
+await Model("Hex key holder") {
+    let height = 20.0
+    let spacing = 8.0
+    Stack(.x, spacing: spacing) {
+        for size in stride(from: 1.5, through: 5.0, by: 0.5) {
+            RegularPolygon(sideCount: 6, widthAcrossFlats: size)
+        }
+    }.measuringBounds { holes, bounds in
+        Stadium(bounds.size + spacing * 2)
+            .extruded(height: height)
+            .subtracting {
+                holes.aligned(at: .centerX)
+                    .extruded(height: height)
+                    .translated(z: 2)
+            }
+    }
+}
+```
+For more code examples, see [Examples](https://github.com/tomasf/Cadova/wiki/Examples).
+
+# Related Projects
 * [Cadova Viewer](https://github.com/tomasf/CadovaViewer) - A native macOS 3MF viewer application
 * [Helical](https://github.com/tomasf/Helical) - A Cadova library providing customizable threads, screws, bolts, nuts and related parts.
 
@@ -39,7 +63,7 @@ let package = Package(
     name: "<#name#>",
     platforms: [.macOS(.v14)],
     dependencies: [
-        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.4.0")),
+        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.4.1")),
     ],
     targets: [
         .executableTarget(
