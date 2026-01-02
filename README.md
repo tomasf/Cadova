@@ -13,7 +13,7 @@ More documentation is available in the [Wiki](https://github.com/tomasf/Cadova/w
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
 
 ## Example
-<img src="https://github.com/user-attachments/assets/c8ae2128-621a-4d26-8f9a-1c277e525633" width="25%" align="right">
+<img src="https://github.com/user-attachments/assets/c8ae2128-621a-4d26-8f9a-1c277e525633" width="23%" align="right">
 
 ```swift
 await Model("Hex key holder") {
