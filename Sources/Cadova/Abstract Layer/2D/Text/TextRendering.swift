@@ -7,7 +7,7 @@ internal enum TextError: Error {
 }
 
 extension TextAttributes {
-    func render(text: String, in environment: EnvironmentValues) throws -> SimplePolygonList {
+    func render(text: String, with segmentation: Segmentation) throws -> SimplePolygonList {
         guard let family = fontFace?.family, let size = fontSize else {
             preconditionFailure("render(text:) called on unresolved TextAttributes")
         }
@@ -56,7 +56,7 @@ extension TextAttributes {
 
                 let bezierPaths = positionedPath.toBezierPaths(scale: scale)
                 let polygons = bezierPaths.map { path in
-                    SimplePolygon(path.points(segmentation: environment.scaledSegmentation))
+                    SimplePolygon(path.points(segmentation: segmentation))
                 }
                 let glyphPolygonList = SimplePolygonList(polygons)
 

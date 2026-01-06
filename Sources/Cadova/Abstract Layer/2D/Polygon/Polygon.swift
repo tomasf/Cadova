@@ -42,9 +42,11 @@ public struct Polygon: Shape2D {
     }
 
     public var body: any Geometry2D {
-        CachedNode(name: "polygon", parameters: pointsProvider) { environment, context in
-            let polygonList = SimplePolygonList([SimplePolygon(points(in: environment))])
-            return .shape(.polygons(polygonList, fillRule: environment.fillRule))
+        @Environment(\.fillRule) var fillRule
+        @Environment(\.scaledSegmentation) var segmentation
+        CachedNode(name: "polygon", parameters: pointsProvider, fillRule, segmentation) { context in
+            let polygonList = SimplePolygonList([SimplePolygon(points(with: segmentation))])
+            return .shape(.polygons(polygonList, fillRule: fillRule))
         }
     }
 }
