@@ -101,21 +101,9 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
         let filteredPoints = deduplicated(points: points, tolerance: epsilon)
         guard filteredPoints.count >= 2 else { return [] }
 
-        let halfWidth = width / 2.0
-        let leftOffset: Double
-        let rightOffset: Double
-        switch alignment {
-        case .centered:
-            leftOffset = halfWidth
-            rightOffset = halfWidth
-        case .left:
-            leftOffset = width
-            rightOffset = 0
-        case .right:
-            leftOffset = 0
-            rightOffset = width
-        }
-
+        let offsets = strokeOffsets()
+        let leftOffset = offsets.left
+        let rightOffset = offsets.right
         var leftPoints = offsetPolyline(
             points: filteredPoints,
             offset: leftOffset,
@@ -135,61 +123,25 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
         guard leftPoints.isEmpty == false, rightPoints.isEmpty == false else { return [] }
 
         if capStyle == .square {
-            let capExtension = max(leftOffset, rightOffset)
-            if capExtension > 0 {
-                let startDir = (filteredPoints[1] - filteredPoints[0]).normalized
-                let endDir = (filteredPoints[filteredPoints.count - 1] - filteredPoints[filteredPoints.count - 2]).normalized
-                let startShift = startDir * capExtension
-                let endShift = endDir * capExtension
-                leftPoints[0] -= startShift
-                rightPoints[0] -= startShift
-                leftPoints[leftPoints.count - 1] += endShift
-                rightPoints[rightPoints.count - 1] += endShift
-            }
-        }
-
-        var outline: [Vector2D] = []
-        appendPoints(&outline, leftPoints, tolerance: epsilon)
-
-        let leftEnd = leftPoints[leftPoints.count - 1]
-        let rightEnd = rightPoints[rightPoints.count - 1]
-        let leftStart = leftPoints[0]
-        let rightStart = rightPoints[0]
-
-        let canRoundCaps = capStyle == .round && abs(leftOffset - rightOffset) <= epsilon && leftOffset > 0
-        if canRoundCaps {
-            let endCenter = filteredPoints[filteredPoints.count - 1]
-            let endArc = arcPoints(
-                center: endCenter,
-                radius: leftOffset,
-                startAngle: atan2(leftEnd - endCenter),
-                endAngle: atan2(rightEnd - endCenter),
-                clockwise: true,
-                segmentation: segmentation
+            applySquareCaps(
+                leftPoints: &leftPoints,
+                rightPoints: &rightPoints,
+                filteredPoints: filteredPoints,
+                leftOffset: leftOffset,
+                rightOffset: rightOffset
             )
-            appendPoints(&outline, Array(endArc.dropFirst()), tolerance: epsilon)
-        } else {
-            appendIfDistinct(&outline, rightEnd, tolerance: epsilon)
         }
 
-        appendPoints(&outline, Array(rightPoints.reversed().dropFirst()), tolerance: epsilon)
-
-        if canRoundCaps {
-            let startCenter = filteredPoints[0]
-            let startArc = arcPoints(
-                center: startCenter,
-                radius: leftOffset,
-                startAngle: atan2(rightStart - startCenter),
-                endAngle: atan2(leftStart - startCenter),
-                clockwise: true,
-                segmentation: segmentation
-            )
-            appendPoints(&outline, Array(startArc.dropFirst()), tolerance: epsilon)
-        } else {
-            appendIfDistinct(&outline, leftStart, tolerance: epsilon)
-        }
-
-        return outline
+        return buildOutline(
+            leftPoints: leftPoints,
+            rightPoints: rightPoints,
+            filteredPoints: filteredPoints,
+            capStyle: capStyle,
+            segmentation: segmentation,
+            leftOffset: leftOffset,
+            rightOffset: rightOffset,
+            epsilon: epsilon
+        )
     }
 
     private func offsetPolyline(
@@ -203,19 +155,10 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
         let epsilon = 1e-9
         guard offset > 0 else { return points }
 
-        let segmentCount = points.count - 1
-        var directions: [Vector2D] = []
-        var normals: [Vector2D] = []
-        directions.reserveCapacity(segmentCount)
-        normals.reserveCapacity(segmentCount)
-
-        for i in 0..<segmentCount {
-            let delta = points[i + 1] - points[i]
-            let dir = Direction2D(delta).unitVector
-            let normal = isLeft ? Direction2D(dir).counterclockwiseNormal.unitVector : Direction2D(dir).clockwiseNormal.unitVector
-            directions.append(dir)
-            normals.append(normal)
-        }
+        let vectors = polylineVectors(points: points, isLeft: isLeft)
+        let directions = vectors.directions
+        let normals = vectors.normals
+        let segmentCount = directions.count
 
         var result: [Vector2D] = []
         appendIfDistinct(&result, points[0] + normals[0] * offset, tolerance: epsilon)
@@ -240,45 +183,211 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
             let intersection = prevLine.intersection(with: nextLine)
 
             if isOuter == false {
-                if let intersection {
-                    appendIfDistinct(&result, intersection, tolerance: epsilon)
-                } else {
-                    appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
-                }
+                appendInnerJoin(
+                    result: &result,
+                    intersection: intersection,
+                    fallback: prevOffsetPoint,
+                    tolerance: epsilon
+                )
                 continue
             }
 
-            switch style {
-            case .miter:
-                if let intersection {
-                    if (intersection - points[i]).magnitude <= miterLimit * offset {
-                        appendIfDistinct(&result, intersection, tolerance: epsilon)
-                    } else {
-                        appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
-                        appendIfDistinct(&result, nextOffsetPoint, tolerance: epsilon)
-                    }
-                } else {
-                    appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
-                }
-
-            case .bevel, .square:
-                appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
-                appendIfDistinct(&result, nextOffsetPoint, tolerance: epsilon)
-
-            case .round:
-                let arc = arcPointsShortest(
-                    center: points[i],
-                    radius: offset,
-                    startAngle: atan2(prevOffsetPoint - points[i]),
-                    endAngle: atan2(nextOffsetPoint - points[i]),
-                    segmentation: segmentation
-                )
-                appendPoints(&result, Array(arc.dropFirst()), tolerance: epsilon)
-            }
+            appendOuterJoin(
+                result: &result,
+                intersection: intersection,
+                prevOffsetPoint: prevOffsetPoint,
+                nextOffsetPoint: nextOffsetPoint,
+                center: points[i],
+                offset: offset,
+                style: style,
+                segmentation: segmentation,
+                miterLimit: miterLimit,
+                tolerance: epsilon
+            )
         }
 
         appendIfDistinct(&result, points[points.count - 1] + normals[segmentCount - 1] * offset, tolerance: epsilon)
         return result
+    }
+
+    private func strokeOffsets() -> (left: Double, right: Double) {
+        let halfWidth = width / 2.0
+        switch alignment {
+        case .centered:
+            return (halfWidth, halfWidth)
+        case .left:
+            return (width, 0)
+        case .right:
+            return (0, width)
+        }
+    }
+
+    private func applySquareCaps(
+        leftPoints: inout [Vector2D],
+        rightPoints: inout [Vector2D],
+        filteredPoints: [Vector2D],
+        leftOffset: Double,
+        rightOffset: Double
+    ) {
+        let capExtension = max(leftOffset, rightOffset)
+        guard capExtension > 0 else { return }
+        let startDir = (filteredPoints[1] - filteredPoints[0]).normalized
+        let endDir = (filteredPoints[filteredPoints.count - 1] - filteredPoints[filteredPoints.count - 2]).normalized
+        let startShift = startDir * capExtension
+        let endShift = endDir * capExtension
+        leftPoints[0] -= startShift
+        rightPoints[0] -= startShift
+        leftPoints[leftPoints.count - 1] += endShift
+        rightPoints[rightPoints.count - 1] += endShift
+    }
+
+    private func buildOutline(
+        leftPoints: [Vector2D],
+        rightPoints: [Vector2D],
+        filteredPoints: [Vector2D],
+        capStyle: LineCapStyle,
+        segmentation: Segmentation,
+        leftOffset: Double,
+        rightOffset: Double,
+        epsilon: Double
+    ) -> [Vector2D] {
+        var outline: [Vector2D] = []
+        appendPoints(&outline, leftPoints, tolerance: epsilon)
+
+        let leftEnd = leftPoints[leftPoints.count - 1]
+        let rightEnd = rightPoints[rightPoints.count - 1]
+        let leftStart = leftPoints[0]
+        let rightStart = rightPoints[0]
+
+        let canRoundCaps = capStyle == .round && abs(leftOffset - rightOffset) <= epsilon && leftOffset > 0
+        if canRoundCaps {
+            let endCenter = filteredPoints[filteredPoints.count - 1]
+            appendRoundCap(
+                outline: &outline,
+                center: endCenter,
+                radius: leftOffset,
+                startPoint: leftEnd,
+                endPoint: rightEnd,
+                segmentation: segmentation,
+                epsilon: epsilon
+            )
+        } else {
+            appendIfDistinct(&outline, rightEnd, tolerance: epsilon)
+        }
+
+        appendPoints(&outline, Array(rightPoints.reversed().dropFirst()), tolerance: epsilon)
+
+        if canRoundCaps {
+            let startCenter = filteredPoints[0]
+            appendRoundCap(
+                outline: &outline,
+                center: startCenter,
+                radius: leftOffset,
+                startPoint: rightStart,
+                endPoint: leftStart,
+                segmentation: segmentation,
+                epsilon: epsilon
+            )
+        } else {
+            appendIfDistinct(&outline, leftStart, tolerance: epsilon)
+        }
+
+        return outline
+    }
+
+    private func appendRoundCap(
+        outline: inout [Vector2D],
+        center: Vector2D,
+        radius: Double,
+        startPoint: Vector2D,
+        endPoint: Vector2D,
+        segmentation: Segmentation,
+        epsilon: Double
+    ) {
+        let arc = arcPoints(
+            center: center,
+            radius: radius,
+            startAngle: atan2(startPoint - center),
+            endAngle: atan2(endPoint - center),
+            clockwise: true,
+            segmentation: segmentation
+        )
+        appendPoints(&outline, Array(arc.dropFirst()), tolerance: epsilon)
+    }
+
+    private func polylineVectors(
+        points: [Vector2D],
+        isLeft: Bool
+    ) -> (directions: [Vector2D], normals: [Vector2D]) {
+        let segmentCount = points.count - 1
+        var directions: [Vector2D] = []
+        var normals: [Vector2D] = []
+        directions.reserveCapacity(segmentCount)
+        normals.reserveCapacity(segmentCount)
+
+        for i in 0..<segmentCount {
+            let delta = points[i + 1] - points[i]
+            let dir = Direction2D(delta).unitVector
+            let normal = isLeft ? Direction2D(dir).counterclockwiseNormal.unitVector : Direction2D(dir).clockwiseNormal.unitVector
+            directions.append(dir)
+            normals.append(normal)
+        }
+
+        return (directions, normals)
+    }
+
+    private func appendInnerJoin(
+        result: inout [Vector2D],
+        intersection: Vector2D?,
+        fallback: Vector2D,
+        tolerance: Double
+    ) {
+        if let intersection {
+            appendIfDistinct(&result, intersection, tolerance: tolerance)
+        } else {
+            appendIfDistinct(&result, fallback, tolerance: tolerance)
+        }
+    }
+
+    private func appendOuterJoin(
+        result: inout [Vector2D],
+        intersection: Vector2D?,
+        prevOffsetPoint: Vector2D,
+        nextOffsetPoint: Vector2D,
+        center: Vector2D,
+        offset: Double,
+        style: LineJoinStyle,
+        segmentation: Segmentation,
+        miterLimit: Double,
+        tolerance: Double
+    ) {
+        switch style {
+        case .miter:
+            if let intersection {
+                if (intersection - center).magnitude <= miterLimit * offset {
+                    appendIfDistinct(&result, intersection, tolerance: tolerance)
+                } else {
+                    appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
+                    appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
+                }
+            } else {
+                appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
+            }
+
+        case .bevel, .square:
+            appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
+            appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
+
+        case .round:
+            let arc = arcPointsShortest(
+                center: center,
+                radius: offset,
+                startAngle: atan2(prevOffsetPoint - center),
+                endAngle: atan2(nextOffsetPoint - center),
+                segmentation: segmentation
+            )
+            appendPoints(&result, Array(arc.dropFirst()), tolerance: tolerance)
+        }
     }
 
     private func arcPoints(
