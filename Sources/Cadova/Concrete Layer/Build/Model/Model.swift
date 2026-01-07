@@ -86,11 +86,12 @@ public struct Model: Sendable {
         in directory: URL? = nil,
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
         context: EvaluationContext? = nil,
-        interitedOptions: ModelOptions? = nil
+        interitedOptions: ModelOptions? = nil,
+        revealInSystemFileBrowser: Bool = true
     ) async -> URL? {
         let result = await buildToFile(environment: inheritedEnvironment, context: context ?? .init(),
                                        options: interitedOptions, URL: directory)
-        if let result {
+        if revealInSystemFileBrowser, let result {
             try? Platform.revealFiles([result])
         }
 
