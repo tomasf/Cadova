@@ -30,22 +30,25 @@ public extension ParametricCurve where V == Vector2D {
         alignment: CurveStrokeAlignment = .centered,
         style: LineJoinStyle = .miter
     ) -> any Geometry2D {
-        readEnvironment(\.scaledSegmentation, \.miterLimit, \.scaledTolerance, \.lineCapStyle) {
-            segmentation, miterLimit, tolerance, capStyle in
-            guard width > 0 else { return Empty() }
-            let sampledPoints = points(segmentation: segmentation)
-            let outline = strokeOutline(
-                points: sampledPoints,
-                width: width,
-                alignment: alignment,
-                style: style,
-                capStyle: capStyle,
-                segmentation: segmentation,
-                miterLimit: miterLimit,
-                tolerance: tolerance
-            )
-            guard outline.isEmpty == false else { return Empty() }
-            return Polygon(outline)
+        readEnvironment(\.scaledSegmentation, \.miterLimit, \.lineCapStyle) { segmentation, miterLimit, capStyle in
+            CachedNode(
+                name: "strokeCurve",
+                parameters: self, width, alignment, style, capStyle, segmentation, miterLimit
+            ) {
+                guard width > 0 else { return Empty() }
+                let sampledPoints = points(segmentation: segmentation)
+                let outline = strokeOutline(
+                    points: sampledPoints,
+                    width: width,
+                    alignment: alignment,
+                    style: style,
+                    capStyle: capStyle,
+                    segmentation: segmentation,
+                    miterLimit: miterLimit
+                )
+                guard outline.isEmpty == false else { return Empty() }
+                return Polygon(outline)
+            }
         }
     }
 }
@@ -57,10 +60,9 @@ private func strokeOutline(
     style: LineJoinStyle,
     capStyle: LineCapStyle,
     segmentation: Segmentation,
-    miterLimit: Double,
-    tolerance: Double
+    miterLimit: Double
 ) -> [Vector2D] {
-    let epsilon = max(tolerance, 1e-9)
+    let epsilon = 1e-9
     let filteredPoints = deduplicated(points: points, tolerance: epsilon)
     guard filteredPoints.count >= 2 else { return [] }
 
@@ -85,8 +87,7 @@ private func strokeOutline(
         isLeft: true,
         style: style,
         segmentation: segmentation,
-        miterLimit: miterLimit,
-        tolerance: epsilon
+        miterLimit: miterLimit
     )
     var rightPoints = offsetPolyline(
         points: filteredPoints,
@@ -94,8 +95,7 @@ private func strokeOutline(
         isLeft: false,
         style: style,
         segmentation: segmentation,
-        miterLimit: miterLimit,
-        tolerance: epsilon
+        miterLimit: miterLimit
     )
     guard leftPoints.isEmpty == false, rightPoints.isEmpty == false else { return [] }
 
@@ -163,9 +163,9 @@ private func offsetPolyline(
     isLeft: Bool,
     style: LineJoinStyle,
     segmentation: Segmentation,
-    miterLimit: Double,
-    tolerance: Double
+    miterLimit: Double
 ) -> [Vector2D] {
+    let epsilon = 1e-9
     guard offset > 0 else { return points }
 
     let segmentCount = points.count - 1
@@ -183,7 +183,7 @@ private func offsetPolyline(
     }
 
     var result: [Vector2D] = []
-    appendIfDistinct(&result, points[0] + normals[0] * offset, tolerance: tolerance)
+    appendIfDistinct(&result, points[0] + normals[0] * offset, tolerance: epsilon)
 
     for i in 1..<(points.count - 1) {
         let prevDir = directions[i - 1]
@@ -194,8 +194,8 @@ private func offsetPolyline(
         let prevOffsetPoint = points[i] + prevNormal * offset
         let nextOffsetPoint = points[i] + nextNormal * offset
 
-        if abs(cross) <= tolerance {
-            appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
+        if abs(cross) <= epsilon {
+            appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
             continue
         }
 
@@ -206,9 +206,9 @@ private func offsetPolyline(
 
         if isOuter == false {
             if let intersection {
-                appendIfDistinct(&result, intersection, tolerance: tolerance)
+                appendIfDistinct(&result, intersection, tolerance: epsilon)
             } else {
-                appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
+                appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
             }
             continue
         }
@@ -217,18 +217,18 @@ private func offsetPolyline(
         case .miter:
             if let intersection {
                 if (intersection - points[i]).magnitude <= miterLimit * offset {
-                    appendIfDistinct(&result, intersection, tolerance: tolerance)
+                    appendIfDistinct(&result, intersection, tolerance: epsilon)
                 } else {
-                    appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
-                    appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
+                    appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
+                    appendIfDistinct(&result, nextOffsetPoint, tolerance: epsilon)
                 }
             } else {
-                appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
+                appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
             }
 
         case .bevel, .square:
-            appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
-            appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
+            appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
+            appendIfDistinct(&result, nextOffsetPoint, tolerance: epsilon)
 
         case .round:
             let arc = arcPointsShortest(
@@ -238,11 +238,11 @@ private func offsetPolyline(
                 endAngle: atan2(nextOffsetPoint - points[i]),
                 segmentation: segmentation
             )
-            appendPoints(&result, Array(arc.dropFirst()), tolerance: tolerance)
+            appendPoints(&result, Array(arc.dropFirst()), tolerance: epsilon)
         }
     }
 
-    appendIfDistinct(&result, points[points.count - 1] + normals[segmentCount - 1] * offset, tolerance: tolerance)
+    appendIfDistinct(&result, points[points.count - 1] + normals[segmentCount - 1] * offset, tolerance: epsilon)
     return result
 }
 
