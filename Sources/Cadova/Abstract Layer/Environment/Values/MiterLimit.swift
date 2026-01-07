@@ -2,7 +2,7 @@ import Foundation
 
 public extension EnvironmentValues {
     static private let environmentKey = Key("Cadova.MiterLimit")
-    static private let minimum = 2.0
+    static private let minimum = 5.0
 
     var miterLimit: Double {
         get { self[Self.environmentKey] as? Double ?? Self.minimum }
