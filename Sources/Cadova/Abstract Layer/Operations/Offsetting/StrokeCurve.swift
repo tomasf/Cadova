@@ -51,6 +51,30 @@ public extension ParametricCurve where V == Vector2D {
             }
         }
     }
+
+    /// Converts the curve into a stroked 2D geometry, providing both the curve and its stroke to a builder closure.
+    ///
+    /// This method creates a stroked version of the curve and passes both the original curve
+    /// and the stroke geometry to the supplied builder closure. This enables composition
+    /// with other geometry derived from the same curve.
+    ///
+    /// - Parameters:
+    ///   - width: The thickness of the stroke. Must be positive.
+    ///   - alignment: How the stroke is positioned relative to the curve direction.
+    ///   - style: The line join style for corners (e.g., `.round`, `.miter`, `.bevel`).
+    ///   - reader: A closure that receives both the original curve and the stroked geometry, and returns a new composed geometry.
+    /// - Returns: The result of the builder closure.
+    ///
+    /// - SeeAlso: ``stroked(width:alignment:style:)``
+    ///
+    func stroked<Output: Dimensionality>(
+        width: Double,
+        alignment: CurveStrokeAlignment = .centered,
+        style: LineJoinStyle = .miter,
+        @GeometryBuilder<Output> reader: @escaping @Sendable (_ curve: Self, _ stroked: any Geometry2D) -> Output.Geometry
+    ) -> Output.Geometry {
+        reader(self, stroked(width: width, alignment: alignment, style: style))
+    }
 }
 
 private func strokeOutline(
