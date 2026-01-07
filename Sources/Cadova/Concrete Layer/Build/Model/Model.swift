@@ -17,6 +17,11 @@ import Foundation
 public struct Model: Sendable {
     let name: String
 
+    public struct InMemoryFile: Sendable {
+        let pathExtension: String
+        let contents: Data
+    }
+
     private let directives: @Sendable () -> [BuildDirective]
     private let options: ModelOptions
 
@@ -67,7 +72,6 @@ public struct Model: Sendable {
     /// }
     /// ```
     ///
-    @discardableResult
     public init(
         _ name: String,
         options: ModelOptions...,
@@ -76,21 +80,67 @@ public struct Model: Sendable {
         self.name = name
         directives = content
         self.options = .init(options)
-
-        if ModelContext.current.isCollectingModels == false {
-            if let url = await build() {
-                try? Platform.revealFiles([url])
-            }
-        }
     }
 
-    internal func build(
+    public func writeToFile(
+        in directory: URL? = nil,
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
-        context: EvaluationContext = .init(),
-        options inheritedOptions: ModelOptions? = nil,
+        context: EvaluationContext? = nil,
+        interitedOptions: ModelOptions? = nil
+    ) async -> URL? {
+        let result = await buildToFile(environment: inheritedEnvironment, context: context ?? .init(),
+                                       options: interitedOptions, URL: directory)
+        if let result {
+            try? Platform.revealFiles([result])
+        }
+
+        return result
+    }
+
+    public func generateInMemoryFile(
+        environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
+        context: EvaluationContext? = nil,
+        interitedOptions: ModelOptions? = nil
+    ) async -> InMemoryFile? {
+        return await buildToData(environment: inheritedEnvironment, context: context ?? .init(), options: interitedOptions)
+    }
+
+    private func buildToFile(
+        environment inheritedEnvironment: EnvironmentValues,
+        context: EvaluationContext,
+        options inheritedOptions: ModelOptions?,
         URL directory: URL? = nil
     ) async -> URL? {
         logger.info("Generating \"\(name)\"...")
+        
+        guard let file = await buildToData(environment: inheritedEnvironment,
+                                           context: context, options: inheritedOptions) else { return nil }
+
+        let baseURL: URL
+        if let parent = directory {
+            baseURL = parent.appendingPathComponent(name, isDirectory: false)
+        } else {
+            baseURL = URL(expandingFilePath: name)
+        }
+
+        let url = baseURL.appendingPathExtension(file.pathExtension)
+        let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
+
+        do {
+            try file.contents.write(to: url)
+            logger.info("Wrote model to \(url.path)")
+        } catch {
+            logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+        }
+
+        return fileExisted ? nil : url
+    }
+
+    private func buildToData(
+        environment inheritedEnvironment: EnvironmentValues,
+        context: EvaluationContext,
+        options inheritedOptions: ModelOptions?
+    ) async -> InMemoryFile? {
 
         let directives = inheritedEnvironment.whileCurrent {
             self.directives()
@@ -108,13 +158,6 @@ public struct Model: Sendable {
         }
         mutatingEnvironment.modelOptions = localOptions
         let environment = mutatingEnvironment
-
-        let baseURL: URL
-        if let parent = directory {
-            baseURL = parent.appendingPathComponent(name, isDirectory: false)
-        } else {
-            baseURL = URL(expandingFilePath: name)
-        }
 
         let geometries3D = directives.compactMap(\.geometry3D)
         let geometries2D = directives.compactMap(\.geometry2D)
@@ -146,17 +189,13 @@ public struct Model: Sendable {
             return nil
         }
 
-        let url = baseURL.appendingPathExtension(provider.fileExtension)
-        let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
-
         do {
-            try await provider.writeOutput(to: url, context: context)
-            logger.info("Wrote model to \(url.path)")
+            let fileContents: Data = try await provider.generateOutput(context: context)
+            return InMemoryFile(pathExtension: provider.fileExtension, contents: fileContents)
         } catch {
-            logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+            logger.error("Cadova caught an error while generating \(provider.fileExtension) model \"\(name)\":\n🛑 \(error)\n")
+            return nil
         }
-
-        return fileExisted ? nil : url
     }
 
     private func generateResult<D: Dimensionality>(
