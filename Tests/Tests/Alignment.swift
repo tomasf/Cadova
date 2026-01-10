@@ -261,6 +261,42 @@ struct AlignmentTests {
         #expect(bounds?.maximum.y ≈ 0)
     }
 
+    // MARK: - whileAligned
+
+    @Test func `2D whileAligned matches rotated around center`() async throws {
+        let geometry = Rectangle(x: 10, y: 6)
+            .translated(x: 20, y: 10)
+        let viaWhileAligned = geometry
+            .whileAligned(at: .center) { $0.rotated(90°) }
+        let viaPivot = geometry.rotated(90°, around: .center)
+
+        let whileBounds = try await viaWhileAligned.bounds
+        let pivotBounds = try await viaPivot.bounds
+
+        #expect(whileBounds?.minimum.x ≈ pivotBounds?.minimum.x)
+        #expect(whileBounds?.maximum.x ≈ pivotBounds?.maximum.x)
+        #expect(whileBounds?.minimum.y ≈ pivotBounds?.minimum.y)
+        #expect(whileBounds?.maximum.y ≈ pivotBounds?.maximum.y)
+    }
+
+    @Test func `3D whileAligned matches rotated around center`() async throws {
+        let geometry = Box(x: 10, y: 6, z: 4)
+            .translated(x: 20, y: 10, z: 5)
+        let viaWhileAligned = geometry
+            .whileAligned(at: .center) { $0.rotated(y: 90°) }
+        let viaPivot = geometry.rotated(y: 90°, around: .center)
+
+        let whileBounds = try await viaWhileAligned.bounds
+        let pivotBounds = try await viaPivot.bounds
+
+        #expect(whileBounds?.minimum.x ≈ pivotBounds?.minimum.x)
+        #expect(whileBounds?.maximum.x ≈ pivotBounds?.maximum.x)
+        #expect(whileBounds?.minimum.y ≈ pivotBounds?.minimum.y)
+        #expect(whileBounds?.maximum.y ≈ pivotBounds?.maximum.y)
+        #expect(whileBounds?.minimum.z ≈ pivotBounds?.minimum.z)
+        #expect(whileBounds?.maximum.z ≈ pivotBounds?.maximum.z)
+    }
+
     // MARK: - Edge Cases
 
     @Test func `align none leaves geometry unchanged`() async throws {
