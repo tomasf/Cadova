@@ -104,4 +104,19 @@ struct StrokeCurveTests {
         #expect(bounds!.minimum.equals([-1, 0], within: 0.01))
         #expect(bounds!.maximum.equals([11, 2], within: 0.01))
     }
+
+    @Test func `curve stroke square join differs from bevel`() async throws {
+        let bevelGeometry = cornerPath.stroked(width: 2, alignment: .centered, style: .bevel)
+        let squareGeometry = cornerPath.stroked(width: 2, alignment: .centered, style: .square)
+        let bevelArea = try await bevelGeometry.measurements.area
+        let squareArea = try await squareGeometry.measurements.area
+
+        // Square join extends further than bevel, cutting off less area
+        // For a 90° corner, square area should be between bevel (39.5) and miter (40)
+        #expect(squareArea > bevelArea)
+        #expect(squareArea < 40)
+        // Square join midpoint is at offset distance; area = 40 - (√2-1)² = 37 + 2√2 ≈ 39.83
+        let expectedArea = 37 + 2 * Double(2).squareRoot()
+        #expect(squareArea.equals(expectedArea, within: 0.01))
+    }
 }

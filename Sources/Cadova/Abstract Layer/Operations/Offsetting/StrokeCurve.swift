@@ -197,6 +197,8 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
                 intersection: intersection,
                 prevOffsetPoint: prevOffsetPoint,
                 nextOffsetPoint: nextOffsetPoint,
+                prevDir: prevDir,
+                nextDir: nextDir,
                 center: points[i],
                 offset: offset,
                 style: style,
@@ -359,6 +361,8 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
         intersection: Vector2D?,
         prevOffsetPoint: Vector2D,
         nextOffsetPoint: Vector2D,
+        prevDir: Vector2D,
+        nextDir: Vector2D,
         center: Vector2D,
         offset: Double,
         style: LineJoinStyle,
@@ -379,9 +383,28 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
                 appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
             }
 
-        case .bevel, .square:
+        case .bevel:
             appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
             appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
+
+        case .square:
+            // Position the flat edge so its midpoint is exactly offset distance from center
+            let prevNormal = (prevOffsetPoint - center).normalized
+            let nextNormal = (nextOffsetPoint - center).normalized
+            let bisector = (prevNormal + nextNormal).normalized
+            let edgeMidpoint = center + bisector * offset
+            let edgeLine = Line(point: edgeMidpoint, direction: Direction2D(bisector).counterclockwiseNormal)
+            let prevLine = Line(point: prevOffsetPoint, direction: Direction2D(prevDir))
+            let nextLine = Line(point: nextOffsetPoint, direction: Direction2D(nextDir))
+            if let p1 = edgeLine.intersection(with: prevLine),
+               let p2 = edgeLine.intersection(with: nextLine) {
+                appendIfDistinct(&result, p1, tolerance: tolerance)
+                appendIfDistinct(&result, p2, tolerance: tolerance)
+            } else {
+                // Fall back to bevel if intersection fails
+                appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
+                appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
+            }
 
         case .round:
             let arc = arcPointsShortest(
