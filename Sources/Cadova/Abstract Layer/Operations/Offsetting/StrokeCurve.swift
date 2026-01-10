@@ -259,13 +259,16 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
         let leftStart = leftPoints[0]
         let rightStart = rightPoints[0]
 
-        let canRoundCaps = capStyle == .round && abs(leftOffset - rightOffset) <= epsilon && leftOffset > 0
-        if canRoundCaps {
-            let endCenter = filteredPoints[filteredPoints.count - 1]
+        let capRadius = (leftOffset + rightOffset) / 2
+        let useRoundCaps = capStyle == .round && capRadius > 0
+        if useRoundCaps {
+            let endDirection = Direction2D(filteredPoints[filteredPoints.count - 1] - filteredPoints[filteredPoints.count - 2])
+            let endNormal = endDirection.counterclockwiseNormal.unitVector
+            let endCenter = filteredPoints[filteredPoints.count - 1] + endNormal * (leftOffset - rightOffset) / 2
             appendRoundCap(
                 outline: &outline,
                 center: endCenter,
-                radius: leftOffset,
+                radius: capRadius,
                 startPoint: leftEnd,
                 endPoint: rightEnd,
                 segmentation: segmentation,
@@ -277,12 +280,14 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
 
         appendPoints(&outline, Array(rightPoints.reversed().dropFirst()), tolerance: epsilon)
 
-        if canRoundCaps {
-            let startCenter = filteredPoints[0]
+        if useRoundCaps {
+            let startDirection = Direction2D(filteredPoints[1] - filteredPoints[0])
+            let startNormal = startDirection.counterclockwiseNormal.unitVector
+            let startCenter = filteredPoints[0] + startNormal * (leftOffset - rightOffset) / 2
             appendRoundCap(
                 outline: &outline,
                 center: startCenter,
-                radius: leftOffset,
+                radius: capRadius,
                 startPoint: rightStart,
                 endPoint: leftStart,
                 segmentation: segmentation,

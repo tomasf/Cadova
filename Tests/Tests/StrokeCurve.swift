@@ -89,4 +89,19 @@ struct StrokeCurveTests {
         #expect(bounds!.minimum ≈ [0, -1])
         #expect(bounds!.maximum ≈ [11, 10])
     }
+
+    @Test func `left aligned curve stroke with round caps`() async throws {
+        let geometry = linePath
+            .stroked(width: 2, alignment: .left, style: .miter)
+            .withLineCapStyle(.round)
+        let area = try await geometry.measurements.area
+        let bounds = try await geometry.bounds
+
+        // Rectangle 10x2 plus two semicircles of radius 1
+        #expect(area.equals(20 + Double.pi, within: 0.02))
+        #expect(bounds != nil)
+        // Caps extend 1 unit beyond the line ends, centered at y=1
+        #expect(bounds!.minimum.equals([-1, 0], within: 0.01))
+        #expect(bounds!.maximum.equals([11, 2], within: 0.01))
+    }
 }
