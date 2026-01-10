@@ -124,6 +124,49 @@ public extension EnvironmentValues {
         get { textAttributes.lineSpacingAdjustment ?? 0 }
         set { textAttributes.lineSpacingAdjustment = newValue }
     }
+
+    /// The tracking (letter-spacing) adjustment between characters, in millimeters.
+    ///
+    /// Tracking adjusts the uniform spacing between all characters in the text.
+    /// A positive value increases spacing, while a negative value decreases it.
+    ///
+    /// The default is `0`, meaning standard character spacing is used.
+    ///
+    /// ```swift
+    /// Text("SPACED")
+    ///     .withTracking(1)  // Add 1mm between each character
+    ///
+    /// Text("TIGHT")
+    ///     .withTracking(-0.5) // Reduce spacing by 0.5mm
+    /// ```
+    ///
+    /// - SeeAlso: `fontSize`, `lineSpacing`
+    var tracking: Double {
+        get { textAttributes.tracking ?? 0 }
+        set { textAttributes.tracking = newValue }
+    }
+
+    /// The font variations to apply to variable fonts.
+    ///
+    /// Font variations control axes like weight, width, and slant for variable fonts.
+    /// If the font is not a variable font, variations are ignored.
+    ///
+    /// Use `.withFontVariations([...])` or specific modifiers like `.withFontWeight(_:)`
+    /// to set variations on geometry.
+    ///
+    /// ```swift
+    /// Text("Semibold")
+    ///     .withFontWeight(600)
+    ///
+    /// Text("Condensed Bold")
+    ///     .withFontVariations([.weight(700), .width(75)])
+    /// ```
+    ///
+    /// - SeeAlso: `fontFamily`
+    var fontVariations: [FontVariation] {
+        get { textAttributes.fontVariations ?? [] }
+        set { textAttributes.fontVariations = newValue }
+    }
 }
 
 public extension Geometry {
@@ -192,6 +235,98 @@ public extension Geometry {
             $0.lineSpacing = adjustment
         }
     }
+
+    /// Adjusts the tracking (letter-spacing) between characters in text.
+    ///
+    /// This modifier changes the uniform spacing between all characters.
+    /// A positive value increases spacing, while a negative value decreases it.
+    ///
+    /// ```swift
+    /// Text("SPACED")
+    ///     .withTracking(1)  // Add 1mm between each character
+    ///
+    /// Text("TIGHT")
+    ///     .withTracking(-0.5) // Reduce spacing by 0.5mm
+    /// ```
+    ///
+    /// - Parameter adjustment: The amount to adjust character spacing, in millimeters.
+    ///   Positive values increase spacing, negative values decrease it.
+    /// - Returns: A new geometry with the adjusted tracking.
+    func withTracking(_ adjustment: Double) -> D.Geometry {
+        withEnvironment {
+            $0.tracking = adjustment
+        }
+    }
+
+    /// Applies font variations to variable fonts for text rendering.
+    ///
+    /// This replaces any existing font variations. For variable fonts, these
+    /// variations control design axes like weight, width, slant, etc.
+    ///
+    /// ```swift
+    /// Text("Custom Style")
+    ///     .withFontVariations([.weight(600), .width(85), .slant(-6)])
+    /// ```
+    ///
+    /// - Parameter variations: The variations to apply.
+    /// - Returns: A new geometry with the specified font variations.
+    func withFontVariations(_ variations: [FontVariation]) -> D.Geometry {
+        withEnvironment {
+            $0.fontVariations = variations
+        }
+    }
+
+    /// Sets common font variation axes for variable fonts.
+    ///
+    /// This modifier updates the specified axes while preserving other existing variations.
+    /// Only non-nil parameters are applied.
+    ///
+    /// ```swift
+    /// Text("Bold Condensed")
+    ///     .withFontVariations(weight: 700, width: 75)
+    ///
+    /// Text("Oblique")
+    ///     .withFontVariations(slant: -12)
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - weight: The weight value (typically 100-900). Common values: 100 Thin, 300 Light,
+    ///     400 Regular, 500 Medium, 600 Semibold, 700 Bold, 900 Black.
+    ///   - width: The width as a percentage (typically 50-200). 100 is normal,
+    ///     below 100 is condensed, above 100 is expanded.
+    ///   - slant: The slant angle in degrees (typically -12 to 0). Negative values
+    ///     produce a rightward slant.
+    ///   - italic: The italic axis value (typically 0 for roman, 1 for italic).
+    ///   - opticalSize: The optical size in points. Fonts with this axis adjust
+    ///     their design based on the intended display size.
+    /// - Returns: A new geometry with the specified font variations.
+    func withFontVariations(
+        weight: Double? = nil,
+        width: Double? = nil,
+        slant: Double? = nil,
+        italic: Double? = nil,
+        opticalSize: Double? = nil
+    ) -> D.Geometry {
+        withEnvironment {
+            var variations = $0.fontVariations
+            if let weight {
+                variations = variations.replacingVariation(.weight(weight))
+            }
+            if let width {
+                variations = variations.replacingVariation(.width(width))
+            }
+            if let slant {
+                variations = variations.replacingVariation(.slant(slant))
+            }
+            if let italic {
+                variations = variations.replacingVariation(.italic(italic))
+            }
+            if let opticalSize {
+                variations = variations.replacingVariation(.opticalSize(opticalSize))
+            }
+            $0.fontVariations = variations
+        }
+    }
 }
 
 /// Horizontal alignment options for text relative to the origin.
@@ -200,13 +335,13 @@ public extension Geometry {
 /// text is positioned horizontally relative to the X origin.
 ///
 public enum HorizontalTextAlignment: Sendable, Hashable, Codable {
-    /// Places the left edge of the text at the origin.
+    /// Places the left (minimum X) edge of the text at the origin.
     case left
 
-    /// Centers the text horizontally on the origin.
+    /// Centers the text horizontally (center X) on the origin.
     case center
 
-    /// Places the right edge of the text at the origin.
+    /// Places the right edge (maximum X) of the text at the origin.
     case right
 }
 

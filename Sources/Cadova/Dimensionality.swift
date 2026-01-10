@@ -24,6 +24,8 @@ public protocol Dimensionality: SendableMetatype {
     typealias BuildResult = Cadova.BuildResult<Self>
     typealias Measurements = Cadova.Measurements<Self>
     typealias BoundingBox = Cadova.BoundingBox<Self>
+
+    static func box(size: Vector, at origin: Vector) -> Geometry
 }
 
 internal extension Dimensionality {
@@ -44,6 +46,10 @@ public struct D2: Dimensionality {
     public typealias Transform = Transform2D
     public typealias Axis = Axis2D
 
+    public static func box(size: Vector2D, at origin: Vector2D) -> any Geometry2D {
+        Rectangle(size).translated(origin)
+    }
+
     private init() {}
 }
 
@@ -59,6 +65,10 @@ public struct D3: Dimensionality {
     public typealias Vector = Vector3D
     public typealias Transform = Transform3D
     public typealias Axis = Axis3D
+
+    public static func box(size: Vector3D, at origin: Vector3D) -> any Geometry3D {
+        Box(size).translated(origin)
+    }
 
     private init() {}
 }

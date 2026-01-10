@@ -1,6 +1,6 @@
 import Foundation
 
-@resultBuilder public struct ProjectContentBuilder {
+@resultBuilder public struct GroupContentBuilder {
     public static func buildExpression(_ model: Model) -> [BuildDirective] {
         [BuildDirective(payload: .model(model))]
     }

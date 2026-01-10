@@ -47,6 +47,18 @@ public struct RegularPolygon: Shape2D {
         self.init(sideCount: sideCount, circumradius: sideLength / (2 * sin(.pi / Double(sideCount))))
     }
 
+    /// Creates a new `RegularPolygon` instance with the specified number of sides and width across flats.
+    ///
+    /// The width across flats is the distance between two parallel sides of the polygon
+    /// (the diameter of the incircle), commonly used for sizing hex nuts and similar hardware.
+    ///
+    /// - Parameters:
+    ///   - sideCount: The number of sides in the polygon.
+    ///   - widthAcrossFlats: The distance between two parallel sides.
+    public init(sideCount: Int, widthAcrossFlats: Double) {
+        self.init(sideCount: sideCount, apothem: widthAcrossFlats / 2)
+    }
+
     public var body: any Geometry2D {
         Circle(radius: circumradius)
             .withSegmentation(count: sideCount)
@@ -62,6 +74,14 @@ public extension RegularPolygon {
     /// The length of a side of the polygon.
     var sideLength: Double {
         circumradius * 2 * sin(.pi / Double(sideCount))
+    }
+
+    /// The distance between two parallel sides of the polygon.
+    ///
+    /// This is twice the apothem (the diameter of the incircle) and is
+    /// commonly used for sizing hex nuts, bolt heads, and similar hardware.
+    var widthAcrossFlats: Double {
+        apothem * 2
     }
 }
 

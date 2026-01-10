@@ -91,7 +91,7 @@ public struct Import: Shape3D {
     }
 
     public var body: any Geometry3D {
-        CachedNode(name: "import", parameters: url, parts) { _, _ in
+        CachedNode(name: "import", parameters: url, parts) { _ in
             guard let format = try ModelFileFormat.detect(at: url) else {
                 throw Error.unrecognizedFormat
             }

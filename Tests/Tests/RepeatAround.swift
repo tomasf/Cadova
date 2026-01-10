@@ -48,7 +48,6 @@ struct RepeatAroundTests {
         let geometry = Rectangle(x: 4, y: 2)
             .translated(x: 10)
             .repeated(in: 0°..<90°, count: 3)
-        let bounds = try await geometry.bounds
 
         // 3 copies at 0°, 30°, 60°
         #expect(try await geometry.partCount == 3)
@@ -60,7 +59,6 @@ struct RepeatAroundTests {
         let geometry = Rectangle(x: 4, y: 2)
             .translated(x: 10)
             .repeated(in: 0°...90°, count: 3)
-        let bounds = try await geometry.bounds
 
         // 3 copies at 0°, 45°, 90° (includes endpoint)
         #expect(try await geometry.partCount == 3)
@@ -85,7 +83,6 @@ struct RepeatAroundTests {
         let geometry = Box(x: 5, y: 2, z: 3)
             .translated(x: 10)
             .repeated(around: .z, count: 8)
-        let bounds = try await geometry.bounds
 
         // 8 copies evenly distributed
         #expect(try await geometry.partCount == 8)
@@ -123,7 +120,6 @@ struct RepeatAroundTests {
         let geometry = Box(x: 5, y: 2, z: 3)
             .translated(x: 10)
             .repeated(around: .y, count: 3)
-        let bounds = try await geometry.bounds
 
         // 3 copies at 0°, 120°, 240°
         #expect(try await geometry.partCount == 3)
@@ -148,7 +144,6 @@ struct RepeatAroundTests {
         let geometry = Box(x: 5, y: 2, z: 3)
             .translated(x: 10)
             .repeated(around: .z, in: 0°...180°, count: 5)
-        let bounds = try await geometry.bounds
 
         // 5 copies at 0°, 45°, 90°, 135°, 180°
         #expect(try await geometry.partCount == 5)

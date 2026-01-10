@@ -153,4 +153,205 @@ struct ExtendTests {
         #expect(bounds?.maximum.z ≈ 30)
         #expect(bounds?.size.z ≈ 40)
     }
+
+    // MARK: - 3D Resize Tests
+
+    @Test func `3D resizing stretches a range`() async throws {
+        // Box 10x10x30, resize z range 10...20 (length 10) to length 20
+        let bounds = try await Box(x: 10, y: 10, z: 30)
+            .resizing(.z, in: 10...20, to: 20)
+            .bounds
+
+        // Original height 30, range stretched by 10, new height 40
+        #expect(bounds?.size.x ≈ 10)
+        #expect(bounds?.size.y ≈ 10)
+        #expect(bounds?.size.z ≈ 40)
+        #expect(bounds?.minimum.z ≈ 0)
+        #expect(bounds?.maximum.z ≈ 40)
+    }
+
+    @Test func `3D resizing compresses a range`() async throws {
+        // Box 10x10x30, resize z range 10...20 (length 10) to length 5
+        let bounds = try await Box(x: 10, y: 10, z: 30)
+            .resizing(.z, in: 10...20, to: 5)
+            .bounds
+
+        // Original height 30, range compressed by 5, new height 25
+        #expect(bounds?.size.x ≈ 10)
+        #expect(bounds?.size.y ≈ 10)
+        #expect(bounds?.size.z ≈ 25)
+        #expect(bounds?.minimum.z ≈ 0)
+        #expect(bounds?.maximum.z ≈ 25)
+    }
+
+    @Test func `3D resizing preserves volume proportionally`() async throws {
+        // Cylinder diameter 10, height 30
+        // Resize z range 10...20 to 15 (1.5x stretch)
+        let original = Cylinder(diameter: 10, height: 30)
+        let resized = original.resizing(.z, in: 10...20, to: 15)
+
+        let originalVolume = try await original.measurements.volume
+        let resizedVolume = try await resized.measurements.volume
+
+        // Original: pi * 5^2 * 30
+        // Resized: height becomes 35 (30 + 5), but only the middle 10 units got scaled
+        // The middle section volume scales by 1.5x
+        // Original middle section: pi * 25 * 10
+        // New middle section: pi * 25 * 15
+        // Total change: pi * 25 * 5 = ~392.7
+        let expectedVolumeIncrease = Double.pi * 25 * 5
+        #expect((resizedVolume - originalVolume).equals(expectedVolumeIncrease, within: 5))
+    }
+
+    @Test func `3D resizing to zero removes the range`() async throws {
+        // Box 10x10x30, resize z range 10...20 to 0
+        let bounds = try await Box(x: 10, y: 10, z: 30)
+            .resizing(.z, in: 10...20, to: 0)
+            .bounds
+
+        // Original height 30, range removed (10 units), new height 20
+        #expect(bounds?.size.z ≈ 20)
+        #expect(bounds?.minimum.z ≈ 0)
+        #expect(bounds?.maximum.z ≈ 20)
+    }
+
+    @Test func `3D resizing with max alignment keeps upper geometry fixed`() async throws {
+        // Box 10x10x30, resize z range 10...20 to 15 with .max alignment
+        let bounds = try await Box(x: 10, y: 10, z: 30)
+            .resizing(.z, in: 10...20, to: 15, alignment: .max)
+            .bounds
+
+        // Upper part (20-30) stays at z=30
+        // Range expands downward by 5
+        #expect(bounds?.maximum.z ≈ 30)
+        #expect(bounds?.minimum.z ≈ -5)
+        #expect(bounds?.size.z ≈ 35)
+    }
+
+    @Test func `3D resizing with mid alignment centers the change`() async throws {
+        // Box 10x10x30, resize z range 10...20 to 20 with .mid alignment
+        let bounds = try await Box(x: 10, y: 10, z: 30)
+            .resizing(.z, in: 10...20, to: 20, alignment: .mid)
+            .bounds
+
+        // Range center at z=15 stays fixed
+        // Lower part moves down by 5, upper part moves up by 5
+        #expect(bounds?.minimum.z ≈ -5)
+        #expect(bounds?.maximum.z ≈ 35)
+        #expect(bounds?.size.z ≈ 40)
+    }
+
+    @Test func `3D resizing along X axis`() async throws {
+        let bounds = try await Box(x: 30, y: 10, z: 10)
+            .resizing(.x, in: 10...20, to: 5)
+            .bounds
+
+        // Original width 30, range compressed by 5, new width 25
+        #expect(bounds?.size.x ≈ 25)
+        #expect(bounds?.size.y ≈ 10)
+        #expect(bounds?.size.z ≈ 10)
+    }
+
+    @Test func `3D resizing along Y axis`() async throws {
+        let bounds = try await Box(x: 10, y: 30, z: 10)
+            .resizing(.y, in: 5...15, to: 20)
+            .bounds
+
+        // Original depth 30, range stretched by 10, new depth 40
+        #expect(bounds?.size.x ≈ 10)
+        #expect(bounds?.size.y ≈ 40)
+        #expect(bounds?.size.z ≈ 10)
+    }
+
+    @Test func `3D resizing cylinder preserves circular cross-section`() async throws {
+        // Cylinder resized should remain cylindrical in cross-section
+        let measurements = try await Cylinder(diameter: 10, height: 30)
+            .resizing(.z, in: 10...20, to: 5)
+            .measurements
+
+        // Height goes from 30 to 25
+        // Volume = pi * r^2 * h = pi * 25 * 25
+        let expectedVolume = Double.pi * 25 * 25
+        #expect(measurements.volume.equals(expectedVolume, within: 1))
+    }
+
+    // MARK: - 2D Resize Tests
+
+    @Test func `2D resizing stretches a range along X`() async throws {
+        // Rectangle 30x10, resize x range 10...20 (length 10) to length 20
+        let bounds = try await Rectangle(x: 30, y: 10)
+            .resizing(.x, in: 10...20, to: 20)
+            .bounds
+
+        // Original width 30, range stretched by 10, new width 40
+        #expect(bounds?.size.x ≈ 40)
+        #expect(bounds?.size.y ≈ 10)
+        #expect(bounds?.minimum.x ≈ 0)
+        #expect(bounds?.maximum.x ≈ 40)
+    }
+
+    @Test func `2D resizing compresses a range along Y`() async throws {
+        // Rectangle 10x30, resize y range 10...20 (length 10) to length 5
+        let bounds = try await Rectangle(x: 10, y: 30)
+            .resizing(.y, in: 10...20, to: 5)
+            .bounds
+
+        // Original height 30, range compressed by 5, new height 25
+        #expect(bounds?.size.x ≈ 10)
+        #expect(bounds?.size.y ≈ 25)
+        #expect(bounds?.minimum.y ≈ 0)
+        #expect(bounds?.maximum.y ≈ 25)
+    }
+
+    @Test func `2D resizing preserves area proportionally`() async throws {
+        // Circle diameter 20, resize y range 5...15 to 15 (1.5x stretch)
+        let original = Circle(diameter: 20)
+        let resized = original.resizing(.y, in: 5...15, to: 15)
+
+        let originalArea = try await original.measurements.area
+        let resizedArea = try await resized.measurements.area
+
+        // The middle section (y: 5...15) gets stretched by 1.5x
+        // This increases the area of that section by 1.5x
+        // The area increase should be roughly 0.5 * (area of middle band)
+        #expect(resizedArea > originalArea)
+    }
+
+    @Test func `2D resizing to zero removes the range`() async throws {
+        // Rectangle 30x10, resize x range 10...20 to 0
+        let bounds = try await Rectangle(x: 30, y: 10)
+            .resizing(.x, in: 10...20, to: 0)
+            .bounds
+
+        // Original width 30, range removed (10 units), new width 20
+        #expect(bounds?.size.x ≈ 20)
+        #expect(bounds?.minimum.x ≈ 0)
+        #expect(bounds?.maximum.x ≈ 20)
+    }
+
+    @Test func `2D resizing with max alignment keeps upper geometry fixed`() async throws {
+        // Rectangle 30x10, resize x range 10...20 to 15 with .max alignment
+        let bounds = try await Rectangle(x: 30, y: 10)
+            .resizing(.x, in: 10...20, to: 15, alignment: .max)
+            .bounds
+
+        // Right part (20-30) stays at x=30
+        // Range expands leftward by 5
+        #expect(bounds?.maximum.x ≈ 30)
+        #expect(bounds?.minimum.x ≈ -5)
+        #expect(bounds?.size.x ≈ 35)
+    }
+
+    @Test func `2D resizing with mid alignment centers the change`() async throws {
+        // Rectangle 30x10, resize x range 10...20 to 20 with .mid alignment
+        let bounds = try await Rectangle(x: 30, y: 10)
+            .resizing(.x, in: 10...20, to: 20, alignment: .mid)
+            .bounds
+
+        // Range center at x=15 stays fixed
+        // Left part moves left by 5, right part moves right by 5
+        #expect(bounds?.minimum.x ≈ -5)
+        #expect(bounds?.maximum.x ≈ 35)
+        #expect(bounds?.size.x ≈ 40)
+    }
 }

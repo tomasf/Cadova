@@ -165,13 +165,12 @@ public struct Model: Sendable {
         context: EvaluationContext
     ) async throws -> BuildResult<D> {
         let result = try await ContinuousClock().measure {
-            try await environment.whileCurrent {
-                try await context.buildResult(for: geometry, in: environment)
-            }
+            try await context.buildModelResult(for: geometry, in: environment)
         } results: { duration, _ in
             logger.debug("Built geometry node tree in \(duration)")
         }
-        result.printWarnings()
+
+        result.printWarnings(modelName: name)
         return result
     }
 }
@@ -193,7 +192,10 @@ fileprivate extension Geometry2D {
 }
 
 fileprivate extension BuildResult {
-    func printWarnings() {
+    func printWarnings(modelName: String) {
+        if hasOnly {
+            logger.warning("⚠️ Model \"\(modelName)\" uses only() modifier; saving a partial geometry tree")
+        }
         elements[ReferenceState.self].printWarningsAtTopLevel()
     }
 }

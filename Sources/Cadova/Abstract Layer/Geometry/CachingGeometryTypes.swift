@@ -99,10 +99,10 @@ struct CachedNode<D: Dimensionality>: Geometry {
     init(
         name: String,
         parameters: any CacheKey...,
-        generator: @Sendable @escaping (EnvironmentValues, EvaluationContext) async throws -> D.Node
+        generator: @Sendable @escaping (EvaluationContext) async throws -> D.Node
     ){
         self.key = LabeledCacheKey(operationName: name, parameters: parameters)
-        self.generator = generator
+        self.generator = { try await generator($1) }
     }
 
     // Cached node built from abstract geometry. Use this as a convenience and keep in mind result elements are discarded.
