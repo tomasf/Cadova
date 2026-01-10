@@ -81,17 +81,14 @@ struct RoundingTests {
             Rectangle(x: 10, y: 30).aligned(at: .center)
         }
 
-        let roundedBoth = cross.rounded(radius: 2)
         let roundedOutside = cross.rounded(outsideRadius: 2)
         let roundedInside = cross.rounded(insideRadius: 2)
 
-        let bothArea = try await roundedBoth.measurements.area
         let outsideArea = try await roundedOutside.measurements.area
         let insideArea = try await roundedInside.measurements.area
 
         // Outside only: removes corners (less area than original)
         // Inside only: fills corners (more area than original)
-        // Both: combination effect
         #expect(insideArea > outsideArea)
     }
 
