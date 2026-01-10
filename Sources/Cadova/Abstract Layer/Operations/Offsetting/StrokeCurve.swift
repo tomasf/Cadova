@@ -155,22 +155,20 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
         let epsilon = 1e-9
         guard offset > 0 else { return points }
 
-        let vectors = polylineVectors(points: points, isLeft: isLeft)
-        let directions = vectors.directions
-        let normals = vectors.normals
+        let (directions, normals) = polylineVectors(points: points, isLeft: isLeft)
         let segmentCount = directions.count
 
         var result: [Vector2D] = []
-        appendIfDistinct(&result, points[0] + normals[0] * offset, tolerance: epsilon)
+        appendIfDistinct(&result, points[0] + normals[0].unitVector * offset, tolerance: epsilon)
 
         for i in 1..<(points.count - 1) {
             let prevDir = directions[i - 1]
             let nextDir = directions[i]
-            let cross = prevDir × nextDir
+            let cross = prevDir.unitVector × nextDir.unitVector
             let prevNormal = normals[i - 1]
             let nextNormal = normals[i]
-            let prevOffsetPoint = points[i] + prevNormal * offset
-            let nextOffsetPoint = points[i] + nextNormal * offset
+            let prevOffsetPoint = points[i] + prevNormal.unitVector * offset
+            let nextOffsetPoint = points[i] + nextNormal.unitVector * offset
 
             if abs(cross) <= epsilon {
                 appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
@@ -178,8 +176,8 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
             }
 
             let isOuter = isLeft ? cross < 0 : cross > 0
-            let prevLine = Line(point: prevOffsetPoint, direction: Direction2D(prevDir))
-            let nextLine = Line(point: nextOffsetPoint, direction: Direction2D(nextDir))
+            let prevLine = Line(point: prevOffsetPoint, direction: prevDir)
+            let nextLine = Line(point: nextOffsetPoint, direction: nextDir)
             let intersection = prevLine.intersection(with: nextLine)
 
             if isOuter == false {
@@ -208,7 +206,7 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
             )
         }
 
-        appendIfDistinct(&result, points[points.count - 1] + normals[segmentCount - 1] * offset, tolerance: epsilon)
+        appendIfDistinct(&result, points[points.count - 1] + normals[segmentCount - 1].unitVector * offset, tolerance: epsilon)
         return result
     }
 
@@ -325,18 +323,17 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
     private func polylineVectors(
         points: [Vector2D],
         isLeft: Bool
-    ) -> (directions: [Vector2D], normals: [Vector2D]) {
+    ) -> (directions: [Direction2D], normals: [Direction2D]) {
         let segmentCount = points.count - 1
-        var directions: [Vector2D] = []
-        var normals: [Vector2D] = []
+        var directions: [Direction2D] = []
+        var normals: [Direction2D] = []
         directions.reserveCapacity(segmentCount)
         normals.reserveCapacity(segmentCount)
 
         for i in 0..<segmentCount {
-            let delta = points[i + 1] - points[i]
-            let dir = Direction2D(delta).unitVector
-            let normal = isLeft ? Direction2D(dir).counterclockwiseNormal.unitVector : Direction2D(dir).clockwiseNormal.unitVector
-            directions.append(dir)
+            let direction = Direction2D(points[i + 1] - points[i])
+            let normal = isLeft ? direction.counterclockwiseNormal : direction.clockwiseNormal
+            directions.append(direction)
             normals.append(normal)
         }
 
@@ -361,8 +358,8 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
         intersection: Vector2D?,
         prevOffsetPoint: Vector2D,
         nextOffsetPoint: Vector2D,
-        prevDir: Vector2D,
-        nextDir: Vector2D,
+        prevDir: Direction2D,
+        nextDir: Direction2D,
         center: Vector2D,
         offset: Double,
         style: LineJoinStyle,
@@ -389,13 +386,11 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
 
         case .square:
             // Position the flat edge so its midpoint is exactly offset distance from center
-            let prevNormal = (prevOffsetPoint - center).normalized
-            let nextNormal = (nextOffsetPoint - center).normalized
-            let bisector = (prevNormal + nextNormal).normalized
-            let edgeMidpoint = center + bisector * offset
-            let edgeLine = Line(point: edgeMidpoint, direction: Direction2D(bisector).counterclockwiseNormal)
-            let prevLine = Line(point: prevOffsetPoint, direction: Direction2D(prevDir))
-            let nextLine = Line(point: nextOffsetPoint, direction: Direction2D(nextDir))
+            let bisector = Direction2D(bisecting: prevOffsetPoint - center, nextOffsetPoint - center)
+            let edgeMidpoint = center + bisector.unitVector * offset
+            let edgeLine = Line(point: edgeMidpoint, direction: bisector.counterclockwiseNormal)
+            let prevLine = Line(point: prevOffsetPoint, direction: prevDir)
+            let nextLine = Line(point: nextOffsetPoint, direction: nextDir)
             if let p1 = edgeLine.intersection(with: prevLine),
                let p2 = edgeLine.intersection(with: nextLine) {
                 appendIfDistinct(&result, p1, tolerance: tolerance)
