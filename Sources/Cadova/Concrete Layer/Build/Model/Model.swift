@@ -17,6 +17,11 @@ import Foundation
 public struct Model: Sendable {
     let name: String
 
+    public struct InMemoryFile: Sendable {
+        let suggestedFileName: String
+        let contents: Data
+    }
+
     private let directives: @Sendable () -> [BuildDirective]
     private let options: ModelOptions
 
@@ -67,30 +72,101 @@ public struct Model: Sendable {
     /// }
     /// ```
     ///
-    @discardableResult
     public init(
         _ name: String,
         options: ModelOptions...,
+        automaticallyWriteToDisk: Bool = true,
         @ModelContentBuilder content: @Sendable @escaping () -> [BuildDirective]
     ) async {
         self.name = name
         directives = content
         self.options = .init(options)
 
-        if ModelContext.current.isCollectingModels == false {
-            if let url = await build() {
-                try? Platform.revealFiles([url])
-            }
+        if automaticallyWriteToDisk && ModelContext.current.isCollectingModels == false {
+            let _ = await writeToDirectory(revealInSystemFileBrowser: true)
         }
     }
 
-    internal func build(
+    public func writeToFile(
+        _ fileUrl: URL,
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
-        context: EvaluationContext = .init(),
-        options inheritedOptions: ModelOptions? = nil,
+        context: EvaluationContext? = nil,
+        inheritedOptions: ModelOptions? = nil,
+        revealInSystemFileBrowser: Bool = false
+    ) async throws {
+        guard let file = await buildToData(environment: inheritedEnvironment, context: context ?? .init(),
+                                           options: inheritedOptions) else { throw CocoaError(.fileWriteUnknown) }
+        do {
+            try file.contents.write(to: fileUrl)
+            logger.info("Wrote model to \(fileUrl.path)")
+            if revealInSystemFileBrowser {
+                try? Platform.revealFiles([fileUrl])
+            }
+        } catch {
+            logger.error("Failed to save model file to \(fileUrl.path): \(error.descriptiveString)")
+            throw error
+        }
+    }
+
+    public func writeToDirectory(
+        _ directoryUrl: URL? = nil,
+        environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
+        context: EvaluationContext? = nil,
+        inheritedOptions: ModelOptions? = nil,
+        revealInSystemFileBrowser: Bool = false
+    ) async -> URL? {
+        let result = await buildToFile(environment: inheritedEnvironment, context: context ?? .init(),
+                                       options: inheritedOptions, URL: directoryUrl)
+        if revealInSystemFileBrowser, let result {
+            try? Platform.revealFiles([result])
+        }
+
+        return result
+    }
+
+    public func generateData(
+        environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
+        context: EvaluationContext? = nil,
+        inheritedOptions: ModelOptions? = nil
+    ) async -> InMemoryFile? {
+        return await buildToData(environment: inheritedEnvironment, context: context ?? .init(), options: inheritedOptions)
+    }
+
+    private func buildToFile(
+        environment inheritedEnvironment: EnvironmentValues,
+        context: EvaluationContext,
+        options inheritedOptions: ModelOptions?,
         URL directory: URL? = nil
     ) async -> URL? {
         logger.info("Generating \"\(name)\"...")
+        
+        guard let file = await buildToData(environment: inheritedEnvironment,
+                                           context: context, options: inheritedOptions) else { return nil }
+
+        let url: URL
+        if let parent = directory {
+            url = parent.appendingPathComponent(file.suggestedFileName, isDirectory: false)
+        } else {
+            url = URL(expandingFilePath: file.suggestedFileName)
+        }
+
+        let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
+
+        do {
+            try file.contents.write(to: url)
+            logger.info("Wrote model to \(url.path)")
+        } catch {
+            logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+        }
+
+        return fileExisted ? nil : url
+    }
+
+    private func buildToData(
+        environment inheritedEnvironment: EnvironmentValues,
+        context: EvaluationContext,
+        options inheritedOptions: ModelOptions?
+    ) async -> InMemoryFile? {
 
         let directives = inheritedEnvironment.whileCurrent {
             self.directives()
@@ -108,13 +184,6 @@ public struct Model: Sendable {
         }
         mutatingEnvironment.modelOptions = localOptions
         let environment = mutatingEnvironment
-
-        let baseURL: URL
-        if let parent = directory {
-            baseURL = parent.appendingPathComponent(name, isDirectory: false)
-        } else {
-            baseURL = URL(expandingFilePath: name)
-        }
 
         let geometries3D = directives.compactMap(\.geometry3D)
         let geometries2D = directives.compactMap(\.geometry2D)
@@ -146,17 +215,13 @@ public struct Model: Sendable {
             return nil
         }
 
-        let url = baseURL.appendingPathExtension(provider.fileExtension)
-        let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
-
         do {
-            try await provider.writeOutput(to: url, context: context)
-            logger.info("Wrote model to \(url.path)")
+            let fileContents: Data = try await provider.generateOutput(context: context)
+            return InMemoryFile(suggestedFileName: "\(name).\(provider.fileExtension)", contents: fileContents)
         } catch {
-            logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+            logger.error("Cadova caught an error while generating \(provider.fileExtension) model \"\(name)\":\n🛑 \(error)\n")
+            return nil
         }
-
-        return fileExisted ? nil : url
     }
 
     private func generateResult<D: Dimensionality>(

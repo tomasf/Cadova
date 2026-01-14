@@ -121,11 +121,11 @@ public struct Group: Sendable {
         var urls: [URL] = []
 
         for model in models {
-            if let url = await model.build(
+            if let url = await model.writeToDirectory(
+                outputDirectory,
                 environment: environment,
                 context: context,
-                options: combinedOptions,
-                URL: outputDirectory
+                inheritedOptions: combinedOptions
             ) {
                 urls.append(url)
             }

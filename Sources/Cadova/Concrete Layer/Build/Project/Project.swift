@@ -92,7 +92,8 @@ public func Project(
     var urls: [URL] = []
 
     for model in models {
-        if let modelUrl = await model.build(environment: constantEnvironment, context: context, options: combinedOptions, URL: url) {
+        if let modelUrl = await model.writeToDirectory(url, environment: constantEnvironment, context: context,
+                                                       inheritedOptions: combinedOptions, revealInSystemFileBrowser: false) {
             urls.append(modelUrl)
         }
     }
