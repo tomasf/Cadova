@@ -125,7 +125,7 @@ public struct Group: Sendable {
                 outputDirectory,
                 environment: environment,
                 context: context,
-                interitedOptions: combinedOptions
+                inheritedOptions: combinedOptions
             ) {
                 urls.append(url)
             }

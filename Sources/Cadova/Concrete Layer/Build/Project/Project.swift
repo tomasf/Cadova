@@ -93,7 +93,7 @@ public func Project(
 
     for model in models {
         if let modelUrl = await model.writeToDirectory(url, environment: constantEnvironment, context: context,
-                                                       interitedOptions: combinedOptions, revealInSystemFileBrowser: false) {
+                                                       inheritedOptions: combinedOptions, revealInSystemFileBrowser: false) {
             urls.append(modelUrl)
         }
     }

@@ -91,11 +91,11 @@ public struct Model: Sendable {
         _ fileUrl: URL,
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
         context: EvaluationContext? = nil,
-        interitedOptions: ModelOptions? = nil,
+        inheritedOptions: ModelOptions? = nil,
         revealInSystemFileBrowser: Bool = false
     ) async throws {
         guard let file = await buildToData(environment: inheritedEnvironment, context: context ?? .init(),
-                                           options: interitedOptions) else { throw CocoaError(.fileWriteUnknown) }
+                                           options: inheritedOptions) else { throw CocoaError(.fileWriteUnknown) }
         do {
             try file.contents.write(to: fileUrl)
             logger.info("Wrote model to \(fileUrl.path)")
@@ -112,11 +112,11 @@ public struct Model: Sendable {
         _ directoryUrl: URL? = nil,
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
         context: EvaluationContext? = nil,
-        interitedOptions: ModelOptions? = nil,
+        inheritedOptions: ModelOptions? = nil,
         revealInSystemFileBrowser: Bool = false
     ) async -> URL? {
         let result = await buildToFile(environment: inheritedEnvironment, context: context ?? .init(),
-                                       options: interitedOptions, URL: directoryUrl)
+                                       options: inheritedOptions, URL: directoryUrl)
         if revealInSystemFileBrowser, let result {
             try? Platform.revealFiles([result])
         }
@@ -127,9 +127,9 @@ public struct Model: Sendable {
     public func generateData(
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
         context: EvaluationContext? = nil,
-        interitedOptions: ModelOptions? = nil
+        inheritedOptions: ModelOptions? = nil
     ) async -> InMemoryFile? {
-        return await buildToData(environment: inheritedEnvironment, context: context ?? .init(), options: interitedOptions)
+        return await buildToData(environment: inheritedEnvironment, context: context ?? .init(), options: inheritedOptions)
     }
 
     private func buildToFile(
