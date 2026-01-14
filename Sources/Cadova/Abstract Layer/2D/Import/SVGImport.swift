@@ -27,65 +27,84 @@ public struct SVGImport: Shape2D {
     }
 
     public var body: any Geometry2D {
-        CachedNode(name: "import-svg", parameters: url) {
-            guard let document = SVGDocument(fileURL: url) else {
-                throw Error.invalidSVG
-            }
+        readEnvironment(\.scaledSegmentation) { segmentation in
+            CachedNode(name: "import-svg", parameters: url, segmentation) {
+                guard let document = SVGDocument(fileURL: url) else {
+                    throw Error.invalidSVG
+                }
 
-            return SVGDocumentConverter(document: document).geometry
+                return SVGDocumentConverter(document: document, segmentation: segmentation).geometry
+            }
         }
     }
 }
 
 private struct SVGDocumentConverter {
     let document: SVGDocument
+    let segmentation: Segmentation
 
     var geometry: any Geometry2D {
-        let geometries = document.shapes.compactMap { shapeGeometry(for: $0) }
+        var fillGeometries: [any Geometry2D] = []
+        var strokeGeometries: [any Geometry2D] = []
+
+        for shape in document.shapes {
+            let subpaths = Self.subpaths(from: shape.path, segmentation: segmentation)
+
+            if shape.hasFill {
+                let fillRule = Self.fillRule(from: shape.fillRule)
+                var shapePolygons: [SimplePolygon] = []
+                for subpath in subpaths {
+                    guard subpath.isClosed, let points = subpath.points else { continue }
+                    shapePolygons.append(SimplePolygon(points))
+                }
+
+                if !shapePolygons.isEmpty {
+                    let polygonList = SimplePolygonList(shapePolygons)
+                    let node = GeometryNode<D2>(.shape2D(.polygons(polygonList, fillRule: fillRule)))
+                    fillGeometries.append(NodeBasedGeometry(node))
+                }
+            }
+
+            if let stroke = shape.stroke, stroke.width > 0 {
+                let join = Self.lineJoin(from: stroke.lineJoin)
+                let cap = Self.lineCap(from: stroke.lineCap)
+                for subpath in subpaths {
+                    let strokeGeometry: any Geometry2D
+                    if subpath.isClosed {
+                        if let points = subpath.points {
+                            strokeGeometry = Polygon(points).stroked(width: stroke.width, alignment: .centered, style: join)
+                        } else {
+                            strokeGeometry = Polygon(subpath.path).stroked(width: stroke.width, alignment: .centered, style: join)
+                        }
+                    } else {
+                        strokeGeometry = subpath.path.stroked(width: stroke.width, alignment: .centered, style: join)
+                    }
+
+                    strokeGeometries.append(
+                        strokeGeometry
+                            .withLineCapStyle(cap)
+                            .withMiterLimit(stroke.miterLimit)
+                    )
+                }
+            }
+        }
+
+        var geometries: [any Geometry2D] = []
+        if !fillGeometries.isEmpty {
+            let fills = fillGeometries.count == 1 ? fillGeometries[0] : Union(fillGeometries)
+            geometries.append(fills)
+        }
+
+        if !strokeGeometries.isEmpty {
+            let strokes = strokeGeometries.count == 1 ? strokeGeometries[0] : Union(strokeGeometries)
+            geometries.append(strokes)
+        }
+
         guard !geometries.isEmpty else { return Empty() }
         return geometries.count == 1 ? geometries[0] : Union(geometries)
     }
 
-    private func shapeGeometry(for shape: SVGDocument.Shape) -> (any Geometry2D)? {
-        let subpaths = Self.subpaths(from: shape.path)
-        var pieces: [any Geometry2D] = []
-
-        if shape.hasFill {
-            let polygons = subpaths.compactMap { subpath -> Polygon? in
-                guard subpath.isClosed else { return nil }
-                return Polygon(subpath.path)
-            }
-
-            if !polygons.isEmpty {
-                let fillGeometry = Polygon(polygons).withFillRule(Self.fillRule(from: shape.fillRule))
-                pieces.append(fillGeometry)
-            }
-        }
-
-        if let stroke = shape.stroke, stroke.width > 0 {
-            let join = Self.lineJoin(from: stroke.lineJoin)
-            let cap = Self.lineCap(from: stroke.lineCap)
-            for subpath in subpaths {
-                let strokeGeometry: any Geometry2D
-                if subpath.isClosed {
-                    strokeGeometry = Polygon(subpath.path).stroked(width: stroke.width, alignment: .centered, style: join)
-                } else {
-                    strokeGeometry = subpath.path.stroked(width: stroke.width, alignment: .centered, style: join)
-                }
-
-                pieces.append(
-                    strokeGeometry
-                        .withLineCapStyle(cap)
-                        .withMiterLimit(stroke.miterLimit)
-                )
-            }
-        }
-
-        guard !pieces.isEmpty else { return nil }
-        return pieces.count == 1 ? pieces[0] : Union(pieces)
-    }
-
-    private static func subpaths(from path: SVGDocument.Path) -> [SVGSubpath] {
+    private static func subpaths(from path: SVGDocument.Path, segmentation: Segmentation) -> [SVGSubpath] {
         var results: [SVGSubpath] = []
         var currentPath: BezierPath2D?
 
@@ -93,7 +112,7 @@ private struct SVGDocumentConverter {
             switch segment {
             case let .move(to: point):
                 if let path = currentPath {
-                    results.append(.init(path: path, isClosed: false))
+                    results.append(.init(path: path, isClosed: false, segmentation: segmentation))
                 }
                 currentPath = BezierPath2D(startPoint: vector(from: point))
 
@@ -111,13 +130,13 @@ private struct SVGDocumentConverter {
 
             case .close:
                 guard let path = currentPath else { continue }
-                results.append(.init(path: path.closed(), isClosed: true))
+                results.append(.init(path: path.closed(), isClosed: true, segmentation: segmentation))
                 currentPath = nil
             }
         }
 
         if let path = currentPath {
-            results.append(.init(path: path, isClosed: false))
+            results.append(.init(path: path, isClosed: false, segmentation: segmentation))
         }
 
         return results
@@ -157,9 +176,17 @@ private struct SVGDocumentConverter {
             return .square
         }
     }
+
 }
 
 private struct SVGSubpath {
     let path: BezierPath2D
     let isClosed: Bool
+    let points: [Vector2D]?
+
+    init(path: BezierPath2D, isClosed: Bool, segmentation: Segmentation) {
+        self.path = path
+        self.isClosed = isClosed
+        self.points = isClosed ? path.points(segmentation: segmentation) : nil
+    }
 }
