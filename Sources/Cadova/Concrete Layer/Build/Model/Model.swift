@@ -18,7 +18,7 @@ public struct Model: Sendable {
     let name: String
 
     public struct InMemoryFile: Sendable {
-        let pathExtension: String
+        let suggestedFileName: String
         let contents: Data
     }
 
@@ -75,22 +75,48 @@ public struct Model: Sendable {
     public init(
         _ name: String,
         options: ModelOptions...,
+        automaticallyWriteToDisk: Bool = true,
         @ModelContentBuilder content: @Sendable @escaping () -> [BuildDirective]
     ) async {
         self.name = name
         directives = content
         self.options = .init(options)
+
+        if automaticallyWriteToDisk && ModelContext.current.isCollectingModels == false {
+            let _ = await writeToDirectory(revealInSystemFileBrowser: true)
+        }
     }
 
     public func writeToFile(
-        in directory: URL? = nil,
+        _ fileUrl: URL,
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
         context: EvaluationContext? = nil,
         interitedOptions: ModelOptions? = nil,
-        revealInSystemFileBrowser: Bool = true
+        revealInSystemFileBrowser: Bool = false
+    ) async throws {
+        guard let file = await buildToData(environment: inheritedEnvironment, context: context ?? .init(),
+                                           options: interitedOptions) else { throw CocoaError(.fileWriteUnknown) }
+        do {
+            try file.contents.write(to: fileUrl)
+            logger.info("Wrote model to \(fileUrl.path)")
+            if revealInSystemFileBrowser {
+                try? Platform.revealFiles([fileUrl])
+            }
+        } catch {
+            logger.error("Failed to save model file to \(fileUrl.path): \(error.descriptiveString)")
+            throw error
+        }
+    }
+
+    public func writeToDirectory(
+        _ directoryUrl: URL? = nil,
+        environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
+        context: EvaluationContext? = nil,
+        interitedOptions: ModelOptions? = nil,
+        revealInSystemFileBrowser: Bool = false
     ) async -> URL? {
         let result = await buildToFile(environment: inheritedEnvironment, context: context ?? .init(),
-                                       options: interitedOptions, URL: directory)
+                                       options: interitedOptions, URL: directoryUrl)
         if revealInSystemFileBrowser, let result {
             try? Platform.revealFiles([result])
         }
@@ -98,7 +124,7 @@ public struct Model: Sendable {
         return result
     }
 
-    public func generateInMemoryFile(
+    public func generateData(
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
         context: EvaluationContext? = nil,
         interitedOptions: ModelOptions? = nil
@@ -117,14 +143,13 @@ public struct Model: Sendable {
         guard let file = await buildToData(environment: inheritedEnvironment,
                                            context: context, options: inheritedOptions) else { return nil }
 
-        let baseURL: URL
+        let url: URL
         if let parent = directory {
-            baseURL = parent.appendingPathComponent(name, isDirectory: false)
+            url = parent.appendingPathComponent(file.suggestedFileName, isDirectory: false)
         } else {
-            baseURL = URL(expandingFilePath: name)
+            url = URL(expandingFilePath: file.suggestedFileName)
         }
 
-        let url = baseURL.appendingPathExtension(file.pathExtension)
         let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
 
         do {
@@ -192,7 +217,7 @@ public struct Model: Sendable {
 
         do {
             let fileContents: Data = try await provider.generateOutput(context: context)
-            return InMemoryFile(pathExtension: provider.fileExtension, contents: fileContents)
+            return InMemoryFile(suggestedFileName: "\(name).\(provider.fileExtension)", contents: fileContents)
         } catch {
             logger.error("Cadova caught an error while generating \(provider.fileExtension) model \"\(name)\":\n🛑 \(error)\n")
             return nil

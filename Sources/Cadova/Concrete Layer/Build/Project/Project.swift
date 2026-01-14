@@ -89,8 +89,8 @@ public func Project(
 
     let constantEnvironment = environment
     let urls = await models.asyncCompactMap { model in
-        await model.writeToFile(in: url, environment: constantEnvironment, context: context,
-                                interitedOptions: combinedOptions, revealInSystemFileBrowser: false)
+        await model.writeToDirectory(url, environment: constantEnvironment, context: context,
+                                     interitedOptions: combinedOptions, revealInSystemFileBrowser: false)
     }
     try? Platform.revealFiles(urls)
 }
