@@ -246,4 +246,37 @@ public extension Geometry2D {
             layer(z: height, shape: other)
         }
     }
+
+    /// Creates a 3D lofted shape between this 2D shape and another one at a given offset,
+    /// using the specified layer transition.
+    ///
+    /// This is a convenience shortcut for creating a `Loft` with two layers.
+    ///
+    /// - Parameters:
+    ///   - transition: The transition type that controls how the second layer connects to the first.
+    ///                 Use `.interpolated(_:)` for shape interpolation or `.convexHull` for a convex hull connection.
+    ///   - height: The vertical distance between the two layers.
+    ///   - other: A builder that returns the 2D shape to use for the second layer, placed at the specified height.
+    ///
+    /// - Returns: A lofted 3D shape connecting the two 2D layers.
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   Circle(radius: 10)
+    ///       .lofted(transition: .convexHull, height: 20) {
+    ///           Rectangle(20).aligned(at: .center)
+    ///       }
+    ///   ```
+    ///
+    /// - SeeAlso: `Loft`, `LayerTransition`
+    func lofted(
+        transition: LayerTransition,
+        height: Double,
+        @GeometryBuilder2D with other: @Sendable @escaping () -> any Geometry2D
+    ) -> any Geometry3D {
+        Loft {
+            layer(z: 0) { self }
+            layer(z: height, interpolation: transition, shape: other)
+        }
+    }
 }

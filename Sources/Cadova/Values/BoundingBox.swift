@@ -175,12 +175,16 @@ extension BoundingBox3D {
     }
 }
 
-fileprivate extension BoundingBox {
+internal extension BoundingBox {
     func partialBox(from: Double?, to: Double?, in axis: D.Axis, margin: Double) -> BoundingBox {
         BoundingBox(
             minimum: minimum.with(axis, as: from ?? minimum[axis] - margin),
             maximum: maximum.with(axis, as: to ?? maximum[axis] + margin)
         )
+    }
+
+    var mask: D.Geometry {
+        D.box(size: size, at: minimum)
     }
 }
 
@@ -189,10 +193,6 @@ internal extension BoundingBox2D {
         self
             .partialBox(from: x?.min, to: x?.max, in: .x, margin: margin)
             .partialBox(from: y?.min, to: y?.max, in: .y, margin: margin)
-    }
-
-    var mask: any Geometry2D {
-        Rectangle(size).translated(minimum)
     }
 }
 
@@ -203,8 +203,5 @@ internal extension BoundingBox3D {
             .partialBox(from: y?.min, to: y?.max, in: .y, margin: margin)
             .partialBox(from: z?.min, to: z?.max, in: .z, margin: margin)
     }
-
-    var mask: any Geometry3D {
-        Box(size).translated(minimum)
-    }
 }
+

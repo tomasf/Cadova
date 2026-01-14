@@ -3,6 +3,30 @@ import Foundation
 public typealias WithinRange = RangeExpression<Double> & Sendable
 
 public extension Geometry2D {
+    /// Returns a geometry clipped to the specified range along an axis.
+    ///
+    /// This is a convenience method equivalent to calling `within(x:y:)` with
+    /// only one axis specified.
+    ///
+    /// - Parameters:
+    ///   - range: The range to clip to.
+    ///   - axis: The axis along which to clip.
+    /// - Returns: A geometry clipped to the specified range.
+    ///
+    /// ## Example
+    /// ```swift
+    /// // Keep only the right half of a circle
+    /// Circle(diameter: 10)
+    ///     .within(0..., along: .x)
+    /// ```
+    ///
+    func within(_ range: some WithinRange, along axis: Axis2D) -> any Geometry2D {
+        switch axis {
+        case .x: within(x: range)
+        case .y: within(y: range)
+        }
+    }
+
     /// Returns a geometry that is clipped within the specified ranges along the x and y axes.
     ///
     /// This method is useful for trimming a geometry to a specific region of space. Axes that are `nil` are left unbounded. You can use
@@ -31,6 +55,31 @@ public extension Geometry2D {
 }
 
 public extension Geometry3D {
+    /// Returns a geometry clipped to the specified range along an axis.
+    ///
+    /// This is a convenience method equivalent to calling `within(x:y:z:)` with
+    /// only one axis specified.
+    ///
+    /// - Parameters:
+    ///   - range: The range to clip to.
+    ///   - axis: The axis along which to clip.
+    /// - Returns: A geometry clipped to the specified range.
+    ///
+    /// ## Example
+    /// ```swift
+    /// // Keep only the top half of a sphere
+    /// Sphere(diameter: 10)
+    ///     .within(0..., along: .z)
+    /// ```
+    ///
+    func within(_ range: some WithinRange, along axis: Axis3D) -> any Geometry3D {
+        switch axis {
+        case .x: within(x: range)
+        case .y: within(y: range)
+        case .z: within(z: range)
+        }
+    }
+
     /// Returns a geometry that is clipped within the specified ranges along the x, y, and z axes.
     ///
     /// This method is useful for trimming a 3D geometry to a specific region of space. Axes that are `nil` are left unbounded. You can use

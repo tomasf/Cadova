@@ -15,6 +15,8 @@ extension ShapingFunction {
         case circularEaseOut
         case sine
         case mix
+        case inverted
+        case mirrored
         case custom
     }
 
@@ -51,6 +53,12 @@ extension ShapingFunction {
             hasher.combine(a)
             hasher.combine(b)
             hasher.combine(weight)
+        case .inverted (let base):
+            hasher.combine(Kind.inverted)
+            hasher.combine(base)
+        case .mirrored (let base):
+            hasher.combine(Kind.mirrored)
+            hasher.combine(base)
         case .custom (let cacheKey, _):
             hasher.combine(Kind.custom)
             hasher.combine(cacheKey)
@@ -84,6 +92,12 @@ extension ShapingFunction {
 
         case (.mix(let a1, let b1, let weight1), .mix(let a2, let b2, let weight2)):
             return a1 == a2 && b1 == b2 && weight1 == weight2
+
+        case (.inverted(let a), .inverted(let b)):
+            return a == b
+
+        case (.mirrored(let a), .mirrored(let b)):
+            return a == b
 
         default:
             return false
@@ -137,6 +151,12 @@ extension ShapingFunction.Curve: Codable {
                 try container.decode(Double.self, forKey: .weight)
             )
 
+        case .inverted:
+            self = .inverted(try container.decode(ShapingFunction.self, forKey: .a))
+
+        case .mirrored:
+            self = .mirrored(try container.decode(ShapingFunction.self, forKey: .a))
+
         case .custom:
             let cacheKey = try container.decode(LabeledCacheKey.self, forKey: .cacheKey)
             self = .custom(cacheKey: cacheKey, function: { _ in preconditionFailure("Decoded custom curve cannot be evaluated") })
@@ -175,9 +195,18 @@ extension ShapingFunction.Curve: Codable {
             try container.encode(ShapingFunction.Kind.sine, forKey: .kind)
 
         case .mix(let a, let b, let weight):
+            try container.encode(ShapingFunction.Kind.mix, forKey: .kind)
             try container.encode(a, forKey: .a)
             try container.encode(b, forKey: .b)
             try container.encode(weight, forKey: .weight)
+
+        case .inverted(let base):
+            try container.encode(ShapingFunction.Kind.inverted, forKey: .kind)
+            try container.encode(base, forKey: .a)
+
+        case .mirrored(let base):
+            try container.encode(ShapingFunction.Kind.mirrored, forKey: .kind)
+            try container.encode(base, forKey: .a)
 
         case .custom (let cacheKey, _):
             try container.encode(ShapingFunction.Kind.custom, forKey: .kind)

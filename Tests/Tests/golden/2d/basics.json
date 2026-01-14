@@ -356,6 +356,25 @@
                       ]
                     }
                   }
+                },
+                {
+                  "type" : "6Cadova8FillRuleO",
+                  "value" : {
+                    "nonZero" : {
+
+                    }
+                  }
+                },
+                {
+                  "type" : "6Cadova12SegmentationO",
+                  "value" : {
+                    "adaptive" : {
+                      "minAngle" : {
+                        "degrees" : 2
+                      },
+                      "minSize" : 0.15
+                    }
+                  }
                 }
               ]
             }
@@ -434,6 +453,25 @@
                               "y" : 10
                             }
                           ]
+                        }
+                      }
+                    },
+                    {
+                      "type" : "6Cadova8FillRuleO",
+                      "value" : {
+                        "nonZero" : {
+
+                        }
+                      }
+                    },
+                    {
+                      "type" : "6Cadova12SegmentationO",
+                      "value" : {
+                        "adaptive" : {
+                          "minAngle" : {
+                            "degrees" : 2
+                          },
+                          "minSize" : 0.15
                         }
                       }
                     }

@@ -36,7 +36,14 @@ public extension Polygon {
     /// - Parameter environment: The environment context.
     /// - Returns: An array of `Vector2D` representing the polygon's vertices.
     func points(in environment: EnvironmentValues) -> [Vector2D] {
-        pointsProvider.points(in: environment)
+        pointsProvider.points(with: environment.segmentation)
+    }
+
+    /// Returns the points defining the polygon with a given segmentation.
+    /// - Parameter segmentation: The segmentation to use
+    /// - Returns: An array of `Vector2D` representing the polygon's vertices.
+    func points(with segmentation: Segmentation) -> [Vector2D] {
+        pointsProvider.points(with: segmentation)
     }
 
     /// Reads and provides metrics (points, bounding box, length, area) for the polygon and allows

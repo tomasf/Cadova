@@ -1,83 +1,91 @@
 import Foundation
-internal import freetype
-internal import FindFont
+internal import Apus
 
 internal enum TextError: Error {
     case fontNotFound (family: String, style: String?)
-    case freeTypeInitializationFailure
     case fontLoadingFailed
 }
 
 extension TextAttributes {
-    func render(text: String, in environment: EnvironmentValues) throws -> SimplePolygonList {
+    func render(text: String, with segmentation: Segmentation) throws -> SimplePolygonList {
         guard let family = fontFace?.family, let size = fontSize else {
             preconditionFailure("render(text:) called on unresolved TextAttributes")
         }
 
-        let fontData: Data
-        let effectiveFace: (family: String, style: String?)
+        // Convert Cadova FontVariation to Apus FontVariation
+        let apusVariations = (fontVariations ?? []).map { variation in
+            Apus.FontVariation(tag: variation.tag, value: variation.value)
+        }
 
+        // Load font using Apus
+        let font: Font
         if let fontFile {
-            fontData = try! Data(contentsOf: fontFile)
-            effectiveFace = (family, fontFace?.style)
-
+            let fontData = try Data(contentsOf: fontFile)
+            font = try Font(data: fontData, family: family, style: fontFace?.style, variations: apusVariations)
         } else {
-            guard let match = try FontRepository.matchForFont(family: family, style: fontFace?.style) else {
+            do {
+                font = try Font(family: family, style: fontFace?.style, variations: apusVariations)
+            } catch Font.FontError.fontNotFound {
                 throw TextError.fontNotFound(family: family, style: fontFace?.style)
             }
-            fontData = match.data
-            effectiveFace = (match.familyName, match.style)
         }
 
-        var library: FT_Library?
-        guard FT_Init_FreeType(&library) == 0, let library else {
-            throw TextError.freeTypeInitializationFailure
-        }
+        // Apus uses 1000pt internally, scale to requested size
+        let scale = size / 1000.0
 
-        guard let face = try library.faceMatching(family: effectiveFace.family, style: effectiveFace.style, from: fontData) else {
-            throw TextError.fontLoadingFailed
-        }
-
-        FT_Set_Char_Size(face, 0, FT_F26Dot6(size * 64.0 * GlyphRenderer.scaleFactor), 72, 72)
-        FT_Select_Charmap(face, FT_ENCODING_UNICODE)
-
-        let glyphRenderer = GlyphRenderer()
         let textLines = text.components(separatedBy: "\n")
 
+        let trackingAmount = tracking ?? 0
+
         let lines = textLines.map { line -> (SimplePolygonList, width: Double) in
-            var glyphOffset = Vector2D.zero
-            let glyphs = line.unicodeScalars.compactMap { unicodeScalar -> SimplePolygonList? in
-                let glyphIndex = FT_Get_Char_Index(face, FT_ULong(unicodeScalar.value))
+            let shapedGlyphs = font.glyphs(for: line)
 
-                guard FT_Load_Glyph(face, glyphIndex, Int32(FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING)) == 0 else {
-                    logger.error(.init(stringLiteral: String(format: "Failed to load glyph %u (U+%04X)", glyphIndex, unicodeScalar.value)))
-                    return nil
+            // Count unique clusters for tracking calculation
+            var clusterIndex = 0
+            var previousCluster: UInt32?
+
+            let glyphPolygons = shapedGlyphs.compactMap { glyph -> SimplePolygonList? in
+                // Increment cluster index when we encounter a new cluster
+                if let prev = previousCluster, glyph.cluster != prev {
+                    clusterIndex += 1
                 }
+                previousCluster = glyph.cluster
 
-                let glyph = face.pointee.glyph.pointee
-                guard glyph.format == FT_GLYPH_FORMAT_OUTLINE else {
-                    logger.error(.init(stringLiteral: String(format: "Glyph %u (U+%04X) has an incompatible format", glyphIndex, unicodeScalar.value)))
-                    return nil
+                let positionedPath = glyph.positionedPath
+                guard !positionedPath.isEmpty else { return nil }
+
+                let bezierPaths = positionedPath.toBezierPaths(scale: scale)
+                let polygons = bezierPaths.map { path in
+                    SimplePolygon(path.points(segmentation: segmentation))
                 }
+                let glyphPolygonList = SimplePolygonList(polygons)
 
-                guard let polygons = glyphRenderer.polygons(for: glyph.outline, in: environment) else { return nil }
-
-                let offsetPolygons = polygons.translated(glyphOffset)
-                glyphOffset += glyph.advance.cadovaVector
-                return offsetPolygons
+                // Apply tracking offset based on cluster index
+                let trackingOffset = Double(clusterIndex) * trackingAmount
+                return glyphPolygonList.translated(x: trackingOffset, y: 0)
             }
-            let polygons = SimplePolygonList(glyphs.flatMap(\.polygons))
-            return (polygons, glyphOffset.x)
+
+            let totalPolygons = SimplePolygonList(glyphPolygons.flatMap(\.polygons))
+
+            // Calculate line width from the last glyph's position + advance, plus total tracking
+            let lineWidth: Double
+            if let lastGlyph = shapedGlyphs.last {
+                let baseWidth = (lastGlyph.position.x + lastGlyph.advance.x) * scale
+                // clusterIndex now represents the number of cluster transitions (= unique clusters - 1)
+                let totalTracking = Double(clusterIndex) * trackingAmount
+                lineWidth = baseWidth + totalTracking
+            } else {
+                lineWidth = 0
+            }
+
+            return (totalPolygons, lineWidth)
         }
 
-        let metrics = face.pointee.size.pointee.metrics
-        FT_Done_Face(face)
-        FT_Done_FreeType(library)
-
-        let baseLineHeight = Double(metrics.height) / 64.0 / GlyphRenderer.scaleFactor
+        // Get metrics from font, scaled to requested size
+        let baseLineHeight = font.metrics.lineHeight * scale
         let lineHeight = baseLineHeight + (lineSpacingAdjustment ?? 0)
-        let ascender = Double(metrics.ascender) / 64.0 / GlyphRenderer.scaleFactor
-        let descender = Double(metrics.descender) / 64.0 / GlyphRenderer.scaleFactor
+        let ascender = font.metrics.ascender * scale
+        let descender = font.metrics.descender * scale
         let horizontalAdjustment = horizontalAlignment!.adjustmentFactor
 
         let lastBaselineOffset = lineHeight * Double(lines.count - 1)
@@ -101,41 +109,6 @@ extension TextAttributes {
     }
 }
 
-fileprivate extension FT_Library {
-    // Caller is responsible for calling FT_Done_Face on a returned face
-    func faceMatching(family targetFamily: String, style targetStyle: String?, from fontData: Data) throws -> FT_Face? {
-        var face: FT_Face?
-        let loadResult = fontData.withUnsafeBytes { buffer in
-            FT_New_Memory_Face(self, buffer.baseAddress, FT_Long(buffer.count), -1, &face)
-        }
-        guard loadResult == 0, let dummyFace = face else {
-            throw TextError.fontLoadingFailed
-        }
-
-        let faceCount = dummyFace.pointee.num_faces
-        FT_Done_Face(dummyFace)
-
-        for i in 0..<faceCount {
-            let loadResult = fontData.withUnsafeBytes { buffer in
-                FT_New_Memory_Face(self, buffer.baseAddress, FT_Long(buffer.count), i, &face)
-            }
-            guard loadResult == 0, let face else {
-                throw TextError.fontLoadingFailed
-            }
-
-            let familyName = String(cString: face.pointee.family_name)
-            let faceName = String(cString: face.pointee.style_name)
-
-            if (familyName == targetFamily), (faceName == targetStyle || targetStyle == nil) {
-                return face
-            }
-
-            FT_Done_Face(face)
-        }
-        return nil
-    }
-}
-
 fileprivate extension HorizontalTextAlignment {
     var adjustmentFactor: Double {
         switch self {
@@ -143,5 +116,66 @@ fileprivate extension HorizontalTextAlignment {
         case .center: -0.5
         case .right: -1.0
         }
+    }
+}
+
+// MARK: - Apus Path to Cadova BezierPath Conversion
+
+fileprivate extension Apus.Path {
+    /// Convert Apus Path to array of Cadova BezierPath2D
+    /// Each contour (starting with moveTo) becomes a separate BezierPath2D
+    func toBezierPaths(scale: Double) -> [BezierPath2D] {
+        var paths: [BezierPath2D] = []
+        var currentPath: BezierPath2D?
+
+        for element in elements {
+            switch element {
+            case .moveTo(let point):
+                // Save previous path if any, then start a new one
+                if let path = currentPath {
+                    paths.append(path)
+                }
+                currentPath = BezierPath2D(startPoint: point.toVector2D(scale: scale))
+
+            case .lineTo(let point):
+                if let path = currentPath {
+                    currentPath = path.addingLine(to: point.toVector2D(scale: scale))
+                }
+
+            case .quadraticTo(let control, let end):
+                if let path = currentPath {
+                    currentPath = path.addingQuadraticCurve(
+                        controlPoint: control.toVector2D(scale: scale),
+                        end: end.toVector2D(scale: scale)
+                    )
+                }
+
+            case .cubicTo(let control1, let control2, let end):
+                if let path = currentPath {
+                    currentPath = path.addingCubicCurve(
+                        controlPoint1: control1.toVector2D(scale: scale),
+                        controlPoint2: control2.toVector2D(scale: scale),
+                        end: end.toVector2D(scale: scale)
+                    )
+                }
+
+            case .close:
+                // Close is implicit in BezierPath - just continue with current path
+                break
+            }
+        }
+
+        // Add final path
+        if let path = currentPath {
+            paths.append(path)
+        }
+
+        return paths
+    }
+}
+
+fileprivate extension Apus.Point {
+    func toVector2D(scale: Double) -> Vector2D {
+        Vector2D(x * scale, y * scale)
     }
 }

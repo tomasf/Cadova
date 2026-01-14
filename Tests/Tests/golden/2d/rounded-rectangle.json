@@ -26,74 +26,6 @@
                     "body" : {
                       "children" : [
                         {
-                          "children" : [
-                            {
-                              "body" : {
-                                "kind" : "shape2D",
-                                "primitive" : {
-                                  "rectangle" : {
-                                    "size" : {
-                                      "x" : 10,
-                                      "y" : 10
-                                    }
-                                  }
-                                }
-                              },
-                              "kind" : "transform",
-                              "transform" : [
-                                [
-                                  1,
-                                  0,
-                                  -5
-                                ],
-                                [
-                                  0,
-                                  1,
-                                  -5
-                                ],
-                                [
-                                  0,
-                                  0,
-                                  1
-                                ]
-                              ]
-                            },
-                            {
-                              "body" : {
-                                "kind" : "shape2D",
-                                "primitive" : {
-                                  "rectangle" : {
-                                    "size" : {
-                                      "x" : 5,
-                                      "y" : 5
-                                    }
-                                  }
-                                }
-                              },
-                              "kind" : "transform",
-                              "transform" : [
-                                [
-                                  -1,
-                                  0,
-                                  0
-                                ],
-                                [
-                                  0,
-                                  -1,
-                                  0
-                                ],
-                                [
-                                  0,
-                                  0,
-                                  1
-                                ]
-                              ]
-                            }
-                          ],
-                          "kind" : "boolean",
-                          "type" : "difference"
-                        },
-                        {
                           "body" : {
                             "cacheKey" : {
                               "type" : "6Cadova15LabeledCacheKeyV",
@@ -296,6 +228,25 @@
                                         ]
                                       }
                                     }
+                                  },
+                                  {
+                                    "type" : "6Cadova8FillRuleO",
+                                    "value" : {
+                                      "nonZero" : {
+
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type" : "6Cadova12SegmentationO",
+                                    "value" : {
+                                      "adaptive" : {
+                                        "minAngle" : {
+                                          "degrees" : 2
+                                        },
+                                        "minSize" : 0.15000000000000002
+                                      }
+                                    }
                                   }
                                 ]
                               }
@@ -320,6 +271,74 @@
                               1
                             ]
                           ]
+                        },
+                        {
+                          "children" : [
+                            {
+                              "body" : {
+                                "kind" : "shape2D",
+                                "primitive" : {
+                                  "rectangle" : {
+                                    "size" : {
+                                      "x" : 10,
+                                      "y" : 10
+                                    }
+                                  }
+                                }
+                              },
+                              "kind" : "transform",
+                              "transform" : [
+                                [
+                                  1,
+                                  0,
+                                  -5
+                                ],
+                                [
+                                  0,
+                                  1,
+                                  -5
+                                ],
+                                [
+                                  0,
+                                  0,
+                                  1
+                                ]
+                              ]
+                            },
+                            {
+                              "body" : {
+                                "kind" : "shape2D",
+                                "primitive" : {
+                                  "rectangle" : {
+                                    "size" : {
+                                      "x" : 5,
+                                      "y" : 5
+                                    }
+                                  }
+                                }
+                              },
+                              "kind" : "transform",
+                              "transform" : [
+                                [
+                                  -1,
+                                  0,
+                                  0
+                                ],
+                                [
+                                  0,
+                                  -1,
+                                  0
+                                ],
+                                [
+                                  0,
+                                  0,
+                                  1
+                                ]
+                              ]
+                            }
+                          ],
+                          "kind" : "boolean",
+                          "type" : "difference"
                         }
                       ],
                       "kind" : "boolean",
@@ -351,6 +370,74 @@
               {
                 "body" : {
                   "children" : [
+                    {
+                      "children" : [
+                        {
+                          "body" : {
+                            "kind" : "shape2D",
+                            "primitive" : {
+                              "rectangle" : {
+                                "size" : {
+                                  "x" : 10,
+                                  "y" : 10
+                                }
+                              }
+                            }
+                          },
+                          "kind" : "transform",
+                          "transform" : [
+                            [
+                              1,
+                              0,
+                              -5
+                            ],
+                            [
+                              0,
+                              1,
+                              -5
+                            ],
+                            [
+                              0,
+                              0,
+                              1
+                            ]
+                          ]
+                        },
+                        {
+                          "body" : {
+                            "kind" : "shape2D",
+                            "primitive" : {
+                              "rectangle" : {
+                                "size" : {
+                                  "x" : 3,
+                                  "y" : 3
+                                }
+                              }
+                            }
+                          },
+                          "kind" : "transform",
+                          "transform" : [
+                            [
+                              1,
+                              0,
+                              2
+                            ],
+                            [
+                              0,
+                              -1,
+                              -2
+                            ],
+                            [
+                              0,
+                              0,
+                              1
+                            ]
+                          ]
+                        }
+                      ],
+                      "kind" : "boolean",
+                      "type" : "difference"
+                    },
                     {
                       "body" : {
                         "cacheKey" : {
@@ -502,6 +589,25 @@
                                     ]
                                   }
                                 }
+                              },
+                              {
+                                "type" : "6Cadova8FillRuleO",
+                                "value" : {
+                                  "nonZero" : {
+
+                                  }
+                                }
+                              },
+                              {
+                                "type" : "6Cadova12SegmentationO",
+                                "value" : {
+                                  "adaptive" : {
+                                    "minAngle" : {
+                                      "degrees" : 2
+                                    },
+                                    "minSize" : 0.15000000000000002
+                                  }
+                                }
                               }
                             ]
                           }
@@ -526,74 +632,6 @@
                           1
                         ]
                       ]
-                    },
-                    {
-                      "children" : [
-                        {
-                          "body" : {
-                            "kind" : "shape2D",
-                            "primitive" : {
-                              "rectangle" : {
-                                "size" : {
-                                  "x" : 10,
-                                  "y" : 10
-                                }
-                              }
-                            }
-                          },
-                          "kind" : "transform",
-                          "transform" : [
-                            [
-                              1,
-                              0,
-                              -5
-                            ],
-                            [
-                              0,
-                              1,
-                              -5
-                            ],
-                            [
-                              0,
-                              0,
-                              1
-                            ]
-                          ]
-                        },
-                        {
-                          "body" : {
-                            "kind" : "shape2D",
-                            "primitive" : {
-                              "rectangle" : {
-                                "size" : {
-                                  "x" : 3,
-                                  "y" : 3
-                                }
-                              }
-                            }
-                          },
-                          "kind" : "transform",
-                          "transform" : [
-                            [
-                              1,
-                              0,
-                              2
-                            ],
-                            [
-                              0,
-                              -1,
-                              -2
-                            ],
-                            [
-                              0,
-                              0,
-                              1
-                            ]
-                          ]
-                        }
-                      ],
-                      "kind" : "boolean",
-                      "type" : "difference"
                     }
                   ],
                   "kind" : "boolean",
@@ -798,6 +836,25 @@
                                     "y" : 0
                                   }
                                 ]
+                              }
+                            }
+                          },
+                          {
+                            "type" : "6Cadova8FillRuleO",
+                            "value" : {
+                              "nonZero" : {
+
+                              }
+                            }
+                          },
+                          {
+                            "type" : "6Cadova12SegmentationO",
+                            "value" : {
+                              "adaptive" : {
+                                "minAngle" : {
+                                  "degrees" : 2
+                                },
+                                "minSize" : 0.15000000000000002
                               }
                             }
                           }
