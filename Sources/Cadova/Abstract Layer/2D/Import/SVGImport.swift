@@ -29,7 +29,7 @@ public struct SVGImport: Shape2D {
     public var body: any Geometry2D {
         readEnvironment(\.scaledSegmentation) { segmentation in
             CachedNode(name: "import-svg", parameters: url, segmentation) {
-                guard let document = SVGDocument(fileURL: url) else {
+                guard let document = SVGGeometryDocument(fileURL: url) else {
                     throw Error.invalidSVG
                 }
 
@@ -40,7 +40,7 @@ public struct SVGImport: Shape2D {
 }
 
 private struct SVGDocumentConverter {
-    let document: SVGDocument
+    let document: SVGGeometryDocument
     let segmentation: Segmentation
 
     var geometry: any Geometry2D {
@@ -104,7 +104,7 @@ private struct SVGDocumentConverter {
         return geometries.count == 1 ? geometries[0] : Union(geometries)
     }
 
-    private static func subpaths(from path: SVGDocument.Path, segmentation: Segmentation) -> [SVGSubpath] {
+    private static func subpaths(from path: SVGGeometryDocument.Path, segmentation: Segmentation) -> [SVGSubpath] {
         var results: [SVGSubpath] = []
         var currentPath: BezierPath2D?
 
@@ -142,11 +142,11 @@ private struct SVGDocumentConverter {
         return results
     }
 
-    private static func vector(from point: SVGDocument.Point) -> Vector2D {
+    private static func vector(from point: SVGGeometryDocument.Point) -> Vector2D {
         .init(x: point.x, y: point.y)
     }
 
-    private static func fillRule(from rule: SVGDocument.FillRule) -> FillRule {
+    private static func fillRule(from rule: SVGGeometryDocument.FillRule) -> FillRule {
         switch rule {
         case .nonZero:
             return .nonZero
@@ -155,7 +155,7 @@ private struct SVGDocumentConverter {
         }
     }
 
-    private static func lineJoin(from join: SVGDocument.LineJoin) -> LineJoinStyle {
+    private static func lineJoin(from join: SVGGeometryDocument.LineJoin) -> LineJoinStyle {
         switch join {
         case .miter:
             return .miter
@@ -166,7 +166,7 @@ private struct SVGDocumentConverter {
         }
     }
 
-    private static func lineCap(from cap: SVGDocument.LineCap) -> LineCapStyle {
+    private static func lineCap(from cap: SVGGeometryDocument.LineCap) -> LineCapStyle {
         switch cap {
         case .butt:
             return .butt
