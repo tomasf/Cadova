@@ -1,0 +1,27 @@
+import Foundation
+import Testing
+@testable import Cadova
+
+struct SVGImportTests {
+    @Test func `SVG import converts filled shapes`() async throws {
+        let url = Bundle.module.url(forResource: "svg_rect_circle", withExtension: "svg", subdirectory: "resources")!
+        let geometry = SVGImport(svg: url)
+        let area = try await geometry.measurements.area
+        let bounds = try await geometry.bounds
+
+        #expect(area.equals(100 + 25 * Double.pi, within: 0.05))
+        #expect(bounds != nil)
+        #expect(bounds!.minimum ≈ [0, 0])
+        #expect(bounds!.maximum ≈ [20, 10])
+    }
+
+    @Test func `SVG import converts stroked paths`() async throws {
+        let url = Bundle.module.url(forResource: "svg_stroke_path", withExtension: "svg", subdirectory: "resources")!
+        let geometry = SVGImport(svg: url)
+        let bounds = try await geometry.bounds
+
+        #expect(bounds != nil)
+        #expect(bounds!.minimum ≈ [-1, -1])
+        #expect(bounds!.maximum ≈ [11, 11])
+    }
+}
