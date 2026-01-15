@@ -75,14 +75,3 @@ extension ReferenceState {
         otherState.usedAnchors.intersection(definedAnchors.keys).count > 0 || otherState.usedTags.intersection(definedTags.keys).count > 0
     }
 }
-
-extension ReferenceState {
-    func printWarningsAtTopLevel() {
-        if !undefinedAnchors.isEmpty {
-            logger.warning("Undefined anchors: \(undefinedAnchors)")
-        }
-        if !undefinedTags.isEmpty {
-            logger.warning("Undefined tags: \(undefinedTags)")
-        }
-    }
-}
