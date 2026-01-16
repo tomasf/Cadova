@@ -39,11 +39,13 @@ extension Geometry2D {
 
     @GeometryBuilder2D
     public func repeated(in range: ClosedRange<Angle>, count: Int) -> any Geometry2D {
-        if count > 0 {
+        if count > 1 {
             let step = (range.upperBound - range.lowerBound) / Double(count - 1)
             for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
                 rotated(value)
             }
+        } else if count == 1 {
+            rotated(range.lowerBound)
         }
     }
 }
@@ -89,11 +91,13 @@ extension Geometry3D {
 
     @GeometryBuilder3D
     public func repeated(around axis: Axis3D, in range: ClosedRange<Angle>, count: Int) -> any Geometry3D {
-        if count > 0 {
+        if count > 1 {
             let step = (range.upperBound - range.lowerBound) / Double(count - 1)
             for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
                 rotated(angle: value, axis: axis)
             }
+        } else if count == 1 {
+            rotated(angle: range.lowerBound, axis: axis)
         }
     }
 }
