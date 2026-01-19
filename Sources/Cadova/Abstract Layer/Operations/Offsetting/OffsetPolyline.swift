@@ -1,7 +1,7 @@
 import Foundation
 
 public extension ParametricCurve where V == Vector2D {
-    /// Offsets the curve by a specified distance, returning the result as a new path.
+    /// Offsets the curve by a specified distance and passes both the original and offset curves to a reader closure.
     ///
     /// The curve is sampled into a polyline and each segment is offset perpendicular to its direction.
     /// Join behavior at corners is controlled by the `style` parameter, and respects the `miterLimit`
@@ -10,20 +10,28 @@ public extension ParametricCurve where V == Vector2D {
     /// - Parameters:
     ///   - distance: The offset distance. Positive values offset to the left of the curve direction.
     ///   - style: The line join style for corners (e.g., `.round`, `.miter`, `.bevel`).
-    /// - Returns: A new curve representing the offset path as straight line segments.
-    func offset(by distance: Double, style: LineJoinStyle = .miter) -> any ParametricCurve<Vector2D> {
-        @Environment(\.scaledSegmentation) var segmentation
-        @Environment(\.miterLimit) var miterLimit
-
-        let points = self.points(segmentation: segmentation)
-        let offsetPoints = offsetPolyline(
-            points: points,
-            offset: distance,
-            style: style,
-            segmentation: segmentation,
-            miterLimit: miterLimit
-        )
-        return BezierPath2D(linesBetween: offsetPoints)
+    ///   - reader: A closure that receives both the original curve and the offset curve, and returns a geometry.
+    /// - Returns: A geometry built from the reader closure.
+    func offset<D: Dimensionality>(
+        by distance: Double,
+        style: LineJoinStyle = .miter,
+        @GeometryBuilder<D> _ reader: @Sendable @escaping (
+            _ original: Self,
+            _ offset: any ParametricCurve<Vector2D>
+        ) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment(\.scaledSegmentation, \.miterLimit) { segmentation, miterLimit in
+            let points = self.points(segmentation: segmentation)
+            let offsetPoints = offsetPolyline(
+                points: points,
+                offset: distance,
+                style: style,
+                segmentation: segmentation,
+                miterLimit: miterLimit
+            )
+            let offsetCurve = BezierPath2D(linesBetween: offsetPoints)
+            return reader(self, offsetCurve)
+        }
     }
 }
 
