@@ -24,4 +24,33 @@ public extension Geometry {
             child.translated(bounds.translation(for: .init(merging: alignment)))
         }
     }
+
+    /// Temporarily aligns this geometry while performing operations, then restores its original position.
+    ///
+    /// This helper aligns the geometry according to the provided alignment options, evaluates `operations` in that
+    /// aligned coordinate space, and then applies the inverse translation to return the result to its original space.
+    ///
+    /// - Parameters:
+    ///   - alignment: A list of alignment criteria specifying how the geometry should be aligned before evaluating
+    ///     `operations`.
+    ///   - operations: A builder that produces geometry to be evaluated in the aligned space.
+    /// - Returns: The resulting geometry mapped back into the original coordinate space.
+    ///
+    /// Example:
+    /// ```
+    /// Rectangle(x: 20, y: 10)
+    ///     .whileAligned(at: .center) {
+    ///         $0.rotated(45°)
+    ///     }
+    /// ```
+    ///
+    func whileAligned(
+        at alignment: D.Alignment...,
+        @GeometryBuilder<D> do operations: @Sendable @escaping (D.Geometry) -> D.Geometry
+    ) -> D.Geometry {
+        measuringBounds { child, bounds in
+            let translation = bounds.translation(for: .init(merging: alignment))
+            return operations(child.translated(translation)).translated(-translation)
+        }
+    }
 }

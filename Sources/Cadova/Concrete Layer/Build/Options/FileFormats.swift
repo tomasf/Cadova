@@ -37,3 +37,19 @@ public extension ModelOptions {
         internal func combined(with other: Self) -> Self { other }
     }
 }
+
+extension ModelOptions {
+    func dataProvider(for result: BuildResult<D3>) -> OutputDataProvider {
+        switch self[FileFormat3D.self] {
+        case .threeMF: return ThreeMFDataProvider(result: result, options: self)
+        case .stl: return BinarySTLDataProvider(result: result, options: self)
+        }
+    }
+
+    func dataProvider(for result: BuildResult<D2>) -> OutputDataProvider {
+        switch self[FileFormat2D.self] {
+        case .threeMF: return ThreeMFDataProvider(result: result.promotedTo3D(), options: self)
+        case .svg: return SVGDataProvider(result: result, options: self)
+        }
+    }
+}

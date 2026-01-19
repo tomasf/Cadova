@@ -24,9 +24,11 @@ extension Geometry {
     ///
     @GeometryBuilder<D>
     public func repeated(along axis: D.Axis, in range: Range<Double>, count: Int) -> D.Geometry {
-        let step = (range.upperBound - range.lowerBound) / Double(count)
-        for value in stride(from: range.lowerBound, to: range.upperBound, by: step) {
-            translated(D.Vector(axis, value: value))
+        if count > 0 {
+            let step = (range.upperBound - range.lowerBound) / Double(count)
+            for value in stride(from: range.lowerBound, to: range.upperBound, by: step) {
+                translated(D.Vector(axis, value: value))
+            }
         }
     }
 
@@ -40,9 +42,13 @@ extension Geometry {
     ///
     @GeometryBuilder<D>
     public func repeated(along axis: D.Axis, in range: ClosedRange<Double>, count: Int) -> D.Geometry {
-        let step = (range.upperBound - range.lowerBound) / Double(count - 1)
-        for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
-            translated(D.Vector(axis, value: value))
+        if count > 1 {
+            let step = (range.upperBound - range.lowerBound) / Double(count - 1)
+            for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
+                translated(D.Vector(axis, value: value))
+            }
+        } else if count == 1 {
+            translated(D.Vector(axis, value: range.lowerBound))
         }
     }
 
@@ -102,15 +108,19 @@ extension Geometry {
 
             if cyclically {
                 let count = Int(floor(rangeLength / (boundsLength + minimumSpacing)))
-                let step = rangeLength / Double(count)
-                self.repeated(along: axis, step: step, count: count)
-                    .translated(D.Vector(axis, value: range.lowerBound))
+                if count > 0 {
+                    let step = rangeLength / Double(count)
+                    self.repeated(along: axis, step: step, count: count)
+                        .translated(D.Vector(axis, value: range.lowerBound))
+                }
             } else {
                 let availableLength = rangeLength - boundsLength
                 let count = Int(floor(availableLength / (boundsLength + minimumSpacing)))
-                let step = availableLength / Double(count)
-                self.repeated(along: axis, step: step, count: count + 1)
-                    .translated(D.Vector(axis, value: range.lowerBound))
+                if count > 0 {
+                    let step = availableLength / Double(count)
+                    self.repeated(along: axis, step: step, count: count + 1)
+                        .translated(D.Vector(axis, value: range.lowerBound))
+                }
             }
         }
     }

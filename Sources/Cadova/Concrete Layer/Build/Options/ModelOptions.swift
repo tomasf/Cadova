@@ -21,6 +21,17 @@ public struct ModelOptions: Sendable, ExpressibleByArrayLiteral {
     }
 }
 
+internal extension ModelOptions {
+    func adding(modelName: String? = nil, defaults: ModelOptions? = nil, directives: [BuildDirective] = []) -> Self {
+        [
+            .init(ModelName(name: modelName)),
+            defaults ?? [],
+            self,
+            .init(directives.compactMap(\.options))
+        ]
+    }
+}
+
 internal protocol ModelOptionItem: Sendable {
     static var defaultValue: Self { get }
     func combined(with other: Self) -> Self

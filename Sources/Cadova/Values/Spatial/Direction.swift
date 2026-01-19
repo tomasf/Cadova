@@ -49,6 +49,9 @@ public extension Direction {
     init(bisecting a: D.Vector, _ b: D.Vector) {
         self.init((a.normalized + b.normalized) / 2.0)
     }
+
+    /// The opposite of this direction.
+    var opposite: Self { Self(-unitVector) }
 }
 
 public extension Direction <D3> {
@@ -58,11 +61,6 @@ public extension Direction <D3> {
     var y: Double { unitVector.y }
     /// The Z component of the direction.
     var z: Double { unitVector.z }
-
-    /// The opposite of this direction
-    var opposite: Self {
-        Self(-unitVector)
-    }
 
     /// Creates a direction from x, y, z components.
     /// - Parameters:
