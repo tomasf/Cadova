@@ -8,6 +8,7 @@ internal import SwiftDraw
 public struct SVGImport: Shape2D {
     private let url: URL
     private let unitMode: UnitMode
+    private let origin: Origin
 
     /// Controls how SVG units are interpreted when importing.
     public enum UnitMode: Hashable, Sendable, Codable {
@@ -20,14 +21,27 @@ public struct SVGImport: Shape2D {
         case pixels
     }
 
+    /// Controls how the SVG coordinate system is mapped to Cadova's coordinate system.
+    public enum Origin: Hashable, Sendable, Codable {
+        /// Aligns the SVG's bottom-left corner with the origin and flips the Y axis.
+        /// The SVG appears the same way it does in browsers/editors.
+        case bottomLeft
+
+        /// Keeps the SVG's top-left origin aligned with Cadova's origin.
+        /// Y coordinates are preserved but content appears upside-down compared to browsers.
+        case topLeft
+    }
+
     /// Creates a new SVG import from a file URL.
     ///
     /// - Parameters:
     ///   - url: The file URL to the SVG document.
     ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
-    public init(svg url: URL, unitMode: UnitMode = .physical) {
+    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
+    public init(svg url: URL, unitMode: UnitMode = .physical, origin: Origin = .bottomLeft) {
         self.url = url
         self.unitMode = unitMode
+        self.origin = origin
     }
 
     /// Creates a new SVG import from a file path.
@@ -35,8 +49,9 @@ public struct SVGImport: Shape2D {
     /// - Parameters:
     ///   - path: A file path to the SVG document. Can be relative or absolute.
     ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
-    public init(svg path: String, unitMode: UnitMode = .physical) {
-        self.init(svg: URL(expandingFilePath: path, extension: nil, relativeTo: nil), unitMode: unitMode)
+    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
+    public init(svg path: String, unitMode: UnitMode = .physical, origin: Origin = .bottomLeft) {
+        self.init(svg: URL(expandingFilePath: path, extension: nil, relativeTo: nil), unitMode: unitMode, origin: origin)
     }
 
     public enum Error: Swift.Error {
@@ -45,8 +60,8 @@ public struct SVGImport: Shape2D {
 
     public var body: any Geometry2D {
         readEnvironment(\.scaledSegmentation) { segmentation in
-            CachedNode(name: "import-svg", parameters: url, unitMode, segmentation) {
-                let consumer = CadovaSVGConsumer(segmentation: segmentation, unitMode: unitMode)
+            CachedNode(name: "import-svg", parameters: url, unitMode, origin, segmentation) {
+                let consumer = CadovaSVGConsumer(segmentation: segmentation, unitMode: unitMode, origin: origin)
                 do {
                     return try SVG.extractShapes(from: url, using: consumer)
                 } catch {
@@ -63,11 +78,12 @@ public struct SVGImport: Shape2D {
 private struct CadovaSVGConsumer: SVGShapeConsumer {
     let segmentation: Segmentation
     let scale: Double
+    let origin: SVGImport.Origin
 
     /// Pixels per millimeter according to the SVG/CSS standard (96 pixels per inch).
     private static let pixelsPerMillimeter = 96.0 / 25.4
 
-    init(segmentation: Segmentation, unitMode: SVGImport.UnitMode) {
+    init(segmentation: Segmentation, unitMode: SVGImport.UnitMode, origin: SVGImport.Origin) {
         self.segmentation = segmentation
         self.scale = switch unitMode {
         case .physical:
@@ -75,6 +91,7 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
         case .pixels:
             1.0
         }
+        self.origin = origin
     }
 
     typealias Point = Vector2D
@@ -152,20 +169,27 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
         case .end: .right
         }
 
+        // Text is always flipped so it's readable in Cadova's Y-up coordinate system
         return Text(info.content)
             .withFont(info.fontName, size: info.fontSize * scale)
             .withTextAlignment(horizontal: alignment)
-            .scaled(x: 1, y: -1)  // Pre-flip so text is readable after global Y-flip
+            .flipped(along: .y)
             .translated(x: info.position.x * scale, y: info.position.y * scale)
     }
 
     func finalizeDocument(shapes: [any Geometry2D], size: (width: Double, height: Double)) -> any Geometry2D {
         guard !shapes.isEmpty else { return Empty() }
         let content: any Geometry2D = shapes.count == 1 ? shapes[0] : Union(shapes)
-        // Flip Y axis: SVG uses Y-down, Cadova uses Y-up
-        return content
-            .scaled(x: 1, y: -1)
-            .translated(y: size.height * scale)
+
+        switch origin {
+        case .bottomLeft:
+            // Flip Y axis: SVG uses Y-down, Cadova uses Y-up
+            return content
+                .flipped(along: .y)
+                .translated(y: size.height * scale)
+        case .topLeft:
+            return content
+        }
     }
 }
 
