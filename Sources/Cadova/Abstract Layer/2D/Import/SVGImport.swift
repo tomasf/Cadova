@@ -1,5 +1,5 @@
 import Foundation
-import SwiftDraw
+internal import SwiftDraw
 
 /// Imports 2D geometry from an SVG file.
 ///
@@ -7,19 +7,36 @@ import SwiftDraw
 /// Unsupported SVG features such as filters, masks, and text are ignored.
 public struct SVGImport: Shape2D {
     private let url: URL
+    private let unitMode: UnitMode
+
+    /// Controls how SVG units are interpreted when importing.
+    public enum UnitMode: Hashable, Sendable, Codable {
+        /// Physical units are preserved: 1mm in SVG becomes 1mm in output.
+        /// Unitless values (pixels) are converted using the SVG standard of 96 pixels per inch.
+        case physical
+
+        /// Unitless values map directly: 1 pixel in SVG becomes 1mm in output.
+        /// Physical units are scaled accordingly (e.g., 1mm in SVG becomes ~3.78mm).
+        case pixels
+    }
 
     /// Creates a new SVG import from a file URL.
     ///
-    /// - Parameter url: The file URL to the SVG document.
-    public init(svg url: URL) {
+    /// - Parameters:
+    ///   - url: The file URL to the SVG document.
+    ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
+    public init(svg url: URL, unitMode: UnitMode = .physical) {
         self.url = url
+        self.unitMode = unitMode
     }
 
     /// Creates a new SVG import from a file path.
     ///
-    /// - Parameter path: A file path to the SVG document. Can be relative or absolute.
-    public init(svg path: String) {
-        self.init(svg: URL(expandingFilePath: path, extension: nil, relativeTo: nil))
+    /// - Parameters:
+    ///   - path: A file path to the SVG document. Can be relative or absolute.
+    ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
+    public init(svg path: String, unitMode: UnitMode = .physical) {
+        self.init(svg: URL(expandingFilePath: path, extension: nil, relativeTo: nil), unitMode: unitMode)
     }
 
     public enum Error: Swift.Error {
@@ -28,165 +45,194 @@ public struct SVGImport: Shape2D {
 
     public var body: any Geometry2D {
         readEnvironment(\.scaledSegmentation) { segmentation in
-            CachedNode(name: "import-svg", parameters: url, segmentation) {
-                guard let document = SVGGeometryDocument(fileURL: url) else {
+            CachedNode(name: "import-svg", parameters: url, unitMode, segmentation) {
+                let consumer = CadovaSVGConsumer(segmentation: segmentation, unitMode: unitMode)
+                do {
+                    return try SVG.extractShapes(from: url, using: consumer)
+                } catch {
                     throw Error.invalidSVG
                 }
-
-                return SVGDocumentConverter(document: document, segmentation: segmentation).geometry
             }
         }
     }
 }
 
-private struct SVGDocumentConverter {
-    let document: SVGGeometryDocument
+// MARK: - Consumer Implementation
+
+/// Cadova's consumer that produces Geometry2D directly.
+private struct CadovaSVGConsumer: SVGShapeConsumer {
     let segmentation: Segmentation
+    let scale: Double
 
-    var geometry: any Geometry2D {
-        var fillGeometries: [any Geometry2D] = []
-        var strokeGeometries: [any Geometry2D] = []
+    /// Pixels per millimeter according to the SVG/CSS standard (96 pixels per inch).
+    private static let pixelsPerMillimeter = 96.0 / 25.4
 
-        for shape in document.shapes {
-            let subpaths = Self.subpaths(from: shape.path, segmentation: segmentation)
-
-            if shape.hasFill {
-                let fillRule = Self.fillRule(from: shape.fillRule)
-                var shapePolygons: [SimplePolygon] = []
-                for subpath in subpaths {
-                    guard subpath.isClosed, let points = subpath.points else { continue }
-                    shapePolygons.append(SimplePolygon(points))
-                }
-
-                if !shapePolygons.isEmpty {
-                    let polygonList = SimplePolygonList(shapePolygons)
-                    let node = GeometryNode<D2>(.shape2D(.polygons(polygonList, fillRule: fillRule)))
-                    fillGeometries.append(NodeBasedGeometry(node))
-                }
-            }
-
-            if let stroke = shape.stroke, stroke.width > 0 {
-                let join = Self.lineJoin(from: stroke.lineJoin)
-                let cap = Self.lineCap(from: stroke.lineCap)
-                for subpath in subpaths {
-                    let strokeGeometry: any Geometry2D
-                    if subpath.isClosed {
-                        if let points = subpath.points {
-                            strokeGeometry = Polygon(points).stroked(width: stroke.width, alignment: .centered, style: join)
-                        } else {
-                            strokeGeometry = Polygon(subpath.path).stroked(width: stroke.width, alignment: .centered, style: join)
-                        }
-                    } else {
-                        strokeGeometry = subpath.path.stroked(width: stroke.width, alignment: .centered, style: join)
-                    }
-
-                    strokeGeometries.append(
-                        strokeGeometry
-                            .withLineCapStyle(cap)
-                            .withMiterLimit(stroke.miterLimit)
-                    )
-                }
-            }
+    init(segmentation: Segmentation, unitMode: SVGImport.UnitMode) {
+        self.segmentation = segmentation
+        self.scale = switch unitMode {
+        case .physical:
+            1.0 / Self.pixelsPerMillimeter
+        case .pixels:
+            1.0
         }
+    }
 
+    typealias Point = Vector2D
+    typealias Path = [Subpath]
+    typealias Shape = any Geometry2D
+
+    struct Subpath {
+        let bezierPath: BezierPath2D
+        let isClosed: Bool
+    }
+
+    func makePoint(x: Double, y: Double) -> Vector2D {
+        Vector2D(x: x * scale, y: y * scale)
+    }
+
+    func makePathBuilder() -> any SVGPathBuilder<Vector2D, [Subpath]> {
+        CadovaPathBuilder(scale: scale)
+    }
+
+    func makeShape(path: [Subpath], fill: SVGFillInfo?, stroke: SVGStrokeInfo?) -> (any Geometry2D)? {
         var geometries: [any Geometry2D] = []
-        if !fillGeometries.isEmpty {
-            let fills = fillGeometries.count == 1 ? fillGeometries[0] : Union(fillGeometries)
-            geometries.append(fills)
+
+        // Build fill geometry (ignore paint color/gradient - Cadova only needs shape)
+        if let fill = fill, fill.paint != .none {
+            let fillRule = FillRule(from: fill.rule)
+            var polygons: [SimplePolygon] = []
+            for subpath in path where subpath.isClosed {
+                let points = subpath.bezierPath.points(segmentation: segmentation)
+                if points.count >= 3 {
+                    polygons.append(SimplePolygon(points))
+                }
+            }
+            if !polygons.isEmpty {
+                let node = GeometryNode<D2>(.shape2D(.polygons(SimplePolygonList(polygons), fillRule: fillRule)))
+                geometries.append(NodeBasedGeometry(node))
+            }
         }
 
-        if !strokeGeometries.isEmpty {
-            let strokes = strokeGeometries.count == 1 ? strokeGeometries[0] : Union(strokeGeometries)
-            geometries.append(strokes)
+        // Build stroke geometry (ignore paint color/gradient - Cadova only needs shape)
+        if let stroke = stroke, stroke.paint != .none, stroke.width > 0 {
+            let join = LineJoinStyle(from: stroke.lineJoin)
+            let cap = LineCapStyle(from: stroke.lineCap)
+            let scaledWidth = stroke.width * scale
+
+            for subpath in path {
+                let strokeGeom: any Geometry2D
+                if subpath.isClosed {
+                    let points = subpath.bezierPath.points(segmentation: segmentation)
+                    if points.count >= 3 {
+                        strokeGeom = Polygon(points).stroked(width: scaledWidth, alignment: .centered, style: join)
+                    } else {
+                        strokeGeom = Polygon(subpath.bezierPath).stroked(width: scaledWidth, alignment: .centered, style: join)
+                    }
+                } else {
+                    strokeGeom = subpath.bezierPath.stroked(width: scaledWidth, alignment: .centered, style: join)
+                }
+                geometries.append(
+                    strokeGeom
+                        .withLineCapStyle(cap)
+                        .withMiterLimit(stroke.miterLimit)
+                )
+            }
         }
 
-        guard !geometries.isEmpty else { return Empty() }
+        guard !geometries.isEmpty else { return nil }
         return geometries.count == 1 ? geometries[0] : Union(geometries)
     }
 
-    private static func subpaths(from path: SVGGeometryDocument.Path, segmentation: Segmentation) -> [SVGSubpath] {
-        var results: [SVGSubpath] = []
-        var currentPath: BezierPath2D?
-
-        for segment in path.segments {
-            switch segment {
-            case let .move(to: point):
-                if let path = currentPath {
-                    results.append(.init(path: path, isClosed: false, segmentation: segmentation))
-                }
-                currentPath = BezierPath2D(startPoint: vector(from: point))
-
-            case let .line(to: point):
-                guard let path = currentPath else { continue }
-                currentPath = path.addingLine(to: vector(from: point))
-
-            case let .cubic(to: point, control1: control1, control2: control2):
-                guard let path = currentPath else { continue }
-                currentPath = path.addingCubicCurve(
-                    controlPoint1: vector(from: control1),
-                    controlPoint2: vector(from: control2),
-                    end: vector(from: point)
-                )
-
-            case .close:
-                guard let path = currentPath else { continue }
-                results.append(.init(path: path.closed(), isClosed: true, segmentation: segmentation))
-                currentPath = nil
-            }
-        }
-
-        if let path = currentPath {
-            results.append(.init(path: path, isClosed: false, segmentation: segmentation))
-        }
-
-        return results
+    func finalizeDocument(shapes: [any Geometry2D], size: (width: Double, height: Double)) -> any Geometry2D {
+        guard !shapes.isEmpty else { return Empty() }
+        return shapes.count == 1 ? shapes[0] : Union(shapes)
     }
-
-    private static func vector(from point: SVGGeometryDocument.Point) -> Vector2D {
-        .init(x: point.x, y: point.y)
-    }
-
-    private static func fillRule(from rule: SVGGeometryDocument.FillRule) -> FillRule {
-        switch rule {
-        case .nonZero:
-            return .nonZero
-        case .evenOdd:
-            return .evenOdd
-        }
-    }
-
-    private static func lineJoin(from join: SVGGeometryDocument.LineJoin) -> LineJoinStyle {
-        switch join {
-        case .miter:
-            return .miter
-        case .round:
-            return .round
-        case .bevel:
-            return .bevel
-        }
-    }
-
-    private static func lineCap(from cap: SVGGeometryDocument.LineCap) -> LineCapStyle {
-        switch cap {
-        case .butt:
-            return .butt
-        case .round:
-            return .round
-        case .square:
-            return .square
-        }
-    }
-
 }
 
-private struct SVGSubpath {
-    let path: BezierPath2D
-    let isClosed: Bool
-    let points: [Vector2D]?
+// MARK: - Path Builder
 
-    init(path: BezierPath2D, isClosed: Bool, segmentation: Segmentation) {
-        self.path = path
-        self.isClosed = isClosed
-        self.points = isClosed ? path.points(segmentation: segmentation) : nil
+private struct CadovaPathBuilder: SVGPathBuilder {
+    let scale: Double
+    private var subpaths: [CadovaSVGConsumer.Subpath] = []
+    private var currentPath: BezierPath2D?
+
+    init(scale: Double) {
+        self.scale = scale
+    }
+
+    mutating func move(to point: Vector2D) {
+        finishCurrentSubpath(closed: false)
+        currentPath = BezierPath2D(startPoint: point)
+    }
+
+    mutating func line(to point: Vector2D) {
+        guard let path = currentPath else { return }
+        currentPath = path.addingLine(to: point)
+    }
+
+    mutating func cubic(to end: Vector2D, control1: Vector2D, control2: Vector2D) {
+        guard let path = currentPath else { return }
+        currentPath = path.addingCubicCurve(controlPoint1: control1, controlPoint2: control2, end: end)
+    }
+
+    mutating func close() {
+        if let path = currentPath {
+            subpaths.append(.init(bezierPath: path.closed(), isClosed: true))
+            currentPath = nil
+        }
+    }
+
+    private mutating func finishCurrentSubpath(closed: Bool) {
+        if let path = currentPath {
+            subpaths.append(.init(bezierPath: path, isClosed: closed))
+            currentPath = nil
+        }
+    }
+
+    func build() -> [CadovaSVGConsumer.Subpath] {
+        var result = subpaths
+        if let path = currentPath {
+            result.append(.init(bezierPath: path, isClosed: false))
+        }
+        return result
+    }
+}
+
+// MARK: - Enum Conversions
+
+private extension FillRule {
+    init(from svgRule: SVGFillRule) {
+        switch svgRule {
+        case .nonZero:
+            self = .nonZero
+        case .evenOdd:
+            self = .evenOdd
+        }
+    }
+}
+
+private extension LineJoinStyle {
+    init(from svgJoin: SVGLineJoin) {
+        switch svgJoin {
+        case .miter:
+            self = .miter
+        case .round:
+            self = .round
+        case .bevel:
+            self = .bevel
+        }
+    }
+}
+
+private extension LineCapStyle {
+    init(from svgCap: SVGLineCap) {
+        switch svgCap {
+        case .butt:
+            self = .butt
+        case .round:
+            self = .round
+        case .square:
+            self = .square
+        }
     }
 }
