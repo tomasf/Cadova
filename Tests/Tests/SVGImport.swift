@@ -24,4 +24,15 @@ struct SVGImportTests {
         #expect(bounds!.minimum ≈ [-1, -1])
         #expect(bounds!.maximum ≈ [11, 11])
     }
+
+    @Test func `SVG import converts text`() async throws {
+        let url = Bundle.module.url(forResource: "svg_text", withExtension: "svg", subdirectory: "resources")!
+        let geometry = SVGImport(svg: url, unitMode: .pixels)
+        let bounds = try await geometry.bounds
+
+        #expect(bounds != nil)
+        // Text should have some bounds - exact values depend on font metrics
+        #expect(bounds!.size.x > 0)
+        #expect(bounds!.size.y > 0)
+    }
 }

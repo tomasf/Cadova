@@ -3,8 +3,8 @@ internal import SwiftDraw
 
 /// Imports 2D geometry from an SVG file.
 ///
-/// The SVG is parsed using SwiftDraw and converted into filled polygons and stroked outlines.
-/// Unsupported SVG features such as filters, masks, and text are ignored.
+/// The SVG is parsed using SwiftDraw and converted into filled polygons, stroked outlines, and text.
+/// Unsupported SVG features such as filters and masks are ignored.
 public struct SVGImport: Shape2D {
     private let url: URL
     private let unitMode: UnitMode
@@ -141,6 +141,22 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
 
         guard !geometries.isEmpty else { return nil }
         return geometries.count == 1 ? geometries[0] : Union(geometries)
+    }
+
+    func makeText(info: SVGTextInfo) -> (any Geometry2D)? {
+        guard !info.content.isEmpty else { return nil }
+
+        let alignment: HorizontalTextAlignment = switch info.anchor {
+        case .start: .left
+        case .middle: .center
+        case .end: .right
+        }
+
+        return Text(info.content)
+            .withFont(info.fontName, size: info.fontSize * scale)
+            .withTextAlignment(horizontal: alignment)
+            .scaled(x: 1, y: -1)
+            .translated(x: info.position.x * scale, y: info.position.y * scale)
     }
 
     func finalizeDocument(shapes: [any Geometry2D], size: (width: Double, height: Double)) -> any Geometry2D {
