@@ -4,7 +4,7 @@ internal import ThreeMF
 /// Loads 3MF files into mesh data.
 internal struct ThreeMFLoader {
     let url: URL
-    let parts: [Import.PartIdentifier]?
+    let parts: [Import<D3>.PartIdentifier]?
 
     func load() async throws -> D3.Node {
         let loadedModel = try await ModelLoader(url: url).load()
@@ -16,13 +16,13 @@ internal struct ThreeMFLoader {
 }
 
 internal extension ModelLoader.LoadedModel {
-    func loadedItems(for identifiers: [Import.PartIdentifier]?) throws -> [LoadedItem] {
+    func loadedItems(for identifiers: [Import<D3>.PartIdentifier]?) throws -> [LoadedItem] {
         var remainingItems = items
         guard let identifiers else { return remainingItems }
 
         return try identifiers.map { identifier in
             guard let itemIndex = remainingItems.firstIndex(where: { $0.matches(identifier) }) else {
-                throw Import.Error.missingPart(identifier)
+                throw Import<D3>.ModelError.missingPart(identifier)
             }
             return remainingItems.remove(at: itemIndex)
         }
@@ -30,7 +30,7 @@ internal extension ModelLoader.LoadedModel {
 }
 
 internal extension ModelLoader.LoadedModel.LoadedItem {
-    func matches(_ identifier: Import.PartIdentifier) -> Bool {
+    func matches(_ identifier: Import<D3>.PartIdentifier) -> Bool {
         switch identifier {
         case .name (let name): rootObject.name == name
         case .partNumber (let partNumber): item.partNumber == partNumber

@@ -88,8 +88,8 @@ struct ImportTests {
         // Attempting to import with parts should fail with partsNotSupported error
         do {
             _ = try await Import(model: tempURL, parts: [.name("test")]).measurements
-            Issue.record("Expected Import.Error.partsNotSupported to be thrown")
-        } catch let error as Import.Error {
+            Issue.record("Expected Import<D3>.ModelError.partsNotSupported to be thrown")
+        } catch let error as Import<D3>.ModelError {
             switch error {
             case .partsNotSupported:
                 break // Expected

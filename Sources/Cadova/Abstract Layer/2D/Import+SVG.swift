@@ -1,14 +1,39 @@
 import Foundation
 internal import SwiftDraw
 
-/// Imports 2D geometry from an SVG file.
-///
-/// The SVG is parsed using SwiftDraw and converted into filled polygons, stroked outlines, and text.
-/// Unsupported SVG features such as filters and masks are ignored.
-public struct SVGImport: Shape2D {
-    private let url: URL
-    private let unitMode: UnitMode
-    private let origin: Origin
+// MARK: - 2D (SVG) Support
+
+extension Import where D == D2 {
+    /// Creates a new SVG import from a file URL.
+    ///
+    /// - Parameters:
+    ///   - url: The file URL to the SVG document.
+    ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
+    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
+    public init(svg url: URL, unitMode: UnitMode = .physical, origin: Origin = .bottomLeft) {
+        self.init {
+            readEnvironment(\.scaledSegmentation) { segmentation in
+                CachedNode(name: "import-svg", parameters: url, unitMode, origin, segmentation) {
+                    let consumer = CadovaSVGConsumer(segmentation: segmentation, unitMode: unitMode, origin: origin)
+                    do {
+                        return try SVG.extractShapes(from: url, using: consumer)
+                    } catch {
+                        throw SVGError.invalidSVG
+                    }
+                }
+            }
+        }
+    }
+
+    /// Creates a new SVG import from a file path.
+    ///
+    /// - Parameters:
+    ///   - path: A file path to the SVG document. Can be relative or absolute.
+    ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
+    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
+    public init(svg path: String, unitMode: UnitMode = .physical, origin: Origin = .bottomLeft) {
+        self.init(svg: URL(expandingFilePath: path, extension: nil, relativeTo: nil), unitMode: unitMode, origin: origin)
+    }
 
     /// Controls how SVG units are interpreted when importing.
     public enum UnitMode: Hashable, Sendable, Codable {
@@ -32,58 +57,24 @@ public struct SVGImport: Shape2D {
         case topLeft
     }
 
-    /// Creates a new SVG import from a file URL.
-    ///
-    /// - Parameters:
-    ///   - url: The file URL to the SVG document.
-    ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
-    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
-    public init(svg url: URL, unitMode: UnitMode = .physical, origin: Origin = .bottomLeft) {
-        self.url = url
-        self.unitMode = unitMode
-        self.origin = origin
-    }
-
-    /// Creates a new SVG import from a file path.
-    ///
-    /// - Parameters:
-    ///   - path: A file path to the SVG document. Can be relative or absolute.
-    ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
-    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
-    public init(svg path: String, unitMode: UnitMode = .physical, origin: Origin = .bottomLeft) {
-        self.init(svg: URL(expandingFilePath: path, extension: nil, relativeTo: nil), unitMode: unitMode, origin: origin)
-    }
-
-    public enum Error: Swift.Error {
+    /// Errors that can occur when importing an SVG.
+    public enum SVGError: Swift.Error {
         case invalidSVG
-    }
-
-    public var body: any Geometry2D {
-        readEnvironment(\.scaledSegmentation) { segmentation in
-            CachedNode(name: "import-svg", parameters: url, unitMode, origin, segmentation) {
-                let consumer = CadovaSVGConsumer(segmentation: segmentation, unitMode: unitMode, origin: origin)
-                do {
-                    return try SVG.extractShapes(from: url, using: consumer)
-                } catch {
-                    throw Error.invalidSVG
-                }
-            }
-        }
     }
 }
 
-// MARK: - Consumer Implementation
+// MARK: - SVG Consumer Implementation
 
 /// Cadova's consumer that produces Geometry2D directly.
 private struct CadovaSVGConsumer: SVGShapeConsumer {
     let segmentation: Segmentation
     let scale: Double
-    let origin: SVGImport.Origin
+    let origin: Import<D2>.Origin
 
     /// Pixels per millimeter according to the SVG/CSS standard (96 pixels per inch).
     private static let pixelsPerMillimeter = 96.0 / 25.4
 
-    init(segmentation: Segmentation, unitMode: SVGImport.UnitMode, origin: SVGImport.Origin) {
+    init(segmentation: Segmentation, unitMode: Import<D2>.UnitMode, origin: Import<D2>.Origin) {
         self.segmentation = segmentation
         self.scale = switch unitMode {
         case .physical:
@@ -193,7 +184,7 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
     }
 }
 
-// MARK: - Path Builder
+// MARK: - SVG Path Builder
 
 private struct CadovaPathBuilder: SVGPathBuilder {
     let scale: Double

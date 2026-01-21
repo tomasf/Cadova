@@ -1,33 +1,8 @@
 import Foundation
 
-/// Imports geometry from an external 3D model file.
-///
-/// Use `Import` to bring in geometry from existing models. Supported formats are detected automatically
-/// based on file contents:
-/// - **3MF**: Full support including part selection by name or part number
-/// - **STL**: Binary and ASCII formats (single mesh, no part selection)
-///
-/// ```swift
-/// Import(model: "fixtures/handle.3mf")
-/// Import(model: "fixtures/bracket.stl")
-/// ```
-///
-/// For 3MF files, you can import individual parts by object name or part number:
-///
-/// ```swift
-/// Import(
-///     model: "fixtures/handle.3mf",
-///     parts: [
-///         .name("Knob"),
-///         .partNumber("1234-XYZ")
-///     ]
-/// )
-/// ```
-///
-public struct Import: Shape3D {
-    private let url: URL
-    private let parts: [PartIdentifier]?
+// MARK: - 3D (Model) Support
 
+extension Import where D == D3 {
     /// Creates a new imported shape from a model file URL.
     ///
     /// The file format is detected automatically from the file contents.
@@ -38,8 +13,23 @@ public struct Import: Shape3D {
     ///     If omitted, all parts are imported.
     ///
     public init(model url: URL, parts: [PartIdentifier]? = nil) {
-        self.url = url
-        self.parts = parts
+        self.init {
+            CachedNode(name: "import", parameters: url, parts) { _ in
+                guard let format = try ModelFileFormat.detect(at: url) else {
+                    throw ModelError.unrecognizedFormat
+                }
+
+                switch format {
+                case .threeMF:
+                    return try await ThreeMFLoader(url: url, parts: parts).load()
+                case .stlBinary, .stlASCII:
+                    if parts != nil {
+                        throw ModelError.partsNotSupported
+                    }
+                    return try STLLoader(url: url).load()
+                }
+            }
+        }
     }
 
     /// Creates a new imported shape from a file path.
@@ -67,10 +57,10 @@ public struct Import: Shape3D {
         case partNumber (String)
     }
 
-    /// Errors that can occur when importing a model.
-    public enum Error: Swift.Error {
+    /// Errors that can occur when importing a 3D model.
+    public enum ModelError: Swift.Error {
         /// A requested part was not found in the model.
-        case missingPart (Import.PartIdentifier)
+        case missingPart (Import<D3>.PartIdentifier)
 
         /// Part selection was requested for a format that does not support it (e.g., STL).
         case partsNotSupported
@@ -86,24 +76,6 @@ public struct Import: Shape3D {
                 "Part selection is only supported for 3MF files. STL files contain a single mesh."
             case .unrecognizedFormat:
                 "The file format could not be recognized. Supported formats are 3MF and STL."
-            }
-        }
-    }
-
-    public var body: any Geometry3D {
-        CachedNode(name: "import", parameters: url, parts) { _ in
-            guard let format = try ModelFileFormat.detect(at: url) else {
-                throw Error.unrecognizedFormat
-            }
-
-            switch format {
-            case .threeMF:
-                return try await ThreeMFLoader(url: url, parts: parts).load()
-            case .stlBinary, .stlASCII:
-                if parts != nil {
-                    throw Error.partsNotSupported
-                }
-                return try STLLoader(url: url).load()
             }
         }
     }
