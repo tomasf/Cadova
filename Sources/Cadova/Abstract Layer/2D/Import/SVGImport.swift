@@ -155,13 +155,17 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
         return Text(info.content)
             .withFont(info.fontName, size: info.fontSize * scale)
             .withTextAlignment(horizontal: alignment)
-            .scaled(x: 1, y: -1)
+            .scaled(x: 1, y: -1)  // Pre-flip so text is readable after global Y-flip
             .translated(x: info.position.x * scale, y: info.position.y * scale)
     }
 
     func finalizeDocument(shapes: [any Geometry2D], size: (width: Double, height: Double)) -> any Geometry2D {
         guard !shapes.isEmpty else { return Empty() }
-        return shapes.count == 1 ? shapes[0] : Union(shapes)
+        let content: any Geometry2D = shapes.count == 1 ? shapes[0] : Union(shapes)
+        // Flip Y axis: SVG uses Y-down, Cadova uses Y-up
+        return content
+            .scaled(x: 1, y: -1)
+            .translated(y: size.height * scale)
     }
 }
 

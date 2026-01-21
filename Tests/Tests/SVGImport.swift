@@ -11,8 +11,8 @@ struct SVGImportTests {
 
         #expect(area.equals(100 + 25 * Double.pi, within: 0.05))
         #expect(bounds != nil)
-        #expect(bounds!.minimum ≈ [0, 0])
-        #expect(bounds!.maximum ≈ [20, 10])
+        #expect(bounds!.minimum ≈ [0, 10])
+        #expect(bounds!.maximum ≈ [20, 20])
     }
 
     @Test func `SVG import converts stroked paths`() async throws {
@@ -21,8 +21,8 @@ struct SVGImportTests {
         let bounds = try await geometry.bounds
 
         #expect(bounds != nil)
-        #expect(bounds!.minimum ≈ [-1, -1])
-        #expect(bounds!.maximum ≈ [11, 11])
+        #expect(bounds!.minimum ≈ [-1, 9])
+        #expect(bounds!.maximum ≈ [11, 21])
     }
 
     @Test func `SVG import converts text`() async throws {
