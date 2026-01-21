@@ -77,3 +77,14 @@ public extension Polygon {
         Self([.zero, [x, 0], [0, y]])
     }
 }
+
+public extension ParametricCurve where V == Vector2D {
+    /// Converts the curve into a filled 2D polygon.
+    ///
+    /// The curve is sampled and used to create a ``Polygon``, which represents the filled interior of the curve.
+    ///
+    /// - Returns: A polygon representing the filled shape of the curve.
+    func filled() -> Polygon {
+        Polygon(self)
+    }
+}

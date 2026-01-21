@@ -95,19 +95,8 @@ public struct Model: Sendable {
         let directives = inheritedEnvironment.whileCurrent {
             self.directives()
         }
-        let localOptions: ModelOptions = [
-            .init(ModelName(name: name)),
-            inheritedOptions ?? [],
-            options,
-            .init(directives.compactMap(\.options))
-        ]
-
-        var mutatingEnvironment = inheritedEnvironment
-        for builder in directives.compactMap(\.environment) {
-            builder(&mutatingEnvironment)
-        }
-        mutatingEnvironment.modelOptions = localOptions
-        let environment = mutatingEnvironment
+        let options = self.options.adding(modelName: name, defaults: inheritedOptions, directives: directives)
+        let environment = inheritedEnvironment.adding(directives: directives, modelOptions: options)
 
         let baseURL: URL
         if let parent = directory {
@@ -116,31 +105,24 @@ public struct Model: Sendable {
             baseURL = URL(expandingFilePath: name)
         }
 
-        let geometries3D = directives.compactMap(\.geometry3D)
-        let geometries2D = directives.compactMap(\.geometry2D)
         let provider: OutputDataProvider
 
         do {
-            if geometries3D.count > 0 {
-                let promotedFrom2D = geometries2D.map { $0.promotedTo3D() }
-                let result = try await generateResult(for: Union(geometries3D + promotedFrom2D), in: environment, context: context)
-
-                switch localOptions[ModelOptions.FileFormat3D.self] {
-                case .threeMF: provider = ThreeMFDataProvider(result: result, options: localOptions)
-                case .stl: provider = BinarySTLDataProvider(result: result, options: localOptions)
-                }
-
-            } else if geometries2D.count > 0 {
-                let result = try await generateResult(for: Union(geometries2D), in: environment, context: context)
-
-                switch localOptions[ModelOptions.FileFormat2D.self] {
-                case .threeMF: provider = ThreeMFDataProvider(result: result.promotedTo3D(), options: localOptions)
-                case .svg: provider = SVGDataProvider(result: result, options: localOptions)
-                }
-            } else {
-                logger.warning("No geometry for model \"\(name)\"")
-                return nil
+            let warnings: [BuildWarning]
+            (provider, warnings) = try await ContinuousClock().measure {
+                try await directives.build(with: options, in: environment, context: context)
+            } results: { duration, _ in
+                logger.debug("Built geometry node tree in \(duration)")
             }
+
+            for warning in warnings {
+                logger.warning("⚠️ \(warning.description)")
+            }
+
+        } catch BuildError.noGeometry {
+            logger.error("No geometry for model \"\(name)\"")
+            return nil
+
         } catch {
             logger.error("Cadova caught an error while evaluating model \"\(name)\":\n🛑 \(error)\n")
             return nil
@@ -158,21 +140,6 @@ public struct Model: Sendable {
 
         return fileExisted ? nil : url
     }
-
-    private func generateResult<D: Dimensionality>(
-        for geometry: D.Geometry,
-        in environment: EnvironmentValues,
-        context: EvaluationContext
-    ) async throws -> BuildResult<D> {
-        let result = try await ContinuousClock().measure {
-            try await context.buildModelResult(for: geometry, in: environment)
-        } results: { duration, _ in
-            logger.debug("Built geometry node tree in \(duration)")
-        }
-
-        result.printWarnings(modelName: name)
-        return result
-    }
 }
 
 extension Error {
@@ -182,20 +149,5 @@ extension Error {
         } else {
             String(describing: self)
         }
-    }
-}
-
-fileprivate extension Geometry2D {
-    func promotedTo3D() -> any Geometry3D {
-        extruded(height: 0.001)
-    }
-}
-
-fileprivate extension BuildResult {
-    func printWarnings(modelName: String) {
-        if hasOnly {
-            logger.warning("⚠️ Model \"\(modelName)\" uses only() modifier; saving a partial geometry tree")
-        }
-        elements[ReferenceState.self].printWarningsAtTopLevel()
     }
 }

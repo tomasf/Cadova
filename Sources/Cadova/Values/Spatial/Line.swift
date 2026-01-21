@@ -143,6 +143,11 @@ public extension Line<D2> {
         Line(point: point + direction.clockwiseNormal.unitVector * amount, direction: direction)
     }
 
+    /// Returns the same line with its direction reversed.
+    var flipped: Self {
+        Line(point: point, direction: direction.opposite)
+    }
+
     /// A line extending along the X axis from the origin.
     static let x = Line(axis: .x)
     /// A line extending along the Y axis from the origin.

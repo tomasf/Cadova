@@ -107,15 +107,13 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
         var leftPoints = offsetPolyline(
             points: filteredPoints,
             offset: leftOffset,
-            isLeft: true,
             style: style,
             segmentation: segmentation,
             miterLimit: miterLimit
         )
         var rightPoints = offsetPolyline(
             points: filteredPoints,
-            offset: rightOffset,
-            isLeft: false,
+            offset: -rightOffset,
             style: style,
             segmentation: segmentation,
             miterLimit: miterLimit
@@ -142,72 +140,6 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
             rightOffset: rightOffset,
             epsilon: epsilon
         )
-    }
-
-    private func offsetPolyline(
-        points: [Vector2D],
-        offset: Double,
-        isLeft: Bool,
-        style: LineJoinStyle,
-        segmentation: Segmentation,
-        miterLimit: Double
-    ) -> [Vector2D] {
-        let epsilon = 1e-9
-        guard offset > 0 else { return points }
-
-        let (directions, normals) = polylineVectors(points: points, isLeft: isLeft)
-        let segmentCount = directions.count
-
-        var result: [Vector2D] = []
-        appendIfDistinct(&result, points[0] + normals[0].unitVector * offset, tolerance: epsilon)
-
-        for i in 1..<(points.count - 1) {
-            let prevDir = directions[i - 1]
-            let nextDir = directions[i]
-            let cross = prevDir.unitVector × nextDir.unitVector
-            let prevNormal = normals[i - 1]
-            let nextNormal = normals[i]
-            let prevOffsetPoint = points[i] + prevNormal.unitVector * offset
-            let nextOffsetPoint = points[i] + nextNormal.unitVector * offset
-
-            if abs(cross) <= epsilon {
-                appendIfDistinct(&result, prevOffsetPoint, tolerance: epsilon)
-                continue
-            }
-
-            let isOuter = isLeft ? cross < 0 : cross > 0
-            let prevLine = Line(point: prevOffsetPoint, direction: prevDir)
-            let nextLine = Line(point: nextOffsetPoint, direction: nextDir)
-            let intersection = prevLine.intersection(with: nextLine)
-
-            if isOuter == false {
-                appendInnerJoin(
-                    result: &result,
-                    intersection: intersection,
-                    fallback: prevOffsetPoint,
-                    tolerance: epsilon
-                )
-                continue
-            }
-
-            appendOuterJoin(
-                result: &result,
-                intersection: intersection,
-                prevOffsetPoint: prevOffsetPoint,
-                nextOffsetPoint: nextOffsetPoint,
-                prevDir: prevDir,
-                nextDir: nextDir,
-                center: points[i],
-                offset: offset,
-                style: style,
-                segmentation: segmentation,
-                miterLimit: miterLimit,
-                tolerance: epsilon
-            )
-        }
-
-        appendIfDistinct(&result, points[points.count - 1] + normals[segmentCount - 1].unitVector * offset, tolerance: epsilon)
-        return result
     }
 
     private func strokeOffsets() -> (left: Double, right: Double) {
@@ -320,99 +252,6 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
         appendPoints(&outline, Array(arc.dropFirst()), tolerance: epsilon)
     }
 
-    private func polylineVectors(
-        points: [Vector2D],
-        isLeft: Bool
-    ) -> (directions: [Direction2D], normals: [Direction2D]) {
-        let segmentCount = points.count - 1
-        var directions: [Direction2D] = []
-        var normals: [Direction2D] = []
-        directions.reserveCapacity(segmentCount)
-        normals.reserveCapacity(segmentCount)
-
-        for i in 0..<segmentCount {
-            let direction = Direction2D(points[i + 1] - points[i])
-            let normal = isLeft ? direction.counterclockwiseNormal : direction.clockwiseNormal
-            directions.append(direction)
-            normals.append(normal)
-        }
-
-        return (directions, normals)
-    }
-
-    private func appendInnerJoin(
-        result: inout [Vector2D],
-        intersection: Vector2D?,
-        fallback: Vector2D,
-        tolerance: Double
-    ) {
-        if let intersection {
-            appendIfDistinct(&result, intersection, tolerance: tolerance)
-        } else {
-            appendIfDistinct(&result, fallback, tolerance: tolerance)
-        }
-    }
-
-    private func appendOuterJoin(
-        result: inout [Vector2D],
-        intersection: Vector2D?,
-        prevOffsetPoint: Vector2D,
-        nextOffsetPoint: Vector2D,
-        prevDir: Direction2D,
-        nextDir: Direction2D,
-        center: Vector2D,
-        offset: Double,
-        style: LineJoinStyle,
-        segmentation: Segmentation,
-        miterLimit: Double,
-        tolerance: Double
-    ) {
-        switch style {
-        case .miter:
-            if let intersection {
-                if (intersection - center).magnitude <= miterLimit * offset {
-                    appendIfDistinct(&result, intersection, tolerance: tolerance)
-                } else {
-                    appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
-                    appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
-                }
-            } else {
-                appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
-            }
-
-        case .bevel:
-            appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
-            appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
-
-        case .square:
-            // Position the flat edge so its midpoint is exactly offset distance from center
-            let bisector = Direction2D(bisecting: prevOffsetPoint - center, nextOffsetPoint - center)
-            let edgeMidpoint = center + bisector.unitVector * offset
-            let edgeLine = Line(point: edgeMidpoint, direction: bisector.counterclockwiseNormal)
-            let prevLine = Line(point: prevOffsetPoint, direction: prevDir)
-            let nextLine = Line(point: nextOffsetPoint, direction: nextDir)
-            if let p1 = edgeLine.intersection(with: prevLine),
-               let p2 = edgeLine.intersection(with: nextLine) {
-                appendIfDistinct(&result, p1, tolerance: tolerance)
-                appendIfDistinct(&result, p2, tolerance: tolerance)
-            } else {
-                // Fall back to bevel if intersection fails
-                appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
-                appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
-            }
-
-        case .round:
-            let arc = arcPointsShortest(
-                center: center,
-                radius: offset,
-                startAngle: atan2(prevOffsetPoint - center),
-                endAngle: atan2(nextOffsetPoint - center),
-                segmentation: segmentation
-            )
-            appendPoints(&result, Array(arc.dropFirst()), tolerance: tolerance)
-        }
-    }
-
     private func arcPoints(
         center: Vector2D,
         radius: Double,
@@ -434,49 +273,5 @@ private struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
             let angle = startAngle + sweep * t
             return center + Vector2D(cos(angle), sin(angle)) * radius
         }
-    }
-
-    private func arcPointsShortest(
-        center: Vector2D,
-        radius: Double,
-        startAngle: Angle,
-        endAngle: Angle,
-        segmentation: Segmentation
-    ) -> [Vector2D] {
-        let sweep = (endAngle - startAngle).normalized
-        let count = max(segmentation.segmentCount(arcRadius: radius, angle: abs(sweep)), 2)
-        return (0...count).map { index in
-            let t = Double(index) / Double(count)
-            let angle = startAngle + sweep * t
-            return center + Vector2D(cos(angle), sin(angle)) * radius
-        }
-    }
-
-    private func appendPoints(_ target: inout [Vector2D], _ points: [Vector2D], tolerance: Double) {
-        for point in points {
-            appendIfDistinct(&target, point, tolerance: tolerance)
-        }
-    }
-
-    private func appendIfDistinct(_ target: inout [Vector2D], _ point: Vector2D, tolerance: Double) {
-        guard let last = target.last else {
-            target.append(point)
-            return
-        }
-        if (last - point).magnitude > tolerance {
-            target.append(point)
-        }
-    }
-
-    private func deduplicated(points: [Vector2D], tolerance: Double) -> [Vector2D] {
-        var result: [Vector2D] = []
-        result.reserveCapacity(points.count)
-        for point in points {
-            if let last = result.last, (last - point).magnitude <= tolerance {
-                continue
-            }
-            result.append(point)
-        }
-        return result
     }
 }
