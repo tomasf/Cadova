@@ -105,8 +105,8 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
     func makeShape(path: [Subpath], fill: SVGFillInfo?, stroke: SVGStrokeInfo?) -> (any Geometry2D)? {
         var geometries: [any Geometry2D] = []
 
-        // Build fill geometry (ignore paint color/gradient - Cadova only needs shape)
-        if let fill = fill, fill.paint != .none {
+        // Build fill geometry
+        if let fill {
             let fillRule = FillRule(from: fill.rule)
             var polygons: [SimplePolygon] = []
             for subpath in path where subpath.isClosed {
@@ -121,8 +121,8 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
             }
         }
 
-        // Build stroke geometry (ignore paint color/gradient - Cadova only needs shape)
-        if let stroke = stroke, stroke.paint != .none, stroke.width > 0 {
+        // Build stroke geometry
+        if let stroke {
             let join = LineJoinStyle(from: stroke.lineJoin)
             let cap = LineCapStyle(from: stroke.lineCap)
             let scaledWidth = stroke.width * scale
