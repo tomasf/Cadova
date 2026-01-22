@@ -42,10 +42,7 @@ extension Import where D == D3 {
     ///     If omitted, all parts are imported.
     ///
     public init(model path: String, parts: [PartIdentifier]? = nil) {
-        self.init(
-            model: URL(expandingFilePath: path, extension: nil, relativeTo: nil),
-            parts: parts
-        )
+        self.init(model: URL(expandingFilePath: path), parts: parts)
     }
 
     /// Identifies a specific part of a 3MF model to import.

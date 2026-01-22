@@ -5,7 +5,7 @@ import Testing
 struct SVGImportTests {
     @Test func `SVG import converts filled shapes`() async throws {
         let url = Bundle.module.url(forResource: "svg_rect_circle", withExtension: "svg", subdirectory: "resources")!
-        let geometry = Import(svg: url, unitMode: .pixels)
+        let geometry = Import(svg: url, scale: .pixels)
         let area = try await geometry.measurements.area
         let bounds = try await geometry.bounds
 
@@ -17,7 +17,7 @@ struct SVGImportTests {
 
     @Test func `SVG import converts stroked paths`() async throws {
         let url = Bundle.module.url(forResource: "svg_stroke_path", withExtension: "svg", subdirectory: "resources")!
-        let geometry = Import(svg: url, unitMode: .pixels)
+        let geometry = Import(svg: url, scale: .pixels)
         let bounds = try await geometry.bounds
 
         #expect(bounds != nil)
@@ -27,7 +27,7 @@ struct SVGImportTests {
 
     @Test func `SVG import converts text`() async throws {
         let url = Bundle.module.url(forResource: "svg_text", withExtension: "svg", subdirectory: "resources")!
-        let geometry = Import(svg: url, unitMode: .pixels)
+        let geometry = Import(svg: url, scale: .pixels)
         let bounds = try await geometry.bounds
 
         #expect(bounds != nil)

@@ -1,93 +1,23 @@
 import Foundation
 internal import SwiftDraw
 
-// MARK: - 2D (SVG) Support
-
-extension Import where D == D2 {
-    /// Creates a new SVG import from a file URL.
-    ///
-    /// - Parameters:
-    ///   - url: The file URL to the SVG document.
-    ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
-    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
-    public init(svg url: URL, unitMode: UnitMode = .physical, origin: Origin = .bottomLeft) {
-        self.init {
-            readEnvironment(\.scaledSegmentation) { segmentation in
-                CachedNode(name: "import-svg", parameters: url, unitMode, origin, segmentation) {
-                    let consumer = CadovaSVGConsumer(segmentation: segmentation, unitMode: unitMode, origin: origin)
-                    do {
-                        return try SVG.extractShapes(from: url, using: consumer)
-                    } catch {
-                        throw SVGError.invalidSVG
-                    }
-                }
-            }
-        }
-    }
-
-    /// Creates a new SVG import from a file path.
-    ///
-    /// - Parameters:
-    ///   - path: A file path to the SVG document. Can be relative or absolute.
-    ///   - unitMode: How to interpret SVG units. Defaults to `.physical`.
-    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
-    public init(svg path: String, unitMode: UnitMode = .physical, origin: Origin = .bottomLeft) {
-        self.init(svg: URL(expandingFilePath: path, extension: nil, relativeTo: nil), unitMode: unitMode, origin: origin)
-    }
-
-    /// Controls how SVG units are interpreted when importing.
-    public enum UnitMode: Hashable, Sendable, Codable {
-        /// Physical units are preserved: 1mm in SVG becomes 1mm in output.
-        /// Unitless values (pixels) are converted using the SVG standard of 96 pixels per inch.
-        case physical
-
-        /// Unitless values map directly: 1 pixel in SVG becomes 1mm in output.
-        /// Physical units are scaled accordingly (e.g., 1mm in SVG becomes ~3.78mm).
-        case pixels
-    }
-
-    /// Controls how the SVG coordinate system is mapped to Cadova's coordinate system.
-    public enum Origin: Hashable, Sendable, Codable {
-        /// Aligns the SVG's bottom-left corner with the origin and flips the Y axis.
-        /// The SVG appears the same way it does in browsers/editors.
-        case bottomLeft
-
-        /// Keeps the SVG's top-left origin aligned with Cadova's origin.
-        /// Y coordinates are preserved but content appears upside-down compared to browsers.
-        case topLeft
-    }
-
-    /// Errors that can occur when importing an SVG.
-    public enum SVGError: Swift.Error {
-        case invalidSVG
-    }
-}
-
-// MARK: - SVG Consumer Implementation
-
 /// Cadova's consumer that produces Geometry2D directly.
-private struct CadovaSVGConsumer: SVGShapeConsumer {
+internal struct GeometrySVGConsumer: SVGShapeConsumer {
     let segmentation: Segmentation
     let scale: Double
-    let origin: Import<D2>.Origin
+    let origin: Import<D2>.SVGOrigin
 
     /// Pixels per millimeter according to the SVG/CSS standard (96 pixels per inch).
     private static let pixelsPerMillimeter = 96.0 / 25.4
 
-    init(segmentation: Segmentation, unitMode: Import<D2>.UnitMode, origin: Import<D2>.Origin) {
+    init(segmentation: Segmentation, scale: Import<D2>.SVGScale, origin: Import<D2>.SVGOrigin) {
         self.segmentation = segmentation
-        self.scale = switch unitMode {
-        case .physical:
-            1.0 / Self.pixelsPerMillimeter
-        case .pixels:
-            1.0
-        }
         self.origin = origin
+        self.scale = switch scale {
+        case .physical: 1.0 / Self.pixelsPerMillimeter
+        case .pixels: 1.0
+        }
     }
-
-    typealias Point = Vector2D
-    typealias Path = [Subpath]
-    typealias Shape = any Geometry2D
 
     struct Subpath {
         let bezierPath: BezierPath2D
@@ -99,7 +29,7 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
     }
 
     func makePathBuilder() -> any SVGPathBuilder<Vector2D, [Subpath]> {
-        CadovaPathBuilder(scale: scale)
+        GeometrySVGPathBuilder(scale: scale)
     }
 
     func makeShape(path: [Subpath], fill: SVGFillInfo?, stroke: SVGStrokeInfo?) -> (any Geometry2D)? {
@@ -160,7 +90,6 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
         case .end: .right
         }
 
-        // Text is always flipped so it's readable in Cadova's Y-up coordinate system
         return Text(info.content)
             .withFont(info.fontName, size: info.fontSize * scale)
             .withTextAlignment(horizontal: alignment)
@@ -186,9 +115,9 @@ private struct CadovaSVGConsumer: SVGShapeConsumer {
 
 // MARK: - SVG Path Builder
 
-private struct CadovaPathBuilder: SVGPathBuilder {
+private struct GeometrySVGPathBuilder: SVGPathBuilder {
     let scale: Double
-    private var subpaths: [CadovaSVGConsumer.Subpath] = []
+    private var subpaths: [GeometrySVGConsumer.Subpath] = []
     private var currentPath: BezierPath2D?
 
     init(scale: Double) {
@@ -224,50 +153,11 @@ private struct CadovaPathBuilder: SVGPathBuilder {
         }
     }
 
-    func build() -> [CadovaSVGConsumer.Subpath] {
+    func build() -> [GeometrySVGConsumer.Subpath] {
         var result = subpaths
         if let path = currentPath {
             result.append(.init(bezierPath: path, isClosed: false))
         }
         return result
-    }
-}
-
-// MARK: - Enum Conversions
-
-private extension FillRule {
-    init(from svgRule: SVGFillRule) {
-        switch svgRule {
-        case .nonZero:
-            self = .nonZero
-        case .evenOdd:
-            self = .evenOdd
-        }
-    }
-}
-
-private extension LineJoinStyle {
-    init(from svgJoin: SVGLineJoin) {
-        switch svgJoin {
-        case .miter:
-            self = .miter
-        case .round:
-            self = .round
-        case .bevel:
-            self = .bevel
-        }
-    }
-}
-
-private extension LineCapStyle {
-    init(from svgCap: SVGLineCap) {
-        switch svgCap {
-        case .butt:
-            self = .butt
-        case .round:
-            self = .round
-        case .square:
-            self = .square
-        }
     }
 }
