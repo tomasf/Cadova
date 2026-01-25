@@ -11,7 +11,7 @@ let package = Package(
         .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.2.0")),
         .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.1.1")),
-        .package(path: "../Pelagos"),
+        .package(url: "https://github.com/tomasf/Pelagos.git", .upToNextMinor(from: "0.1.0")),
     ],
     targets: [
         .target(
