@@ -1,5 +1,5 @@
 import Foundation
-internal import SwiftDraw
+internal import Pelagos
 
 // MARK: - 2D (SVG) Support
 
@@ -14,7 +14,11 @@ extension Import where D == D2 {
         self.init {
             readEnvironment(\.scaledSegmentation) { segmentation in
                 CachedNode(name: "import-svg", parameters: url, scale, origin, segmentation) {
-                    try SVG.extractShapes(from: url, using: GeometrySVGConsumer(segmentation: segmentation, scale: scale, origin: origin))
+                    let svg = try SVG(url: url)
+                    let renderer = ShapeExtractionRenderer(segmentation: segmentation, scale: scale, origin: origin)
+                    svg.render(with: renderer)
+                    let size = svg.size ?? (width: 100, height: 100)
+                    return renderer.extractedShapes(documentSize: size)
                 }
             }
         }
@@ -50,44 +54,5 @@ extension Import where D == D2 {
         /// Keeps the SVG's top-left origin aligned with Cadova's origin.
         /// Y coordinates are preserved but content appears upside-down compared to browsers.
         case topLeft
-    }
-}
-
-// MARK: - Enum Conversions
-
-internal extension FillRule {
-    init(from svgRule: SVGFillRule) {
-        switch svgRule {
-        case .nonZero:
-            self = .nonZero
-        case .evenOdd:
-            self = .evenOdd
-        }
-    }
-}
-
-internal extension LineJoinStyle {
-    init(from svgJoin: SVGLineJoin) {
-        switch svgJoin {
-        case .miter:
-            self = .miter
-        case .round:
-            self = .round
-        case .bevel:
-            self = .bevel
-        }
-    }
-}
-
-internal extension LineCapStyle {
-    init(from svgCap: SVGLineCap) {
-        switch svgCap {
-        case .butt:
-            self = .butt
-        case .round:
-            self = .round
-        case .square:
-            self = .square
-        }
     }
 }

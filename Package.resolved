@@ -1,5 +1,5 @@
 {
-  "originHash" : "6886627d160cf0ac365cdb0d9709f24cee49b2498d3cf88b0dfbbff531bb9adc",
+  "originHash" : "2981a3fa12ecd964eeb000a91973806962e27a45e2bbfc339b463e3a71abce0f",
   "pins" : [
     {
       "identity" : "apus",
@@ -26,15 +26,6 @@
       "state" : {
         "revision" : "275b8efd1d36d45154759a19e8cad709c2a36c64",
         "version" : "0.4.1"
-      }
-    },
-    {
-      "identity" : "swiftdraw",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/tomasf/SwiftDraw.git",
-      "state" : {
-        "branch" : "shape-extraction",
-        "revision" : "eef03f6048e38b07809668c623573bd8726dd8a1"
       }
     },
     {

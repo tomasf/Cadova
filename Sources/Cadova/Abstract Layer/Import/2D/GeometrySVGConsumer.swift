@@ -1,11 +1,18 @@
 import Foundation
-internal import SwiftDraw
+internal import Pelagos
 
-/// Cadova's consumer that produces Geometry2D directly.
-internal struct GeometrySVGConsumer: SVGShapeConsumer {
+/// A Pelagos renderer that extracts shapes as Cadova geometry instead of drawing.
+internal final class ShapeExtractionRenderer: SVGRenderer {
+    typealias Path = ExtractedPath
+    typealias NativeColor = ResolvedColor
+
     let segmentation: Segmentation
     let scale: Double
     let origin: Import<D2>.SVGOrigin
+
+    private var shapes: [any Geometry2D] = []
+    private var stateStack: [RendererState] = []
+    private var currentState = RendererState()
 
     /// Pixels per millimeter according to the SVG/CSS standard (96 pixels per inch).
     private static let pixelsPerMillimeter = 96.0 / 25.4
@@ -19,85 +26,210 @@ internal struct GeometrySVGConsumer: SVGShapeConsumer {
         }
     }
 
-    struct Subpath {
-        let bezierPath: BezierPath2D
-        let isClosed: Bool
+    // MARK: - State
+
+    private struct RendererState {
+        var transform: Pelagos.AffineTransform = .identity
+        var clipPath: ExtractedPath?
+        var opacity: Double = 1
     }
 
-    func makePoint(x: Double, y: Double) -> Vector2D {
-        Vector2D(x: x * scale, y: y * scale)
+    // MARK: - Path Type
+
+    struct ExtractedPath {
+        var subpaths: [Subpath] = []
+        var currentSubpath: Subpath?
+
+        struct Subpath {
+            var bezierPath: BezierPath2D
+            var isClosed: Bool
+        }
+
+        mutating func finishCurrentSubpath(closed: Bool) {
+            if let subpath = currentSubpath {
+                var finished = subpath
+                finished.isClosed = closed
+                if closed {
+                    finished.bezierPath = finished.bezierPath.closed()
+                }
+                subpaths.append(finished)
+                currentSubpath = nil
+            }
+        }
     }
 
-    func makePathBuilder() -> any SVGPathBuilder<Vector2D, [Subpath]> {
-        GeometrySVGPathBuilder(scale: scale)
+    // MARK: - SVGRenderer Protocol
+
+    func makePath() -> ExtractedPath {
+        ExtractedPath()
     }
 
-    func makeShape(path: [Subpath], fill: SVGFillInfo?, stroke: SVGStrokeInfo?) -> (any Geometry2D)? {
-        var geometries: [any Geometry2D] = []
+    func moveTo(_ path: inout ExtractedPath, x: Double, y: Double) {
+        path.finishCurrentSubpath(closed: false)
+        let point = transformPoint(x: x, y: y)
+        path.currentSubpath = .init(bezierPath: BezierPath2D(startPoint: point), isClosed: false)
+    }
 
-        // Build fill geometry
-        if let fill {
-            let fillRule = FillRule(from: fill.rule)
-            var polygons: [SimplePolygon] = []
-            for subpath in path where subpath.isClosed {
+    func lineTo(_ path: inout ExtractedPath, x: Double, y: Double) {
+        guard var subpath = path.currentSubpath else { return }
+        let point = transformPoint(x: x, y: y)
+        subpath.bezierPath = subpath.bezierPath.addingLine(to: point)
+        path.currentSubpath = subpath
+    }
+
+    func curveTo(_ path: inout ExtractedPath, cp1x: Double, cp1y: Double, cp2x: Double, cp2y: Double, x: Double, y: Double) {
+        guard var subpath = path.currentSubpath else { return }
+        let cp1 = transformPoint(x: cp1x, y: cp1y)
+        let cp2 = transformPoint(x: cp2x, y: cp2y)
+        let end = transformPoint(x: x, y: y)
+        subpath.bezierPath = subpath.bezierPath.addingCubicCurve(controlPoint1: cp1, controlPoint2: cp2, end: end)
+        path.currentSubpath = subpath
+    }
+
+    func quadTo(_ path: inout ExtractedPath, cpx: Double, cpy: Double, x: Double, y: Double) {
+        guard var subpath = path.currentSubpath else { return }
+        let cp = transformPoint(x: cpx, y: cpy)
+        let end = transformPoint(x: x, y: y)
+        subpath.bezierPath = subpath.bezierPath.addingQuadraticCurve(controlPoint: cp, end: end)
+        path.currentSubpath = subpath
+    }
+
+    func closePath(_ path: inout ExtractedPath) {
+        path.finishCurrentSubpath(closed: true)
+    }
+
+    func makeColor(from resolved: ResolvedColor) -> ResolvedColor {
+        resolved
+    }
+
+    func fill(_ path: ExtractedPath, color: ResolvedColor, rule: Pelagos.FillRule) {
+        var finishedPath = path
+        finishedPath.finishCurrentSubpath(closed: false)
+
+        let fillRule = FillRule(from: rule)
+        var polygons: [SimplePolygon] = []
+
+        for subpath in finishedPath.subpaths where subpath.isClosed {
+            let points = subpath.bezierPath.points(segmentation: segmentation)
+            if points.count >= 3 {
+                polygons.append(SimplePolygon(points))
+            }
+        }
+
+        if !polygons.isEmpty {
+            let node = GeometryNode<D2>(.shape2D(.polygons(SimplePolygonList(polygons), fillRule: fillRule)))
+            shapes.append(NodeBasedGeometry(node))
+        }
+    }
+
+    func stroke(_ path: ExtractedPath, color: ResolvedColor, style: StrokeStyle) {
+        var finishedPath = path
+        finishedPath.finishCurrentSubpath(closed: false)
+
+        let join = LineJoinStyle(from: style.join)
+        let cap = LineCapStyle(from: style.cap)
+        let scaledWidth = style.width * scale
+
+        for subpath in finishedPath.subpaths {
+            let strokeGeom: any Geometry2D
+            if subpath.isClosed {
                 let points = subpath.bezierPath.points(segmentation: segmentation)
                 if points.count >= 3 {
-                    polygons.append(SimplePolygon(points))
-                }
-            }
-            if !polygons.isEmpty {
-                let node = GeometryNode<D2>(.shape2D(.polygons(SimplePolygonList(polygons), fillRule: fillRule)))
-                geometries.append(NodeBasedGeometry(node))
-            }
-        }
-
-        // Build stroke geometry
-        if let stroke {
-            let join = LineJoinStyle(from: stroke.lineJoin)
-            let cap = LineCapStyle(from: stroke.lineCap)
-            let scaledWidth = stroke.width * scale
-
-            for subpath in path {
-                let strokeGeom: any Geometry2D
-                if subpath.isClosed {
-                    let points = subpath.bezierPath.points(segmentation: segmentation)
-                    if points.count >= 3 {
-                        strokeGeom = Polygon(points).stroked(width: scaledWidth, alignment: .centered, style: join)
-                    } else {
-                        strokeGeom = Polygon(subpath.bezierPath).stroked(width: scaledWidth, alignment: .centered, style: join)
-                    }
+                    strokeGeom = Polygon(points).stroked(width: scaledWidth, alignment: .centered, style: join)
                 } else {
-                    strokeGeom = subpath.bezierPath.stroked(width: scaledWidth, alignment: .centered, style: join)
+                    strokeGeom = Polygon(subpath.bezierPath).stroked(width: scaledWidth, alignment: .centered, style: join)
                 }
-                geometries.append(
-                    strokeGeom
-                        .withLineCapStyle(cap)
-                        .withMiterLimit(stroke.miterLimit)
-                )
+            } else {
+                strokeGeom = subpath.bezierPath.stroked(width: scaledWidth, alignment: .centered, style: join)
             }
+            shapes.append(
+                strokeGeom
+                    .withLineCapStyle(cap)
+                    .withMiterLimit(style.miterLimit)
+            )
         }
-
-        guard !geometries.isEmpty else { return nil }
-        return geometries.count == 1 ? geometries[0] : Union(geometries)
     }
 
-    func makeText(info: SVGTextInfo) -> (any Geometry2D)? {
-        guard !info.content.isEmpty else { return nil }
+    func strokeGradient(_ path: ExtractedPath, gradient: ResolvedGradient, style: StrokeStyle) {
+        // Gradients are rendered as solid strokes (color information is lost)
+        stroke(path, color: .black, style: style)
+    }
 
-        let alignment: HorizontalTextAlignment = switch info.anchor {
+    func fillGradient(_ path: ExtractedPath, gradient: ResolvedGradient, rule: Pelagos.FillRule) {
+        // Gradients are rendered as solid fills (color information is lost)
+        fill(path, color: .black, rule: rule)
+    }
+
+    func fillPattern(_ path: ExtractedPath, pattern: ResolvedPattern, rule: Pelagos.FillRule) {
+        // Patterns are rendered as solid fills
+        fill(path, color: .black, rule: rule)
+    }
+
+    func drawText(_ text: ResolvedTextContent) {
+        guard let firstRun = text.runs.first, !firstRun.text.isEmpty else { return }
+
+        // Combine all runs into a single string
+        let content = text.runs.map(\.text).joined()
+
+        let alignment: HorizontalTextAlignment = switch text.anchor {
         case .start: .left
         case .middle: .center
         case .end: .right
         }
 
-        return Text(info.content)
-            .withFont(info.fontName, size: info.fontSize * scale)
+        let position = transformPoint(x: text.x, y: text.y)
+        let fontSize = firstRun.fontSize * scale
+
+        let textGeom = Text(content)
+            .withFont(firstRun.fontFamily ?? "Helvetica", size: fontSize)
             .withTextAlignment(horizontal: alignment)
             .flipped(along: .y)
-            .translated(x: info.position.x * scale, y: info.position.y * scale)
+            .translated(x: position.x, y: position.y)
+
+        shapes.append(textGeom)
     }
 
-    func finalizeDocument(shapes: [any Geometry2D], size: (width: Double, height: Double)) -> any Geometry2D {
+    func drawImage(_ image: ResolvedImageContent) {
+        // Images are not supported for geometry extraction
+    }
+
+    func save() {
+        stateStack.append(currentState)
+    }
+
+    func restore() {
+        if let state = stateStack.popLast() {
+            currentState = state
+        }
+    }
+
+    func concatenate(_ transform: Pelagos.AffineTransform) {
+        currentState.transform = currentState.transform.concatenating(transform)
+    }
+
+    func clip(_ path: ExtractedPath, rule: Pelagos.FillRule) {
+        // Clipping is not directly supported, but we store it for potential use
+        var finishedPath = path
+        finishedPath.finishCurrentSubpath(closed: false)
+        currentState.clipPath = finishedPath
+    }
+
+    func setOpacity(_ opacity: Double) {
+        currentState.opacity = opacity
+    }
+
+    // MARK: - Helpers
+
+    private func transformPoint(x: Double, y: Double) -> Vector2D {
+        let t = currentState.transform
+        let tx = t.a * x + t.c * y + t.tx
+        let ty = t.b * x + t.d * y + t.ty
+        return Vector2D(x: tx * scale, y: ty * scale)
+    }
+
+    // MARK: - Result
+
+    func extractedShapes(documentSize: (width: Double, height: Double)) -> any Geometry2D {
         guard !shapes.isEmpty else { return Empty() }
         let content: any Geometry2D = shapes.count == 1 ? shapes[0] : Union(shapes)
 
@@ -106,58 +238,48 @@ internal struct GeometrySVGConsumer: SVGShapeConsumer {
             // Flip Y axis: SVG uses Y-down, Cadova uses Y-up
             return content
                 .flipped(along: .y)
-                .translated(y: size.height * scale)
+                .translated(y: documentSize.height * scale)
         case .topLeft:
             return content
         }
     }
 }
 
-// MARK: - SVG Path Builder
+// MARK: - Enum Conversions
 
-private struct GeometrySVGPathBuilder: SVGPathBuilder {
-    let scale: Double
-    private var subpaths: [GeometrySVGConsumer.Subpath] = []
-    private var currentPath: BezierPath2D?
-
-    init(scale: Double) {
-        self.scale = scale
-    }
-
-    mutating func move(to point: Vector2D) {
-        finishCurrentSubpath(closed: false)
-        currentPath = BezierPath2D(startPoint: point)
-    }
-
-    mutating func line(to point: Vector2D) {
-        guard let path = currentPath else { return }
-        currentPath = path.addingLine(to: point)
-    }
-
-    mutating func cubic(to end: Vector2D, control1: Vector2D, control2: Vector2D) {
-        guard let path = currentPath else { return }
-        currentPath = path.addingCubicCurve(controlPoint1: control1, controlPoint2: control2, end: end)
-    }
-
-    mutating func close() {
-        if let path = currentPath {
-            subpaths.append(.init(bezierPath: path.closed(), isClosed: true))
-            currentPath = nil
+internal extension FillRule {
+    init(from pelagosRule: Pelagos.FillRule) {
+        switch pelagosRule {
+        case .nonzero:
+            self = .nonZero
+        case .evenodd:
+            self = .evenOdd
         }
     }
+}
 
-    private mutating func finishCurrentSubpath(closed: Bool) {
-        if let path = currentPath {
-            subpaths.append(.init(bezierPath: path, isClosed: closed))
-            currentPath = nil
+internal extension LineJoinStyle {
+    init(from pelagosJoin: Pelagos.LineJoin) {
+        switch pelagosJoin {
+        case .miter, .miterClip, .arcs:
+            self = .miter
+        case .round:
+            self = .round
+        case .bevel:
+            self = .bevel
         }
     }
+}
 
-    func build() -> [GeometrySVGConsumer.Subpath] {
-        var result = subpaths
-        if let path = currentPath {
-            result.append(.init(bezierPath: path, isClosed: false))
+internal extension LineCapStyle {
+    init(from pelagosCap: Pelagos.LineCap) {
+        switch pelagosCap {
+        case .butt:
+            self = .butt
+        case .round:
+            self = .round
+        case .square:
+            self = .square
         }
-        return result
     }
 }

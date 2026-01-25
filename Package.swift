@@ -11,7 +11,7 @@ let package = Package(
         .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.2.0")),
         .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.1.1")),
-        .package(url: "https://github.com/tomasf/SwiftDraw.git", branch: "shape-extraction"),
+        .package(path: "../Pelagos"),
     ],
     targets: [
         .target(
@@ -21,7 +21,7 @@ let package = Package(
                 .product(name: "Apus", package: "Apus"),
                 .product(name: "Manifold", package: "manifold-swift"),
                 .product(name: "ThreeMF", package: "ThreeMF"),
-                .product(name: "SwiftDraw", package: "SwiftDraw")
+                .product(name: "Pelagos", package: "Pelagos")
             ],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         ),
