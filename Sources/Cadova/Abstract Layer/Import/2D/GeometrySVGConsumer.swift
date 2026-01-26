@@ -16,7 +16,7 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
     /// Pixels per millimeter according to the SVG/CSS standard (96 pixels per inch).
     private static let pixelsPerMillimeter = 96.0 / 25.4
 
-    init(segmentation: Segmentation, scale: Import<D2>.SVGScale) {
+    init(segmentation: Segmentation, scale: SVGScale) {
         self.segmentation = segmentation
         self.scale = switch scale {
         case .physical: 1.0 / Self.pixelsPerMillimeter
