@@ -8,7 +8,7 @@ import Foundation
 /// **2D (SVG)**
 /// ```swift
 /// Import(svg: "drawing.svg")
-/// Import(svg: url, unitMode: .pixels, origin: .topLeft)
+/// Import(svg: url, scale: .pixels, origin: .native)
 /// ```
 ///
 /// **3D (Models)**

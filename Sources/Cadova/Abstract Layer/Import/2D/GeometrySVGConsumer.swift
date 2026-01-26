@@ -234,12 +234,12 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
         let content: any Geometry2D = shapes.count == 1 ? shapes[0] : Union(shapes)
 
         switch origin {
-        case .bottomLeft:
+        case .flipped:
             // Flip Y axis: SVG uses Y-down, Cadova uses Y-up
             return content
                 .flipped(along: .y)
                 .translated(y: documentSize.height * scale)
-        case .topLeft:
+        case .native:
             return content
         }
     }

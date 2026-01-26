@@ -9,8 +9,8 @@ extension Import where D == D2 {
     /// - Parameters:
     ///   - url: The file URL to the SVG document.
     ///   - scale: How to interpret SVG units. Defaults to `.physical`.
-    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
-    public init(svg url: URL, scale: SVGScale = .physical, origin: SVGOrigin = .bottomLeft) {
+    ///   - origin: How to map the SVG coordinate system. Defaults to `.flipped`.
+    public init(svg url: URL, scale: SVGScale = .physical, origin: SVGOrigin = .flipped) {
         self.init {
             readEnvironment(\.scaledSegmentation) { segmentation in
                 CachedNode(name: "import-svg", parameters: url, scale, origin, segmentation) {
@@ -29,8 +29,8 @@ extension Import where D == D2 {
     /// - Parameters:
     ///   - path: A file path to the SVG document. Can be relative or absolute.
     ///   - scale: How to interpret SVG units. Defaults to `.physical`.
-    ///   - origin: How to map the SVG coordinate system. Defaults to `.bottomLeft`.
-    public init(svg path: String, scale: SVGScale = .physical, origin: SVGOrigin = .bottomLeft) {
+    ///   - origin: How to map the SVG coordinate system. Defaults to `.flipped`.
+    public init(svg path: String, scale: SVGScale = .physical, origin: SVGOrigin = .flipped) {
         self.init(svg: URL(expandingFilePath: path), scale: scale, origin: origin)
     }
 
@@ -47,12 +47,11 @@ extension Import where D == D2 {
 
     /// Controls how the SVG coordinate system is mapped to Cadova's coordinate system.
     public enum SVGOrigin: Hashable, Sendable, Codable {
-        /// Aligns the SVG's bottom-left corner with the origin and flips the Y axis.
-        /// The SVG appears the same way it does in browsers/editors.
-        case bottomLeft
+        /// Flips the Y axis so the SVG appears the same way it does in browsers/editors.
+        case flipped
 
-        /// Keeps the SVG's top-left origin aligned with Cadova's origin.
-        /// Y coordinates are preserved but content appears upside-down compared to browsers.
-        case topLeft
+        /// Preserves the SVG coordinate system as-is.
+        /// Y coordinates are unchanged but content appears inverted compared to browsers.
+        case native
     }
 }
