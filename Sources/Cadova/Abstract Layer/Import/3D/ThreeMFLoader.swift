@@ -2,12 +2,22 @@ import Foundation
 internal import ThreeMF
 
 /// Loads 3MF files into mesh data.
-internal struct ThreeMFLoader {
-    let url: URL
+internal struct ThreeMFLoader<T: Sendable> {
+    let loader: ModelLoader<T>
     let parts: [Import<D3>.PartIdentifier]?
 
+    init(url: URL, parts: [Import<D3>.PartIdentifier]?) where T == URL {
+        self.loader = ModelLoader(url: url)
+        self.parts = parts
+    }
+
+    init(data: Data, parts: [Import<D3>.PartIdentifier]?) where T == Data {
+        self.loader = ModelLoader(data: data)
+        self.parts = parts
+    }
+
     func load() async throws -> D3.Node {
-        let loadedModel = try await ModelLoader(url: url).load()
+        let loadedModel = try await loader.load()
         let loadedItems = try loadedModel.loadedItems(for: parts)
         return D3.Node.boolean(loadedItems.map {
             $0.buildNode(model: loadedModel)

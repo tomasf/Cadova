@@ -45,6 +45,36 @@ extension Import where D == D3 {
         self.init(model: URL(expandingFilePath: path), parts: parts)
     }
 
+    /// Creates a new imported shape from model file data.
+    ///
+    /// The file format is detected automatically from the data.
+    ///
+    /// - Parameters:
+    ///   - data: The data of the model.
+    ///   - parts: An optional list of part identifiers to import. Only supported for 3MF.
+    ///     If omitted, all parts are imported.
+    ///
+    public init<T: DataProtocol>(model data: T, parts: [PartIdentifier]? = nil) {
+        let resolvedData = Data(data)
+        self.init {
+            CachedNode(name: "import", parameters: resolvedData, parts) { _ in
+                guard let format = ModelFileFormat.detect(from: resolvedData) else {
+                    throw ModelError.unrecognizedFormat
+                }
+
+                switch format {
+                case .threeMF:
+                    return try await ThreeMFLoader(data: resolvedData, parts: parts).load()
+                case .stlBinary, .stlASCII:
+                    if parts != nil {
+                        throw ModelError.partsNotSupported
+                    }
+                    return try STLLoader(data: resolvedData).load()
+                }
+            }
+        }
+    }
+
     /// Identifies a specific part of a 3MF model to import.
     public enum PartIdentifier: CacheKey {
         /// Matches an item by the name parameter of its referenced object.
