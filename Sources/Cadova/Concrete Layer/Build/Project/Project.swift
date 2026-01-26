@@ -67,21 +67,18 @@ public func Project(
     options: ModelOptions...,
     @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
 ) async {
-    var environment = EnvironmentValues.defaultEnvironment
+    // Collect directives
+    let directives = await ModelContext(isCollectingModels: true).whileCurrent {
+        await content()
+    }
 
     if let url {
         try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
     }
 
-    // Collect directives
-    let directives = await ModelContext(isCollectingModels: true).whileCurrent {
-        await content()
-    }
     let models = directives.compactMap(\.model)
     let combinedOptions = ModelOptions(options + directives.compactMap(\.options))
-    for builder in directives.compactMap(\.environment) {
-        builder(&environment)
-    }
+    let environment = EnvironmentValues.defaultEnvironment.adding(directives: directives)
 
     // Build models and groups
     let groups = directives.compactMap(\.group)
@@ -89,20 +86,13 @@ public func Project(
     let context = EvaluationContext()
 
     let constantEnvironment = environment
-    var urls: [URL] = []
 
-    for model in models {
-        if let modelUrl = await model.build(environment: constantEnvironment, context: context, options: combinedOptions, URL: url) {
-            urls.append(modelUrl)
-        }
-    }
+    let buildables: [any ModelBuildable] = groups + models
+    let urls = await buildables.asyncMap {
+        await $0.build(environment: constantEnvironment, context: context, options: combinedOptions, URL: url)
+    }.joined()
 
-    for group in groups {
-        let groupUrls = await group.build(environment: constantEnvironment, context: context, options: combinedOptions, URL: url)
-        urls.append(contentsOf: groupUrls)
-    }
-
-    try? Platform.revealFiles(urls)
+    try? Platform.revealFiles(Array(urls))
 }
 
 public func Project(

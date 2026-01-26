@@ -35,12 +35,23 @@ fileprivate extension Geometry2D {
 }
 
 internal extension EnvironmentValues {
-    func adding(directives: [BuildDirective], modelOptions: ModelOptions) -> Self {
+    func adding(directives: [BuildDirective], modelOptions: ModelOptions? = nil) -> Self {
         var mutatingEnvironment = self
         for builder in directives.compactMap(\.environment) {
             builder(&mutatingEnvironment)
         }
-        mutatingEnvironment.modelOptions = modelOptions
+        if let modelOptions {
+            mutatingEnvironment.modelOptions = modelOptions
+        }
         return mutatingEnvironment
     }
+}
+
+internal protocol ModelBuildable: Sendable {
+    func build(
+        environment inheritedEnvironment: EnvironmentValues,
+        context: EvaluationContext,
+        options inheritedOptions: ModelOptions?,
+        URL directory: URL?
+    ) async -> [URL]
 }
