@@ -8,7 +8,6 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
 
     let segmentation: Segmentation
     let scale: Double
-    let origin: Import<D2>.SVGOrigin
 
     private var shapes: [any Geometry2D] = []
     private var stateStack: [RendererState] = []
@@ -17,9 +16,8 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
     /// Pixels per millimeter according to the SVG/CSS standard (96 pixels per inch).
     private static let pixelsPerMillimeter = 96.0 / 25.4
 
-    init(segmentation: Segmentation, scale: Import<D2>.SVGScale, origin: Import<D2>.SVGOrigin) {
+    init(segmentation: Segmentation, scale: Import<D2>.SVGScale) {
         self.segmentation = segmentation
-        self.origin = origin
         self.scale = switch scale {
         case .physical: 1.0 / Self.pixelsPerMillimeter
         case .pixels: 1.0
@@ -189,9 +187,7 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
         shapes.append(textGeom)
     }
 
-    func drawImage(_ image: ResolvedImageContent) {
-        // Images are not supported for geometry extraction
-    }
+    func drawImage(_ image: ResolvedImageContent) {}
 
     func save() {
         stateStack.append(currentState)
@@ -229,19 +225,8 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
 
     // MARK: - Result
 
-    func extractedShapes(documentSize: (width: Double, height: Double)) -> any Geometry2D {
-        guard !shapes.isEmpty else { return Empty() }
-        let content: any Geometry2D = shapes.count == 1 ? shapes[0] : Union(shapes)
-
-        switch origin {
-        case .flipped:
-            // Flip Y axis: SVG uses Y-down, Cadova uses Y-up
-            return content
-                .flipped(along: .y)
-                .translated(y: documentSize.height * scale)
-        case .native:
-            return content
-        }
+    var output: any Geometry2D {
+        Union(shapes)
     }
 }
 

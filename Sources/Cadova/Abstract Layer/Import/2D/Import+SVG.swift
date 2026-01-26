@@ -10,15 +10,27 @@ extension Import where D == D2 {
     ///   - url: The file URL to the SVG document.
     ///   - scale: How to interpret SVG units. Defaults to `.physical`.
     ///   - origin: How to map the SVG coordinate system. Defaults to `.flipped`.
+    ///
     public init(svg url: URL, scale: SVGScale = .physical, origin: SVGOrigin = .flipped) {
         self.init {
             readEnvironment(\.scaledSegmentation) { segmentation in
                 CachedNode(name: "import-svg", parameters: url, scale, origin, segmentation) {
                     let svg = try SVG(url: url)
-                    let renderer = ShapeExtractionRenderer(segmentation: segmentation, scale: scale, origin: origin)
+                    let renderer = ShapeExtractionRenderer(segmentation: segmentation, scale: scale)
+                    let scaleFactor = renderer.scale
                     svg.render(with: renderer)
-                    let size = svg.size ?? (width: 100, height: 100)
-                    return renderer.extractedShapes(documentSize: size)
+
+                    return renderer.output.measuringBounds { output, bounds in
+                        if origin == .flipped {
+                            let size = svg.size.map { Vector2D($0 * scaleFactor, $1 * scaleFactor) } ?? bounds.maximum
+
+                            output
+                                .flipped(along: .y)
+                                .translated(y: size.y)
+                        } else {
+                            output
+                        }
+                    }
                 }
             }
         }
