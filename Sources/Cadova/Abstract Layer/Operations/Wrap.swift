@@ -66,7 +66,7 @@ public extension Geometry2D {
     func wrappedAroundCircle(radius: Double? = nil) -> any Geometry2D {
         measuringBounds { geometry, bounds in
             @Environment(\.scaledSegmentation) var segmentation
-            let innerRadius = radius ?? bounds.maximum.x / .pi
+            let innerRadius = radius ?? bounds.maximum.x / 2 / .pi
             let maximumRadius = innerRadius + bounds.maximum.y
             let segmentLength = (maximumRadius * 2 * .pi) / Double(segmentation.segmentCount(circleRadius: maximumRadius))
             let innerCircumference = innerRadius * 2 * .pi
