@@ -14,12 +14,6 @@ extension Sequence {
             output.map { function($0, input) } ?? input
         }
     }
-
-    func cumulativeCombination(_ function: (Element, Element) -> Element) -> [Element] {
-        reduce([]) {
-            if let last = $0.last { $0 + [function(last, $1)] } else { [$1] }
-        }
-    }
 }
 
 extension Sequence {
@@ -81,20 +75,6 @@ extension Sequence where Element: Sendable {
             }
 
             return results.compactMap { $0 }
-        }
-    }
-
-    @inlinable
-    public func concurrentAsyncForEach(
-        _ operation: @Sendable @escaping (Element) async throws -> Void
-    ) async rethrows {
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            for element in self {
-                group.addTask {
-                    try await operation(element)
-                }
-            }
-            try await group.waitForAll()
         }
     }
 }

@@ -58,7 +58,7 @@ import Foundation
 /// }
 /// ```
 ///
-public struct Group: Sendable {
+public struct Group: Sendable, ModelBuildable {
     let name: String?
     private let directives: @Sendable () async -> [BuildDirective]
     private let options: ModelOptions
@@ -82,7 +82,7 @@ public struct Group: Sendable {
     internal func build(
         environment inheritedEnvironment: EnvironmentValues,
         context: EvaluationContext,
-        options inheritedOptions: ModelOptions,
+        options inheritedOptions: ModelOptions?,
         URL directory: URL?
     ) async -> [URL] {
         let directives = await ModelContext(isCollectingModels: true).whileCurrent {
@@ -90,16 +90,8 @@ public struct Group: Sendable {
                 await self.directives()
             }
         }
-        let combinedOptions = ModelOptions([
-            inheritedOptions,
-            options,
-            .init(directives.compactMap(\.options))
-        ])
-
-        var environment = inheritedEnvironment
-        for builder in directives.compactMap(\.environment) {
-            builder(&environment)
-        }
+        let options = self.options.adding(defaults: inheritedOptions, directives: directives)
+        let environment = inheritedEnvironment.adding(directives: directives)
 
         // Determine output directory
         let outputDirectory: URL?
@@ -117,30 +109,12 @@ public struct Group: Sendable {
         // Build nested content
         let models = directives.compactMap(\.model)
         let groups = directives.compactMap(\.group)
+        let buildables: [any ModelBuildable] = groups + models
 
-        var urls: [URL] = []
+        let urls = await buildables.asyncMap {
+            await $0.build(environment: environment, context: context, options: options, URL: outputDirectory)
+        }.joined()
 
-        for model in models {
-            if let url = await model.build(
-                environment: environment,
-                context: context,
-                options: combinedOptions,
-                URL: outputDirectory
-            ) {
-                urls.append(url)
-            }
-        }
-
-        for group in groups {
-            let groupUrls = await group.build(
-                environment: environment,
-                context: context,
-                options: combinedOptions,
-                URL: outputDirectory
-            )
-            urls.append(contentsOf: groupUrls)
-        }
-
-        return urls
+        return Array(urls)
     }
 }

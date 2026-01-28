@@ -14,7 +14,7 @@ import Foundation
 /// Models can also be grouped within a ``Project`` to share environment settings and metadata
 /// across multiple output files.
 ///
-public struct Model: Sendable {
+public struct Model: Sendable, ModelBuildable {
     let name: String
 
     private let directives: @Sendable () -> [BuildDirective]
@@ -78,7 +78,7 @@ public struct Model: Sendable {
         self.options = .init(options)
 
         if ModelContext.current.isCollectingModels == false {
-            if let url = await build() {
+            if let url = await build().first {
                 try? Platform.revealFiles([url])
             }
         }
@@ -89,7 +89,7 @@ public struct Model: Sendable {
         context: EvaluationContext = .init(),
         options inheritedOptions: ModelOptions? = nil,
         URL directory: URL? = nil
-    ) async -> URL? {
+    ) async -> [URL] {
         logger.info("Generating \"\(name)\"...")
 
         let directives = inheritedEnvironment.whileCurrent {
@@ -106,7 +106,6 @@ public struct Model: Sendable {
         }
 
         let provider: OutputDataProvider
-
         do {
             let warnings: [BuildWarning]
             (provider, warnings) = try await ContinuousClock().measure {
@@ -121,11 +120,11 @@ public struct Model: Sendable {
 
         } catch BuildError.noGeometry {
             logger.error("No geometry for model \"\(name)\"")
-            return nil
+            return []
 
         } catch {
             logger.error("Cadova caught an error while evaluating model \"\(name)\":\n🛑 \(error)\n")
-            return nil
+            return []
         }
 
         let url = baseURL.appendingPathExtension(provider.fileExtension)
@@ -138,7 +137,7 @@ public struct Model: Sendable {
             logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
         }
 
-        return fileExisted ? nil : url
+        return fileExisted ? [] : [url]
     }
 }
 

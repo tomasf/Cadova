@@ -1,5 +1,5 @@
 {
-  "originHash" : "702b175425487c885684f656bb6bf8608e78ed969c310cc7232f2f51ee1f2bc6",
+  "originHash" : "bc14b4c0854fb6d2de3e9366df30ee2589426da0f02fd7f6b658c1ff4f4a0083",
   "pins" : [
     {
       "identity" : "apus",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "275b8efd1d36d45154759a19e8cad709c2a36c64",
         "version" : "0.4.1"
+      }
+    },
+    {
+      "identity" : "pelagos",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tomasf/Pelagos.git",
+      "state" : {
+        "revision" : "f57fe64f4efa0f07fb6cd91da2fdffae81f7eabc",
+        "version" : "0.1.2"
       }
     },
     {

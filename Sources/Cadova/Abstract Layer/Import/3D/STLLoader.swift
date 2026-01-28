@@ -2,16 +2,14 @@ import Foundation
 
 /// Loads STL files (both binary and ASCII formats) into geometry.
 internal struct STLLoader {
-    let url: URL
+    let data: Data
 
-    /// Loads an STL file and returns a geometry node.
-    ///
-    /// - Returns: The loaded geometry node.
-    /// - Throws: `STLLoader.Error` if the file cannot be parsed.
-    ///
-    func load() throws -> D3.Node {
-        let data = try Data(contentsOf: url)
-        return try load(from: data)
+    init(data: Data) {
+        self.data = data
+    }
+
+    init(url: URL) throws {
+        data = try Data(contentsOf: url)
     }
 
     /// Loads STL data and returns a geometry node.
@@ -20,7 +18,7 @@ internal struct STLLoader {
     /// - Returns: The loaded geometry node.
     /// - Throws: `STLLoader.Error` if the data cannot be parsed.
     ///
-    func load(from data: Data) throws -> D3.Node {
+    func load() throws -> D3.Node {
         guard let format = ModelFileFormat.detect(from: data) else {
             throw Error.unrecognizedFormat
         }

@@ -11,6 +11,7 @@ let package = Package(
         .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.2.0")),
         .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.1.1")),
+        .package(url: "https://github.com/tomasf/Pelagos.git", .upToNextMinor(from: "0.1.2")),
     ],
     targets: [
         .target(
@@ -19,7 +20,8 @@ let package = Package(
                 .byName(name: "CadovaCPP"),
                 .product(name: "Apus", package: "Apus"),
                 .product(name: "Manifold", package: "manifold-swift"),
-                .product(name: "ThreeMF", package: "ThreeMF")
+                .product(name: "ThreeMF", package: "ThreeMF"),
+                .product(name: "Pelagos", package: "Pelagos")
             ],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         ),
