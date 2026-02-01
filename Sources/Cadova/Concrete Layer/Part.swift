@@ -36,7 +36,8 @@ public struct Part: Sendable {
     /// The default material applied to geometry in this part that doesn't specify its own material.
     ///
     /// Geometry can override this default using the `colored()` modifier.
-    public let defaultMaterial: Material
+    /// If `nil`, geometry without an explicit material will have no color in the output file.
+    public let defaultMaterial: Material?
 
     /// Creates a new part with a unique identity.
     ///
@@ -47,9 +48,10 @@ public struct Part: Sendable {
     ///   - name: The name of the part as it appears in the 3MF file.
     ///   - semantic: The semantic role of this part. Defaults to `.solid`.
     ///   - material: The default material for geometry that doesn't specify its own.
-    ///     Geometry can override this using the `colored()` modifier. Defaults to white.
+    ///     Geometry can override this using the `colored()` modifier.
+    ///     If `nil`, geometry without an explicit material will have no color in the output file.
     ///
-    public init(_ name: String, semantic: PartSemantic = .solid, material: Material) {
+    public init(_ name: String, semantic: PartSemantic = .solid, material: Material?) {
         self.id = UUID()
         self.name = name
         self.semantic = semantic
@@ -65,9 +67,10 @@ public struct Part: Sendable {
     ///   - name: The name of the part as it appears in the 3MF file.
     ///   - semantic: The semantic role of this part. Defaults to `.solid`.
     ///   - color: The default color for geometry that doesn't specify its own material.
+    ///     If `nil`, geometry without an explicit material will have no color in the output file.
     ///
-    public init(_ name: String, semantic: PartSemantic = .solid, color: Color = .white) {
-        self.init(name, semantic: semantic, material: .plain(color))
+    public init(_ name: String, semantic: PartSemantic = .solid, color: Color? = nil) {
+        self.init(name, semantic: semantic, material: color.map { Material.plain($0) })
     }
 
     /// Creates a new part with a physically-based default material.
