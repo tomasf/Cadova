@@ -49,7 +49,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         let triangleOIDs = TriangleOIDMapping(indexSets: originalIDs)
         let propertyReferencesByOID = materials.mapValues(addMaterial)
-        let defaultProperty = addMaterial(part.defaultMaterial)
+        let defaultProperty = part.defaultMaterial.map(addMaterial)
 
         let triangles = manifoldTriangles.enumerated().map { index, t in
             let originalID = triangleOIDs.originalID(for: index)
@@ -67,8 +67,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
             id: startID + ResourceIDOffset.object.rawValue,
             type: .model,
             name: part.name,
-            propertyGroupID: defaultProperty.groupID,
-            propertyIndex: defaultProperty.index,
+            propertyGroupID: defaultProperty?.groupID,
+            propertyIndex: defaultProperty?.index,
             content: .mesh(mesh)
         )
 

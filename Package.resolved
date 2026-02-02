@@ -1,5 +1,5 @@
 {
-  "originHash" : "bc14b4c0854fb6d2de3e9366df30ee2589426da0f02fd7f6b658c1ff4f4a0083",
+  "originHash" : "f9b95b6047e42f532b6818eb672af5bc2009e8c04983c464a3685e238a524a05",
   "pins" : [
     {
       "identity" : "apus",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/Nodal.git",
       "state" : {
-        "revision" : "275b8efd1d36d45154759a19e8cad709c2a36c64",
-        "version" : "0.4.1"
+        "revision" : "c063344c9679f327de484f3595a8dcf97f35db8a",
+        "version" : "1.0.0"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/Pelagos.git",
       "state" : {
-        "revision" : "f57fe64f4efa0f07fb6cd91da2fdffae81f7eabc",
-        "version" : "0.1.2"
+        "revision" : "3e8c7af726285cec5ce0c802f75aa6f17bd14792",
+        "version" : "0.1.3"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/ThreeMF.git",
       "state" : {
-        "revision" : "d31fdea80c561b87983928b01fb8565cccde2382",
-        "version" : "0.2.2"
+        "revision" : "94adc0bec0ad76677ae34a02823c379981ef02a1",
+        "version" : "0.2.3"
       }
     },
     {
