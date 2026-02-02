@@ -1,6 +1,6 @@
 import Foundation
 
-/// A model that can be exported to a file.
+/// A model that will be exported to a file in the current working directory.
 ///
 /// Use `Model` to build geometry and write it to disk in formats like 3MF, STL, or SVG.
 /// The model is created and exported in a single step using an async initializer.
@@ -14,13 +14,15 @@ import Foundation
 /// Models can also be grouped within a ``Project`` to share environment settings and metadata
 /// across multiple output files.
 ///
+/// For fine-grained control of file output, see ``ModelFileGenerator``.
+///
 public struct Model: Sendable, ModelBuildable {
     let name: String
 
     private let directives: @Sendable () -> [BuildDirective]
     private let options: ModelOptions
 
-    /// Creates and exports a model based on the provided geometry.
+    /// Creates and exports a model to the current working directory based on the provided geometry.
     ///
     /// Use this initializer to construct and write a 3D or 2D model to disk. The model is
     /// generated from a geometry tree you define using the result builder. Supported output
