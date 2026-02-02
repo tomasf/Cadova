@@ -77,7 +77,12 @@ fileprivate extension PartSemantic {
 extension ThreeMF.Item {
     var printable: Bool? {
         get {
-            customAttributes[.printable].flatMap { try? Bool(xmlStringValue: $0) }
+            guard let value = customAttributes[.printable] else { return nil }
+            switch value {
+            case "true", "1": return true
+            case "false", "0": return false
+            default: return nil
+            }
         }
         set {
             customAttributes[.printable] = newValue.map { $0 ? "1" : "0" }
