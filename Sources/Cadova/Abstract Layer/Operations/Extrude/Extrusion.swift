@@ -54,7 +54,7 @@ public extension Geometry2D {
                 } else {
                     base = self
                 }
-                base.extruded(height: height, twist: twist, scale: topScale, divisions: segmentCount)
+                base.extruded(height: height, twist: twist, scale: topScale, divisions: segmentCount - 1)
             }
         }
     }
