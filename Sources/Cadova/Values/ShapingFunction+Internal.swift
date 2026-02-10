@@ -7,6 +7,8 @@ extension ShapingFunction {
         case easeIn
         case easeOut
         case easeInOut
+        case easeInCubic
+        case easeOutCubic
         case easeInOutCubic
         case smoothstep
         case smootherstep
@@ -33,6 +35,10 @@ extension ShapingFunction {
             hasher.combine(Kind.easeOut)
         case .easeInOut:
             hasher.combine(Kind.easeInOut)
+        case .easeInCubic:
+            hasher.combine(Kind.easeInCubic)
+        case .easeOutCubic:
+            hasher.combine(Kind.easeOutCubic)
         case .easeInOutCubic:
             hasher.combine(Kind.easeInOutCubic)
         case .smoothstep:
@@ -76,6 +82,8 @@ extension ShapingFunction {
         case (.easeIn, .easeIn),
             (.easeOut, .easeOut),
             (.easeInOut, .easeInOut),
+            (.easeInCubic, .easeInCubic),
+            (.easeOutCubic, .easeOutCubic),
             (.easeInOutCubic, .easeInOutCubic),
             (.smoothstep, .smoothstep),
             (.smootherstep, .smootherstep),
@@ -131,6 +139,10 @@ extension ShapingFunction.Curve: Codable {
             self = .easeOut
         case .easeInOut:
             self = .easeInOut
+        case .easeInCubic:
+            self = .easeInCubic
+        case .easeOutCubic:
+            self = .easeOutCubic
         case .easeInOutCubic:
             self = .easeInOutCubic
         case .smoothstep:
@@ -181,6 +193,10 @@ extension ShapingFunction.Curve: Codable {
             try container.encode(ShapingFunction.Kind.easeOut, forKey: .kind)
         case .easeInOut:
             try container.encode(ShapingFunction.Kind.easeInOut, forKey: .kind)
+        case .easeInCubic:
+            try container.encode(ShapingFunction.Kind.easeInCubic, forKey: .kind)
+        case .easeOutCubic:
+            try container.encode(ShapingFunction.Kind.easeOutCubic, forKey: .kind)
         case .easeInOutCubic:
             try container.encode(ShapingFunction.Kind.easeInOutCubic, forKey: .kind)
         case .smoothstep:
