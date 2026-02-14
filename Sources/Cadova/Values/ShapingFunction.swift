@@ -36,6 +36,8 @@ public struct ShapingFunction: Sendable, Hashable, Codable {
         case .easeIn: { $0 * $0 }
         case .easeOut: { 1 - (1 - $0) * (1 - $0)  }
         case .easeInOut: { $0 < 0.5 ? 2 * $0 * $0 : -2 * $0 * $0 + 4 * $0 - 1 }
+        case .easeInCubic: { $0 * $0 * $0 }
+        case .easeOutCubic: { let t = 1 - $0; return 1 - t * t * t }
         case .easeInOutCubic: { $0 < 0.5 ? 4 * $0 * $0 * $0 : 0.5 * (2 * $0 - 2) * (2 * $0 - 2) * (2 * $0 - 2) + 1 }
         case .smoothstep: { $0 * $0 * (3 - 2 * $0) }
         case .smootherstep: { $0 * $0 * $0 * ($0 * (6 * $0 - 15) + 10) }
@@ -81,6 +83,8 @@ internal extension ShapingFunction {
         case easeIn
         case easeOut
         case easeInOut
+        case easeInCubic
+        case easeOutCubic
         case easeInOutCubic
         case smoothstep
         case smootherstep
@@ -129,6 +133,18 @@ public extension ShapingFunction {
     /// effects.
     static var easeInOut: Self {
         ShapingFunction(curve: .easeInOut)
+    }
+
+    /// A cubic ease-in function that starts slow and accelerates towards the end.
+    /// Produces a more pronounced acceleration than the quadratic ``easeIn``.
+    static var easeInCubic: Self {
+        ShapingFunction(curve: .easeInCubic)
+    }
+
+    /// A cubic ease-out function that starts fast and decelerates towards the end.
+    /// Produces a more pronounced deceleration than the quadratic ``easeOut``.
+    static var easeOutCubic: Self {
+        ShapingFunction(curve: .easeOutCubic)
     }
 
     /// A cubic ease-in-out function that provides a stronger smoothing effect than quadratic easing.

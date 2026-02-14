@@ -28,19 +28,29 @@ public extension Geometry2D {
             let outerRadius = bounds.maximum.x
             let lengthPerRev = outerRadius * 2 * .pi
 
-            let helixLength = sqrt(pow(lengthPerRev, 2) + pow(pitch, 2)) * revolutions
-            let totalSegments = Int(max(
-                Double(segmentation.segmentCount(circleRadius: outerRadius)) * revolutions,
-                Double(segmentation.segmentCount(length: helixLength))
-            ))
+            let helixLengthPerRev = sqrt(pow(lengthPerRev, 2) + pow(pitch, 2))
+            let segmentsPerRevolution = max(
+                segmentation.segmentCount(circleRadius: outerRadius),
+                segmentation.segmentCount(length: helixLengthPerRev)
+            )
+            let fullRevolutions = max(Int(ceil(revolutions)), 1)
+            let totalSegments = segmentsPerRevolution * fullRevolutions
 
-            extruded(height: lengthPerRev * revolutions, divisions: totalSegments)
+            extruded(height: lengthPerRev * Double(fullRevolutions), divisions: totalSegments - 1)
                 .rotated(x: -90°)
                 .flipped(along: .z)
                 .warped(operationName: "extrudeAlongHelix", cacheParameters: pitch) {
                     let turns = $0.y / lengthPerRev
                     let angle = Angle(turns: turns)
-                    return Vector3D(cos(angle) * $0.x, sin(angle) * $0.x, $0.z + turns * pitch)
+                    return Vector3D(
+                        cos(angle) * $0.x,
+                        sin(angle) * $0.x,
+                        $0.z + turns * pitch
+                    )
+                }
+                .intersecting {
+                    Box(x: outerRadius * 2 + 1, y: outerRadius * 2 + 1, z: height)
+                        .aligned(at: .centerXY)
                 }
                 .simplified()
         }
