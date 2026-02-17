@@ -143,7 +143,10 @@ public extension Mesh {
     /// any variable inputs that affect the resulting geometry so Cadova can safely reuse cached
     /// results without returning stale meshes.
     ///
-    /// - Parameter faces: A sequence of polygonal faces, where each face is a sequence of `Vector3D` points.
+    /// - Parameters:
+    ///   - faces: A sequence of polygonal faces, where each face is a sequence of `Vector3D` points.
+    ///   - name: A name used for caching the mesh.
+    ///   - cacheParameters: Additional hashable parameters that uniquely identify this mesh for caching purposes.
     ///
     /// - Important: All faces must contain at least 3 points. The combined set of faces must define a closed and manifold solid.
     init<Face: Sequence<Vector3D>, FaceList: Sequence<Face>>(

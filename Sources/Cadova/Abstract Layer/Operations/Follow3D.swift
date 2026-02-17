@@ -34,7 +34,7 @@ public extension Geometry3D {
     /// - Parameter path: A 2D parametric curve interpreted in the XY plane that the geometry should follow.
     /// - Returns: A warped version of the geometry that follows the 2D path.
     ///
-    /// - SeeAlso: ``following(path:pointing:toward:)``, ``Geometry2D/swept(along:pointing:toward:)``, ``Geometry3D/deformed(by:)``
+    /// - SeeAlso: ``following(path:pointing:toward:)``, `swept(along:pointing:toward:)`, `deformed(by:)`
     func following<Path: ParametricCurve<Vector2D>>(path: Path) -> any Geometry3D {
         rotated(y: -90°)
             .following(path: path.curve3D, pointing: .positiveX, toward: .direction(.negativeZ))

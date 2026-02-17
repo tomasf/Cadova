@@ -30,7 +30,7 @@ public protocol ResultElement: Sendable {
     /// is present. Implementations should define a stable, deterministic merge policy
     /// (such as last-wins, union, intersection, or accumulation) appropriate to the element’s meaning.
     ///
-    /// - Parameter elements: The instances to be combined.
+    /// - Parameter combining: The instances to be combined.
     init(combining: [Self])
 }
 

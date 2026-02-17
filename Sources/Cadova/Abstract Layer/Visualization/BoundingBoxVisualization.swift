@@ -19,7 +19,7 @@ public extension Geometry3D {
     /// Overlays the geometry's bounding box as a thin 3D frame for debugging.
     ///
     /// This is useful for visualizing the region affected by range-based spatial APIs
-    /// like ``within(x:y:z:)`` or ``EdgeCriteria/within(x:y:z:)``.
+    /// like `within(x:y:z:)` or `EdgeCriteria.within(x:y:z:)`.
     ///
     /// ```swift
     /// // Visualize the entire bounding box

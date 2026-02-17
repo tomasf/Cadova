@@ -73,7 +73,7 @@ public extension ParametricCurve {
 
     /// Returns the tangent direction at a specific position along the curve.
     ///
-    /// - Parameter parameter: The position along the curve where the tangent is evaluated.
+    /// - Parameter fraction: The position along the curve where the tangent is evaluated.
     /// - Returns: A `Direction` representing the tangent vector at the given position.
     ///
     func tangent(at fraction: Double) -> Direction<V.D> {

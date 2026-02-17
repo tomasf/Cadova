@@ -64,7 +64,7 @@ public extension Geometry {
     ///            only the main geometry, `.solidParts` (default) to include solid/printable parts, or
     ///            `.allParts` to include every part (solid, context, and visual).
     ///   - builder: A closure that receives the geometry and its bounding box, and returns a new geometry.
-    ///   - empty: A closure that provides fallback geometry when the original geometry is empty. Defaults to `Empty()`.
+    ///   - emptyBuilder: A closure that provides fallback geometry when the original geometry is empty. Defaults to `Empty()`.
     /// - Returns: A modified geometry based on the bounding box, or the result of `empty` if no bounds exist.
     ///
     func measuringBounds<Output: Dimensionality>(

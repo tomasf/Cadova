@@ -114,7 +114,7 @@ public func Project(
 /// `<package-root>/<packageRelative>`.
 ///
 /// - Parameters:
-///   - packageRelative: The path relative to the package root where models will be saved.
+///   - root: The path relative to the package root where models will be saved.
 ///   - sourceFile: The path to the source file. Defaults to `#filePath`, which expands to the caller's file path.
 ///   - options: Shared `ModelOptions` applied to all models in the project unless overridden.
 ///   - content: A result builder that asynchronously returns an array of directives.

@@ -2,14 +2,14 @@ import Foundation
 
 /// A container for organizing models into logical groups with optional subdirectories.
 ///
-/// Use `Group` to organize related models within a ``Project``. Groups can specify shared
+/// Use `Group` to organize related models within a `Project`. Groups can specify shared
 /// `ModelOptions` and `EnvironmentValues` that apply to all contained models, and can
 /// optionally define a subdirectory name for file organization.
 ///
 /// Groups can be nested, allowing for hierarchical organization of models.
 ///
 /// > Note: Unlike ``Model``, which can be used standalone, `Group` must be used within
-/// > a ``Project`` or another `Group`.
+/// > a `Project` or another `Group`.
 ///
 /// In addition to `Model` and nested `Group` entries, the group's result builder also accepts:
 /// - `Metadata(...)`: Attaches metadata that is combined into shared `ModelOptions`
