@@ -7,7 +7,7 @@ Cadova models are written entirely in Swift, making them easy to version, reuse,
 
 Cadova runs on macOS, Windows, and Linux. To get started, read the [Getting Started guide](https://github.com/tomasf/Cadova/wiki/Getting-Started).
 
-More documentation is available in the [Wiki](https://github.com/tomasf/Cadova/wiki). Read [What is Cadova?](https://github.com/tomasf/Cadova/wiki/What-is-Cadova%3F) for an introduction.
+More documentation is available in the [Wiki](https://github.com/tomasf/Cadova/wiki). Read [What is Cadova?](https://github.com/tomasf/Cadova/wiki/What-is-Cadova%3F) for an introduction. [API docs](https://swiftpackageindex.com/tomasf/cadova/main/documentation/cadova) are available on the Swift Package Index.
 
 [![Swift](https://github.com/tomasf/Cadova/actions/workflows/main.yml/badge.svg)](https://github.com/tomasf/Cadova/actions/workflows/main.yml)
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
