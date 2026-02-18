@@ -118,7 +118,7 @@ public struct Loft: Geometry {
     /// A single cross-section in a lofted shape.
     ///
     /// Each layer defines a 2D shape at a specific Z height. Layers are created using the
-    /// ``layer(z:interpolation:shape:)`` function within a ``Loft`` builder.
+    /// `layer(z:interpolation:shape:)` function within a ``Loft`` builder.
     ///
     public struct Layer: Sendable {
         internal let z: Double

@@ -11,7 +11,7 @@ import Foundation
 /// }
 /// ```
 ///
-/// Models can also be grouped within a ``Project`` to share environment settings and metadata
+/// Models can also be grouped within a `Project` to share environment settings and metadata
 /// across multiple output files.
 ///
 /// For fine-grained control of file output, see ``ModelFileGenerator``.

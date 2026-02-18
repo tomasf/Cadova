@@ -115,7 +115,7 @@ public extension BezierPath2D {
     ///
     /// - Parameters:
     ///   - center: The circle center.
-    ///   - to: The absolute end angle (measured counter-clockwise from +X) to sweep to.
+    ///   - endAngle: The absolute end angle (measured counter-clockwise from +X) to sweep to.
     ///   - clockwise: If `true`, sweeps clockwise; otherwise counter‑clockwise.
     /// - Returns: A new `BezierPath2D` with the arc appended.
     ///

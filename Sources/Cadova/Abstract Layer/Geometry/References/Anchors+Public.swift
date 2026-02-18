@@ -8,8 +8,8 @@ import Foundation
 /// at specific locations.
 ///
 /// You create an anchor once (optionally with a human-readable label for debugging) and then define
-/// it on geometry using ``Geometry3D/definingAnchor(_:at:offset:pointing:rotated:)``. Later, you can
-/// use ``Geometry3D/anchored(to:)`` to place other geometry at the recorded transforms.
+/// it on geometry using `definingAnchor(_:at:offset:pointing:rotated:)`. Later, you can
+/// use `anchored(to:)` to place other geometry at the recorded transforms.
 ///
 /// - Multiple definitions:
 ///   - An anchor can be defined multiple times across a geometry tree. Each definition records a

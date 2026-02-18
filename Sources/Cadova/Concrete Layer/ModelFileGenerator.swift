@@ -21,11 +21,11 @@ public struct ModelFileGenerator {
     
     /// Render a one-shot model to a model file.
     ///
-    /// For more details, see the documentation for the ``ModelFileGenerator.build()``
-    /// instance method.
+    /// For more details, see the documentation for the
+    /// ``build(named:options:content:)`` instance method.
     ///
     /// - Note: If you intend to render geometries more than once, create an instance of
-    ///         ``ModelFileGenerator`` and re-use ``build()`` on that instance instead.
+    ///         ``ModelFileGenerator`` and re-use ``build(named:options:content:)`` on that instance instead.
     ///         Instances maintain a cache for improved performance over multiple builds.
     public static func build(
         named name: String? = nil,

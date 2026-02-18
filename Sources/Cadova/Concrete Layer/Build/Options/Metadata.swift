@@ -2,7 +2,7 @@ import Foundation
 
 /// Descriptive information embedded in exported model files.
 ///
-/// Use `Metadata` within a ``Model`` or ``Project`` to attach attribution, licensing,
+/// Use `Metadata` within a ``Model`` or `Project` to attach attribution, licensing,
 /// and other descriptive fields to the output file. The 3MF format supports all of these
 /// fields; other formats may ignore them or support only a subset.
 ///
