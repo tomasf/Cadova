@@ -30,8 +30,8 @@ struct LoftTests {
         try await loft.writeVerificationModel(name: "loftThreeLayers")
         let m = try await loft.measurements
 
-        #expect(m.volume ≈ 7846.995)
-        #expect(m.surfaceArea ≈ 3786.088)
+        #expect(m.volume ≈ 7853.615)
+        #expect(m.surfaceArea ≈ 3791.857)
         #expect(m.boundingBox ≈ .init(minimum: [-12.5, -12.5, 0], maximum: [12.5, 12.5, 35]))
     }
 
@@ -129,6 +129,61 @@ struct LoftTests {
         #expect(m.surfaceArea > 0)
         // Bounding box should span from the circle at bottom to rectangle at top
         #expect(m.boundingBox ≈ .init(minimum: [-10, -10, 0], maximum: [10, 10, 30]))
+    }
+
+    @Test func `linear loft between similar triangles preserves corners`() async throws {
+        let loft = Loft(interpolation: .linear) {
+            layer(z: 0) {
+                Triangle(a: 2, b: 2, includedGamma: 90°)
+            }
+            layer(z: 30) {
+                Triangle(a: 5, b: 5, includedGamma: 90°)
+            }
+        }
+
+        try await loft.writeVerificationModel(name: "loftLinearTriangles")
+        let m = try await loft.measurements
+
+        #expect(m.volume > 0)
+        #expect(m.surfaceArea > 0)
+        // With corners preserved, the loft reaches exactly to the outer vertices of the top triangle
+        #expect(m.boundingBox ≈ .init(minimum: [0, 0, 0], maximum: [5, 5, 30]))
+    }
+
+    @Test func `loft between rectangles preserves corners`() async throws {
+        let loft = Loft(interpolation: .linear) {
+            layer(z: 0) {
+                Rectangle([4, 6]).aligned(at: .center)
+            }
+            layer(z: 20) {
+                Rectangle([10, 8]).aligned(at: .center)
+            }
+        }
+
+        try await loft.writeVerificationModel(name: "loftRectangles")
+        let m = try await loft.measurements
+
+        #expect(m.volume > 0)
+        #expect(m.surfaceArea > 0)
+        // Corners of the top rectangle are at exactly ±5 and ±4
+        #expect(m.boundingBox ≈ .init(minimum: [-5, -4, 0], maximum: [5, 4, 20]))
+    }
+
+    @Test func `loft from circle to triangle produces valid geometry`() async throws {
+        let loft = Loft(interpolation: .linear) {
+            layer(z: 0) {
+                Circle(diameter: 10)
+            }
+            layer(z: 20) {
+                Triangle(a: 8, b: 8, includedGamma: 90°)
+            }
+        }
+
+        try await loft.writeVerificationModel(name: "loftCircleToTriangle")
+        let m = try await loft.measurements
+
+        #expect(m.volume > 0)
+        #expect(m.surfaceArea > 0)
     }
 
     @Test func `visualized loft shows layers at correct positions`() async throws {
