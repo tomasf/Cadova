@@ -75,10 +75,85 @@ extension SimplePolygon {
     }
 
     func resampled(count targetCount: Int) -> Self {
-        // Resample the polygon points so that the polygon has exactly targetCount points evenly spaced along its
-        // perimeter. This is done by walking along the polygon edges and interpolating points at regular intervals.
         guard vertices.count >= 2, targetCount >= 2 else { return self }
 
+        // Detect corner vertices: those where the turn angle is at least 30°.
+        // Turn angle = angle between the incoming and outgoing edge directions.
+        // cos(30°) ≈ 0.866; a vertex is a corner when dot(in, out) / (|in| * |out|) ≤ cos(30°).
+        let cosThreshold = cos(30.0 * .pi / 180.0)
+        let cornerIndices = (0..<count).filter { i in
+            let incoming = vertices[i] - vertices[(i + count - 1) % count]
+            let outgoing = vertices[(i + 1) % count] - vertices[i]
+            let denom = incoming.magnitude * outgoing.magnitude
+            guard denom > 0 else { return false }
+            return (incoming.x * outgoing.x + incoming.y * outgoing.y) / denom <= cosThreshold
+        }
+
+        // If no corners are detected, or the target count can't fit all corners,
+        // fall back to classic even resampling (correct for smooth shapes like circles).
+        guard !cornerIndices.isEmpty, targetCount > cornerIndices.count else {
+            return evenlyResampled(count: targetCount)
+        }
+
+        let n = cornerIndices.count
+        let additionalPoints = targetCount - n
+
+        // Compute the arc length of each inter-corner segment.
+        var segmentLengths = [Double](repeating: 0, count: n)
+        for i in 0..<n {
+            var j = cornerIndices[i]
+            let end = cornerIndices[(i + 1) % n]
+            while j != end {
+                let next = (j + 1) % count
+                segmentLengths[i] += (vertices[next] - vertices[j]).magnitude
+                j = next
+            }
+        }
+        let totalLength = segmentLengths.reduce(0, +)
+
+        // Distribute the additional points among segments proportionally to their length,
+        // using the largest-remainder method to ensure the total is exactly right.
+        let rawCounts = segmentLengths.map { Double(additionalPoints) * $0 / totalLength }
+        var pointsPerSegment = rawCounts.map { Int($0) }
+        let deficit = additionalPoints - pointsPerSegment.reduce(0, +)
+        for i in rawCounts.indices.sorted(by: { rawCounts[$0] - Double(pointsPerSegment[$0]) > rawCounts[$1] - Double(pointsPerSegment[$1]) }).prefix(deficit) {
+            pointsPerSegment[i] += 1
+        }
+
+        // Build the result: for each inter-corner segment, emit the leading corner vertex
+        // followed by evenly-spaced interior points along the segment's edges.
+        var result: [Vector2D] = []
+        for i in 0..<n {
+            result.append(vertices[cornerIndices[i]])
+
+            let extra = pointsPerSegment[i]
+            guard extra > 0 else { continue }
+
+            let segLen = segmentLengths[i]
+            let spacing = segLen / Double(extra + 1)
+            var accumulated = 0.0
+            var edgeStart = cornerIndices[i]
+            var edgeEnd = (edgeStart + 1) % count
+            var edgeLen = (vertices[edgeEnd] - vertices[edgeStart]).magnitude
+
+            for k in 1...extra {
+                let target = Double(k) * spacing
+                while accumulated + edgeLen < target {
+                    accumulated += edgeLen
+                    edgeStart = edgeEnd
+                    edgeEnd = (edgeStart + 1) % count
+                    edgeLen = (vertices[edgeEnd] - vertices[edgeStart]).magnitude
+                }
+                let t = edgeLen > 0 ? (target - accumulated) / edgeLen : 0
+                result.append(vertices[edgeStart] + (vertices[edgeEnd] - vertices[edgeStart]) * t)
+            }
+        }
+
+        return .init(result)
+    }
+
+    private func evenlyResampled(count targetCount: Int) -> Self {
+        // Distribute targetCount points evenly along the perimeter, ignoring original vertices.
         let totalLength = perimeter
         let spacing = totalLength / Double(targetCount)
         var result: [Vector2D] = []
@@ -92,7 +167,6 @@ extension SimplePolygon {
         for i in 0..<targetCount {
             let targetDistance = Double(i) * spacing
 
-            // Advance along segments until the targetDistance fits within the current segment
             while accumulatedLength + segmentLength < targetDistance {
                 accumulatedLength += segmentLength
                 segmentIndex = (segmentIndex + 1) % self.count
@@ -101,10 +175,8 @@ extension SimplePolygon {
                 segmentLength = (segmentEnd - segmentStart).magnitude
             }
 
-            // Interpolate between segmentStart and segmentEnd to find the exact point
             let localT = (targetDistance - accumulatedLength) / segmentLength
-            let point = segmentStart + (segmentEnd - segmentStart) * localT
-            result.append(point)
+            result.append(segmentStart + (segmentEnd - segmentStart) * localT)
         }
 
         return .init(result)
