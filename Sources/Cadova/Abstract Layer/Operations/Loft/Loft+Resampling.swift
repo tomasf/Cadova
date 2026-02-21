@@ -57,12 +57,7 @@ internal extension Loft {
             geometries.append(geometry)
         }
 
-        // Combine all segments
-        if geometries.count == 1 {
-            return geometries[0]
-        } else {
-            return Union<D3>(geometries)
-        }
+        return Union(geometries)
     }
 
     private static func convexHullSegment(lower: ResamplingLayer, upper: ResamplingLayer) -> any Geometry3D {

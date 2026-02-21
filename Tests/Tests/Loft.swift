@@ -186,6 +186,83 @@ struct LoftTests {
         #expect(m.surfaceArea > 0)
     }
 
+    // MARK: - Layer resolution
+
+    @Test func `absolute layers resolve to correct Z positions`() {
+        let loft = Loft {
+            layer(z: 0) { Circle(diameter: 5) }
+            layer(z: 10) { Circle(diameter: 5) }
+            layer(z: 25) { Circle(diameter: 5) }
+        }
+        #expect(loft.layers.map(\.z) == [0, 10, 25])
+    }
+
+    @Test func `offset layers resolve relative to previous layer`() {
+        let loft = Loft {
+            layer(z: 0) { Circle(diameter: 5) }
+            layer(zOffset: 10) { Circle(diameter: 5) }
+            layer(zOffset: 5) { Circle(diameter: 5) }
+        }
+        #expect(loft.layers.map(\.z) == [0, 10, 15])
+    }
+
+    @Test func `absolute range creates two layers at bounds`() {
+        let loft = Loft {
+            layer(z: 0) { Circle(diameter: 5) }
+            layer(z: 5..<15) { Circle(diameter: 5) }
+            layer(z: 20) { Circle(diameter: 5) }
+        }
+        #expect(loft.layers.map(\.z) == [0, 5, 15, 20])
+    }
+
+    @Test func `offset range creates two layers relative to previous`() {
+        let loft = Loft {
+            layer(z: 0) { Circle(diameter: 5) }
+            layer(zOffset: 5..<15) { Circle(diameter: 5) }
+            layer(zOffset: 3) { Circle(diameter: 5) }
+        }
+        #expect(loft.layers.map(\.z) == [0, 5, 15, 18])
+    }
+
+    @Test func `mixed absolute and offset layers resolve correctly`() {
+        let loft = Loft {
+            layer(z: 0) { Circle(diameter: 5) }
+            layer(zOffset: 10) { Circle(diameter: 5) }
+            layer(z: 30) { Circle(diameter: 5) }
+            layer(zOffset: 5) { Circle(diameter: 5) }
+        }
+        #expect(loft.layers.map(\.z) == [0, 10, 30, 35])
+    }
+
+    @Test func `out-of-order absolute layers are sorted by Z`() {
+        let loft = Loft {
+            layer(z: 20) { Circle(diameter: 5) }
+            layer(z: 0) { Circle(diameter: 5) }
+            layer(z: 10) { Circle(diameter: 5) }
+        }
+        #expect(loft.layers.map(\.z) == [0, 10, 20])
+    }
+
+    @Test func `offset after absolute range starts from range upper bound`() {
+        let loft = Loft {
+            layer(z: 0) { Circle(diameter: 5) }
+            layer(z: 10..<20) { Circle(diameter: 5) }
+            layer(zOffset: 5) { Circle(diameter: 5) }
+        }
+        #expect(loft.layers.map(\.z) == [0, 10, 20, 25])
+    }
+
+    @Test func `offset after offset range starts from range upper bound`() {
+        let loft = Loft {
+            layer(z: 0) { Circle(diameter: 5) }
+            layer(zOffset: 10..<20) { Circle(diameter: 5) }
+            layer(zOffset: 5) { Circle(diameter: 5) }
+        }
+        #expect(loft.layers.map(\.z) == [0, 10, 20, 25])
+    }
+
+    // MARK: - Geometry
+
     @Test func `visualized loft shows layers at correct positions`() async throws {
         let loft = Loft {
             layer(z: 0) {
