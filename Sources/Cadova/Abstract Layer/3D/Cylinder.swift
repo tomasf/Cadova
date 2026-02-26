@@ -52,6 +52,8 @@ public extension Cylinder {
     ///   - height: The height of the cylinder
 
     init(radius: Double, height: Double) {
+        assert(radius.isFinite, "Cylinder radius must be finite")
+        assert(height.isFinite, "Cylinder height must be finite")
         assert(radius > 0, "Cylinder radius must be positive")
         assert(height >= 0, "Cylinder height must not be negative")
         self.topRadius = radius
@@ -66,6 +68,8 @@ public extension Cylinder {
     ///   - height: The height between the top and the bottom
 
     init(bottomRadius: Double, topRadius: Double, height: Double) {
+        assert(bottomRadius.isFinite && topRadius.isFinite, "Cylinder radii must be finite")
+        assert(height.isFinite, "Cylinder height must be finite")
         assert(bottomRadius >= 0 && topRadius >= 0, "Cylinder radii must not be negative")
         assert(bottomRadius > 0 || topRadius > 0, "At least one of the radii must be positive")
         assert(height >= 0, "Cylinder height must not be negative")

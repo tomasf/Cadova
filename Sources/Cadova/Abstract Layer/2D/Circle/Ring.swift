@@ -22,6 +22,7 @@ public struct Ring: Shape2D {
     ///   - outerDiameter: The outer diameter of the ring. Must be greater than the inner diameter.
     ///   - innerDiameter: The inner diameter of the ring. Must be positive.
     public init(outerDiameter: Double, innerDiameter: Double) {
+        precondition(outerDiameter.isFinite && innerDiameter.isFinite, "Ring diameters must be finite")
         precondition(outerDiameter > innerDiameter, "The outer diameter of the ring must be greater than the inner diameter to allow for a hole")
         precondition(innerDiameter > 0.0, "The inner diameter must be positive")
         precondition(outerDiameter > 0.0, "The outer diameter must be positive")
@@ -36,6 +37,7 @@ public struct Ring: Shape2D {
     ///   - outerRadius: The outer radius of the ring.
     ///   - innerRadius: The inner radius of the ring.
     public init(outerRadius: Double, innerRadius: Double) {
+        precondition(outerRadius.isFinite && innerRadius.isFinite, "Ring radii must be finite")
         self.init(outerDiameter: outerRadius * 2.0, innerDiameter: innerRadius * 2.0)
     }
 
@@ -45,6 +47,7 @@ public struct Ring: Shape2D {
     ///   - outerDiameter: The outer diameter of the ring.
     ///   - thickness: The thickness of the ring.
     public init(outerDiameter: Double, thickness: Double) {
+        precondition(outerDiameter.isFinite && thickness.isFinite, "Ring dimensions must be finite")
         precondition(outerDiameter > thickness * 2.0, "The outer diameter must be greater than twice the thickness to allow for a hole")
         self.init(outerDiameter: outerDiameter, innerDiameter: outerDiameter - thickness * 2.0)
     }
@@ -55,6 +58,7 @@ public struct Ring: Shape2D {
     ///   - innerDiameter: The inner diameter of the ring.
     ///   - thickness: The thickness of the ring.
     public init(innerDiameter: Double, thickness: Double) {
+        precondition(innerDiameter.isFinite && thickness.isFinite, "Ring dimensions must be finite")
         self.init(outerDiameter: innerDiameter + thickness * 2.0, innerDiameter: innerDiameter)
     }
 
@@ -64,6 +68,7 @@ public struct Ring: Shape2D {
     ///   - outerRadius: The outer radius of the ring.
     ///   - thickness: The thickness of the ring.
     public init(outerRadius: Double, thickness: Double) {
+        precondition(outerRadius.isFinite && thickness.isFinite, "Ring dimensions must be finite")
         precondition(outerRadius > thickness, "The outer radius must be greater than the thickness to allow for a hole")
         self.init(outerDiameter: outerRadius * 2.0, thickness: thickness)
     }
@@ -74,6 +79,7 @@ public struct Ring: Shape2D {
     ///   - innerRadius: The inner radius of the ring.
     ///   - thickness: The thickness of the ring.
     public init(innerRadius: Double, thickness: Double) {
+        precondition(innerRadius.isFinite && thickness.isFinite, "Ring dimensions must be finite")
         self.init(innerDiameter: innerRadius * 2.0, thickness: thickness)
     }
 

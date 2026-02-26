@@ -24,6 +24,7 @@ public struct RegularPolygon: Shape2D {
     ///   - circumradius: The distance from the center of the polygon to a vertex. Must be greater than 0.
     public init(sideCount: Int, circumradius: Double) {
         precondition(sideCount >= 3)
+        precondition(circumradius.isFinite, "Circumradius must be finite")
         precondition(circumradius > 0)
         self.sideCount = sideCount
         self.circumradius = circumradius
@@ -35,6 +36,7 @@ public struct RegularPolygon: Shape2D {
     ///   - sideCount: The number of sides in the polygon.
     ///   - apothem: The distance from the center of the polygon to a side; its inradius.
     public init(sideCount: Int, apothem: Double) {
+        precondition(apothem.isFinite, "Apothem must be finite")
         self.init(sideCount: sideCount, circumradius: apothem / cos(.pi / Double(sideCount)))
     }
 
@@ -44,6 +46,7 @@ public struct RegularPolygon: Shape2D {
     ///   - sideCount: The number of sides in the polygon.
     ///   - sideLength: The length of a side of the polygon.
     public init(sideCount: Int, sideLength: Double) {
+        precondition(sideLength.isFinite, "Side length must be finite")
         self.init(sideCount: sideCount, circumradius: sideLength / (2 * sin(.pi / Double(sideCount))))
     }
 
@@ -56,6 +59,7 @@ public struct RegularPolygon: Shape2D {
     ///   - sideCount: The number of sides in the polygon.
     ///   - widthAcrossFlats: The distance between two parallel sides.
     public init(sideCount: Int, widthAcrossFlats: Double) {
+        precondition(widthAcrossFlats.isFinite, "Width across flats must be finite")
         self.init(sideCount: sideCount, apothem: widthAcrossFlats / 2)
     }
 

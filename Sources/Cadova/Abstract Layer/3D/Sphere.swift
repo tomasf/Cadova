@@ -15,6 +15,7 @@ public struct Sphere: Geometry {
     /// Use this initializer to create a sphere by directly specifying its diameter.
     /// - Parameter diameter: The diameter of the sphere.
     public init(diameter: Double) {
+        precondition(diameter.isFinite, "Sphere diameter must be finite")
         self.init(radius: diameter / 2)
     }
 
@@ -23,6 +24,7 @@ public struct Sphere: Geometry {
     /// This initializer provides a convenient way to define a sphere's size through its radius, automatically calculating the appropriate diameter.
     /// - Parameter radius: The radius of the sphere. The diameter is calculated as twice the radius.
     public init(radius: Double) {
+        precondition(radius.isFinite, "Sphere radius must be finite")
         self.radius = radius
     }
 

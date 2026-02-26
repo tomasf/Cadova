@@ -19,6 +19,7 @@ public struct Circle {
     ///
     /// - Parameter diameter: The diameter of the circle.
     public init(diameter: Double) {
+        precondition(diameter.isFinite, "Diameter must be finite.")
         precondition(diameter > 0, "Diameter must be greater than 0.")
         self.diameter = diameter
     }
@@ -27,6 +28,7 @@ public struct Circle {
     ///
     /// - Parameter radius: The radius of the circle.
     public init(radius: Double) {
+        precondition(radius.isFinite, "Radius must be finite.")
         precondition(radius > 0, "Radius must be greater than 0.")
         self.diameter = radius * 2
     }
@@ -41,6 +43,8 @@ public struct Circle {
     ///   - chordLength: The length of the chord of the circle.
     ///   - sagitta: The height from the midpoint of the chord to the highest point of the arc.
     public init(chordLength: Double, sagitta: Double) {
+        precondition(chordLength.isFinite, "Chord length must be finite.")
+        precondition(sagitta.isFinite, "Sagitta must be finite.")
         precondition(chordLength > 0, "Chord length must be greater than 0.")
         precondition(sagitta > 0, "Sagitta must be greater than 0.")
         precondition(sagitta <= chordLength / 2, "Sagitta must be less than or equal to half of the chord length.")

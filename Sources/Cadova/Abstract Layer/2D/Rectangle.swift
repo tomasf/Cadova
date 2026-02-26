@@ -20,6 +20,7 @@ public struct Rectangle {
     ///   - x: The size of the rectangle in the X axis
     ///   - y: The size of the rectangle in the Y axis
     public init(x: Double, y: Double) {
+        precondition(x.isFinite && y.isFinite, "Rectangle dimensions must be finite")
         self.init([x, y])
     }
 
@@ -27,6 +28,7 @@ public struct Rectangle {
     /// - Parameters:
     ///   - side: A `Double` value indicating the length of each side of the square.
     public init(_ side: Double) {
+        precondition(side.isFinite, "Rectangle side length must be finite")
         self.size = [side, side]
     }
 }
