@@ -26,9 +26,7 @@ public struct Vector3D: ExpressibleByArrayLiteral, Hashable, Sendable, Codable {
     /// - Parameter single: The value to set for `x`, `y`, and `z`.
     ///
     public init(_ single: Double) {
-        x = single
-        y = single
-        z = single
+        self.init(x: single, y: single, z: single)
     }
 
     /// Creates a vector with the specified `x`, `y`, and `z` components.

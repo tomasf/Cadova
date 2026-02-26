@@ -27,6 +27,7 @@ public struct Box: Geometry {
     ///   - z: The size of the box in the Z axis
     ///
     public init(x: Double, y: Double, z: Double) {
+        precondition(x.isFinite && y.isFinite && z.isFinite, "Box dimensions must be finite")
         self.init([x, y, z])
     }
 
@@ -41,6 +42,7 @@ public struct Box: Geometry {
     /// This creates a cube of size 10x10x10.
     ///
     public init(_ side: Double) {
+        precondition(side.isFinite, "Box side length must be finite")
         self.size = [side, side, side]
     }
 

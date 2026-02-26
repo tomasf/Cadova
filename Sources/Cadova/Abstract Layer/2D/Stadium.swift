@@ -35,6 +35,7 @@ public struct Stadium: Shape2D {
     ///   - y: The overall height of the stadium along the Y axis.
     ///   The smaller of `x` and `y` determines the diameter of the semicircular end caps.
     public init(x: Double, y: Double) {
+        precondition(x.isFinite && y.isFinite, "Stadium dimensions must be finite")
         self.init([x, y])
     }
 

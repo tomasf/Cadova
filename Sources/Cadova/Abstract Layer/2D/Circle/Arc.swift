@@ -20,6 +20,7 @@ public struct Arc: Shape2D {
     /// - Parameter range: The range of angles to include in the arc.
     /// - Parameter radius: The radius of the arc.
     public init(range: Range<Angle>, radius: Double) {
+        precondition(radius.isFinite, "Arc radius must be finite")
         self.range = range
         self.radius = radius
     }
@@ -29,6 +30,7 @@ public struct Arc: Shape2D {
     /// - Parameter range: The range of angles to include in the arc.
     /// - Parameter diameter: The diameter of the arc.
     public init(range: Range<Angle>, diameter: Double) {
+        precondition(diameter.isFinite, "Arc diameter must be finite")
         self.init(range: range, radius: diameter / 2)
     }
 

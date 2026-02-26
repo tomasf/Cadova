@@ -26,8 +26,7 @@ public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable, Codable {
     /// - Parameter single: The value to set both `x` and `y`.
     ///
     public init(_ single: Double) {
-        x = single
-        y = single
+        self.init(x: single, y: single)
     }
 
     /// Creates a vector with the specified `x` and `y` components.
