@@ -120,6 +120,11 @@ extension GeometryNode where D == D3 {
         guard body.isEmpty == false else { return .empty }
         return Self(.trim(body, plane))
     }
+
+    static func smoothOut(_ body: D3.Node, minSharpAngle: Double, minSmoothness: Double) -> GeometryNode {
+        guard body.isEmpty == false else { return .empty }
+        return Self(.smoothOut(body, minSharpAngle: minSharpAngle, minSmoothness: minSmoothness))
+    }
 }
 
 extension GeometryNode.PrimitiveShape2D {

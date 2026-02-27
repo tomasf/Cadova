@@ -4,13 +4,13 @@ extension GeometryNode: Codable {
     enum Kind: String, Codable {
         case empty, boolean, transform, convexHull, refine, simplify, select, materialized
         case shape2D, offset, projection
-        case shape3D, applyMaterial, extrusion, trim, decompose
+        case shape3D, applyMaterial, extrusion, trim, smoothOut, decompose
     }
 
     enum CodingKeys: String, CodingKey {
         case kind, type, primitive, children, body, transform, edgeLength, tolerance, index
         case amount, joinStyle, miterLimit, segmentCount, cacheKey
-        case material, crossSection, plane
+        case material, crossSection, plane, minSharpAngle, minSmoothness
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -89,6 +89,12 @@ extension GeometryNode: Codable {
             try container.encode(node, forKey: .body)
             try container.encode(plane, forKey: .plane)
 
+        case .smoothOut(let node, let minSharpAngle, let minSmoothness):
+            try container.encode(Kind.smoothOut, forKey: .kind)
+            try container.encode(node, forKey: .body)
+            try container.encode(minSharpAngle, forKey: .minSharpAngle)
+            try container.encode(minSmoothness, forKey: .minSmoothness)
+
         case .decompose(let node):
             try container.encode(Kind.decompose, forKey: .kind)
             try container.encode(node, forKey: .body)
@@ -164,6 +170,11 @@ extension GeometryNode: Codable {
             let node = try container.decode(D3.Node.self, forKey: .body)
             let plane = try container.decode(Plane.self, forKey: .plane)
             self.init(.trim(node, plane))
+        case .smoothOut:
+            let node = try container.decode(D3.Node.self, forKey: .body)
+            let minSharpAngle = try container.decode(Double.self, forKey: .minSharpAngle)
+            let minSmoothness = try container.decode(Double.self, forKey: .minSmoothness)
+            self.init(.smoothOut(node, minSharpAngle: minSharpAngle, minSmoothness: minSmoothness))
         }
     }
 }

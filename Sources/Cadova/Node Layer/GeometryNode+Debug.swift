@@ -62,6 +62,9 @@ extension GeometryNode: CustomDebugStringConvertible {
             "applyMaterial (\(material)) {\n\(body.debugDescription.indented)\n}"
         case let .trim(body, plane):
             "trimByPlane (\(plane)) {\n\(body.debugDescription.indented)\n}"
+        case let .smoothOut(body, minSharpAngle, minSmoothness):
+            String(format: "smoothOut(minSharpAngle: %g, minSmoothness: %g) {\n%@\n}",
+                   minSharpAngle, minSmoothness, body.debugDescription.indented)
         }
     }
 }
