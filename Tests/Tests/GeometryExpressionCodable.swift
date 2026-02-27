@@ -45,6 +45,14 @@ struct GeometryNodeCodableTests {
                     .transform(.shape(.rectangle(size: .init(x: 1, y: 3))), transform: .identity)
                 ], type: .difference),
                 type: .linear(height: 10, twist: 0°, divisions: 8, scaleTop: .init(x: 1.0, y: 1.0))
+            ),
+            .refine(
+                .smoothOut(
+                    .shape(.cylinder(bottomRadius: 2, topRadius: 2, height: 5, segmentCount: 12)),
+                    minSharpAngle: 60,
+                    minSmoothness: 0.75
+                ),
+                maxEdgeLength: 0.5
             )
         ], type: .intersection)
 

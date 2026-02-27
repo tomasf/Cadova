@@ -35,6 +35,7 @@ internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
         case applyMaterial (D3.Node, Material)
         case extrusion (D2.Node, type: Extrusion)
         case trim (D3.Node, Plane)
+        case smoothOut (D3.Node, minSharpAngle: Double, minSmoothness: Double)
     }
 }
 
@@ -165,6 +166,11 @@ extension GeometryNode {
                     .translate(plane.offset)
             }
 
+        case .smoothOut (let node, let minSharpAngle, let minSmoothness):
+            return try await context.result(for: node).modified { (manifold: D3.Concrete) -> D3.Concrete in
+                manifold.smoothOut(minSharpAngle: minSharpAngle, minSmoothness: minSmoothness)
+            }
+
         default:
             preconditionFailure("Invalid dimensionality for node type")
         }
@@ -184,4 +190,3 @@ internal enum BooleanOperationType: String, Hashable, Sendable, Codable {
         }
     }
 }
-

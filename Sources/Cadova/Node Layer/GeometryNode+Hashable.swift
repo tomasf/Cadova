@@ -21,6 +21,10 @@ extension GeometryNode.Contents: Equatable {
         case let (.applyMaterial(ba, aa), .applyMaterial(bb, ab)): ba == bb && aa == ab
         case let (.extrusion(a1, k1), .extrusion(a2, k2)): a1 == a2 && k1 == k2
         case let (.trim(a1, p1), .trim(a2, p2)): a1 == a2 && p1 == p2
+        case let (.smoothOut(a1, minSharpAngleA, minSmoothnessA), .smoothOut(a2, minSharpAngleB, minSmoothnessB)):
+            a1 == a2
+                && minSharpAngleA.roundedForHash == minSharpAngleB.roundedForHash
+                && minSmoothnessA.roundedForHash == minSmoothnessB.roundedForHash
 
         default: false
         }
@@ -90,6 +94,11 @@ extension GeometryNode.Contents: Hashable {
             hasher.combine(GeometryNode.Kind.trim)
             hasher.combine(body)
             hasher.combine(plane)
+        case .smoothOut(let body, let minSharpAngle, let minSmoothness):
+            hasher.combine(GeometryNode.Kind.smoothOut)
+            hasher.combine(body)
+            hasher.combine(minSharpAngle.roundedForHash)
+            hasher.combine(minSmoothness.roundedForHash)
         }
     }
 }
