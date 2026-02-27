@@ -26,6 +26,18 @@ struct NodeBasedGeometry<D: Dimensionality>: Geometry {
     }
 }
 
+extension NodeBasedGeometry<D2> {
+    init(_ shape: GeometryNode<D2>.PrimitiveShape2D) {
+        self.init(.shape(shape))
+    }
+}
+
+extension NodeBasedGeometry<D3> {
+    init(_ shape: GeometryNode<D3>.PrimitiveShape3D) {
+        self.init(.shape(shape))
+    }
+}
+
 struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geometry {
     let transformer: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.BuildResult
 
