@@ -27,7 +27,7 @@ extension GeometryNode.PrimitiveShape2D {
             return CrossSection.square(size: size)
 
         case .circle (let radius, let segmentCount):
-            guard radius >= 0 else { return .empty }
+            guard radius > 0 else { return .empty }
             return CrossSection.circle(radius: radius, segmentCount: segmentCount)
 
         case .polygons (let list, let fillRule):

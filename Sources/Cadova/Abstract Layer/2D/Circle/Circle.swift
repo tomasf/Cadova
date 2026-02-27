@@ -17,19 +17,19 @@ public struct Circle {
 
     /// Creates a new `Circle` instance with the specified diameter.
     ///
-    /// - Parameter diameter: The diameter of the circle.
+    /// - Parameter diameter: The diameter of the circle. A value of zero represents a degenerate point circle.
     public init(diameter: Double) {
         precondition(diameter.isFinite, "Diameter must be finite.")
-        precondition(diameter > 0, "Diameter must be greater than 0.")
+        precondition(diameter >= 0, "Diameter must not be negative.")
         self.diameter = diameter
     }
 
     /// Creates a new `Circle` instance with the specified radius.
     ///
-    /// - Parameter radius: The radius of the circle.
+    /// - Parameter radius: The radius of the circle. A value of zero represents a degenerate point circle.
     public init(radius: Double) {
         precondition(radius.isFinite, "Radius must be finite.")
-        precondition(radius > 0, "Radius must be greater than 0.")
+        precondition(radius >= 0, "Radius must not be negative.")
         self.diameter = radius * 2
     }
 
@@ -56,7 +56,7 @@ public struct Circle {
 extension Circle: Shape2D {
     public var body: any Geometry2D {
         @Environment(\.scaledSegmentation) var segmentation
-        NodeBasedGeometry(.shape(.circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius))))
+        NodeBasedGeometry(.circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius)))
     }
 }
 
