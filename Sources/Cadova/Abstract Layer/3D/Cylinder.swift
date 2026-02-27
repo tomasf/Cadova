@@ -14,11 +14,11 @@ public struct Cylinder: Geometry {
     /// The height of the cylinder along the Z axis.
     public let height: Double
 
-    /// The radius at the bottom of the cylinder (at Z = 0).
-    public let bottomRadius: Double
+    /// A circular representation of the bottom face of the cylinder.
+    public let bottom: Circle
 
-    /// The radius at the top of the cylinder (at Z = height).
-    public let topRadius: Double
+    /// A circular representation of the top face of the cylinder.
+    public let top: Circle
 
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         @Environment(\.scaledSegmentation) var segmentation
@@ -56,8 +56,8 @@ public extension Cylinder {
         assert(height.isFinite, "Cylinder height must be finite")
         assert(radius > 0, "Cylinder radius must be positive")
         assert(height >= 0, "Cylinder height must not be negative")
-        self.topRadius = radius
-        self.bottomRadius = radius
+        self.bottom = Circle(radius: radius)
+        self.top = Circle(radius: radius)
         self.height = height
     }
 
@@ -74,8 +74,8 @@ public extension Cylinder {
         assert(bottomRadius > 0 || topRadius > 0, "At least one of the radii must be positive")
         assert(height >= 0, "Cylinder height must not be negative")
 
-        self.bottomRadius = bottomRadius
-        self.topRadius = topRadius
+        self.bottom = Circle(radius: bottomRadius)
+        self.top = Circle(radius: topRadius)
         self.height = height
     }
 
@@ -100,15 +100,11 @@ public extension Cylinder {
 }
 
 public extension Cylinder {
-    /// A circular representation of the top face of the cylinder.
-    var top: Circle {
-        Circle(radius: topRadius)
-    }
+    /// The radius at the bottom of the cylinder (at Z = 0).
+    public var bottomRadius: Double { bottom.radius }
 
-    /// A circular representation of the bottom face of the cylinder.
-    var bottom: Circle {
-        Circle(radius: bottomRadius)
-    }
+    /// The radius at the top of the cylinder (at Z = height).
+    public var topRadius: Double { top.radius }
 
     /// Returns the circular cross-section at a specific height `z` along the cylinder.
     ///
