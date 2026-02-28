@@ -14,8 +14,7 @@ struct BinarySTLDataProvider: OutputDataProvider {
         let allParts = [result] + solidParts
         let union = GeometryNode.boolean(allParts.map(\.node), type: .union)
 
-        var concrete = try await context.result(for: union).concrete
-        concrete = concrete.calculateNormals(channelIndex: 0)
+        let concrete = try await context.result(for: union).concrete
         let meshGL = concrete.meshGL()
 
         let metadata = options[Metadata.self]
@@ -27,16 +26,12 @@ struct BinarySTLDataProvider: OutputDataProvider {
     }
 
     private func stlData(for meshGL: MeshGL, header: String) -> Data {
-        let properties = meshGL.vertexProperties
-        let propertyCount = meshGL.propertyCount
+        let vertices = meshGL.vertices
         let triangles = meshGL.triangles
 
-        assert(properties.count == meshGL.vertexCount * 6) // XYZ + normals
-
-        func double(at vertexIndex: Int, offset: Int) -> Double { properties[vertexIndex * propertyCount + offset] }
-        func position(at index: Int) -> Vector3D { Vector3D(x: double(at: index, offset: 0), y: double(at: index, offset: 1), z: double(at: index, offset: 2)) }
-        func normal(at index: Int) -> Vector3D { Vector3D(x: double(at: index, offset: 3), y: double(at: index, offset: 4), z: double(at: index, offset: 5)) }
-        func triangleNormal(_ triangle: Manifold3D.Triangle) -> Vector3D { (normal(at: triangle.a) + normal(at: triangle.b) + normal(at: triangle.c)).normalized }
+        func triangleNormal(_ triangle: Manifold3D.Triangle) -> Vector3D {
+            ((vertices[triangle.b] - vertices[triangle.a]) × (vertices[triangle.c] - vertices[triangle.a])).normalized
+        }
 
         func append(_ int: UInt32) {
             var value = int.littleEndian
@@ -74,9 +69,9 @@ struct BinarySTLDataProvider: OutputDataProvider {
 
         for triangle in triangles {
             append(triangleNormal(triangle))
-            append(position(at: triangle.a))
-            append(position(at: triangle.b))
-            append(position(at: triangle.c))
+            append(vertices[triangle.a])
+            append(vertices[triangle.b])
+            append(vertices[triangle.c])
             append(UInt16(0)) // attribute byte count
         }
 

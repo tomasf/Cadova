@@ -1,6 +1,5 @@
 import Manifold3D
 import Foundation
-internal import CadovaCPP
 
 public protocol ConcreteGeometry {
     associatedtype Vector
@@ -64,35 +63,3 @@ extension Vector3D {
     }
 }
 
-extension Manifold {
-    func readMesh() -> (vertices: [Vector3D], triangles: [Manifold3D.Triangle], originalIDs: [Manifold.OriginalID: IndexSet]) {
-        var vertices: [Vector3D] = []
-        var triangles: [Manifold3D.Triangle] = []
-        var originalIDs: [Manifold.OriginalID: IndexSet] = [:]
-
-        cadova.BulkReadMesh(mesh, { properties, vertexCount, propertyCount in
-            guard let properties else { return }
-            for i in 0..<vertexCount {
-                vertices.append(Vector3D(properties[propertyCount * i], properties[propertyCount * i + 1], properties[propertyCount * i + 2]))
-            }
-        }, { indices, triangleCount in
-            guard let indices else { return }
-            for i in 0..<triangleCount {
-                triangles.append(Manifold3D.Triangle(Int(indices[i * 3]), Int(indices[i * 3 + 1]), Int(indices[i * 3 + 2])))
-            }
-
-        }, { runIndex, runIndexCount, runOriginalIDs, runOriginalIDCount in
-            guard let runIndex, let runOriginalIDs else { return }
-
-            let ranges = (0..<runIndexCount).paired().map { index1, index2 in
-                Int(runIndex[index1] / 3)..<Int(runIndex[index2] / 3)
-            }
-            originalIDs = ranges.enumerated().reduce(into: [:]) { result, item in
-                let originalID = Int(runOriginalIDs[item.offset])
-                result[originalID, default: IndexSet()].insert(integersIn: item.element)
-            }
-        })
-
-        return (vertices, triangles, originalIDs)
-    }
-}
