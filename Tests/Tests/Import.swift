@@ -100,4 +100,32 @@ struct ImportTests {
             Issue.record("Unexpected error type: \(type(of: error)) - \(error)")
         }
     }
+
+    @Test func `SVG export and import preserves geometry`() async throws {
+        let geometry: any Geometry2D = Rectangle(x: 20, y: 10)
+            .subtracting {
+                Rectangle(x: 5, y: 4)
+                    .translated(x: 10, y: 3)
+            }
+
+        let originalMeasurements = try await geometry.measurements
+
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cadova-test-\(UUID().uuidString).svg")
+        defer { try? FileManager.default.removeItem(at: tempURL) }
+
+        let context = EvaluationContext()
+        let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
+        let provider = SVGDataProvider(result: result, options: [])
+        try await provider.writeOutput(to: tempURL, context: context)
+
+        let importedGeometry = Import(svg: tempURL, scale: .pixels)
+        let importedMeasurements = try await importedGeometry.measurements
+        let symmetricDifferenceArea = try await importedGeometry.symmetricDifferenceArea(with: geometry)
+
+        #expect(importedMeasurements.area ≈ originalMeasurements.area)
+        #expect(importedMeasurements.contourCount == originalMeasurements.contourCount)
+        #expect(importedMeasurements.boundingBox ≈ originalMeasurements.boundingBox)
+        #expect(symmetricDifferenceArea.equals(0, within: 1e-6))
+    }
 }
