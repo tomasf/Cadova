@@ -50,6 +50,19 @@ struct Geometry3DTests {
         .expectEquals(goldenFile: "3d/cylinders")
     }
 
+    @Test func `cylinder supports pointy bottom with expected cone volume`() async throws {
+        let topDiameter = 10.0
+        let height = 12.0
+        let cone = Cylinder(bottomDiameter: 0, topDiameter: topDiameter, height: height)
+            .withSegmentation(count: 120)
+
+        let volume = try await cone.measurements.volume
+        let radius = topDiameter / 2
+        let expectedVolume = Double.pi * radius * radius * height / 3
+
+        #expect(volume.equals(expectedVolume, within: 1))
+    }
+
     @Test func `projected onto plane produces correct 2D shape`() async throws {
         // A box projected onto XY should give a rectangle matching the box's XY dimensions
         let xyBounds = try await Box(x: 10, y: 20, z: 30)
