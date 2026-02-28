@@ -54,8 +54,9 @@ struct LoftTests {
         try await loft.writeVerificationModel(name: "loftLayerSpecificShaping")
         let m = try await loft.measurements
 
-        #expect(m.volume ≈ 3863.976)
-        #expect(m.surfaceArea ≈ 1236.984)
+        // Manifold simplification produces slightly different floating-point results across platforms.
+        #expect(m.volume.equals(3863.976, within: 3e-2))
+        #expect(m.surfaceArea.equals(1236.984, within: 2e-3))
         #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
 
@@ -78,8 +79,9 @@ struct LoftTests {
         try await loft.writeVerificationModel(name: "loftLayerSpecificShapingWithDefault")
         let m = try await loft.measurements
 
-        #expect(m.volume ≈ 2732.499)
-        #expect(m.surfaceArea ≈ 1118.005)
+        // Manifold simplification produces slightly different floating-point results across platforms.
+        #expect(m.volume.equals(2732.499, within: 5e-2))
+        #expect(m.surfaceArea.equals(1118.005, within: 1e-2))
         #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
 
@@ -288,4 +290,3 @@ struct LoftTests {
         #expect(m.volume > 0)
     }
 }
-
