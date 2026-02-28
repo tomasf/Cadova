@@ -107,7 +107,7 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
         let fillRule = FillRule(from: rule)
         var polygons: [SimplePolygon] = []
 
-        for subpath in finishedPath.subpaths where subpath.isClosed {
+        for subpath in finishedPath.subpaths {
             let points = subpath.bezierPath.points(segmentation: segmentation)
             if points.count >= 3 {
                 polygons.append(SimplePolygon(points))

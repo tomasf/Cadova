@@ -15,9 +15,9 @@ struct SVGDataProvider: OutputDataProvider {
 
         let document = Document()
         let svg = document.makeDocumentElement(name: "svg", defaultNamespace: "http://www.w3.org/2000/svg")
-        svg[attribute: "viewBox"] = String(format: "%g %g %g %g",
-                                           bounds.minimum.x, bounds.minimum.y,
-                                           bounds.size.x, bounds.size.y)
+        svg[attribute: "width"] = String(format: "%g", bounds.size.x)
+        svg[attribute: "height"] = String(format: "%g", bounds.size.y)
+        svg[attribute: "viewBox"] = String(format: "%g %g %g %g", 0.0, 0.0, bounds.size.x, bounds.size.y)
 
         let metadata = options[Metadata.self]
         if let title = metadata.title {
@@ -29,10 +29,11 @@ struct SVGDataProvider: OutputDataProvider {
 
         let path = svg.addElement("path")
         path[attribute: "fill"] = "black"
+        path[attribute: "fill-rule"] = "nonzero"
         path[attribute: "d"] = shapePoints.map {
             "M " + $0.vertices.map {
-                String(format: "%g,%g", $0.x, $0.y)
-            }.joined(separator: " ")
+                String(format: "%g,%g", $0.x - bounds.minimum.x, $0.y - bounds.minimum.y)
+            }.joined(separator: " ") + " Z"
         }.joined(separator: " ")
 
         return try document.xmlData()
