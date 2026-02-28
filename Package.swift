@@ -8,7 +8,8 @@ let package = Package(
         .library(name: "Cadova", targets: ["Cadova"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "0.4.0")),
+        //.package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "0.4.0")),
+        .package(path: "../manifold-swift"),
         .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.2.3")),
         .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.1.1")),
         .package(url: "https://github.com/tomasf/Pelagos.git", .upToNextMinor(from: "0.1.3")),
@@ -17,19 +18,12 @@ let package = Package(
         .target(
             name: "Cadova",
             dependencies: [
-                .byName(name: "CadovaCPP"),
                 .product(name: "Apus", package: "Apus"),
                 .product(name: "Manifold", package: "manifold-swift"),
                 .product(name: "ThreeMF", package: "ThreeMF"),
                 .product(name: "Pelagos", package: "Pelagos")
             ],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
-        ),
-        .target(
-            name: "CadovaCPP",
-            dependencies: [
-                .product(name: "Manifold", package: "manifold-swift"),
-            ],
         ),
         .testTarget(
             name: "Tests",

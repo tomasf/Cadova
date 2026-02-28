@@ -3,7 +3,6 @@ import Manifold3D
 internal import ThreeMF
 internal import Zip
 internal import Nodal
-internal import CadovaCPP
 
 extension MeshGL: @retroactive @unchecked Sendable {}
 
@@ -45,7 +44,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
             .addMaterial(material, mainColorGroup: &mainColorGroup, metallicColorGroup: &metallicColorGroup, metallicProperties: &metallicProperties)
         }
 
-        let (vertices, manifoldTriangles, originalIDs) = manifold.readMesh()
+        let meshGL = manifold.meshGL()
+        let vertices = meshGL.vertices
+        let manifoldTriangles = meshGL.triangles
+        let originalIDs = meshGL.originalIDs
 
         let triangleOIDs = TriangleOIDMapping(indexSets: originalIDs)
         let propertyReferencesByOID = materials.mapValues(addMaterial)

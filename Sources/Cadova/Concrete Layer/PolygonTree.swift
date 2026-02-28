@@ -1,9 +1,5 @@
-import Foundation
-internal import ManifoldCPP
-internal import CadovaCPP
-import Cxx
+import Manifold3D
 
-// Corresponds to Clipper2's PolyTreeD
 struct PolygonTree: Sendable {
     public let polygon: SimplePolygon
     public let children: [PolygonTree]
@@ -16,31 +12,28 @@ struct PolygonTree: Sendable {
     static let empty = PolygonTree(polygon: .init([]), children: [])
 }
 
-fileprivate extension PolygonTree {
-    init(polygonNode: cadova.PolygonNode) {
-        polygon = SimplePolygon(polygonNode.polygon.map { Vector2D(x: $0.x, y: $0.y) })
-
-        // Trying to either map polygonNode.children directly or trying to access .count
-        // instead of size() makes the compiler crash on Windows. I don't even- 
-        children = (0..<polygonNode.children.size()).map {
-            PolygonTree(polygonNode: polygonNode.children[$0]!)
-        }
-    }
-}
-
 extension CrossSection {
     func polygonTree() -> PolygonTree {
-        let polygons = polygons()
-        let tree = cadova.PolygonNode.FromPolygons(.init(polygons.map {
-            .init($0.vertices.map {
-                manifold.vec2($0.x, $0.y)
-            })}
-        ))
-        guard let tree else { return .empty }
+        let contours = polygons().map { SimplePolygon($0) }
+        guard !contours.isEmpty else { return .empty }
 
-        let result = PolygonTree(polygonNode: tree)
-        defer { cadova.PolygonNode.Destroy(tree) }
-        return result
+        let areas = contours.map(\.area)
+
+        // For each contour, find its immediate parent: the smallest-area contour that contains it
+        let parents: [Int?] = contours.indices.map { i in
+            let testPoint = contours[i].vertices[0]
+            return contours.indices
+                .filter { j in j != i && contours[j].contains(testPoint) }
+                .min(by: { areas[$0] < areas[$1] })
+        }
+
+        func buildSubtree(parentIndex: Int?) -> [PolygonTree] {
+            contours.indices
+                .filter { parents[$0] == parentIndex }
+                .map { i in PolygonTree(polygon: contours[i], children: buildSubtree(parentIndex: i)) }
+        }
+
+        return PolygonTree(polygon: .init([]), children: buildSubtree(parentIndex: nil))
     }
 }
 
@@ -51,7 +44,7 @@ extension PolygonTree {
         for (left, right) in zip(children, other.children) {
             guard left.matchesTopology(of: right) else { return false }
         }
-        
+
         return true
     }
 
@@ -61,5 +54,21 @@ extension PolygonTree {
             list += child.flattened()
         }
         return list
+    }
+}
+
+private extension SimplePolygon {
+    func contains(_ point: Vector2D) -> Bool {
+        var inside = false
+        var j = count - 1
+        for i in 0..<count {
+            let pi = vertices[i], pj = vertices[j]
+            if (pi.y > point.y) != (pj.y > point.y),
+               point.x < (pj.x - pi.x) * (point.y - pi.y) / (pj.y - pi.y) + pi.x {
+                inside = !inside
+            }
+            j = i
+        }
+        return inside
     }
 }
