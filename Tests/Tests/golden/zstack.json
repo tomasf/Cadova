@@ -22,10 +22,10 @@
             "kind" : "shape3D",
             "primitive" : {
               "cylinder" : {
-                "bottomRadius" : 1.5,
+                "bottomRadius" : 0,
                 "height" : 1,
                 "segmentCount" : 62,
-                "topRadius" : 0
+                "topRadius" : 1.5
               }
             }
           },
@@ -46,8 +46,8 @@
             [
               0,
               0,
-              -1,
-              2
+              1,
+              1
             ],
             [
               0,
