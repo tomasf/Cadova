@@ -101,10 +101,10 @@ public extension Cylinder {
 
 public extension Cylinder {
     /// The radius at the bottom of the cylinder (at Z = 0).
-    public var bottomRadius: Double { bottom.radius }
+    var bottomRadius: Double { bottom.radius }
 
     /// The radius at the top of the cylinder (at Z = height).
-    public var topRadius: Double { top.radius }
+    var topRadius: Double { top.radius }
 
     /// Returns the circular cross-section at a specific height `z` along the cylinder.
     ///
