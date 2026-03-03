@@ -40,7 +40,7 @@ public extension Measurements {
 }
 
 public extension Measurements2D {
-    /// The total area of the 2D geometry.
+    /// The total area of the 2D geometry, in square millimeters (mm²).
     var area: Double { concrete.sum(\.area) }
 
     /// The number of contours (closed paths) in the geometry.
@@ -54,10 +54,10 @@ public extension Measurements2D {
 }
 
 public extension Measurements3D {
-    /// The total surface area of the 3D geometry.
+    /// The total surface area of the 3D geometry, in square millimeters (mm²).
     var surfaceArea: Double { concrete.sum(\.surfaceArea) }
 
-    /// The total volume enclosed by the 3D geometry.
+    /// The total volume enclosed by the 3D geometry, in cubic millimeters (mm³).
     var volume: Double { concrete.sum(\.volume) }
 
     /// The total number of edges in the geometry.
