@@ -15,7 +15,7 @@ extension GeometryNode.Contents: Equatable {
         case let (.materialized(k1), .materialized(k2)): k1 == k2
         case let (.shape2D(a), .shape2D(b)): a == b
         case let (.offset(a1, aa, aj, am, asc), .offset(a2, ba, bj, bm, bsc)):
-            a1 == a2 && aa.roundedForHash == ba.roundedForHash && aj == bj && am.roundedForHash == bm.roundedForHash && asc == bsc
+            a1 == a2 && aa == ba && aj == bj && am == bm && asc == bsc
         case let (.projection(a1, k1), .projection(a2, k2)): a1 == a2 && k1 == k2
         case let (.shape3D(a), .shape3D(b)): a == b
         case let (.applyMaterial(ba, aa), .applyMaterial(bb, ab)): ba == bb && aa == ab
@@ -23,8 +23,8 @@ extension GeometryNode.Contents: Equatable {
         case let (.trim(a1, p1), .trim(a2, p2)): a1 == a2 && p1 == p2
         case let (.smoothOut(a1, minSharpAngleA, minSmoothnessA), .smoothOut(a2, minSharpAngleB, minSmoothnessB)):
             a1 == a2
-                && minSharpAngleA.roundedForHash == minSharpAngleB.roundedForHash
-                && minSmoothnessA.roundedForHash == minSmoothnessB.roundedForHash
+                && minSharpAngleA == minSharpAngleB
+                && minSmoothnessA == minSmoothnessB
 
         default: false
         }
@@ -71,9 +71,9 @@ extension GeometryNode.Contents: Hashable {
         case .offset(let body, let amount, let joinStyle, let miterLimit, let segmentCount):
             hasher.combine(GeometryNode.Kind.offset)
             hasher.combine(body)
-            hasher.combine(amount.roundedForHash)
+            hasher.combine(amount)
             hasher.combine(joinStyle)
-            hasher.combine(miterLimit.roundedForHash)
+            hasher.combine(miterLimit)
             hasher.combine(segmentCount)
         case .projection(let body, let kind):
             hasher.combine(GeometryNode.Kind.projection)
@@ -97,8 +97,8 @@ extension GeometryNode.Contents: Hashable {
         case .smoothOut(let body, let minSharpAngle, let minSmoothness):
             hasher.combine(GeometryNode.Kind.smoothOut)
             hasher.combine(body)
-            hasher.combine(minSharpAngle.roundedForHash)
-            hasher.combine(minSmoothness.roundedForHash)
+            hasher.combine(minSharpAngle)
+            hasher.combine(minSmoothness)
         }
     }
 }
@@ -111,7 +111,7 @@ extension GeometryNode.Projection {
     static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.full, .full): true
-        case let (.slice(a), .slice(b)): a.roundedForHash == b.roundedForHash
+        case let (.slice(a), .slice(b)): a == b
 
         case (.full, _), (.slice, _): false
         }
@@ -123,7 +123,7 @@ extension GeometryNode.Projection {
             hasher.combine(Kind.full)
         case .slice(let z):
             hasher.combine(Kind.slice)
-            hasher.combine(z.roundedForHash)
+            hasher.combine(z)
         }
     }
 }
@@ -136,7 +136,7 @@ extension GeometryNode.Extrusion {
     static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case let (.linear(h1, t1, d1, s1), .linear(h2, t2, d2, s2)):
-            h1.roundedForHash == h2.roundedForHash && t1 == t2 && d1 == d2 && s1 == s2
+            h1 == h2 && t1 == t2 && d1 == d2 && s1 == s2
         case let (.rotational(a1, s1), .rotational(a2, s2)):
             a1 == a2 && s1 == s2
 
@@ -148,7 +148,7 @@ extension GeometryNode.Extrusion {
         switch self {
         case .linear(let height, let twist, let divisions, let scaleTop):
             hasher.combine(Kind.linear)
-            hasher.combine(height.roundedForHash)
+            hasher.combine(height)
             hasher.combine(twist)
             hasher.combine(divisions)
             hasher.combine(scaleTop)
@@ -172,7 +172,7 @@ extension GeometryNode.PrimitiveShape2D {
             hasher.combine(size)
         case .circle(let radius, let segments):
             hasher.combine(Kind.circle)
-            hasher.combine(radius.roundedForHash)
+            hasher.combine(radius)
             hasher.combine(segments)
         case .polygons(let list, let fillRule):
             hasher.combine(Kind.polygon)
@@ -187,7 +187,7 @@ extension GeometryNode.PrimitiveShape2D {
     static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case let (.rectangle(a), .rectangle(b)): a == b
-        case let (.circle(ra, sa), .circle(rb, sb)): ra.roundedForHash == rb.roundedForHash && sa == sb
+        case let (.circle(ra, sa), .circle(rb, sb)): ra == rb && sa == sb
         case let (.polygons(la, fa), .polygons(lb, fb)): la == lb && fa == fb
         case let (.convexHull(pa), .convexHull(pb)): pa == pb
 
@@ -208,13 +208,13 @@ extension GeometryNode.PrimitiveShape3D {
             hasher.combine(size)
         case .sphere(let radius, let segmentCount):
             hasher.combine(Kind.sphere)
-            hasher.combine(radius.roundedForHash)
+            hasher.combine(radius)
             hasher.combine(segmentCount)
         case .cylinder(let bottomRadius, let topRadius, let height, let segmentCount):
             hasher.combine(Kind.cylinder)
-            hasher.combine(bottomRadius.roundedForHash)
-            hasher.combine(topRadius.roundedForHash)
-            hasher.combine(height.roundedForHash)
+            hasher.combine(bottomRadius)
+            hasher.combine(topRadius)
+            hasher.combine(height)
             hasher.combine(segmentCount)
         case .convexHull(let points):
             hasher.combine(Kind.convexHull)
@@ -228,9 +228,9 @@ extension GeometryNode.PrimitiveShape3D {
     static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case let (.box(a), .box(b)): a == b
-        case let (.sphere(ra, sa), .sphere(rb, sb)): ra.roundedForHash == rb.roundedForHash && sa == sb
+        case let (.sphere(ra, sa), .sphere(rb, sb)): ra == rb && sa == sb
         case let (.cylinder(ba, ta, ha, sa), .cylinder(bb, tb, hb, sb)):
-            ba.roundedForHash == bb.roundedForHash && ta.roundedForHash == tb.roundedForHash && ha.roundedForHash == hb.roundedForHash && sa == sb
+            ba == bb && ta == tb && ha == hb && sa == sb
         case let (.convexHull(pa), .convexHull(pb)): pa == pb
         case let (.mesh(ma), .mesh(mb)): ma == mb
 

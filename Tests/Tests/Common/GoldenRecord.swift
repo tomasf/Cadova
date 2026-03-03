@@ -39,6 +39,12 @@ struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
     }
 }
 
+extension GoldenRecord: ApproximatelyEquatable {
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        parts.equals(other.parts, within: tolerance)
+    }
+}
+
 private extension Part {
     static let main = Part("Model", semantic: .solid)
 }

@@ -231,29 +231,3 @@ extension Vector3D: CustomDebugStringConvertible {
         String(format: "[%g, %g, %g]", x, y, z)
     }
 }
-
-extension Vector3D {
-    /// Hashes the vector using rounded values for stability.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components.
-    ///
-    public func hash(into hasher: inout Hasher) {
-        x.roundedForHash.hash(into: &hasher)
-        y.roundedForHash.hash(into: &hasher)
-        z.roundedForHash.hash(into: &hasher)
-    }
-
-    /// Compares two vectors using rounded values to allow tolerance.
-    ///
-    /// - Parameters:
-    ///   - lhs: The left-hand side vector.
-    ///   - rhs: The right-hand side vector.
-    ///
-    /// - Returns: `true` if the vectors are equal within the rounding tolerance.
-    ///
-    public static func ==(_ lhs: Vector3D, _ rhs: Vector3D) -> Bool {
-        lhs.x.roundedForHash == rhs.x.roundedForHash &&
-        lhs.y.roundedForHash == rhs.y.roundedForHash &&
-        lhs.z.roundedForHash == rhs.z.roundedForHash
-    }
-}
