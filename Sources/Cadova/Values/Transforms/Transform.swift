@@ -78,7 +78,7 @@ public extension Transform {
     func hash(into hasher: inout Hasher) {
         for row in (0..<Self.size.rows) {
             for column in (0..<Self.size.columns) {
-                hasher.combine(self[row, column].roundedForHash)
+                hasher.combine(self[row, column])
             }
         }
     }
@@ -86,7 +86,7 @@ public extension Transform {
     static func ==(_ lhs: Self, _ rhs: Self) -> Bool {
         for row in (0..<Self.size.rows) {
             for column in (0..<Self.size.columns) {
-                if lhs[row, column].roundedForHash != rhs[row, column].roundedForHash {
+                if lhs[row, column] != rhs[row, column] {
                     return false
                 }
             }

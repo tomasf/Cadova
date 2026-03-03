@@ -111,14 +111,3 @@ extension Angle: CustomDebugStringConvertible {
         String(format: "%g°", degrees)
     }
 }
-
-extension Angle {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(degrees.rounded())
-    }
-
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
-        lhs.degrees.roundedForHash == rhs.degrees.roundedForHash
-    }
-}
-

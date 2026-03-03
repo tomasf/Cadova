@@ -118,7 +118,7 @@ extension Geometry {
         let computedGoldenRecord = GoldenRecord(result: result)
         let goldenRecord = try GoldenRecord<D>(url: URL(goldenFileNamed: name, extension: "json"))
 
-        #expect(computedGoldenRecord == goldenRecord)
+        #expect(computedGoldenRecord ≈ goldenRecord)
     }
 
     func writeVerificationModel(name: String) async throws {
