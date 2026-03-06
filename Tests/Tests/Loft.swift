@@ -148,8 +148,9 @@ struct LoftTests {
 
         #expect(m.volume > 0)
         #expect(m.surfaceArea > 0)
-        // With corners preserved, the loft reaches exactly to the outer vertices of the top triangle
-        #expect(m.boundingBox ≈ .init(minimum: [0, 0, 0], maximum: [5, 5, 30]))
+        // With corners preserved, the loft reaches exactly to the outer vertices of the top triangle.
+        // Triangle(a:5, b:5, includedGamma:90°) places B at (5√2, 0) and C at (5/√2, 5/√2).
+        #expect(m.boundingBox ≈ .init(minimum: [0, 0, 0], maximum: [5 * 2.squareRoot(), 5 / 2.squareRoot(), 30]))
     }
 
     @Test func `loft between rectangles preserves corners`() async throws {
