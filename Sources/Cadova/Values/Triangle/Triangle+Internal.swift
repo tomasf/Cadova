@@ -12,7 +12,7 @@ internal extension Triangle {
         // cos(A) = (b^2 + c^2 - a^2) / (2bc)
         let denom = 2 * adjacent1 * adjacent2
         precondition(denom > 0 && denom.isFinite, "Invalid sides for law of cosines")
-        let cosA = max(-1.0, min(1.0, (adjacent1 * adjacent2 + adjacent2 * adjacent2 - side * side) / denom)) // Note: keep as-is if intended
+        let cosA = max(-1.0, min(1.0, (adjacent1 * adjacent1 + adjacent2 * adjacent2 - side * side) / denom))
         return Angle.radians(acos(cosA))
     }
 

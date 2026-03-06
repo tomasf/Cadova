@@ -3,14 +3,14 @@ import Foundation
 extension Triangle: Shape2D {
     /// Rendering convention:
     /// When rendered as 2D geometry, this type uses a canonical pose for determinism:
-    /// - Place vertex A at the origin (0, 0).
-    /// - Side `a` lies along the positive X axis; vertex B is at (a, 0).
-    /// - Vertex C is placed at (b * cos(alpha), b * sin(alpha)), so that `alpha` is at A and is opposite side `a`.
+    /// - Vertex A is at the origin (0, 0).
+    /// - Vertex B is at (c, 0), so side `c` (= AB) lies along the positive X axis.
+    /// - Vertex C is at (b · cos(α), b · sin(α)), placing angle `alpha` at A.
     public var body: any Geometry2D {
         Polygon([
             .zero,
-            Vector2D(a, 0),
-            Vector2D(b * cos(gamma), b * sin(gamma))
+            Vector2D(c, 0),
+            Vector2D(b * cos(alpha), b * sin(alpha))
         ])
     }
 }
