@@ -87,6 +87,26 @@ public extension Cylinder {
     init(bottomDiameter: Double, topDiameter: Double, height: Double) {
         self.init(bottomRadius: bottomDiameter / 2, topRadius: topDiameter / 2, height: height)
     }
+
+    /// Create a truncated right circular cone (a cylinder with different top and bottom diameters)
+    /// using the slanted side length instead of vertical height.
+    /// - Parameters:
+    ///   - bottomDiameter: The diameter at the bottom
+    ///   - topDiameter: The diameter at the top
+    ///   - slantHeight: The length of the side between the top and bottom edges
+
+    init(bottomDiameter: Double, topDiameter: Double, slantHeight: Double) {
+        assert(slantHeight.isFinite, "Cylinder slant height must be finite")
+
+        let radiusDifference = (topDiameter - bottomDiameter) / 2
+        assert(
+            slantHeight >= abs(radiusDifference),
+            "Cylinder slant height must be at least the difference between the radii"
+        )
+
+        let height = (slantHeight * slantHeight - radiusDifference * radiusDifference).squareRoot()
+        self.init(bottomDiameter: bottomDiameter, topDiameter: topDiameter, height: height)
+    }
 }
 
 public extension Cylinder {

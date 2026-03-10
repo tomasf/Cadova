@@ -63,6 +63,15 @@ struct Geometry3DTests {
         #expect(volume.equals(expectedVolume, within: 1))
     }
 
+    @Test func `cylinder supports slant height initializer`() {
+        let cylinder = Cylinder(bottomDiameter: 10, topDiameter: 20, slantHeight: 13)
+
+        #expect(cylinder.bottom.diameter ≈ 10)
+        #expect(cylinder.top.diameter ≈ 20)
+        #expect(cylinder.height ≈ 12)
+        #expect(cylinder.slantHeight ≈ 13)
+    }
+
     @Test func `projected onto plane produces correct 2D shape`() async throws {
         // A box projected onto XY should give a rectangle matching the box's XY dimensions
         let xyBounds = try await Box(x: 10, y: 20, z: 30)
