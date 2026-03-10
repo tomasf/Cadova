@@ -8,12 +8,12 @@ import Manifold3D
 /// let circleWithDiameter = Circle(diameter: 10)
 /// let circleWithRadius = Circle(radius: 5)
 /// ```
-public struct Circle {
-    /// The diameter of the circle.
-    public let diameter: Double
+public struct Circle: Hashable, Sendable, Codable {
+    /// The radius of the circle.
+    public let radius: Double
 
-    /// The radius of the circle (half of the diameter).
-    public var radius: Double { diameter / 2 }
+    /// The diameter of the circle (twice the radius).
+    public var diameter: Double { radius * 2 }
 
     /// Creates a new `Circle` instance with the specified diameter.
     ///
@@ -21,7 +21,7 @@ public struct Circle {
     public init(diameter: Double) {
         precondition(diameter.isFinite, "Diameter must be finite.")
         precondition(diameter >= 0, "Diameter must not be negative.")
-        self.diameter = diameter
+        self.radius = diameter / 2
     }
 
     /// Creates a new `Circle` instance with the specified radius.
@@ -30,7 +30,7 @@ public struct Circle {
     public init(radius: Double) {
         precondition(radius.isFinite, "Radius must be finite.")
         precondition(radius >= 0, "Radius must not be negative.")
-        self.diameter = radius * 2
+        self.radius = radius
     }
 
     /// Creates a new `Circle` instance with the specified chord length and sagitta.
@@ -49,22 +49,25 @@ public struct Circle {
         precondition(sagitta > 0, "Sagitta must be greater than 0.")
         precondition(sagitta <= chordLength / 2, "Sagitta must be less than or equal to half of the chord length.")
 
-        diameter = sagitta + (pow(chordLength, 2) / (4 * sagitta))
+        radius = (sagitta + (pow(chordLength, 2) / (4 * sagitta))) / 2
     }
 }
 
 extension Circle: Shape2D {
     public var body: any Geometry2D {
         @Environment(\.scaledSegmentation) var segmentation
-        NodeBasedGeometry(.circle(radius: radius, segmentCount: segmentation.segmentCount(circleRadius: radius)))
+        NodeBasedGeometry(.circle(
+            radius: radius,
+            segmentCount: segmentation.segmentCount(circleRadius: radius)
+        ))
     }
 }
 
 public extension Circle {
     static func ellipse(size: Vector2D) -> any Geometry2D {
-        let diameter = max(size.x, size.y)
-        return Circle(diameter: diameter)
-            .scaled(size / diameter)
+        let radius = max(size.x, size.y) / 2
+        return Circle(radius: radius)
+            .scaled(size / radius / 2)
     }
 
     static func ellipse(x: Double, y: Double) -> any Geometry2D {

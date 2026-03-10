@@ -10,7 +10,7 @@ import Foundation
 ///     .withSegmentation(count: 3)
 /// ```
 
-public struct Cylinder: Shape3D {
+public struct Cylinder: Shape3D, Hashable, Sendable, Codable {
     /// The height of the cylinder along the Z axis.
     public let height: Double
 
