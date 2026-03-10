@@ -24,92 +24,34 @@ public struct Cylinder: Shape3D {
         @Environment(\.scaledSegmentation) var segmentation
         let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
-        if height >= .ulpOfOne {
-            NodeBasedGeometry(.shape(.cylinder(
+        if height > .ulpOfOne {
+            NodeBasedGeometry(.cylinder(
                 bottomRadius: bottomRadius,
                 topRadius: topRadius,
                 height: height,
                 segmentCount: segmentCount
-            )))
+            ))
         }
     }
 }
 
 public extension Cylinder {
-    /// Create a right circular cylinder
+    /// Create a right circular cylinder or a truncated right circular cone from its end circles and height.
+    ///
     /// - Parameters:
-    ///   - radius: The radius (half diameter) of the cylinder
-    ///   - height: The height of the cylinder
-
-    init(radius: Double, height: Double) {
-        assert(radius.isFinite, "Cylinder radius must be finite")
+    ///   - bottom: The circular face at the bottom of the cylinder
+    ///   - top: The circular face at the top of the cylinder
+    ///   - height: The height between the bottom and top faces
+    init(bottom: Circle, top: Circle, height: Double) {
         assert(height.isFinite, "Cylinder height must be finite")
-        assert(radius > 0, "Cylinder radius must be positive")
         assert(height >= 0, "Cylinder height must not be negative")
-        self.bottom = Circle(radius: radius)
-        self.top = Circle(radius: radius)
+        assert(bottom.radius > 0 || top.radius > 0, "At least one of the radii must be positive")
+
+        self.bottom = bottom
+        self.top = top
         self.height = height
     }
 
-    /// Create a truncated right circular cone (a cylinder with different top and bottom radii)
-    /// - Parameters:
-    ///   - bottomRadius: The radius at the bottom
-    ///   - topRadius: The radius at the top
-    ///   - height: The height between the top and the bottom
-
-    init(bottomRadius: Double, topRadius: Double, height: Double) {
-        assert(bottomRadius.isFinite && topRadius.isFinite, "Cylinder radii must be finite")
-        assert(height.isFinite, "Cylinder height must be finite")
-        assert(bottomRadius >= 0 && topRadius >= 0, "Cylinder radii must not be negative")
-        assert(bottomRadius > 0 || topRadius > 0, "At least one of the radii must be positive")
-        assert(height >= 0, "Cylinder height must not be negative")
-
-        self.bottom = Circle(radius: bottomRadius)
-        self.top = Circle(radius: topRadius)
-        self.height = height
-    }
-
-    /// Create a right circular cylinder
-    /// - Parameters:
-    ///   - diameter: The diameter of the cylinder
-    ///   - height: The height of the cylinder
-
-    init(diameter: Double, height: Double) {
-        self.init(radius: diameter / 2, height: height)
-    }
-
-    /// Create a truncated right circular cone (a cylinder with different top and bottom diameters)
-    /// - Parameters:
-    ///   - bottomDiameter: The diameter at the bottom
-    ///   - topDiameter: The diameter at the top
-    ///   - height: The height between the top and the bottom
-
-    init(bottomDiameter: Double, topDiameter: Double, height: Double) {
-        self.init(bottomRadius: bottomDiameter / 2, topRadius: topDiameter / 2, height: height)
-    }
-
-    /// Create a truncated right circular cone (a cylinder with different top and bottom diameters)
-    /// using the slanted side length instead of vertical height.
-    /// - Parameters:
-    ///   - bottomDiameter: The diameter at the bottom
-    ///   - topDiameter: The diameter at the top
-    ///   - slantHeight: The length of the side between the top and bottom edges
-
-    init(bottomDiameter: Double, topDiameter: Double, slantHeight: Double) {
-        assert(slantHeight.isFinite, "Cylinder slant height must be finite")
-
-        let radiusDifference = (topDiameter - bottomDiameter) / 2
-        assert(
-            slantHeight >= abs(radiusDifference),
-            "Cylinder slant height must be at least the difference between the radii"
-        )
-
-        let height = (slantHeight * slantHeight - radiusDifference * radiusDifference).squareRoot()
-        self.init(bottomDiameter: bottomDiameter, topDiameter: topDiameter, height: height)
-    }
-}
-
-public extension Cylinder {
     /// The radius at the bottom of the cylinder (at Z = 0).
     var bottomRadius: Double { bottom.radius }
 
