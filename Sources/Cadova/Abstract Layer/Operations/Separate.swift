@@ -1,10 +1,10 @@
 import Foundation
 
-internal struct Separate<D: Dimensionality>: Geometry {
+internal struct Separate<D: Dimensionality, Output: Dimensionality>: Geometry {
     let body: D.Geometry
-    let reader: @Sendable ([D.Geometry]) -> D.Geometry
+    let reader: @Sendable ([D.Geometry]) -> Output.Geometry
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
         let result = try await context.buildResult(for: body, in: environment)
         let partCount = try await context.result(for: .decompose(result.node)).parts.count
         let parts = (0..<partCount).map { SeparatedPart(body: body, index: $0) }
@@ -46,7 +46,10 @@ public extension Geometry {
     ///
     /// In this example, each disconnected part of the model is extracted and displayed side-by-side
     /// along the X axis with a spacing of 1 mm.
-    func separated(@GeometryBuilder<D> reader: @Sendable @escaping (_ components: [D.Geometry]) -> D.Geometry) -> D.Geometry {
+    ///
+    func separated <Output: Dimensionality> (
+        @GeometryBuilder<Output> reader: @Sendable @escaping (_ components: [D.Geometry]) -> Output.Geometry
+    ) -> Output.Geometry {
         Separate(body: self, reader: reader)
     }
 }
