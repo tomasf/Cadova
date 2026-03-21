@@ -10,7 +10,7 @@ import Foundation
 /// ```swift
 /// let hexagon = RegularPolygon(sideCount: 6, circumradius: 5)
 /// ```
-public struct RegularPolygon: Shape2D {
+public struct RegularPolygon: Sendable, Hashable, Codable {
     /// The number of sides in the polygon. Must be at least 3.
     public let sideCount: Int
 
@@ -63,6 +63,9 @@ public struct RegularPolygon: Shape2D {
         self.init(sideCount: sideCount, apothem: widthAcrossFlats / 2)
     }
 
+}
+
+extension RegularPolygon: Shape2D {
     public var body: any Geometry2D {
         Circle(radius: circumradius)
             .withSegmentation(count: sideCount)
