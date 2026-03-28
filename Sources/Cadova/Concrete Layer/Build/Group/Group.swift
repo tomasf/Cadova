@@ -109,7 +109,9 @@ public struct Group: Sendable, ModelBuildable {
         // Build nested content
         let models = directives.compactMap(\.model)
         let groups = directives.compactMap(\.group)
-        let buildables: [any ModelBuildable] = groups + models
+        let filterNames = options[ModelFilter.self].names
+        let filteredModels = filterNames.isEmpty ? models : models.filter { filterNames.contains($0.name) }
+        let buildables: [any ModelBuildable] = groups + filteredModels
 
         let urls = await buildables.asyncMap {
             await $0.build(environment: environment, context: context, options: options, URL: outputDirectory)

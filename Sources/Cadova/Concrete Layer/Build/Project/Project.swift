@@ -77,8 +77,14 @@ public func Project(
     }
 
     let models = directives.compactMap(\.model)
-    let combinedOptions = ModelOptions(options + directives.compactMap(\.options))
+    var combinedOptions = ModelOptions(options + directives.compactMap(\.options))
     let environment = EnvironmentValues.defaultEnvironment.adding(directives: directives)
+
+    let cliArgs = CommandLineArguments.current
+    if !cliArgs.modelFilter.isEmpty {
+        combinedOptions = [combinedOptions, ModelOptions(ModelFilter(names: cliArgs.modelFilter))]
+        logger.info("Model filter: \(cliArgs.modelFilter.sorted().joined(separator: ", "))")
+    }
 
     // Build models and groups
     let groups = directives.compactMap(\.group)
@@ -87,9 +93,12 @@ public func Project(
 
     let constantEnvironment = environment
 
-    let buildables: [any ModelBuildable] = groups + models
+    let filterNames = combinedOptions[ModelFilter.self].names
+    let filteredModels = filterNames.isEmpty ? models : models.filter { filterNames.contains($0.name) }
+    let buildables: [any ModelBuildable] = groups + filteredModels
+    let finalOptions = combinedOptions
     let urls = await buildables.asyncMap {
-        await $0.build(environment: constantEnvironment, context: context, options: combinedOptions, URL: url)
+        await $0.build(environment: constantEnvironment, context: context, options: finalOptions, URL: url)
     }.joined()
 
     try? Platform.revealFiles(Array(urls))
