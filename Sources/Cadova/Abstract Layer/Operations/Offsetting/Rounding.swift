@@ -38,4 +38,42 @@ public extension Geometry2D {
     func rounded(radius: Double) -> any Geometry2D {
         rounded(insideRadius: radius, outsideRadius: radius)
     }
+
+    /// Applies chamfering to the geometry's corners with separate control over inside and outside sizes.
+    ///
+    /// This method modifies the geometry to chamfer (cut at 45°) its corners, with the extent of chamfering determined by the
+    /// `insideSize` and `outsideSize` parameters. Positive values specify the size of the chamfer. If
+    /// only one of the parameters is specified, chamfering will be applied only on that side.
+    ///
+    /// - Parameters:
+    ///   - insideDepth: The depth of chamfering applied to interior corners of the geometry.
+    ///   - outsideDepth: The depth of chamfering applied to exterior corners of the geometry.
+    /// - Returns: A new geometry object with chamfered corners.
+    ///
+    func chamfered(insideDepth: Double? = nil, outsideDepth: Double? = nil) -> any Geometry2D {
+        var body: any Geometry2D = self
+        if let outsideDepth {
+            body = body
+                .offset(amount: -outsideDepth, style: .miter)
+                .offset(amount: outsideDepth, style: .square)
+        }
+        if let insideDepth {
+            body = body
+                .offset(amount: insideDepth, style: .miter)
+                .offset(amount: -insideDepth, style: .square)
+        }
+        return body
+    }
+
+    /// Applies uniform chamfering to both inside and outside corners of the geometry.
+    ///
+    /// This is a convenience method that applies the same chamfer depth to both the inside and outside edges of the
+    /// geometry. Equivalent to calling `chamfered(insideDepth:depth, outsideDepth:depth)`.
+    ///
+    /// - Parameter depth: The chamfer depth to apply to both inside and outside edges.
+    /// - Returns: A new geometry object with uniformly chamfered corners.
+    ///
+    func chamfered(depth: Double) -> any Geometry2D {
+        chamfered(insideDepth: depth, outsideDepth: depth)
+    }
 }
