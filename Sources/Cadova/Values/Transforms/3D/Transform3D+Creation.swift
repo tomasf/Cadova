@@ -92,10 +92,18 @@ public extension Transform3D {
     /// - Returns: An `Transform3D` representing the rotation from the `from` vector to the `to` vector.
 
     static func rotation(from: Direction3D, to: Direction3D) -> Transform3D {
-        .rotation(
-            angle: acos((from.unitVector ⋅ to.unitVector).clamped(to: -1.0...1.0)),
-            around: Direction3D(from.unitVector × to.unitVector)
-        )
+        let dot = (from.unitVector ⋅ to.unitVector).clamped(to: -1.0...1.0)
+        let cross = from.unitVector × to.unitVector
+
+        if cross.magnitude < 1e-12 {
+            if dot > 0 { return .identity }
+            let perpendicular = abs(from.unitVector.x) < 0.9
+                ? from.unitVector × Vector3D(1, 0, 0)
+                : from.unitVector × Vector3D(0, 1, 0)
+            return .rotation(angle: 180°, around: Direction3D(perpendicular))
+        }
+
+        return .rotation(angle: acos(dot), around: Direction3D(cross))
     }
 
     /// Creates a rotation `Transform3D` around an arbitrary axis.
