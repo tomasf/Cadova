@@ -34,4 +34,27 @@ struct TagTests {
         #expect(try await geometry.bounds ≈ .init(minimum: [-5, -5, 0], maximum: [5, 5, 17]))
         #expect(try await geometry.measurements.volume ≈ 567.631)
     }
+
+    @Test func `tag references include definitions from nested and outer booleans`() async throws {
+        let sharedTag = Tag("shared tag")
+
+        let geometry = Box(x: 21, y: 1, z: 1)
+            .subtracting {
+                sharedTag
+            }
+            .adding {
+                Box(1)
+                    .tagged(sharedTag)
+                    .subtracting { Box(1) }
+                    .translated(x: 5)
+            }
+            .adding {
+                Box(1)
+                    .tagged(sharedTag)
+                    .subtracting { Box(1) }
+                    .translated(x: 15)
+            }
+
+        #expect(try await geometry.measurements.volume ≈ 19)
+    }
 }
