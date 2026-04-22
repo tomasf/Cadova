@@ -94,11 +94,11 @@ public func Project(
     let constantEnvironment = environment
 
     let filterNames = combinedOptions[ModelFilter.self].names
-    let filteredModels = filterNames.isEmpty ? models : models.filter { filterNames.contains($0.name) }
+    let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: []) }
     let buildables: [any ModelBuildable] = groups + filteredModels
     let finalOptions = combinedOptions
     let urls = await buildables.asyncMap {
-        await $0.build(environment: constantEnvironment, context: context, options: finalOptions, URL: url)
+        await $0.build(environment: constantEnvironment, context: context, options: finalOptions, URL: url, filterPath: [])
     }.joined()
 
     try? Platform.revealFiles(Array(urls))

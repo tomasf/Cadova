@@ -235,6 +235,48 @@ struct BuildTests {
         #expect(files.contains("model.3mf"))
     }
 
+    @Test func `Model filter matches root model name without matching grouped model with same name`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        await Project(root: tempDir, options: ModelOptions(ModelFilter(names: ["Differential"]))) {
+            await Model("Differential") {
+                Box(10)
+            }
+
+            await Group("GroupName") {
+                await Model("Differential") {
+                    Sphere(diameter: 10)
+                }
+            }
+        }
+
+        #expect(FileManager.default.fileExists(atPath: tempDir.appending(path: "Differential.3mf").path))
+        #expect(!FileManager.default.fileExists(atPath: tempDir.appending(path: "GroupName/Differential.3mf").path))
+    }
+
+    @Test func `Model filter matches grouped model by output relative path`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        await Project(root: tempDir, options: ModelOptions(ModelFilter(names: ["GroupName/Differential"]))) {
+            await Model("Differential") {
+                Box(10)
+            }
+
+            await Group("GroupName") {
+                await Model("Differential") {
+                    Sphere(diameter: 10)
+                }
+            }
+        }
+
+        #expect(!FileManager.default.fileExists(atPath: tempDir.appending(path: "Differential.3mf").path))
+        #expect(FileManager.default.fileExists(atPath: tempDir.appending(path: "GroupName/Differential.3mf").path))
+    }
+
     // MARK: - Project Tests
 
     @Test func `Project creates root directory`() async throws {

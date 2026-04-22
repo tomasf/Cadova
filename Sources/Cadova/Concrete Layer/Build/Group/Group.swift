@@ -83,7 +83,8 @@ public struct Group: Sendable, ModelBuildable {
         environment inheritedEnvironment: EnvironmentValues,
         context: EvaluationContext,
         options inheritedOptions: ModelOptions?,
-        URL directory: URL?
+        URL directory: URL?,
+        filterPath: [String]
     ) async -> [URL] {
         let directives = await ModelContext(isCollectingModels: true).whileCurrent {
             await inheritedEnvironment.whileCurrent {
@@ -95,7 +96,9 @@ public struct Group: Sendable, ModelBuildable {
 
         // Determine output directory
         let outputDirectory: URL?
+        let currentFilterPath: [String]
         if let name {
+            currentFilterPath = filterPath + [name]
             if let parent = directory {
                 outputDirectory = parent.appendingPathComponent(name, isDirectory: true)
             } else {
@@ -103,6 +106,7 @@ public struct Group: Sendable, ModelBuildable {
             }
             try? FileManager().createDirectory(at: outputDirectory!, withIntermediateDirectories: true)
         } else {
+            currentFilterPath = filterPath
             outputDirectory = directory
         }
 
@@ -110,11 +114,11 @@ public struct Group: Sendable, ModelBuildable {
         let models = directives.compactMap(\.model)
         let groups = directives.compactMap(\.group)
         let filterNames = options[ModelFilter.self].names
-        let filteredModels = filterNames.isEmpty ? models : models.filter { filterNames.contains($0.name) }
+        let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: currentFilterPath) }
         let buildables: [any ModelBuildable] = groups + filteredModels
 
         let urls = await buildables.asyncMap {
-            await $0.build(environment: environment, context: context, options: options, URL: outputDirectory)
+            await $0.build(environment: environment, context: context, options: options, URL: outputDirectory, filterPath: currentFilterPath)
         }.joined()
 
         return Array(urls)

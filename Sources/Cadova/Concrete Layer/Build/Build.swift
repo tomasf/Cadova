@@ -52,6 +52,7 @@ internal protocol ModelBuildable: Sendable {
         environment inheritedEnvironment: EnvironmentValues,
         context: EvaluationContext,
         options inheritedOptions: ModelOptions?,
-        URL directory: URL?
+        URL directory: URL?,
+        filterPath: [String]
     ) async -> [URL]
 }
