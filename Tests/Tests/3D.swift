@@ -39,6 +39,32 @@ struct Geometry3DTests {
         .expectEquals(goldenFile: "3d/rounded-box")
     }
 
+    @Test func `cuttingEdgeProfile(using:) places asymmetric shape consistently across all six sides`() async throws {
+        // An asymmetric profile (not symmetric in either axis). If the per-side
+        // chirality correction is wrong on any side, the cut on that side would
+        // be mirrored relative to its neighbours, producing a visibly different
+        // combined result.
+        let profile: @Sendable () -> any Geometry2D = {
+            Rectangle([6, 3])
+                .aligned(at: .center)
+                .subtracting {
+                    Rectangle([2, 1.5])
+                        .translated(x: 1, y: 0)
+                }
+        }
+        let edge = EdgeProfile.chamfer(depth: 0.5)
+        let sides: [DirectionalAxis<D3>] = [.top, .bottom, .left, .right, .front, .back]
+
+        let geometry = sides.enumerated().mapUnion { index, side in
+            Box(10)
+                .aligned(at: .center)
+                .cuttingEdgeProfile(edge, on: side, using: profile)
+                .translated(x: Double(index) * 12)
+        }
+
+        try await geometry.expectEquals(goldenFile: "3d/edge-profile-side-orientation")
+    }
+
     @Test func `cylinders support various dimension specifications`() async throws {
         try await Stack(.y, spacing: 1) {
             Cylinder(bottomRadius: 3, topRadius: 6, height: 10)
