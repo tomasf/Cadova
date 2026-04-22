@@ -57,4 +57,62 @@ struct TagTests {
 
         #expect(try await geometry.measurements.volume ≈ 19)
     }
+
+    @Test func `tag can read definitions as separate members`() async throws {
+        let sharedTag = Tag("shared tag")
+
+        let geometry = Box(x: 21, y: 1, z: 1)
+            .subtracting {
+                sharedTag
+            }
+            .adding {
+                Box(1)
+                    .tagged(sharedTag)
+                    .subtracting { Box(1) }
+                    .translated(x: 5)
+            }
+            .adding {
+                Box(1)
+                    .tagged(sharedTag)
+                    .subtracting { Box(1) }
+                    .translated(x: 15)
+            }
+            .adding {
+                sharedTag.readingMembers { members in
+                    for (index, member) in members.enumerated() {
+                        member.translated(y: Double(index) * 10)
+                    }
+                }
+            }
+
+        let bounds = try await geometry.bounds
+        #expect(bounds?.minimum.x ≈ 0)
+        #expect(bounds?.maximum.x ≈ 21)
+        #expect(bounds?.maximum.y ≈ 11)
+        #expect(try await geometry.measurements.volume ≈ 21)
+    }
+
+    @Test func `tag can map each member separately`() async throws {
+        let sharedTag = Tag("shared tag")
+
+        let geometry = Box(1)
+            .tagged(sharedTag)
+            .translated(x: 5)
+            .adding {
+                Box(1)
+                    .tagged(sharedTag)
+                    .translated(x: 15)
+            }
+            .adding {
+                sharedTag.map { member in
+                    member.translated(z: 10)
+                }
+            }
+
+        let bounds = try await geometry.bounds
+        #expect(bounds?.minimum.x ≈ 5)
+        #expect(bounds?.maximum.x ≈ 16)
+        #expect(bounds?.maximum.z ≈ 11)
+        #expect(try await geometry.measurements.volume ≈ 4)
+    }
 }
