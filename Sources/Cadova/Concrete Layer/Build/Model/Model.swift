@@ -118,7 +118,7 @@ public struct Model: Sendable, ModelBuildable {
             }
 
             for warning in warnings {
-                logger.warning("⚠️ \(warning.description)")
+                logger.warning("\(warning.description)")
             }
 
         } catch BuildError.noGeometry {
@@ -126,7 +126,7 @@ public struct Model: Sendable, ModelBuildable {
             return []
 
         } catch {
-            logger.error("Cadova caught an error while evaluating model \"\(name)\":\n🛑 \(error)\n")
+            logger.error("Cadova caught an error while evaluating model \"\(name)\":\n\(error)\n")
             return []
         }
 
