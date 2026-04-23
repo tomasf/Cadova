@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: SwiftyLab/setup-swift@latest
+      with:
+        swift-version: "6.2.3"
     - uses: actions/checkout@v4
 
     - name: Install Linux dependencies
