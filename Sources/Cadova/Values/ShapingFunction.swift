@@ -32,7 +32,7 @@ public struct ShapingFunction: Sendable, Hashable, Codable {
     public var function: @Sendable (Double) -> Double {
         switch curve {
         case .linear: { $0 }
-        case .exponential (let exponent): { pow(1.0 - $0, exponent) }
+        case .exponential (let exponent): { pow($0, exponent) }
         case .easeIn: { $0 * $0 }
         case .easeOut: { 1 - (1 - $0) * (1 - $0)  }
         case .easeInOut: { $0 < 0.5 ? 2 * $0 * $0 : -2 * $0 * $0 + 4 * $0 - 1 }

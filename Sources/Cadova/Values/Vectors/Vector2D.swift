@@ -13,10 +13,10 @@ public struct Vector2D: ExpressibleByArrayLiteral, Hashable, Sendable, Codable {
     public typealias D = D2
 
     /// The x-component of the vector.
-    public var x: Double
+    public var x: Double { didSet { precondition(x.isFinite, "Vector elements can't be NaN or infinite") } }
 
     /// The y-component of the vector.
-    public var y: Double
+    public var y: Double { didSet { precondition(y.isFinite, "Vector elements can't be NaN or infinite") } }
 
     /// A vector with both components set to zero.
     public static let zero = Vector2D(0)

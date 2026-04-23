@@ -43,3 +43,10 @@ internal struct ModelName: ModelOptionItem {
     static let defaultValue = Self(name: nil)
     func combined(with other: ModelName) -> ModelName { other }
 }
+
+internal struct ModelFilter: ModelOptionItem {
+    let names: Set<String>
+
+    static let defaultValue = Self(names: [])
+    func combined(with other: ModelFilter) -> ModelFilter { Self(names: names.union(other.names)) }
+}

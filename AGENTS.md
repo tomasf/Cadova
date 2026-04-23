@@ -90,3 +90,25 @@ var body: any Geometry3D {
     }
 }
 ```
+
+## Prefer working with Angle directly
+
+Use `Angle` as the working type for angular values. Prefer the `°` suffix operator for angle constants. Avoid converting back and forth through raw radians or degrees unless an API strictly requires it. Trigonometric functions operate directly on `Angle`, and `Angle` values can be added, subtracted, multiplied, and otherwise composed directly. Extract `.degrees` or `.radians` only at API boundaries that strictly require scalar values.
+
+**Preferred:**
+```swift
+let start = 45°
+let sweep = 90°
+let midpoint = start + sweep / 2
+let x = cos(midpoint) * radius
+let y = sin(midpoint) * radius
+```
+
+**Avoid:**
+```swift
+let startRadians = Angle.degrees(45).radians
+let sweepRadians = Angle(degrees: 90).radians
+let midpointRadians = startRadians + sweepRadians / 2
+let x = Foundation.cos(midpointRadians) * radius
+let y = Foundation.sin(midpointRadians) * radius
+```

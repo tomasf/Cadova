@@ -60,7 +60,7 @@ public extension Geometry3D {
     ) -> any Geometry3D {
         measuringBounds { _, selfBounds in
             let plane = Plane(side: side, on: selfBounds, offset: offset * side.axisDirection.factor)
-            cuttingEdgeProfile(edgeProfile, with: shape(), at: plane)
+            cuttingEdgeProfile(edgeProfile, with: side.footprintShape(shape()), at: plane)
         }
     }
 }

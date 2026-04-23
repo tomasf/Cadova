@@ -2,7 +2,7 @@ import Foundation
 
 /// A `Rectangle` represents a two-dimensional shape with four straight sides and four right angles.
 ///
-public struct Rectangle {
+public struct Rectangle: Sendable, Hashable, Codable {
     /// The size of the rectangle represented as a `Vector2D`.
     public let size: Vector2D
 
@@ -21,7 +21,7 @@ public struct Rectangle {
     ///   - y: The size of the rectangle in the Y axis
     public init(x: Double, y: Double) {
         precondition(x.isFinite && y.isFinite, "Rectangle dimensions must be finite")
-        self.init([x, y])
+        self.init(Vector2D(x, y))
     }
 
     /// Initializes a square.
@@ -29,7 +29,7 @@ public struct Rectangle {
     ///   - side: A `Double` value indicating the length of each side of the square.
     public init(_ side: Double) {
         precondition(side.isFinite, "Rectangle side length must be finite")
-        self.size = [side, side]
+        self.init(Vector2D(side, side))
     }
 }
 

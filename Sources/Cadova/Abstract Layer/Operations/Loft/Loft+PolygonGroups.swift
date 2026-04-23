@@ -10,6 +10,11 @@ internal extension Loft {
         }
 
         var remainingChildren = layerTrees.map(\.children)
+        let childCounts = remainingChildren.map(\.count)
+        precondition(
+            childCounts.allSatisfy { $0 == childCounts[0] },
+            "Loft layers must have the same number of islands. Found: \(childCounts)"
+        )
 
         while !remainingChildren[0].isEmpty {
             // Take the first polygon tree of the first layer and treat it as the target

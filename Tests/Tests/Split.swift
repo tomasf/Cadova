@@ -30,13 +30,19 @@ struct SplitTests {
     }
 
     @Test func `separated correctly identifies disjoint components`() async throws {
-        try await Box(1).adding { Box(1).translated(x: 0.5) }
-            .separated { #expect($0.count == 1) }
-            .triggerEvaluation()
+        let merged: any Geometry3D = Box(1).adding { Box(1).translated(x: 0.5) }
+            .separated { components in
+                #expect(components.count == 1)
+                Union(children: components)
+            }
+        try await merged.triggerEvaluation()
 
-        try await Box(1).adding { Box(1).translated(x: 1.1) }
-            .separated { #expect($0.count == 2) }
-            .triggerEvaluation()
+        let merged2: any Geometry3D = Box(1).adding { Box(1).translated(x: 1.1) }
+            .separated { components in
+                #expect(components.count == 2)
+                Union(children: components)
+            }
+        try await merged2.triggerEvaluation()
     }
 
     @Test func `separated components can be stacked`() async throws {

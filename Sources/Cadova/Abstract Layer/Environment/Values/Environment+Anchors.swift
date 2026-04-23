@@ -17,9 +17,15 @@ internal extension EnvironmentValues {
     }
 
     func withDefinedReferences(_ referenceState: ReferenceState) -> Self {
-        setting(key: Self.environmentKey, value: UpstreamReferences(
-            anchors: referenceState.definedAnchors,
-            tags: referenceState.definedTags
+        let existingReferences = upstreamReferences
+        let mergedAnchors = (existingReferences?.anchors ?? [:])
+            .merging(referenceState.definedAnchors) { $0.union($1) }
+        let mergedTags = (existingReferences?.tags ?? [:])
+            .merging(referenceState.definedTags) { $0 + $1 }
+
+        return setting(key: Self.environmentKey, value: UpstreamReferences(
+            anchors: mergedAnchors,
+            tags: mergedTags
         ))
     }
 

@@ -39,6 +39,32 @@ struct Geometry3DTests {
         .expectEquals(goldenFile: "3d/rounded-box")
     }
 
+    @Test func `cuttingEdgeProfile(using:) places asymmetric shape consistently across all six sides`() async throws {
+        // An asymmetric profile (not symmetric in either axis). If the per-side
+        // chirality correction is wrong on any side, the cut on that side would
+        // be mirrored relative to its neighbours, producing a visibly different
+        // combined result.
+        let profile: @Sendable () -> any Geometry2D = {
+            Rectangle([6, 3])
+                .aligned(at: .center)
+                .subtracting {
+                    Rectangle([2, 1.5])
+                        .translated(x: 1, y: 0)
+                }
+        }
+        let edge = EdgeProfile.chamfer(depth: 0.5)
+        let sides: [DirectionalAxis<D3>] = [.top, .bottom, .left, .right, .front, .back]
+
+        let geometry = sides.enumerated().mapUnion { index, side in
+            Box(10)
+                .aligned(at: .center)
+                .cuttingEdgeProfile(edge, on: side, using: profile)
+                .translated(x: Double(index) * 12)
+        }
+
+        try await geometry.expectEquals(goldenFile: "3d/edge-profile-side-orientation")
+    }
+
     @Test func `cylinders support various dimension specifications`() async throws {
         try await Stack(.y, spacing: 1) {
             Cylinder(bottomRadius: 3, topRadius: 6, height: 10)
@@ -61,6 +87,71 @@ struct Geometry3DTests {
         let expectedVolume = Double.pi * radius * radius * height / 3
 
         #expect(volume.equals(expectedVolume, within: 1))
+    }
+
+    @Test func `cylinder supports slant height initializer`() {
+        let cylinder = Cylinder(bottomDiameter: 10, topDiameter: 20, slantHeight: 13)
+
+        #expect(cylinder.bottom.diameter ≈ 10)
+        #expect(cylinder.top.diameter ≈ 20)
+        #expect(cylinder.height ≈ 12)
+        #expect(cylinder.slantHeight ≈ 13)
+    }
+
+    @Test func `cylinder supports circle-based initializer`() {
+        let cylinder = Cylinder(bottom: Circle(diameter: 10), top: Circle(diameter: 20), height: 12)
+
+        #expect(cylinder.bottom.diameter ≈ 10)
+        #expect(cylinder.top.diameter ≈ 20)
+        #expect(cylinder.height ≈ 12)
+    }
+
+    @Test func `cylinder supports top diameter apex angle and slant height initializer`() {
+        let expanding = Cylinder(topDiameter: 14, apexAngle: 60°, slantHeight: 10)
+        let narrowing = Cylinder(topDiameter: 14, apexAngle: -60°, slantHeight: 10)
+        let expectedHeight = 10 * cos(30°)
+
+        #expect(expanding.bottom.diameter ≈ 4)
+        #expect(expanding.top.diameter ≈ 14)
+        #expect(expanding.height ≈ expectedHeight)
+
+        #expect(narrowing.bottom.diameter ≈ 24)
+        #expect(narrowing.top.diameter ≈ 14)
+        #expect(narrowing.height ≈ expectedHeight)
+    }
+
+    @Test func `cylinder supports end-specific diameter apex angle and height initializers`() {
+        let expandingFromBottom = Cylinder(bottomDiameter: 4, apexAngle: 60°, height: 10)
+        let narrowingFromBottom = Cylinder(bottomDiameter: 24, apexAngle: -60°, height: 10)
+        let expandingToTop = Cylinder(topDiameter: 14, apexAngle: 60°, height: 10)
+        let narrowingToTop = Cylinder(topDiameter: 14, apexAngle: -60°, height: 10)
+        let expectedDiameterDifference = 2 * 10 * tan(30°)
+
+        #expect(expandingFromBottom.bottom.diameter ≈ 4)
+        #expect(expandingFromBottom.top.diameter ≈ (4 + expectedDiameterDifference))
+
+        #expect(narrowingFromBottom.bottom.diameter ≈ 24)
+        #expect(narrowingFromBottom.top.diameter ≈ (24 - expectedDiameterDifference))
+
+        #expect(expandingToTop.bottom.diameter ≈ (14 - expectedDiameterDifference))
+        #expect(expandingToTop.top.diameter ≈ 14)
+
+        #expect(narrowingToTop.bottom.diameter ≈ (14 + expectedDiameterDifference))
+        #expect(narrowingToTop.top.diameter ≈ 14)
+    }
+
+    @Test func `cylinder supports bottom diameter apex angle and slant height initializer`() {
+        let expanding = Cylinder(bottomDiameter: 4, apexAngle: 60°, slantHeight: 10)
+        let narrowing = Cylinder(bottomDiameter: 24, apexAngle: -60°, slantHeight: 10)
+        let expectedHeight = 10 * cos(30°)
+
+        #expect(expanding.bottom.diameter ≈ 4)
+        #expect(expanding.top.diameter ≈ 14)
+        #expect(expanding.height ≈ expectedHeight)
+
+        #expect(narrowing.bottom.diameter ≈ 24)
+        #expect(narrowing.top.diameter ≈ 14)
+        #expect(narrowing.height ≈ expectedHeight)
     }
 
     @Test func `projected onto plane produces correct 2D shape`() async throws {

@@ -92,6 +92,33 @@ public extension DirectionalAxis where D == D3 {
     static let top = maxZ
 }
 
+internal extension DirectionalAxis where D == D3 {
+    /// Returns a user-drawn 2D shape mirrored as needed so that it aligns with the
+    /// plane-local frame produced by `Plane(side: self, on:).transform` for this side.
+    ///
+    /// `Plane.transform` is built from `rotation(from: +Z, to: normal)` — the minimum-angle
+    /// rotation. For three of the six sides the resulting plane-local basis has its X or Y
+    /// axis flipped relative to the "looking at the face from outside the body" view that
+    /// users naturally draw in. This helper compensates with a 2D mirror so that the same
+    /// user-drawn shape lands in the same world-space position and orientation regardless
+    /// of which side it's applied to.
+    ///
+    /// Only relevant to side-based overloads that accept a user-provided 2D shape
+    /// (e.g. `cuttingEdgeProfile(_:on:offset:using:)`). Auto-sliced paths go through
+    /// `sliced(along:)`, which already runs through `plane.transform.inverse`, so no
+    /// correction is needed there.
+    func footprintShape(_ shape: any Geometry2D) -> any Geometry2D {
+        switch (axis, axisDirection) {
+        case (.z, .negative), (.x, .positive):
+            shape.scaled(x: -1)
+        case (.y, .positive):
+            shape.scaled(y: -1)
+        default:
+            shape
+        }
+    }
+}
+
 /// Convenience alias for referring to the sides of a 2D rectangle using directional axes.
 public extension Rectangle {
     /// A type representing one of the four orthogonal sides of a 2D rectangle.

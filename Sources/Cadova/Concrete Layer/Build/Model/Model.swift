@@ -90,7 +90,8 @@ public struct Model: Sendable, ModelBuildable {
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
         context: EvaluationContext = .init(),
         options inheritedOptions: ModelOptions? = nil,
-        URL directory: URL? = nil
+        URL directory: URL? = nil,
+        filterPath: [String] = []
     ) async -> [URL] {
         logger.info("Generating \"\(name)\"...")
 
@@ -117,7 +118,7 @@ public struct Model: Sendable, ModelBuildable {
             }
 
             for warning in warnings {
-                logger.warning("⚠️ \(warning.description)")
+                logger.warning("\(warning.description)")
             }
 
         } catch BuildError.noGeometry {
@@ -125,7 +126,7 @@ public struct Model: Sendable, ModelBuildable {
             return []
 
         } catch {
-            logger.error("Cadova caught an error while evaluating model \"\(name)\":\n🛑 \(error)\n")
+            logger.error("Cadova caught an error while evaluating model \"\(name)\":\n\(error)\n")
             return []
         }
 
@@ -140,6 +141,16 @@ public struct Model: Sendable, ModelBuildable {
         }
 
         return fileExisted ? [] : [url]
+    }
+}
+
+internal extension Model {
+    func filterName(in path: [String]) -> String {
+        (path + [name]).joined(separator: "/")
+    }
+
+    func isIncluded(by filterNames: Set<String>, in path: [String]) -> Bool {
+        filterNames.isEmpty || filterNames.contains(filterName(in: path))
     }
 }
 

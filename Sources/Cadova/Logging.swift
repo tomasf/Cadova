@@ -60,8 +60,8 @@ internal struct Logger: Sendable {
         switch level {
         case .debug: prefix = "[DEBUG]"
         case .info: prefix = "[INFO]"
-        case .warning: prefix = "[WARNING]"
-        case .error: prefix = "[ERROR]"
+        case .warning: prefix = "⚠️ [WARNING]"
+        case .error: prefix = "🛑 [ERROR]"
         }
         print("\(timestamp) \(prefix) \(message.value)")
     }
