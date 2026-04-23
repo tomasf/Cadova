@@ -1,13 +1,17 @@
 import Foundation
 
 internal struct CommandLineArguments {
-    static let current = CommandLineArguments()
+    @TaskLocal static var overriddenArguments: [String]? = nil
+
+    static var current: CommandLineArguments {
+        CommandLineArguments(arguments: overriddenArguments ?? CommandLine.arguments)
+    }
 
     /// Model names specified via `--model NAME` or `--model=NAME`, or empty if none were specified.
     let modelFilter: Set<String>
 
-    private init() {
-        let args = Array(CommandLine.arguments.dropFirst()) // drop executable path
+    init(arguments: [String]) {
+        let args = Array(arguments.dropFirst()) // drop executable path
         let flag = "--model"
         let prefix = "\(flag)="
         var filters: Set<String> = []
