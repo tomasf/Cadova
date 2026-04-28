@@ -68,7 +68,7 @@ internal extension Geometry {
 
     func modifyingResult<E: ResultElement>(
         _ type: E.Type,
-        @GeometryBuilder<D3> modifier: @Sendable @escaping (D.Geometry, inout E) -> D.Geometry
+        @GeometryBuilder<D> modifier: @Sendable @escaping (D.Geometry, inout E) -> D.Geometry
     ) -> D.Geometry {
         ResultAndGeometryModifier(body: self) { elements in
             var element = elements[E.self]
