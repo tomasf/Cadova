@@ -50,6 +50,14 @@ extension ReferenceState {
     var undefinedAnchors: Set<Anchor> {
         usedAnchors.subtracting(definedAnchors.keys)
     }
+
+    mutating func removeAnchorDefinitions(for anchor: Anchor?) {
+        if let anchor {
+            definedAnchors.removeValue(forKey: anchor)
+        } else {
+            definedAnchors.removeAll()
+        }
+    }
 }
 
 extension ReferenceState {
@@ -65,6 +73,14 @@ extension ReferenceState {
 
     var undefinedTags: Set<Tag> {
         usedTags.subtracting(definedTags.keys)
+    }
+
+    mutating func removeTagDefinitions(for tag: Tag?) {
+        if let tag {
+            definedTags.removeValue(forKey: tag)
+        } else {
+            definedTags.removeAll()
+        }
     }
 }
 

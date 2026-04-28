@@ -211,4 +211,20 @@ public extension Geometry {
             }
         }
     }
+
+    /// Removes anchor definitions recorded within this geometry.
+    ///
+    /// Use this method to discard anchor definitions captured in this subtree so that they are no
+    /// longer visible to `anchored(to:)` calls placed outside of it. This is useful when anchors
+    /// are used locally for internal placements and should not be exposed upstream.
+    ///
+    /// - Parameter anchor: A specific anchor whose definitions should be removed. If `nil`, all
+    ///   anchor definitions recorded in this subtree are removed.
+    /// - Returns: A geometry with the matching anchor definitions removed.
+    ///
+    func removingAnchorDefinitions(for anchor: Anchor? = nil) -> D.Geometry {
+        modifyingResult(ReferenceState.self) { state in
+            state.removeAnchorDefinitions(for: anchor)
+        }
+    }
 }

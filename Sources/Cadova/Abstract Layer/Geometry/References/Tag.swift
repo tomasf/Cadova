@@ -113,6 +113,24 @@ public extension Tag {
     }
 }
 
+public extension Geometry {
+    /// Removes tag definitions recorded within this geometry.
+    ///
+    /// Use this method to discard tag definitions captured in this subtree so that they are no longer
+    /// visible to tag references placed outside of it. This is useful when tags are used locally for
+    /// internal composition and should not be exposed upstream.
+    ///
+    /// - Parameter tag: A specific tag whose definitions should be removed. If `nil`, all tag
+    ///   definitions recorded in this subtree are removed.
+    /// - Returns: A geometry with the matching tag definitions removed.
+    ///
+    func removingTagDefinitions(for tag: Tag? = nil) -> D.Geometry {
+        modifyingResult(ReferenceState.self) { state in
+            state.removeTagDefinitions(for: tag)
+        }
+    }
+}
+
 internal struct TagGeometryReader<Output: Dimensionality>: Geometry {
     let tag: Tag
     let reader: @Sendable ([D3.Geometry]) -> Output.Geometry
