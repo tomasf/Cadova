@@ -64,4 +64,48 @@ struct AnchorTests {
         try await geometry.expectEquals(goldenFile: "anchors/usedBeforeDefinition")
         #expect(try await geometry.bounds ≈ .init(minimum: [-2, -2, 0], maximum: [12, 2, 5]))
     }
+
+    @Test func `2D anchor can position 2D geometry`() async throws {
+        let edge = Anchor("right edge")
+
+        let geometry = Rectangle(x: 10, y: 4)
+            .aligned(at: .center)
+            .definingAnchor(edge, at: .right)
+            .adding {
+                Circle(diameter: 2)
+                    .anchored(to: edge)
+            }
+
+        #expect(try await geometry.bounds ≈ .init(minimum: [-5, -2], maximum: [6, 2]))
+    }
+
+    @Test func `2D anchor survives extrusion to 3D`() async throws {
+        let edge = Anchor("right edge")
+
+        let geometry = Rectangle(x: 10, y: 4)
+            .aligned(at: .center)
+            .definingAnchor(edge, at: .right)
+            .extruded(height: 6)
+            .adding {
+                Sphere(diameter: 2)
+                    .anchored(to: edge)
+            }
+
+        #expect(try await geometry.bounds ≈ .init(minimum: [-5, -2, -1], maximum: [6, 2, 6]))
+    }
+
+    @Test func `3D anchor survives projection to 2D`() async throws {
+        let edge = Anchor("right edge")
+
+        let geometry = Box(x: 10, y: 4, z: 6)
+            .aligned(at: .center)
+            .definingAnchor(edge, at: .right)
+            .projected()
+            .adding {
+                Circle(diameter: 2)
+                    .anchored(to: edge)
+            }
+
+        #expect(try await geometry.bounds ≈ .init(minimum: [-5, -2], maximum: [6, 2]))
+    }
 }
