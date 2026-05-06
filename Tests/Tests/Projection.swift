@@ -147,6 +147,17 @@ struct ProjectionTests {
         #expect(bounds!.size.x > 10)
     }
 
+    @Test func `slice along plane preserves source environment transform`() async throws {
+        try await Box(10)
+            .readingEnvironment(\.naturalUpDirection) { body, up in
+                #expect(up ≈ .positiveX)
+                body
+            }
+            .sliced(along: Plane.xy.rotated(y: 30°))
+            .withEnvironment { $0.settingNaturalUpDirection(.positiveX) }
+            .triggerEvaluation()
+    }
+
     // MARK: - Project onto Plane
 
     @Test func `project onto YZ plane gives side view`() async throws {
@@ -180,6 +191,17 @@ struct ProjectionTests {
         #expect(bounds != nil)
         // At 45°, the diagonal of X-Z appears, which is √2 * 10
         #expect(bounds!.size.x > 10)
+    }
+
+    @Test func `project onto plane preserves source environment transform`() async throws {
+        try await Box(10)
+            .readingEnvironment(\.naturalUpDirection) { body, up in
+                #expect(up ≈ .positiveX)
+                body
+            }
+            .projected(onto: .yz)
+            .withEnvironment { $0.settingNaturalUpDirection(.positiveX) }
+            .triggerEvaluation()
     }
 
     // MARK: - Projection with Reader Closure

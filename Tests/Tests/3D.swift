@@ -65,6 +65,17 @@ struct Geometry3DTests {
         try await geometry.expectEquals(goldenFile: "3d/edge-profile-side-orientation")
     }
 
+    @Test func `edge profiling preserves source environment transform`() async throws {
+        try await Box(10)
+            .readingEnvironment(\.naturalUpDirection) { body, up in
+                #expect(up ≈ .positiveX)
+                body
+            }
+            .cuttingEdgeProfile(.chamfer(depth: 1), on: .right)
+            .definingNaturalUpDirection(.positiveX)
+            .triggerEvaluation()
+    }
+
     @Test func `cylinders support various dimension specifications`() async throws {
         try await Stack(.y, spacing: 1) {
             Cylinder(bottomRadius: 3, topRadius: 6, height: 10)
