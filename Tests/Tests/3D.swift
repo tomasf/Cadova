@@ -76,6 +76,16 @@ struct Geometry3DTests {
             .triggerEvaluation()
     }
 
+    @Test func `cutting edge profiling preserves source operation while tracing sliced shape`() async throws {
+        try await Cylinder(diameter: 10, height: 10)
+            .overhangSafe()
+            .readingOperation { #expect($0 == .addition) }
+            .cuttingEdgeProfile(.chamfer(depth: 1), on: .top)
+            .rotated(x: 90°)
+            .withCircularOverhangMethod(.bridge)
+            .triggerEvaluation()
+    }
+
     @Test func `cylinders support various dimension specifications`() async throws {
         try await Stack(.y, spacing: 1) {
             Cylinder(bottomRadius: 3, topRadius: 6, height: 10)
