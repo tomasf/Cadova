@@ -247,6 +247,36 @@ struct PartTests {
         #expect(try await geometry.measurements.volume ≈ 1016)
     }
 
+    @Test func `modifyingBodyAndParts applies operation to body and matching parts`() async throws {
+        let boxPart = Part("box")
+        let visualPart = Part("visual", semantic: .visual)
+
+        let geometry = Box(10)
+            .adding {
+                Box(4)
+                    .translated(x: 12)
+                    .inPart(boxPart)
+                Box(4)
+                    .translated(x: 20)
+                    .inPart(visualPart)
+            }
+            .modifyingBodyAndParts {
+                $0.subtracting {
+                    Box(x: 100, y: 1, z: 1)
+                        .translated(x: -10, y: 1, z: 1)
+                }
+            }
+
+        // Slab carves 10 from Box(10) and 4 from the solid Box(4) at x=12. The .visual part is
+        // skipped because the default semantic filter is .solid, leaving it at its full volume of 64.
+        #expect(try await geometry.partNames.sorted() == ["box", "visual"])
+        #expect(try await geometry.mainModelMeasurements.volume ≈ 990) // 1000 - 10
+        // body (990) + solid part (64 - 4 = 60), all disjoint; visual excluded by .solidParts scope
+        #expect(try await geometry.measurements.volume ≈ 1050)
+        // body (990) + solid part (60) + untouched visual part (64) = 1114
+        #expect(try await geometry.measurements(for: .allParts).volume ≈ 1114)
+    }
+
     @Test func `removingParts removes all parts of semantic`() async throws {
         let box1Part = Part("box1")
         let box2Part = Part("box2")
