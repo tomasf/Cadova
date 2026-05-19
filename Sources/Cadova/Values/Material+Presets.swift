@@ -54,5 +54,5 @@ public extension Material {
 
 internal extension Material {
     static let highlightedGeometry = Self.plain(.red, alpha: 0.4)
-    static let backgroundGeometry = Self.plain(.darkGray, alpha: 0.6)
+    static let backgroundGeometry = Self.plain(.silver, alpha: 0.6)
 }
