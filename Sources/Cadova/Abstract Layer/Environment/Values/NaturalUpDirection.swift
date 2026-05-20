@@ -33,7 +33,7 @@ public extension EnvironmentValues {
     ///
     var naturalUpDirection: Direction3D {
         let upDirection = naturalUpDirectionData
-        let upTransform = upDirection.transform.inverse.concatenated(with: transform.inverse)
+        let upTransform = upDirection.transform.concatenated(with: transform.inverse)
         return Direction3D(upTransform.apply(to: upDirection.direction.unitVector) - upTransform.offset)
     }
 

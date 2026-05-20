@@ -24,6 +24,30 @@ struct NaturalUpDirectionTests {
             .triggerEvaluation()
     }
 
+    @Test func `up direction is preserved when defined inside a rotated scope`() async throws {
+        try await Box(1)
+            .readingEnvironment(\.naturalUpDirection) { body, direction in
+                #expect(direction ≈ .up)
+                body
+            }
+            .definingNaturalUpDirection(.up)
+            .rotated(x: 90°)
+            .triggerEvaluation()
+    }
+
+    @Test func `up direction is transformed correctly by surrounding rotation`() async throws {
+        // Outer up = world +Y. Inside a +90° rotation around X, the local axis that
+        // points to world +Y is local -Z.
+        try await Box(1)
+            .readingEnvironment(\.naturalUpDirection) { body, direction in
+                #expect(direction ≈ .negativeZ)
+                body
+            }
+            .rotated(x: 90°)
+            .definingNaturalUpDirection(.positiveY)
+            .triggerEvaluation()
+    }
+
     @Test func `perpendicular direction returns nil XY angle`() async throws {
         try await Box(1)
             .readingEnvironment(\.naturalUpDirectionXYAngle) { body, angle in
