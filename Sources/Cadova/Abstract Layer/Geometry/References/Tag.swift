@@ -16,9 +16,45 @@ import Foundation
 ///     “used” in the current tree so it can be resolved in a later pass. If a tag remains unresolved at the top level,
 ///     a warning is printed.
 ///
-/// - Coordinate systems:
-///   - Referencing a tag reproduces the tagged geometry at the same world-space location and orientation it had at the
-///     time of tagging. This means the geometry appears where you would expect, relative to the current transform context.
+/// ## World-anchored references
+///
+/// A tag reference reproduces its geometry at the world-space position it had at the time of tagging,
+/// **regardless of where the reference appears in the tree**. This is the central property of tags:
+/// they are anchored to a captured world position, so transforms applied to ancestor geometry around
+/// a reference do not move it.
+///
+/// ```swift
+/// let part = Tag()
+/// let model = Box(1)
+///     .translated(x: 5)         // tagged box is at world (5...6)
+///     .tagged(part)
+///     .adding {
+///         // The Union below would normally translate everything inside it by +100,
+///         // but the reference stays anchored at its captured world position (5...6).
+///         Union { part }.translated(x: 100)
+///     }
+/// ```
+///
+/// ## Transforms applied directly to a reference
+///
+/// Transforms chained directly onto a tag reference *do* move it. They are applied in the
+/// **local coordinate frame** at the call site — the same way transforms on regular geometry behave:
+///
+/// ```swift
+/// part.translated(x: 10)              // reference moves +10 along local X
+/// part.translated(x: 10).rotated(...) // chained transforms compose in local frame
+/// ```
+///
+/// If the reference sits inside a rotated parent, the direct transforms see that rotation as the
+/// local frame, so `.translated(x: 10)` moves along the parent's local X — not world X.
+///
+/// The distinction is:
+/// - **Direct chains** on a tag/reference (via `translated`, `rotated`, etc.) compose into a single
+///   transform and move the reference, in the local frame.
+/// - **Outer wrappers** (transforms applied to a parent containing a reference) flow through the
+///   environment and are cancelled, preserving the world anchor.
+///
+/// This means `tag.translated(x: 10)` translates; but `Group { tag }.translated(x: 10)` does not.
 ///
 public struct Tag: Hashable, Sendable {
     internal let id = UUID()
@@ -43,8 +79,16 @@ public struct Tag: Hashable, Sendable {
 public extension Geometry3D {
     /// Attaches a tag to this geometry, allowing it to be referenced elsewhere in the same model.
     ///
-    /// The tagged geometry is recorded in its current coordinate system so that later references to the tag reproduce
-    /// the same geometry at the same world-space location and orientation.
+    /// The tagged geometry is recorded in its **current** coordinate system, meaning the world-space position
+    /// it has at the point where `tagged(_:)` is called — including any transforms applied to it earlier in
+    /// the chain. References to this tag later reproduce the geometry at that same world position.
+    ///
+    /// ```swift
+    /// // The tagged box is captured at world (5...6) — the translation is part of the anchor.
+    /// Box(1).translated(x: 5).tagged(myTag)
+    /// ```
+    ///
+    /// See ``Tag`` for how references behave when transforms are applied to them.
     ///
     /// - Multiple definitions:
     ///   - You can tag multiple geometries with the same `Tag`. When that tag is referenced, all tagged geometries are
@@ -64,6 +108,10 @@ public extension Geometry3D {
 /// location and orientation it had at the time of tagging. If the tag was applied to multiple geometries,
 /// the referenced result is the merged (unioned) combination of all of them.
 ///
+/// Transforms applied to ancestor geometry around the reference are cancelled by the world-anchor logic,
+/// while transforms chained directly onto the reference (via `translated`, `rotated`, etc.) move it
+/// relative to its anchor. See ``Tag`` for a full discussion of these two cases.
+///
 /// - Undefined tags:
 ///   - If the tag has not yet been defined in the model, this produces an empty geometry placeholder and marks the
 ///     tag as “used” so it can be resolved in a later pass. If the tag is still undefined at the top level, a
@@ -77,6 +125,48 @@ extension Tag: Geometry {
 
         return try await context.buildResult(for: output, in: environment)
             .modifyingElement(ReferenceState.self) { $0.read(tag: self) }
+    }
+
+    /// Applies a transform to this tag reference.
+    ///
+    /// Transforms chained directly onto a tag reference (e.g. `tag.translated(x: 10)`) are applied
+    /// to the world-anchored geometry, so they move it as expected. Transforms applied to a parent
+    /// geometry that contains a tag reference still flow through the environment and are cancelled
+    /// by the world-anchor logic, preserving the captured position.
+    ///
+    public func transformed(_ transform: Transform3D) -> any Geometry3D {
+        if transform.isIdentity {
+            return self
+        }
+        return TagReference(tag: self, transform: transform)
+    }
+}
+
+/// A tag reference with applied modifications.
+///
+/// Currently this carries an explicit transform; additional kinds of per-reference modifications
+/// (e.g. material or color overrides) can be added here without affecting `Tag`'s identity semantics.
+///
+internal struct TagReference: Geometry {
+    let tag: Tag
+    let transform: Transform3D
+
+    func transformed(_ additional: Transform3D) -> any Geometry3D {
+        if additional.isIdentity {
+            return self
+        }
+        return TagReference(tag: tag, transform: transform.transformed(additional))
+    }
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+        let output = Union {
+            environment.buildResults(for: tag)
+        }
+        .transformed(environment.transform.inverse)
+        .transformed(transform)
+
+        return try await context.buildResult(for: output, in: environment)
+            .modifyingElement(ReferenceState.self) { $0.read(tag: tag) }
     }
 }
 
