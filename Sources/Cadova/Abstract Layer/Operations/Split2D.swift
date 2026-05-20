@@ -30,6 +30,64 @@ public extension Geometry2D {
         reader(trimmed(along: line), trimmed(along: line.flipped))
     }
 
+    /// Splits the geometry using a mask geometry and passes the results to a closure.
+    ///
+    /// This variant uses a mask area to determine the split boundary. The result consists of the
+    /// parts of the original geometry that are inside and outside the mask, respectively.
+    ///
+    /// - Parameters:
+    ///   - mask: A closure that builds the mask geometry.
+    ///   - result: A closure that receives the two resulting geometries (inside and outside the mask).
+    ///
+    /// - Returns: A new geometry composed from the parts returned by the `result` closure.
+    ///
+    /// ## Example
+    /// ```swift
+    /// shape.split(with: { CuttingArea() }) { inside, outside in
+    ///     inside.colored(.green)
+    ///     outside.colored(.gray)
+    /// }
+    /// ```
+    func split(
+        @GeometryBuilder2D with mask: @escaping () -> any Geometry2D,
+        @GeometryBuilder2D result: @Sendable @escaping (_ inside: any Geometry2D, _ outside: any Geometry2D) -> any Geometry2D
+    ) -> any Geometry2D {
+        result(intersecting(mask()), subtracting(mask()))
+    }
+
+    /// Splits the geometry into two parts using axis-aligned ranges.
+    ///
+    /// The geometry is split by the axis-aligned region defined by the given ranges. The portion inside
+    /// the region and the portion outside are passed to the `reader` closure for independent composition.
+    /// Axes that are `nil` are left unbounded along that direction. Any `Range` expression is accepted,
+    /// including open, closed, partial, and infinite ranges.
+    ///
+    /// - Parameters:
+    ///   - x: Optional range along the x-axis. If `nil`, the region is unbounded in the x direction.
+    ///   - y: Optional range along the y-axis. If `nil`, the region is unbounded in the y direction.
+    ///   - reader: A closure that receives the inside and outside geometries.
+    ///
+    /// - Returns: A new geometry resulting from the closure.
+    ///
+    /// ## Example
+    /// ```swift
+    /// Circle(diameter: 10)
+    ///     .split(y: 0...) { upper, lower in
+    ///         upper.colored(.red)
+    ///         lower.colored(.blue)
+    ///     }
+    /// ```
+    ///
+    func split(
+        x: (any WithinRange)? = nil,
+        y: (any WithinRange)? = nil,
+        @GeometryBuilder2D reader: @Sendable @escaping (_ inside: any Geometry2D, _ outside: any Geometry2D) -> any Geometry2D
+    ) -> any Geometry2D {
+        measuringBounds { body, bounds in
+            body.split(with: { bounds.within(x: x, y: y, margin: 1).mask }, result: reader)
+        }
+    }
+
     /// Trims the geometry along the specified line, keeping only the portion on the clockwise side.
     ///
     /// This method behaves like a one-sided split: it cuts the geometry by a line and removes everything

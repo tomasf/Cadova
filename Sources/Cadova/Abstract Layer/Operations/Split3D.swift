@@ -90,6 +90,41 @@ public extension Geometry3D {
         result(intersecting(mask()), subtracting(mask()))
     }
 
+    /// Splits the geometry into two parts using axis-aligned ranges.
+    ///
+    /// The geometry is split by the axis-aligned box defined by the given ranges. The portion inside the
+    /// box and the portion outside are passed to the `reader` closure for independent composition. Axes
+    /// that are `nil` are left unbounded along that direction. Any `Range` expression is accepted,
+    /// including open, closed, partial, and infinite ranges.
+    ///
+    /// - Parameters:
+    ///   - x: Optional range along the x-axis. If `nil`, the region is unbounded in the x direction.
+    ///   - y: Optional range along the y-axis. If `nil`, the region is unbounded in the y direction.
+    ///   - z: Optional range along the z-axis. If `nil`, the region is unbounded in the z direction.
+    ///   - reader: A closure that receives the inside and outside geometries.
+    ///
+    /// - Returns: A new geometry resulting from the closure.
+    ///
+    /// ## Example
+    /// ```swift
+    /// Sphere(diameter: 10)
+    ///     .split(z: 0...) { upper, lower in
+    ///         upper.colored(.red)
+    ///         lower.colored(.blue)
+    ///     }
+    /// ```
+    ///
+    func split(
+        x: (any WithinRange)? = nil,
+        y: (any WithinRange)? = nil,
+        z: (any WithinRange)? = nil,
+        @GeometryBuilder3D reader: @Sendable @escaping (_ inside: any Geometry3D, _ outside: any Geometry3D) -> any Geometry3D
+    ) -> any Geometry3D {
+        measuringBounds { body, bounds in
+            body.split(with: { bounds.within(x: x, y: y, z: z, margin: 1).mask }, result: reader)
+        }
+    }
+
     /// Trims the geometry along the specified plane, keeping only the portion facing the plane's normal direction.
     ///
     /// This method behaves like a one-sided split: it cuts the geometry by a plane and removes everything
