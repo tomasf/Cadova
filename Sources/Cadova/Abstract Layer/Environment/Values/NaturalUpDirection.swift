@@ -48,7 +48,8 @@ public extension EnvironmentValues {
     ///
     var naturalUpDirectionXYAngle: Angle? {
         let xy = naturalUpDirection.unitVector.xy
-        guard xy.magnitude > 0 else { return nil }
+        let epsilon = 1e-8
+        guard xy.magnitude > epsilon else { return nil }
         return Vector2D.zero.angle(to: xy)
     }
 

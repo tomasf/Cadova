@@ -56,4 +56,20 @@ struct NaturalUpDirectionTests {
             .definingNaturalUpDirection()
             .triggerEvaluation()
     }
+
+    @Test func `XY angle is nil for vertical up direction despite transform rounding`() async throws {
+        // A chain of opposing rotations around different axes mathematically
+        // cancels to identity, but the concatenated matrix leaves sub-ulp
+        // noise in the XY plane of a +Z up vector. Without an epsilon guard,
+        // naturalUpDirectionXYAngle reads that noise as a real off-axis
+        // component and returns a meaningless angle.
+        try await Box(1)
+            .readingEnvironment(\.naturalUpDirectionXYAngle) { body, angle in
+                #expect(angle == nil)
+            }
+            .definingNaturalUpDirection(.up)
+            .rotated(angle: 30°, around: Direction3D(.init(1, 2, 3)))
+            .rotated(angle: -30°, around: Direction3D(.init(1, 2, 3)))
+            .triggerEvaluation()
+    }
 }
