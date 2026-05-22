@@ -43,8 +43,12 @@ extension ReferenceState {
     }
 
     mutating func read(anchor: Anchor) -> Set<Transform3D> {
-        usedAnchors.insert(anchor)
+        markUsed(anchor: anchor)
         return definedAnchors[anchor] ?? []
+    }
+
+    mutating func markUsed(anchor: Anchor) {
+        usedAnchors.insert(anchor)
     }
 
     var undefinedAnchors: Set<Anchor> {

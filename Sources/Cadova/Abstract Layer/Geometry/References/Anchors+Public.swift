@@ -225,3 +225,44 @@ public extension Geometry {
         }
     }
 }
+
+public extension Anchor {
+    /// Reads the world-space transforms recorded for this anchor and provides them for further composition.
+    ///
+    /// This is similar to ``Geometry/anchored(to:)``, except the recorded transforms are passed to the
+    /// `reader` closure as a list of values instead of being used to distribute a fixed body. Use this
+    /// when you need the transforms themselves — for manual calculations, building geometry whose
+    /// structure depends on the transforms, or producing different geometry per transform.
+    ///
+    /// Each transform is delivered in the local coordinate frame at the call site, matching the
+    /// convention used by ``Geometry/anchored(to:)``.
+    ///
+    /// - Important: The closure may be invoked more than once. When an anchor is defined elsewhere
+    ///   in the tree (e.g. in a sibling branch of a union), an initial evaluation pass runs the
+    ///   closure before those definitions are visible — often with an empty transform list — and a
+    ///   later pass re-runs it with the full set once the definitions have been propagated. Only the
+    ///   geometry returned by the final invocation contributes to the result, so the closure should
+    ///   be a pure function of its inputs and not rely on side effects.
+    ///
+    /// - Parameter reader: A closure that receives the anchor's recorded transforms.
+    /// - Returns: A geometry object resulting from the `reader` closure.
+    func readingTransforms<D: Dimensionality>(
+        @GeometryBuilder<D> _ reader: @Sendable @escaping (_ transforms: [D.Transform]) -> D.Geometry
+    ) -> D.Geometry {
+        AnchorTransformReader(anchor: self, reader: reader)
+    }
+}
+
+internal struct AnchorTransformReader<Output: Dimensionality>: Geometry {
+    let anchor: Anchor
+    let reader: @Sendable ([Output.Transform]) -> Output.Geometry
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
+        let reset = environment.transform.inverse
+        let localTransforms: [Output.Transform] = environment.transforms(for: anchor).map {
+            Output.Transform($0.concatenated(with: reset))
+        }
+        return try await context.buildResult(for: reader(localTransforms), in: environment)
+            .modifyingElement(ReferenceState.self) { $0.markUsed(anchor: anchor) }
+    }
+}
