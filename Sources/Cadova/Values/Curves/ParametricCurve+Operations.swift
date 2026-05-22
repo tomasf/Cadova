@@ -56,6 +56,73 @@ public extension ParametricCurve {
         }
     }
 
+    /// Returns samples picked at the requested arc-length positions along the curve.
+    ///
+    /// The curve is first subdivided into a polyline using `segmentation` (same as `samples(segmentation:)`).
+    /// The polyline's cumulative arc length is then walked to extract samples at the positions
+    /// described by `interval`. Each returned sample's `position`, `tangent`, `u`, and `distance`
+    /// fields are linearly interpolated from the bracketing polyline samples.
+    ///
+    /// - Parameters:
+    ///   - interval: Where along the curve to place samples — a fixed arc-length step or a fixed count.
+    ///   - segmentation: Controls the density of the underlying polyline that the samples are picked from.
+    /// - Returns: A list of samples at the requested arc-length positions, in ascending order.
+    ///
+    func samples(at interval: CurveSampleInterval, segmentation: Segmentation) -> [CurveSample<V>] {
+        let polyline = samples(segmentation: segmentation)
+        guard let totalLength = polyline.last?.distance, totalLength > 0 else {
+            // Degenerate curve: surface any zero-length cases. `.count(>=1, ...)` still returns the start.
+            switch interval {
+            case .count(let n, _) where n >= 1: return polyline.first.map { [$0] } ?? []
+            default: return []
+            }
+        }
+
+        let targets = interval.targetDistances(totalLength: totalLength)
+        var result: [CurveSample<V>] = []
+        result.reserveCapacity(targets.count)
+        var cursor = 0
+
+        for d in targets {
+            if d <= 0 {
+                result.append(polyline.first!)
+                continue
+            }
+            if d >= totalLength {
+                result.append(polyline.last!)
+                continue
+            }
+            while cursor + 1 < polyline.count - 1, polyline[cursor + 1].distance < d {
+                cursor += 1
+            }
+            let prev = polyline[cursor]
+            let next = polyline[cursor + 1]
+            let segmentLength = next.distance - prev.distance
+            let t = segmentLength > 0 ? (d - prev.distance) / segmentLength : 0
+            result.append(prev.interpolated(with: next, fraction: t))
+        }
+        return result
+    }
+
+    /// Picks samples at the requested arc-length positions along the curve and passes them to the reader.
+    ///
+    /// The underlying subdivision uses the environment's segmentation; the picked samples are
+    /// independent of it. See `samples(at:segmentation:)` for the resampling rules.
+    ///
+    /// - Parameters:
+    ///   - interval: Where along the curve to place samples — a fixed arc-length step or a fixed count.
+    ///   - reader: A closure that transforms the picked samples into a geometry value.
+    /// - Returns: A constructed geometry object based on the picked samples.
+    ///
+    func readSamples<D: Dimensionality>(
+        at interval: CurveSampleInterval,
+        @GeometryBuilder<D> _ reader: @Sendable @escaping ([CurveSample<V>]) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment { e in
+            reader(samples(at: interval, segmentation: e.segmentation))
+        }
+    }
+
     var approximateLength: Double {
         length(segmentation: .fixed(sampleCountForLengthApproximation))
     }
