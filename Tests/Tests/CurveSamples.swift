@@ -85,6 +85,37 @@ struct CurveSamplesTests {
         #expect(resampled.last?.distance ≈ totalLength)
     }
 
+    @Test func `2D sample transform places origin at position with local +X along tangent`() {
+        // Quarter-circle around the origin from (10,0) to (0,10), sampled at the midpoint.
+        let arc = BezierPath2D(startPoint: [10, 0]).addingArc(center: .zero, to: 90°, clockwise: false)
+        let samples = arc.samples(at: .count(3), segmentation: .fixed(40))
+        let mid = samples[1]
+
+        // The midpoint's tangent points "up and to the left" along the arc.
+        // Applying the transform to local +X should reproduce the tangent direction at the midpoint.
+        let mappedX = mid.transform.apply(to: Vector2D(x: 1, y: 0))
+        let tangentTip = mid.position + mid.tangent.unitVector
+        #expect(mappedX ≈ tangentTip)
+
+        // Applying the transform to the local origin should give the sample's position.
+        #expect(mid.transform.apply(to: .zero) ≈ mid.position)
+    }
+
+    @Test func `3D sample transform places origin at position with local +Z along tangent`() {
+        // Straight 3D line from (0,0,0) to (0,0,10) — tangent is constant +Z, position varies along Z.
+        let line3D = BezierPath3D(linesBetween: [[0, 0, 0], [0, 0, 10]])
+        let samples = line3D.samples(at: .count(3), segmentation: .fixed(10))
+        let mid = samples[1]
+
+        // Origin maps to position.
+        #expect(mid.transform.apply(to: .zero) ≈ mid.position)
+
+        // Local +Z maps along the tangent (a unit step in local +Z is a unit step along tangent in world).
+        let mappedZ = mid.transform.apply(to: Vector3D(x: 0, y: 0, z: 1))
+        let tangentTip = mid.position + mid.tangent.unitVector
+        #expect(mappedZ ≈ tangentTip)
+    }
+
     @Test func `curved path samples land on the polyline endpoints exactly`() {
         // Quarter-circle around the origin from (10,0) to (0,10).
         let arc = BezierPath2D(startPoint: [10, 0]).addingArc(center: .zero, to: 90°, clockwise: false)
