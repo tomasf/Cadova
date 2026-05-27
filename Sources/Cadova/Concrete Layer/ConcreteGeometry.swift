@@ -7,7 +7,6 @@ public protocol ConcreteGeometry {
 
     func refine(edgeLength: Double) -> Self
     func allVertices() -> [Vector]
-    func baked() -> Self
 }
 
 extension CrossSection: ConcreteGeometry {
@@ -20,11 +19,6 @@ extension CrossSection: ConcreteGeometry {
     public func refine(edgeLength: Double) -> Self {
         Self(polygonList().refined(maxEdgeLength: edgeLength))
     }
-
-    public func baked() -> Self {
-        _ = vertexCount
-        return self
-    }
 }
 
 extension Manifold: ConcreteGeometry {
@@ -32,11 +26,6 @@ extension Manifold: ConcreteGeometry {
 
     public func allVertices() -> [Vector] {
         meshGL().vertices
-    }
-
-    public func baked() -> Self {
-        _ = vertexCount
-        return self
     }
 }
 

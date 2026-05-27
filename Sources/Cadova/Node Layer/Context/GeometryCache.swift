@@ -12,7 +12,7 @@ internal actor GeometryCache<D: Dimensionality> {
         if let cached = try await entries[node]?.value {
             return cached
         }
-        let task = Task { try await node.evaluate(in: context).baked() }
+        let task = Task { try await node.evaluate(in: context) }
         entries[node] = task
         return try await task.value
     }
