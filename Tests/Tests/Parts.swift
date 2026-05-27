@@ -69,6 +69,56 @@ struct PartTests {
         #expect(parts.keys.allSatisfy { $0.name == "box" })
     }
 
+    @Test func `inPart by name produces a named part in the output`() async throws {
+        let geometry = Box(10)
+            .adding {
+                Sphere(diameter: 5)
+                    .inPart(name: "Insert")
+            }
+
+        let parts = try await geometry.parts
+        #expect(parts.count == 1)
+        #expect(parts.keys.first?.name == "Insert")
+    }
+
+    @Test func `two inPart-by-name calls with the same name produce separate parts`() async throws {
+        let geometry = Stack(.x) {
+            Box(10)
+            Box(4)
+                .inPart(name: "Insert")
+            Box(2)
+                .inPart(name: "Insert")
+        }
+
+        let parts = try await geometry.parts
+        #expect(parts.count == 2)
+        #expect(parts.keys.allSatisfy { $0.name == "Insert" })
+    }
+
+    @Test func `inPart by name carries its semantic`() async throws {
+        let geometry = Box(10)
+            .adding {
+                Sphere(diameter: 5)
+                    .inPart(name: "Marker", semantic: .visual)
+            }
+
+        let parts = try await geometry.parts
+        let part = try #require(parts.keys.first { $0.name == "Marker" })
+        #expect(part.semantic == .visual)
+    }
+
+    @Test func `inPart by name carries its color as a plain default material`() async throws {
+        let geometry = Box(10)
+            .adding {
+                Sphere(diameter: 5)
+                    .inPart(name: "Insert", color: .red)
+            }
+
+        let parts = try await geometry.parts
+        let part = try #require(parts.keys.first { $0.name == "Insert" })
+        #expect(part.defaultMaterial == .plain(.red))
+    }
+
     @Test func `part root operation is always addition`() async throws {
         let subtractedPart = Part("subtracted")
         try await Box(10)

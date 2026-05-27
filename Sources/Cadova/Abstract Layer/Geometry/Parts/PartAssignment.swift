@@ -58,4 +58,20 @@ public extension Geometry3D {
         PartAssignment(body: self, isSeparated: true, part: part)
     }
 
+    /// Marks this geometry as belonging to a freshly-named part in the 3MF output.
+    ///
+    /// This is a one-call convenience equivalent to `.inPart(Part(name, semantic: semantic, color: color))`.
+    /// Each invocation creates a new, distinct `Part` with the given name — use the `Part`-based
+    /// overload `inPart(_:)` if you need to merge geometry from several call sites into a single part.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the part as it appears in the 3MF file.
+    ///   - semantic: The semantic role of this part. Defaults to `.solid`.
+    ///   - color: A default color for geometry in this part that doesn't specify its own material.
+    ///     If `nil`, geometry without an explicit material will have no color in the output file.
+    /// - Returns: A geometry wrapped as a freshly-created part with the given name.
+    ///
+    func inPart(name: String, semantic: PartSemantic = .solid, color: Color? = nil) -> any Geometry3D {
+        inPart(Part(name, semantic: semantic, color: color))
+    }
 }
