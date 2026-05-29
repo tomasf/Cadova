@@ -437,8 +437,8 @@ public extension Color {
     /// A soft purple with a warm, muted tone.
     static let thistle = Color(red: 0.847, green: 0.749, blue: 0.847)
 
-    /// A very light lavender color with a soft pastel feel.
-    static let lavender = Color(red: 0.902, green: 0.902, blue: 0.980)
+    /// A soft purple reminiscent of lavender flowers.
+    static let lavender = Color(red: 0.710, green: 0.494, blue: 0.863)
 
     // MARK: - Special
 
