@@ -93,8 +93,8 @@ public extension Color {
     /// A very pale, snow-like white.
     static let snow = Color(red: 1.0, green: 0.980, blue: 0.980)
 
-    /// A very light blue, with a crisp and clear feel.
-    static let azure = Color(red: 0.941, green: 1.0, blue: 1.0)
+    /// A vivid sky blue, reminiscent of a clear bright sky.
+    static let azure = Color(red: 0.0, green: 0.498, blue: 1.0)
 
     /// A very pale mint green.
     static let mintCream = Color(red: 0.961, green: 1.0, blue: 0.980)
