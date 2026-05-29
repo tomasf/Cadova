@@ -69,9 +69,5 @@ public struct EvaluationResult<D: Dimensionality>: Sendable {
         try! .init(concrete, material: material)
     }
 
-    func baked() throws -> Self {
-        try Self(parts: parts.map { $0.baked() }, materialMapping: materialMapping)
-    }
-
     internal static var empty: Self { try! .init(concrete: .empty, materialMapping: [:]) }
 }

@@ -139,6 +139,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 item.path = try archive.addAdditionalModel(model, named: id)
                 return item
             }
+            .sorted { ($0.partNumber ?? "").localizedStandardCompare($1.partNumber ?? "") == .orderedAscending }
 
             archive.model = ThreeMF.Model(
                 unit: .millimeter,

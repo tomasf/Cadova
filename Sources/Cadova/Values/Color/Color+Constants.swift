@@ -1,296 +1,261 @@
 import Foundation
 
 public extension Color {
-    /// A very light blue, almost white.
-    static let aliceBlue = Color(red: 0.941, green: 0.973, blue: 1.0)
-
-    /// A warm off-white with hints of yellow and pink.
-    static let antiqueWhite = Color(red: 0.980, green: 0.922, blue: 0.843)
-
-    /// A bright cyan-blue, similar to the color of water.
-    static let aqua = Color(red: 0.0, green: 1.0, blue: 1.0)
-
-    /// A light sea green with a bright and refreshing look.
-    static let aquamarine = Color(red: 0.498, green: 1.0, blue: 0.831)
-
-    /// A very light blue, with a crisp and clear feel.
-    static let azure = Color(red: 0.941, green: 1.0, blue: 1.0)
-
-    /// A soft, warm beige with a muted, natural tone.
-    static let beige = Color(red: 0.961, green: 0.961, blue: 0.863)
-
-    /// A soft peachy color, reminiscent of pale skin tones.
-    static let bisque = Color(red: 1.0, green: 0.894, blue: 0.769)
+    // MARK: - Neutrals
 
     /// Pure black with no hint of any other color.
     static let black = Color(red: 0.0, green: 0.0, blue: 0.0)
 
-    /// A pale almond color with a creamy tone.
-    static let blanchedAlmond = Color(red: 1.0, green: 0.922, blue: 0.804)
-
-    /// A deep, rich blue.
-    static let blue = Color(red: 0.0, green: 0.0, blue: 1.0)
-
-    /// A rich violet with blue undertones.
-    static let blueViolet = Color(red: 0.541, green: 0.169, blue: 0.886)
-
-    /// A warm, earthy brown.
-    static let brown = Color(red: 0.647, green: 0.165, blue: 0.165)
-
-    /// A soft tan with hints of orange.
-    static let burlyWood = Color(red: 0.871, green: 0.722, blue: 0.529)
-
-    /// A muted blue with hints of green.
-    static let cadetBlue = Color(red: 0.373, green: 0.620, blue: 0.627)
-
-    /// A bright yellow-green, similar to chartreuse liqueur.
-    static let chartreuse = Color(red: 0.498, green: 1.0, blue: 0.0)
-
-    /// A warm brown with reddish undertones.
-    static let chocolate = Color(red: 0.824, green: 0.412, blue: 0.118)
-
-    /// A vibrant coral pink.
-    static let coral = Color(red: 1.0, green: 0.498, blue: 0.314)
-
-    /// A medium shade of blue with hints of lavender.
-    static let cornflowerBlue = Color(red: 0.392, green: 0.584, blue: 0.929)
-
-    /// A very pale yellow, similar to corn silk.
-    static let cornsilk = Color(red: 1.0, green: 0.973, blue: 0.863)
-
-    /// A deep red with hints of purple.
-    static let crimson = Color(red: 0.863, green: 0.078, blue: 0.235)
-
-    /// A bright and intense cyan-blue.
-    static let cyan = Color(red: 0.0, green: 1.0, blue: 1.0)
-
-    /// A very dark blue, close to black.
-    static let darkBlue = Color(red: 0.0, green: 0.0, blue: 0.545)
-
-    /// A dark cyan with a muted blue-green tone.
-    static let darkCyan = Color(red: 0.0, green: 0.545, blue: 0.545)
-
-    /// A rich, dark golden-yellow.
-    static let darkGoldenrod = Color(red: 0.722, green: 0.525, blue: 0.043)
-
-    /// A medium shade of gray.
-    static let darkGray = Color(red: 0.663, green: 0.663, blue: 0.663)
-
-    /// A dark green with deep, natural tones.
-    static let darkGreen = Color(red: 0.0, green: 0.392, blue: 0.0)
-
-    /// A muted yellowish-green, with hints of brown.
-    static let darkKhaki = Color(red: 0.741, green: 0.718, blue: 0.420)
-
-    /// A deep magenta with purple undertones.
-    static let darkMagenta = Color(red: 0.545, green: 0.0, blue: 0.545)
-
-    /// A muted green with olive tones.
-    static let darkOliveGreen = Color(red: 0.333, green: 0.420, blue: 0.184)
-
-    /// A vibrant, deep orange.
-    static let darkOrange = Color(red: 1.0, green: 0.549, blue: 0.0)
-
-    /// A medium purple with a warm tone.
-    static let darkOrchid = Color(red: 0.600, green: 0.196, blue: 0.800)
-
-    /// A deep, dark red.
-    static let darkRed = Color(red: 0.545, green: 0.0, blue: 0.0)
-
-    /// A soft salmon pink with a darker hue.
-    static let darkSalmon = Color(red: 0.914, green: 0.588, blue: 0.478)
-
-    /// A muted green with hints of gray.
-    static let darkSeaGreen = Color(red: 0.561, green: 0.737, blue: 0.561)
-
-    /// A dark slate blue with purple tones.
-    static let darkSlateBlue = Color(red: 0.282, green: 0.239, blue: 0.545)
-
     /// A dark gray with greenish tones.
     static let darkSlateGray = Color(red: 0.184, green: 0.310, blue: 0.310)
 
-    /// A vibrant turquoise blue.
-    static let darkTurquoise = Color(red: 0.0, green: 0.808, blue: 0.820)
-
-    /// A rich, deep violet.
-    static let darkViolet = Color(red: 0.580, green: 0.0, blue: 0.827)
-
-    /// A bold pink with a strong magenta tone.
-    static let deepPink = Color(red: 1.0, green: 0.078, blue: 0.576)
-
-    /// A bright blue that resembles a clear sky.
-    static let deepSkyBlue = Color(red: 0.0, green: 0.749, blue: 1.0)
+    /// A medium shade of gray.
+    static let darkGray = Color(red: 0.333, green: 0.333, blue: 0.333)
 
     /// A medium gray with a subtle tone.
     static let dimGray = Color(red: 0.412, green: 0.412, blue: 0.412)
 
-    /// A bright, vivid blue.
-    static let dodgerBlue = Color(red: 0.118, green: 0.565, blue: 1.0)
-
-    /// A deep brick red with brown undertones.
-    static let firebrick = Color(red: 0.698, green: 0.133, blue: 0.133)
-
-    /// A warm off-white with a soft yellow tone.
-    static let floralWhite = Color(red: 1.0, green: 0.980, blue: 0.941)
-
-    /// A rich green with hints of blue.
-    static let forestGreen = Color(red: 0.133, green: 0.545, blue: 0.133)
-
-    /// A bright magenta pink.
-    static let fuchsia = Color(red: 1.0, green: 0.0, blue: 1.0)
-
-    /// A light gray with a subtle cool tone.
-    static let gainsboro = Color(red: 0.863, green: 0.863, blue: 0.863)
-
-    /// A very pale blue-gray.
-    static let ghostWhite = Color(red: 0.973, green: 0.973, blue: 1.0)
-
-    /// A bright, warm yellow with golden tones.
-    static let gold = Color(red: 1.0, green: 0.843, blue: 0.0)
-
-    /// A warm golden color with brown tones.
-    static let goldenrod = Color(red: 0.855, green: 0.647, blue: 0.125)
+    /// A cool, muted gray with a hint of blue.
+    static let slateGray = Color(red: 0.439, green: 0.502, blue: 0.565)
 
     /// A neutral medium gray.
     static let gray = Color(red: 0.502, green: 0.502, blue: 0.502)
 
-    /// A dark green with a medium tone.
-    static let green = Color(red: 0.0, green: 0.502, blue: 0.0)
+    /// A soft gray with hints of blue.
+    static let lightSlateGray = Color(red: 0.467, green: 0.533, blue: 0.600)
 
-    /// A bright yellow-green with a vibrant look.
-    static let greenYellow = Color(red: 0.678, green: 1.0, blue: 0.184)
-
-    /// A very pale, soft green.
-    static let honeydew = Color(red: 0.941, green: 1.0, blue: 0.941)
-
-    /// A bright, warm pink.
-    static let hotPink = Color(red: 1.0, green: 0.412, blue: 0.706)
-
-    /// A warm red with brown undertones.
-    static let indianRed = Color(red: 0.804, green: 0.361, blue: 0.361)
-
-    /// A dark, cool purple with deep blue tones.
-    static let indigo = Color(red: 0.294, green: 0.0, blue: 0.510)
-
-    /// A warm off-white with a pale yellow tone.
-    static let ivory = Color(red: 1.0, green: 1.0, blue: 0.941)
-
-    /// A warm beige with a muted yellow tone.
-    static let khaki = Color(red: 0.941, green: 0.902, blue: 0.549)
-
-    /// A very light lavender color with a soft pastel feel.
-    static let lavender = Color(red: 0.902, green: 0.902, blue: 0.980)
-
-    /// A light pink with a soft blush tone.
-    static let lavenderBlush = Color(red: 1.0, green: 0.941, blue: 0.961)
-
-    /// A bright, vibrant green with a strong yellow tone.
-    static let lawnGreen = Color(red: 0.486, green: 0.988, blue: 0.0)
-
-    /// A pale yellow, similar to lemon cream.
-    static let lemonChiffon = Color(red: 1.0, green: 0.980, blue: 0.804)
-
-    /// A soft blue with hints of gray.
-    static let lightBlue = Color(red: 0.678, green: 0.847, blue: 0.902)
-
-    /// A soft red with a coral tone.
-    static let lightCoral = Color(red: 0.941, green: 0.502, blue: 0.502)
-
-    /// A very pale cyan with a soft, cool feel.
-    static let lightCyan = Color(red: 0.878, green: 1.0, blue: 1.0)
-
-    /// A pale yellow with a golden tone.
-    static let lightGoldenrodYellow = Color(red: 0.980, green: 0.980, blue: 0.824)
+    /// A soft, metallic silver tone.
+    static let silver = Color(red: 0.753, green: 0.753, blue: 0.753)
 
     /// A light gray with a soft, neutral feel.
     static let lightGray = Color(red: 0.827, green: 0.827, blue: 0.827)
 
-    /// A soft green with a bright tone.
-    static let lightGreen = Color(red: 0.565, green: 0.933, blue: 0.565)
+    /// A light gray with a subtle cool tone.
+    static let gainsboro = Color(red: 0.863, green: 0.863, blue: 0.863)
 
-    /// A pale pink with hints of peach.
-    static let lightPink = Color(red: 1.0, green: 0.714, blue: 0.757)
-
-    /// A soft, light salmon color.
-    static let lightSalmon = Color(red: 1.0, green: 0.627, blue: 0.478)
-
-    /// A medium green-blue color.
-    static let lightSeaGreen = Color(red: 0.125, green: 0.698, blue: 0.667)
-
-    /// A soft blue with a light sky-like tone.
-    static let lightSkyBlue = Color(red: 0.529, green: 0.808, blue: 0.980)
-
-    /// A soft gray with hints of blue.
-    static let lightSlateGray = Color(red: 0.467, green: 0.533, blue: 0.600)
-
-    /// A soft blue-gray with a slightly metallic feel.
-    static let lightSteelBlue = Color(red: 0.690, green: 0.769, blue: 0.871)
-
-    /// A very pale yellow with a warm tone.
-    static let lightYellow = Color(red: 1.0, green: 1.0, blue: 0.878)
-
-    /// A bright and vivid green.
-    static let lime = Color(red: 0.0, green: 1.0, blue: 0.0)
-
-    /// A medium green with yellow undertones.
-    static let limeGreen = Color(red: 0.196, green: 0.804, blue: 0.196)
-
-    /// A warm off-white with pale beige tones.
-    static let linen = Color(red: 0.980, green: 0.941, blue: 0.902)
-
-    /// A vibrant magenta-pink.
-    static let magenta = Color(red: 1.0, green: 0.0, blue: 1.0)
-
-    /// A deep, warm brownish-red.
-    static let maroon = Color(red: 0.502, green: 0.0, blue: 0.0)
-
-    /// A medium aquamarine with a soft, muted blue-green tone.
-    static let mediumAquamarine = Color(red: 0.400, green: 0.804, blue: 0.667)
-
-    /// A strong blue with a slightly muted tone.
-    static let mediumBlue = Color(red: 0.0, green: 0.0, blue: 0.804)
-
-    /// A warm orchid color with pink and purple tones.
-    static let mediumOrchid = Color(red: 0.729, green: 0.333, blue: 0.827)
-
-    /// A medium purple with a cool, muted tone.
-    static let mediumPurple = Color(red: 0.576, green: 0.439, blue: 0.859)
-
-    /// A soft, medium green with hints of blue.
-    static let mediumSeaGreen = Color(red: 0.235, green: 0.702, blue: 0.443)
-
-    /// A medium blue with slight violet tones.
-    static let mediumSlateBlue = Color(red: 0.482, green: 0.408, blue: 0.933)
-
-    /// A bright spring green with a vivid, fresh tone.
-    static let mediumSpringGreen = Color(red: 0.0, green: 0.980, blue: 0.604)
-
-    /// A light turquoise with bright blue-green tones.
-    static let mediumTurquoise = Color(red: 0.282, green: 0.820, blue: 0.800)
-
-    /// A rich magenta with red undertones.
-    static let mediumVioletRed = Color(red: 0.780, green: 0.082, blue: 0.522)
-
-    /// A very dark blue with a cool, muted tone.
-    static let midnightBlue = Color(red: 0.098, green: 0.098, blue: 0.439)
-
-    /// A very pale mint green.
-    static let mintCream = Color(red: 0.961, green: 1.0, blue: 0.980)
+    /// A soft peachy color, reminiscent of pale skin tones.
+    static let bisque = Color(red: 1.0, green: 0.894, blue: 0.769)
 
     /// A pale rose with soft pink tones.
     static let mistyRose = Color(red: 1.0, green: 0.894, blue: 0.882)
 
-    /// A pale orange with warm, creamy tones.
-    static let moccasin = Color(red: 1.0, green: 0.894, blue: 0.710)
+    /// A warm off-white with hints of yellow and pink.
+    static let antiqueWhite = Color(red: 0.980, green: 0.922, blue: 0.843)
+
+    /// A pale almond color with a creamy tone.
+    static let blanchedAlmond = Color(red: 1.0, green: 0.922, blue: 0.804)
+
+    /// A warm, creamy off-white with a hint of orange.
+    static let papayaWhip = Color(red: 1.0, green: 0.937, blue: 0.835)
+
+    /// A warm off-white with pale beige tones.
+    static let linen = Color(red: 0.980, green: 0.941, blue: 0.902)
+
+    /// A soft, warm beige with a muted, natural tone.
+    static let beige = Color(red: 0.961, green: 0.961, blue: 0.863)
+
+    /// A light pink with a soft blush tone.
+    static let lavenderBlush = Color(red: 1.0, green: 0.941, blue: 0.961)
+
+    /// A soft, off-white with a smoky tone.
+    static let whiteSmoke = Color(red: 0.961, green: 0.961, blue: 0.961)
+
+    /// A warm beige with hints of pale peach.
+    static let oldLace = Color(red: 0.992, green: 0.961, blue: 0.902)
+
+    /// A pale off-white with a warm tone.
+    static let seashell = Color(red: 1.0, green: 0.961, blue: 0.933)
+
+    /// A very light blue, almost white.
+    static let aliceBlue = Color(red: 0.941, green: 0.973, blue: 1.0)
+
+    /// A pale yellow with a golden tone.
+    static let lightGoldenrodYellow = Color(red: 0.980, green: 0.980, blue: 0.824)
+
+    /// A very pale yellow, similar to corn silk.
+    static let cornsilk = Color(red: 1.0, green: 0.973, blue: 0.863)
+
+    /// A pale yellow, similar to lemon cream.
+    static let lemonChiffon = Color(red: 1.0, green: 0.980, blue: 0.804)
+
+    /// A very pale cyan with a soft, cool feel.
+    static let lightCyan = Color(red: 0.878, green: 1.0, blue: 1.0)
+
+    /// A very pale blue-gray.
+    static let ghostWhite = Color(red: 0.973, green: 0.973, blue: 1.0)
+
+    /// A warm off-white with a soft yellow tone.
+    static let floralWhite = Color(red: 1.0, green: 0.980, blue: 0.941)
+
+    /// A very pale, soft green.
+    static let honeydew = Color(red: 0.941, green: 1.0, blue: 0.941)
+
+    /// A very pale, snow-like white.
+    static let snow = Color(red: 1.0, green: 0.980, blue: 0.980)
+
+    /// A vivid sky blue, reminiscent of a clear bright sky.
+    static let azure = Color(red: 0.0, green: 0.498, blue: 1.0)
+
+    /// A very pale mint green.
+    static let mintCream = Color(red: 0.961, green: 1.0, blue: 0.980)
+
+    /// A very pale yellow with a warm tone.
+    static let lightYellow = Color(red: 1.0, green: 1.0, blue: 0.878)
+
+    /// A warm off-white with a pale yellow tone.
+    static let ivory = Color(red: 1.0, green: 1.0, blue: 0.941)
+
+    /// A pure white.
+    static let white = Color(red: 1.0, green: 1.0, blue: 1.0)
+
+    // MARK: - Reds and pinks
+
+    /// A deep, warm brownish-red.
+    static let maroon = Color(red: 0.502, green: 0.0, blue: 0.0)
+
+    /// A deep, dark red.
+    static let darkRed = Color(red: 0.545, green: 0.0, blue: 0.0)
+
+    /// A bright, vivid red.
+    static let red = Color(red: 1.0, green: 0.0, blue: 0.0)
+
+    /// A deep brick red with brown undertones.
+    static let firebrick = Color(red: 0.698, green: 0.133, blue: 0.133)
+
+    /// A deep blood red.
+    static let crimson = Color(red: 0.659, green: 0.075, blue: 0.180)
+
+    /// A rich magenta with red undertones.
+    static let mediumVioletRed = Color(red: 0.780, green: 0.082, blue: 0.522)
+
+    /// A warm, earthy brown.
+    static let brown = Color(red: 0.545, green: 0.353, blue: 0.169)
+
+    /// A bold pink with a strong magenta tone.
+    static let deepPink = Color(red: 1.0, green: 0.078, blue: 0.576)
+
+    /// A rich orange with red undertones.
+    static let orangeRed = Color(red: 1.0, green: 0.271, blue: 0.0)
+
+    /// A warm red with brown undertones.
+    static let indianRed = Color(red: 0.804, green: 0.361, blue: 0.361)
+
+    /// A soft salmon pink with a darker hue.
+    static let darkSalmon = Color(red: 0.741, green: 0.388, blue: 0.345)
+
+    /// A warm tomato red with a hint of orange.
+    static let tomato = Color(red: 1.0, green: 0.388, blue: 0.278)
+
+    /// A soft violet-red with pale undertones.
+    static let paleVioletRed = Color(red: 0.859, green: 0.439, blue: 0.576)
+
+    /// A bright, warm pink.
+    static let hotPink = Color(red: 1.0, green: 0.412, blue: 0.706)
+
+    /// A vibrant coral pink.
+    static let coral = Color(red: 1.0, green: 0.498, blue: 0.314)
+
+    /// A soft red with a coral tone.
+    static let lightCoral = Color(red: 0.941, green: 0.502, blue: 0.502)
+
+    /// A warm, muted brown with pink undertones.
+    static let rosyBrown = Color(red: 0.737, green: 0.561, blue: 0.561)
+
+    /// A warm, light salmon color.
+    static let salmon = Color(red: 0.980, green: 0.502, blue: 0.447)
+
+    /// A soft, light salmon color.
+    static let lightSalmon = Color(red: 1.0, green: 0.627, blue: 0.478)
+
+    /// A light, warm pink.
+    static let pink = Color(red: 1.0, green: 0.753, blue: 0.796)
+
+    /// A pale pink with hints of peach.
+    static let lightPink = Color(red: 1.0, green: 0.847, blue: 0.871)
+
+    // MARK: - Oranges and browns
+
+    /// A deep, warm brown.
+    static let saddleBrown = Color(red: 0.545, green: 0.271, blue: 0.075)
+
+    /// A rich brown with a slightly reddish tone.
+    static let sienna = Color(red: 0.627, green: 0.322, blue: 0.176)
+
+    /// A deep cocoa brown.
+    static let chocolate = Color(red: 0.482, green: 0.247, blue: 0.0)
+
+    /// A rich, dark golden-yellow.
+    static let darkGoldenrod = Color(red: 0.722, green: 0.525, blue: 0.043)
+
+    /// A warm brown with reddish undertones.
+    static let peru = Color(red: 0.804, green: 0.522, blue: 0.247)
+
+    /// A vibrant, deep orange.
+    static let darkOrange = Color(red: 1.0, green: 0.549, blue: 0.0)
+
+    /// A warm golden color with brown tones.
+    static let goldenrod = Color(red: 0.855, green: 0.647, blue: 0.125)
+
+    /// A bright orange with a warm, vibrant tone.
+    static let orange = Color(red: 1.0, green: 0.647, blue: 0.0)
+
+    /// A pale, sandy tan.
+    static let sandyBrown = Color(red: 0.871, green: 0.753, blue: 0.482)
+
+    /// A warm tan with a soft brown tone.
+    static let tan = Color(red: 0.824, green: 0.706, blue: 0.549)
+
+    /// A soft tan with hints of orange.
+    static let burlyWood = Color(red: 0.871, green: 0.722, blue: 0.529)
+
+    /// A soft peach with warm undertones.
+    static let peachPuff = Color(red: 1.0, green: 0.855, blue: 0.725)
+
+    /// A pale wheat color with a warm tone.
+    static let wheat = Color(red: 0.961, green: 0.871, blue: 0.702)
 
     /// A warm, creamy off-white with pale orange tones.
     static let navajoWhite = Color(red: 1.0, green: 0.871, blue: 0.678)
 
-    /// A dark, muted blue with hints of purple.
-    static let navy = Color(red: 0.0, green: 0.0, blue: 0.502)
+    /// A pale orange with warm, creamy tones.
+    static let moccasin = Color(red: 1.0, green: 0.894, blue: 0.710)
 
-    /// A warm beige with hints of pale peach.
-    static let oldLace = Color(red: 0.992, green: 0.961, blue: 0.902)
+    // MARK: - Yellows
+
+    /// A muted yellowish-green, with hints of brown.
+    static let darkKhaki = Color(red: 0.741, green: 0.718, blue: 0.420)
+
+    /// A warm metallic gold with brass undertones.
+    static let gold = Color(red: 0.937, green: 0.749, blue: 0.016)
+
+    /// A muted olive-tan, like military khaki cloth.
+    static let khaki = Color(red: 0.765, green: 0.690, blue: 0.569)
+
+    /// A light, muted yellow with a golden undertone.
+    static let paleGoldenrod = Color(red: 0.933, green: 0.910, blue: 0.667)
+
+    /// A bright, primary yellow.
+    static let yellow = Color(red: 1.0, green: 1.0, blue: 0.0)
+
+    // MARK: - Greens
+
+    /// A dark green with deep, natural tones.
+    static let darkGreen = Color(red: 0.0, green: 0.392, blue: 0.0)
+
+    /// A muted green with hints of gray.
+    static let darkSeaGreen = Color(red: 0.110, green: 0.388, blue: 0.247)
+
+    /// A dark green with a medium tone.
+    static let green = Color(red: 0.0, green: 0.502, blue: 0.0)
+
+    /// A muted green with olive tones.
+    static let darkOliveGreen = Color(red: 0.333, green: 0.420, blue: 0.184)
+
+    /// A rich green with hints of blue.
+    static let forestGreen = Color(red: 0.133, green: 0.545, blue: 0.133)
+
+    /// A medium green with a muted tone.
+    static let seaGreen = Color(red: 0.180, green: 0.545, blue: 0.341)
 
     /// A muted green with brown undertones.
     static let olive = Color(red: 0.502, green: 0.502, blue: 0.0)
@@ -298,131 +263,184 @@ public extension Color {
     /// A dark olive green with yellow undertones.
     static let oliveDrab = Color(red: 0.420, green: 0.557, blue: 0.137)
 
-    /// A bright orange with a warm, vibrant tone.
-    static let orange = Color(red: 1.0, green: 0.647, blue: 0.0)
+    /// A medium green-blue color.
+    static let lightSeaGreen = Color(red: 0.125, green: 0.698, blue: 0.667)
 
-    /// A rich orange with red undertones.
-    static let orangeRed = Color(red: 1.0, green: 0.271, blue: 0.0)
+    /// A soft, medium green with hints of blue.
+    static let mediumSeaGreen = Color(red: 0.235, green: 0.702, blue: 0.443)
 
-    /// A warm orchid color with strong pink undertones.
-    static let orchid = Color(red: 0.855, green: 0.439, blue: 0.839)
+    /// A medium green with yellow undertones.
+    static let limeGreen = Color(red: 0.196, green: 0.804, blue: 0.196)
 
-    /// A light, muted yellow with a golden undertone.
-    static let paleGoldenrod = Color(red: 0.933, green: 0.910, blue: 0.667)
+    /// A medium aquamarine with a soft, muted blue-green tone.
+    static let mediumAquamarine = Color(red: 0.400, green: 0.804, blue: 0.667)
 
-    /// A soft green with a pale tone.
-    static let paleGreen = Color(red: 0.596, green: 0.984, blue: 0.596)
+    /// A vivid yellow-green, like lime peel.
+    static let lime = Color(red: 0.749, green: 1.0, blue: 0.0)
 
-    /// A light, soft turquoise with a pale tone.
-    static let paleTurquoise = Color(red: 0.686, green: 0.933, blue: 0.933)
+    /// A medium yellow-green with a soft tone.
+    static let yellowGreen = Color(red: 0.604, green: 0.804, blue: 0.196)
 
-    /// A soft violet-red with pale undertones.
-    static let paleVioletRed = Color(red: 0.859, green: 0.439, blue: 0.576)
-
-    /// A warm, creamy off-white with a hint of orange.
-    static let papayaWhip = Color(red: 1.0, green: 0.937, blue: 0.835)
-
-    /// A soft peach with warm undertones.
-    static let peachPuff = Color(red: 1.0, green: 0.855, blue: 0.725)
-
-    /// A warm brown with reddish undertones.
-    static let peru = Color(red: 0.804, green: 0.522, blue: 0.247)
-
-    /// A light, warm pink.
-    static let pink = Color(red: 1.0, green: 0.753, blue: 0.796)
-
-    /// A soft lavender with a cool tone.
-    static let plum = Color(red: 0.867, green: 0.627, blue: 0.867)
-
-    /// A soft, muted blue with a hint of gray.
-    static let powderBlue = Color(red: 0.690, green: 0.878, blue: 0.902)
-
-    /// A deep purple with a dark tone.
-    static let purple = Color(red: 0.502, green: 0.0, blue: 0.502)
-
-    /// A muted purple with a hint of gray.
-    static let rebeccaPurple = Color(red: 0.400, green: 0.200, blue: 0.600)
-
-    /// A bright, vivid red.
-    static let red = Color(red: 1.0, green: 0.0, blue: 0.0)
-
-    /// A warm, muted brown with pink undertones.
-    static let rosyBrown = Color(red: 0.737, green: 0.561, blue: 0.561)
-
-    /// A vibrant royal blue with a deep, rich tone.
-    static let royalBlue = Color(red: 0.255, green: 0.412, blue: 0.882)
-
-    /// A deep, warm brown.
-    static let saddleBrown = Color(red: 0.545, green: 0.271, blue: 0.075)
-
-    /// A warm, light salmon color.
-    static let salmon = Color(red: 0.980, green: 0.502, blue: 0.447)
-
-    /// A light brown with hints of orange.
-    static let sandyBrown = Color(red: 0.957, green: 0.643, blue: 0.376)
-
-    /// A medium green with a muted tone.
-    static let seaGreen = Color(red: 0.180, green: 0.545, blue: 0.341)
-
-    /// A pale off-white with a warm tone.
-    static let seashell = Color(red: 1.0, green: 0.961, blue: 0.933)
-
-    /// A rich brown with a slightly reddish tone.
-    static let sienna = Color(red: 0.627, green: 0.322, blue: 0.176)
-
-    /// A soft, metallic silver tone.
-    static let silver = Color(red: 0.753, green: 0.753, blue: 0.753)
-
-    /// A medium sky blue with a soft tone.
-    static let skyBlue = Color(red: 0.529, green: 0.808, blue: 0.922)
-
-    /// A medium slate blue with a muted tone.
-    static let slateBlue = Color(red: 0.416, green: 0.353, blue: 0.804)
-
-    /// A cool, muted gray with a hint of blue.
-    static let slateGray = Color(red: 0.439, green: 0.502, blue: 0.565)
-
-    /// A very pale, snow-like white.
-    static let snow = Color(red: 1.0, green: 0.980, blue: 0.980)
+    /// A bright spring green with a vivid, fresh tone.
+    static let mediumSpringGreen = Color(red: 0.0, green: 0.980, blue: 0.604)
 
     /// A bright, vibrant green with a slight yellow tint.
     static let springGreen = Color(red: 0.0, green: 1.0, blue: 0.498)
 
-    /// A medium blue-gray with a cool tone.
-    static let steelBlue = Color(red: 0.275, green: 0.510, blue: 0.706)
+    /// A bright, vibrant green with a strong yellow tone.
+    static let lawnGreen = Color(red: 0.486, green: 0.988, blue: 0.0)
 
-    /// A warm tan with a soft brown tone.
-    static let tan = Color(red: 0.824, green: 0.706, blue: 0.549)
+    /// A bright yellow-green, similar to chartreuse liqueur.
+    static let chartreuse = Color(red: 0.498, green: 1.0, blue: 0.0)
+
+    /// A soft green with a bright tone.
+    static let lightGreen = Color(red: 0.565, green: 0.933, blue: 0.565)
+
+    /// A bright yellow-green with a vibrant look.
+    static let greenYellow = Color(red: 0.678, green: 1.0, blue: 0.184)
+
+    /// A soft green with a pale tone.
+    static let paleGreen = Color(red: 0.596, green: 0.984, blue: 0.596)
+
+    // MARK: - Cyans and turquoises
 
     /// A medium teal with a balanced green-blue tone.
     static let teal = Color(red: 0.0, green: 0.502, blue: 0.502)
 
-    /// A soft purple with a warm, muted tone.
-    static let thistle = Color(red: 0.847, green: 0.749, blue: 0.847)
+    /// A dark cyan with a muted blue-green tone.
+    static let darkCyan = Color(red: 0.0, green: 0.545, blue: 0.545)
 
-    /// A warm tomato red with a hint of orange.
-    static let tomato = Color(red: 1.0, green: 0.388, blue: 0.278)
+    /// A vibrant turquoise blue.
+    static let darkTurquoise = Color(red: 0.0, green: 0.808, blue: 0.820)
+
+    /// A light turquoise with bright blue-green tones.
+    static let mediumTurquoise = Color(red: 0.282, green: 0.820, blue: 0.800)
 
     /// A light turquoise with bright, fresh tones.
     static let turquoise = Color(red: 0.251, green: 0.878, blue: 0.816)
 
-    /// A soft violet with a light, warm tone.
-    static let violet = Color(red: 0.933, green: 0.510, blue: 0.933)
+    /// A bright and intense cyan-blue.
+    static let cyan = Color(red: 0.0, green: 1.0, blue: 1.0)
 
-    /// A pale wheat color with a warm tone.
-    static let wheat = Color(red: 0.961, green: 0.871, blue: 0.702)
+    /// Synonym for `cyan`.
+    static let aqua = cyan
 
-    /// A pure white.
-    static let white = Color(red: 1.0, green: 1.0, blue: 1.0)
+    /// A light, soft turquoise with a pale tone.
+    static let paleTurquoise = Color(red: 0.686, green: 0.933, blue: 0.933)
 
-    /// A soft, off-white with a smoky tone.
-    static let whiteSmoke = Color(red: 0.961, green: 0.961, blue: 0.961)
+    /// A light sea green with a bright and refreshing look.
+    static let aquamarine = Color(red: 0.498, green: 1.0, blue: 0.831)
 
-    /// A bright, primary yellow.
-    static let yellow = Color(red: 1.0, green: 1.0, blue: 0.0)
+    // MARK: - Blues
 
-    /// A medium yellow-green with a soft tone.
-    static let yellowGreen = Color(red: 0.604, green: 0.804, blue: 0.196)
+    /// A dark, muted blue with hints of purple.
+    static let navy = Color(red: 0.0, green: 0.0, blue: 0.502)
+
+    /// A very dark blue, close to black.
+    static let darkBlue = Color(red: 0.0, green: 0.0, blue: 0.545)
+
+    /// A strong blue with a slightly muted tone.
+    static let mediumBlue = Color(red: 0.0, green: 0.0, blue: 0.804)
+
+    /// A deep, rich blue.
+    static let blue = Color(red: 0.0, green: 0.0, blue: 1.0)
+
+    /// A very dark blue with a cool, muted tone.
+    static let midnightBlue = Color(red: 0.098, green: 0.098, blue: 0.439)
+
+    /// A dark slate blue with purple tones.
+    static let darkSlateBlue = Color(red: 0.282, green: 0.239, blue: 0.545)
+
+    /// A medium slate blue with a muted tone.
+    static let slateBlue = Color(red: 0.416, green: 0.353, blue: 0.804)
+
+    /// A vibrant royal blue with a deep, rich tone.
+    static let royalBlue = Color(red: 0.255, green: 0.412, blue: 0.882)
+
+    /// A medium blue with slight violet tones.
+    static let mediumSlateBlue = Color(red: 0.482, green: 0.408, blue: 0.933)
+
+    /// A medium blue-gray with a cool tone.
+    static let steelBlue = Color(red: 0.275, green: 0.510, blue: 0.706)
+
+    /// A bright, vivid blue.
+    static let dodgerBlue = Color(red: 0.118, green: 0.565, blue: 1.0)
+
+    /// A muted blue with hints of green.
+    static let cadetBlue = Color(red: 0.373, green: 0.620, blue: 0.627)
+
+    /// A medium shade of blue with hints of lavender.
+    static let cornflowerBlue = Color(red: 0.392, green: 0.584, blue: 0.929)
+
+    /// A bright blue that resembles a clear sky.
+    static let deepSkyBlue = Color(red: 0.0, green: 0.749, blue: 1.0)
+
+    /// A medium sky blue with a soft tone.
+    static let skyBlue = Color(red: 0.529, green: 0.808, blue: 0.922)
+
+    /// A soft blue-gray with a slightly metallic feel.
+    static let lightSteelBlue = Color(red: 0.690, green: 0.769, blue: 0.871)
+
+    /// A soft blue with a light sky-like tone.
+    static let lightSkyBlue = Color(red: 0.529, green: 0.808, blue: 0.980)
+
+    /// A soft blue with hints of gray.
+    static let lightBlue = Color(red: 0.678, green: 0.847, blue: 0.902)
+
+    /// A soft, muted blue with a hint of gray.
+    static let powderBlue = Color(red: 0.690, green: 0.878, blue: 0.902)
+
+    // MARK: - Purples and magentas
+
+    /// A dark, cool purple with deep blue tones.
+    static let indigo = Color(red: 0.294, green: 0.0, blue: 0.510)
+
+    /// A deep purple with a dark tone.
+    static let purple = Color(red: 0.502, green: 0.0, blue: 0.502)
+
+    /// A deep magenta with purple undertones.
+    static let darkMagenta = Color(red: 0.545, green: 0.0, blue: 0.545)
+
+    /// A rich, deep violet.
+    static let darkViolet = Color(red: 0.580, green: 0.0, blue: 0.827)
+
+    /// A muted purple with a hint of gray.
+    static let rebeccaPurple = Color(red: 0.400, green: 0.200, blue: 0.600)
+
+    /// A vibrant magenta-pink.
+    static let magenta = Color(red: 1.0, green: 0.0, blue: 1.0)
+
+    /// Synonym for `magenta`.
+    static let fuchsia = magenta
+
+    /// A rich violet with blue undertones.
+    static let blueViolet = Color(red: 0.541, green: 0.169, blue: 0.886)
+
+    /// A medium purple with a warm tone.
+    static let darkOrchid = Color(red: 0.600, green: 0.196, blue: 0.800)
+
+    /// A warm orchid color with pink and purple tones.
+    static let mediumOrchid = Color(red: 0.729, green: 0.333, blue: 0.827)
+
+    /// A medium purple with a cool, muted tone.
+    static let mediumPurple = Color(red: 0.576, green: 0.439, blue: 0.859)
+
+    /// A warm orchid color with strong pink undertones.
+    static let orchid = Color(red: 0.855, green: 0.439, blue: 0.839)
+
+    /// A vivid blue-leaning purple, like the spectral color violet.
+    static let violet = Color(red: 0.498, green: 0.0, blue: 1.0)
+
+    /// A deep purple, like ripe plum fruit.
+    static let plum = Color(red: 0.557, green: 0.271, blue: 0.522)
+
+    /// A soft purple with a warm, muted tone.
+    static let thistle = Color(red: 0.847, green: 0.749, blue: 0.847)
+
+    /// A soft purple reminiscent of lavender flowers.
+    static let lavender = Color(red: 0.710, green: 0.494, blue: 0.863)
+
+    // MARK: - Special
 
     /// A fully transparent color.
     static let transparent = Color(red: 0, green: 0, blue: 0, alpha: 0)

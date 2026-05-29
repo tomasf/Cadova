@@ -105,7 +105,9 @@ public extension Geometry3D {
     ///
     /// - SeeAlso: ``sliced(along:_:)``
     func sliced(along plane: Plane) -> any Geometry2D {
-        transformed(plane.transform.inverse).sliced(atZ: 0)
+        // Reorient only the built node so environment-derived behavior still sees the source space.
+        ApplyTransform(body: self, transform: plane.transform.inverse, transformEnvironment: false)
+            .sliced(atZ: 0)
     }
 
     /// Computes the planar intersection of this 3D geometry with an arbitrary plane and passes
@@ -143,7 +145,9 @@ public extension Geometry3D {
     ///
     /// - SeeAlso: ``projected()``, ``projected(onto:_:)``
     func projected(onto plane: Plane) -> any Geometry2D {
-        transformed(plane.transform.inverse).projected()
+        // Reorient only the built node so environment-derived behavior still sees the source space.
+        ApplyTransform(body: self, transform: plane.transform.inverse, transformEnvironment: false)
+            .projected()
     }
 
     /// Projects the 3D geometry orthogonally onto the specified plane and passes

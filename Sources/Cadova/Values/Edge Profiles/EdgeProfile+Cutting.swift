@@ -6,9 +6,19 @@ internal extension Geometry3D {
         with shape: any Geometry2D,
         at plane: Plane
     ) -> any Geometry3D {
-        transformed(plane.transform.inverse)
-            .subtracting(edgeProfile.followingEdge(of: shape, type: .subtraction))
-            .transformed(plane.transform)
+        readingEnvironment(\.operation) { body, operation in
+            // The traced slice describes the source body, so it must keep the source operation even though the
+            // swept profile itself is evaluated in the subtraction branch.
+            let sourceShape = shape.withEnvironment { $0.withOperation(operation) }
+
+            // Edge profiling works in plane-local coordinates, but the profiled geometry must still build in source space.
+            ApplyTransform(
+                body: ApplyTransform(body: body, transform: plane.transform.inverse, transformEnvironment: false)
+                    .subtracting(edgeProfile.followingEdge(of: sourceShape, type: .subtraction)),
+                transform: plane.transform,
+                transformEnvironment: false
+            )
+        }
     }
 }
 

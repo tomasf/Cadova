@@ -1,12 +1,12 @@
 import Foundation
 
-internal extension Geometry3D {
-    func definingAnchor(_ anchor: Anchor, alignment: GeometryAlignment3D, transform: Transform3D) -> any Geometry3D {
+internal extension Geometry {
+    func definingAnchor(_ anchor: Anchor, alignment: GeometryAlignment<D>, transform: D.Transform) -> D.Geometry {
         readEnvironment { environment in
             measuring { _, measurements in
                 let alignmentTranslation = (measurements.boundingBox ?? .zero).translation(for: alignment)
                 let localTransform = transform.translated(-alignmentTranslation)
-                let anchorTransform = localTransform * environment.transform
+                let anchorTransform = localTransform.transform3D * environment.transform
 
                 modifyingResult(ReferenceState.self) {
                     $0.define(anchor: anchor, at: anchorTransform)

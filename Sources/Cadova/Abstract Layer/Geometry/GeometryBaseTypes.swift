@@ -8,9 +8,18 @@ public struct Empty<D: Dimensionality>: Geometry {
     }
 }
 
+struct Hidden<D: Dimensionality>: Geometry {
+    let body: D.Geometry
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        let bodyResult = try await context.buildResult(for: body, in: environment)
+        return bodyResult.replacing(node: .empty)
+    }
+}
+
 public extension Geometry {
-    func hidden<O: Dimensionality>() -> O.Geometry {
-        Empty()
+    func hidden() -> D.Geometry {
+        Hidden<D>(body: self)
     }
 }
 

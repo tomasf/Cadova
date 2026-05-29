@@ -27,3 +27,26 @@ public struct CurveSample<V: Vector>: Sendable, Hashable, Codable {
         )
     }
 }
+
+public extension CurveSample where V == Vector2D {
+    /// A transform that places geometry at `position` with its local +X axis aligned with `tangent`.
+    var transform: Transform2D {
+        .identity
+            .rotated(tangent.angle)
+            .translated(position)
+    }
+}
+
+public extension CurveSample where V == Vector3D {
+    /// A transform that places geometry at `position` with its local +Z axis aligned with `tangent`.
+    ///
+    /// The remaining axes are determined by rotating from `.up` to `tangent`, matching the
+    /// convention used by `Geometry3D.definingAnchor(_:pointing:)`. Rotation around the tangent
+    /// is otherwise unconstrained — use `ParametricCurve.readingTransforms(pointing:toward:)` if
+    /// you need stable framing along a curve.
+    var transform: Transform3D {
+        .identity
+            .rotated(from: .up, to: tangent)
+            .translated(position)
+    }
+}

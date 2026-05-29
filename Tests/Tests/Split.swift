@@ -45,6 +45,104 @@ struct SplitTests {
         try await merged2.triggerEvaluation()
     }
 
+    @Test func `3D split by single axis range produces correct halves`() async throws {
+        let upper = try await Box(10)
+            .split(z: 5.0...) { inside, _ in inside }
+            .measurements
+
+        #expect(upper.volume ≈ 500)
+        #expect(upper.boundingBox?.minimum.z ≈ 5)
+        #expect(upper.boundingBox?.maximum.z ≈ 10)
+
+        let lower = try await Box(10)
+            .split(z: 5.0...) { _, outside in outside }
+            .measurements
+
+        #expect(lower.volume ≈ 500)
+        #expect(lower.boundingBox?.minimum.z ≈ 0)
+        #expect(lower.boundingBox?.maximum.z ≈ 5)
+    }
+
+    @Test func `3D split by closed range extracts a slab`() async throws {
+        let slab = try await Box(10)
+            .split(z: 2.0...8.0) { inside, _ in inside }
+            .measurements
+
+        #expect(slab.volume ≈ 600)
+        #expect(slab.boundingBox?.minimum.z ≈ 2)
+        #expect(slab.boundingBox?.maximum.z ≈ 8)
+
+        let rest = try await Box(10)
+            .split(z: 2.0...8.0) { _, outside in outside }
+            .measurements
+
+        #expect(rest.volume ≈ 400)
+    }
+
+    @Test func `3D split with multi-axis ranges extracts a sub-box`() async throws {
+        let inside = try await Box(10)
+            .split(x: 2.0...8.0, z: 2.0...8.0) { inside, _ in inside }
+            .measurements
+
+        #expect(inside.volume ≈ 360)
+        #expect(inside.boundingBox?.minimum ≈ [2, 0, 2])
+        #expect(inside.boundingBox?.maximum ≈ [8, 10, 8])
+    }
+
+    @Test func `3D split with nil ranges keeps full geometry inside`() async throws {
+        let inside = try await Box(10)
+            .split { inside, _ in inside }
+            .measurements
+
+        #expect(inside.volume ≈ 1000)
+    }
+
+    @Test func `2D split by single axis range produces correct halves`() async throws {
+        let upper = try await Rectangle(10)
+            .split(y: 5.0...) { inside, _ in inside }
+            .measurements
+
+        #expect(upper.area ≈ 50)
+        #expect(upper.boundingBox?.minimum ≈ [0, 5])
+        #expect(upper.boundingBox?.maximum ≈ [10, 10])
+
+        let lower = try await Rectangle(10)
+            .split(y: 5.0...) { _, outside in outside }
+            .measurements
+
+        #expect(lower.area ≈ 50)
+        #expect(lower.boundingBox?.minimum ≈ [0, 0])
+        #expect(lower.boundingBox?.maximum ≈ [10, 5])
+    }
+
+    @Test func `2D split with multi-axis ranges extracts a sub-rectangle`() async throws {
+        let inside = try await Rectangle(10)
+            .split(x: 2.0...8.0, y: 2.0...8.0) { inside, _ in inside }
+            .measurements
+
+        #expect(inside.area ≈ 36)
+        #expect(inside.boundingBox?.minimum ≈ [2, 2])
+        #expect(inside.boundingBox?.maximum ≈ [8, 8])
+    }
+
+    @Test func `2D split with mask separates inside and outside`() async throws {
+        let mask: any Geometry2D = Circle(radius: 3).translated(x: 5, y: 5)
+
+        let inside = try await Rectangle(10)
+            .split(with: { mask }) { inside, _ in inside }
+            .measurements
+
+        let circleArea = Double.pi * 9
+        #expect(inside.area.equals(circleArea, within: 0.05))
+
+        let outside = try await Rectangle(10)
+            .split(with: { mask }) { _, outside in outside }
+            .measurements
+
+        let outsideArea = 100 - circleArea
+        #expect(outside.area.equals(outsideArea, within: 0.05))
+    }
+
     @Test func `separated components can be stacked`() async throws {
         let model = Sphere(diameter: 10)
             .subtracting {

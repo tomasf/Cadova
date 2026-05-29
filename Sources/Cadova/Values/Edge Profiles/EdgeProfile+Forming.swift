@@ -6,9 +6,13 @@ internal extension Geometry3D {
         with shape: any Geometry2D,
         at plane: Plane
     ) -> any Geometry3D {
-        transformed(plane.transform.inverse)
-            .adding(edgeProfile.followingEdge(of: shape, type: .addition))
-            .transformed(plane.transform)
+        // Edge profiling works in plane-local coordinates, but the profiled geometry must still build in source space.
+        ApplyTransform(
+            body: ApplyTransform(body: self, transform: plane.transform.inverse, transformEnvironment: false)
+                .adding(edgeProfile.followingEdge(of: shape, type: .addition)),
+            transform: plane.transform,
+            transformEnvironment: false
+        )
     }
 }
 
