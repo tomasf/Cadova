@@ -122,8 +122,8 @@ public extension Color {
     /// A deep brick red with brown undertones.
     static let firebrick = Color(red: 0.698, green: 0.133, blue: 0.133)
 
-    /// A deep red with hints of purple.
-    static let crimson = Color(red: 0.863, green: 0.078, blue: 0.235)
+    /// A deep blood red.
+    static let crimson = Color(red: 0.659, green: 0.075, blue: 0.180)
 
     /// A rich magenta with red undertones.
     static let mediumVioletRed = Color(red: 0.780, green: 0.082, blue: 0.522)
@@ -199,8 +199,8 @@ public extension Color {
     /// A bright orange with a warm, vibrant tone.
     static let orange = Color(red: 1.0, green: 0.647, blue: 0.0)
 
-    /// A light brown with hints of orange.
-    static let sandyBrown = Color(red: 0.957, green: 0.643, blue: 0.376)
+    /// A pale, sandy tan.
+    static let sandyBrown = Color(red: 0.871, green: 0.753, blue: 0.482)
 
     /// A warm tan with a soft brown tone.
     static let tan = Color(red: 0.824, green: 0.706, blue: 0.549)
@@ -225,8 +225,8 @@ public extension Color {
     /// A muted yellowish-green, with hints of brown.
     static let darkKhaki = Color(red: 0.741, green: 0.718, blue: 0.420)
 
-    /// A bright, warm yellow with golden tones.
-    static let gold = Color(red: 1.0, green: 0.843, blue: 0.0)
+    /// A warm metallic gold with brass undertones.
+    static let gold = Color(red: 0.937, green: 0.749, blue: 0.016)
 
     /// A muted olive-tan, like military khaki cloth.
     static let khaki = Color(red: 0.765, green: 0.690, blue: 0.569)
@@ -275,8 +275,8 @@ public extension Color {
     /// A medium aquamarine with a soft, muted blue-green tone.
     static let mediumAquamarine = Color(red: 0.400, green: 0.804, blue: 0.667)
 
-    /// A bright and vivid green.
-    static let lime = Color(red: 0.0, green: 1.0, blue: 0.0)
+    /// A vivid yellow-green, like lime peel.
+    static let lime = Color(red: 0.749, green: 1.0, blue: 0.0)
 
     /// A medium yellow-green with a soft tone.
     static let yellowGreen = Color(red: 0.604, green: 0.804, blue: 0.196)
@@ -431,8 +431,8 @@ public extension Color {
     /// A vivid blue-leaning purple, like the spectral color violet.
     static let violet = Color(red: 0.498, green: 0.0, blue: 1.0)
 
-    /// A soft lavender with a cool tone.
-    static let plum = Color(red: 0.867, green: 0.627, blue: 0.867)
+    /// A deep purple, like ripe plum fruit.
+    static let plum = Color(red: 0.557, green: 0.271, blue: 0.522)
 
     /// A soft purple with a warm, muted tone.
     static let thistle = Color(red: 0.847, green: 0.749, blue: 0.847)
