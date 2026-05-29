@@ -8,7 +8,7 @@ let package = Package(
         .library(name: "Cadova", targets: ["Cadova"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/tomasf/manifold-swift.git", from: "1.0.0"),
+        .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "1.1.0")),
         .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.2.3")),
         .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.1.4")),
         .package(url: "https://github.com/tomasf/Pelagos.git", .upToNextMinor(from: "0.1.3")),
