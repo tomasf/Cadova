@@ -129,7 +129,7 @@ public extension Color {
     static let mediumVioletRed = Color(red: 0.780, green: 0.082, blue: 0.522)
 
     /// A warm, earthy brown.
-    static let brown = Color(red: 0.647, green: 0.165, blue: 0.165)
+    static let brown = Color(red: 0.545, green: 0.353, blue: 0.169)
 
     /// A bold pink with a strong magenta tone.
     static let deepPink = Color(red: 1.0, green: 0.078, blue: 0.576)
@@ -181,8 +181,8 @@ public extension Color {
     /// A rich brown with a slightly reddish tone.
     static let sienna = Color(red: 0.627, green: 0.322, blue: 0.176)
 
-    /// A warm brown with reddish undertones.
-    static let chocolate = Color(red: 0.824, green: 0.412, blue: 0.118)
+    /// A deep cocoa brown.
+    static let chocolate = Color(red: 0.482, green: 0.247, blue: 0.0)
 
     /// A rich, dark golden-yellow.
     static let darkGoldenrod = Color(red: 0.722, green: 0.525, blue: 0.043)
@@ -228,8 +228,8 @@ public extension Color {
     /// A bright, warm yellow with golden tones.
     static let gold = Color(red: 1.0, green: 0.843, blue: 0.0)
 
-    /// A warm beige with a muted yellow tone.
-    static let khaki = Color(red: 0.941, green: 0.902, blue: 0.549)
+    /// A muted olive-tan, like military khaki cloth.
+    static let khaki = Color(red: 0.765, green: 0.690, blue: 0.569)
 
     /// A light, muted yellow with a golden undertone.
     static let paleGoldenrod = Color(red: 0.933, green: 0.910, blue: 0.667)
@@ -428,8 +428,8 @@ public extension Color {
     /// A warm orchid color with strong pink undertones.
     static let orchid = Color(red: 0.855, green: 0.439, blue: 0.839)
 
-    /// A soft violet with a light, warm tone.
-    static let violet = Color(red: 0.933, green: 0.510, blue: 0.933)
+    /// A vivid blue-leaning purple, like the spectral color violet.
+    static let violet = Color(red: 0.498, green: 0.0, blue: 1.0)
 
     /// A soft lavender with a cool tone.
     static let plum = Color(red: 0.867, green: 0.627, blue: 0.867)
