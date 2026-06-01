@@ -12,6 +12,10 @@ public struct Measurements<D: Dimensionality>: Sendable {
     init(buildResult: D.BuildResult, scope: MeasurementScope, context: EvaluationContext) async throws {
         self.concrete = try await scope.includedConcretes(for: buildResult, in: context)
     }
+
+    internal init() {
+        self.concrete = []
+    }
 }
 
 public extension Measurements {
