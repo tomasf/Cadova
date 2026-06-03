@@ -32,7 +32,7 @@ internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
 
         // 3D
         case shape3D (PrimitiveShape3D)
-        case applyMaterial (D3.Node, Material)
+        case applyMaterial (D3.Node, Material?)
         case extrusion (D2.Node, type: Extrusion)
         case trim (D3.Node, Plane)
         case smoothOut (D3.Node, minSharpAngle: Double, minSmoothness: Double)
@@ -138,7 +138,12 @@ extension GeometryNode {
             return try EvaluationResult(shape.evaluate())
 
         case .applyMaterial (let node, let material):
-            return try await context.result(for: node).applyingMaterial(material)
+            let result = try await context.result(for: node)
+            if let material {
+                return result.applyingMaterial(material)
+            } else {
+                return result.clearingMaterials()
+            }
 
         case .extrusion (let node, let extrusion):
             let result = try await context.result(for: node)

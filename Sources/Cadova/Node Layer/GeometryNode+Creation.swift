@@ -111,7 +111,7 @@ extension GeometryNode where D == D3 {
         return Self(.extrusion(body, type: type))
     }
 
-    static func applyMaterial(_ body: D3.Node, material: Material) -> GeometryNode {
+    static func applyMaterial(_ body: D3.Node, material: Material?) -> GeometryNode {
         guard body.isEmpty == false else { return .empty }
         return Self(.applyMaterial(body, material))
     }

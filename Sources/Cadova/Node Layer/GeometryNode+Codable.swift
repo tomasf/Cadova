@@ -160,7 +160,7 @@ extension GeometryNode: Codable {
             self.init(.shape3D(try container.decode(PrimitiveShape3D.self, forKey: .primitive)))
         case .applyMaterial:
             let node = try container.decode(D3.Node.self, forKey: .body)
-            let material = try container.decode(Material.self, forKey: .material)
+            let material = try container.decode(Material?.self, forKey: .material)
             self.init(.applyMaterial(node, material))
         case .extrusion:
             let node = try container.decode(D2.Node.self, forKey: .crossSection)
