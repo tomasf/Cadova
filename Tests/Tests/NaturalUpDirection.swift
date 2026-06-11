@@ -57,6 +57,40 @@ struct NaturalUpDirectionTests {
             .triggerEvaluation()
     }
 
+    @Test func `2D natural up direction defaults to nil`() async throws {
+        // With no 2D up direction defined, the inherited up is world +Z, which has
+        // no projection onto the XY plane.
+        try await Rectangle(1)
+            .readingEnvironment(\.naturalUpDirection2D) { body, direction in
+                #expect(direction == nil)
+                body
+            }
+            .triggerEvaluation()
+    }
+
+    @Test func `2D natural up direction is read back as defined`() async throws {
+        try await Rectangle(1)
+            .readingEnvironment(\.naturalUpDirection2D) { body, direction in
+                #expect(direction ≈ .up)
+                body
+            }
+            .definingNaturalUpDirection(.up)
+            .triggerEvaluation()
+    }
+
+    @Test func `2D up direction is transformed correctly by surrounding rotation`() async throws {
+        // Outer up = world +X. Inside a +90° rotation, the local direction that
+        // points to world +X is local -Y (down).
+        try await Rectangle(1)
+            .readingEnvironment(\.naturalUpDirection2D) { body, direction in
+                #expect(direction ≈ .down)
+                body
+            }
+            .rotated(90°)
+            .definingNaturalUpDirection(.right)
+            .triggerEvaluation()
+    }
+
     @Test func `XY angle is nil for vertical up direction despite transform rounding`() async throws {
         // A chain of opposing rotations around different axes mathematically
         // cancels to identity, but the concatenated matrix leaves sub-ulp

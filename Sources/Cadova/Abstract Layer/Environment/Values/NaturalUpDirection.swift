@@ -53,6 +53,22 @@ public extension EnvironmentValues {
         return Vector2D.zero.angle(to: xy)
     }
 
+    /// The natural up direction projected onto the XY plane, as a 2D direction.
+    ///
+    /// Returns `nil` if the natural up direction is perpendicular to the XY plane
+    /// (i.e. it has no meaningful 2D projection). Like `naturalUpDirection`, the
+    /// result accounts for the environment's current transform.
+    ///
+    /// - Returns: A `Direction2D` representing the natural up direction in the XY
+    ///   plane, or `nil` if no projection exists.
+    ///
+    var naturalUpDirection2D: Direction2D? {
+        let xy = naturalUpDirection.unitVector.xy
+        let epsilon = 1e-8
+        guard xy.magnitude > epsilon else { return nil }
+        return Direction2D(xy)
+    }
+
     /// Sets the natural up direction relative to the environment's local coordinate system.
     ///
     /// This method assigns a new natural up direction to the environment, expressed as a `Vector3D`.
@@ -83,6 +99,27 @@ public extension Geometry3D {
     func definingNaturalUpDirection(_ direction: Direction3D = .up) -> any Geometry3D {
         withEnvironment { environment in
             environment.settingNaturalUpDirection(direction)
+        }
+    }
+}
+
+public extension Geometry2D {
+    /// Sets the natural up direction for the geometry.
+    ///
+    /// This method defines the direction that is considered "up" in the natural orientation
+    /// of this 2D geometry. This affects, for example, how overhangs are compensated for when
+    /// the shape is extruded. You can read this value through `Environment.naturalUpDirection2D`
+    /// or `Environment.naturalUpDirectionXYAngle`, where it's been transformed to match that
+    /// coordinate system.
+    ///
+    /// - Parameter direction: The `Direction2D` representing the up direction in this geometry's
+    ///   coordinate system.
+    /// - Returns: A new instance of `Geometry2D` with the natural up direction set in its
+    ///   environment.
+    ///
+    func definingNaturalUpDirection(_ direction: Direction2D) -> any Geometry2D {
+        withEnvironment { environment in
+            environment.settingNaturalUpDirection(Direction3D(from: direction))
         }
     }
 }
