@@ -11,7 +11,7 @@ internal extension Mesh where Vertex == PolygonGroupVertex {
         let sideFaces = polygonGroups.map(\.0).enumerated().flatMap { polygonIndex, group in
             (0..<(group.count - 1)).flatMap { layerIndex1 in
                 let layerIndex2 = layerIndex1 + 1
-                return (0..<group[0].count).wrappedPairs().flatMap { pointIndex1, pointIndex2 in [
+                return (0..<group[0].count).cyclicPairs().flatMap { pointIndex1, pointIndex2 in [
                     [
                         PolygonGroupVertex(polygonGroupIndex: polygonIndex, layerIndex: layerIndex1, pointIndex: pointIndex2),
                         PolygonGroupVertex(polygonGroupIndex: polygonIndex, layerIndex: layerIndex2, pointIndex: pointIndex2),

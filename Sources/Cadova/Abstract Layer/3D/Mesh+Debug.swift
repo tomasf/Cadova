@@ -76,7 +76,7 @@ public extension Mesh {
         var edgeMap: [EdgePair<Vertex>: Int] = [:]
 
         for face in faces {
-            for (a, b) in face.wrappedPairs() {
+            for (a, b) in face.cyclicPairs() {
                 edgeMap[EdgePair(a, b), default: 0] += 1
             }
         }

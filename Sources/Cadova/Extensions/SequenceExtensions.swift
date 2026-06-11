@@ -5,7 +5,7 @@ extension Sequence {
         zip(self, dropFirst())
     }
 
-    func wrappedPairs() -> [(Element, Element)] {
+    func cyclicPairs() -> [(Element, Element)] {
         .init(zip(self, dropFirst() + Array(prefix(1))))
     }
 
