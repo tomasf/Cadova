@@ -6,6 +6,9 @@ public extension Color {
     /// Pure black with no hint of any other color.
     static let black = Color(red: 0.0, green: 0.0, blue: 0.0)
 
+    /// A very dark, neutral gray, just barely lighter than pure black.
+    static let jetBlack = Color(red: 0.051, green: 0.051, blue: 0.051)
+
     /// A dark gray with greenish tones.
     static let darkSlateGray = Color(red: 0.184, green: 0.310, blue: 0.310)
 
