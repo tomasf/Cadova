@@ -13,7 +13,13 @@ internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(hash)
     }
-    
+
+    // Checking the precomputed hash first prunes deep recursive contents
+    // comparisons for nodes that differ.
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.hash == rhs.hash && lhs.contents == rhs.contents
+    }
+
     internal indirect enum Contents: Sendable {
         case empty
         case boolean ([D.Node], type: BooleanOperationType)
