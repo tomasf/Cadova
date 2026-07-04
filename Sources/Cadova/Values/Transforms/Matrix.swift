@@ -27,6 +27,28 @@ internal typealias Matrix3x3 = BasicMatrix3x3
 internal typealias Matrix4x4 = BasicMatrix4x4
 #endif
 
+@available(macOS 26.0, iOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *)
+internal extension InlineArray where Element == Double {
+    init(_ elements: [Double]) {
+        precondition(elements.count == Self.count, "Expected exactly \(Self.count) elements")
+        self.init { elements[$0] }
+    }
+}
+
+@available(macOS 26.0, iOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *)
+internal extension InlineArray where count == 3, Element == Double {
+    init(_ a: Double, _ b: Double, _ c: Double) {
+        self = [a, b, c]
+    }
+}
+
+@available(macOS 26.0, iOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *)
+internal extension InlineArray where count == 4, Element == Double {
+    init(_ a: Double, _ b: Double, _ c: Double, _ d: Double) {
+        self = [a, b, c, d]
+    }
+}
+
 /// Invert a square matrix
 internal func invertMatrix(matrix: [[Double]]) -> [[Double]] {
     let size = matrix.count

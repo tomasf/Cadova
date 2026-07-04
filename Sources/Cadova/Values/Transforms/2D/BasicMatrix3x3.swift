@@ -1,13 +1,22 @@
 import Foundation
 
+// Fallback for platforms without simd. On Apple platforms, this type is only
+// used by tests that validate it against simd; the availability annotation
+// satisfies InlineArray's OS requirement there and is ignored elsewhere.
+@available(macOS 26.0, iOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *)
 internal struct BasicMatrix3x3: Equatable, Sendable {
-    typealias Row = [Double]
-    typealias Column = [Double]
+    typealias Row = InlineArray<3, Double>
+    typealias Column = InlineArray<3, Double>
 
-    var values: [[Double]]
+    var values: InlineArray<3, Row>
+
+    init(rows: [Row]) {
+        precondition(rows.count == 3, "BasicMatrix3x3 requires exactly 3 rows")
+        values = .init { rows[$0] }
+    }
 
     init(rows: [[Double]]) {
-        values = rows
+        self.init(rows: rows.map(Row.init))
     }
 
     subscript(_ column: Int, _ row: Int) -> Double {
@@ -21,41 +30,56 @@ internal struct BasicMatrix3x3: Equatable, Sendable {
         [0, 0, 1]
     ])
 
-    static func *(_ lhs: BasicMatrix3x3, _ rhs: BasicMatrix3x3) -> BasicMatrix3x3 {
-        BasicMatrix3x3(rows:
-            (0..<3).map { row in
-                (0..<3).map { column in
-                    (0..<3).map { i in
-                        lhs[i, row] * rhs[column, i]
-                    }.reduce(0, +)
-                }
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        for row in 0..<3 {
+            for column in 0..<3 where lhs[column, row] != rhs[column, row] {
+                return false
             }
-        )
+        }
+        return true
+    }
+
+    static func *(_ lhs: BasicMatrix3x3, _ rhs: BasicMatrix3x3) -> BasicMatrix3x3 {
+        var result = identity
+        for row in 0..<3 {
+            for column in 0..<3 {
+                var sum = 0.0
+                for i in 0..<3 {
+                    sum += lhs[i, row] * rhs[column, i]
+                }
+                result[column, row] = sum
+            }
+        }
+        return result
     }
 
     static func *(_ lhs: Column, _ rhs: BasicMatrix3x3) -> Row {
-        (0..<3).map { column in
-            (0..<3).map { row in
-                rhs[column, row] * lhs[row]
-            }.reduce(0, +)
+        Row { column in
+            var sum = 0.0
+            for row in 0..<3 {
+                sum += rhs[column, row] * lhs[row]
+            }
+            return sum
         }
     }
 
     static func *(_ lhs: BasicMatrix3x3, _ rhs: Column) -> Row {
-        (0..<3).map { index in
-            lhs.values[index].enumerated().map { column, value in
-                value * rhs[column]
-            }.reduce(0, +)
+        Row { row in
+            var sum = 0.0
+            for column in 0..<3 {
+                sum += lhs[column, row] * rhs[column]
+            }
+            return sum
+        }
+    }
+
+    var rowArrays: [[Double]] {
+        (0..<3).map { row in
+            (0..<3).map { column in values[row][column] }
         }
     }
 
     var inverse: BasicMatrix3x3 {
-        .init(rows: invertMatrix(matrix: values))
-    }
-}
-
-internal extension [Double] {
-    init(_ a: Double, _ b: Double, _ c: Double) {
-        self = [a, b, c]
+        Self(rows: invertMatrix(matrix: rowArrays))
     }
 }
