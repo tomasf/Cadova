@@ -153,7 +153,13 @@ extension Vector2D: Vector {
     /// - Returns: The value of the element at the given index.
     ///
     public subscript(_ index: Int) -> Double {
-        get { [x, y][index] }
+        get {
+            switch index {
+            case 0: x
+            case 1: y
+            default: preconditionFailure("Invalid vector element index")
+            }
+        }
         set {
             switch index {
             case 0: x = newValue

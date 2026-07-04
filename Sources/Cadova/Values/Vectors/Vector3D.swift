@@ -176,7 +176,14 @@ extension Vector3D: Vector {
     /// - Returns: The value of the element at the given index.
     ///
     public subscript(_ index: Int) -> Double {
-        get { [x, y, z][index] }
+        get {
+            switch index {
+            case 0: x
+            case 1: y
+            case 2: z
+            default: preconditionFailure("Invalid vector element index")
+            }
+        }
         set {
             switch index {
             case 0: x = newValue
