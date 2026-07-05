@@ -1,10 +1,23 @@
 import Foundation
+import os
 
 /// `EnvironmentValues` provides a flexible container for environment-specific values influencing the rendering of geometries.
 ///
 /// You can use `EnvironmentValues` to customize settings and attributes that affect child geometries within Cadova. Modifiers allow for dynamic adjustments of the environment, which can be applied to geometries to affect their rendering or behavior.
 public struct EnvironmentValues: Sendable {
     private var values: [Key: any Sendable]
+
+    // Identity token used to skip redundant task-local rebinding; regenerated on every mutation
+    internal private(set) var id = ID()
+
+    internal struct ID: Equatable, Sendable {
+        private static let counter = OSAllocatedUnfairLock(initialState: UInt64(0))
+        private let value: UInt64
+
+        init() {
+            value = Self.counter.withLock { $0 += 1; return $0 }
+        }
+    }
 
     public init() {
         self.init(values: [:])
@@ -45,7 +58,10 @@ public struct EnvironmentValues: Sendable {
     /// - Returns: The value associated with `key` if it exists; otherwise, `nil`.
     public subscript(key: Key) -> (any Sendable)? {
         get { values[key] }
-        set { values[key] = newValue }
+        set {
+            values[key] = newValue
+            id = ID()
+        }
     }
 }
 
@@ -80,7 +96,10 @@ internal extension EnvironmentValues {
     }
 
     func whileCurrent<T>(_ actions: () async throws -> T) async rethrows -> T {
-        try await Self.$topLevelEnvironment.withValue(self) {
+        if Self.topLevelEnvironment?.id == id {
+            return try await actions()
+        }
+        return try await Self.$topLevelEnvironment.withValue(self) {
             try await actions()
         }
     }
