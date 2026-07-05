@@ -53,8 +53,19 @@ public struct BoundingBox<D: Dimensionality>: Sendable {
         )
     }
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     public init(union boxes: [BoundingBox]) {
-        self.init(boxes.flatMap { [$0.minimum, $0.maximum] })
+        guard let first = boxes.first else {
+            preconditionFailure("BoundingBox requires at least one box in the union.")
+        }
+        var minimum = first.minimum
+        var maximum = first.maximum
+        for box in boxes.dropFirst() {
+            minimum = D.Vector.min(minimum, box.minimum)
+            maximum = D.Vector.max(maximum, box.maximum)
+        }
+        self.init(minimum: minimum, maximum: maximum)
     }
 
     /// Expands the bounding volume to include the given vector.
