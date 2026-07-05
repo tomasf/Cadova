@@ -6,6 +6,8 @@ import Manifold3D
 internal actor GeometryCache<D: Dimensionality> {
     private var entries: [D.Node: Task<D.Node.Result, any Error>] = [:]
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     func result(for node: D.Node, in context: EvaluationContext) async throws -> D.Node.Result {
         guard !node.isEmpty else { return .empty }
 

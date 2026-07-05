@@ -17,28 +17,38 @@ internal extension EvaluationContext {
         }
     }
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     func result<D: Dimensionality>(for node: D.Node) async throws -> EvaluationResult<D> {
         try await cache().result(for: node, in: self)
     }
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     func results<D: Dimensionality>(for nodes: [D.Node]) async throws -> [EvaluationResult<D>] {
         try await nodes.asyncMap { try await self.result(for: $0) }
     }
 }
 
 internal extension EvaluationContext {
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     func buildResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D.BuildResult {
         try await environment.whileCurrent {
             try await geometry.build(in: environment, context: self)
         }
     }
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     func buildResults<D: Dimensionality>(for geometries: [D.Geometry], in environment: EnvironmentValues) async throws -> [D.BuildResult] {
         try await geometries.asyncMap {
             try await buildResult(for: $0, in: environment)
         }
     }
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     func result<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> EvaluationResult<D> {
         let buildResult = try await buildResult(for: geometry, in: environment)
         return try await result(for: buildResult.node)

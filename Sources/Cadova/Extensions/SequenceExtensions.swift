@@ -38,6 +38,12 @@ extension Collection where Element: Sendable {
 }
 
 extension Sequence where Element: Sendable {
+    @_specialize(exported: false, where Self == [GeometryNode<D2>], T == EvaluationResult<D2>)
+    @_specialize(exported: false, where Self == [GeometryNode<D3>], T == EvaluationResult<D3>)
+    @_specialize(exported: false, where Self == [any Geometry<D2>], T == BuildResult<D2>)
+    @_specialize(exported: false, where Self == [any Geometry<D3>], T == BuildResult<D3>)
+    @_specialize(exported: false, where Self == [BuildResult<D2>], T == Measurements<D2>)
+    @_specialize(exported: false, where Self == [BuildResult<D3>], T == Measurements<D3>)
     func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T) async rethrows -> [T] {
         // Fast paths that avoid task group setup for trivial inputs
         let elements = Array(self)

@@ -6,6 +6,10 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
     let scope: MeasurementScope
     let builder: @Sendable ([Measurements<Input>]) -> D.Geometry
 
+    @_specialize(exported: false, where Input == D2, D == D2)
+    @_specialize(exported: false, where Input == D2, D == D3)
+    @_specialize(exported: false, where Input == D3, D == D2)
+    @_specialize(exported: false, where Input == D3, D == D3)
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         let buildResults = try await context.buildResults(for: target, in: environment)
         let measurements = try await buildResults.asyncMap {
@@ -129,6 +133,8 @@ public func measureBounds<Input: Dimensionality, D: Dimensionality>(
 }
 
 internal extension MeasurementScope {
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     func includedConcretes<D: Dimensionality>(
         for buildResult: BuildResult<D>,
         in context: EvaluationContext
