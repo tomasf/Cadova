@@ -1,5 +1,4 @@
 import Foundation
-import os
 
 /// `EnvironmentValues` provides a flexible container for environment-specific values influencing the rendering of geometries.
 ///
@@ -11,11 +10,15 @@ public struct EnvironmentValues: Sendable {
     internal private(set) var id = ID()
 
     internal struct ID: Equatable, Sendable {
-        private static let counter = OSAllocatedUnfairLock(initialState: UInt64(0))
+        private static let lock = NSLock()
+        private static nonisolated(unsafe) var nextValue: UInt64 = 0
         private let value: UInt64
 
         init() {
-            value = Self.counter.withLock { $0 += 1; return $0 }
+            Self.lock.lock()
+            Self.nextValue += 1
+            value = Self.nextValue
+            Self.lock.unlock()
         }
     }
 
