@@ -81,6 +81,13 @@ internal extension BuildResult {
             try await context.buildResult(for: $0, in: environment)
         }
 
+        guard childResults.contains(where: {
+            $0.elements[ifPresent: ReferenceState.self]?.hasUsedReferences == true
+        }) else {
+            self = .init(combining: childResults, operationType: booleanOperation)
+            return
+        }
+
         let newChildResults = try await childResults.enumerated().asyncMap { index, childResult in
             guard
                 let referenceState = childResult.elements[ifPresent: ReferenceState.self],
