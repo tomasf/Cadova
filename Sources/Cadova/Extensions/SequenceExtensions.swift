@@ -39,9 +39,15 @@ extension Collection where Element: Sendable {
 
 extension Sequence where Element: Sendable {
     func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T) async rethrows -> [T] {
-        try await withThrowingTaskGroup(of: (Int, T).self) { group in
+        // Fast paths that avoid task group setup for trivial inputs
+        let elements = Array(self)
+        guard elements.count > 1 else {
+            return elements.isEmpty ? [] : [try await transform(elements[0])]
+        }
+
+        return try await withThrowingTaskGroup(of: (Int, T).self) { group in
             var count = 0
-            for (index, element) in self.enumerated() {
+            for (index, element) in elements.enumerated() {
                 group.addTask {
                     let value = try await transform(element)
                     return (index, value)
