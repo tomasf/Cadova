@@ -41,6 +41,11 @@ public struct Model: Sendable, ModelBuildable {
     /// - `Metadata` inside the model’s builder is merged into the model’s options and can augment or override
     ///   metadata inherited from the project.
     ///
+    /// `Environment` directives apply to the entire model, including environment reads (such as
+    /// `@Environment`) made directly inside the content builder. To make this possible, the
+    /// builder may be evaluated more than once, so avoid relying on it running exactly once.
+    /// The environment directives themselves should not depend on environment reads.
+    ///
     /// - Parameters:
     ///   - name: The base filename (without extension) or a relative/full path to where the model should be saved.
     ///   - options: One or more `ModelOptions` used to customize output format, compression, metadata, etc.
@@ -95,11 +100,22 @@ public struct Model: Sendable, ModelBuildable {
     ) async -> [URL] {
         logger.info("Generating \"\(name)\"...")
 
-        let directives = inheritedEnvironment.whileCurrent {
+        var directives = inheritedEnvironment.whileCurrent {
             self.directives()
         }
         let options = self.options.adding(modelName: name, defaults: inheritedOptions, directives: directives)
         let environment = inheritedEnvironment.adding(directives: directives, modelOptions: options)
+
+        // Environment directives are collected by running the content builder, so environment
+        // reads in that first run see only the inherited environment. If any directives modified
+        // the environment, run the content again under the final environment and use that run's
+        // geometry, so that reads and geometry agree. Environment directives and options are
+        // always taken from the first run; directives must not depend on environment reads.
+        if directives.containsEnvironmentDirectives {
+            directives = environment.whileCurrent {
+                self.directives()
+            }
+        }
 
         let baseURL: URL
         if let parent = directory {

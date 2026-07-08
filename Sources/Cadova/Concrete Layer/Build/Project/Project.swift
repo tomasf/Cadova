@@ -76,9 +76,10 @@ public func Project(
         try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
     }
 
-    let models = directives.compactMap(\.model)
     var combinedOptions = ModelOptions(options + directives.compactMap(\.options))
     let environment = EnvironmentValues.defaultEnvironment.adding(directives: directives)
+
+    let models = directives.compactMap(\.model)
 
     let cliArgs = CommandLineArguments.current
     if !cliArgs.modelFilter.isEmpty {
