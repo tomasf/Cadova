@@ -40,6 +40,70 @@ internal extension EdgeProfile {
         }
     }
 
+    /// The most a miter trim is allowed to stretch away from the vertex it's anchored to, as a
+    /// factor of the profile's own size — mirrors `EdgeToolSweep.maxMiterStretch`, which guards
+    /// the same instability in the newer edge-shaping system.
+    private static let maxMiterStretch = 8.0
+
+    /// The direction of the miter trim line at a polygon vertex, given the incoming and outgoing
+    /// edge vectors (in that order).
+    ///
+    /// Ordinarily this is the normal of the two edges' bisector — the standard miter join. But as
+    /// the turn at a vertex sharpens toward a cusp (as where two boolean-combined curves meet
+    /// almost tangentially), the bisector swings toward being perpendicular to the outgoing edge,
+    /// and the trim plane it defines has to travel proportionally farther along that edge before
+    /// it actually crosses it — the miter "stretches". Past a turn sharp enough that the stretch
+    /// would exceed `maxMiterStretch`, the trim plane can land far beyond the next vertex,
+    /// producing a malformed, often folded-back sliver in the cutting tool instead of a bounded
+    /// local joint. Falling back to the outgoing edge's own normal past that point is the
+    /// continuous limit of the miter as the turn sharpens further, so the trim degrades to a
+    /// plain perpendicular cut instead of swinging unboundedly. (At the exact cusp, the bisector
+    /// itself is undefined — the normalized sum collapses toward zero — which is the same
+    /// fallback, so this subsumes that case too.) This must stay a pure function of the two edge
+    /// vectors: the same vertex is trimmed once as a segment's end and once as the next segment's
+    /// start, and both calls need to agree.
+    private func miterLineNormal(_ incoming: Vector2D, _ outgoing: Vector2D) -> Direction2D {
+        let sum = incoming.normalized + outgoing.normalized
+        let sumMagnitude = sum.magnitude
+        guard sumMagnitude > 1e-9 else {
+            return Direction2D(outgoing).counterclockwiseNormal
+        }
+        let bisector = sum / sumMagnitude
+        let alignment = bisector ⋅ outgoing.normalized
+        guard alignment > 1 / Self.maxMiterStretch else {
+            return Direction2D(outgoing).counterclockwiseNormal
+        }
+        return Direction2D(bisector).counterclockwiseNormal
+    }
+
+    /// Below this edge length, a polygon vertex is treated as noise rather than a real corner.
+    ///
+    /// Boolean and rounding operations routinely leave near-duplicate vertices behind — points a
+    /// few nanometers apart, well under any printable feature size (`shape.simplified()` above
+    /// only cleans these up when the caller's environment happens to set
+    /// `simplificationThreshold`, which most models never do — and it does more than dedupe
+    /// exact overlaps, so raising its threshold to cover this also perturbs unrelated, meaningful
+    /// vertices elsewhere on the curve). Left in place, such a segment's direction (`c - b`) is
+    /// dominated by floating-point noise, so the tool piece built for it gets an essentially
+    /// arbitrary rotation — producing a malformed, often folded-back sliver in the cutting tool.
+    private static let degenerateEdgeLength = 1e-6
+
+    /// Drops vertices that leave a near-zero-length edge to the next surviving point, wrapping
+    /// around the closed polygon. A run of several such points collapses to the last one.
+    private func droppingDegenerateVertices(_ vertices: [Vector2D]) -> [Vector2D] {
+        guard vertices.count > 3 else { return vertices }
+        var result: [Vector2D] = [vertices[0]]
+        for vertex in vertices.dropFirst() {
+            if (vertex - result[result.count - 1]).magnitude > Self.degenerateEdgeLength {
+                result.append(vertex)
+            }
+        }
+        if result.count > 1, (result[0] - result[result.count - 1]).magnitude <= Self.degenerateEdgeLength {
+            result.removeLast()
+        }
+        return result
+    }
+
     func followingEdge(of shape: any Geometry2D, type: EnvironmentValues.Operation) -> any Geometry3D {
         readingNegativeShape { negativeShape, profileSize in
             let unitProfile = negativeShape.extruded(height: 1.0)
@@ -52,8 +116,19 @@ internal extension EdgeProfile {
 
             shape.simplified().readingConcrete { crossSection in
                 crossSection.polygonList().polygons.mapUnion { polygon in
-                    let overshoot = polygon.boundingBox.size.magnitude
-                    let vertices = type == .subtraction ? polygon.vertices : Array(polygon.vertices.reversed())
+                    // Only needs to be long enough that the miter planes at both ends are
+                    // guaranteed to fully cross the prism's local cross-section regardless of
+                    // how sharp the turn is — bounded by maxMiterStretch, so scale from the
+                    // profile's own size rather than the whole polygon's bounding box. The old
+                    // bounding-box-diagonal overshoot could reach 100+mm on a modest profile,
+                    // so on a curve with many short segments (a large-radius fillet, densely
+                    // tessellated) every segment's oversized prism reached far outside its own
+                    // local region and could spatially collide with prisms from a completely
+                    // unrelated part of the same curve once unioned, leaving a bridging sliver
+                    // where the two overlapped.
+                    let overshoot = profileSize.magnitude * (Self.maxMiterStretch + 2)
+                    let rawVertices = type == .subtraction ? polygon.vertices : Array(polygon.vertices.reversed())
+                    let vertices = droppingDegenerateVertices(rawVertices)
                     for index in vertices.indices {
                         let a = vertices[wrap: index - 1]
                         let b = vertices[wrap: index]
@@ -64,8 +139,8 @@ internal extension EdgeProfile {
                         let cb = c - b
                         let dc = d - c
 
-                        let startLine = Line(point: b, direction: .init(bisecting: ba, cb).counterclockwiseNormal)
-                        let endLine = Line(point: c, direction: .init(bisecting: cb, dc).counterclockwiseNormal)
+                        let startLine = Line(point: b, direction: miterLineNormal(ba, cb))
+                        let endLine = Line(point: c, direction: miterLineNormal(cb, dc))
 
                         unitProfile.scaled(x: cb.magnitude + 2 * overshoot)
                             .translated(x: -overshoot)
