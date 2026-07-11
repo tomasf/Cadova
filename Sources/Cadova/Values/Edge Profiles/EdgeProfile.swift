@@ -104,8 +104,32 @@ internal extension EdgeProfile {
         return result
     }
 
+    /// How far the cut cross-section is grown past the profile's own exact silhouette, for the
+    /// subtraction case only.
+    ///
+    /// At a genuinely sharp corner sitting close to a run of micro-segments (left behind by
+    /// `rounded(insideRadius:outsideRadius:)` or similar offset-based operations, then clipped by
+    /// a later boolean), the miter joints on a short segment between them can have too little
+    /// room to meet cleanly, leaving a thin sliver standing the height of the profile right at
+    /// that seam — even though neither joint's own miter stretch is extreme in isolation, and no
+    /// single vertex looks wrong on inspection. Rather than chase the exact numerical mechanism
+    /// (attempted and inconclusive — see project memory), grow the swept cross-section by this
+    /// margin so a sliver of this scale ends up inside the removed material instead of standing
+    /// proud of it. Far below fabrication tolerance, so it costs nothing on ordinary geometry.
+    ///
+    /// Validated (repeatedly, deterministically) only for `type == .subtraction`, which is what
+    /// `cuttingEdgeProfile`/`topEdge:` use. The forming/addition case sweeps the same boundary
+    /// in reversed order (see `rawVertices` below) and empirically does NOT benefit from the
+    /// same margin — growing made it measurably worse, and shrinking didn't cleanly fix it
+    /// either; the mechanism there isn't understood yet. Do not extend this margin to the
+    /// addition case without separately re-deriving and validating it — see project memory.
+    private static let sliverSwallowMargin = 0.02
+
     func followingEdge(of shape: any Geometry2D, type: EnvironmentValues.Operation) -> any Geometry3D {
-        readingNegativeShape { negativeShape, profileSize in
+        readingNegativeShape { rawNegativeShape, profileSize in
+            let negativeShape = type == .subtraction
+                ? rawNegativeShape.offset(amount: Self.sliverSwallowMargin, style: .round)
+                : rawNegativeShape
             let unitProfile = negativeShape.extruded(height: 1.0)
                 .rotated(x: 90°, z: -90°)
                 .translated(
