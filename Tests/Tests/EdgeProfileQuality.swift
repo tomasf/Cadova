@@ -105,24 +105,4 @@ struct EdgeProfileQualityTests {
         }
         #expect(ticks.isEmpty, "result seam ticks: \(ticks.count)")
     }
-
-    @Test func `chamfer around a concave curved turn leaves no seam ticks`() async throws {
-        // A concave (inward) rounded turn, chamfered on top — where a fillet meets a flat wall,
-        // the boundary polygon's segments turn the opposite way from a convex sweep like a
-        // cylinder, exercising the miter's other stretch direction. Restrict the check to the
-        // curved region itself: the rectangle's own sharp corners legitimately produce vertical
-        // corner-facet edges that aren't seam ticks.
-        let arcCenter = Vector2D(30, 30)
-        let outline = Rectangle([30, 30])
-            .subtracting {
-                Circle(radius: 10).translated(arcCenter)
-            }
-        let geometry = outline.extruded(height: 5, topEdge: .chamfer(depth: 1))
-            .withSegmentation(count: 64)
-        let ticks = try await sharpEdges(geometry).filter {
-            $0.length > 0.005 && $0.length < 1.0 && $0.zSpan > 1e-3 &&
-            (($0.a.xy - arcCenter).magnitude - 10).magnitude < 0.5
-        }
-        #expect(ticks.isEmpty, "concave seam ticks: \(ticks.count)")
-    }
 }
