@@ -53,4 +53,37 @@ struct SVGImportTests {
         #expect(bounds!.size.x > 0)
         #expect(bounds!.size.y > 0)
     }
+
+    @Test func `SVG import resolves CSS font-family stacks`() async throws {
+        // A font-family list (as commonly emitted by editors) must be parsed as a
+        // fallback stack rather than treated as a single family name.
+        let svg = """
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 200 40">
+          <text x="0" y="30" font-size="20"
+                font-family="LucidaGrande, 'Lucida Grande', sans-serif">Test</text>
+        </svg>
+        """
+        let geometry = Import(svg: Data(svg.utf8), scale: .pixels)
+        let bounds = try await geometry.bounds
+
+        #expect(bounds != nil)
+        #expect(bounds!.size.x > 0)
+        #expect(bounds!.size.y > 0)
+    }
+
+    @Test func `SVG import falls back to a generic font for an unknown single family`() async throws {
+        // A lone, unavailable family should still render in a fallback font
+        // rather than failing the import.
+        let svg = """
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 200 40">
+          <text x="0" y="30" font-size="20" font-family="NoSuchFontFamily12345">Test</text>
+        </svg>
+        """
+        let geometry = Import(svg: Data(svg.utf8), scale: .pixels)
+        let bounds = try await geometry.bounds
+
+        #expect(bounds != nil)
+        #expect(bounds!.size.x > 0)
+        #expect(bounds!.size.y > 0)
+    }
 }
