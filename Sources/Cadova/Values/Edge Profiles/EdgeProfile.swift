@@ -70,18 +70,18 @@ internal extension EdgeProfile {
     /// to cap. This must stay a pure function of the two edge vectors: the same vertex terminates
     /// one segment's ring and starts the next one's, and both need the identical joint to weld
     /// exactly.
-    private func miterOffset(_ incoming: Vector2D, _ outgoing: Vector2D) -> (direction: Direction2D, stretch: Double) {
+    private func miterOffset(_ incoming: Vector2D, _ outgoing: Vector2D) -> (direction: Direction2D, stretch: Double, isCapped: Bool) {
         let sum = incoming.normalized + outgoing.normalized
         let sumMagnitude = sum.magnitude
         guard sumMagnitude > 1e-9 else {
-            return (Direction2D(outgoing).counterclockwiseNormal, 1)
+            return (Direction2D(outgoing).counterclockwiseNormal, 1, true)
         }
         let bisector = sum / sumMagnitude
         let alignment = bisector ⋅ outgoing.normalized
         guard alignment > 1 / Self.maxMiterStretch else {
-            return (Direction2D(bisector).counterclockwiseNormal, Self.maxMiterStretch)
+            return (Direction2D(bisector).counterclockwiseNormal, Self.maxMiterStretch, true)
         }
-        return (Direction2D(bisector).counterclockwiseNormal, 1 / alignment)
+        return (Direction2D(bisector).counterclockwiseNormal, 1 / alignment, false)
     }
 
     /// Below this edge length, a polygon vertex is treated as noise rather than a real corner.
@@ -127,13 +127,9 @@ internal extension EdgeProfile {
     /// interface sides are extended.
     private static let interfaceMargin = 1e-2
 
-    /// The cross-section ring at one polygon vertex: maps a swept-region point (x, y) to
-    /// (vertex + miterDirection * -x * stretch, y). The ring is computed once per vertex and
-    /// shared by the segments on both sides, so their meeting faces have bit-identical vertices
-    /// and the union welds them exactly — the seams can't leave coplanar-resolution debris the
-    /// way independently trimmed prisms did.
-    private func ringTransform(at vertex: Vector2D, incoming: Vector2D, outgoing: Vector2D) -> Transform3D {
-        let (direction, stretch) = miterOffset(incoming, outgoing)
+    /// Builds the actual ring matrix from an already-resolved direction, stretch, and vertex:
+    /// maps a swept-region point (x, y) to (vertex + miterDirection * -x * stretch, y).
+    private func ringTransform(direction: Direction2D, stretch: Double, vertex: Vector2D) -> Transform3D {
         let xAxis = -direction.unitVector * stretch
         return Transform3D([
             [xAxis.x, 0, -direction.unitVector.y, vertex.x],
@@ -141,6 +137,45 @@ internal extension EdgeProfile {
             [0, 1, 0, 0],
             [0, 0, 0, 1],
         ])
+    }
+
+    /// The cross-section ring at one polygon vertex. The ring is computed once per vertex and
+    /// shared by the segments on both sides, so their meeting faces have bit-identical vertices
+    /// and the union welds them exactly — the seams can't leave coplanar-resolution debris the
+    /// way independently trimmed prisms did.
+    private func ringTransform(at vertex: Vector2D, incoming: Vector2D, outgoing: Vector2D) -> Transform3D {
+        let (direction, stretch, _) = miterOffset(incoming, outgoing)
+        return ringTransform(direction: direction, stretch: stretch, vertex: vertex)
+    }
+
+    /// A chain of ring transforms smoothly interpolated between two already-resolved joints,
+    /// used for a segment where either endpoint's stretch was capped by `miterOffset` — direction
+    /// and stretch can differ enormously between such a joint and its neighbor (e.g. a normal
+    /// corner's small stretch next to a capped spike's `maxMiterStretch`), and connecting the two
+    /// directly in one step sweeps the profile through that whole change in a single flat facet,
+    /// producing a visibly creased, non-planar bevel instead of a smooth one. Interpolating by
+    /// angle (not by lerping the raw transform matrices, which doesn't sweep through a proper
+    /// rotation for a large angle difference) spreads the same total change over many small
+    /// facets, closely approximating a smooth bevel.
+    private func interpolatedRingTransforms(
+        from a: (vertex: Vector2D, direction: Direction2D, stretch: Double),
+        to b: (vertex: Vector2D, direction: Direction2D, stretch: Double),
+        steps: Int
+    ) -> [Transform3D] {
+        let angleA = Foundation.atan2(a.direction.unitVector.y, a.direction.unitVector.x)
+        let angleB = Foundation.atan2(b.direction.unitVector.y, b.direction.unitVector.x)
+        var deltaAngle = angleB - angleA
+        if deltaAngle > .pi { deltaAngle -= 2 * .pi }
+        if deltaAngle < -.pi { deltaAngle += 2 * .pi }
+
+        return (0...steps).map { step in
+            let t = Double(step) / Double(steps)
+            let vertex = a.vertex + (b.vertex - a.vertex) * t
+            let angle = angleA + deltaAngle * t
+            let direction = Direction2D(Vector2D(x: Foundation.cos(angle), y: Foundation.sin(angle)))
+            let stretch = a.stretch + (b.stretch - a.stretch) * t
+            return ringTransform(direction: direction, stretch: stretch, vertex: vertex)
+        }
     }
 
     func followingEdge(of shape: any Geometry2D, type: EnvironmentValues.Operation) -> any Geometry3D {
@@ -198,19 +233,31 @@ internal extension EdgeProfile {
                     crossSection.polygonList().polygons.mapUnion { polygon in
                         let rawVertices = type == .subtraction ? polygon.vertices : Array(polygon.vertices.reversed())
                         let vertices = droppingDegenerateVertices(rawVertices)
-                        let rings = vertices.indices.map { index in
-                            ringTransform(
-                                at: vertices[wrap: index],
-                                incoming: vertices[wrap: index] - vertices[wrap: index - 1],
-                                outgoing: vertices[wrap: index + 1] - vertices[wrap: index]
+                        let joints = vertices.indices.map { index -> (vertex: Vector2D, direction: Direction2D, stretch: Double, isCapped: Bool) in
+                            let (direction, stretch, isCapped) = miterOffset(
+                                vertices[wrap: index] - vertices[wrap: index - 1],
+                                vertices[wrap: index + 1] - vertices[wrap: index]
                             )
+                            return (vertices[wrap: index], direction, stretch, isCapped)
                         }
                         for index in vertices.indices {
+                            let a = joints[index]
+                            let b = joints[(index + 1) % joints.count]
+                            // A capped joint's stretch/direction can differ enormously from its
+                            // neighbor's — sweeping the profile through that whole change in one
+                            // step leaves a visibly creased, non-planar bevel. Subdividing only
+                            // this segment spreads the change smoothly instead.
+                            let path = (a.isCapped || b.isCapped)
+                                ? interpolatedRingTransforms(from: (a.vertex, a.direction, a.stretch), to: (b.vertex, b.direction, b.stretch), steps: 32)
+                                : [
+                                    ringTransform(direction: a.direction, stretch: a.stretch, vertex: a.vertex),
+                                    ringTransform(direction: b.direction, stretch: b.stretch, vertex: b.vertex),
+                                ]
                             Mesh(
                                 extruding: regionPolygons,
-                                along: [rings[index], rings[(index + 1) % rings.count]],
+                                along: path,
                                 cacheName: "EdgeProfileSegment",
-                                cacheParameters: regionPolygons, rings[index], rings[(index + 1) % rings.count]
+                                cacheParameters: regionPolygons, path
                             )
                             .correctingFaceWinding()
                         }
