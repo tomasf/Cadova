@@ -48,17 +48,28 @@ internal extension EdgeProfile {
     /// The direction and stretch of the miter joint at a polygon vertex, given the incoming and
     /// outgoing edge vectors (in that order).
     ///
-    /// Ordinarily the direction is the normal of the two edges' bisector — the standard miter
-    /// join — and the stretch is how much a cross-section placed along that direction must widen
-    /// so its silhouette stays constant across the joint. As the turn at a vertex sharpens
-    /// toward a cusp (as where two boolean-combined curves meet almost tangentially), the
-    /// bisector swings toward being perpendicular to the outgoing edge and the stretch diverges,
-    /// so a joint sharp enough to exceed `maxMiterStretch` falls back to the outgoing edge's own
-    /// normal with no stretch — the continuous limit of the miter as the turn sharpens further.
-    /// (At the exact cusp, the bisector itself is undefined — the normalized sum collapses
-    /// toward zero — which is the same fallback, so this subsumes that case too.) This must stay
-    /// a pure function of the two edge vectors: the same vertex terminates one segment's ring
-    /// and starts the next one's, and both need the identical joint to weld exactly.
+    /// The direction is the normal of the two edges' bisector — the standard miter join — and the
+    /// stretch is how much a cross-section placed along that direction must widen so its
+    /// silhouette stays constant across the joint. `alignment` (how closely the bisector's normal
+    /// tracks the outgoing edge) shrinks toward zero at both ends of the turn-angle range: a turn
+    /// approaching a flat cusp (as where two boolean-combined curves meet almost tangentially,
+    /// incoming and outgoing nearly antiparallel) *and* an extremely sharp spike vertex (incoming
+    /// and outgoing also nearly antiparallel, just because the interior angle is tiny) are both
+    /// captured by the same small-`alignment` guard, even though geometrically they're opposite
+    /// shapes. The bisector direction itself stays well-defined and meaningful in both cases —
+    /// only the stretch genuinely diverges — so the guard caps the stretch at `maxMiterStretch`
+    /// and keeps the bisector-derived direction; it must not substitute a different direction
+    /// (e.g. the outgoing edge's own normal), because that direction is only a reasonable stand-in
+    /// for the *shared* vertex when incoming and outgoing already roughly agree, which isn't
+    /// guaranteed here. (Substituting outgoing's normal here previously caused a large,
+    /// direction-only discontinuity at very sharp spikes — e.g. a thin wedge tip — where the ring
+    /// shared with the *incoming* segment ended up twisted around 140° from that segment's own
+    /// bisector, leaving its swept tool barely overlapping the body at all.) Only the true
+    /// degenerate case — the bisector itself undefined because the normalized sum collapses to
+    /// zero at an exact cusp — still needs a substitute direction, since there's no bisector left
+    /// to cap. This must stay a pure function of the two edge vectors: the same vertex terminates
+    /// one segment's ring and starts the next one's, and both need the identical joint to weld
+    /// exactly.
     private func miterOffset(_ incoming: Vector2D, _ outgoing: Vector2D) -> (direction: Direction2D, stretch: Double) {
         let sum = incoming.normalized + outgoing.normalized
         let sumMagnitude = sum.magnitude
@@ -68,7 +79,7 @@ internal extension EdgeProfile {
         let bisector = sum / sumMagnitude
         let alignment = bisector ⋅ outgoing.normalized
         guard alignment > 1 / Self.maxMiterStretch else {
-            return (Direction2D(outgoing).counterclockwiseNormal, 1)
+            return (Direction2D(bisector).counterclockwiseNormal, Self.maxMiterStretch)
         }
         return (Direction2D(bisector).counterclockwiseNormal, 1 / alignment)
     }
