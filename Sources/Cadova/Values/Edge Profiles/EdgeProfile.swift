@@ -188,13 +188,6 @@ internal extension EdgeProfile {
             let sweptRegion = Rectangle(x: bounds.size.x + margin, y: bounds.size.y + topMargin)
                 .aligned(at: .max)
                 .translated(x: margin, y: topMargin)
-                .adding {
-                    // Dip the wall-side margin strip below the profile's lower tip. Without
-                    // this, the strip's bottom corner rests exactly on the wall line, and
-                    // grazing contact resolves as unreliably as coincident faces do.
-                    Rectangle(x: margin, y: margin * 2)
-                        .translated(x: 0, y: -bounds.size.y - margin)
-                }
                 .subtracting { profileShape }
                 // The addition/forming case's own per-segment tool pieces, when unioned with
                 // each other (before ever touching the body), can leave a thin near-duplicate
@@ -210,6 +203,22 @@ internal extension EdgeProfile {
                 // subtraction-mode bug was a tool/body interface issue, fixed via
                 // `interfaceMargin` instead), so this is scoped to `.addition` only.
                 .offset(amount: type == .addition ? 0.01 : 0, style: .miter)
+                .adding {
+                    // Dip the wall-side margin strip below the profile's lower tip. Without
+                    // this, the strip's bottom corner rests exactly on the wall line, and
+                    // grazing contact resolves as unreliably as coincident faces do.
+                    //
+                    // Added after the offset above, not before: attaching this thin appendage
+                    // to the boundary *before* offsetting used to confuse the miter-offset's
+                    // corner resolution right at the attachment point — regardless of the tab's
+                    // own width or depth, offsetting it always left a near-duplicate vertex pair
+                    // a hair apart instead of one clean point (confirmed by direct inspection of
+                    // the offset's output polygon: the same fault position and magnitude
+                    // persisted across multiple tab sizes). Attaching it afterward sidesteps the
+                    // interaction entirely — the tab never has to survive an offset.
+                    Rectangle(x: margin, y: margin * 2)
+                        .translated(x: 0, y: -bounds.size.y - margin)
+                }
 
             let tool = sweptRegion.readingConcrete { regionSection in
                 // The rectangle-plus-margin-strip construction above can leave a redundant,
