@@ -40,40 +40,37 @@ internal extension EdgeProfile {
         }
     }
 
-    /// The most a miter trim is allowed to stretch away from the vertex it's anchored to, as a
+    /// The most a miter joint is allowed to stretch away from the vertex it's anchored to, as a
     /// factor of the profile's own size — mirrors `EdgeToolSweep.maxMiterStretch`, which guards
     /// the same instability in the newer edge-shaping system.
     private static let maxMiterStretch = 8.0
 
-    /// The direction of the miter trim line at a polygon vertex, given the incoming and outgoing
-    /// edge vectors (in that order).
+    /// The direction and stretch of the miter joint at a polygon vertex, given the incoming and
+    /// outgoing edge vectors (in that order).
     ///
-    /// Ordinarily this is the normal of the two edges' bisector — the standard miter join. But as
-    /// the turn at a vertex sharpens toward a cusp (as where two boolean-combined curves meet
-    /// almost tangentially), the bisector swings toward being perpendicular to the outgoing edge,
-    /// and the trim plane it defines has to travel proportionally farther along that edge before
-    /// it actually crosses it — the miter "stretches". Past a turn sharp enough that the stretch
-    /// would exceed `maxMiterStretch`, the trim plane can land far beyond the next vertex,
-    /// producing a malformed, often folded-back sliver in the cutting tool instead of a bounded
-    /// local joint. Falling back to the outgoing edge's own normal past that point is the
-    /// continuous limit of the miter as the turn sharpens further, so the trim degrades to a
-    /// plain perpendicular cut instead of swinging unboundedly. (At the exact cusp, the bisector
-    /// itself is undefined — the normalized sum collapses toward zero — which is the same
-    /// fallback, so this subsumes that case too.) This must stay a pure function of the two edge
-    /// vectors: the same vertex is trimmed once as a segment's end and once as the next segment's
-    /// start, and both calls need to agree.
-    private func miterLineNormal(_ incoming: Vector2D, _ outgoing: Vector2D) -> Direction2D {
+    /// Ordinarily the direction is the normal of the two edges' bisector — the standard miter
+    /// join — and the stretch is how much a cross-section placed along that direction must widen
+    /// so its silhouette stays constant across the joint. As the turn at a vertex sharpens
+    /// toward a cusp (as where two boolean-combined curves meet almost tangentially), the
+    /// bisector swings toward being perpendicular to the outgoing edge and the stretch diverges,
+    /// so a joint sharp enough to exceed `maxMiterStretch` falls back to the outgoing edge's own
+    /// normal with no stretch — the continuous limit of the miter as the turn sharpens further.
+    /// (At the exact cusp, the bisector itself is undefined — the normalized sum collapses
+    /// toward zero — which is the same fallback, so this subsumes that case too.) This must stay
+    /// a pure function of the two edge vectors: the same vertex terminates one segment's ring
+    /// and starts the next one's, and both need the identical joint to weld exactly.
+    private func miterOffset(_ incoming: Vector2D, _ outgoing: Vector2D) -> (direction: Direction2D, stretch: Double) {
         let sum = incoming.normalized + outgoing.normalized
         let sumMagnitude = sum.magnitude
         guard sumMagnitude > 1e-9 else {
-            return Direction2D(outgoing).counterclockwiseNormal
+            return (Direction2D(outgoing).counterclockwiseNormal, 1)
         }
         let bisector = sum / sumMagnitude
         let alignment = bisector ⋅ outgoing.normalized
         guard alignment > 1 / Self.maxMiterStretch else {
-            return Direction2D(outgoing).counterclockwiseNormal
+            return (Direction2D(outgoing).counterclockwiseNormal, 1)
         }
-        return Direction2D(bisector).counterclockwiseNormal
+        return (Direction2D(bisector).counterclockwiseNormal, 1 / alignment)
     }
 
     /// Below this edge length, a polygon vertex is treated as noise rather than a real corner.
@@ -90,91 +87,133 @@ internal extension EdgeProfile {
 
     /// Drops vertices that leave a near-zero-length edge to the next surviving point, wrapping
     /// around the closed polygon. A run of several such points collapses to the last one.
-    private func droppingDegenerateVertices(_ vertices: [Vector2D]) -> [Vector2D] {
+    ///
+    /// `threshold` defaults to `degenerateEdgeLength`, sized for the outer curve's own noise
+    /// floor. A cross-section fed through this (see `followingEdge`'s `regionPolygons` cleanup)
+    /// needs a far smaller threshold instead — its edges can legitimately be as short as
+    /// `interfaceMargin`, the same order of magnitude as `degenerateEdgeLength`, so the default
+    /// would eat real geometry there, not just construction artifacts.
+    private func droppingDegenerateVertices(_ vertices: [Vector2D], threshold: Double = Self.degenerateEdgeLength) -> [Vector2D] {
         guard vertices.count > 3 else { return vertices }
         var result: [Vector2D] = [vertices[0]]
         for vertex in vertices.dropFirst() {
-            if (vertex - result[result.count - 1]).magnitude > Self.degenerateEdgeLength {
+            if (vertex - result[result.count - 1]).magnitude > threshold {
                 result.append(vertex)
             }
         }
-        if result.count > 1, (result[0] - result[result.count - 1]).magnitude <= Self.degenerateEdgeLength {
+        if result.count > 1, (result[0] - result[result.count - 1]).magnitude <= threshold {
             result.removeLast()
         }
         return result
     }
 
-    /// How far the cut cross-section is grown past the profile's own exact silhouette, for the
-    /// subtraction case only.
-    ///
-    /// At a genuinely sharp corner sitting close to a run of micro-segments (left behind by
-    /// `rounded(insideRadius:outsideRadius:)` or similar offset-based operations, then clipped by
-    /// a later boolean), the miter joints on a short segment between them can have too little
-    /// room to meet cleanly, leaving a thin sliver standing the height of the profile right at
-    /// that seam — even though neither joint's own miter stretch is extreme in isolation, and no
-    /// single vertex looks wrong on inspection. Rather than chase the exact numerical mechanism
-    /// (attempted and inconclusive — see project memory), grow the swept cross-section by this
-    /// margin so a sliver of this scale ends up inside the removed material instead of standing
-    /// proud of it. Far below fabrication tolerance, so it costs nothing on ordinary geometry.
-    ///
-    /// Validated (repeatedly, deterministically) only for `type == .subtraction`, which is what
-    /// `cuttingEdgeProfile`/`topEdge:` use. The forming/addition case sweeps the same boundary
-    /// in reversed order (see `rawVertices` below) and empirically does NOT benefit from the
-    /// same margin — growing made it measurably worse, and shrinking didn't cleanly fix it
-    /// either; the mechanism there isn't understood yet. Do not extend this margin to the
-    /// addition case without separately re-deriving and validating it — see project memory.
-    private static let sliverSwallowMargin = 0.02
+    /// How far the swept region extends past its interface faces — the sides where the tool
+    /// would otherwise coincide exactly with a face of the body it's cut from or added to.
+    /// A cutting tool reaches this far beyond the wall and above the edge face, and a forming
+    /// tool this far into the wall, so booleans cross those surfaces cleanly instead of
+    /// resolving exactly-coincident faces (which can leave zero-volume membranes and
+    /// micro-slivers behind). The profile's cut/fill surface itself stays exact; only the
+    /// interface sides are extended.
+    private static let interfaceMargin = 5e-3
+
+    /// The cross-section ring at one polygon vertex: maps a swept-region point (x, y) to
+    /// (vertex + miterDirection * -x * stretch, y). The ring is computed once per vertex and
+    /// shared by the segments on both sides, so their meeting faces have bit-identical vertices
+    /// and the union welds them exactly — the seams can't leave coplanar-resolution debris the
+    /// way independently trimmed prisms did.
+    private func ringTransform(at vertex: Vector2D, incoming: Vector2D, outgoing: Vector2D) -> Transform3D {
+        let (direction, stretch) = miterOffset(incoming, outgoing)
+        let xAxis = -direction.unitVector * stretch
+        return Transform3D([
+            [xAxis.x, 0, -direction.unitVector.y, vertex.x],
+            [xAxis.y, 0, direction.unitVector.x, vertex.y],
+            [0, 1, 0, 0],
+            [0, 0, 0, 1],
+        ])
+    }
 
     func followingEdge(of shape: any Geometry2D, type: EnvironmentValues.Operation) -> any Geometry3D {
-        readingNegativeShape { rawNegativeShape, profileSize in
-            let negativeShape = type == .subtraction
-                ? rawNegativeShape.offset(amount: Self.sliverSwallowMargin, style: .round)
-                : rawNegativeShape
-            let unitProfile = negativeShape.extruded(height: 1.0)
-                .rotated(x: 90°, z: -90°)
-                .translated(
-                    x: 1,
-                    y: type == .subtraction ? -1e-2 : -1e-6,
-                    z: type == .subtraction ? 1e-4 : 0
-                )
+        profile.measuringBounds { profileShape, bounds in
+            let margin = Self.interfaceMargin
+            // A cutting tool reaches past the edge face into open space; a forming tool stops
+            // just short of it. Either way, no tool face lands exactly in the face's plane,
+            // where the boolean would resolve it unreliably.
+            let topMargin = type == .subtraction ? margin : -margin
+            let sweptRegion = Rectangle(x: bounds.size.x + margin, y: bounds.size.y + topMargin)
+                .aligned(at: .max)
+                .translated(x: margin, y: topMargin)
+                .adding {
+                    // Dip the wall-side margin strip below the profile's lower tip. Without
+                    // this, the strip's bottom corner rests exactly on the wall line, and
+                    // grazing contact resolves as unreliably as coincident faces do.
+                    Rectangle(x: margin, y: margin * 2)
+                        .translated(x: 0, y: -bounds.size.y - margin)
+                }
+                .subtracting { profileShape }
+                // The addition/forming case's own per-segment tool pieces, when unioned with
+                // each other (before ever touching the body), can leave a thin near-duplicate
+                // ring at the outer/flared edge of the profile — confirmed present in the tool
+                // alone, so it's a self-union issue between neighboring segments, not a
+                // tool/body interface issue (`interfaceMargin` above has no effect on it, at
+                // any value from 1e-6 to 1e-1). Growing the whole cross-section by a small,
+                // fixed amount gives adjacent segments' pieces enough overlap to merge cleanly.
+                // `.miter` style specifically — `.round` was tried first and made this worse, by
+                // introducing fresh tessellated points at the profile's own corners that
+                // reintroduced the same class of instability it was meant to fix. Subtraction
+                // mode doesn't show this defect (its tool is clean in isolation — the earlier
+                // subtraction-mode bug was a tool/body interface issue, fixed via
+                // `interfaceMargin` instead), so this is scoped to `.addition` only.
+                .offset(amount: type == .addition ? 0.01 : 0, style: .miter)
 
-            shape.simplified().readingConcrete { crossSection in
-                crossSection.polygonList().polygons.mapUnion { polygon in
-                    // Only needs to be long enough that the miter planes at both ends are
-                    // guaranteed to fully cross the prism's local cross-section regardless of
-                    // how sharp the turn is — bounded by maxMiterStretch, so scale from the
-                    // profile's own size rather than the whole polygon's bounding box. The old
-                    // bounding-box-diagonal overshoot could reach 100+mm on a modest profile,
-                    // so on a curve with many short segments (a large-radius fillet, densely
-                    // tessellated) every segment's oversized prism reached far outside its own
-                    // local region and could spatially collide with prisms from a completely
-                    // unrelated part of the same curve once unioned, leaving a bridging sliver
-                    // where the two overlapped.
-                    let overshoot = profileSize.magnitude * (Self.maxMiterStretch + 2)
-                    let rawVertices = type == .subtraction ? polygon.vertices : Array(polygon.vertices.reversed())
-                    let vertices = droppingDegenerateVertices(rawVertices)
-                    for index in vertices.indices {
-                        let a = vertices[wrap: index - 1]
-                        let b = vertices[wrap: index]
-                        let c = vertices[wrap: index + 1]
-                        let d = vertices[wrap: index + 2]
-
-                        let ba = b - a
-                        let cb = c - b
-                        let dc = d - c
-
-                        let startLine = Line(point: b, direction: miterLineNormal(ba, cb))
-                        let endLine = Line(point: c, direction: miterLineNormal(cb, dc))
-
-                        unitProfile.scaled(x: cb.magnitude + 2 * overshoot)
-                            .translated(x: -overshoot)
-                            .rotated(z: b.angle(to: c))
-                            .translated(b, z: 0)
-                            .trimmed(along: Plane(line: startLine).offset(-1e-6))
-                            .trimmed(along: Plane(line: endLine).flipped.offset(-1e-6))
+            let tool = sweptRegion.readingConcrete { regionSection in
+                // The rectangle-plus-margin-strip construction above can leave a redundant,
+                // exactly-coincident vertex where the strip's corner lands on an existing point
+                // of the profile's own boundary — e.g. a plain 45° chamfer's swept region comes
+                // back from the subtraction with a literal repeated vertex at one corner. Left
+                // in place, this duplicate point index confuses `Mesh(extruding:along:)`'s
+                // per-vertex correspondence between neighboring rings (confirmed by direct mesh
+                // inspection: a triangle ends up spanning from one ring straight to the *next*
+                // ring over, skipping the one in between) — producing a real, protruding fold,
+                // not just a coincident-face rounding artifact.
+                //
+                // Can't use `droppingDegenerateVertices`'s default threshold here — it's the same
+                // order of magnitude as `interfaceMargin`, which this cross-section legitimately
+                // uses to keep otherwise-coincident edges a hair apart. A far smaller threshold
+                // only catches true construction-artifact duplicates, not real margin edges.
+                let regionPolygons = SimplePolygonList(regionSection.polygonList().polygons.map {
+                    SimplePolygon(droppingDegenerateVertices($0.vertices, threshold: 1e-12))
+                })
+                return shape.simplified().readingConcrete { crossSection in
+                    crossSection.polygonList().polygons.mapUnion { polygon in
+                        let rawVertices = type == .subtraction ? polygon.vertices : Array(polygon.vertices.reversed())
+                        let vertices = droppingDegenerateVertices(rawVertices)
+                        let rings = vertices.indices.map { index in
+                            ringTransform(
+                                at: vertices[wrap: index],
+                                incoming: vertices[wrap: index] - vertices[wrap: index - 1],
+                                outgoing: vertices[wrap: index + 1] - vertices[wrap: index]
+                            )
+                        }
+                        for index in vertices.indices {
+                            Mesh(
+                                extruding: regionPolygons,
+                                along: [rings[index], rings[(index + 1) % rings.count]],
+                                cacheName: "EdgeProfileSegment",
+                                cacheParameters: regionPolygons, rings[index], rings[(index + 1) % rings.count]
+                            )
+                            .correctingFaceWinding()
+                        }
                     }
                 }
             }
+
+            // Weld the tool into one concrete mesh before it meets the body. Union flattening
+            // would otherwise merge the segment prisms into the same n-ary boolean as the body
+            // itself, and once any prism merges with the body first, its seam face is
+            // retriangulated and no longer matches its neighbor's bit-exactly — leaving the
+            // seam to coplanar resolution, which is unreliable. Welding the prisms against
+            // each other first keeps every seam an exact shared-vertex interface.
+            return CachedNodeTransformer<D3, D3>(body: tool, name: "EdgeProfileTool") { node, _, _ in node }
         }
     }
 }
