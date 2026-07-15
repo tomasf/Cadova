@@ -107,7 +107,7 @@ struct EdgeFindingTests {
     @Test func `along z finds the four vertical box edges`() async throws {
         let edges = try await Box(10).foundEdges(matching: .along(.z))
         #expect(edges.count == 4)
-        let allVertical = edges.allSatisfy { abs($0.segments[0].direction.unitVector.z) > 0.99 }
+        let allVertical = edges.allSatisfy { $0.segments[0].direction.unitVector.z.magnitude > 0.99 }
         #expect(allVertical)
     }
 
