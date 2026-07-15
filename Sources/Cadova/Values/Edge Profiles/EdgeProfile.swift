@@ -114,7 +114,7 @@ internal extension EdgeProfile {
     /// resolving exactly-coincident faces (which can leave zero-volume membranes and
     /// micro-slivers behind). The profile's cut/fill surface itself stays exact; only the
     /// interface sides are extended.
-    private static let interfaceMargin = 5e-3
+    private static let interfaceMargin = 1e-2
 
     /// The cross-section ring at one polygon vertex: maps a swept-region point (x, y) to
     /// (vertex + miterDirection * -x * stretch, y). The ring is computed once per vertex and
@@ -213,7 +213,91 @@ internal extension EdgeProfile {
             // retriangulated and no longer matches its neighbor's bit-exactly — leaving the
             // seam to coplanar resolution, which is unreliable. Welding the prisms against
             // each other first keeps every seam an exact shared-vertex interface.
-            return CachedNodeTransformer<D3, D3>(body: tool, name: "EdgeProfileTool") { node, _, _ in node }
+            //
+            // On top of that materialization barrier, explicitly re-weld any vertices Manifold's
+            // own union left merely near-coincident instead of merged. For most profiles the
+            // ring-weld's shared transforms already guarantee bit-identical seam vertices and
+            // this is a no-op — but for curved (e.g. fillet) profiles, Manifold's boolean union
+            // has been confirmed (by running the identical construction repeatedly) to
+            // non-deterministically leave two vertices at the same 3D position unmerged, some
+            // runs but not others, producing a degenerate zero-area fold between them. Neither
+            // `Manifold.simplify(epsilon:)` nor `MeshGL.merged()` fixes this (the mesh is already
+            // a valid closed manifold, just locally folded — there's no open boundary for either
+            // to act on). A direct, deterministic Swift-side weld of near-coincident vertices —
+            // independent of Manifold's own union resolution — fixes it reliably instead.
+            return CachedNodeTransformer<D3, D3>(body: tool, name: "EdgeProfileTool") { node, _, context in
+                let manifold = try await context.result(for: node).concrete
+                let (vertices, faces) = weldingCoincidentVertices(manifold.meshGL())
+                return GeometryNode.shape(.mesh(MeshData(vertices: vertices, faces: faces)))
+            }
         }
     }
+}
+
+/// Merges vertices of `meshGL` that sit within `tolerance` of each other, dropping any triangle
+/// that degenerates (two or more shared corners) as a result. Pure Swift position-matching —
+/// deterministic regardless of how Manifold's own boolean union happened to resolve (or not
+/// resolve) the same coincidence.
+private func weldingCoincidentVertices(_ meshGL: MeshGL, tolerance: Double = 1e-4) -> (vertices: [Vector3D], faces: [[Int]]) {
+    let vertices = meshGL.vertices
+    let triangles = meshGL.triangles
+
+    var parent = Array(vertices.indices)
+    func find(_ x: Int) -> Int {
+        var x = x
+        while parent[x] != x {
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        }
+        return x
+    }
+    func union(_ a: Int, _ b: Int) {
+        let ra = find(a), rb = find(b)
+        if ra != rb { parent[ra] = rb }
+    }
+
+    // Spatial hash so near-duplicate lookup stays roughly linear instead of O(n²).
+    struct CellKey: Hashable { let x, y, z: Int64 }
+    let cellSize = tolerance * 2
+    func cell(_ v: Vector3D) -> CellKey {
+        CellKey(x: Int64((v.x / cellSize).rounded(.down)), y: Int64((v.y / cellSize).rounded(.down)), z: Int64((v.z / cellSize).rounded(.down)))
+    }
+    var buckets: [CellKey: [Int]] = [:]
+    for (i, v) in vertices.enumerated() {
+        buckets[cell(v), default: []].append(i)
+    }
+
+    for (i, v) in vertices.enumerated() {
+        let base = cell(v)
+        for dx in -1...1 { for dy in -1...1 { for dz in -1...1 {
+            let key = CellKey(x: base.x + Int64(dx), y: base.y + Int64(dy), z: base.z + Int64(dz))
+            guard let candidates = buckets[key] else { continue }
+            for j in candidates where j > i {
+                if (vertices[j] - v).magnitude < tolerance {
+                    union(i, j)
+                }
+            }
+        }}}
+    }
+
+    var canonicalIndex: [Int: Int] = [:]
+    var newVertices: [Vector3D] = []
+    func canonical(_ i: Int) -> Int {
+        let root = find(i)
+        if let existing = canonicalIndex[root] { return existing }
+        let newIndex = newVertices.count
+        newVertices.append(vertices[root])
+        canonicalIndex[root] = newIndex
+        return newIndex
+    }
+
+    var newFaces: [[Int]] = []
+    newFaces.reserveCapacity(triangles.count)
+    for t in triangles {
+        let a = canonical(Int(t.a)), b = canonical(Int(t.b)), c = canonical(Int(t.c))
+        guard a != b, b != c, a != c else { continue }
+        newFaces.append([a, b, c])
+    }
+
+    return (newVertices, newFaces)
 }
