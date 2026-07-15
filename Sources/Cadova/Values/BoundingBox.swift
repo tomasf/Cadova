@@ -174,6 +174,10 @@ extension BoundingBox {
     }
 }
 
+extension BoundingBox: Equatable where D.Vector: Equatable {}
+extension BoundingBox: Hashable where D.Vector: Hashable {}
+extension BoundingBox: Codable where D.Vector: Codable {}
+
 extension BoundingBox: CustomDebugStringConvertible {
     public var debugDescription: String {
         "[min: \(minimum), max: \(maximum)]"

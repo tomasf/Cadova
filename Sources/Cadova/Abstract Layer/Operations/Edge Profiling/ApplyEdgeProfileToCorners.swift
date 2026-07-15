@@ -55,7 +55,7 @@ public extension Geometry3D {
         along axis: Axis3D
     ) -> any Geometry3D {
         let adjustments = [90°, 0°, 180°]
-        
+
         return self
             .rotated(from: axis.direction(.negative), to: .up)
             .rotated(z: adjustments[axis.index])

@@ -1,11 +1,18 @@
 import Foundation
 import Manifold3D
 
-/// A profile used to modify the edge of a 3D shape, such as for chamfers or fillets.
+/// A profile used to modify the edge of a 3D shape, such as for chamfers or fillets, with
+/// independent horizontal and vertical dimensions anchored to a fixed frame.
 ///
 /// The profile is defined in 2D, where:
 /// - The X axis is horizontal; negative X points inward, positive X outward from the edge
 /// - The Y axis is vertical; positive Y points outward from the edge face
+///
+/// This fixed frame makes `EdgeProfile` suited to locations with a known orientation,
+/// such as extrusion caps, box edges, and print-orientation-aware profiles like
+/// `overhangFillet(radius:)`. For edges of unknown or varying orientation — such as those found
+/// on an arbitrary model with `readingEdges(matching:)` — use the mirror-symmetric ``EdgeShape``
+/// instead, which adapts to any dihedral angle and handles cut-vs-fill automatically.
 ///
 public struct EdgeProfile: Sendable {
     public let profile: any Geometry2D

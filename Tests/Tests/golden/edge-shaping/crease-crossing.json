@@ -1,0 +1,219 @@
+{
+  "parts" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "cacheKey" : {
+        "type" : "6Cadova12NodeCacheKeyVyAA07LabeledcD0VAA2D3VG",
+        "value" : {
+          "base" : {
+            "operationName" : "Cadova.ShapeEdges",
+            "parameters" : [
+              {
+                "type" : "6Cadova9EdgeQueryV",
+                "value" : {
+                  "convexityConstraint" : {
+                    "concave" : {
+
+                    }
+                  },
+                  "maskConstraints" : [
+
+                  ],
+                  "maximumTurnAngle" : {
+                    "degrees" : 45
+                  },
+                  "minimumSharpness" : {
+                    "degrees" : 30
+                  },
+                  "spatialConstraints" : [
+
+                  ]
+                }
+              },
+              {
+                "type" : "6Cadova9EdgeShapeV",
+                "value" : {
+                  "fillet" : {
+                    "radius" : 1
+                  }
+                }
+              },
+              {
+                "type" : "6Cadova12SegmentationO",
+                "value" : {
+                  "adaptive" : {
+                    "minAngle" : {
+                      "degrees" : 2
+                    },
+                    "minSize" : 0.15
+                  }
+                }
+              },
+              {
+                "type" : "Say6Cadova12GeometryNodeVyAA2D3VGG",
+                "value" : [
+
+                ]
+              }
+            ]
+          },
+          "node" : {
+            "children" : [
+              {
+                "body" : {
+                  "crossSection" : {
+                    "cacheKey" : {
+                      "type" : "6Cadova15LabeledCacheKeyV",
+                      "value" : {
+                        "operationName" : "polygon",
+                        "parameters" : [
+                          {
+                            "type" : "6Cadova13PolygonPointsO",
+                            "value" : {
+                              "literal" : {
+                                "_0" : [
+                                  {
+                                    "x" : 0,
+                                    "y" : 0
+                                  },
+                                  {
+                                    "x" : 40,
+                                    "y" : 0
+                                  },
+                                  {
+                                    "x" : 40,
+                                    "y" : 12.326153163099972
+                                  },
+                                  {
+                                    "x" : 20,
+                                    "y" : 3
+                                  },
+                                  {
+                                    "x" : 0,
+                                    "y" : 3
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "type" : "6Cadova8FillRuleO",
+                            "value" : {
+                              "nonZero" : {
+
+                              }
+                            }
+                          },
+                          {
+                            "type" : "6Cadova12SegmentationO",
+                            "value" : {
+                              "adaptive" : {
+                                "minAngle" : {
+                                  "degrees" : 2
+                                },
+                                "minSize" : 0.15
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "kind" : "materialized"
+                  },
+                  "kind" : "extrusion",
+                  "type" : {
+                    "linear" : {
+                      "divisions" : 0,
+                      "height" : 30,
+                      "scaleTop" : {
+                        "x" : 1,
+                        "y" : 1
+                      },
+                      "twist" : {
+                        "degrees" : 0
+                      }
+                    }
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1,
+                    30
+                  ],
+                  [
+                    0,
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              {
+                "body" : {
+                  "kind" : "shape3D",
+                  "primitive" : {
+                    "box" : {
+                      "size" : {
+                        "x" : 24,
+                        "y" : 4,
+                        "z" : 14
+                      }
+                    }
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    0.7071067811865475,
+                    -0.7071067811865475,
+                    0,
+                    12.928932188134524
+                  ],
+                  [
+                    0.7071067811865475,
+                    0.7071067811865475,
+                    0,
+                    5.100505063388336
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            ],
+            "kind" : "boolean",
+            "type" : "union"
+          }
+        }
+      },
+      "kind" : "materialized"
+    }
+  ]
+}
