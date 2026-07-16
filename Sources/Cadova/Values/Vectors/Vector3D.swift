@@ -130,7 +130,7 @@ public extension Vector3D {
         }
     }
 
-    /// Calculates the angle between this vector and another vector, in radians.
+    /// Calculates the angle between this vector and another vector.
     ///
     /// - Parameter other: The other vector to calculate the angle to.
     ///
