@@ -32,7 +32,7 @@ fileprivate struct LoftVisualization: Shape3D {
         @Environment(\.visualizationOptions.scale) var scale = 1.0
         let thickness = 0.001 * scale
 
-        let frames = path.curve.frames(environment: environment, target: target, targetReference: reference, perpendicularBounds: nil)
+        let frames = path.curve.frames(environment: environment, target: target, targetReference: reference, perpendicularBounds: nil, miteringCorners: true)
 
         Union {
             for (index, section) in sections.enumerated() {

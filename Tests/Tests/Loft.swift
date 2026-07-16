@@ -275,6 +275,31 @@ struct LoftTests {
         #expect(m.boundingBox!.size.z > 1)
     }
 
+    @Test func `sharp corner is mitered instead of squished`() async throws {
+        // A true miter joint preserves volume: for a constant circular cross-section swept along two
+        // straight segments meeting at a sharp corner, volume should equal
+        // crossSectionArea * (L1 + L2), where L1/L2 are centerline lengths to the corner point.
+        // (Reflecting across the miter plane maps the cut-off piece on one arm exactly onto the gap on
+        // the other, so this holds regardless of cross-section shape.) Regression test for a bug where
+        // sharp corners had no miter frame at all, connecting perpendicular-to-incoming and
+        // perpendicular-to-outgoing cross-sections directly and squishing the corner (was ~75% of the
+        // correct volume for this 90° bend).
+        let diameter = 16.0
+        let area = Double.pi * (diameter / 2) * (diameter / 2)
+        let start = Vector3D(0, 0, 0), corner = Vector3D(0, 0, 40), end = Vector3D(40, 0, 40)
+        let expectedVolume = area * ((corner - start).magnitude + (end - corner).magnitude)
+
+        let path = BezierPath3D(linesBetween: [start, corner, end])
+        let loft = Loft(along: path) {
+            Section(at: 0) { Circle(diameter: diameter) }
+            Section(at: (corner - start).magnitude + (end - corner).magnitude) { Circle(diameter: diameter) }
+        }
+
+        try await loft.writeVerificationModel(name: "loftMiteredCorner")
+        let m = try await loft.measurements
+        #expect(m.volume.equals(expectedVolume, within: expectedVolume * 0.01))
+    }
+
     @Test func `Section supports a distance range for a straight run of unchanging shape`() async throws {
         let loft = Loft {
             Section(at: 0) { Circle(diameter: 10) }

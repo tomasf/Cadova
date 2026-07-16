@@ -33,7 +33,8 @@ extension Loft {
                 environment: environment,
                 target: target,
                 targetReference: reference,
-                perpendicularBounds: perpendicularBounds
+                perpendicularBounds: perpendicularBounds,
+                miteringCorners: true
             )
 
             let geometry = await Loft.resampledLoft(resamplingSections: resamplingSections, frames: frames, in: environment, context: context)
