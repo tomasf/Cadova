@@ -15,8 +15,8 @@ struct SVGDataProvider: OutputDataProvider {
 
         let document = Document()
         let svg = document.makeDocumentElement(name: "svg", defaultNamespace: "http://www.w3.org/2000/svg")
-        svg[attribute: "width"] = String(format: "%g", bounds.size.x)
-        svg[attribute: "height"] = String(format: "%g", bounds.size.y)
+        svg[attribute: "width"] = String(format: "%gmm", bounds.size.x)
+        svg[attribute: "height"] = String(format: "%gmm", bounds.size.y)
         svg[attribute: "viewBox"] = String(format: "%g %g %g %g", 0.0, 0.0, bounds.size.x, bounds.size.y)
 
         let metadata = options[Metadata.self]

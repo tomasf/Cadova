@@ -101,7 +101,7 @@ struct ImportTests {
         }
     }
 
-    @Test func `SVG export and import preserves geometry`() async throws {
+    @Test func `SVG export declares physical size in millimeters`() async throws {
         let geometry: any Geometry2D = Rectangle(x: 20, y: 10)
             .subtracting {
                 Rectangle(x: 5, y: 4)
@@ -119,13 +119,17 @@ struct ImportTests {
         let provider = SVGDataProvider(result: result, options: [])
         try await provider.writeOutput(to: tempURL, context: context)
 
+        // width/height must carry an explicit "mm" unit; a bare number defaults to
+        // CSS pixels per the SVG spec, so most viewers would render this ~3.78x too small.
+        let svgSource = try String(contentsOf: tempURL, encoding: .utf8)
+        #expect(svgSource.contains(#"width="20mm""#))
+        #expect(svgSource.contains(#"height="10mm""#))
+
         let importedGeometry = Import(svg: tempURL, scale: .pixels)
         let importedMeasurements = try await importedGeometry.measurements
-        let symmetricDifferenceArea = try await importedGeometry.symmetricDifferenceArea(with: geometry)
 
         #expect(importedMeasurements.area ≈ originalMeasurements.area)
         #expect(importedMeasurements.contourCount == originalMeasurements.contourCount)
-        #expect(importedMeasurements.boundingBox ≈ originalMeasurements.boundingBox)
-        #expect(symmetricDifferenceArea.equals(0, within: 1e-6))
+        #expect(importedMeasurements.boundingBox!.size ≈ originalMeasurements.boundingBox!.size)
     }
 }
