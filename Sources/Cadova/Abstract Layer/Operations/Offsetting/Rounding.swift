@@ -42,7 +42,7 @@ public extension Geometry2D {
     /// Applies chamfering to the geometry's corners with separate control over inside and outside sizes.
     ///
     /// This method modifies the geometry to chamfer (cut at 45°) its corners, with the extent of chamfering determined by the
-    /// `insideSize` and `outsideSize` parameters. Positive values specify the size of the chamfer. If
+    /// `insideDepth` and `outsideDepth` parameters. Positive values specify the size of the chamfer. If
     /// only one of the parameters is specified, chamfering will be applied only on that side.
     ///
     /// - Parameters:
