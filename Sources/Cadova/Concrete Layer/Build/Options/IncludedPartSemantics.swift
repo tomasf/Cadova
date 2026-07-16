@@ -18,7 +18,7 @@ public extension ModelOptions {
         .partSemantics(.solid)
     }
 
-    /// Compression level options for 3MF model export.
+    /// The semantic roles of parts to include when exporting the model.
     struct IncludedPartSemantics: Sendable, ModelOptionItem {
         let semantics: Set<PartSemantic>
 
