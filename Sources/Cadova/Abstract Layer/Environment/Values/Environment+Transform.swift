@@ -34,7 +34,7 @@ public extension EnvironmentValues {
     /// A single scalar that summarizes the overall scale of the current transform.
     ///
     /// This value is suitable for adapting tolerances and thresholds to the local coordinate system.
-    /// It is computed from the per‑axis scales (ignoring translation) by taking the maximum component.
+    /// It is computed from the per‑axis scales (ignoring translation) by taking the minimum component.
     /// For the identity transform, this is `1.0`.
     ///
     var scale: Double {
