@@ -1,0 +1,75 @@
+{
+  "parts" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "cacheKey" : {
+        "type" : "6Cadova12NodeCacheKeyVyAA07LabeledcD0VAA2D3VG",
+        "value" : {
+          "base" : {
+            "operationName" : "Cadova.ShapeEdges",
+            "parameters" : [
+              {
+                "type" : "6Cadova9EdgeQueryV",
+                "value" : {
+                  "maskConstraints" : [
+
+                  ],
+                  "maximumTurnAngle" : {
+                    "degrees" : 45
+                  },
+                  "minimumSharpness" : {
+                    "degrees" : 30
+                  },
+                  "spatialConstraints" : [
+
+                  ]
+                }
+              },
+              {
+                "type" : "6Cadova9EdgeShapeV",
+                "value" : {
+                  "fillet" : {
+                    "radius" : 2
+                  }
+                }
+              },
+              {
+                "type" : "6Cadova12SegmentationO",
+                "value" : {
+                  "adaptive" : {
+                    "minAngle" : {
+                      "degrees" : 2
+                    },
+                    "minSize" : 0.15
+                  }
+                }
+              },
+              {
+                "type" : "Say6Cadova12GeometryNodeVyAA2D3VGG",
+                "value" : [
+
+                ]
+              }
+            ]
+          },
+          "node" : {
+            "kind" : "shape3D",
+            "primitive" : {
+              "box" : {
+                "size" : {
+                  "x" : 10,
+                  "y" : 10,
+                  "z" : 10
+                }
+              }
+            }
+          }
+        }
+      },
+      "kind" : "materialized"
+    }
+  ]
+}

@@ -40,7 +40,7 @@ extension SimplePolygon: Transformable {
 
 extension SimplePolygon {
     var perimeter: Double {
-        vertices.wrappedPairs().map { ($1 - $0).magnitude }.reduce(0, +)
+        vertices.cyclicPairs().map { ($1 - $0).magnitude }.reduce(0, +)
     }
 
     var centroid: Vector2D {
@@ -204,7 +204,7 @@ extension SimplePolygon {
 
     var area: Double {
         abs(
-            vertices.wrappedPairs()
+            vertices.cyclicPairs()
                 .map { $0.x * $1.y - $0.y * $1.x }
                 .reduce(0, +)
         ) / 2.0

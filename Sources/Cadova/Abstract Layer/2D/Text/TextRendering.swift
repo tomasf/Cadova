@@ -6,6 +6,48 @@ internal enum TextError: Error {
     case fontLoadingFailed
 }
 
+/// Generic fallback families tried, in order, when no requested family is available.
+/// Covers the common platforms: Helvetica (Apple), Arial (Windows), and the
+/// `sans-serif` generic (Linux/fontconfig).
+private let fallbackFontFamilies = ["Helvetica", "Arial", "sans-serif"]
+
+/// Resolves a font from a `font-family` value that may be a CSS-style list of
+/// families (e.g. `"Lucida Grande", Helvetica, sans-serif`), trying each in order.
+///
+/// If none of the requested families are available — including a single family name
+/// — resolution falls back to a generic font (see ``fallbackFontFamilies``) so text
+/// still renders instead of failing the whole render. Only when no fallback resolves
+/// either does it throw.
+private func resolveFont(family: String, style: String?, variations: [Apus.FontVariation]) throws -> Font {
+    let candidates = family.fontFamilyCandidates
+    for candidate in candidates {
+        if let font = try? Font(family: candidate, style: style, variations: variations) {
+            return font
+        }
+    }
+    for fallback in fallbackFontFamilies where !candidates.contains(fallback) {
+        if let font = try? Font(family: fallback, style: style, variations: variations) {
+            return font
+        }
+    }
+    throw Font.FontError.fontNotFound(family: family, style: style)
+}
+
+private extension String {
+    /// Splits a CSS `font-family` value into individual family names, trimming
+    /// whitespace and stripping matching surrounding quotes. A plain family name
+    /// (no commas) yields a single-element list.
+    var fontFamilyCandidates: [String] {
+        split(separator: ",").compactMap { part -> String? in
+            var name = part.trimmingCharacters(in: .whitespacesAndNewlines)
+            if name.count >= 2, let quote = name.first, quote == "\"" || quote == "'", name.last == quote {
+                name = String(name.dropFirst().dropLast())
+            }
+            return name.isEmpty ? nil : name
+        }
+    }
+}
+
 extension TextAttributes {
     func render(text: String, with segmentation: Segmentation) throws -> SimplePolygonList {
         guard let family = fontFace?.family, let size = fontSize else {
@@ -24,7 +66,7 @@ extension TextAttributes {
             font = try Font(data: fontData, family: family, style: fontFace?.style, variations: apusVariations)
         } else {
             do {
-                font = try Font(family: family, style: fontFace?.style, variations: apusVariations)
+                font = try resolveFont(family: family, style: fontFace?.style, variations: apusVariations)
             } catch Font.FontError.fontNotFound {
                 throw TextError.fontNotFound(family: family, style: fontFace?.style)
             }

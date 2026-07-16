@@ -1,5 +1,14 @@
 # Idiomatic usage of the Cadova library
 
+## Cadova is cross-platform
+
+Cadova builds and runs on macOS, Linux, and Windows. Any code added to the library must work on all three. In practice this means:
+
+- **No Apple-only frameworks** in Cadova's own sources — no `import os`, `OSAllocatedUnfairLock`, `OSLog`, `CoreFoundation`, `Combine`, `SwiftUI`, etc. Stick to Foundation and the Swift standard library.
+- **Mind `@available` gates on stdlib types.** Some Swift 6 stdlib types (notably `Synchronization.Mutex`) ship in the standard library that comes with the OS and are gated to macOS 15 / iOS 18+. Cadova's `Package.swift` declares `.macOS(.v14)`, so those types are off-limits without raising the platform floor.
+- **For concurrency-safe shared state, prefer actors.** Cadova already uses this pattern (e.g. `GeometryCache` is an `actor`). Actors are cross-platform, work on the current platform floor, and avoid both `@unchecked Sendable` and OS-specific locks.
+- **Wrap genuinely OS-specific code in `#if os(...)` blocks** when there's no portable alternative. There are a few existing examples in `Sources/Cadova/Platform.swift`.
+
 ## Geometry builders automatically union their children
 
 The `body` property of `Shape2D`/`Shape3D` and the trailing-closure builders of geometry modifier methods (`.subtracting {}`, `.adding {}`, etc.) use `@GeometryBuilder` and automatically union everything they contain. There is no need to wrap children in an explicit `Union {}`.

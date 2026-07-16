@@ -20,7 +20,7 @@ internal extension Mesh<SweepVertex>  {
             let thisStepIndex = step == closedLastPolygon ? 0 : step
             let previousStepIndex = step - 1
             return polygons.polygons.enumerated().flatMap { polygonIndex, polygon in
-                polygon.vertices.indices.wrappedPairs().flatMap { pointIndex1, pointIndex2 in [
+                polygon.vertices.indices.cyclicPairs().flatMap { pointIndex1, pointIndex2 in [
                     [
                         SweepVertex(stepIndex: previousStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),
                         SweepVertex(stepIndex: thisStepIndex, polygonIndex: polygonIndex, pointIndex: pointIndex2),

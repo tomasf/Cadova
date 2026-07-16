@@ -20,15 +20,20 @@ struct TriangleOIDMapping {
     }
 
     func originalID(for triangleIndex: Int) -> Manifold.OriginalID? {
-        for (range, originalID) in sortedEntries {
-            if range.lowerBound > triangleIndex {
-                return nil
-            }
-            if range.upperBound > triangleIndex {
-                return originalID
+        // Binary search for the last entry whose range starts at or before the index
+        var low = 0
+        var high = sortedEntries.count
+        while low < high {
+            let mid = (low + high) / 2
+            if sortedEntries[mid].range.lowerBound <= triangleIndex {
+                low = mid + 1
+            } else {
+                high = mid
             }
         }
-        return nil
+        guard low > 0 else { return nil }
+        let entry = sortedEntries[low - 1]
+        return entry.range.contains(triangleIndex) ? entry.originalID : nil
     }
 }
 

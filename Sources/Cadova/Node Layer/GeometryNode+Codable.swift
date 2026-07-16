@@ -113,7 +113,7 @@ extension GeometryNode: Codable {
             var children = try container.decode([D.Node].self, forKey: .children)
 
             if type == .union {
-                children.sort(using: KeyPathComparator(\.hashValue))
+                children.sort { $0.hash < $1.hash }
             }
 
             self.init(.boolean(children, type: type))
@@ -160,7 +160,7 @@ extension GeometryNode: Codable {
             self.init(.shape3D(try container.decode(PrimitiveShape3D.self, forKey: .primitive)))
         case .applyMaterial:
             let node = try container.decode(D3.Node.self, forKey: .body)
-            let material = try container.decode(Material.self, forKey: .material)
+            let material = try container.decode(Material?.self, forKey: .material)
             self.init(.applyMaterial(node, material))
         case .extrusion:
             let node = try container.decode(D2.Node.self, forKey: .crossSection)

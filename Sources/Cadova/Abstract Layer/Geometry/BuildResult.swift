@@ -10,6 +10,8 @@ public struct BuildResult<D: Dimensionality>: Sendable {
         self.elements = elements
     }
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     internal init(combining results: [Self], operationType: BooleanOperationType) {
         self.node = .boolean(results.map { $0.node }, type: operationType)
         self.elements = .init(combining: results.map { $0.elements })
@@ -63,6 +65,8 @@ internal extension BuildResult {
         .init(node: node, elements: .init(combining: [newElements, elements]))
     }
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     func applyingTransform(_ transform: D.Transform) -> Self {
         let newNode = GeometryNode<D>.transform(node, transform: transform)
         let newElements = elements.setting(elements[PartCatalog.self].applyingTransform(transform.transform3D))
@@ -71,6 +75,8 @@ internal extension BuildResult {
 }
 
 internal extension BuildResult {
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     init(
         booleanOperation: BooleanOperationType,
         geometries: [D.Geometry],
@@ -79,6 +85,13 @@ internal extension BuildResult {
     ) async throws {
         let childResults = try await geometries.asyncMap {
             try await context.buildResult(for: $0, in: environment)
+        }
+
+        guard childResults.contains(where: {
+            $0.elements[ifPresent: ReferenceState.self]?.hasUsedReferences == true
+        }) else {
+            self = .init(combining: childResults, operationType: booleanOperation)
+            return
         }
 
         let newChildResults = try await childResults.enumerated().asyncMap { index, childResult in

@@ -7,6 +7,10 @@ public extension Geometry3D {
     /// This method slices the geometry in two using a given plane and passes the resulting parts
     /// to a closure for further transformation or arrangement.
     ///
+    /// Avoid splitting exactly along an existing face of the model. Some mesh operations preserve
+    /// such coincident faces as zero-thickness membranes in one of the halves. If a split plane
+    /// lands on a face, offset the plane slightly toward one side.
+    ///
     /// - Parameters:
     ///   - plane: The `Plane` used to split the geometry.
     ///   - reader: A closure that receives the two resulting geometry parts (on opposite sides of the plane)

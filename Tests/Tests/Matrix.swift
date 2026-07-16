@@ -5,6 +5,7 @@ import Testing
 import simd
 
 struct MatrixTests {
+    @available(macOS 26.0, *)
     @Test func `3x3 basic matrix matches simd implementation`() {
         let simdMatrix1 = simd_double3x3(rows: [
             .init(45.3, 4565, -94.245),
@@ -22,27 +23,28 @@ struct MatrixTests {
         let basicMatrix2 = BasicMatrix3x3(rows: simdMatrix2.values)
         let basicVector1 = BasicMatrix3x3.Column(simdVector1[0], simdVector1[1], simdVector1[2])
 
-        #expect(simdMatrix1.values ≈ basicMatrix1.values)
-        #expect(simdMatrix2.values ≈ basicMatrix2.values)
+        #expect(simdMatrix1.values ≈ basicMatrix1.rowArrays)
+        #expect(simdMatrix2.values ≈ basicMatrix2.rowArrays)
 
         let simdMultiplied = simdMatrix1 * simdMatrix2
         let basicMultiplied = basicMatrix1 * basicMatrix2
-        #expect(simdMultiplied.values ≈ basicMultiplied.values)
+        #expect(simdMultiplied.values ≈ basicMultiplied.rowArrays)
 
         let simdApplied = simdVector1 * simdMultiplied
         let basicApplied = basicVector1 * basicMultiplied
-        #expect([simdApplied.x, simdApplied.y, simdApplied.z] ≈ basicApplied)
+        #expect([simdApplied.x, simdApplied.y, simdApplied.z] ≈ basicApplied.scalars)
 
         let simdApplied2 = simdMultiplied * simdVector1
         let basicApplied2 = basicMultiplied * basicVector1
-        #expect([simdApplied2.x, simdApplied2.y, simdApplied2.z] ≈ basicApplied2)
+        #expect([simdApplied2.x, simdApplied2.y, simdApplied2.z] ≈ basicApplied2.scalars)
 
         let simdInverse = simdMatrix1.inverse
         let basicInverse = basicMatrix1.inverse
-        #expect(simdInverse.values ≈ basicInverse.values)
-        #expect(basicMatrix1.values ≈ basicInverse.inverse.values)
+        #expect(simdInverse.values ≈ basicInverse.rowArrays)
+        #expect(basicMatrix1.rowArrays ≈ basicInverse.inverse.rowArrays)
     }
 
+    @available(macOS 26.0, *)
     @Test func `4x4 basic matrix matches simd implementation`() {
         let simdMatrix1 = simd_double4x4(rows: [
             .init(45.3, 67.2, 4565, -94.245),
@@ -64,20 +66,27 @@ struct MatrixTests {
 
         let simdMultiplied = simdMatrix1 * simdMatrix2
         let basicMultiplied = basicMatrix1 * basicMatrix2
-        #expect(simdMultiplied.values ≈ basicMultiplied.values)
+        #expect(simdMultiplied.values ≈ basicMultiplied.rowArrays)
 
         let simdApplied = simdVector1 * simdMultiplied
         let basicApplied = basicVector1 * basicMultiplied
-        #expect([simdApplied.x, simdApplied.y, simdApplied.z, simdApplied.w] ≈ basicApplied)
+        #expect([simdApplied.x, simdApplied.y, simdApplied.z, simdApplied.w] ≈ basicApplied.scalars)
 
         let simdApplied2 = simdMultiplied * simdVector1
         let basicApplied2 = basicMultiplied * basicVector1
-        #expect([simdApplied2.x, simdApplied2.y, simdApplied2.z, simdApplied2.w] ≈ basicApplied2)
+        #expect([simdApplied2.x, simdApplied2.y, simdApplied2.z, simdApplied2.w] ≈ basicApplied2.scalars)
 
         let simdInverse = simdMatrix1.inverse
         let basicInverse = basicMatrix1.inverse
-        #expect(simdInverse.values ≈ basicInverse.values)
-        #expect(basicMatrix1.values ≈ basicInverse.inverse.values)
+        #expect(simdInverse.values ≈ basicInverse.rowArrays)
+        #expect(basicMatrix1.rowArrays ≈ basicInverse.inverse.rowArrays)
+    }
+}
+
+@available(macOS 26.0, *)
+extension InlineArray where Element == Double {
+    var scalars: [Double] {
+        (0..<Self.count).map { self[$0] }
     }
 }
 

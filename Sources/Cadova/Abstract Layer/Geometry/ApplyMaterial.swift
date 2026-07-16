@@ -45,6 +45,20 @@ public extension Geometry3D {
     func colored(hex: String) -> any Geometry3D {
         colored(Color(hex: hex))
     }
+
+    /// Removes all materials previously applied anywhere within this geometry.
+    ///
+    /// Any colors or physically-based materials applied to this geometry or its descendants
+    /// (via ``colored(_:)`` or ``withMaterial(_:)``) are discarded, causing the affected regions
+    /// to fall back to their part's default material.
+    ///
+    /// - Returns: A new geometry instance with all materials in its subtree removed.
+    ///
+    func withoutMaterials() -> any Geometry3D {
+        GeometryNodeTransformer(body: self) {
+            .applyMaterial($0, material: nil)
+        }
+    }
 }
 
 public extension Geometry3D {

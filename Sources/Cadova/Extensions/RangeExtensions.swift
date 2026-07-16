@@ -56,7 +56,7 @@ extension RangeExpression {
         case let self as Range<Bound>: self.lowerBound...self.upperBound
         case let self as PartialRangeFrom<Bound>: self.lowerBound...range.upperBound
         case let self as PartialRangeThrough<Bound>: range.lowerBound...self.upperBound
-        case let self as PartialRangeFrom<Bound>: self.lowerBound...range.upperBound
+        case let self as PartialRangeUpTo<Bound>: range.lowerBound...self.upperBound
         default: range
         }
     }

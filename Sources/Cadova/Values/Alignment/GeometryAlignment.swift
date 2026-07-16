@@ -64,9 +64,11 @@ public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
         values = .init { _ in value }
     }
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     internal init(merging alignments: [Self]) {
         values = .init { index in
-            alignments.compactMap { $0[index] }.last
+            alignments.reversed().lazy.compactMap { $0[index] }.first
         }
     }
 

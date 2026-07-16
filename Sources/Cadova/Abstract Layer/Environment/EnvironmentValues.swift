@@ -6,6 +6,22 @@ import Foundation
 public struct EnvironmentValues: Sendable {
     private var values: [Key: any Sendable]
 
+    // Identity token used to skip redundant task-local rebinding; regenerated on every mutation
+    internal private(set) var id = ID()
+
+    internal struct ID: Equatable, Sendable {
+        private static let lock = NSLock()
+        private static nonisolated(unsafe) var nextValue: UInt64 = 0
+        private let value: UInt64
+
+        init() {
+            Self.lock.lock()
+            Self.nextValue += 1
+            value = Self.nextValue
+            Self.lock.unlock()
+        }
+    }
+
     public init() {
         self.init(values: [:])
     }
@@ -45,7 +61,10 @@ public struct EnvironmentValues: Sendable {
     /// - Returns: The value associated with `key` if it exists; otherwise, `nil`.
     public subscript(key: Key) -> (any Sendable)? {
         get { values[key] }
-        set { values[key] = newValue }
+        set {
+            values[key] = newValue
+            id = ID()
+        }
     }
 }
 
@@ -80,7 +99,10 @@ internal extension EnvironmentValues {
     }
 
     func whileCurrent<T>(_ actions: () async throws -> T) async rethrows -> T {
-        try await Self.$topLevelEnvironment.withValue(self) {
+        if Self.topLevelEnvironment?.id == id {
+            return try await actions()
+        }
+        return try await Self.$topLevelEnvironment.withValue(self) {
             try await actions()
         }
     }

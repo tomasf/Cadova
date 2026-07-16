@@ -52,10 +52,10 @@ public enum LayerTransition: Hashable, Sendable, Codable {
 /// - Example:
 ///   ```swift
 ///   Loft {
-///       layer(at: 0) {
+///       layer(z: 0) {
 ///           Circle(radius: 10)
 ///       }
-///       layer(at: 20) {
+///       layer(z: 20) {
 ///           Rectangle(20)
 ///               .aligned(at: .center)
 ///       }
@@ -66,13 +66,13 @@ public enum LayerTransition: Hashable, Sendable, Codable {
 /// - Example with three layers. Each layer has one hole each, fulfilling the requirement for compatible topology.
 ///   ```swift
 ///   Loft {
-///       layer(at: 0) {
+///       layer(z: 0) {
 ///           Circle(diameter: 20)
 ///               .subtracting {
 ///                   Circle(diameter: 12)
 ///               }
 ///       }
-///       layer(at: 30) {
+///       layer(z: 30) {
 ///           Rectangle(x: 25, y: 6)
 ///               .aligned(at: .center)
 ///               .repeated(in: 0°..<180°, count: 2)
@@ -80,7 +80,7 @@ public enum LayerTransition: Hashable, Sendable, Codable {
 ///                   RegularPolygon(sideCount: 8, circumradius: 2)
 ///               }
 ///       }
-///       layer(at: 35) {
+///       layer(z: 35) {
 ///           Circle(diameter: 12)
 ///               .subtracting {
 ///                   Circle(diameter: 10)

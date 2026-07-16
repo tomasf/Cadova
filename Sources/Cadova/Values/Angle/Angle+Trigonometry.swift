@@ -100,7 +100,7 @@ public func atan(_ value: Double) -> Angle {
 /// - Parameters:
 ///   - y: The Y-coordinate.
 ///   - x: The X-coordinate.
-/// - Returns: The angle, in radians, between the positive X-axis and the point `(x, y)`.
+/// - Returns: The angle between the positive X-axis and the point `(x, y)`.
 ///
 public func atan2(_ y: Double, _ x: Double) -> Angle {
     Angle(radians: atan2(y, x))

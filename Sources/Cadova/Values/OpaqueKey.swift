@@ -2,24 +2,23 @@ import Foundation
 
 internal struct OpaqueKey: Hashable, Sendable, Codable, CustomDebugStringConvertible {
     private let content: any Hashable & Sendable & Codable
+    private let contentHash: Int
 
     internal init<T: Hashable & Sendable & Codable>(_ item: T) {
         content = item
+        contentHash = item.hashValue
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(content)
+        hasher.combine(contentHash)
     }
 
     static func == (left: Self, right: Self) -> Bool {
-        func compare<T: Equatable, U: Equatable>(lhs: T, rhs: U) -> Bool {
-            if let rhsAsT = rhs as? T, lhs == rhsAsT {
-                return true
-            } else if let lhsAsU = lhs as? U, lhsAsU == rhs {
-                return true
-            } else {
-                return false
-            }
+        guard left.contentHash == right.contentHash,
+              type(of: left.content) == type(of: right.content) else { return false }
+
+        func compare<T: Equatable>(lhs: T, rhs: any Equatable) -> Bool {
+            (rhs as? T).map { lhs == $0 } ?? false
         }
         return compare(lhs: left.content, rhs: right.content)
     }
@@ -59,5 +58,6 @@ extension OpaqueKey {
             fatalError("Failed to cast wrapped value")
         }
         self.content = (wrapper as Any) as! any CacheKey
+        self.contentHash = wrapper.hashValue
     }
 }

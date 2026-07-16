@@ -107,9 +107,18 @@ public struct ModelFileGenerator {
     ) async throws -> ModelFile {
         // This is here because in Swift, a varadic parameter can't be passed along as a varadic
         // parameter (i.e., the static method can't call the instance method without this).
-        let directives = content()
+        var directives = content()
         let options = ModelOptions(options).adding(modelName: name, directives: directives)
         let environment = EnvironmentValues.defaultEnvironment.adding(directives: directives, modelOptions: options)
+
+        // Re-run the content under the final environment so that environment reads in the
+        // builder see its own environment directives. Only the geometry from the second run
+        // is used; environment directives and options come from the first. See Model.
+        if directives.containsEnvironmentDirectives {
+            directives = environment.whileCurrent {
+                content()
+            }
+        }
 
         let (dataProvider, warnings) = try await directives.build(with: options, in: environment, context: evaluationContext)
         return ModelFile(dataProvider: dataProvider, evaluationContext: evaluationContext, modelName: name,

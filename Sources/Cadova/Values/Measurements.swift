@@ -9,8 +9,14 @@ import Manifold3D
 public struct Measurements<D: Dimensionality>: Sendable {
     internal let concrete: [D.Concrete]
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     init(buildResult: D.BuildResult, scope: MeasurementScope, context: EvaluationContext) async throws {
         self.concrete = try await scope.includedConcretes(for: buildResult, in: context)
+    }
+
+    internal init() {
+        self.concrete = []
     }
 }
 

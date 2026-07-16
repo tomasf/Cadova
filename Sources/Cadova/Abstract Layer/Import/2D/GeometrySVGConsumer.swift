@@ -13,11 +13,27 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
     private var stateStack: [RendererState] = []
     private var currentState = RendererState()
 
+    /// When set, only the element with this SVG `id` and its descendants are extracted.
+    private let targetElementID: String?
+    private var depth = 0
+    /// The depth at which the target element was entered, or `nil` while outside it.
+    private var targetDepth: Int?
+
+    /// Whether the target element was encountered during rendering. Always `true`
+    /// when no target is set.
+    private(set) var didRenderTarget: Bool
+
+    /// Whether drawing operations should currently be extracted. Everything is
+    /// extracted when there's no target; otherwise only the target's subtree is.
+    private var isInsideTarget: Bool { targetElementID == nil || targetDepth != nil }
+
     /// Pixels per millimeter according to the SVG/CSS standard (96 pixels per inch).
     private static let pixelsPerMillimeter = 96.0 / 25.4
 
-    init(segmentation: Segmentation, scale: SVGScale) {
+    init(segmentation: Segmentation, scale: SVGScale, targetElementID: String? = nil) {
         self.segmentation = segmentation
+        self.targetElementID = targetElementID
+        self.didRenderTarget = targetElementID == nil
         self.scale = switch scale {
         case .physical: 1.0 / Self.pixelsPerMillimeter
         case .pixels: 1.0
@@ -101,6 +117,7 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
     }
 
     func fill(_ path: ExtractedPath, color: ResolvedColor, rule: Pelagos.FillRule) {
+        guard isInsideTarget else { return }
         var finishedPath = path
         finishedPath.finishCurrentSubpath(closed: false)
 
@@ -121,6 +138,7 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
     }
 
     func stroke(_ path: ExtractedPath, color: ResolvedColor, style: StrokeStyle) {
+        guard isInsideTarget else { return }
         var finishedPath = path
         finishedPath.finishCurrentSubpath(closed: false)
 
@@ -164,6 +182,7 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
     }
 
     func drawText(_ text: ResolvedTextContent) {
+        guard isInsideTarget else { return }
         guard let firstRun = text.runs.first, !firstRun.text.isEmpty else { return }
 
         // Combine all runs into a single string
@@ -188,6 +207,21 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
     }
 
     func drawImage(_ image: ResolvedImageContent) {}
+
+    func beginElement(id: String?, kind: SVGElementKind) {
+        depth += 1
+        if targetElementID != nil, targetDepth == nil, id == targetElementID {
+            targetDepth = depth
+            didRenderTarget = true
+        }
+    }
+
+    func endElement(id: String?, kind: SVGElementKind) {
+        if let targetDepth, depth == targetDepth {
+            self.targetDepth = nil
+        }
+        depth -= 1
+    }
 
     func save() {
         stateStack.append(currentState)

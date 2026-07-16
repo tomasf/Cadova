@@ -27,8 +27,10 @@ internal struct DimensionalValues<Element: Sendable, D: Dimensionality>: Sendabl
 
     subscript(_ axis: D.Axis) -> Element {
         switch value {
-        case let .xy(x, y): [x, y][axis.index]
-        case let .xyz(x, y, z): [x, y, z][axis.index]
+        case let .xy(x, y):
+            axis.index == 0 ? x : y
+        case let .xyz(x, y, z):
+            axis.index == 0 ? x : axis.index == 1 ? y : z
         }
     }
 

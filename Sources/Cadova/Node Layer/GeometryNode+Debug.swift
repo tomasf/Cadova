@@ -59,7 +59,7 @@ extension GeometryNode: CustomDebugStringConvertible {
                 String(format: "extrude(rotated, angle: %@, segments: %d)", angle.debugDescription, segments)
             }
         case let .applyMaterial(body, material):
-            "applyMaterial (\(material)) {\n\(body.debugDescription.indented)\n}"
+            "applyMaterial (\(material.map { "\($0)" } ?? "cleared")) {\n\(body.debugDescription.indented)\n}"
         case let .trim(body, plane):
             "trimByPlane (\(plane)) {\n\(body.debugDescription.indented)\n}"
         case let .smoothOut(body, minSharpAngle, minSmoothness):

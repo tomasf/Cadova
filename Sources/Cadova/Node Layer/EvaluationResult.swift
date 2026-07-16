@@ -69,5 +69,9 @@ public struct EvaluationResult<D: Dimensionality>: Sendable {
         try! .init(concrete, material: material)
     }
 
+    func clearingMaterials() -> Self where D == D3 {
+        try! .init(parts: parts, materialMapping: [:])
+    }
+
     internal static var empty: Self { try! .init(concrete: .empty, materialMapping: [:]) }
 }

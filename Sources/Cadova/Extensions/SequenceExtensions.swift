@@ -5,7 +5,7 @@ extension Sequence {
         zip(self, dropFirst())
     }
 
-    func wrappedPairs() -> [(Element, Element)] {
+    func cyclicPairs() -> [(Element, Element)] {
         .init(zip(self, dropFirst() + Array(prefix(1))))
     }
 
@@ -38,10 +38,22 @@ extension Collection where Element: Sendable {
 }
 
 extension Sequence where Element: Sendable {
+    @_specialize(exported: false, where Self == [GeometryNode<D2>], T == EvaluationResult<D2>)
+    @_specialize(exported: false, where Self == [GeometryNode<D3>], T == EvaluationResult<D3>)
+    @_specialize(exported: false, where Self == [any Geometry<D2>], T == BuildResult<D2>)
+    @_specialize(exported: false, where Self == [any Geometry<D3>], T == BuildResult<D3>)
+    @_specialize(exported: false, where Self == [BuildResult<D2>], T == Measurements<D2>)
+    @_specialize(exported: false, where Self == [BuildResult<D3>], T == Measurements<D3>)
     func asyncMap<T: Sendable>(_ transform: @Sendable @escaping (Element) async throws -> T) async rethrows -> [T] {
-        try await withThrowingTaskGroup(of: (Int, T).self) { group in
+        // Fast paths that avoid task group setup for trivial inputs
+        let elements = Array(self)
+        guard elements.count > 1 else {
+            return elements.isEmpty ? [] : [try await transform(elements[0])]
+        }
+
+        return try await withThrowingTaskGroup(of: (Int, T).self) { group in
             var count = 0
-            for (index, element) in self.enumerated() {
+            for (index, element) in elements.enumerated() {
                 group.addTask {
                     let value = try await transform(element)
                     return (index, value)

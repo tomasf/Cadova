@@ -1,0 +1,156 @@
+{
+  "parts" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "cacheKey" : {
+        "type" : "6Cadova12NodeCacheKeyVyAA07LabeledcD0VAA2D3VG",
+        "value" : {
+          "base" : {
+            "operationName" : "Cadova.ShapeEdges",
+            "parameters" : [
+              {
+                "type" : "6Cadova9EdgeQueryV",
+                "value" : {
+                  "directionalConstraint" : {
+                    "parallel" : {
+                      "_0" : {
+                        "unitVector" : {
+                          "x" : 0,
+                          "y" : 0,
+                          "z" : 1
+                        }
+                      },
+                      "tolerance" : {
+                        "degrees" : 15
+                      }
+                    }
+                  },
+                  "maskConstraints" : [
+
+                  ],
+                  "maximumTurnAngle" : {
+                    "degrees" : 45
+                  },
+                  "minimumSharpness" : {
+                    "degrees" : 30
+                  },
+                  "spatialConstraints" : [
+
+                  ]
+                }
+              },
+              {
+                "type" : "6Cadova9EdgeShapeV",
+                "value" : {
+                  "fillet" : {
+                    "radius" : 1
+                  }
+                }
+              },
+              {
+                "type" : "6Cadova12SegmentationO",
+                "value" : {
+                  "adaptive" : {
+                    "minAngle" : {
+                      "degrees" : 2
+                    },
+                    "minSize" : 0.15
+                  }
+                }
+              },
+              {
+                "type" : "Say6Cadova12GeometryNodeVyAA2D3VGG",
+                "value" : [
+
+                ]
+              }
+            ]
+          },
+          "node" : {
+            "crossSection" : {
+              "cacheKey" : {
+                "type" : "6Cadova15LabeledCacheKeyV",
+                "value" : {
+                  "operationName" : "polygon",
+                  "parameters" : [
+                    {
+                      "type" : "6Cadova13PolygonPointsO",
+                      "value" : {
+                        "literal" : {
+                          "_0" : [
+                            {
+                              "x" : 0,
+                              "y" : 0
+                            },
+                            {
+                              "x" : 10,
+                              "y" : 0
+                            },
+                            {
+                              "x" : 10,
+                              "y" : 5
+                            },
+                            {
+                              "x" : 5,
+                              "y" : 5
+                            },
+                            {
+                              "x" : 5,
+                              "y" : 10
+                            },
+                            {
+                              "x" : 0,
+                              "y" : 10
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type" : "6Cadova8FillRuleO",
+                      "value" : {
+                        "nonZero" : {
+
+                        }
+                      }
+                    },
+                    {
+                      "type" : "6Cadova12SegmentationO",
+                      "value" : {
+                        "adaptive" : {
+                          "minAngle" : {
+                            "degrees" : 2
+                          },
+                          "minSize" : 0.15
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "kind" : "materialized"
+            },
+            "kind" : "extrusion",
+            "type" : {
+              "linear" : {
+                "divisions" : 0,
+                "height" : 10,
+                "scaleTop" : {
+                  "x" : 1,
+                  "y" : 1
+                },
+                "twist" : {
+                  "degrees" : 0
+                }
+              }
+            }
+          }
+        }
+      },
+      "kind" : "materialized"
+    }
+  ]
+}

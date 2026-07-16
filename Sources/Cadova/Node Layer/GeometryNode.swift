@@ -13,7 +13,13 @@ internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(hash)
     }
-    
+
+    // Checking the precomputed hash first prunes deep recursive contents
+    // comparisons for nodes that differ.
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.hash == rhs.hash && lhs.contents == rhs.contents
+    }
+
     internal indirect enum Contents: Sendable {
         case empty
         case boolean ([D.Node], type: BooleanOperationType)
@@ -32,7 +38,7 @@ internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
 
         // 3D
         case shape3D (PrimitiveShape3D)
-        case applyMaterial (D3.Node, Material)
+        case applyMaterial (D3.Node, Material?)
         case extrusion (D2.Node, type: Extrusion)
         case trim (D3.Node, Plane)
         case smoothOut (D3.Node, minSharpAngle: Double, minSmoothness: Double)
@@ -68,6 +74,8 @@ extension GeometryNode {
         if case .empty = contents { true } else { false }
     }
 
+    @_specialize(exported: false, where D == D2)
+    @_specialize(exported: false, where D == D3)
     public func evaluate(in context: EvaluationContext) async throws -> Result {
         switch contents {
         case .empty:
@@ -108,6 +116,7 @@ extension GeometryNode {
         }
     }
 
+    @_specialize(exported: false, where D == D2)
     private func evaluate2D(in context: EvaluationContext) async throws -> EvaluationResult<D2> {
         switch contents {
         case .shape2D (let shape):
@@ -132,13 +141,19 @@ extension GeometryNode {
         }
     }
 
+    @_specialize(exported: false, where D == D3)
     private func evaluate3D(in context: EvaluationContext) async throws -> EvaluationResult<D3> {
         switch contents {
         case .shape3D (let shape):
             return try EvaluationResult(shape.evaluate())
 
         case .applyMaterial (let node, let material):
-            return try await context.result(for: node).applyingMaterial(material)
+            let result = try await context.result(for: node)
+            if let material {
+                return result.applyingMaterial(material)
+            } else {
+                return result.clearingMaterials()
+            }
 
         case .extrusion (let node, let extrusion):
             let result = try await context.result(for: node)

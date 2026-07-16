@@ -37,6 +37,12 @@ public struct BuildDirective: Sendable {
     }
 }
 
+extension [BuildDirective] {
+    var containsEnvironmentDirectives: Bool {
+        contains { $0.environment != nil }
+    }
+}
+
 // This is a bit of a hack to allow the use of Environment inside result builders
 public extension Environment<@Sendable (inout EnvironmentValues) -> ()> {
     init(_ builder: @Sendable @escaping (inout EnvironmentValues) -> ()) {

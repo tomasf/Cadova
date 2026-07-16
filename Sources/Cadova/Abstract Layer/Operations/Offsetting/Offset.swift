@@ -49,7 +49,7 @@ public extension Geometry2D {
     ///     the shape of the geometry's corners differently.
     /// - Returns: A new geometry object that is the result of the offset operation.
     ///
-    func offset(amount: Double, style: LineJoinStyle) -> any Geometry2D {
+    func offset(amount: Double, style: LineJoinStyle = .miter) -> any Geometry2D {
         readEnvironment(\.miterLimit, \.scaledSegmentation) { miterLimit, segmentation in
             GeometryNodeTransformer(body: self) {
                 .offset(

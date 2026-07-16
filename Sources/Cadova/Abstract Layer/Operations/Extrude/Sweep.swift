@@ -56,7 +56,8 @@ internal struct Sweep<Path: ParametricCurve>: Shape3D {
                 environment: environment,
                 target: target,
                 targetReference: reference,
-                perpendicularBounds: .init(crossSection.bounds)
+                perpendicularBounds: .init(crossSection.bounds),
+                miteringCorners: true
             )
             let mesh = Mesh(
                 extruding: crossSection.polygonList(),
