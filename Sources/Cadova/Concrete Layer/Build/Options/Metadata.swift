@@ -76,7 +76,7 @@ extension Metadata: ModelOptionItem {
             title: other.title ?? title,
             description: other.description ?? description,
             author: other.author ?? author,
-            license: license ?? other.license,
+            license: other.license ?? license,
             date: date ?? other.date,
             application: application ?? other.application
         )
