@@ -2,9 +2,9 @@ import Foundation
 
 extension Loft {
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
-        let layerNodes = try await layers.asyncMap {
-            LayerNode(
-                z: $0.z,
+        let sectionNodes = try await sections.asyncMap {
+            SectionNode(
+                distance: $0.distance,
                 transition: $0.transition,
                 node: try await context.buildResult(for: $0.geometry(), in: environment).node
             )
@@ -12,40 +12,52 @@ extension Loft {
 
         let cachedConcrete = CachedConcrete<D3, _>(
             name: "loft",
-            parameters: layerNodes, shapingFunction
+            parameters: sectionNodes, shapingFunction, path, reference, target,
+            environment.segmentation, environment.scaledSegmentation, environment.maxTwistRate
         ) {
-            let layerTrees = try await layerNodes.asyncMap {
-                TreeLayer(
-                    z: $0.z,
+            let sectionTrees = try await sectionNodes.asyncMap {
+                SectionTree(
+                    distance: $0.distance,
                     transition: $0.transition,
                     tree: try await context.result(for: $0.node).concrete.polygonTree()
                 )
             }
 
-            // Always use resampled loft. Apply per-layer override or default Loft.shapingFunction.
-            let resamplingLayers = layerTrees.map { $0.resamplingLayer(with: shapingFunction) }
-            let geometry = await Loft.resampledLoft(resamplingLayers: resamplingLayers, in: environment, context: context)
+            // Always use resampled loft. Apply per-section override or default Loft.shapingFunction.
+            let resamplingSections = sectionTrees.map { $0.resamplingSection(with: shapingFunction) }
+
+            let allVertices = sectionTrees.flatMap { $0.tree.flattened().polygons.flatMap(\.vertices) }
+            let perpendicularBounds = allVertices.isEmpty ? BoundingBox2D.zero : BoundingBox2D(allVertices)
+
+            let frames = path.curve.frames(
+                environment: environment,
+                target: target,
+                targetReference: reference,
+                perpendicularBounds: perpendicularBounds
+            )
+
+            let geometry = await Loft.resampledLoft(resamplingSections: resamplingSections, frames: frames, in: environment, context: context)
             return try await context.result(for: geometry, in: environment).concrete
         }
 
         return try await context.buildResult(for: cachedConcrete, in: environment)
     }
 
-    internal struct LayerNode: CacheKey {
-        let z: Double
+    internal struct SectionNode: CacheKey {
+        let distance: Double
         let transition: LayerTransition?
         let node: D2.Node
     }
 
-    // Internal helper to bridge from built 2D polygon trees to resampling layers
-    internal struct TreeLayer {
-        let z: Double
+    // Internal helper to bridge from built 2D polygon trees to resampling sections
+    internal struct SectionTree {
+        let distance: Double
         let transition: LayerTransition?
         let tree: PolygonTree
 
-        func resamplingLayer(with defaultFunction: ShapingFunction) -> Loft.ResamplingLayer {
+        func resamplingSection(with defaultFunction: ShapingFunction) -> Loft.ResamplingSection {
             let resolvedTransition = transition ?? .interpolated(defaultFunction)
-            return Loft.ResamplingLayer(z: z, transition: resolvedTransition, tree: tree)
+            return Loft.ResamplingSection(distance: distance, transition: resolvedTransition, tree: tree)
         }
     }
 }

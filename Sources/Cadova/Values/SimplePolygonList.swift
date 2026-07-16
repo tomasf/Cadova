@@ -81,8 +81,8 @@ extension SimplePolygonList {
     }
 
 
-    func vertices(at z: Double) -> [Vector3D] {
-        polygons.flatMap { $0.vertices(at: z) }
+    func vertices(transformedBy transform: Transform3D) -> [Vector3D] {
+        polygons.flatMap { $0.vertices(transformedBy: transform) }
     }
 }
 

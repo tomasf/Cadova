@@ -11,8 +11,8 @@ import Foundation
 /// ```swift
 /// // Use a shaping function to control loft interpolation
 /// Loft {
-///     layer(z: 0) { Circle(diameter: 10) }
-///     layer(z: 20, interpolation: .easeInOut) { Circle(diameter: 20) }
+///     Section(at: 0) { Circle(diameter: 10) }
+///     Section(at: 20, interpolation: .easeInOut) { Circle(diameter: 20) }
 /// }
 /// ```
 ///

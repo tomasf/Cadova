@@ -182,8 +182,8 @@ extension SimplePolygon {
         return .init(result)
     }
 
-    func vertices(at z: Double) -> [Vector3D] {
-        vertices.map { Vector3D($0, z: z) }
+    func vertices(transformedBy transform: Transform3D) -> [Vector3D] {
+        vertices.map { transform.apply(to: Vector3D($0, z: 0)) }
     }
 
     func blended(with other: Self, t: Double) -> Self {

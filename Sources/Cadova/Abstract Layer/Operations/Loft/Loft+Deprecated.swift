@@ -1,5 +1,8 @@
+import Foundation
+
 public extension Loft {
     /// A result builder for composing loft layers.
+    @available(*, deprecated, renamed: "Loft.SectionBuilder")
     typealias LayerBuilder = ArrayBuilder<Layer>
 
     /// A single cross-section in a lofted shape.
@@ -8,6 +11,7 @@ public extension Loft {
     /// `layer(z:interpolation:shape:)` or `layer(zOffset:interpolation:shape:)` functions
     /// within a ``Loft`` builder.
     ///
+    @available(*, deprecated, renamed: "Loft.Section")
     struct Layer: Sendable {
         internal enum ZSpecification: Sendable {
             case absolute(Double, upperBound: Double? = nil)
@@ -70,6 +74,7 @@ public extension Loft {
 ///                      the previous layer and this one. If `nil`, the `Loft`'s own shaping function is used.
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
+@available(*, deprecated, renamed: "Section(at:interpolation:shape:)")
 public func layer(
     z: Double,
     interpolation shapingFunction: ShapingFunction? = nil,
@@ -87,6 +92,7 @@ public func layer(
 ///                 Use `.interpolated(_:)` for shape interpolation or `.convexHull` for a convex hull connection.
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
+@available(*, deprecated, renamed: "Section(at:interpolation:shape:)")
 public func layer(
     z: Double,
     interpolation transition: LayerTransition,
@@ -107,6 +113,7 @@ public func layer(
 ///                      If `nil`, the `Loft`'s own shaping function is used.
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
+@available(*, deprecated, message: "Use Section(at:interpolation:shape:) with an absolute distance instead")
 public func layer(
     zOffset: Double,
     interpolation shapingFunction: ShapingFunction? = nil,
@@ -123,6 +130,7 @@ public func layer(
 ///   - transition: The transition type that controls how this layer connects to the previous one.
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
+@available(*, deprecated, message: "Use Section(at:interpolation:shape:) with an absolute distance instead")
 public func layer(
     zOffset: Double,
     interpolation transition: LayerTransition,
@@ -146,6 +154,7 @@ public func layer(
 ///   - shape: A builder that returns the 2D geometry to use for both layers.
 /// - Returns: Two `Loft.Layer` values, one at the lower bound offset and one at the upper bound offset.
 ///
+@available(*, deprecated, message: "Use two Section(at:) calls with absolute distances instead")
 public func layer(
     zOffset range: Range<Double>,
     interpolation shapingFunction: ShapingFunction? = nil,
@@ -161,6 +170,7 @@ public func layer(
 ///   - transition: The transition type that controls how this layer connects to the previous one.
 ///   - shape: A builder that returns the 2D geometry to use for both layers.
 ///
+@available(*, deprecated, message: "Use two Section(at:) calls with absolute distances instead")
 public func layer(
     zOffset range: Range<Double>,
     interpolation transition: LayerTransition,
@@ -184,6 +194,7 @@ public func layer(
 ///   - shape: A builder that returns the 2D geometry to use for both layers.
 /// - Returns: Two `Loft.Layer` values, one at the lower bound and one at the upper bound.
 ///
+@available(*, deprecated, message: "Use two Section(at:) calls with absolute distances instead")
 public func layer(
     z range: Range<Double>,
     interpolation shapingFunction: ShapingFunction? = nil,
@@ -204,10 +215,39 @@ public func layer(
 ///                 Use `.interpolated(_:)` for shape interpolation or `.convexHull` for a convex hull connection.
 ///   - shape: A builder that returns the 2D geometry to use for this layer.
 ///
+@available(*, deprecated, message: "Use two Section(at:) calls with absolute distances instead")
 public func layer(
     z range: Range<Double>,
     interpolation transition: LayerTransition,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Layer {
     Loft.Layer(zSpec: .absolute(range.lowerBound, upperBound: range.upperBound), transition: transition, geometry: shape)
+}
+
+public extension Loft {
+    /// Creates a lofted 3D geometry by interpolating between a series of 2D cross-sections using a resampling-based approach.
+    ///
+    /// Resampling allows precise matching of complex shapes, including those with holes. All layers must have compatible
+    /// topology: each layer must have the same number of top-level shapes, and each shape must have the same number of
+    /// holes (if any), and so on.
+    ///
+    /// - Parameters:
+    ///   - interpolation: The shaping function to use between layers. Defaults to `.linear`. Individual layers can
+    ///     override this by specifying their own shaping function in `layer(...)`.
+    ///   - layers: A builder that returns the list of layers. Each layer must have a Z position and a 2D shape.
+    ///
+    @available(*, deprecated, renamed: "init(interpolation:pointing:toward:sections:)")
+    init(interpolation: ShapingFunction = .linear, @LayerBuilder layers: () -> [Layer]) {
+        var lastZ = 0.0
+        var resolvedLayers: [Layer] = []
+        for layer in layers() {
+            resolvedLayers.append(contentsOf: layer.resolved(lastZ: &lastZ))
+        }
+        let sortedLayers = resolvedLayers.sorted(by: { $0.z < $1.z })
+        precondition(sortedLayers.count >= 2, "Loft requires at least two layers")
+
+        let sections = sortedLayers.map { Section(distance: $0.z, transition: $0.transition, geometry: $0.geometry) }
+        let (path, shiftedSections) = Loft.implicitPath(for: sections)
+        self.init(path: path, sections: shiftedSections, shapingFunction: interpolation, reference: .negativeY, target: .direction(.negativeZ))
+    }
 }

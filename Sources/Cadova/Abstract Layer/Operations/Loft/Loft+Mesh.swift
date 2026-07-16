@@ -7,7 +7,7 @@ struct PolygonGroupVertex: Hashable, Codable {
 }
 
 internal extension Mesh where Vertex == PolygonGroupVertex {
-    init(polygonGroups: [(polygons: SimplePolygonList, zLevels: [Double])]) {
+    init(polygonGroups: [(polygons: SimplePolygonList, transforms: [Transform3D])]) {
         let sideFaces = polygonGroups.map(\.0).enumerated().flatMap { polygonIndex, group in
             (0..<(group.count - 1)).flatMap { layerIndex1 in
                 let layerIndex2 = layerIndex1 + 1
@@ -42,10 +42,11 @@ internal extension Mesh where Vertex == PolygonGroupVertex {
         self.init(
             faces: sideFaces + bottomFaces + topFaces,
             name: "PolygonGroupMesh",
-            cacheParameters: polygonGroups.map(\.polygons), polygonGroups.map(\.zLevels)
+            cacheParameters: polygonGroups.map(\.polygons), polygonGroups.map(\.transforms)
         ) { vertex in
             let flatPoint = polygonGroups[vertex.polygonGroupIndex].polygons[vertex.layerIndex][vertex.pointIndex]
-            return Vector3D(flatPoint, z: polygonGroups[vertex.polygonGroupIndex].zLevels[vertex.layerIndex])
+            let transform = polygonGroups[vertex.polygonGroupIndex].transforms[vertex.layerIndex]
+            return transform.apply(to: Vector3D(flatPoint, z: 0))
         }
     }
 }

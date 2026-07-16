@@ -51,85 +51,112 @@ internal extension Loft {
 
     static func interpolatePolygonGroups(
         for polygonGroups: [SimplePolygonList],
-        layers: [ResamplingLayer],
+        sections: [ResamplingSection],
+        frames: [ParametricCurveFrame],
         environment: EnvironmentValues
-    ) -> [(polygons: SimplePolygonList, zLevels: [Double])] {
+    ) -> [(polygons: SimplePolygonList, transforms: [Transform3D])] {
         let segmentation = environment.scaledSegmentation
-        var refinedGroups: [(polygons: SimplePolygonList, zLevels: [Double])] = []
+        var refinedGroups: [(polygons: SimplePolygonList, transforms: [Transform3D])] = []
+
+        func transform(atDistance distance: Double) -> Transform3D {
+            frames.binarySearchInterpolate(target: distance, key: \.distance, result: \.transform)
+        }
 
         for polygons in polygonGroups {
             var newPolygons: [SimplePolygon] = [polygons[0]]
-            var newZLevels: [Double] = [layers[0].z]
+            var newTransforms: [Transform3D] = [transform(atDistance: sections[0].distance)]
 
-            for i in 1..<layers.count {
+            for i in 1..<sections.count {
                 let lower = polygons[i - 1]
                 let upper = polygons[i]
-                let layer0 = layers[i - 1]
-                let layer1 = layers[i]
-                let interpolatedLayers: [(polygon: SimplePolygon, z: Double)]
+                let section0 = sections[i - 1]
+                let section1 = sections[i]
+                let interpolatedSections: [(polygon: SimplePolygon, transform: Transform3D)]
+                let transform0 = transform(atDistance: section0.distance)
+                let transform1 = transform(atDistance: section1.distance)
 
-                // Optimization: When shapes are identical, no intermediate layers are needed.
-                // Blending identical shapes produces the same shape regardless of the
-                // shaping function, so all intermediate layers would be duplicates.
-                // The mesh faces between layers will be planar rectangles (split into
-                // triangles), which is geometrically correct for identical cross-sections.
-                let canSkipIntermediate = lower == upper
+                // Optimization: When shapes are identical AND the path's orientation hasn't changed
+                // between the two sections, no intermediate sections are needed. Blending identical
+                // shapes under an unchanging orientation produces the same result regardless of the
+                // shaping function, so all intermediate sections would be duplicates, and the mesh
+                // faces between sections can be planar rectangles (split into triangles). Two sections
+                // always have different translations (they're at different distances along the path),
+                // so only the rotation is compared here; if it differs (e.g. the path twists between
+                // these sections), a single straight connection would cut across the twist, so
+                // subdivision must still run even though the 2D shape itself is unchanged.
+                let canSkipIntermediate = lower == upper && transform0.hasEqualOrientation(to: transform1)
 
-                // In interpolated segments, all layers have a shaping function
-                let function = layer1.shapingFunction ?? .linear
+                // In interpolated segments, all sections have a shaping function
+                let function = section1.shapingFunction ?? .linear
 
                 if canSkipIntermediate {
-                    interpolatedLayers = []
+                    interpolatedSections = []
                 } else {
                     switch segmentation {
                     case .fixed(let count):
-                        interpolatedLayers = (1..<count).map { j in
+                        interpolatedSections = (1..<count).map { j in
                             let t = Double(j) / Double(count)
-                            let z = layer0.z + (layer1.z - layer0.z) * t
+                            let distance = section0.distance + (section1.distance - section0.distance) * t
                             let polygon = lower.blended(with: upper, t: function(t))
-                            return (polygon, z)
+                            return (polygon, transform(atDistance: distance))
                         }
 
                     case .adaptive(_, let minLength):
-                        var results: [(polygon: SimplePolygon, z: Double)] = []
+                        var results: [(polygon: SimplePolygon, transform: Transform3D)] = []
 
                         func subdivide(range: Range<Double>) {
-                            let zStart = layer0.z + (layer1.z - layer0.z) * range.lowerBound
-                            let zEnd = layer0.z + (layer1.z - layer0.z) * range.upperBound
+                            let distanceStart = section0.distance + (section1.distance - section0.distance) * range.lowerBound
+                            let distanceEnd = section0.distance + (section1.distance - section0.distance) * range.upperBound
+                            let transformStart = transform(atDistance: distanceStart)
+                            let transformEnd = transform(atDistance: distanceEnd)
                             let pStart = lower.blended(with: upper, t: function(range.lowerBound))
                             let pEnd = lower.blended(with: upper, t: function(range.upperBound))
 
-                            if pStart.needsSubdivision(next: pEnd, z0: zStart, z1: zEnd, minLength: minLength) {
+                            if pStart.needsSubdivision(next: pEnd, transform0: transformStart, transform1: transformEnd, minLength: minLength) {
                                 let tMid = range.mid
                                 subdivide(range: range.lowerBound..<tMid)
                                 subdivide(range: tMid..<range.upperBound)
                             } else {
-                                results.append((pStart, zStart))
+                                results.append((pStart, transformStart))
                             }
                         }
 
                         subdivide(range: 0..<1)
-                        interpolatedLayers = results
+                        interpolatedSections = results
                     }
                 }
 
-                newPolygons.append(contentsOf: interpolatedLayers.map(\.polygon))
-                newZLevels.append(contentsOf: interpolatedLayers.map(\.z))
+                newPolygons.append(contentsOf: interpolatedSections.map(\.polygon))
+                newTransforms.append(contentsOf: interpolatedSections.map(\.transform))
                 newPolygons.append(upper)
-                newZLevels.append(layer1.z)
+                newTransforms.append(transform1)
             }
 
-            refinedGroups.append((SimplePolygonList(newPolygons), newZLevels))
+            refinedGroups.append((SimplePolygonList(newPolygons), newTransforms))
         }
 
         return refinedGroups
     }
 }
 
+fileprivate extension Transform3D {
+    // Compares only the rotational part of two transforms, ignoring translation. Two sections along a
+    // path always sit at different positions, so comparing full transforms (translation included) would
+    // never consider them equal; what actually matters for the "skip intermediate subdivision" optimization
+    // is whether the frame's orientation is unchanged between them.
+    func hasEqualOrientation(to other: Transform3D) -> Bool {
+        let relative = inverse.concatenated(with: other)
+        let origin = relative.apply(to: .zero)
+        let dx = relative.apply(to: Vector3D(x: 1)) - origin - Vector3D(x: 1)
+        let dy = relative.apply(to: Vector3D(y: 1)) - origin - Vector3D(y: 1)
+        return dx.magnitude < 1e-9 && dy.magnitude < 1e-9
+    }
+}
+
 fileprivate extension SimplePolygon {
-    func needsSubdivision(next: SimplePolygon, z0: Double, z1: Double, minLength: Double) -> Bool {
+    func needsSubdivision(next: SimplePolygon, transform0: Transform3D, transform1: Transform3D, minLength: Double) -> Bool {
         (0..<count).contains {
-            (Vector3D(next[$0], z: z1) - Vector3D(self[$0], z: z0)).magnitude > minLength
+            (transform1.apply(to: Vector3D(next[$0], z: 0)) - transform0.apply(to: Vector3D(self[$0], z: 0))).magnitude > minLength
         }
     }
 }
