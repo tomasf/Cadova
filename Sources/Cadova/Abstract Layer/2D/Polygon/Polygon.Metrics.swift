@@ -21,8 +21,8 @@ public extension Polygon {
         /// The total length of all edges of the polygon.
         public var length: Double { polygon.length }
 
-        /// The signed area enclosed by the polygon.
-        /// This value is always non-negative.
+        /// The area enclosed by the polygon.
+        /// This value is always non-negative, regardless of winding direction.
         public var area: Double { polygon.area }
 
         internal init(polygon: Polygon, environment: EnvironmentValues) {
