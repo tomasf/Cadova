@@ -58,7 +58,7 @@ struct ExampleTests {
         }
 
         try await Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-            .swept(along: path)
+            .swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
             .expectEquals(goldenFile: "examples/example4")
     }
 }

@@ -38,7 +38,7 @@ fileprivate struct CurveVisualization<Curve: ParametricCurve>: Shape3D {
         @Environment(\.visualizationOptions.labelDirection) var labelDirection = .labelDefault
 
         Circle(radius: 0.1 * scale)
-            .swept(along: curve)
+            .swept(along: curve, pointing: .negativeY, toward: .direction(.negativeZ))
             .colored(curveColor)
             .adding {
                 if let labeledControlPoints = curve.labeledControlPoints, controlPointsEnabled {

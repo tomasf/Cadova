@@ -195,7 +195,7 @@ struct LoftTests {
         // A path along +X (not Z). `Section(at:)` values are arc-length distances, so `at: 40`
         // lands exactly at the path's end regardless of the curve's own parameterization.
         let path = BezierPath3D(linesBetween: [[0, 0, 0], [40, 0, 0]])
-        let loft = Loft(along: path) {
+        let loft = Loft(along: path, pointing: .negativeY, toward: .direction(.negativeZ)) {
             Section(at: 0) {
                 Circle(diameter: 12)
             }
@@ -219,8 +219,12 @@ struct LoftTests {
         // a bug where "identical 2D shape between sections" incorrectly skipped subdivision outright,
         // ignoring that the orientation (not just the shape) had changed, producing a mesh that cut
         // straight across the twist instead of following it.
+        // The plain (no along:) initializer no longer accepts pointing/toward — it always produces an
+        // untwisted stack. An explicit vertical path (matching the section range exactly) reproduces the
+        // same "stack in Z but track an off-axis target" behavior via the along: initializer instead.
         let skewLine = D3.Line(point: [5, 0, 0], direction: Direction3D(x: 1, y: 1, z: 1))
-        let loft = Loft(pointing: .negativeY, toward: .line(skewLine)) {
+        let verticalPath = BezierPath3D(linesBetween: [[0, 0, 0], [0, 0, 40]])
+        let loft = Loft(along: verticalPath, pointing: .negativeY, toward: .line(skewLine)) {
             Section(at: 0) { Rectangle(x: 10, y: 4).aligned(at: .center) }
             Section(at: 40) { Rectangle(x: 10, y: 4).aligned(at: .center) }
         }
@@ -255,7 +259,7 @@ struct LoftTests {
 
     @Test func `loft along a curved 3D path produces valid geometry that follows the bend`() async throws {
         let path = BezierPath3D(linesBetween: [[0, 0, 0], [0, 0, 20], [20, 0, 20]])
-        let loft = Loft(along: path) {
+        let loft = Loft(along: path, pointing: .negativeY, toward: .direction(.negativeZ)) {
             Section(at: 0) {
                 Circle(diameter: 8)
             }
@@ -290,7 +294,7 @@ struct LoftTests {
         let expectedVolume = area * ((corner - start).magnitude + (end - corner).magnitude)
 
         let path = BezierPath3D(linesBetween: [start, corner, end])
-        let loft = Loft(along: path) {
+        let loft = Loft(along: path, pointing: .negativeY, toward: .direction(.negativeZ)) {
             Section(at: 0) { Circle(diameter: diameter) }
             Section(at: (corner - start).magnitude + (end - corner).magnitude) { Circle(diameter: diameter) }
         }

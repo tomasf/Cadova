@@ -130,6 +130,8 @@ public struct Loft: Geometry {
     ///     can override this by specifying their own shaping function in `Section(...)`.
     ///   - reference: A direction within each 2D cross-section (usually `.down` or `.right`) that should be kept
     ///     facing toward `target` as the loft follows the path. This affects the rotation of each cross-section.
+    ///     There's no universally sensible default: what's natural for a roughly-horizontal path (e.g. facing
+    ///     gravity-down) can be degenerate for a vertical one, so this must be specified explicitly.
     ///   - target: The 3D direction, point, or line that `reference` should point toward at every section. This
     ///     controls the orientation of the cross-sections along the path.
     ///   - sections: A builder that returns the list of sections. Each section must have a distance and a 2D shape.
@@ -137,8 +139,8 @@ public struct Loft: Geometry {
     public init<Path: ParametricCurve>(
         along path: Path,
         interpolation: ShapingFunction = .linear,
-        pointing reference: Direction2D = .negativeY,
-        toward target: ReferenceTarget = .direction(.negativeZ),
+        pointing reference: Direction2D,
+        toward target: ReferenceTarget,
         @SectionBuilder sections: () -> [Section]
     ) {
         let resolved = Loft.resolvedSections(sections())
@@ -158,6 +160,10 @@ public struct Loft: Geometry {
     /// compatible topology: each section must have the same number of top-level shapes, and each shape must have
     /// the same number of holes (if any), and so on.
     ///
+    /// Cross-sections are not rotated as they stack — this initializer always produces a plain, untwisted stack.
+    /// If you need sections to track an off-axis target as they rise (e.g. always facing a fixed point or line),
+    /// use `init(along:interpolation:pointing:toward:sections:)` with an explicit vertical path instead.
+    ///
     /// - Parameters:
     ///   - interpolation: The shaping function to use between sections. Defaults to `.linear`. Individual sections
     ///     can override this by specifying their own shaping function in `Section(...)`.
@@ -165,13 +171,11 @@ public struct Loft: Geometry {
     ///
     public init(
         interpolation: ShapingFunction = .linear,
-        pointing reference: Direction2D = .negativeY,
-        toward target: ReferenceTarget = .direction(.negativeZ),
         @SectionBuilder sections: () -> [Section]
     ) {
         let resolved = Loft.resolvedSections(sections())
         let (path, shifted) = Loft.implicitPath(for: resolved)
-        self.init(path: path, sections: shifted, shapingFunction: interpolation, reference: reference, target: target)
+        self.init(path: path, sections: shifted, shapingFunction: interpolation, reference: .negativeY, target: .direction(.negativeY))
     }
 
     internal init(path: OpaqueParametricCurve<Vector3D>, sections: [Section], shapingFunction: ShapingFunction, reference: Direction2D, target: ReferenceTarget) {

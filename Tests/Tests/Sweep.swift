@@ -39,7 +39,7 @@ struct SweepTests {
         }
 
         let sweep = ExampleTests.Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-            .swept(along: path)
+            .swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
         let m = try await sweep.measurements
 
         #expect(m.volume ≈ 13096.100)
@@ -57,8 +57,24 @@ struct SweepTests {
         let expectedVolume = area * ((corner - start).magnitude + (end - corner).magnitude)
 
         let path = BezierPath3D(linesBetween: [start, corner, end])
-        let swept = Circle(diameter: diameter).swept(along: path)
+        let swept = Circle(diameter: diameter).swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
         let m = try await swept.measurements
         #expect(m.volume.equals(expectedVolume, within: expectedVolume * 0.01))
+    }
+
+    @available(*, deprecated)
+    @Test func `deprecated no-orientation swept(along:) produces identical geometry to explicit defaults`() async throws {
+        let path = BezierPath3D(linesBetween: [[0, 0, 0], [40, 0, 0], [40, 40, 0]])
+        let shape = Rectangle(x: 10, y: 6).aligned(at: .center)
+
+        let deprecatedSweep = shape.swept(along: path)
+        let explicitSweep = shape.swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
+
+        let deprecatedMeasurements = try await deprecatedSweep.measurements
+        let explicitMeasurements = try await explicitSweep.measurements
+
+        #expect(deprecatedMeasurements.volume ≈ explicitMeasurements.volume)
+        #expect(deprecatedMeasurements.surfaceArea ≈ explicitMeasurements.surfaceArea)
+        #expect(deprecatedMeasurements.boundingBox == explicitMeasurements.boundingBox)
     }
 }

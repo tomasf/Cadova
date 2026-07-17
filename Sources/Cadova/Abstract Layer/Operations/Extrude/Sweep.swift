@@ -13,7 +13,9 @@ public extension Geometry2D {
     ///     the path is interpreted as lying in the XY plane.
     ///   - reference: A direction within the 2D shape (usually `.down` or `.right`) that should be
     ///     kept facing toward the `target` during the sweep. This affects the rotation of the shape
-    ///     as it travels along the path.
+    ///     as it travels along the path. There's no universally sensible default: what's natural for
+    ///     a roughly-horizontal path (e.g. facing gravity-down) can be degenerate for a vertical one,
+    ///     so this must be specified explicitly.
     ///   - target: The 3D direction, point, or line that the `reference` direction should point toward
     ///     at every step of the path. This controls the orientation of the shape as it sweeps.
     /// - Returns: A 3D geometry created by sweeping the shape along the path, with orientation guided
@@ -31,10 +33,23 @@ public extension Geometry2D {
     /// - SeeAlso: ``Geometry/withMaxTwistRate(_:)``
     func swept<Path: ParametricCurve>(
         along path: Path,
-        pointing reference: Direction2D = .negativeY,
-        toward target: ReferenceTarget = .direction(.negativeZ)
+        pointing reference: Direction2D,
+        toward target: ReferenceTarget
     ) -> any Geometry3D {
         Sweep(shape: self, path: path, reference: reference, target: target)
+    }
+
+    /// Sweeps the 2D geometry along a 3D path to create a 3D solid, using the default orientation
+    /// (facing gravity-down as the path allows).
+    ///
+    /// - Parameter path: The path the shape should follow. This can be a 2D or 3D parametric curve.
+    ///   If 2D, the path is interpreted as lying in the XY plane.
+    /// - Returns: A 3D geometry created by sweeping the shape along the path.
+    ///
+    /// - SeeAlso: ``swept(along:pointing:toward:)``
+    @available(*, deprecated, message: "Specify pointing and toward explicitly — the previous default (.negativeY, .direction(.negativeZ)) can be degenerate for non-horizontal paths")
+    func swept<Path: ParametricCurve>(along path: Path) -> any Geometry3D {
+        swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
     }
 }
 

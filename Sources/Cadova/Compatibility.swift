@@ -304,6 +304,6 @@ public extension Loft {
 
         let sections = sortedLayers.map { Section(distance: $0.z, transition: $0.transition, geometry: $0.geometry) }
         let (path, shiftedSections) = Loft.implicitPath(for: sections)
-        self.init(path: path, sections: shiftedSections, shapingFunction: interpolation, reference: .negativeY, target: .direction(.negativeZ))
+        self.init(path: path, sections: shiftedSections, shapingFunction: interpolation, reference: .negativeY, target: .direction(.negativeY))
     }
 }
