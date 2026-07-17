@@ -11,7 +11,7 @@ public extension Loft {
     /// The visualization shows:
     /// - Each 2D section shape extruded to a thin slab at its position and orientation along the path.
     /// - Each section colored with a distinct color from a rotating palette.
-    /// - Sections are placed in a separate visual part named "Visualized Loft Layers".
+    /// - Sections are placed in a separate visual part named "Visualized Loft Sections".
     ///
     /// Configure appearance using the public Geometry modifiers:
     /// - `withVisualizationScale(_:)` adjusts the thickness of each section slab.
@@ -41,13 +41,13 @@ fileprivate struct LoftVisualization: Shape3D {
                     .extruded(height: thickness)
                     .translated(z: -thickness / 2)
                     .transformed(transform)
-                    .colored(Color.layerColors[index % Color.layerColors.count], alpha: 0.7)
+                    .colored(Color.sectionColors[index % Color.sectionColors.count], alpha: 0.7)
             }
         }
-        .inPart(.visualizedLoftLayers)
+        .inPart(.visualizedLoftSections)
     }
 }
 
 fileprivate extension Color {
-    static let layerColors: [Color] = [.red, .blue, .green, .orange, .purple, .cyan, .magenta, .yellow]
+    static let sectionColors: [Color] = [.red, .blue, .green, .orange, .purple, .cyan, .magenta, .yellow]
 }

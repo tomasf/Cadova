@@ -112,7 +112,7 @@ internal extension Part {
     static let visualizedAxes = Part("Visualized Axes", semantic: .visual)
     static let visualizedPath = Part("Visualized Path", semantic: .visual)
     static let visualizedDirection = Part("Visualized Direction", semantic: .visual)
-    static let visualizedLoftLayers = Part("Visualized Loft Layers", semantic: .visual)
+    static let visualizedLoftSections = Part("Visualized Loft Sections", semantic: .visual)
     static let visualizedRuler = Part("Visualized Ruler", semantic: .visual)
     static let visualizedEdges = Part("Visualized Edges", semantic: .visual)
 }

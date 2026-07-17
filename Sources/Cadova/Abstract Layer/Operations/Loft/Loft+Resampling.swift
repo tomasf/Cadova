@@ -71,14 +71,14 @@ internal extension Loft {
     }
 
     private static func resampledLoftSegment(resamplingSections: [ResamplingSection], frames: [ParametricCurveFrame], in environment: EnvironmentValues) async -> any Geometry3D {
-        var groups = buildPolygonGroups(layerTrees: resamplingSections.map(\.tree))
+        var groups = buildPolygonGroups(sectionTrees: resamplingSections.map(\.tree))
 
-        for (index, layerPolygons) in groups.enumerated() {
+        for (index, groupPolygons) in groups.enumerated() {
             // Determine target count based on longest perimeter
-            let maxPerimeter = layerPolygons.polygons.map(\.perimeter).max()!
+            let maxPerimeter = groupPolygons.polygons.map(\.perimeter).max()!
 
             let targetCount = environment.scaledSegmentation.segmentCount(length: maxPerimeter)
-            var newPolygons = SimplePolygonList(layerPolygons.polygons.map {
+            var newPolygons = SimplePolygonList(groupPolygons.polygons.map {
                 $0.resampled(count: targetCount)
             })
 

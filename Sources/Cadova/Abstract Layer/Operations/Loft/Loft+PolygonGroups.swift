@@ -1,49 +1,49 @@
 import Foundation
 
 internal extension Loft {
-    // Takes a list of polygon trees representing each layer. Returns a list of polygon lists, each list representing
-    // the matching polygons from each layer
-    static func buildPolygonGroups(layerTrees: [PolygonTree]) -> [SimplePolygonList] {
+    // Takes a list of polygon trees representing each section. Returns a list of polygon lists, each list representing
+    // the matching polygons from each section
+    static func buildPolygonGroups(sectionTrees: [PolygonTree]) -> [SimplePolygonList] {
         var groups = [SimplePolygonList]()
-        if layerTrees[0].polygon.vertices.isEmpty == false {
-            groups.append(SimplePolygonList(layerTrees.map(\.polygon)))
+        if sectionTrees[0].polygon.vertices.isEmpty == false {
+            groups.append(SimplePolygonList(sectionTrees.map(\.polygon)))
         }
 
-        var remainingChildren = layerTrees.map(\.children)
+        var remainingChildren = sectionTrees.map(\.children)
         let childCounts = remainingChildren.map(\.count)
         precondition(
             childCounts.allSatisfy { $0 == childCounts[0] },
-            "Loft layers must have the same number of islands. Found: \(childCounts)"
+            "Loft sections must have the same number of islands. Found: \(childCounts)"
         )
 
         while !remainingChildren[0].isEmpty {
-            // Take the first polygon tree of the first layer and treat it as the target
+            // Take the first polygon tree of the first section and treat it as the target
             let prototype = remainingChildren.first!.first!
             remainingChildren[0].remove(at: 0)
 
-            // Filter each of the layers for polygons matching the topology of the target tree
-            let candidatesPerLayer = remainingChildren.dropFirst().map {
+            // Filter each of the sections for polygons matching the topology of the target tree
+            let candidatesPerSection = remainingChildren.dropFirst().map {
                 $0.enumerated().filter { $1.matchesTopology(of: prototype) }
             }
 
-            // Each layer has to have at least one matching polygon tree, otherwise the input is invalid
-            precondition(candidatesPerLayer.allSatisfy({ $0.isEmpty == false }), "No topology match")
+            // Each section has to have at least one matching polygon tree, otherwise the input is invalid
+            precondition(candidatesPerSection.allSatisfy({ $0.isEmpty == false }), "No topology match")
 
-            // Go through the candidates layer by layer and find the one that is nearest the pick for the previous
-            // layer and remove that one from remainingChildren so it's not included in the next pass
+            // Go through the candidates section by section and find the one that is nearest the pick for the previous
+            // section and remove that one from remainingChildren so it's not included in the next pass
             var chosenTrees = [prototype]
-            for (layerIndexMinusOne, candidates) in candidatesPerLayer.enumerated() {
+            for (sectionIndexMinusOne, candidates) in candidatesPerSection.enumerated() {
                 let previousCentroid = chosenTrees.last!.polygon.centroid
                 let candidatesWithDistances = candidates.map { index, tree in
                     (index, tree, tree.polygon.centroid.distance(to: previousCentroid))
                 }
                 let (winnerIndex, winnerTree, _) = candidatesWithDistances.min(by: { $0.2 < $1.2 })!
-                remainingChildren[layerIndexMinusOne + 1].remove(at: winnerIndex)
+                remainingChildren[sectionIndexMinusOne + 1].remove(at: winnerIndex)
                 chosenTrees.append(winnerTree)
             }
 
             // Recursively call buildPolygonGroups to build matching polygons for the chosen trees
-            let childGroups = buildPolygonGroups(layerTrees: chosenTrees)
+            let childGroups = buildPolygonGroups(sectionTrees: chosenTrees)
             groups.append(contentsOf: childGroups)
         }
         return groups
