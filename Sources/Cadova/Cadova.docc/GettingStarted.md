@@ -30,7 +30,7 @@ let package = Package(
     name: "gizmo",
     platforms: [.macOS(.v14)],
     dependencies: [
-        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.5.0")),
+        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.8.0")),
     ],
     targets: [
         .executableTarget(
@@ -62,6 +62,22 @@ await Model("gizmo") {
 
 Run it in your IDE or on the command line using `swift run`. This will generate a `gizmo.3mf` file in the current directory. You can open it in your slicer or viewer.
 
-On macOS, using [Cadova Viewer](https://github.com/tomasf/CadovaViewer) is recommended for the best experience. It will automatically reload the view when the model file changes.
+On macOS, using [Cadova Viewer](https://github.com/tomasf/CadovaViewer) is recommended for the best experience. It automatically reloads the model when the file changes on disk, and offers split views, cross-sections, and measurements for inspecting your geometry in detail.
 
 To speed up the setup of a new model package, you can use the [template GitHub repo](https://github.com/tomasf/cadova-model-template).
+
+## Organize your output with `Project`
+
+As your package grows to include more than one model, it's nice to keep generated files together. ``Project`` groups multiple models under a shared output directory, and `packageRelative` points that directory at a path relative to your package root. This also means files show up in a predictable location within your package folder. In Xcode, the generated models appear right in the project navigator sidebar, making them easy to find and open.
+
+```swift
+import Cadova
+
+await Project(packageRelative: "Models") {
+    await Model("knob") {
+        Cylinder(diameter: 12, height: 8)
+    }
+}
+```
+
+This saves output to `Models/knob.3mf` inside your package. You can add as many `Model` entries as you like inside the `Project`, and they'll all land in that same directory.

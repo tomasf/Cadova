@@ -42,12 +42,16 @@ await Model("swept-text") {
         .withFont("Futura", style: "Condensed Medium", size: 10)
         .wrappedAroundCircle(spanning: 230°..<310°)
         .aligned(at: .centerX, .bottom)
-        .swept(along: BezierPath {
-            curve(
-                controlX: 20, controlY: 10, controlZ: 3,
-                endX: 20, endY: 30, endZ: 12
-            )
-        })
+        .swept(
+            along: BezierPath {
+                curve(
+                    controlX: 20, controlY: 10, controlZ: 3,
+                    endX: 20, endY: 30, endZ: 12
+                )
+            },
+            pointing: .negativeY,
+            toward: .direction(.negativeZ)
+        )
 }
 ```
 
