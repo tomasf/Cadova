@@ -17,16 +17,16 @@ public extension Loft {
         }
 
         internal let distanceSpec: DistanceSpecification
-        internal let transition: LayerTransition?
+        internal let transition: Transition?
         internal let geometry: @Sendable () -> any Geometry2D
 
-        internal init(distanceSpec: DistanceSpecification, transition: LayerTransition?, geometry: @Sendable @escaping () -> any Geometry2D) {
+        internal init(distanceSpec: DistanceSpecification, transition: Transition?, geometry: @Sendable @escaping () -> any Geometry2D) {
             self.distanceSpec = distanceSpec
             self.transition = transition
             self.geometry = geometry
         }
 
-        internal init(distance: Double, transition: LayerTransition?, geometry: @Sendable @escaping () -> any Geometry2D) {
+        internal init(distance: Double, transition: Transition?, geometry: @Sendable @escaping () -> any Geometry2D) {
             self.init(distanceSpec: .absolute(distance, upperBound: nil), transition: transition, geometry: geometry)
         }
 
@@ -91,7 +91,7 @@ public extension Loft {
         ///
         public init(
             at distance: Double,
-            interpolation transition: LayerTransition,
+            interpolation transition: Transition,
             @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
         ) {
             self.init(distanceSpec: .absolute(distance), transition: transition, geometry: shape)
@@ -130,7 +130,7 @@ public extension Loft {
         ///
         public init(
             at range: Range<Double>,
-            interpolation transition: LayerTransition,
+            interpolation transition: Transition,
             @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
         ) {
             self.init(distanceSpec: .absolute(range.lowerBound, upperBound: range.upperBound), transition: transition, geometry: shape)
@@ -166,7 +166,7 @@ public extension Loft {
         ///
         public init(
             atRelative offset: Double,
-            interpolation transition: LayerTransition,
+            interpolation transition: Transition,
             @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
         ) {
             self.init(distanceSpec: .offset(offset), transition: transition, geometry: shape)
@@ -205,7 +205,7 @@ public extension Loft {
         ///
         public init(
             atRelative range: Range<Double>,
-            interpolation transition: LayerTransition,
+            interpolation transition: Transition,
             @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
         ) {
             self.init(distanceSpec: .offset(range.lowerBound, upperBound: range.upperBound), transition: transition, geometry: shape)

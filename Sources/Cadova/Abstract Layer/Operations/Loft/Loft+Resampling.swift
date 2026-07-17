@@ -4,7 +4,7 @@ import Manifold3D
 internal extension Loft {
     struct ResamplingSection {
         let distance: Double
-        let transition: LayerTransition
+        let transition: Transition
         let tree: PolygonTree
 
         var shapingFunction: ShapingFunction? {

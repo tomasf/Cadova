@@ -25,6 +25,9 @@ public extension Geometry3D {
     }
 }
 
+@available(*, deprecated, renamed: "Loft.Transition")
+public typealias LayerTransition = Loft.Transition
+
 public extension ParametricCurve {
     @available(*, deprecated, renamed: "readingPoints(_:)")
     func readPoints<D: Dimensionality>(
@@ -90,7 +93,7 @@ public func layer(
 @available(*, deprecated, renamed: "Section(at:interpolation:shape:)")
 public func layer(
     z: Double,
-    interpolation transition: LayerTransition,
+    interpolation transition: Loft.Transition,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Section {
     Loft.Section(at: z, interpolation: transition, shape: shape)
@@ -128,7 +131,7 @@ public func layer(
 @available(*, deprecated, renamed: "Section(atRelative:interpolation:shape:)")
 public func layer(
     zOffset: Double,
-    interpolation transition: LayerTransition,
+    interpolation transition: Loft.Transition,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Section {
     Loft.Section(atRelative: zOffset, interpolation: transition, shape: shape)
@@ -167,7 +170,7 @@ public func layer(
 @available(*, deprecated, message: "Use Section(atRelative:interpolation:shape:) with a range instead")
 public func layer(
     zOffset range: Range<Double>,
-    interpolation transition: LayerTransition,
+    interpolation transition: Loft.Transition,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Section {
     Loft.Section(atRelative: range, interpolation: transition, shape: shape)
@@ -211,7 +214,7 @@ public func layer(
 @available(*, deprecated, message: "Use Section(at:interpolation:shape:) with a range instead")
 public func layer(
     z range: Range<Double>,
-    interpolation transition: LayerTransition,
+    interpolation transition: Loft.Transition,
     @GeometryBuilder2D shape: @Sendable @escaping () -> any Geometry2D
 ) -> Loft.Section {
     Loft.Section(at: range, interpolation: transition, shape: shape)

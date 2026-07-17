@@ -46,14 +46,14 @@ extension Loft {
 
     internal struct SectionNode: CacheKey {
         let distance: Double
-        let transition: LayerTransition?
+        let transition: Transition?
         let node: D2.Node
     }
 
     // Internal helper to bridge from built 2D polygon trees to resampling sections
     internal struct SectionTree {
         let distance: Double
-        let transition: LayerTransition?
+        let transition: Transition?
         let tree: PolygonTree
 
         func resamplingSection(with defaultFunction: ShapingFunction) -> Loft.ResamplingSection {
