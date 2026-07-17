@@ -16,18 +16,18 @@ public extension Geometry {
     /// ```swift
     /// // Compress the middle section of a rectangle
     /// Rectangle(x: 30, y: 10)
-    ///     .resizing(.x, in: 10...20, to: 5)
+    ///     .resized(.x, in: 10...20, to: 5)
     ///
     /// // Compress the middle section of a cylinder
     /// Cylinder(diameter: 20, height: 30)
-    ///     .resizing(.z, in: 10...20, to: 5)
+    ///     .resized(.z, in: 10...20, to: 5)
     ///
     /// // Stretch a section while keeping the top fixed
-    /// box.resizing(.z, in: 5...15, to: 20, alignment: .max)
+    /// box.resized(.z, in: 5...15, to: 20, alignment: .max)
     /// ```
     ///
     @GeometryBuilder<D>
-    func resizing(
+    func resized(
         _ axis: D.Axis,
         in range: ClosedRange<Double>,
         to newLength: Double,
@@ -89,10 +89,10 @@ public extension Geometry3D {
     /// ## Example
     /// ```swift
     /// // Make a bottle taller by extending its neck
-    /// bottle.extending(at: Plane(z: 80), by: 20)
+    /// bottle.extended(at: Plane(z: 80), by: 20)
     /// ```
     ///
-    func extending(at plane: Plane, by amount: Double, alignment: AxisAlignment = .min) -> any Geometry3D {
+    func extended(at plane: Plane, by amount: Double, alignment: AxisAlignment = .min) -> any Geometry3D {
         precondition(amount > 0, "Extension amount must be positive")
 
         let normalVector = plane.normal.unitVector
@@ -130,10 +130,10 @@ public extension Geometry3D {
     /// ```swift
     /// // Make a 30mm tall cylinder into a 40mm one by extending at its midpoint
     /// Cylinder(diameter: 20, height: 30)
-    ///     .extending(.z, by: 10, at: 15)
+    ///     .extended(.z, by: 10, at: 15)
     /// ```
     ///
-    func extending(_ axis: Axis3D, by amount: Double, at position: Double, alignment: AxisAlignment = .min) -> any Geometry3D {
-        extending(at: Plane(perpendicularTo: axis, at: position), by: amount, alignment: alignment)
+    func extended(_ axis: Axis3D, by amount: Double, at position: Double, alignment: AxisAlignment = .min) -> any Geometry3D {
+        extended(at: Plane(perpendicularTo: axis, at: position), by: amount, alignment: alignment)
     }
 }
