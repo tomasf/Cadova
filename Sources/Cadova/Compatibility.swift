@@ -31,3 +31,34 @@ public extension Geometry3D {
         extended(axis, by: amount, at: position, alignment: alignment)
     }
 }
+
+public extension ParametricCurve {
+    @available(*, deprecated, renamed: "readingPoints(_:)")
+    func readPoints<D: Dimensionality>(
+        @GeometryBuilder<D> _ reader: @Sendable @escaping ([V]) -> D.Geometry
+    ) -> D.Geometry {
+        readingPoints(reader)
+    }
+
+    @available(*, deprecated, renamed: "readingSamples(_:)")
+    func readSamples<D: Dimensionality>(
+        @GeometryBuilder<D> _ reader: @Sendable @escaping ([CurveSample<V>]) -> D.Geometry
+    ) -> D.Geometry {
+        readingSamples(reader)
+    }
+
+    @available(*, deprecated, renamed: "readingSamples(at:_:)")
+    func readSamples<D: Dimensionality>(
+        at interval: CurveSampleInterval,
+        @GeometryBuilder<D> _ reader: @Sendable @escaping ([CurveSample<V>]) -> D.Geometry
+    ) -> D.Geometry {
+        readingSamples(at: interval, reader)
+    }
+}
+
+public extension Polygon {
+    @available(*, deprecated, renamed: "readingMetrics(_:)")
+    func readMetrics<D: Dimensionality>(@GeometryBuilder<D> _ reader: @Sendable @escaping (Metrics) -> D.Geometry) -> D.Geometry {
+        readingMetrics(reader)
+    }
+}

@@ -34,7 +34,7 @@ public extension ParametricCurve {
     ///   - reader: A closure that transforms points into a geometry value.
     /// - Returns: A constructed geometry object based on the sampled points.
     ///
-    func readPoints<D: Dimensionality>(
+    func readingPoints<D: Dimensionality>(
         @GeometryBuilder<D> _ reader: @Sendable @escaping ([V]) -> D.Geometry
     ) -> D.Geometry {
         readEnvironment { e in
@@ -48,7 +48,7 @@ public extension ParametricCurve {
     ///   - reader: A closure that transforms samples into a geometry value.
     /// - Returns: A constructed geometry object based on the samples.
     ///
-    func readSamples<D: Dimensionality>(
+    func readingSamples<D: Dimensionality>(
         @GeometryBuilder<D> _ reader: @Sendable @escaping ([CurveSample<V>]) -> D.Geometry
     ) -> D.Geometry {
         readEnvironment { e in
@@ -114,7 +114,7 @@ public extension ParametricCurve {
     ///   - reader: A closure that transforms the picked samples into a geometry value.
     /// - Returns: A constructed geometry object based on the picked samples.
     ///
-    func readSamples<D: Dimensionality>(
+    func readingSamples<D: Dimensionality>(
         at interval: CurveSampleInterval,
         @GeometryBuilder<D> _ reader: @Sendable @escaping ([CurveSample<V>]) -> D.Geometry
     ) -> D.Geometry {
