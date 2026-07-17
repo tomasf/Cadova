@@ -1,12 +1,5 @@
 import Foundation
 
-public extension Geometry2D {
-    @available(*, deprecated, renamed: "fillingHoles")
-    func filled() -> any Geometry2D {
-        fillingHoles()
-    }
-}
-
 public extension Geometry {
     @available(*, deprecated, renamed: "resized(_:in:to:alignment:)")
     @GeometryBuilder<D>
