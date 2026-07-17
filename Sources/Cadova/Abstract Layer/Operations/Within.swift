@@ -1,5 +1,10 @@
 import Foundation
 
+/// A range that can be used to bound a `within` clipping operation along a single axis.
+///
+/// This covers any standard `Range` expression over `Double`, including open, closed, partial, and infinite
+/// ranges (e.g. `0..<10`, `0...`, `...10`), as used by `within(_:along:)`, `within(x:y:)`, `within(x:y:z:)`,
+/// and the `within(x:y:do:)`/`within(x:y:z:do:)` region-operation variants.
 public typealias WithinRange = RangeExpression<Double> & Sendable
 
 public extension Geometry2D {
