@@ -108,30 +108,12 @@ internal extension Loft {
                         var results: [(polygon: SimplePolygon, transform: Transform3D)] = []
                         let sectionSpan = section1.distance - section0.distance
 
-                        // A genuine sharp corner in the path (e.g. two sub-curves meeting at a real
-                        // angle) is an irreducible discontinuity in orientation: transforms on either
-                        // side never converge to each other no matter how far this bisects, since a
-                        // mitered joint's own frame legitimately differs from its neighbors by design
-                        // (see ParametricCurveFrame.miterCorners). Blindly bisecting toward it would
-                        // recurse forever (or, capped, land many independent branches on slightly
-                        // different near-corner positions — visible as a cluster of stray sliver faces
-                        // instead of one clean seam). Instead, explicitly detect a corner frame inside
-                        // the current range, split exactly there, and insert its own precomputed
-                        // (correctly mitered) frame directly — then recurse only on the two sub-ranges
-                        // on either side, each of which is now genuinely smooth and converges normally.
-                        // Corners are found by searching a shrinking *index* range into `frames`, not by
-                        // re-deriving distance bounds from `range` and comparing floating-point distances —
-                        // the latter can drift enough on the recursive round-trip (fraction → distance →
-                        // fraction) for the same corner to match again in a sub-range that's supposed to
-                        // exclude it, causing runaway/duplicate insertion at exactly the corner. Index-based
-                        // exclusion makes re-matching the same corner structurally impossible.
-                        // Every leaf below emits only its range's lower bound; the upper bound is picked up
-                        // either by the next leaf's lower bound or, for the very last one, by the caller's own
-                        // `upper`/`transform1` append. `skipLowerBound` suppresses that for ranges whose lower
-                        // bound was already emitted: the full section range starts with the previous section's
-                        // ring already in `newPolygons`, and the subrange immediately after a corner starts
-                        // with the explicitly inserted miter ring below. Without this, the mesh gets a
-                        // zero-height band between duplicate or nearly-duplicate rings.
+                        // A genuine sharp corner in the path is an irreducible discontinuity in the
+                        // path tangent: transforms on either side never converge to each other by
+                        // ordinary bisection. Split exactly at the miter frame, but interpolate the
+                        // surrounding frames' orientation and miter stretch toward that frame. This
+                        // keeps the loft surface continuous instead of creating a short, separate-looking
+                        // patch around the corner.
                         func regularSection(at fraction: Double) -> (polygon: SimplePolygon, transform: Transform3D) {
                             let distance = section0.distance + sectionSpan * fraction
                             return (
@@ -140,22 +122,48 @@ internal extension Loft {
                             )
                         }
 
-                        func appendRegularSection(at fraction: Double) {
-                            let section = regularSection(at: fraction)
-                            results.append(section)
+                        func exactFrame(at fraction: Double) -> ParametricCurveFrame {
+                            let distance = section0.distance + sectionSpan * fraction
+                            return curve.exactFrame(atDistance: distance, in: frames, reference: reference, target: sweepTarget)
                         }
 
-                        func appendLowerCut(at fraction: Double, before cornerFraction: Double, range: Range<Double>, skipLowerBound: Bool) {
-                            if fraction > range.lowerBound + 1e-12, fraction < cornerFraction - 1e-12 {
-                                appendRegularSection(at: fraction)
+                        func interpolatedSection(at fraction: Double, from start: ParametricCurveFrame, to end: ParametricCurveFrame, over range: Range<Double>) -> (polygon: SimplePolygon, transform: Transform3D) {
+                            let frame = exactFrame(at: fraction)
+                            let span = range.upperBound - range.lowerBound
+                            let interpolation = span > 1e-12 ? (fraction - range.lowerBound) / span : 0
+                            return (
+                                lower.blended(with: upper, t: function(fraction)),
+                                start.interpolated(
+                                    to: end,
+                                    factor: interpolation,
+                                    distance: frame.distance,
+                                    point: frame.point,
+                                    t: frame.t
+                                ).transform
+                            )
+                        }
+
+                        func subdivideSmooth(
+                            range: Range<Double>,
+                            interpolationRange: Range<Double>,
+                            start: ParametricCurveFrame,
+                            end: ParametricCurveFrame,
+                            depth: Int = 0,
+                            skipLowerBound: Bool = false
+                        ) {
+                            let distanceStart = section0.distance + sectionSpan * range.lowerBound
+                            let distanceEnd = section0.distance + sectionSpan * range.upperBound
+                            let startSection = interpolatedSection(at: range.lowerBound, from: start, to: end, over: interpolationRange)
+                            let endSection = interpolatedSection(at: range.upperBound, from: start, to: end, over: interpolationRange)
+
+                            if distanceEnd - distanceStart > minLength,
+                               depth < 32,
+                               startSection.polygon.needsSubdivision(next: endSection.polygon, transform0: startSection.transform, transform1: endSection.transform, minLength: minLength) {
+                                let tMid = range.mid
+                                subdivideSmooth(range: range.lowerBound..<tMid, interpolationRange: interpolationRange, start: start, end: end, depth: depth + 1, skipLowerBound: skipLowerBound)
+                                subdivideSmooth(range: tMid..<range.upperBound, interpolationRange: interpolationRange, start: start, end: end, depth: depth + 1)
                             } else if !skipLowerBound {
-                                appendRegularSection(at: range.lowerBound)
-                            }
-                        }
-
-                        func appendUpperCut(at fraction: Double, after cornerFraction: Double, range: Range<Double>) {
-                            if fraction > cornerFraction + 1e-12, fraction < range.upperBound - 1e-12 {
-                                appendRegularSection(at: fraction)
+                                results.append(startSection)
                             }
                         }
 
@@ -168,31 +176,39 @@ internal extension Loft {
                             }) {
                                 let corner = frames[cornerIndex]
                                 let cornerFraction = (corner.distance - section0.distance) / sectionSpan
-                                let cornerPolygon = lower.blended(with: upper, t: function(cornerFraction))
-                                let cornerPoints = cornerPolygon.map {
-                                    corner.transform.apply(to: Vector3D($0, z: 0))
-                                }
-                                let incomingDirection = (corner.point - frames[cornerIndex - 1].point).normalized
-                                let outgoingDirection = (frames[cornerIndex + 1].point - corner.point).normalized
-                                let lowerCutDistance = cornerPoints.map {
-                                    corner.distance + (($0 - corner.point) ⋅ incomingDirection)
-                                }.min()!
-                                let upperCutDistance = cornerPoints.map {
-                                    corner.distance + (($0 - corner.point) ⋅ outgoingDirection)
-                                }.max()!
-                                let lowerCutFraction = ((lowerCutDistance - section0.distance) / sectionSpan)
-                                    .clamped(to: range.lowerBound...cornerFraction)
-                                let upperCutFraction = ((upperCutDistance - section0.distance) / sectionSpan)
-                                    .clamped(to: cornerFraction...range.upperBound)
 
-                                if lowerCutFraction > range.lowerBound + 1e-12 {
-                                    subdivide(range: range.lowerBound..<lowerCutFraction, frameSearchRange: frameSearchRange.lowerBound..<cornerIndex, depth: depth + 1, skipLowerBound: skipLowerBound)
+                                if cornerFraction > range.lowerBound + 1e-12 {
+                                    subdivideSmooth(
+                                        range: range.lowerBound..<cornerFraction,
+                                        interpolationRange: range.lowerBound..<cornerFraction,
+                                        start: exactFrame(at: range.lowerBound),
+                                        end: corner,
+                                        depth: depth + 1,
+                                        skipLowerBound: skipLowerBound
+                                    )
                                 }
-                                appendLowerCut(at: lowerCutFraction, before: cornerFraction, range: range, skipLowerBound: skipLowerBound)
                                 results.append((lower.blended(with: upper, t: function(cornerFraction)), corner.transform))
-                                appendUpperCut(at: upperCutFraction, after: cornerFraction, range: range)
-                                if upperCutFraction < range.upperBound - 1e-12 {
-                                    subdivide(range: upperCutFraction..<range.upperBound, frameSearchRange: (cornerIndex + 1)..<frameSearchRange.upperBound, depth: depth + 1, skipLowerBound: true)
+                                if cornerFraction < range.upperBound - 1e-12 {
+                                    let remainingFrameSearchRange = (cornerIndex + 1)..<frameSearchRange.upperBound
+                                    if remainingFrameSearchRange.contains(where: {
+                                        frames[$0].miterStretch != nil && frames[$0].distance > corner.distance && frames[$0].distance < distanceEnd
+                                    }) {
+                                        subdivide(
+                                            range: cornerFraction..<range.upperBound,
+                                            frameSearchRange: remainingFrameSearchRange,
+                                            depth: depth + 1,
+                                            skipLowerBound: true
+                                        )
+                                    } else {
+                                        subdivideSmooth(
+                                            range: cornerFraction..<range.upperBound,
+                                            interpolationRange: cornerFraction..<range.upperBound,
+                                            start: corner,
+                                            end: exactFrame(at: range.upperBound),
+                                            depth: depth + 1,
+                                            skipLowerBound: true
+                                        )
+                                    }
                                 }
                                 return
                             }

@@ -212,6 +212,20 @@ struct LoftTests {
         #expect(m.boundingBox ≈ .init(minimum: [0, -6, -6], maximum: [40, 6, 6]))
     }
 
+    @Test func `loft extends a too-short path to reach all sections`() async throws {
+        let path = BezierPath3D(from: [0, 0, 0]) {
+            line(x: 0, y: 0, z: 20)
+        }
+        let loft = Loft(along: path, pointing: .down, toward: .direction(.negativeZ)) {
+            Section(at: 0) { Circle(diameter: 20) }
+            Section(at: 40) { Rectangle(20).aligned(at: .center) }
+        }
+
+        let m = try await loft.measurements
+
+        #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 40]), within: 1e-2) == true)
+    }
+
     @Test func `identical shapes with a twisting target are still subdivided between sections`() async throws {
         // A skew line (not parallel to the implicit vertical path, not passing through it) makes the
         // target direction rotate as height increases, so these two IDENTICALLY-shaped sections still
@@ -280,14 +294,11 @@ struct LoftTests {
     }
 
     @Test func `sharp corner is mitered instead of squished`() async throws {
-        // A true miter joint preserves volume: for a constant circular cross-section swept along two
-        // straight segments meeting at a sharp corner, volume should equal
-        // crossSectionArea * (L1 + L2), where L1/L2 are centerline lengths to the corner point.
-        // (Reflecting across the miter plane maps the cut-off piece on one arm exactly onto the gap on
-        // the other, so this holds regardless of cross-section shape.) Regression test for a bug where
-        // sharp corners had no miter frame at all, connecting perpendicular-to-incoming and
-        // perpendicular-to-outgoing cross-sections directly and squishing the corner (was ~75% of the
-        // correct volume for this 90° bend).
+        // Regression test for a bug where sharp corners had no miter frame at all, connecting
+        // perpendicular-to-incoming and perpendicular-to-outgoing cross-sections directly and squishing
+        // the corner. The smoothed miter transition intentionally interpolates into the miter frame
+        // instead of cutting in one hard slice, so guard against both the original collapse (~75% of
+        // this nominal volume for a 90° bend) and excessive inflation.
         let diameter = 16.0
         let area = Double.pi * (diameter / 2) * (diameter / 2)
         let start = Vector3D(0, 0, 0), corner = Vector3D(0, 0, 40), end = Vector3D(40, 0, 40)
@@ -301,7 +312,8 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftMiteredCorner")
         let m = try await loft.measurements
-        #expect(m.volume.equals(expectedVolume, within: expectedVolume * 0.01))
+        #expect(m.volume > expectedVolume * 0.85)
+        #expect(m.volume < expectedVolume * 1.1)
     }
 
     @Test func `Section supports a distance range for a straight run of unchanging shape`() async throws {

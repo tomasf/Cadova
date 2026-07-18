@@ -53,7 +53,7 @@ struct LoftCornerRegressionTests {
         #expect(cornerOffsets.count == 1)
     }
 
-    @Test func `mitered loft corners skip regular rings inside the oblique cut interval`() throws {
+    @Test func `mitered loft corners interpolate regular rings into the oblique miter frame`() throws {
         let path = BezierPath3D(from: [0, 0, 0]) {
             line(x: 0, y: 0, z: 20)
             curve(controlX: 10, controlY: 0, controlZ: 30, endX: 20, endY: 0, endZ: 40)
@@ -108,8 +108,20 @@ struct LoftCornerRegressionTests {
         let nextOffset = transforms[transforms.index(after: miterIndex)].offset
         let previousClearance = (cornerPoint - previousOffset).magnitude
         let nextClearance = (nextOffset - cornerPoint).magnitude
+        #expect(previousClearance < incomingClearance)
+        #expect(nextClearance < outgoingClearance)
 
-        #expect(previousClearance >= incomingClearance - 1e-7)
-        #expect(nextClearance >= outgoingClearance - 1e-7)
+        func zAxis(of transform: Transform3D) -> Vector3D {
+            (transform.apply(to: Vector3D(z: 1)) - transform.offset).normalized
+        }
+
+        let previousZ = zAxis(of: transforms[transforms.index(before: miterIndex)])
+        let miterZ = zAxis(of: transforms[miterIndex])
+        let nextZ = zAxis(of: transforms[transforms.index(after: miterIndex)])
+
+        #expect(previousZ.x > 0)
+        #expect(previousZ.x < miterZ.x)
+        #expect(nextZ.x > miterZ.x)
+        #expect(nextZ.x < outgoingDirection.x)
     }
 }

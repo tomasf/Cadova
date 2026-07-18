@@ -36,7 +36,12 @@ fileprivate struct LoftVisualization: Shape3D {
 
         Union {
             for (index, section) in sections.enumerated() {
-                let transform = frames.binarySearchInterpolate(target: section.distance, key: \.distance, result: \.transform)
+                let transform = path.curve.exactFrame(
+                    atDistance: section.distance,
+                    in: frames,
+                    reference: reference,
+                    target: target
+                ).transform
                 section.geometry()
                     .extruded(height: thickness)
                     .translated(z: -thickness / 2)

@@ -42,6 +42,13 @@ internal extension ParametricCurve<Vector3D> {
         reference: Direction2D,
         target: ReferenceTarget
     ) -> ParametricCurveFrame {
+        if let first = frames.first, distance < first.distance {
+            return first.continued(toDistance: distance, along: self)
+        }
+        if let last = frames.last, distance > last.distance {
+            return last.continued(toDistance: distance, along: self)
+        }
+
         let (lowerIndex, fraction) = frames.binarySearch(target: distance, key: \.distance)
         let lower = frames[lowerIndex]
         guard fraction > 1e-12, lowerIndex + 1 < frames.count else { return lower }
@@ -114,6 +121,48 @@ struct ParametricCurveFrame {
     /// miter slice so a swept surface maintains constant width through the corner instead of pinching.
     var miterStretch: (direction: Vector3D, factor: Double)?
 
+    init(
+        t: Double,
+        distance: Double,
+        point: Vector3D,
+        xAxis: Vector3D,
+        yAxis: Vector3D,
+        zAxis: Vector3D,
+        angle: Angle?,
+        miterStretch: (direction: Vector3D, factor: Double)?
+    ) {
+        self.t = t
+        self.distance = distance
+        self.point = point
+        self.xAxis = xAxis
+        self.yAxis = yAxis
+        self.zAxis = zAxis
+        self.angle = angle
+        self.miterStretch = miterStretch
+    }
+
+    func interpolated(to other: Self, factor rawFactor: Double, distance: Double, point: Vector3D, t: Double) -> Self {
+        let factor = rawFactor.clamped(to: 0...1)
+        let rotation = Transform3D.partialRotation(from: zAxis, to: other.zAxis, factor: factor)
+        let interpolatedAngle: Angle?
+        if let angle, let otherAngle = other.angle {
+            interpolatedAngle = angle + (otherAngle - angle).normalized * factor
+        } else {
+            interpolatedAngle = angle ?? other.angle
+        }
+
+        return Self(
+            t: t,
+            distance: distance,
+            point: point,
+            xAxis: rotation.apply(to: xAxis).normalized,
+            yAxis: rotation.apply(to: yAxis).normalized,
+            zAxis: rotation.apply(to: zAxis).normalized,
+            angle: interpolatedAngle,
+            miterStretch: miterStretch.interpolated(to: other.miterStretch, factor: factor)
+        )
+    }
+
     init(sample: CurveSample<Vector3D>, reference: Direction2D, target: ReferenceTarget, previousSample: Self?) {
         self.t = sample.u
         self.distance = sample.distance
@@ -180,6 +229,21 @@ struct ParametricCurveFrame {
 }
 
 private extension ParametricCurveFrame {
+    func continued(toDistance distance: Double, along curve: any ParametricCurve<Vector3D>) -> Self {
+        let base = frameForContinuingPastCorner(curve: curve)
+        let offset = base.zAxis * (distance - base.distance)
+        return Self(
+            t: base.t,
+            distance: distance,
+            point: base.point + offset,
+            xAxis: base.xAxis,
+            yAxis: base.yAxis,
+            zAxis: base.zAxis,
+            angle: base.angle,
+            miterStretch: nil
+        )
+    }
+
     func frameForContinuingPastCorner(curve: any ParametricCurve<Vector3D>) -> Self {
         guard miterStretch != nil else { return self }
 
@@ -191,6 +255,48 @@ private extension ParametricCurveFrame {
         frame.zAxis = tangent
         frame.miterStretch = nil
         return frame
+    }
+}
+
+private extension Optional where Wrapped == (direction: Vector3D, factor: Double) {
+    func interpolated(to other: Self, factor: Double) -> Self {
+        switch (self, other) {
+        case (.none, .none):
+            return nil
+        case (.some(let stretch), .none):
+            return miterStretch(direction: stretch.direction, factor: 1 + (stretch.factor - 1) * (1 - factor))
+        case (.none, .some(let stretch)):
+            return miterStretch(direction: stretch.direction, factor: 1 + (stretch.factor - 1) * factor)
+        case (.some(let stretch), .some(let otherStretch)):
+            return (
+                direction: (stretch.direction * (1 - factor) + otherStretch.direction * factor).normalized,
+                factor: stretch.factor + (otherStretch.factor - stretch.factor) * factor
+            )
+        }
+    }
+
+    private func miterStretch(direction: Vector3D, factor: Double) -> Self {
+        guard abs(factor - 1) > 1e-12 else { return nil }
+        return (direction: direction, factor: factor)
+    }
+}
+
+private extension Transform3D {
+    static func partialRotation(from: Vector3D, to: Vector3D, factor: Double) -> Transform3D {
+        let from = from.normalized
+        let to = to.normalized
+        let dot = (from ⋅ to).clamped(to: -1...1)
+        let cross = from × to
+
+        if cross.magnitude < 1e-12 {
+            if dot > 0 { return .identity }
+            let perpendicular = abs(from.x) < 0.9
+                ? from × Vector3D(1, 0, 0)
+                : from × Vector3D(0, 1, 0)
+            return .rotation(angle: 180° * factor, around: Direction3D(perpendicular))
+        }
+
+        return .rotation(angle: acos(dot) * factor, around: Direction3D(cross))
     }
 }
 
