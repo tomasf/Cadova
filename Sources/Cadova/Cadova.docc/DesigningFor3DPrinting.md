@@ -13,7 +13,12 @@ Circular holes and pillars are a common source of unsupported overhangs: printed
 ```swift
 Cylinder(diameter: 10, height: 20)
     .overhangSafe(.teardrop)
+    .rotated(y: 90°)
 ```
+
+![A horizontal cylinder with a teardrop-shaped end instead of a circular one](designing-for-3d-printing-overhang-safe)
+
+The rotation matters here: relief is added within the circle's own plane, so it only has an effect when that plane contains the up direction — as it does once the cylinder is lying on its side. A cylinder left standing upright, with its circular faces already horizontal, has nothing to fix and `.overhangSafe(_:)` leaves it unchanged.
 
 Two relief methods are available:
 
@@ -40,6 +45,8 @@ Box(x: 20, y: 20, z: 10)
     .withCircularOverhangMethod(.bridge)
 ```
 
+![A centered box with a horizontal, overhang-safe hole through its middle](designing-for-3d-printing-overhang-hole)
+
 Here the box is centered on the origin, and the hole is drilled horizontally through its middle rather than straight up, the situation `.overhangSafe()` actually exists for, since the top of a horizontal hole is exactly the kind of unsupported overhang FDM printers struggle with. `.overhangSafe()` must be called directly on the `Cylinder` before any alignment or rotation, since it's specific to that type, but the relief it adds still comes out correctly oriented after the subsequent `.rotated(y: 90°)`, because the direction it extends in is resolved from the environment's `naturalUpDirection` at build time, which accounts for every transform applied above it in the tree, regardless of chain order.
 
 `overhangAngle` defaults to 45°, a safe value for most FDM printers.
@@ -52,6 +59,8 @@ Sharp overhanging edges can use the same idea. For an additive shape sitting on 
 Box(x: 20, y: 20, z: 10)
     .cuttingEdgeProfile(.overhangFillet(radius: 3), on: .bottom)
 ```
+
+![A box with a self-supporting, teardrop-shaped fillet along its bottom edge](designing-for-3d-printing-overhang-fillet)
 
 This is a drop-in replacement for `.fillet(radius:)` anywhere the resulting edge will be printed as an unsupported overhang, such as the bottom rim of a box sitting directly on the print bed.
 

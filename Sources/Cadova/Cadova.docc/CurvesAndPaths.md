@@ -89,6 +89,8 @@ let path = BezierPath2D(startPoint: [0, 0])
 path.filled()
 ```
 
+![The filled interior of a self-intersecting cubic Bezier curve](curves-and-paths-filled)
+
 This works for any of the curve types described above, not just `BezierPath` — `InterpolatingCurve<Vector2D>` and `SplineCurve<Vector2D>` can be filled the same way.
 
 A curve doesn't need to be closed to become geometry, either. `.stroked(width:alignment:style:)` samples the curve into a polyline and expands it into a filled outline of the given thickness — useful for open paths like a wire or a routed channel, where `.filled()` wouldn't make sense:
@@ -96,6 +98,8 @@ A curve doesn't need to be closed to become geometry, either. `.stroked(width:al
 ```swift
 path.stroked(width: 2, style: .round)
 ```
+
+![The same curve, stroked with a round cap and rounded joins](curves-and-paths-stroked)
 
 `alignment` controls whether the stroke is centered on the curve or offset to one side, and `style` controls how corners are joined (`.miter`, `.round`, or `.bevel`).
 
@@ -107,6 +111,8 @@ path.stroked(width: 2, style: .round)
 Circle(diameter: 4)
     .swept(along: path, pointing: .down, toward: .direction(.negativeZ))
 ```
+
+![A circle swept along a bent 3D path, forming a bent pipe](curves-and-paths-swept)
 
 Because the shape can rotate freely as it travels along the path, Cadova needs to know how to orient it at each point and that's what `pointing` and `toward` control:
 
@@ -130,6 +136,8 @@ Loft(interpolation: .easeInOut) {
 }
 ```
 
+![A loft transitioning from a circle to a square](curves-and-paths-loft)
+
 Each `Section(at:)` specifies a distance and a 2D shape. With no explicit path, sections stack along an implicit straight vertical (Z) axis, and the distance is simply the Z height — as in the example above. All sections must have compatible topology: the same number of top-level shapes, with the same number of holes in each, and so on.
 
 By default, adjacent sections are connected by resampling and interpolating between their outlines, using a ``ShapingFunction`` to control the pacing — `.linear`, `.easeInOut`, `.smootherstep`, and more are available. This is set for the whole loft via `interpolation`, and can be overridden per section.
@@ -148,6 +156,8 @@ Loft(along: path, pointing: .down, toward: .direction(.negativeZ)) {
     }
 }
 ```
+
+![A loft from a circle to a square, following the same bent path](curves-and-paths-loft-path)
 
 ## Related Reading
 
