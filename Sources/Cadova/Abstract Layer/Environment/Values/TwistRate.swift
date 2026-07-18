@@ -37,7 +37,7 @@ public extension Geometry {
     ///
     /// ```swift
     /// Rectangle(5)
-    ///   .swept(along: path)
+    ///   .swept(along: path, pointing: .down, toward: .direction(.negativeZ))
     ///   .withMaxTwistRate(1°)
     /// ```
     ///

@@ -29,6 +29,8 @@ Cadova is a Swift library for constructing 3D models programmatically — with a
 
 ### Guides
 
+- <doc:CurvesAndPaths>
+- <doc:DesigningFor3DPrinting>
 - <doc:WorkingWithParts>
 - <doc:Examples>
 

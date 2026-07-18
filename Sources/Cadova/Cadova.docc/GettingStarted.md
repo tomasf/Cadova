@@ -68,7 +68,7 @@ To speed up the setup of a new model package, you can use the [template GitHub r
 
 ## Organize your output with `Project`
 
-As your package grows to include more than one model, it's nice to keep generated files together. ``Project`` groups multiple models under a shared output directory, and `packageRelative` points that directory at a path relative to your package root. This also means files show up in a predictable location within your package folder. In Xcode, the generated models appear right in the project navigator sidebar, making them easy to find and open.
+As your package grows to include more than one model, it's nice to keep generated files together. `Project` groups multiple models under a shared output directory, and `packageRelative` points that directory at a path relative to your package root. This also means files show up in a predictable location within your package folder. In Xcode, the generated models appear right in the project navigator sidebar, making them easy to find and open.
 
 ```swift
 import Cadova
