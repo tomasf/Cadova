@@ -37,7 +37,10 @@ extension Loft {
                 miteringCorners: true
             )
 
-            let geometry = await Loft.resampledLoft(resamplingSections: resamplingSections, frames: frames, in: environment, context: context)
+            let geometry = await Loft.resampledLoft(
+                resamplingSections: resamplingSections, frames: frames, curve: path.curve,
+                reference: reference, target: target, in: environment, context: context
+            )
             return try await context.result(for: geometry, in: environment).concrete
         }
 

@@ -53,13 +53,16 @@ internal extension Loft {
         for polygonGroups: [SimplePolygonList],
         sections: [ResamplingSection],
         frames: [ParametricCurveFrame],
+        curve: any ParametricCurve<Vector3D>,
+        reference: Direction2D,
+        target sweepTarget: ReferenceTarget,
         environment: EnvironmentValues
     ) -> [(polygons: SimplePolygonList, transforms: [Transform3D])] {
         let segmentation = environment.scaledSegmentation
         var refinedGroups: [(polygons: SimplePolygonList, transforms: [Transform3D])] = []
 
         func transform(atDistance distance: Double) -> Transform3D {
-            frames.binarySearchInterpolate(target: distance, key: \.distance, result: \.transform)
+            curve.exactFrame(atDistance: distance, in: frames, reference: reference, target: sweepTarget).transform
         }
 
         for polygons in polygonGroups {
@@ -103,25 +106,114 @@ internal extension Loft {
 
                     case .adaptive(_, let minLength):
                         var results: [(polygon: SimplePolygon, transform: Transform3D)] = []
+                        let sectionSpan = section1.distance - section0.distance
 
-                        func subdivide(range: Range<Double>) {
-                            let distanceStart = section0.distance + (section1.distance - section0.distance) * range.lowerBound
-                            let distanceEnd = section0.distance + (section1.distance - section0.distance) * range.upperBound
+                        // A genuine sharp corner in the path (e.g. two sub-curves meeting at a real
+                        // angle) is an irreducible discontinuity in orientation: transforms on either
+                        // side never converge to each other no matter how far this bisects, since a
+                        // mitered joint's own frame legitimately differs from its neighbors by design
+                        // (see ParametricCurveFrame.miterCorners). Blindly bisecting toward it would
+                        // recurse forever (or, capped, land many independent branches on slightly
+                        // different near-corner positions — visible as a cluster of stray sliver faces
+                        // instead of one clean seam). Instead, explicitly detect a corner frame inside
+                        // the current range, split exactly there, and insert its own precomputed
+                        // (correctly mitered) frame directly — then recurse only on the two sub-ranges
+                        // on either side, each of which is now genuinely smooth and converges normally.
+                        // Corners are found by searching a shrinking *index* range into `frames`, not by
+                        // re-deriving distance bounds from `range` and comparing floating-point distances —
+                        // the latter can drift enough on the recursive round-trip (fraction → distance →
+                        // fraction) for the same corner to match again in a sub-range that's supposed to
+                        // exclude it, causing runaway/duplicate insertion at exactly the corner. Index-based
+                        // exclusion makes re-matching the same corner structurally impossible.
+                        // Every leaf below emits only its range's lower bound; the upper bound is picked up
+                        // either by the next leaf's lower bound or, for the very last one, by the caller's own
+                        // `upper`/`transform1` append. `skipLowerBound` suppresses that for ranges whose lower
+                        // bound was already emitted: the full section range starts with the previous section's
+                        // ring already in `newPolygons`, and the subrange immediately after a corner starts
+                        // with the explicitly inserted miter ring below. Without this, the mesh gets a
+                        // zero-height band between duplicate or nearly-duplicate rings.
+                        func regularSection(at fraction: Double) -> (polygon: SimplePolygon, transform: Transform3D) {
+                            let distance = section0.distance + sectionSpan * fraction
+                            return (
+                                lower.blended(with: upper, t: function(fraction)),
+                                transform(atDistance: distance)
+                            )
+                        }
+
+                        func appendRegularSection(at fraction: Double) {
+                            let section = regularSection(at: fraction)
+                            results.append(section)
+                        }
+
+                        func appendLowerCut(at fraction: Double, before cornerFraction: Double, range: Range<Double>, skipLowerBound: Bool) {
+                            if fraction > range.lowerBound + 1e-12, fraction < cornerFraction - 1e-12 {
+                                appendRegularSection(at: fraction)
+                            } else if !skipLowerBound {
+                                appendRegularSection(at: range.lowerBound)
+                            }
+                        }
+
+                        func appendUpperCut(at fraction: Double, after cornerFraction: Double, range: Range<Double>) {
+                            if fraction > cornerFraction + 1e-12, fraction < range.upperBound - 1e-12 {
+                                appendRegularSection(at: fraction)
+                            }
+                        }
+
+                        func subdivide(range: Range<Double>, frameSearchRange: Range<Int>, depth: Int = 0, skipLowerBound: Bool = false) {
+                            let distanceStart = section0.distance + sectionSpan * range.lowerBound
+                            let distanceEnd = section0.distance + sectionSpan * range.upperBound
+
+                            if let cornerIndex = frames[frameSearchRange].firstIndex(where: {
+                                $0.miterStretch != nil && $0.distance > distanceStart && $0.distance < distanceEnd
+                            }) {
+                                let corner = frames[cornerIndex]
+                                let cornerFraction = (corner.distance - section0.distance) / sectionSpan
+                                let cornerPolygon = lower.blended(with: upper, t: function(cornerFraction))
+                                let cornerPoints = cornerPolygon.map {
+                                    corner.transform.apply(to: Vector3D($0, z: 0))
+                                }
+                                let incomingDirection = (corner.point - frames[cornerIndex - 1].point).normalized
+                                let outgoingDirection = (frames[cornerIndex + 1].point - corner.point).normalized
+                                let lowerCutDistance = cornerPoints.map {
+                                    corner.distance + (($0 - corner.point) ⋅ incomingDirection)
+                                }.min()!
+                                let upperCutDistance = cornerPoints.map {
+                                    corner.distance + (($0 - corner.point) ⋅ outgoingDirection)
+                                }.max()!
+                                let lowerCutFraction = ((lowerCutDistance - section0.distance) / sectionSpan)
+                                    .clamped(to: range.lowerBound...cornerFraction)
+                                let upperCutFraction = ((upperCutDistance - section0.distance) / sectionSpan)
+                                    .clamped(to: cornerFraction...range.upperBound)
+
+                                if lowerCutFraction > range.lowerBound + 1e-12 {
+                                    subdivide(range: range.lowerBound..<lowerCutFraction, frameSearchRange: frameSearchRange.lowerBound..<cornerIndex, depth: depth + 1, skipLowerBound: skipLowerBound)
+                                }
+                                appendLowerCut(at: lowerCutFraction, before: cornerFraction, range: range, skipLowerBound: skipLowerBound)
+                                results.append((lower.blended(with: upper, t: function(cornerFraction)), corner.transform))
+                                appendUpperCut(at: upperCutFraction, after: cornerFraction, range: range)
+                                if upperCutFraction < range.upperBound - 1e-12 {
+                                    subdivide(range: upperCutFraction..<range.upperBound, frameSearchRange: (cornerIndex + 1)..<frameSearchRange.upperBound, depth: depth + 1, skipLowerBound: true)
+                                }
+                                return
+                            }
+
                             let transformStart = transform(atDistance: distanceStart)
                             let transformEnd = transform(atDistance: distanceEnd)
                             let pStart = lower.blended(with: upper, t: function(range.lowerBound))
                             let pEnd = lower.blended(with: upper, t: function(range.upperBound))
 
-                            if pStart.needsSubdivision(next: pEnd, transform0: transformStart, transform1: transformEnd, minLength: minLength) {
+                            if distanceEnd - distanceStart > minLength,
+                               depth < 32,
+                               pStart.needsSubdivision(next: pEnd, transform0: transformStart, transform1: transformEnd, minLength: minLength) {
                                 let tMid = range.mid
-                                subdivide(range: range.lowerBound..<tMid)
-                                subdivide(range: tMid..<range.upperBound)
-                            } else {
+                                subdivide(range: range.lowerBound..<tMid, frameSearchRange: frameSearchRange, depth: depth + 1, skipLowerBound: skipLowerBound)
+                                subdivide(range: tMid..<range.upperBound, frameSearchRange: frameSearchRange, depth: depth + 1)
+                            } else if !skipLowerBound {
                                 results.append((pStart, transformStart))
                             }
                         }
 
-                        subdivide(range: 0..<1)
+                        subdivide(range: 0..<1, frameSearchRange: frames.indices, skipLowerBound: true)
                         interpolatedSections = results
                     }
                 }

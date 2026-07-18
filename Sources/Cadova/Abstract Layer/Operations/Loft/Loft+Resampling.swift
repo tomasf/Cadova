@@ -15,7 +15,15 @@ internal extension Loft {
         }
     }
 
-    static func resampledLoft(resamplingSections: [ResamplingSection], frames: [ParametricCurveFrame], in environment: EnvironmentValues, context: EvaluationContext) async -> any Geometry3D {
+    static func resampledLoft(
+        resamplingSections: [ResamplingSection],
+        frames: [ParametricCurveFrame],
+        curve: any ParametricCurve<Vector3D>,
+        reference: Direction2D,
+        target: ReferenceTarget,
+        in environment: EnvironmentValues,
+        context: EvaluationContext
+    ) async -> any Geometry3D {
         // Find segments that use convex hull transitions
         var convexHullSegments: [(lowerIndex: Int, upperIndex: Int)] = []
         var interpolatedRanges: [Range<Int>] = []
@@ -44,7 +52,10 @@ internal extension Loft {
         for range in interpolatedRanges {
             if range.count >= 2 {
                 let segmentSections = Array(resamplingSections[range])
-                let geometry = await resampledLoftSegment(resamplingSections: segmentSections, frames: frames, in: environment)
+                let geometry = await resampledLoftSegment(
+                    resamplingSections: segmentSections, frames: frames, curve: curve,
+                    reference: reference, target: target, in: environment
+                )
                 geometries.append(geometry)
             }
         }
@@ -53,24 +64,34 @@ internal extension Loft {
         for (lowerIndex, upperIndex) in convexHullSegments {
             let lowerSection = resamplingSections[lowerIndex]
             let upperSection = resamplingSections[upperIndex]
-            let geometry = convexHullSegment(lower: lowerSection, upper: upperSection, frames: frames)
+            let geometry = convexHullSegment(
+                lower: lowerSection, upper: upperSection, frames: frames,
+                curve: curve, reference: reference, target: target
+            )
             geometries.append(geometry)
         }
 
         return Union(geometries)
     }
 
-    private static func convexHullSegment(lower: ResamplingSection, upper: ResamplingSection, frames: [ParametricCurveFrame]) -> any Geometry3D {
+    private static func convexHullSegment(
+        lower: ResamplingSection, upper: ResamplingSection, frames: [ParametricCurveFrame],
+        curve: any ParametricCurve<Vector3D>, reference: Direction2D, target: ReferenceTarget
+    ) -> any Geometry3D {
         // Collect all vertices from both sections at their respective path transforms
-        let lowerTransform = frames.binarySearchInterpolate(target: lower.distance, key: \.distance, result: \.transform)
-        let upperTransform = frames.binarySearchInterpolate(target: upper.distance, key: \.distance, result: \.transform)
+        let lowerTransform = curve.exactFrame(atDistance: lower.distance, in: frames, reference: reference, target: target).transform
+        let upperTransform = curve.exactFrame(atDistance: upper.distance, in: frames, reference: reference, target: target).transform
         let lowerPoints = lower.tree.flattened().vertices(transformedBy: lowerTransform)
         let upperPoints = upper.tree.flattened().vertices(transformedBy: upperTransform)
         let allPoints = lowerPoints + upperPoints
         return allPoints.convexHull()
     }
 
-    private static func resampledLoftSegment(resamplingSections: [ResamplingSection], frames: [ParametricCurveFrame], in environment: EnvironmentValues) async -> any Geometry3D {
+    private static func resampledLoftSegment(
+        resamplingSections: [ResamplingSection], frames: [ParametricCurveFrame],
+        curve: any ParametricCurve<Vector3D>, reference: Direction2D, target: ReferenceTarget,
+        in environment: EnvironmentValues
+    ) async -> any Geometry3D {
         var groups = buildPolygonGroups(sectionTrees: resamplingSections.map(\.tree))
 
         for (index, groupPolygons) in groups.enumerated() {
@@ -87,7 +108,10 @@ internal extension Loft {
             groups[index] = newPolygons
         }
 
-        let interpolatedGroups = Self.interpolatePolygonGroups(for: groups, sections: resamplingSections, frames: frames, environment: environment)
+        let interpolatedGroups = Self.interpolatePolygonGroups(
+            for: groups, sections: resamplingSections, frames: frames,
+            curve: curve, reference: reference, target: target, environment: environment
+        )
         return Mesh(polygonGroups: interpolatedGroups)
             .simplified()
     }
