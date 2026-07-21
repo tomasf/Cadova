@@ -32,10 +32,16 @@ struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
         self = try JSONDecoder().decode(Self.self, from: Data(contentsOf: url))
     }
 
+    var jsonString: String {
+        get throws {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+            return String(decoding: try encoder.encode(self), as: UTF8.self)
+        }
+    }
+
     func write(to url: URL) throws {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-        try encoder.encode(self).write(to: url)
+        try Data(jsonString.utf8).write(to: url)
     }
 }
 

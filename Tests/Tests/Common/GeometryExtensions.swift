@@ -118,6 +118,12 @@ extension Geometry {
         let computedGoldenRecord = GoldenRecord(result: result)
         let goldenRecord = try GoldenRecord<D>(url: URL(goldenFileNamed: name, extension: "json"))
 
+        if !(computedGoldenRecord ≈ goldenRecord) {
+            let baseName = name.replacingOccurrences(of: "/", with: "_")
+            Attachment.record(try computedGoldenRecord.jsonString, named: "\(baseName)-actual.json")
+            Attachment.record(try goldenRecord.jsonString, named: "\(baseName)-expected.json")
+        }
+
         #expect(computedGoldenRecord ≈ goldenRecord)
     }
 
