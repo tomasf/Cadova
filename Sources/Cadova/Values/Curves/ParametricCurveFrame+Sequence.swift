@@ -73,7 +73,7 @@ extension [ParametricCurveFrame] {
             // Below this, treat it as ordinary curve sampling noise rather than a real corner: on a
             // smoothly-sampled curve, adjacent frames differ by a tiny fraction of a degree and this
             // would otherwise fire on nearly every frame, not just genuine direction changes. Loft's
-            // adaptive subdivision (see Loft+PolygonGroups.interpolatePolygonGroups) also keys off
+            // adaptive subdivision (see Loft+PolygonGroupInterpolation.interpolatePolygonGroups) also keys off
             // `miterStretch` being set only at real corners to know where to split cleanly.
             guard cosHalfAngle < 0.999 else { continue }
 

@@ -54,7 +54,7 @@ internal extension ParametricCurve<Vector3D> {
         }
         // miterStretch is a compensation for the corner frame's own oblique miter slice, not a property
         // of the surrounding curve — it must not carry over to genuinely interpolated points away from the
-        // corner. `Loft`'s corner handling (see Loft+PolygonGroups.interpolatePolygonGroups) already
+        // corner. `Loft`'s corner handling (see Loft+PolygonGroupInterpolation.interpolatePolygonGroups) already
         // inserts the corner's own frame (with its stretch) directly at its exact distance, so any point
         // reached through this function is by construction away from the corner and needs none.
         return frame
