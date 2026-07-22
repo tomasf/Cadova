@@ -8,15 +8,8 @@ import Foundation
 /// regardless of how many segments the edge has.
 ///
 internal enum EdgeToolSweep {
-    /// How far the cross-section extends past the body's faces, ensuring boolean operations
-    /// cross the surfaces cleanly instead of leaving coplanar slivers.
-    static let faceOvershoot = 1e-3
-
     /// How far behind the edge apex the cross-section closes, as a fraction of the shape's setback.
     static let apexOvershootFraction = 0.25
-
-    /// The most a miter projection is allowed to stretch a cross-section, limiting extreme joints.
-    private static let maxMiterStretch = 4.0
 
     /// The most a chain's tangent setback is allowed to exceed its own span, limiting how far a
     /// tool can reach past a degenerate edge. A fillet's setback (radius / tan(wedgeAngle/2))
@@ -58,14 +51,6 @@ internal enum EdgeToolSweep {
         let geometry: any Geometry3D
         let startSectionPoints: [Vector3D]
         let endSectionPoints: [Vector3D]
-    }
-
-    /// The cross-section frame of one segment: right-handed with Z along the segment,
-    /// X pointing into the wedge being modified. Cross-sections are constant along a segment.
-    private struct SegmentBasis {
-        let xAxis: Vector3D
-        let yAxis: Vector3D
-        let wedgeAngle: Angle
     }
 
     /// Returns the swept tool solid for the given edge, or nil if the edge is degenerate.
@@ -338,171 +323,5 @@ internal enum EdgeToolSweep {
             startSectionPoints: rings[0],
             endSectionPoints: rings[ringCount - 1]
         )
-    }
-
-    // MARK: - Retraction
-
-    /// Shortens an open chain from its ends, dropping fully consumed segments and trimming
-    /// the remainder — retractions routinely exceed individual segment lengths on finely
-    /// segmented curved chains. Chains too short to retract keep their flush ends.
-    private static func retracted(_ segments: [EdgeSegment], start: Double, end: Double) -> [EdgeSegment] {
-        guard start > 0 || end > 0 else { return segments }
-        let totalLength = segments.reduce(0) { $0 + $1.length }
-        guard start + end < totalLength * 0.9 else { return segments }
-
-        var result = segments[...]
-
-        var remaining = start
-        while let first = result.first, remaining >= first.length - 1e-9 {
-            remaining -= first.length
-            result.removeFirst()
-        }
-        if remaining > 0, let first = result.first {
-            result[result.startIndex] = EdgeSegment(
-                start: first.start + first.direction.unitVector * remaining,
-                end: first.end,
-                leftFaceNormal: first.leftFaceNormal,
-                rightFaceNormal: first.rightFaceNormal
-            )
-        }
-
-        remaining = end
-        while let last = result.last, remaining >= last.length - 1e-9 {
-            remaining -= last.length
-            result.removeLast()
-        }
-        if remaining > 0, let last = result.last {
-            result[result.endIndex - 1] = EdgeSegment(
-                start: last.start,
-                end: last.end - last.direction.unitVector * remaining,
-                leftFaceNormal: last.leftFaceNormal,
-                rightFaceNormal: last.rightFaceNormal
-            )
-        }
-
-        return Array(result)
-    }
-
-    /// Splits segments at the given arc-length positions along the chain, so that rings can
-    /// exist there. Positions outside an open chain are ignored; positions on a closed chain
-    /// wrap around. Cuts landing within a small tolerance of an existing joint are skipped.
-    private static func subdivided(
-        _ segments: [EdgeSegment],
-        atArcPositions positions: [Double],
-        isClosed: Bool,
-        chainLength: Double
-    ) -> [EdgeSegment] {
-        let cuts: [Double] = positions.compactMap { position in
-            if isClosed {
-                let wrapped = position.truncatingRemainder(dividingBy: chainLength)
-                return wrapped < 0 ? wrapped + chainLength : wrapped
-            } else {
-                return (position > 0 && position < chainLength) ? position : nil
-            }
-        }.sorted()
-
-        var result: [EdgeSegment] = []
-        var segmentStart = 0.0
-        var cutIndex = 0
-        for segment in segments {
-            let segmentEnd = segmentStart + segment.length
-            var pieceStart = segment.start
-            var pieceArc = segmentStart
-            while cutIndex < cuts.count, cuts[cutIndex] < segmentEnd - 1e-6 {
-                let cut = cuts[cutIndex]
-                cutIndex += 1
-                guard cut > pieceArc + 1e-6 else { continue }
-                let point = segment.start + segment.direction.unitVector * (cut - segmentStart)
-                result.append(EdgeSegment(
-                    start: pieceStart, end: point,
-                    leftFaceNormal: segment.leftFaceNormal, rightFaceNormal: segment.rightFaceNormal
-                ))
-                pieceStart = point
-                pieceArc = cut
-            }
-            result.append(EdgeSegment(
-                start: pieceStart, end: segment.end,
-                leftFaceNormal: segment.leftFaceNormal, rightFaceNormal: segment.rightFaceNormal
-            ))
-            segmentStart = segmentEnd
-        }
-        return result
-    }
-
-    // MARK: - Segment frames
-
-    /// The in-plane directions pointing away from the edge along each of the segment's faces.
-    static func faceRays(of segment: EdgeSegment) -> (left: Vector3D, right: Vector3D) {
-        let direction = segment.direction.unitVector
-        return (
-            left: segment.leftFaceNormal.unitVector × direction,
-            right: direction × segment.rightFaceNormal.unitVector
-        )
-    }
-
-    private static func basis(for segment: EdgeSegment) -> SegmentBasis? {
-        let rays = faceRays(of: segment)
-        let bisector = rays.left + rays.right
-        guard bisector.magnitude > 1e-9 else { return nil }
-
-        let xAxis = bisector.normalized
-        let yAxis = segment.direction.unitVector × xAxis
-        return SegmentBasis(xAxis: xAxis, yAxis: yAxis, wedgeAngle: segment.wedgeAngle)
-    }
-
-    /// Places a segment's 2D cross-section at a joint vertex and projects it along the segment
-    /// direction onto the joint's miter plane.
-    private static func projectedSection(
-        section: [Vector2D],
-        basis: SegmentBasis,
-        direction: Vector3D,
-        vertex: Vector3D,
-        miterNormal: Vector3D
-    ) -> [Vector3D] {
-        let alignment = direction ⋅ miterNormal
-        // Limit the stretch at extreme turns to keep the mesh sane
-        let slope = abs(alignment) > 1 / maxMiterStretch ? 1 / alignment : 0
-
-        return section.map { local in
-            let point = vertex + basis.xAxis * local.x + basis.yAxis * local.y
-            return point - direction * (((point - vertex) ⋅ miterNormal) * slope)
-        }
-    }
-
-    // MARK: - Cross-section
-
-    /// Builds the closed 2D cross-section polygon for a segment, in counterclockwise order.
-    ///
-    /// The polygon consists of the shape's curve (running from face to face), endpoints
-    /// extended slightly past the faces, and a closing edge behind the edge apex.
-    ///
-    /// Layout (relied upon by the ring envelope in `tool(for:...)`): indices 0–1 are the
-    /// behind-apex corners, 2 is the extended endpoint of the negative-angle face, then the
-    /// curve from its negative-angle end to its positive-angle end, and finally the extended
-    /// endpoint of the positive-angle face. The curve's interior therefore spans indices
-    /// 4 through `count - 3`.
-    static func crossSection(
-        shape: EdgeShape,
-        wedgeAngle: Angle,
-        isConvex: Bool,
-        segmentCount: Int,
-        apexDepth: Double
-    ) -> [Vector2D] {
-        let curve = shape.curvePoints(wedgeAngle: wedgeAngle, isConvex: isConvex, segmentCount: segmentCount)
-        guard let first = curve.first, let last = curve.last else { return [] }
-
-        let halfAngle = wedgeAngle / 2
-        // Perpendicular to each face, pointing out of the wedge
-        let firstExtended = first + Vector2D(-sin(halfAngle), cos(halfAngle)) * faceOvershoot
-        let lastExtended = last + Vector2D(-sin(halfAngle), -cos(halfAngle)) * faceOvershoot
-
-        let section = [firstExtended] + curve + [
-            lastExtended,
-            Vector2D(-apexDepth, lastExtended.y),
-            Vector2D(-apexDepth, firstExtended.y),
-        ]
-
-        // The construction above runs clockwise; reverse for counterclockwise winding
-        return section.reversed()
     }
 }
