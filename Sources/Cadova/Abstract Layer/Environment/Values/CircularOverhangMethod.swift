@@ -27,7 +27,8 @@ public extension EnvironmentValues {
 
     /// Returns a copy of the environment with the given circular overhang method applied.
     ///
-    /// - Parameter style: The method to use for overhang relief. If `nil`, the existing value is preserved.
+    /// - Parameter style: The method to use for overhang relief. If `nil`, the value is removed from the
+    ///   environment, reverting to the default (`.none`).
     func withCircularOverhangMethod(_ style: CircularOverhangMethod?) -> EnvironmentValues {
         return setting(key: Self.key, value: style)
     }
