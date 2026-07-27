@@ -22,14 +22,14 @@ internal extension EnvironmentValues {
 public extension EnvironmentValues {
     /// The natural up direction for the current environment.
     ///
-    /// This computed property returns the up direction as a `Vector3D`.
+    /// This computed property returns the up direction as a `Direction3D`.
     /// The direction is adjusted based on the environment's current transformation.
     /// The default direction is based on the positive Z axis direction in world space.
     ///
-    /// The returned vector represents the "natural" up direction in the current orientation,
+    /// The returned direction represents the "natural" up direction in the current orientation,
     /// taking into account any transformations that have been applied to the environment.
     ///
-    /// - Returns: A `Vector3D` representing the natural up direction.
+    /// - Returns: A `Direction3D` representing the natural up direction.
     ///
     var naturalUpDirection: Direction3D {
         let upDirection = naturalUpDirectionData
@@ -71,10 +71,10 @@ public extension EnvironmentValues {
 
     /// Sets the natural up direction relative to the environment's local coordinate system.
     ///
-    /// This method assigns a new natural up direction to the environment, expressed as a `Vector3D`.
+    /// This method assigns a new natural up direction to the environment, expressed as a `Direction3D`.
     /// The direction is specified relative to the environment's current local coordinate system.
     ///
-    /// - Parameter direction: A `Vector3D` representing the new natural up direction.
+    /// - Parameter direction: A `Direction3D` representing the new natural up direction.
     /// - Returns: A new `EnvironmentValues` instance with the updated natural up direction.
     ///
     func settingNaturalUpDirection(_ direction: Direction3D) -> EnvironmentValues {

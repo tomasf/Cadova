@@ -35,7 +35,7 @@ public extension Geometry3D {
     ///   - corners: The corners to which the profile is applied. Defaults to `.all`.
     ///   - axis: The axis along which to apply the edge profile.
     ///     - For the Z axis, the corners are as seen from positive Z, looking down at the origin with positive X
-    ///       pointing right and positive Y pointing up.
+    ///       pointing right and positive Y pointing down.
     ///     - For the X axis, the corners are as seen from the origin, with the positive Y axis pointing left and Z
     ///       pointing up.
     ///     - For the Y axis, the corners are as seen from the origin, with the positive X axis pointing right and Z

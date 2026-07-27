@@ -99,7 +99,7 @@ public extension ShapingFunction {
     ///   - controlPoint2: The second control point.
     /// - Returns: A shaping function using a cubic Bézier interpolation from (0,0) to (1,1).
     ///
-    /// Output values are always capped (clamped) to the range 0...1.
+    /// Output values follow the Bézier curve and may extend outside 0...1 if the control points do.
     static func bezier(_ controlPoint1: Vector2D, _ controlPoint2: Vector2D) -> Self {
         ShapingFunction(curve: .bezier(BezierCurve(controlPoints: [[0,0], controlPoint1, controlPoint2, [1,1]])))
     }

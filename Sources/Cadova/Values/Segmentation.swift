@@ -33,7 +33,8 @@ public enum Segmentation: Sendable, Hashable, Codable {
     /// a minimum angle between segments and a minimum linear segment length.
     ///
     /// - Parameter r: The radius of the circle.
-    /// - Returns: The computed segment count, ensuring a minimum of 5 segments.
+    /// - Returns: The computed segment count. Fixed segmentation uses at least 3 segments;
+    ///   adaptive segmentation uses at least 5.
     ///
     public func segmentCount(circleRadius r: Double) -> Int {
         switch self {
@@ -64,7 +65,7 @@ public enum Segmentation: Sendable, Hashable, Codable {
     /// Computes the number of segments required to approximate a curve of the given length.
     ///
     /// In adaptive mode, the number of segments is calculated based on the minimum allowed
-    /// segment length. This method ensures a minimum of 5 segments for reasonable quality.
+    /// segment length and uses at least 5 segments. Fixed segmentation uses at least 3.
     ///
     /// - Parameter length: The total length of the curve.
     /// - Returns: The computed segment count.
