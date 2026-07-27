@@ -18,7 +18,7 @@ public struct Arc: Shape2D {
     /// Creates a new `Arc` instance with the specified range of angles and radius.
     ///
     /// - Parameter range: The range of angles to include in the arc.
-    /// - Parameter radius: The radius of the arc.
+    /// - Parameter radius: The radius of the arc. A value of zero or less results in empty geometry.
     public init(range: Range<Angle>, radius: Double) {
         precondition(radius.isFinite, "Arc radius must be finite")
         self.range = range
@@ -36,7 +36,10 @@ public struct Arc: Shape2D {
 
     public var body: any Geometry2D {
         @Environment(\.scaledSegmentation) var segmentation
-        Polygon([.zero] + arcPoints(segmentation: segmentation))
+
+        if radius > 0 {
+            Polygon([.zero] + arcPoints(segmentation: segmentation))
+        }
     }
 
     private func arcPoints(segmentation: Segmentation) -> [Vector2D] {

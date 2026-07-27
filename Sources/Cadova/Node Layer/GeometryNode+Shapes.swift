@@ -49,11 +49,11 @@ extension GeometryNode.PrimitiveShape3D {
             return Manifold.cube(size: size)
 
         case .sphere (let radius, let segmentCount):
-            guard radius >= 0 else { return .empty }
+            guard radius > 0 else { return .empty }
             return Manifold.sphere(radius: radius, segmentCount: segmentCount)
 
         case .cylinder (let bottomRadius, let topRadius, let height, let segmentCount):
-            guard height >= 0, (bottomRadius >= 0 || topRadius >= 0) else { return .empty }
+            guard height > 0, (bottomRadius > 0 || topRadius > 0) else { return .empty }
             return Manifold.cylinder(height: height, bottomRadius: bottomRadius, topRadius: topRadius, segmentCount: segmentCount)
 
         case .convexHull (let points):

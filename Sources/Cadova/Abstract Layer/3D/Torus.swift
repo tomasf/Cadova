@@ -14,12 +14,14 @@ public struct Torus: Shape3D {
     /// Initializes a new torus with specified minor and major radii.
     ///
     /// - Parameters:
-    ///   - minorRadius: The radius of the tube (minor radius of the torus).
+    ///   - minorRadius: The radius of the tube (minor radius of the torus). A value of zero or less results
+    ///     in empty geometry.
     ///   - majorRadius: The distance from the center of the torus to the center of the tube (major radius of the torus).
-    /// - Precondition: The major radius must be greater than or equal to the minor radius to form a valid torus.
+    /// - Precondition: When `minorRadius` is positive, the major radius must be greater than or equal to it
+    ///   to form a valid, non-self-intersecting torus.
     public init(minorRadius: Double, majorRadius: Double) {
         precondition(minorRadius.isFinite && majorRadius.isFinite, "Torus radii must be finite")
-        precondition(majorRadius >= minorRadius, "The major radius must be greater than or equal to the minor radius")
+        precondition(minorRadius <= 0 || majorRadius >= minorRadius, "The major radius must be greater than or equal to the minor radius")
         self.minorRadius = minorRadius
         self.majorRadius = majorRadius
     }
@@ -31,10 +33,8 @@ public struct Torus: Shape3D {
     /// - Parameters:
     ///   - innerDiameter: The inner diameter of the torus, corresponding to the diameter of the hole at its center.
     ///   - outerDiameter: The outer diameter of the torus, measuring the entire span from one outer edge to the opposite outer edge.
-    /// - Precondition: The outer diameter must be greater than the inner diameter to ensure a valid toroidal shape.
     public init(innerDiameter: Double, outerDiameter: Double) {
         precondition(innerDiameter.isFinite && outerDiameter.isFinite, "Torus diameters must be finite")
-        precondition(outerDiameter > innerDiameter, "The outer diameter must be greater than the inner diameter")
         let tubeDiameter = (outerDiameter - innerDiameter) / 2.0
         self.init(minorRadius: tubeDiameter / 2.0, majorRadius: innerDiameter / 2.0 + tubeDiameter / 2.0)
     }
@@ -70,10 +70,8 @@ public struct Torus: Shape3D {
     /// - Parameters:
     ///   - outerDiameter: The total diameter of the torus, from one outer edge to the opposite outer edge.
     ///   - tubeRadius: The radius of the torus tube.
-    /// - Precondition: `outerDiameter` must be at least four times the tube radius to form a valid torus.
     public init(outerDiameter: Double, tubeRadius: Double) {
         precondition(outerDiameter.isFinite && tubeRadius.isFinite, "Torus dimensions must be finite")
-        precondition(outerDiameter >= tubeRadius * 4.0, "The outer diameter must be at least four times as large as the tube radius")
         self.init(minorRadius: tubeRadius, majorRadius: outerDiameter / 2.0 - tubeRadius)
     }
 
@@ -84,10 +82,8 @@ public struct Torus: Shape3D {
     /// - Parameters:
     ///   - outerDiameter: The total diameter of the torus, from one outer edge to the opposite outer edge.
     ///   - tubeDiameter: The diameter of the torus tube.
-    /// - Precondition: `outerDiameter` must be at least twice as large as the tube diameter to ensure a proper toroidal form.
     public init(outerDiameter: Double, tubeDiameter: Double) {
         precondition(outerDiameter.isFinite && tubeDiameter.isFinite, "Torus dimensions must be finite")
-        precondition(outerDiameter >= tubeDiameter * 2.0, "The outer diameter must be at least twice as large as the tube diameter")
         self.init(minorRadius: tubeDiameter / 2.0, majorRadius: outerDiameter / 2.0 - tubeDiameter / 2.0)
     }
 

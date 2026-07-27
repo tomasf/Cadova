@@ -17,19 +17,17 @@ public struct Circle: Hashable, Sendable, Codable {
 
     /// Creates a new `Circle` instance with the specified diameter.
     ///
-    /// - Parameter diameter: The diameter of the circle. A value of zero represents a degenerate point circle.
+    /// - Parameter diameter: The diameter of the circle. A value of zero or less results in empty geometry.
     public init(diameter: Double) {
         precondition(diameter.isFinite, "Diameter must be finite.")
-        precondition(diameter >= 0, "Diameter must not be negative.")
         self.radius = diameter / 2
     }
 
     /// Creates a new `Circle` instance with the specified radius.
     ///
-    /// - Parameter radius: The radius of the circle. A value of zero represents a degenerate point circle.
+    /// - Parameter radius: The radius of the circle. A value of zero or less results in empty geometry.
     public init(radius: Double) {
         precondition(radius.isFinite, "Radius must be finite.")
-        precondition(radius >= 0, "Radius must not be negative.")
         self.radius = radius
     }
 

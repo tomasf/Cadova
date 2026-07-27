@@ -21,11 +21,11 @@ public struct RegularPolygon: Sendable, Hashable, Codable {
     ///
     /// - Parameters:
     ///   - sideCount: The number of sides in the polygon. Must be at least 3.
-    ///   - circumradius: The distance from the center of the polygon to a vertex. Must be greater than 0.
+    ///   - circumradius: The distance from the center of the polygon to a vertex. A value of zero or less
+    ///     results in empty geometry.
     public init(sideCount: Int, circumradius: Double) {
-        precondition(sideCount >= 3)
+        precondition(sideCount >= 3, "A polygon must have at least 3 sides")
         precondition(circumradius.isFinite, "Circumradius must be finite")
-        precondition(circumradius > 0)
         self.sideCount = sideCount
         self.circumradius = circumradius
     }

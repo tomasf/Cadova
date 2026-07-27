@@ -8,8 +8,7 @@ public extension Cylinder {
     ///   - radius: The radius (half diameter) of the cylinder
     ///   - height: The height of the cylinder
     init(radius: Double, height: Double) {
-        assert(radius.isFinite, "Cylinder radius must be finite")
-        assert(radius > 0, "Cylinder radius must be positive")
+        precondition(radius.isFinite, "Cylinder radius must be finite")
         self.init(bottom: Circle(radius: radius), top: Circle(radius: radius), height: height)
     }
 

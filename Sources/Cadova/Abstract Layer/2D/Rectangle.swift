@@ -9,26 +9,25 @@ public struct Rectangle: Sendable, Hashable, Codable {
     /// Creates a new `Rectangle` instance with the specified size and centering options.
     ///
     /// - Parameters:
-    ///   - size: The size of the rectangle represented as a `Vector2D`.
+    ///   - size: The size of the rectangle represented as a `Vector2D`. A component of zero or less results in empty geometry.
     public init(_ size: Vector2D) {
+        precondition(size.x.isFinite && size.y.isFinite, "Rectangle dimensions must be finite")
         self.size = size
     }
 
     /// Creates a new `Rectangle` instance with the specified size.
     ///
     /// - Parameters:
-    ///   - x: The size of the rectangle in the X axis
-    ///   - y: The size of the rectangle in the Y axis
+    ///   - x: The size of the rectangle in the X axis. A value of zero or less results in empty geometry.
+    ///   - y: The size of the rectangle in the Y axis. A value of zero or less results in empty geometry.
     public init(x: Double, y: Double) {
-        precondition(x.isFinite && y.isFinite, "Rectangle dimensions must be finite")
         self.init(Vector2D(x, y))
     }
 
     /// Initializes a square.
     /// - Parameters:
-    ///   - side: A `Double` value indicating the length of each side of the square.
+    ///   - side: A `Double` value indicating the length of each side of the square. A value of zero or less results in empty geometry.
     public init(_ side: Double) {
-        precondition(side.isFinite, "Rectangle side length must be finite")
         self.init(Vector2D(side, side))
     }
 }

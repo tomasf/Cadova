@@ -7,7 +7,7 @@ public struct Box: Geometry {
 
     /// Initializes a new box with specific dimensions and centering options.
     /// - Parameters:
-    ///   - size: A `Vector3D` value indicating the size of the box. Each component of the vector represents the length of the box along the corresponding axis.
+    ///   - size: A `Vector3D` value indicating the size of the box. Each component of the vector represents the length of the box along the corresponding axis. A component of zero or less results in empty geometry.
     ///
     /// Example usage:
     /// ```
@@ -16,24 +16,24 @@ public struct Box: Geometry {
     /// This creates a box of size 10x20x30.
     ///
     public init(_ size: Vector3D) {
+        precondition(size.x.isFinite && size.y.isFinite && size.z.isFinite, "Box dimensions must be finite")
         self.size = size
     }
 
     /// Creates a new `Box` instance with the specified size.
     ///
     /// - Parameters:
-    ///   - x: The size of the box in the X axis
-    ///   - y: The size of the box in the Y axis
-    ///   - z: The size of the box in the Z axis
+    ///   - x: The size of the box in the X axis. A value of zero or less results in empty geometry.
+    ///   - y: The size of the box in the Y axis. A value of zero or less results in empty geometry.
+    ///   - z: The size of the box in the Z axis. A value of zero or less results in empty geometry.
     ///
     public init(x: Double, y: Double, z: Double) {
-        precondition(x.isFinite && y.isFinite && z.isFinite, "Box dimensions must be finite")
         self.init([x, y, z])
     }
 
     /// Initializes a box with equal dimensions along all axes.
     /// - Parameters:
-    ///   - side: A `Double` value indicating the length of each side of the cube.
+    ///   - side: A `Double` value indicating the length of each side of the cube. A value of zero or less results in empty geometry.
     ///
     /// Example usage:
     /// ```
@@ -42,8 +42,7 @@ public struct Box: Geometry {
     /// This creates a cube of size 10x10x10.
     ///
     public init(_ side: Double) {
-        precondition(side.isFinite, "Box side length must be finite")
-        self.size = [side, side, side]
+        self.init([side, side, side])
     }
 
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
