@@ -43,8 +43,8 @@ public extension Geometry {
     /// complex geometry tree. When `only()` is applied, all other geometry in the model
     /// is excluded, and only the marked geometry (with its local coordinate system) is output.
     ///
-    /// - Important: Only one `only()` modifier can be active in a geometry tree. Using multiple
-    ///   will log an error and use the last one encountered.
+    /// - Important: Only one distinct `only()` modifier can be active in a geometry tree. Using multiple
+    ///   distinct `only()` modifiers triggers a precondition failure.
     ///
     /// - Warning: This modifier is intended for debugging only.
     ///
