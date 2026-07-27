@@ -95,7 +95,8 @@ public extension RegularPolygon {
 extension RegularPolygon: Area, Perimeter {
     /// The area of the polygon.
     public var area: Double {
-        Double(sideCount) / 2.0 * pow(circumradius, 2) * sin(360° / Double(sideCount))
+        guard circumradius > 0 else { return 0 }
+        return Double(sideCount) / 2.0 * pow(circumradius, 2) * sin(360° / Double(sideCount))
     }
 
     /// The perimeter of the polygon.

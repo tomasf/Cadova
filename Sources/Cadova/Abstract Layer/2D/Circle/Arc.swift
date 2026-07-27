@@ -57,5 +57,8 @@ extension Arc: Area {
     public var angularDistance: Angle { range.length }
 
     /// The area of the circular sector.
-    public var area: Double { radius * radius * .pi * (angularDistance / 360°) }
+    public var area: Double {
+        guard radius > 0 else { return 0 }
+        return radius * radius * .pi * (angularDistance / 360°)
+    }
 }

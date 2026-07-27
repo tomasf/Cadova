@@ -91,6 +91,7 @@ public struct Ring: Shape2D {
 extension Ring: Area {
     /// The area of the ring (outer circle minus inner circle).
     public var area: Double {
-        Circle(diameter: outerDiameter).area - Circle(diameter: innerDiameter).area
+        guard outerDiameter > 0, innerDiameter < outerDiameter else { return 0 }
+        return Circle(diameter: outerDiameter).area - Circle(diameter: max(innerDiameter, 0)).area
     }
 }

@@ -40,7 +40,8 @@ extension Rectangle: Geometry {
 
 extension Rectangle: Area, Perimeter {
     public var area: Double {
-        size.x * size.y
+        guard size.x > 0, size.y > 0 else { return 0 }
+        return size.x * size.y
     }
 
     public var perimeter: Double {
