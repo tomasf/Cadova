@@ -10,9 +10,7 @@ public protocol Geometry<D>: Sendable, Transformable where Transformed == D.Geom
 }
 
 public extension Geometry {
-    var body: any Geometry<D> {
-        Empty<D>()
-    }
+    @GeometryBuilder<D> var body: any Geometry<D> {}
 
     func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         try await context.buildResult(for: body, in: environment)
