@@ -1,9 +1,6 @@
 import Foundation
 
-/// Base protocol for custom shapes.
-///
-/// Don't conform to this protocol directly; instead, use ``Shape2D`` or ``Shape3D``.
-///
+/// Deprecated. Use ``Geometry`` directly, or ``Shape2D``/``Shape3D`` for dimension-specific shapes.
 @available(*, deprecated, message: "Conform to Geometry directly, or use Shape2D/Shape3D for dimension-specific shapes.")
 public typealias Shape = Geometry
 

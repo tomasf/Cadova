@@ -8,7 +8,7 @@ If you're looking to contribute to Cadova or just want to understand how it work
 
 ## Abstract Geometry
 
-The types users interact with directly—like ``Box``, ``Sphere``, ``Stack``, ``Union``—are part of what we call abstract geometry. These types conform to the ``Geometry`` protocol, which defines a high-level, declarative description of a shape or operation. User-defined shapes also live here, by composing existing geometry types wrapped in a Shape.
+The types users interact with directly—like ``Box``, ``Sphere``, ``Stack``, ``Union``—are part of what we call abstract geometry. These types conform to the ``Geometry`` protocol, which defines a high-level, declarative description of a shape or operation. User-defined shapes also live here, by conforming to ``Shape2D`` or ``Shape3D`` and composing existing geometry types.
 
 The ``Geometry`` protocol is generic over a type called ``Dimensionality``, which distinguishes between 2D and 3D geometry. The concrete types `D2` and `D3` represent those dimensionalities and declare type aliases to associate with specific types like ``Vector2D``, `Transform2D`, and `Axis2D` (or their 3D equivalents). This allows geometry code to generalize over 2D and 3D while still relying on the right concrete types.
 
@@ -17,7 +17,7 @@ typealias Geometry2D = Geometry<D2>
 typealias Geometry3D = Geometry<D3>
 ```
 
-Every ``Geometry`` type implements a method called `build(in:context:)`, which, given an environment, produces the next representation: a geometry node. Many types conform to ``Shape2D`` or ``Shape3D``, which implement `build` automatically by delegating to a `body` property. This works similarly to how SwiftUI uses `View` and `body`.
+Every ``Geometry`` type implements a method called `build(in:context:)`, which, given an environment, produces the next representation: a geometry node. `Geometry` also declares a `body` property, with a default `build` implementation that delegates to it—so a type only needs to implement whichever one fits it. Primitives like ``Box`` and operations like ``Union`` implement `build` directly; user-defined shapes conforming to ``Shape2D`` or ``Shape3D`` implement `body` instead and get `build` for free. This works similarly to how SwiftUI uses `View` and `body`.
 
 Composing shapes is done by nesting geometry inside each other, often with result builders or method chaining. This produces a tree of geometry values that's both readable and reusable.
 
