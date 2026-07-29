@@ -1,7 +1,12 @@
 import Foundation
 import Manifold3D
 
-public struct BuildResult<D: Dimensionality>: Sendable {
+/// The result of building a ``Geometry`` value: a geometry node plus any attached result elements.
+///
+/// This type is public only because it appears in the signature of `Geometry`'s `_build(in:context:)`
+/// requirement, which every conforming type must satisfy. It isn't meant to be constructed, inspected,
+/// or otherwise used directly — hence the underscore prefix.
+public struct _BuildResult<D: Dimensionality>: Sendable {
     internal let node: D.Node
     internal let elements: ResultElements
 
@@ -30,12 +35,12 @@ public struct BuildResult<D: Dimensionality>: Sendable {
     }
 }
 
-internal extension BuildResult {
-    func replacing<New: Dimensionality>(node: New.Node) -> New.BuildResult {
+internal extension _BuildResult {
+    func replacing<New: Dimensionality>(node: New.Node) -> New._BuildResult {
         .init(node: node, elements: elements)
     }
 
-    func replacing<New: Dimensionality, Key: CacheKey>(cacheKey: Key) -> New.BuildResult {
+    func replacing<New: Dimensionality, Key: CacheKey>(cacheKey: Key) -> New._BuildResult {
         .init(node: .materialized(cacheKey: OpaqueKey(cacheKey)), elements: elements)
     }
 
@@ -43,7 +48,7 @@ internal extension BuildResult {
         .init(node: node, elements: elements)
     }
 
-    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> New.BuildResult {
+    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> New._BuildResult {
         .init(node: modifier(node), elements: elements)
     }
 
@@ -74,14 +79,14 @@ internal extension BuildResult {
     }
 }
 
-internal extension BuildResult {
+internal extension _BuildResult {
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
     init(
         booleanOperation: BooleanOperationType,
         geometries: [D.Geometry],
         environment: EnvironmentValues,
-        context: EvaluationContext
+        context: _EvaluationContext
     ) async throws {
         let childResults = try await geometries.asyncMap {
             try await context.buildResult(for: $0, in: environment)
@@ -119,14 +124,14 @@ internal extension BuildResult {
 
 }
 
-internal extension BuildResult<D2> {
-    func promotedTo3D() -> BuildResult<D3> {
+internal extension _BuildResult<D2> {
+    func promotedTo3D() -> _BuildResult<D3> {
         replacing(node: .extrusion(node, type: .linear(height: 0.001)))
     }
 }
 
-extension BuildResult: Geometry {
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+extension _BuildResult: Geometry {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         self
     }
 }
