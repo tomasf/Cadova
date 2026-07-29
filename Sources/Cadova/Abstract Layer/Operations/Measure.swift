@@ -10,7 +10,7 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
     @_specialize(exported: false, where Input == D2, D == D3)
     @_specialize(exported: false, where Input == D3, D == D2)
     @_specialize(exported: false, where Input == D3, D == D3)
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         let buildResults = try await context.buildResults(for: target, in: environment)
         let measurements = try await buildResults.asyncMap {
             try await Measurements(buildResult: $0, scope: scope, context: context)
@@ -136,8 +136,8 @@ internal extension MeasurementScope {
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
     func includedConcretes<D: Dimensionality>(
-        for buildResult: BuildResult<D>,
-        in context: EvaluationContext
+        for buildResult: _BuildResult<D>,
+        in context: _EvaluationContext
     ) async throws -> [D.Concrete] {
         let main = try await context.result(for: buildResult.node)
         guard let main3D = main as? EvaluationResult<D3> else {
@@ -147,7 +147,7 @@ internal extension MeasurementScope {
         }
 
         let allParts = buildResult.elements[PartCatalog.self].mergedOutputs
-        let additionalParts: [D3.BuildResult]
+        let additionalParts: [D3._BuildResult]
 
         switch self {
         case .mainPart: additionalParts = []

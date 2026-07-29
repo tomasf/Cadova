@@ -24,7 +24,7 @@ struct EdgeProfileOverhangFilletTests {
     // the overhang-critical part of the curve.
     @Test func `overhang fillet profile has more area than a plain fillet profile`() async throws {
         let radius = 3.0
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
 
         let plain = try await context.concrete(for: EdgeProfile.fillet(radius: radius).profile)
         let overhangSafe = try await context.concrete(for: EdgeProfile.overhangFillet(radius: radius).profile)
@@ -45,7 +45,7 @@ struct EdgeProfileOverhangFilletTests {
     @Test func `overhang fillet respects a tighter overhang angle`() async throws {
         let box = { Box(x: 20, y: 20, z: 10) }
         let radius = 3.0
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
 
         let permissive = try await context.concrete(
             for: box().cuttingEdgeProfile(.overhangFillet(radius: radius), on: .bottom).withOverhangAngle(70°)

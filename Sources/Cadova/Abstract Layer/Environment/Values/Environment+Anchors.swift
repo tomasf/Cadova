@@ -8,7 +8,7 @@ internal extension EnvironmentValues {
 
     fileprivate struct UpstreamReferences {
         let anchors: [Anchor: Set<Transform3D>]
-        let tags: [Tag: [BuildResult<D3>]]
+        let tags: [Tag: [_BuildResult<D3>]]
     }
 
     fileprivate var upstreamReferences: UpstreamReferences? {
@@ -33,7 +33,7 @@ internal extension EnvironmentValues {
         upstreamReferences?.anchors[anchor] ?? []
     }
 
-    func buildResults(for tag: Tag) -> [BuildResult<D3>] {
+    func buildResults(for tag: Tag) -> [_BuildResult<D3>] {
         upstreamReferences?.tags[tag] ?? []
     }
 }

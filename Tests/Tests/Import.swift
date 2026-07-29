@@ -36,7 +36,7 @@ struct ImportTests {
             .appendingPathComponent("cadova-test-\(UUID().uuidString).3mf")
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
         let provider = ThreeMFDataProvider(result: result, options: [])
         try await provider.writeOutput(to: tempURL, context: context)
@@ -61,7 +61,7 @@ struct ImportTests {
             .appendingPathComponent("cadova-test-\(UUID().uuidString).stl")
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
         let provider = BinarySTLDataProvider(result: result, options: [])
         try await provider.writeOutput(to: tempURL, context: context)
@@ -80,7 +80,7 @@ struct ImportTests {
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
         // Create a simple STL file
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
         let result = try await context.buildResult(for: Box(10).withDefaultSegmentation(), in: .defaultEnvironment)
         let provider = BinarySTLDataProvider(result: result, options: [])
         try await provider.writeOutput(to: tempURL, context: context)
@@ -114,7 +114,7 @@ struct ImportTests {
             .appendingPathComponent("cadova-test-\(UUID().uuidString).svg")
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
         let provider = SVGDataProvider(result: result, options: [])
         try await provider.writeOutput(to: tempURL, context: context)

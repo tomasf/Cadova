@@ -35,7 +35,7 @@ internal struct ApplyTransform<D: Dimensionality>: Geometry {
         self.transformEnvironment = transformEnvironment
     }
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         let environment = if transformEnvironment {
             environment.applyingTransform(transform.transform3D)
         } else {

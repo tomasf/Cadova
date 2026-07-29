@@ -19,7 +19,7 @@ public enum BuildWarning {
     }
 }
 
-extension BuildResult {
+extension _BuildResult {
     var buildWarnings: [BuildWarning] {
         var warnings: [BuildWarning] = []
         let referenceState = elements[ReferenceState.self]

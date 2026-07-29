@@ -15,10 +15,10 @@ private struct PartKey: Hashable, Codable {
 struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
     private let parts: [PartKey: D.Node]
 
-    init(result: BuildResult<D>) {
-        if let result2D = result as? D2.BuildResult {
+    init(result: _BuildResult<D>) {
+        if let result2D = result as? D2._BuildResult {
             parts = [PartKey(.main): result2D.node as! D.Node]
-        } else if let result3D = result as? D3.BuildResult {
+        } else if let result3D = result as? D3._BuildResult {
             var parts: [PartKey: D.Node] = result.elements[PartCatalog.self].mergedOutputs
                 .reduce(into: [:]) { $0[PartKey($1.key)] = $1.value.node as? D.Node }
             parts[PartKey(.main)] = (result3D.node as! D.Node)

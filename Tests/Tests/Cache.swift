@@ -3,7 +3,7 @@ import Testing
 @testable import Cadova
 
 struct GeometryCacheTests {
-    let context = EvaluationContext()
+    let context = _EvaluationContext()
     let sphere = Sphere(diameter: 1)
     let box = Box(4)
 

@@ -5,7 +5,7 @@ fileprivate struct Difference<D: Dimensionality>: Geometry {
     let positive: @Sendable () -> D.Geometry
     let negative: @Sendable () -> D.Geometry
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         try await .init(
             booleanOperation: .difference,
             geometries: [positive(), negative().invertingOperation()],

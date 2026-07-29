@@ -93,7 +93,7 @@ public struct Model: Sendable, ModelBuildable {
 
     internal func build(
         environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
-        context: EvaluationContext = .init(),
+        context: _EvaluationContext = .init(),
         options inheritedOptions: ModelOptions? = nil,
         URL directory: URL? = nil,
         filterPath: [String] = []

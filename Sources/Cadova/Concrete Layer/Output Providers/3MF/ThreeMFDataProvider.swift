@@ -7,10 +7,10 @@ internal import Nodal
 extension MeshGL: @retroactive @unchecked Sendable {}
 
 struct ThreeMFDataProvider: OutputDataProvider {
-    let result: D3.BuildResult
+    let result: D3._BuildResult
     let options: ModelOptions
 
-    init(result: D3.BuildResult, options: ModelOptions) {
+    init(result: D3._BuildResult, options: ModelOptions) {
         self.result = result
         self.options = options
     }
@@ -92,7 +92,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         return (model, item)
     }
 
-    private func write<T>(to archive: PackageWriter<T>, context: EvaluationContext) async throws {
+    private func write<T>(to archive: PackageWriter<T>, context: _EvaluationContext) async throws {
         var outputs = result.elements[PartCatalog.self].mergedOutputs
         let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
 
@@ -167,7 +167,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         }
     }
 
-    func generateOutput(context: EvaluationContext) async throws -> Data {
+    func generateOutput(context: _EvaluationContext) async throws -> Data {
         let archive = PackageWriter()
         archive.compressionLevel = options[ModelOptions.Compression.self].zipCompression
         try await write(to: archive, context: context)

@@ -43,7 +43,7 @@ public struct Union<D: Dimensionality>: Geometry {
     }
 
     // Union can't implement body instead of build: the geometry builder it would need is itself built using Union
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         try await .init(
             booleanOperation: .union,
             geometries: try await children(),

@@ -28,7 +28,7 @@ public struct Sphere: Geometry {
         self.radius = radius
     }
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D3._BuildResult {
         @Environment(\.scaledSegmentation) var segmentation
 
         return .init(.shape(.sphere(

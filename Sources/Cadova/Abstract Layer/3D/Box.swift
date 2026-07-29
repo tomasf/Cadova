@@ -45,7 +45,7 @@ public struct Box: Geometry {
         self.init([side, side, side])
     }
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D3._BuildResult {
         .init(.shape(.box(size: size)))
     }
 }

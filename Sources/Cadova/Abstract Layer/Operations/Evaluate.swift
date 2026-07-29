@@ -4,7 +4,7 @@ internal struct Evaluate<Input: Dimensionality, Output: Dimensionality>: Geometr
     let source: Input.Geometry
     let action: @Sendable (Input.Geometry, GeometryEvaluator) async -> Output.Geometry
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
+    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> Output._BuildResult {
         let evaluator = GeometryEvaluator(context: context, environment: environment)
         let produced = await action(source, evaluator)
         if let error = await evaluator.firstError {

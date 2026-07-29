@@ -5,13 +5,13 @@ import Foundation
 /// When present, the captured result should be used instead of the normal build result,
 /// allowing isolation of a specific part of the geometry tree for debugging.
 internal struct OnlyResult<D: Dimensionality>: ResultElement {
-    let capturedResult: D.BuildResult?
+    let capturedResult: D._BuildResult?
 
     init() {
         self.capturedResult = nil
     }
 
-    init(_ capturedResult: D.BuildResult) {
+    init(_ capturedResult: D._BuildResult) {
         self.capturedResult = capturedResult
     }
 
@@ -28,11 +28,11 @@ internal struct OnlyResult<D: Dimensionality>: ResultElement {
 private struct OnlyMarker<D: Dimensionality>: Geometry {
     let body: D.Geometry
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         let result = try await context.buildResult(for: body, in: environment.withOperation(.addition))
 
         // Return empty geometry to parent, but carry the captured result
-        return D.BuildResult(element: OnlyResult(result))
+        return D._BuildResult(element: OnlyResult(result))
     }
 }
 
@@ -63,7 +63,7 @@ public extension Geometry {
     }
 }
 
-internal extension BuildResult {
+internal extension _BuildResult {
     /// Returns the captured result from an `only()` modifier if present, otherwise returns self.
     ///
     /// The `OnlyResult` element is preserved in the returned result, so `hasOnly` remains accurate.

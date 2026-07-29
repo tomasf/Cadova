@@ -251,7 +251,7 @@ struct EdgeShapingTests {
     }
 
     @Test func `mask shape identity is part of the cache key`() async throws {
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
         let query = EdgeQuery.along(.z)
 
         let maskedNear = Box(10).shapingEdges(
@@ -300,7 +300,7 @@ struct EdgeShapingTests {
     }
 
     @Test func `edge shaping results are cached`() async throws {
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
         let shaped = Box(10).shapingEdges(.chamfer(depth: 1), matching: .along(.z))
 
         _ = try await context.concrete(for: shaped)

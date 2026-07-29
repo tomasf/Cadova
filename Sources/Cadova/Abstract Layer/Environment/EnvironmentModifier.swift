@@ -4,7 +4,7 @@ internal struct EnvironmentModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modification: @Sendable (EnvironmentValues) -> EnvironmentValues
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         try await context.buildResult(for: body, in: modification(environment))
     }
 }

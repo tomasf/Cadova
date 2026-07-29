@@ -10,7 +10,7 @@ struct SmoothingTests {
         var environment = EnvironmentValues.defaultEnvironment
         environment.segmentation = segmentation
 
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
         let smoothed = try await context.concrete(
             for: source.smoothed(strength: strength),
             in: environment
@@ -35,7 +35,7 @@ struct SmoothingTests {
     @Test
     func `zero smoothing strength leaves geometry unchanged`() async throws {
         let source = Box([10, 10, 10])
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
 
         let original = try await context.concrete(for: source)
         let unchanged = try await context.concrete(
@@ -51,7 +51,7 @@ struct SmoothingTests {
     @Test
     func `smoothing strength changes cube result`() async throws {
         let source = Box(10)
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
         var environment = EnvironmentValues.defaultEnvironment
         environment.segmentation = .fixed(10)
 

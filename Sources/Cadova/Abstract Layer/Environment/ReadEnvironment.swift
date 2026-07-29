@@ -3,7 +3,7 @@ import Foundation
 struct EnvironmentReader<D: Dimensionality>: Geometry {
     let body: @Sendable (EnvironmentValues) -> D.Geometry
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         try await context.buildResult(for: body(environment), in: environment)
     }
 }

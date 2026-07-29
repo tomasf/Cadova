@@ -1,7 +1,7 @@
 import Foundation
 
 extension Loft {
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
         let sectionNodes = try await sections.asyncMap {
             SectionNode(
                 distance: $0.distance,

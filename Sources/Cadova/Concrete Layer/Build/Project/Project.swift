@@ -90,7 +90,7 @@ public func Project(
     // Build models and groups
     let groups = directives.compactMap(\.group)
     guard models.isEmpty == false || groups.isEmpty == false else { return }
-    let context = EvaluationContext()
+    let context = _EvaluationContext()
 
     let constantEnvironment = environment
 

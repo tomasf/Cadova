@@ -21,7 +21,7 @@ public protocol Dimensionality: SendableMetatype {
     typealias Line = Cadova.Line<Self>
     typealias Alignment = GeometryAlignment<Self>
     typealias Direction = Cadova.Direction<Self>
-    typealias BuildResult = Cadova.BuildResult<Self>
+    typealias _BuildResult = Cadova._BuildResult<Self>
     typealias Measurements = Cadova.Measurements<Self>
     typealias BoundingBox = Cadova.BoundingBox<Self>
 

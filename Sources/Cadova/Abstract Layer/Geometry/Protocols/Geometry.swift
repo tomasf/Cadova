@@ -6,7 +6,7 @@ import Foundation
 public protocol Geometry<D>: Sendable, Transformable where Transformed == D.Geometry, T == D.Transform {
     associatedtype D: Dimensionality
     @GeometryBuilder<D> var body: any Geometry<D> { get }
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult
+    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult
 }
 
 public extension Geometry {
@@ -14,7 +14,7 @@ public extension Geometry {
         Empty<D>()
     }
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         try await context.buildResult(for: body, in: environment)
     }
 }

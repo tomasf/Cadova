@@ -2,11 +2,11 @@ import Foundation
 import Manifold3D
 
 struct BinarySTLDataProvider: OutputDataProvider {
-    let result: D3.BuildResult
+    let result: D3._BuildResult
     let options: ModelOptions
     let fileExtension = "stl"
 
-    func generateOutput(context: EvaluationContext) async throws -> Data {
+    func generateOutput(context: _EvaluationContext) async throws -> Data {
         let acceptedSemantics = options.includedPartSemantics(for: .stl)
         let solidParts = result.elements[PartCatalog.self].mergedOutputs
             .filter { acceptedSemantics.contains($0.key.semantic) }.map(\.value)

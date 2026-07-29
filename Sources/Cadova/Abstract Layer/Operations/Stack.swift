@@ -65,7 +65,7 @@ extension Stack: Geometry {
         self.init(axis: axis, spacing: spacing, alignment: alignment, content: content)
     }
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
         let union = try await Union {
             let itemsAndBounds = try await items().asyncMap {
                 let buildResult = try await context.buildResult(for: $0, in: environment)
