@@ -53,7 +53,7 @@ This project is licensed under the MIT license. See the LICENSE file for details
 
 ## Manifest template
 ```swift
-// swift-tools-version: 6.1
+// swift-tools-version: 6.3
 import PackageDescription
 
 let package = Package(
