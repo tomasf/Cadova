@@ -63,6 +63,7 @@ When combining a base shape with additional geometry, prefer the `.adding {}` mo
 Box(10)
     .adding {
         Sphere(radius: 6).translated(z: 10)
+        Cylinder(diameter: 2, height: 8)
     }
 ```
 
@@ -71,6 +72,7 @@ Box(10)
 Union {
     Box(10)
     Sphere(radius: 6).translated(z: 10)
+    Cylinder(diameter: 2, height: 8)
 }
 ```
 
