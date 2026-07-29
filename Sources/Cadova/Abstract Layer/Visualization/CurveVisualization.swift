@@ -26,7 +26,7 @@ extension ParametricCurve {
     }
 }
 
-fileprivate struct CurveVisualization<Curve: ParametricCurve>: Shape3D {
+fileprivate struct CurveVisualization<Curve: ParametricCurve>: Geometry3D {
     let curve: Curve
 
     var body: any Geometry3D {
@@ -65,7 +65,7 @@ fileprivate struct CurveVisualization<Curve: ParametricCurve>: Shape3D {
             .inPart(.visualizedPath)
     }
 
-    struct VisualizedLine<V: Vector>: Shape3D {
+    struct VisualizedLine<V: Vector>: Geometry3D {
         let from: V
         let to: V
         let thickness: Double
@@ -82,7 +82,7 @@ fileprivate struct CurveVisualization<Curve: ParametricCurve>: Shape3D {
         }
     }
 
-    struct Label: Shape3D {
+    struct Label: Geometry3D {
         let text: String
 
         var body: any Geometry3D {

@@ -13,10 +13,10 @@ At the heart of Cadova is the ``Geometry`` protocol. This protocol is generic ov
 - ``Geometry2D``, for two-dimensional geometry
 - ``Geometry3D``, for three-dimensional geometry
 
-When you create your own geometry types, you typically conform to either ``Shape2D`` or ``Shape3D``, which conform to ``Geometry``, and implement the `body` property:
+When you create your own geometry types, you conform to ``Geometry2D`` or ``Geometry3D`` and implement the `body` property:
 
 ```swift
-struct MyThing: Shape3D {
+struct MyThing: Geometry3D {
     var body: any Geometry3D {
         // Your shape composition here
     }
@@ -67,10 +67,10 @@ Model("myModel") {
 
 ## Reuse and Abstraction
 
-The recommended way to build reusable components is by defining new types that conform to ``Shape2D`` or ``Shape3D``. This makes your geometry composable and clean:
+The recommended way to build reusable components is by defining new types that conform to ``Geometry2D`` or ``Geometry3D``. This makes your geometry composable and clean:
 
 ```swift
-struct Bracket: Shape3D {
+struct Bracket: Geometry3D {
     let size: Double
 
     var body: any Geometry3D {

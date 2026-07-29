@@ -22,7 +22,7 @@ public extension Geometry2D {
     }
 }
 
-internal struct FollowPath2D<Path: ParametricCurve<Vector2D>>: Shape2D {
+internal struct FollowPath2D<Path: ParametricCurve<Vector2D>>: Geometry2D {
     let geometry: any Geometry2D
     let path: Path
 

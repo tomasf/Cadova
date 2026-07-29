@@ -45,7 +45,7 @@ public extension Geometry3D {
     }
 }
 
-fileprivate struct EdgeVisualization: Shape3D {
+fileprivate struct EdgeVisualization: Geometry3D {
     let edges: [FoundEdge]
 
     var body: any Geometry3D {

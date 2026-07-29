@@ -76,7 +76,7 @@ internal extension CornerRoundingStyle {
     }
 }
 
-internal struct FilletCorner: Shape2D {
+internal struct FilletCorner: Geometry2D {
     let size: Vector2D
 
     var body: any Geometry2D {

@@ -48,7 +48,7 @@ public extension Geometry3D {
     }
 }
 
-fileprivate struct BoundingBoxVisualization: Shape3D {
+fileprivate struct BoundingBoxVisualization: Geometry3D {
     let box: BoundingBox3D
 
     var body: any Geometry3D {

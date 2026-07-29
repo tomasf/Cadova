@@ -65,7 +65,7 @@ public struct RegularPolygon: Sendable, Hashable, Codable {
 
 }
 
-extension RegularPolygon: Shape2D {
+extension RegularPolygon: Geometry2D {
     public var body: any Geometry2D {
         Circle(radius: circumradius)
             .withSegmentation(count: sideCount)

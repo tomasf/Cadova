@@ -17,7 +17,7 @@ public extension Plane {
     }
 }
 
-private struct PlaneVisualization: Shape3D {
+private struct PlaneVisualization: Geometry3D {
     let plane: Plane
 
     var body: any Geometry3D {

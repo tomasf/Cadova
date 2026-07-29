@@ -1,7 +1,7 @@
 import Foundation
 
 /// A hollow, three-dimensional cylinder with specified inner and outer diameters and height.
-public struct Tube: Shape3D {
+public struct Tube: Geometry3D {
     /// The outer diameter of the tube.
     public let outerDiameter: Double
 

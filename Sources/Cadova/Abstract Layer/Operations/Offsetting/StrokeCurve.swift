@@ -63,7 +63,7 @@ public extension ParametricCurve where V == Vector2D {
     }
 }
 
-internal struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Shape2D {
+internal struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Geometry2D {
     let curve: Curve
     let width: Double
     let alignment: CurveStrokeAlignment

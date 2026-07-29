@@ -53,7 +53,7 @@ public extension Geometry2D {
     }
 }
 
-internal struct Sweep<Path: ParametricCurve>: Shape3D {
+internal struct Sweep<Path: ParametricCurve>: Geometry3D {
     let shape: any Geometry2D
     let path: Path
     let reference: Direction2D

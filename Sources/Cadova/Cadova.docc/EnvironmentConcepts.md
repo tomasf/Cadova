@@ -48,10 +48,10 @@ Use this when you want to adjust an existing geometry based on the environment c
 
 ### Using the `@Environment` Property Wrapper
 
-If you're defining your own ``Shape2D`` or ``Shape3D``, you can use the `@Environment` property wrapper to access values directly:
+If you're defining your own ``Geometry2D`` or ``Geometry3D``, you can use the `@Environment` property wrapper to access values directly:
 
 ```swift
-struct MyShape: Shape3D {
+struct MyShape: Geometry3D {
     @Environment(\.tolerance) var tolerance
 
     var body: any Geometry3D {

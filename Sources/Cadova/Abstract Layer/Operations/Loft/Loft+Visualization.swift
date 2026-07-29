@@ -21,7 +21,7 @@ public extension Loft {
     }
 }
 
-fileprivate struct LoftVisualization: Shape3D {
+fileprivate struct LoftVisualization: Geometry3D {
     let path: OpaqueParametricCurve<Vector3D>
     let sections: [Loft.Section]
     let reference: Direction2D

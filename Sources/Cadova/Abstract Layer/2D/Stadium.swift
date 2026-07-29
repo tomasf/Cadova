@@ -15,7 +15,7 @@ import Foundation
 /// let tall = Stadium(x: 12, y: 40)
 /// ```
 ///
-public struct Stadium: Shape2D {
+public struct Stadium: Geometry2D {
     /// The overall size of the stadium (width along X, height along Y), measured edge-to-edge.
     public let size: Vector2D
 

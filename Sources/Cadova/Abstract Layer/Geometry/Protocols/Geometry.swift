@@ -1,8 +1,8 @@
 import Foundation
 
 /// Base protocol for geometry.
-/// Don't conform your types to this protocol directly; instead, use `Shape2D` or `Shape3D`
-/// and implement its `body` property.
+///
+/// To define your own shape, conform to ``Geometry2D`` or ``Geometry3D`` and implement `body`.
 public protocol Geometry<D>: Sendable, Transformable where Transformed == D.Geometry, T == D.Transform {
     associatedtype D: Dimensionality
     @GeometryBuilder<D> var body: any Geometry<D> { get }
@@ -20,11 +20,9 @@ public extension Geometry {
 }
 
 /// Two-dimensional geometry.
-/// Don't conform your types to this protocol directly; instead, use `Shape2D` and implement its `body` property.
 public typealias Geometry2D = Geometry<D2>
 
 /// Three-dimensional geometry
-/// Don't conform your types to this protocol directly; instead, use `Shape3D` and implement its `body` property.
 public typealias Geometry3D = Geometry<D3>
 
 

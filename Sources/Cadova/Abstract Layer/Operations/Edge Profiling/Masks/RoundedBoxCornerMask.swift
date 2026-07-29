@@ -83,7 +83,7 @@ fileprivate struct SegmentedMask {
     }
 }
 
-internal struct RoundedBoxCornerMask: Shape3D {
+internal struct RoundedBoxCornerMask: Geometry3D {
     let boxSize: Vector3D
     let radius: Double
 

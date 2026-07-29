@@ -6,7 +6,7 @@ import Foundation
 /// When multiple geometries are provided, they are automatically combined using a union operation.
 ///
 /// You typically use this through the ``GeometryBuilder2D`` or ``GeometryBuilder3D`` typealiases,
-/// or indirectly through ``Shape2D`` and ``Shape3D`` body properties.
+/// or indirectly through a ``Geometry`` conformance's `body` property.
 ///
 @resultBuilder public struct GeometryBuilder<D: Dimensionality> {
     public typealias G = any Geometry<D>

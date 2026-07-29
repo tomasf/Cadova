@@ -27,7 +27,7 @@ struct ExampleTests {
             .expectEquals(goldenFile: "examples/example2")
     }
 
-    struct Star: Shape2D {
+    struct Star: Geometry2D {
         let pointCount: Int
         let radius: Double
         let pointRadius: Double

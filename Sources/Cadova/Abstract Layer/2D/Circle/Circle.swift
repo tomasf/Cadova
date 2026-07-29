@@ -51,7 +51,7 @@ public struct Circle: Hashable, Sendable, Codable {
     }
 }
 
-extension Circle: Shape2D {
+extension Circle: Geometry2D {
     public var body: any Geometry2D {
         @Environment(\.scaledSegmentation) var segmentation
         NodeBasedGeometry(.circle(

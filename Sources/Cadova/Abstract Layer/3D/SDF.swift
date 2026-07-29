@@ -13,7 +13,7 @@ import Manifold3D
 /// - Note: This is a computationally intensive operation. Use appropriate grid resolution
 ///   to balance quality and performance.
 ///
-public struct LevelSet: Shape3D {
+public struct LevelSet: Geometry3D {
     let function: @Sendable (Vector3D) -> Double
     let bounds: BoundingBox3D
     let edgeLength: Double
