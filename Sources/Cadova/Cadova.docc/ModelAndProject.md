@@ -1,6 +1,6 @@
 # Model and Project
 
-Export your geometry as 3MF files using Model and organize multiple outputs with Project.
+Export your geometry as 3MF files using Model, and use Project to control where that output goes and to group multiple models together.
 
 ## Overview
 
@@ -20,29 +20,26 @@ This writes a 2D or 3D model to disk. The string `pie` is used to name the model
 
 ## Using Projects
 
-For multiple model files, wrap them in a `Project`:
+Even for a single model, it's usually worth wrapping it in a `Project` using `packageRelative`:
 
 ```swift
-await Project {
+await Project(packageRelative: "Models") {
     await Model("pie") {
         Circle(diameter: 5)
             .subtracting {
                 Rectangle(5).aligned(at: .top, .right)
             }
     }
-
-    await Model("squished") {
-        Sphere(diameter: 10)
-            .scaled(z: 0.6)
-    }
 }
 ```
 
-This offers several benefits:
+This saves output to `Models/pie.3mf`, relative to your package root — regardless of the current working directory the program happens to be run from (Xcode and the terminal often differ here). In Xcode, files placed this way also show up directly in the project navigator, making them easy to find and open. Plain `Model("pie") { ... }` writes to the current working directory instead, which is fine for a quick one-off test but not something to rely on otherwise.
+
+Once a project holds more than one model, you get further benefits:
 
 - Models are evaluated in parallel, speeding up builds.
-- You can set a common *root directory* for the models.
 - You can apply default *environment values* to all models by using Environment directives in the project builder.
+- Metadata can be shared across models and merged/overridden per model.
 
 ```swift
 await Project(root: "~/Desktop/Garden Tools") {
