@@ -42,7 +42,7 @@ public struct Union<D: Dimensionality>: Geometry {
         self.children = { children }
     }
 
-    // Union can't be a Shape because Shape uses a geometry builder which uses Union
+    // Union can't implement body instead of build: the geometry builder it would need is itself built using Union
     public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         try await .init(
             booleanOperation: .union,

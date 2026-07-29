@@ -43,7 +43,7 @@ public extension Geometry3D {
     func shapingEdges(_ shape: EdgeShape, in edges: [FoundEdge]) -> any Geometry3D {
         readEnvironment(\.scaledSegmentation) { segmentation in
             CachedNodeTransformer<D3, D3>(
-                body: self,
+                source: self,
                 name: "Cadova.ShapeEdges.explicit",
                 parameters: edges, shape, segmentation
             ) { bodyNode, environment, context in

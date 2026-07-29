@@ -4,15 +4,8 @@ import Foundation
 ///
 /// Don't conform to this protocol directly; instead, use ``Shape2D`` or ``Shape3D``.
 ///
-public protocol Shape: Geometry, Transformable where T == D.Transform, Transformed == D.Geometry {
-    @GeometryBuilder<D> var body: any Geometry<D> { get }
-}
-
-public extension Shape {
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        try await context.buildResult(for: body, in: environment)
-    }
-}
+@available(*, deprecated, message: "Conform to Geometry directly, or use Shape2D/Shape3D for dimension-specific shapes.")
+public typealias Shape = Geometry
 
 /// A protocol defining the requirements for custom 2D shapes.
 ///
@@ -32,7 +25,7 @@ public extension Shape {
 /// }
 /// ```
 ///
-public protocol Shape2D: Shape where D == D2 {
+public protocol Shape2D: Geometry where D == D2 {
     /// The geometry content of this shape.
     ///
     /// Implement this property to define the shape's structure using Cadova's geometry primitives and operations.
@@ -57,7 +50,7 @@ public protocol Shape2D: Shape where D == D2 {
 /// }
 /// ```
 ///
-public protocol Shape3D: Shape where D == D3 {
+public protocol Shape3D: Geometry where D == D3 {
     /// The geometry content of this shape.
     ///
     /// Implement this property to define the shape's structure using Cadova's geometry primitives and operations.

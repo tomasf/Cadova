@@ -2,11 +2,11 @@ import Foundation
 import Manifold3D
 
 internal struct ReadConcrete<Input: Dimensionality, Output: Dimensionality>: Geometry {
-    let body: Input.Geometry
+    let source: Input.Geometry
     let action: @Sendable (Input.Concrete, Input.BuildResult) -> Output.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
-        let bodyResult = try await context.buildResult(for: body, in: environment)
+        let bodyResult = try await context.buildResult(for: source, in: environment)
         let concreteResult = try await context.result(for: bodyResult.node)
         return try await context.buildResult(for: action(concreteResult.concrete, bodyResult), in: environment)
     }
@@ -17,7 +17,7 @@ internal extension Geometry {
     func readingConcrete<Output: Dimensionality>(
         @GeometryBuilder<Output> _ action: @Sendable @escaping (D.Concrete, D.BuildResult) -> Output.Geometry
     ) -> Output.Geometry {
-        ReadConcrete(body: self, action: action)
+        ReadConcrete(source: self, action: action)
     }
 
     // Concrete only

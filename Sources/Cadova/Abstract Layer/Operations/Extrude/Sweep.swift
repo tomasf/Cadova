@@ -64,7 +64,7 @@ internal struct Sweep<Path: ParametricCurve>: Shape3D {
         @Environment(\.scaledSegmentation) var segmentation
 
         CachedNodeTransformer(
-            body: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation
+            source: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation
         ) { node, environment, context in
             let crossSection = try await context.result(for: node).concrete
             let frames = path.curve3D.frames(

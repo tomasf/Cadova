@@ -5,7 +5,18 @@ import Foundation
 /// and implement its `body` property.
 public protocol Geometry<D>: Sendable, Transformable where Transformed == D.Geometry, T == D.Transform {
     associatedtype D: Dimensionality
+    @GeometryBuilder<D> var body: any Geometry<D> { get }
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult
+}
+
+public extension Geometry {
+    var body: any Geometry<D> {
+        Empty<D>()
+    }
+
+    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+        try await context.buildResult(for: body, in: environment)
+    }
 }
 
 /// Two-dimensional geometry.

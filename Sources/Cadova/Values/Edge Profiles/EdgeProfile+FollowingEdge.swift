@@ -254,7 +254,7 @@ internal extension EdgeProfile {
             // a valid closed manifold, just locally folded — there's no open boundary for either
             // to act on). A direct, deterministic Swift-side weld of near-coincident vertices —
             // independent of Manifold's own union resolution — fixes it reliably instead.
-            return CachedNodeTransformer<D3, D3>(body: tool, name: "EdgeProfileTool") { node, _, context in
+            return CachedNodeTransformer<D3, D3>(source: tool, name: "EdgeProfileTool") { node, _, context in
                 let manifold = try await context.result(for: node).concrete
                 let (vertices, faces) = weldingCoincidentVertices(manifold.meshGL())
                 return GeometryNode.shape(.mesh(MeshData(vertices: vertices, faces: faces)))

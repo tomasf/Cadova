@@ -1,12 +1,12 @@
 import Foundation
 
 internal struct PartDetachment<D: Dimensionality, Input: Dimensionality>: Geometry {
-    let body: Input.Geometry
+    let source: Input.Geometry
     let part: Part
     let reader: @Sendable (Input.Geometry, D3.Geometry?) -> D.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let output = try await context.buildResult(for: body, in: environment)
+        let output = try await context.buildResult(for: source, in: environment)
 
         var detachedPart: D3.BuildResult?
         let newOutput = output.modifyingElement(PartCatalog.self) {
@@ -41,7 +41,7 @@ public extension Geometry {
         _ part: Part,
         @GeometryBuilder<Output> _ reader: @Sendable @escaping (_ geometry: D.Geometry, _ part: (any Geometry3D)?) -> Output.Geometry
     ) -> Output.Geometry {
-        PartDetachment(body: self, part: part, reader: reader)
+        PartDetachment(source: self, part: part, reader: reader)
     }
 
 }

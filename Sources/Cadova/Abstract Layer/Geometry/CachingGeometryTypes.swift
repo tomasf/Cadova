@@ -66,23 +66,23 @@ struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
 // Apply an arbitrary transformation to a node, cached based on node + key
 
 struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry {
-    let body: Input.Geometry
+    let source: Input.Geometry
     let key: LabeledCacheKey
     let generator: @Sendable (Input.Node, EnvironmentValues, EvaluationContext) async throws -> D.Node
 
     init(
-        body: Input.Geometry,
+        source: Input.Geometry,
         name: String,
         parameters: any CacheKey...,
         generator: @Sendable @escaping (Input.Node, EnvironmentValues, EvaluationContext) async throws -> D.Node
     ) {
-        self.body = body
+        self.source = source
         self.key = LabeledCacheKey(operationName: name, parameters: parameters)
         self.generator = generator
     }
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let bodyResult = try await context.buildResult(for: body, in: environment)
+        let bodyResult = try await context.buildResult(for: source, in: environment)
         let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
 
         return try await context.materializedResult(buildResult: bodyResult, key: bakedKey) {

@@ -1,12 +1,12 @@
 import Foundation
 
 internal struct Evaluate<Input: Dimensionality, Output: Dimensionality>: Geometry {
-    let body: Input.Geometry
+    let source: Input.Geometry
     let action: @Sendable (Input.Geometry, GeometryEvaluator) async -> Output.Geometry
 
     func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
         let evaluator = GeometryEvaluator(context: context, environment: environment)
-        let produced = await action(body, evaluator)
+        let produced = await action(source, evaluator)
         if let error = await evaluator.firstError {
             throw error
         }
@@ -52,6 +52,6 @@ public extension Geometry {
     func evaluating<Output: Dimensionality>(
         @GeometryBuilder<Output> _ action: @Sendable @escaping (D.Geometry, GeometryEvaluator) async -> Output.Geometry
     ) -> Output.Geometry {
-        Evaluate(body: self, action: action)
+        Evaluate(source: self, action: action)
     }
 }
