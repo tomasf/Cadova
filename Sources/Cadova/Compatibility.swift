@@ -167,7 +167,7 @@ public func layer(
 ///                      function is used for the first section.
 ///   - shape: A builder that returns the 2D geometry to use for both sections.
 ///
-@available(*, deprecated, message: "Use Section(atRelative:interpolation:shape:) with a range instead")
+@available(*, deprecated, renamed: "Section(atRelative:interpolation:shape:)")
 public func layer(
     zOffset range: Range<Double>,
     interpolation shapingFunction: ShapingFunction? = nil,
@@ -183,7 +183,7 @@ public func layer(
 ///   - transition: The transition type that controls how this section connects to the previous one.
 ///   - shape: A builder that returns the 2D geometry to use for both sections.
 ///
-@available(*, deprecated, message: "Use Section(atRelative:interpolation:shape:) with a range instead")
+@available(*, deprecated, renamed: "Section(atRelative:interpolation:shape:)")
 public func layer(
     zOffset range: Range<Double>,
     interpolation transition: Loft.Transition,
@@ -206,7 +206,7 @@ public func layer(
 ///                      function is used for the first section.
 ///   - shape: A builder that returns the 2D geometry to use for both sections.
 ///
-@available(*, deprecated, message: "Use Section(at:interpolation:shape:) with a range instead")
+@available(*, deprecated, renamed: "Section(at:interpolation:shape:)")
 public func layer(
     z range: Range<Double>,
     interpolation shapingFunction: ShapingFunction? = nil,
@@ -227,7 +227,7 @@ public func layer(
 ///                 Use `.interpolated(_:)` for shape interpolation or `.convexHull` for a convex hull connection.
 ///   - shape: A builder that returns the 2D geometry to use for this section.
 ///
-@available(*, deprecated, message: "Use Section(at:interpolation:shape:) with a range instead")
+@available(*, deprecated, renamed: "Section(at:interpolation:shape:)")
 public func layer(
     z range: Range<Double>,
     interpolation transition: Loft.Transition,
