@@ -38,7 +38,7 @@ For more code examples, see [Examples](https://swiftpackageindex.com/tomasf/Cado
 
 To preview your models, check out [Cadova Viewer](https://github.com/tomasf/CadovaViewer), a native macOS 3MF viewer that reloads automatically as your model regenerates.
 
-Cadova uses [Manifold-Swift](https://github.com/tomasf/manifold-swift), [Apus](https://github.com/tomasf/Apus), [Pelagos](https://github.com/tomasf/Pelagos) and [ThreeMF](https://github.com/tomasf/ThreeMF).
+Cadova uses [Manifold-Swift](https://github.com/tomasf/manifold-swift), [Apus](https://github.com/tomasf/Apus), [Pelagos](https://github.com/tomasf/Pelagos), [Nodal](https://github.com/tomasf/Nodal) and [ThreeMF](https://github.com/tomasf/ThreeMF).
 
 
 ## Versioning and Stability
