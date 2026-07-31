@@ -1,20 +1,5 @@
 import Foundation
 
-struct Hidden<D: Dimensionality>: Geometry {
-    let body: D.Geometry
-
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        let bodyResult = try await context.buildResult(for: body, in: environment)
-        return bodyResult.replacing(node: .empty)
-    }
-}
-
-public extension Geometry {
-    func hidden() -> D.Geometry {
-        Hidden<D>(body: self)
-    }
-}
-
 struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geometry {
     let transformer: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.BuildResult
 
