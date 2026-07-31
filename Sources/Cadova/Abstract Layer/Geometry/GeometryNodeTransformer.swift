@@ -1,5 +1,9 @@
 import Foundation
 
+/// Builds one input geometry (or several), then applies an arbitrary transformation directly to
+/// the resulting node(s) — possibly changing dimensionality in the process (e.g. an extrusion
+/// turning a 2D node into a 3D one). Used to implement operations that need to manipulate the
+/// underlying `GeometryNode` tree directly rather than composing existing `Geometry` values.
 struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geometry {
     let transformer: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.BuildResult
 

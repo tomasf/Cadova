@@ -1,5 +1,7 @@
 import Foundation
 
+/// Builds `body`, then discards its shape while keeping its other result elements (parts, tags,
+/// etc.) intact. Powers the `hidden()` modifier.
 struct Hidden<D: Dimensionality>: Geometry {
     let body: D.Geometry
 

@@ -1,5 +1,7 @@
 import Foundation
 
+/// Builds `body`, then transforms its result elements via `modifier` without touching its shape.
+/// Powers `withResult(_:)` and the geometry-preserving overload of `modifyingResult(_:modifier:)`.
 struct ResultModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modifier: @Sendable (ResultElements) -> ResultElements
@@ -10,6 +12,9 @@ struct ResultModifier<D: Dimensionality>: Geometry {
     }
 }
 
+/// Builds `body` once to read its current result elements, then lets `modifier` both mutate the
+/// element and produce a replacement geometry, which is built again to become the final result.
+/// Powers the geometry-returning overload of `modifyingResult(_:modifier:)`.
 struct ResultAndGeometryModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modifier: @Sendable (ResultElements) -> (D.Geometry, ResultElements)

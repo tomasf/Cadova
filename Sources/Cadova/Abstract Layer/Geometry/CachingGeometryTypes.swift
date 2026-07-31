@@ -1,7 +1,8 @@
 import Foundation
 
-// Caches a leaf concrete
-
+/// Builds and caches a leaf concrete result produced by a generator closure, with no input geometry
+/// of its own. The generator runs at most once per distinct `key`; later builds that share a key
+/// reuse the cached concrete instead of calling the generator again.
 struct CachedConcrete<D: Dimensionality, Key: CacheKey>: Geometry {
     let key: Key
     let generator: @Sendable () async throws -> D.Concrete
@@ -26,8 +27,9 @@ struct CachedConcrete<D: Dimensionality, Key: CacheKey>: Geometry {
     }
 }
 
-// Apply an arbitrary transformation to a body's concrete, cached based on node + key
-
+/// Builds `body`, then applies an arbitrary transformation to its resulting concrete. The
+/// transformed concrete is cached by the combination of `body`'s built node and `key`, so the
+/// transformation only reruns when either changes.
 struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     let body: D.Geometry
     let key: Key
@@ -63,8 +65,10 @@ struct CachedConcreteTransformer<D: Dimensionality, Key: CacheKey>: Geometry {
     }
 }
 
-// Apply an arbitrary transformation to a node, cached based on node + key
-
+/// Builds `source`, then applies an arbitrary transformation to its resulting node — possibly
+/// changing dimensionality in the process (e.g. 2D to 3D). The transformed node is cached by the
+/// combination of `source`'s built node and `key`, so the transformation only reruns when either
+/// changes.
 struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry {
     let source: Input.Geometry
     let key: LabeledCacheKey
@@ -92,6 +96,9 @@ struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry
     }
 }
 
+/// Produces and caches a node from a generator closure, keyed by name and parameters rather than
+/// by any input geometry — the closure is expected to be pure with respect to its key, since a
+/// second build with the same key skips the closure entirely and reuses the cached node.
 struct CachedNode<D: Dimensionality>: Geometry {
     let key: LabeledCacheKey
     let generator: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.Node

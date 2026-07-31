@@ -1,5 +1,8 @@
 import Foundation
 
+/// Builds `body` under an environment modified by `modification`. The modification only affects
+/// `body`'s own build — it doesn't leak out to geometry outside this wrapper. Powers the
+/// `withEnvironment` family of modifiers.
 internal struct EnvironmentModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modification: @Sendable (EnvironmentValues) -> EnvironmentValues

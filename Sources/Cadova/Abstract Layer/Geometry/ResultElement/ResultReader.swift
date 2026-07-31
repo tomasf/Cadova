@@ -1,5 +1,9 @@
 import Foundation
 
+/// Builds `source`, then hands its result elements to `generator` to construct the geometry that's
+/// actually returned — possibly with a different dimensionality than `source`. Powers
+/// `readingResult(_:generator:)`, which lets callers inspect a typed result element (e.g. a part
+/// catalog) produced while building another geometry.
 internal struct ResultReader<Input: Dimensionality, Output: Dimensionality>: Geometry {
     let source: Input.Geometry
     let generator: @Sendable (ResultElements) -> Output.Geometry

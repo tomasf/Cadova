@@ -1,5 +1,7 @@
 import Foundation
 
+/// Defers geometry construction until build time, when the current `EnvironmentValues` are
+/// available to `body`. Powers `readEnvironment(_:)` and `readingEnvironment(_:)`.
 struct EnvironmentReader<D: Dimensionality>: Geometry {
     let body: @Sendable (EnvironmentValues) -> D.Geometry
 

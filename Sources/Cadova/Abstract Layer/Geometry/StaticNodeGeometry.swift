@@ -1,5 +1,7 @@
 import Foundation
 
+/// Wraps an already-resolved `GeometryNode` as a `Geometry` value, with no further building
+/// required. Used by leaf shapes (e.g. `Box`, `Circle`) as the concrete `body` they return.
 struct StaticNodeGeometry<D: Dimensionality>: Geometry {
     let node: D.Node
 
