@@ -25,7 +25,7 @@ public struct Cylinder: Geometry3D, Hashable, Sendable, Codable {
         let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
         if height > .ulpOfOne {
-            NodeBasedGeometry(.cylinder(
+            StaticNodeGeometry(.cylinder(
                 bottomRadius: bottomRadius,
                 topRadius: topRadius,
                 height: height,

@@ -88,7 +88,7 @@ internal enum EdgeJunctionPlanner {
         var edges = edges
 
         while let merge: (Int, Int, FoundEdge) = {
-            for (position, ends) in junctions(in: edges) where ends.count == 2 {
+            for (_, ends) in junctions(in: edges) where ends.count == 2 {
                 let (a, b) = (ends[0], ends[1])
                 guard a.edgeIndex != b.edgeIndex,
                       edges[a.edgeIndex].isConvex == edges[b.edgeIndex].isConvex

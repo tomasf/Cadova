@@ -34,7 +34,7 @@ public struct Rectangle: Sendable, Hashable, Codable {
 
 extension Rectangle: Geometry2D {
     public var body: any Geometry2D {
-        NodeBasedGeometry(.rectangle(size: size))
+        StaticNodeGeometry(.rectangle(size: size))
     }
 }
 

@@ -133,7 +133,7 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
 
         if !polygons.isEmpty {
             let node = GeometryNode<D2>(.shape2D(.polygons(SimplePolygonList(polygons), fillRule: fillRule)))
-            shapes.append(NodeBasedGeometry(node))
+            shapes.append(StaticNodeGeometry(node))
         }
     }
 

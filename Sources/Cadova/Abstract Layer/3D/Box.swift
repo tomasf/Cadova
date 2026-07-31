@@ -48,7 +48,7 @@ public struct Box {
 
 extension Box: Geometry3D {
     public var body: any Geometry3D {
-        NodeBasedGeometry(.box(size: size))
+        StaticNodeGeometry(.box(size: size))
     }
 }
 

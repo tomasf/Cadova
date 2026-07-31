@@ -40,7 +40,7 @@ public struct Mesh<Vertex: Hashable & Sendable>: Geometry3D {
 
     public var body: any Geometry3D {
         CachedNode(labeledCacheKey: LabeledCacheKey(operationName: cacheName, parameters: cacheParameters)) {
-            NodeBasedGeometry(.shape(.mesh(meshData)))
+            StaticNodeGeometry(.shape(.mesh(meshData)))
         }
     }
 

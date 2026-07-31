@@ -23,30 +23,6 @@ public extension Geometry {
     }
 }
 
-struct NodeBasedGeometry<D: Dimensionality>: Geometry {
-    let node: D.Node
-
-    init(_ node: D.Node) {
-        self.node = node
-    }
-
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        .init(node)
-    }
-}
-
-extension NodeBasedGeometry<D2> {
-    init(_ shape: GeometryNode<D2>.PrimitiveShape2D) {
-        self.init(.shape(shape))
-    }
-}
-
-extension NodeBasedGeometry<D3> {
-    init(_ shape: GeometryNode<D3>.PrimitiveShape3D) {
-        self.init(.shape(shape))
-    }
-}
-
 struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geometry {
     let transformer: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.BuildResult
 
