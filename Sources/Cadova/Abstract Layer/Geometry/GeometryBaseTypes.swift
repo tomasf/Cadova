@@ -77,15 +77,3 @@ struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geomet
         try await transformer(environment, context)
     }
 }
-
-struct Deferred<D: Dimensionality>: Geometry {
-    let body: @Sendable () -> D.Geometry
-
-    init(_ body: @Sendable @escaping () -> D.Geometry) {
-        self.body = body
-    }
-
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
-        try await context.buildResult(for: body(), in: environment)
-    }
-}
