@@ -35,12 +35,16 @@ public struct _BuildResult<D: Dimensionality>: Sendable {
     }
 }
 
-internal extension _BuildResult {
-    func replacing<New: Dimensionality>(node: New.Node) -> New._BuildResult {
+/// Internal-facing name for ``_BuildResult``, used everywhere except public API signatures,
+/// which are required to spell out the underscore-prefixed name.
+internal typealias BuildResult<D: Dimensionality> = _BuildResult<D>
+
+internal extension BuildResult {
+    func replacing<New: Dimensionality>(node: New.Node) -> New.BuildResult {
         .init(node: node, elements: elements)
     }
 
-    func replacing<New: Dimensionality, Key: CacheKey>(cacheKey: Key) -> New._BuildResult {
+    func replacing<New: Dimensionality, Key: CacheKey>(cacheKey: Key) -> New.BuildResult {
         .init(node: .materialized(cacheKey: OpaqueKey(cacheKey)), elements: elements)
     }
 
@@ -48,7 +52,7 @@ internal extension _BuildResult {
         .init(node: node, elements: elements)
     }
 
-    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> New._BuildResult {
+    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> New.BuildResult {
         .init(node: modifier(node), elements: elements)
     }
 
@@ -79,14 +83,14 @@ internal extension _BuildResult {
     }
 }
 
-internal extension _BuildResult {
+internal extension BuildResult {
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
     init(
         booleanOperation: BooleanOperationType,
         geometries: [D.Geometry],
         environment: EnvironmentValues,
-        context: _EvaluationContext
+        context: EvaluationContext
     ) async throws {
         let childResults = try await geometries.asyncMap {
             try await context.buildResult(for: $0, in: environment)
@@ -124,8 +128,8 @@ internal extension _BuildResult {
 
 }
 
-internal extension _BuildResult<D2> {
-    func promotedTo3D() -> _BuildResult<D3> {
+internal extension BuildResult<D2> {
+    func promotedTo3D() -> BuildResult<D3> {
         replacing(node: .extrusion(node, type: .linear(height: 0.001)))
     }
 }

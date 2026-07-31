@@ -22,7 +22,7 @@ internal extension Loft {
         reference: Direction2D,
         target: ReferenceTarget,
         in environment: EnvironmentValues,
-        context: _EvaluationContext
+        context: EvaluationContext
     ) async -> any Geometry3D {
         // Find segments that use convex hull transitions
         var convexHullSegments: [(lowerIndex: Int, upperIndex: Int)] = []

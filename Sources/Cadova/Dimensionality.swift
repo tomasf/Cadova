@@ -31,6 +31,10 @@ public protocol Dimensionality: SendableMetatype {
 internal extension Dimensionality {
     typealias Node = GeometryNode<Self>
     typealias Curve = ParametricCurve<Vector>
+
+    /// Internal-facing name for ``_BuildResult``, used everywhere except public API signatures,
+    /// which are required to spell out the underscore-prefixed name.
+    typealias BuildResult = _BuildResult
 }
 
 /// The two-dimensional space.

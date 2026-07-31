@@ -1,7 +1,7 @@
 import Foundation
 
 internal extension PartCatalog {
-    func filtered(by semantic: PartSemantic?, matching requestedParts: [Part]?) -> [Part: [D3._BuildResult]] {
+    func filtered(by semantic: PartSemantic?, matching requestedParts: [Part]?) -> [Part: [D3.BuildResult]] {
         var result = parts
 
         if let semantic {

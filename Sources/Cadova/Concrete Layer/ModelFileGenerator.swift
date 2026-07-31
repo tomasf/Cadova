@@ -35,7 +35,7 @@ public struct ModelFileGenerator {
         return try await ModelFileGenerator().build(named: name, options: options, content: content)
     }
 
-    private let evaluationContext = _EvaluationContext()
+    private let evaluationContext = EvaluationContext()
     
     /// Creates a ``ModelFileGenerator`` instance. Instances maintain a cache, allowing improved
     /// performance when performing multiple, subsequent builds.
@@ -129,10 +129,10 @@ public struct ModelFileGenerator {
 /// A representation of a model in the form of a standard file format (3MF, STL, SVG, etc).
 public struct ModelFile {
     private let dataProvider: OutputDataProvider
-    private let evaluationContext: _EvaluationContext
+    private let evaluationContext: EvaluationContext
     private let modelName: String?
 
-    internal init(dataProvider: OutputDataProvider, evaluationContext: _EvaluationContext, modelName: String?,
+    internal init(dataProvider: OutputDataProvider, evaluationContext: EvaluationContext, modelName: String?,
                   buildWarnings: [BuildWarning]) {
         self.dataProvider = dataProvider
         self.evaluationContext = evaluationContext

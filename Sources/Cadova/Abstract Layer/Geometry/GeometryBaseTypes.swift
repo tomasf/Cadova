@@ -11,7 +11,7 @@ public struct Empty<D: Dimensionality>: Geometry {
 struct Hidden<D: Dimensionality>: Geometry {
     let body: D.Geometry
 
-    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         let bodyResult = try await context.buildResult(for: body, in: environment)
         return bodyResult.replacing(node: .empty)
     }
@@ -30,7 +30,7 @@ struct NodeBasedGeometry<D: Dimensionality>: Geometry {
         self.node = node
     }
 
-    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         .init(node)
     }
 }
@@ -48,7 +48,7 @@ extension NodeBasedGeometry<D3> {
 }
 
 struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geometry {
-    let transformer: @Sendable (EnvironmentValues, _EvaluationContext) async throws -> D._BuildResult
+    let transformer: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.BuildResult
 
     init(
         body: Input.Geometry,
@@ -73,7 +73,7 @@ struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geomet
         }
     }
 
-    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         try await transformer(environment, context)
     }
 }
@@ -85,7 +85,7 @@ struct Deferred<D: Dimensionality>: Geometry {
         self.body = body
     }
 
-    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         try await context.buildResult(for: body(), in: environment)
     }
 }

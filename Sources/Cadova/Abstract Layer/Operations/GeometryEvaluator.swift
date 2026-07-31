@@ -21,11 +21,11 @@ import Manifold3D
 /// ```
 ///
 public actor GeometryEvaluator {
-    internal let context: _EvaluationContext
+    internal let context: EvaluationContext
     internal let environment: EnvironmentValues
     internal private(set) var firstError: (any Error)?
 
-    internal init(context: _EvaluationContext, environment: EnvironmentValues) {
+    internal init(context: EvaluationContext, environment: EnvironmentValues) {
         self.context = context
         self.environment = environment
     }

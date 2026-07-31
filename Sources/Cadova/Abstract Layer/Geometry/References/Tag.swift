@@ -158,7 +158,7 @@ internal struct TagReference: Geometry {
         return TagReference(tag: tag, transform: transform.transformed(additional))
     }
 
-    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D3._BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         let output = Union {
             environment.buildResults(for: tag)
         }
@@ -225,7 +225,7 @@ internal struct TagGeometryReader<Output: Dimensionality>: Geometry {
     let tag: Tag
     let reader: @Sendable ([D3.Geometry]) -> Output.Geometry
 
-    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> Output._BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
         let geometries = environment.buildResults(for: tag).map {
             $0.transformed(environment.transform.inverse)
         }
@@ -238,7 +238,7 @@ internal struct TagGeometry: Geometry {
     let body: any Geometry3D
     let tag: Tag
 
-    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D3._BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         let bodyResult = try await context.buildResult(for: body, in: environment)
         let globalResult = bodyResult.modifyingNode { .transform($0, transform: environment.transform) }
 

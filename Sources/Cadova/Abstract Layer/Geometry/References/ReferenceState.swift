@@ -4,13 +4,13 @@ internal struct ReferenceState: ResultElement {
     private(set) var definedAnchors: [Anchor: Set<Transform3D>]
     private(set) var usedAnchors: Set<Anchor>
 
-    private(set) var definedTags: [Tag: [_BuildResult<D3>]]
+    private(set) var definedTags: [Tag: [BuildResult<D3>]]
     private(set) var usedTags: Set<Tag>
 
     private init(
         definedAnchors: [Anchor: Set<Transform3D>] = [:],
         usedAnchors: Set<Anchor> = [],
-        definedTags: [Tag: [_BuildResult<D3>]] = [:],
+        definedTags: [Tag: [BuildResult<D3>]] = [:],
         usedTags: Set<Tag> = []
     ) {
         self.definedAnchors = definedAnchors
@@ -65,12 +65,12 @@ extension ReferenceState {
 }
 
 extension ReferenceState {
-    mutating func define(tag: Tag, as buildResult: _BuildResult<D3>) {
+    mutating func define(tag: Tag, as buildResult: BuildResult<D3>) {
         definedTags[tag, default: []].append(buildResult)
     }
 
     @discardableResult
-    mutating func read(tag: Tag) -> [_BuildResult<D3>] {
+    mutating func read(tag: Tag) -> [BuildResult<D3>] {
         usedTags.insert(tag)
         return definedTags[tag] ?? []
     }

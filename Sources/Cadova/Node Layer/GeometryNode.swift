@@ -76,7 +76,7 @@ extension GeometryNode {
 
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
-    public func evaluate(in context: _EvaluationContext) async throws -> Result {
+    public func evaluate(in context: EvaluationContext) async throws -> Result {
         switch contents {
         case .empty:
             return .empty
@@ -117,7 +117,7 @@ extension GeometryNode {
     }
 
     @_specialize(exported: false, where D == D2)
-    private func evaluate2D(in context: _EvaluationContext) async throws -> EvaluationResult<D2> {
+    private func evaluate2D(in context: EvaluationContext) async throws -> EvaluationResult<D2> {
         switch contents {
         case .shape2D (let shape):
             return try EvaluationResult(shape.evaluate())
@@ -142,7 +142,7 @@ extension GeometryNode {
     }
 
     @_specialize(exported: false, where D == D3)
-    private func evaluate3D(in context: _EvaluationContext) async throws -> EvaluationResult<D3> {
+    private func evaluate3D(in context: EvaluationContext) async throws -> EvaluationResult<D3> {
         switch contents {
         case .shape3D (let shape):
             return try EvaluationResult(shape.evaluate())

@@ -2,11 +2,11 @@ import Foundation
 internal import Nodal
 
 struct SVGDataProvider: OutputDataProvider {
-    let result: D2._BuildResult
+    let result: D2.BuildResult
     let options: ModelOptions
     let fileExtension = "svg"
 
-    func generateOutput(context: _EvaluationContext) async throws -> Data {
+    func generateOutput(context: EvaluationContext) async throws -> Data {
         let node = GeometryNode.transform(result.node, transform: .scaling(x: 1, y: -1))
         let nodeResult = try await context.result(for: node)
 

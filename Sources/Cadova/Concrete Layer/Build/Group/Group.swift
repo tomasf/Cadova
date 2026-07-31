@@ -81,7 +81,7 @@ public struct Group: Sendable, ModelBuildable {
 
     internal func build(
         environment inheritedEnvironment: EnvironmentValues,
-        context: _EvaluationContext,
+        context: EvaluationContext,
         options inheritedOptions: ModelOptions?,
         URL directory: URL?,
         filterPath: [String]

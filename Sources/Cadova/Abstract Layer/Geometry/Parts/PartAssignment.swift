@@ -5,7 +5,7 @@ internal struct PartAssignment: Geometry {
     let isSeparated: Bool
     let part: Part
 
-    func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D3._BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
         let newEnvironment = environment.withOperation(.addition)
         let output = try await context.buildResult(for: body, in: newEnvironment)
         var newOutput = output.modifyingElement(PartCatalog.self) {

@@ -4,7 +4,7 @@ extension [BuildDirective] {
     func build(
         with options: ModelOptions,
         in environment: EnvironmentValues,
-        context: _EvaluationContext
+        context: EvaluationContext
     ) async throws -> (OutputDataProvider, [BuildWarning]) {
         let geometries3D = compactMap(\.geometry3D)
         let geometries2D = compactMap(\.geometry2D)
@@ -50,7 +50,7 @@ internal extension EnvironmentValues {
 internal protocol ModelBuildable: Sendable {
     func build(
         environment inheritedEnvironment: EnvironmentValues,
-        context: _EvaluationContext,
+        context: EvaluationContext,
         options inheritedOptions: ModelOptions?,
         URL directory: URL?,
         filterPath: [String]

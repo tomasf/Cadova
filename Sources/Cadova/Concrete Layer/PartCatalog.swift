@@ -1,9 +1,9 @@
 import Foundation
 
 internal struct PartCatalog: ResultElement {
-    var parts: [Part: [D3._BuildResult]]
+    var parts: [Part: [D3.BuildResult]]
 
-    init(parts: [Part: [D3._BuildResult]]) {
+    init(parts: [Part: [D3.BuildResult]]) {
         self.parts = parts
     }
 
@@ -17,20 +17,20 @@ internal struct PartCatalog: ResultElement {
         })
     }
 
-    mutating func add(result: D3._BuildResult, to part: Part) {
+    mutating func add(result: D3.BuildResult, to part: Part) {
         parts[part, default: []].append(result)
     }
 
-    mutating func detach(_ part: Part) -> D3._BuildResult? {
+    mutating func detach(_ part: Part) -> D3.BuildResult? {
         guard let results = parts.removeValue(forKey: part) else {
             return nil
         }
-        return D3._BuildResult(combining: results, operationType: .union)
+        return D3.BuildResult(combining: results, operationType: .union)
     }
 
-    var mergedOutputs: [Part: D3._BuildResult] {
+    var mergedOutputs: [Part: D3.BuildResult] {
         parts.mapValues { outputs in
-            D3._BuildResult(combining: outputs, operationType: .union)
+            D3.BuildResult(combining: outputs, operationType: .union)
         }
     }
 

@@ -13,7 +13,11 @@ public struct _EvaluationContext: Sendable {
     internal init() {}
 }
 
-internal extension _EvaluationContext {
+/// Internal-facing name for ``_EvaluationContext``, used everywhere except public API signatures,
+/// which are required to spell out the underscore-prefixed name.
+internal typealias EvaluationContext = _EvaluationContext
+
+internal extension EvaluationContext {
     private func cache<D: Dimensionality>() -> GeometryCache<D> {
         switch D.self {
         case is D2.Type: cache2D as! GeometryCache<D>
@@ -35,10 +39,10 @@ internal extension _EvaluationContext {
     }
 }
 
-internal extension _EvaluationContext {
+internal extension EvaluationContext {
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
-    func buildResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D._BuildResult {
+    func buildResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D.BuildResult {
         try await environment.whileCurrent {
             try await geometry._build(in: environment, context: self)
         }
@@ -46,7 +50,7 @@ internal extension _EvaluationContext {
 
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
-    func buildResults<D: Dimensionality>(for geometries: [D.Geometry], in environment: EnvironmentValues) async throws -> [D._BuildResult] {
+    func buildResults<D: Dimensionality>(for geometries: [D.Geometry], in environment: EnvironmentValues) async throws -> [D.BuildResult] {
         try await geometries.asyncMap {
             try await buildResult(for: $0, in: environment)
         }
@@ -65,28 +69,28 @@ internal extension _EvaluationContext {
     /// Unlike `buildResult`, this method:
     /// - Resolves any `only()` modifier, returning the isolated geometry if present
     ///
-    func buildModelResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D._BuildResult {
+    func buildModelResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D.BuildResult {
         try await buildResult(for: geometry, in: environment).resolvingOnly
     }
 }
 
-internal extension _EvaluationContext {
+internal extension EvaluationContext {
     // MARK: - Materialized results
 
     func materializedResult<D: Dimensionality, Key: CacheKey>(
         key: Key,
         generator: @escaping @Sendable () async throws -> D.Node.Result
-    ) async throws -> D._BuildResult {
+    ) async throws -> D.BuildResult {
         let materializedNode = D.Node.materialized(cacheKey: OpaqueKey(key))
         try await cache().declareGenerator(for: materializedNode, generator: generator)
-        return D._BuildResult(materializedNode)
+        return D.BuildResult(materializedNode)
     }
 
     func materializedResult<D: Dimensionality, Input: Dimensionality, Key: CacheKey>(
-        buildResult: Input._BuildResult,
+        buildResult: Input.BuildResult,
         key: Key,
         generator: @escaping @Sendable () async throws -> D.Node.Result
-    ) async throws -> D._BuildResult {
+    ) async throws -> D.BuildResult {
         return try await materializedResult(key: key, generator: generator)
             .replacing(elements: buildResult.elements)
     }

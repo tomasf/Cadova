@@ -11,7 +11,7 @@ public struct Measurements<D: Dimensionality>: Sendable {
 
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
-    init(buildResult: D._BuildResult, scope: MeasurementScope, context: _EvaluationContext) async throws {
+    init(buildResult: D.BuildResult, scope: MeasurementScope, context: EvaluationContext) async throws {
         self.concrete = try await scope.includedConcretes(for: buildResult, in: context)
     }
 

@@ -4,7 +4,7 @@ internal struct Separate<D: Dimensionality, Output: Dimensionality>: Geometry {
     let source: D.Geometry
     let reader: @Sendable ([D.Geometry]) -> Output.Geometry
 
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> Output._BuildResult {
+    public func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
         let result = try await context.buildResult(for: source, in: environment)
         let partCount = try await context.result(for: .decompose(result.node)).parts.count
         let parts = (0..<partCount).map { SeparatedPart(body: source, index: $0) }
@@ -16,7 +16,7 @@ internal struct SeparatedPart<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let index: Int
 
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
+    public func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
         try await context.buildResult(for: body, in: environment).modifyingNode {
             .select(.decompose($0), index: index)
         }
