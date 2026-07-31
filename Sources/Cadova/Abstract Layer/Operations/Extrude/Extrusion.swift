@@ -103,34 +103,6 @@ public extension Geometry2D {
     }
 }
 
-/// Compute the minimum number of vertical subdivisions ("divisions") required
-/// so that the worst-case dihedral angle between adjacent helical faces does not
-/// exceed `αmax`, assuming the worst base edge span of 180°.
-fileprivate func subdivisionsNeeded(radius r: Double, height h: Double, twist φ: Angle, maxCrease αmax: Angle) -> Int {
-    guard αmax > 0° else { return 1 }
-    // If a single segment already satisfies the crease threshold, no extra subdivision is needed.
-    if dihedralAngle(radius: r, height: h, twist: φ, dTheta: 180°) <= αmax {
-        return 1
-    }
-    var low = 1
-    var high = 2
-    // Exponentially search for an upper bound that satisfies the threshold.
-    while dihedralAngle(radius: r, height: h / Double(high), twist: φ / Double(high), dTheta: 180°) > αmax {
-        if high >= 1 << 20 { break } // Safety cap
-        high *= 2
-    }
-    // Binary search for the minimal subdivision count in (low, high].
-    while low + 1 < high {
-        let mid = (low + high) / 2
-        if dihedralAngle(radius: r, height: h / Double(mid), twist: φ / Double(mid), dTheta: 180°) > αmax {
-            low = mid
-        } else {
-            high = mid
-        }
-    }
-    return max(high, 1)
-}
-
 fileprivate func dihedralAngle(radius r: Double, height h: Double, twist φ: Angle, dTheta θ: Angle) -> Angle {
     let v0 = Vector3D(r, 0, 0)
     let v1 = Vector3D(r * cos(θ.radians), r * sin(θ.radians), 0)

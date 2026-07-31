@@ -78,11 +78,6 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         .init(controlPoints: controlPoints.map(transform))
     }
 
-    func approximateLength(segmentCount: Int) -> Double {
-        points(segmentation: .fixed(segmentCount), subdividingStraightLines: false)
-            .paired().map { ($1.0 - $0.0).magnitude }.reduce(0, +)
-    }
-
     func reversed() -> Self {
         Self(controlPoints: controlPoints.reversed())
     }

@@ -44,10 +44,6 @@ internal extension BuildResult {
         .init(node: node, elements: elements)
     }
 
-    func replacing<New: Dimensionality, Key: CacheKey>(cacheKey: Key) -> New.BuildResult {
-        .init(node: .materialized(cacheKey: OpaqueKey(cacheKey)), elements: elements)
-    }
-
     func replacing(elements: ResultElements) -> Self {
         .init(node: node, elements: elements)
     }
@@ -60,10 +56,6 @@ internal extension BuildResult {
         var element = elements[E.self]
         modifier(&element)
         return replacing(elements: elements.setting(element))
-    }
-
-    func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E) -> E) -> Self {
-        replacing(elements: elements.setting(modifier(elements[E.self])))
     }
 
     func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E) async throws -> E) async rethrows -> Self {

@@ -60,12 +60,6 @@ public extension Geometry {
 }
 
 internal extension Geometry {
-    func mergingResultElements(with otherElements: ResultElements) -> D.Geometry {
-        ResultModifier(body: self) { elements in
-            ResultElements(combining: [elements, otherElements])
-        }
-    }
-
     func modifyingResult<E: ResultElement>(
         _ type: E.Type,
         @GeometryBuilder<D> modifier: @Sendable @escaping (D.Geometry, inout E) -> D.Geometry

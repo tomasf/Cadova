@@ -44,8 +44,4 @@ public extension Geometry {
             environment.setting(key: key, value: value)
         }
     }
-
-    internal func withEnvironment(_ environment: EnvironmentValues) -> D.Geometry {
-        withEnvironment { _ in environment }
-    }
 }

@@ -21,8 +21,7 @@ internal extension Loft {
         curve: any ParametricCurve<Vector3D>,
         reference: Direction2D,
         target: ReferenceTarget,
-        in environment: EnvironmentValues,
-        context: EvaluationContext
+        in environment: EnvironmentValues
     ) async -> any Geometry3D {
         // Find segments that use convex hull transitions
         var convexHullSegments: [(lowerIndex: Int, upperIndex: Int)] = []

@@ -102,17 +102,3 @@ public extension Box.Edge {
     static let verticalBackLeft = Self.alongZ(xSide: .min, ySide: .max)
     static let verticalBackRight = Self.alongZ(xSide: .max, ySide: .max)
 }
-
-internal extension Box.Edges {
-    static var all: Self {
-        Set(Axis3D.allCases.flatMap { axis in
-            LinearDirection.allCases.flatMap { x in
-                LinearDirection.allCases.flatMap { y in
-                    LinearDirection.allCases.map { z in
-                        Box.Edge(axis: axis, x: x, y: y, z: z)
-                    }
-                }
-            }
-        })
-    }
-}

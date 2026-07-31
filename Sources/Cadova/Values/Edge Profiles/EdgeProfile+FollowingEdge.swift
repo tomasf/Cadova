@@ -101,15 +101,6 @@ internal extension EdgeProfile {
         ])
     }
 
-    /// The cross-section ring at one polygon vertex. The ring is computed once per vertex and
-    /// shared by the segments on both sides, so their meeting faces have bit-identical vertices
-    /// and the union welds them exactly — the seams can't leave coplanar-resolution debris the
-    /// way independently trimmed prisms did.
-    private func ringTransform(at vertex: Vector2D, incoming: Vector2D, outgoing: Vector2D) -> Transform3D {
-        let (direction, stretch, _) = miterOffset(incoming, outgoing)
-        return ringTransform(direction: direction, stretch: stretch, vertex: vertex)
-    }
-
     /// A chain of ring transforms smoothly interpolated between two already-resolved joints,
     /// used for a segment where either endpoint's stretch was capped by `miterOffset` — direction
     /// and stretch can differ enormously between such a joint and its neighbor (e.g. a normal

@@ -57,17 +57,6 @@ public struct BezierPatch: Sendable, Hashable, Codable {
         return BezierCurve(controlPoints: intermediatePoints).point(at: uv.x)
     }
 
-    /// Generates a grid of sampled points across the surface
-    internal func points(uSegments: Int, vSegments: Int) -> [[Vector3D]] {
-        let uSteps = (0...uSegments).map { Double($0) / Double(uSegments) }
-        let vSteps = (0...vSegments).map { Double($0) / Double(vSegments) }
-
-        return uSteps.map { u in
-            vSteps.map { v in
-                point(at: Vector2D(u, v))
-            }
-        }
-    }
 }
 
 extension BezierPatch: Transformable {

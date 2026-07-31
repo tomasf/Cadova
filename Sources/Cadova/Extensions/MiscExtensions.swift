@@ -38,12 +38,6 @@ extension Set {
 }
 
 extension Dictionary {
-    func setting(_ key: Key, to value: Value) -> Self {
-        var dict = self
-        dict[key] = value
-        return dict
-    }
-
     init<S: Sequence<Key>>(keys: S, values: (Key) -> Value) {
         self.init(keys.map { ($0, values($0)) }) { $1 }
     }
@@ -62,10 +56,6 @@ extension URL {
             url.appendPathExtension(requiredExtension)
         }
         self = url
-    }
-
-    func withRequiredExtension(_ requiredExtension: String) -> URL {
-        pathExtension == requiredExtension ? self : appendingPathExtension(requiredExtension)
     }
 }
 

@@ -77,13 +77,6 @@ extension Geometry {
         }
     }
 
-    func readingPartNames(reader: @Sendable @escaping (Set<String>) -> Void) -> D.Geometry {
-        readingResult(PartCatalog.self) { geometry, catalog in
-            reader(Set(catalog.parts.keys.map(\.name)))
-            return geometry
-        }
-    }
-
     func writeOutputFiles(_ name: String, types: Set<TestGeneratedOutputType>) async throws {
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: withDefaultSegmentation(), in: .defaultEnvironment)
@@ -97,13 +90,6 @@ extension Geometry {
             let verificationURL = goldenRoot.appending(component: name).appendingPathExtension("3mf")
             let provider = ThreeMFDataProvider(result: result.for3MFVerification, options: [])
             try await provider.writeOutput(to: verificationURL, context: context)
-        }
-    }
-
-    func readingSeparatedParts(_ reader: @Sendable @escaping ([D.Geometry]) -> Void) -> D.Geometry {
-        separated { components in
-            reader(components)
-            return self
         }
     }
 

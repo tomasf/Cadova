@@ -213,9 +213,4 @@ extension SimplePolygon {
     var boundingBox: BoundingBox2D {
         .init(vertices)
     }
-
-    func triangulated() -> [(Int, Int, Int)] {
-        ManifoldPolygon(vertices: vertices).triangulate(epsilon: 1e-8)
-            .map { ($0.a, $0.b, $0.c) }
-    }
 }

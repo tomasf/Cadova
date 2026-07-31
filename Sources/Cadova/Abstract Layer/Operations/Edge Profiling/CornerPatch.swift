@@ -93,7 +93,7 @@ internal enum EdgeJunctionPlanner {
                 guard a.edgeIndex != b.edgeIndex,
                       edges[a.edgeIndex].isConvex == edges[b.edgeIndex].isConvex
                 else { continue }
-                return (a.edgeIndex, b.edgeIndex, spliced(edges[a.edgeIndex], a, edges[b.edgeIndex], b, at: position))
+                return (a.edgeIndex, b.edgeIndex, spliced(edges[a.edgeIndex], a, edges[b.edgeIndex], b))
             }
             return nil
         }() {
@@ -109,8 +109,7 @@ internal enum EdgeJunctionPlanner {
     /// Joins two chains at a shared endpoint into one continuous chain.
     private static func spliced(
         _ edgeA: FoundEdge, _ endA: ChainEnd,
-        _ edgeB: FoundEdge, _ endB: ChainEnd,
-        at position: Vector3D
+        _ edgeB: FoundEdge, _ endB: ChainEnd
     ) -> FoundEdge {
         // Orient A to arrive at the junction, and B to leave from it
         let head = endA.atStart ? edgeA.reversed : edgeA
