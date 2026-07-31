@@ -10,7 +10,7 @@ import Manifold3D
 /// other geometry in scope — without nesting reader calls.
 ///
 /// You don't construct a `GeometryEvaluator` directly; it is handed to the closure passed to
-/// ``Geometry/evaluating(_:)``:
+/// ``Geometry/evaluating(_:)`` or ``Evaluate``:
 ///
 /// ```swift
 /// shape.evaluating { g, eval in
