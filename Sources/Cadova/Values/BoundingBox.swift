@@ -203,6 +203,18 @@ internal extension BoundingBox {
     }
 }
 
+public extension D2 {
+    static func box(size: Vector2D, at origin: Vector2D) -> any Geometry2D {
+        Rectangle(size).translated(origin)
+    }
+}
+
+public extension D3 {
+    static func box(size: Vector3D, at origin: Vector3D) -> any Geometry3D {
+        Box(size).translated(origin)
+    }
+}
+
 internal extension BoundingBox2D {
     func within(x: (any WithinRange)? = nil, y: (any WithinRange)? = nil, margin: Double) -> Self {
         self
