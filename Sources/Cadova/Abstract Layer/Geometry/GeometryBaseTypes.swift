@@ -1,13 +1,5 @@
 import Foundation
 
-public struct Empty<D: Dimensionality>: Geometry {
-    public init() {}
-    
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
-        .init(.empty)
-    }
-}
-
 struct Hidden<D: Dimensionality>: Geometry {
     let body: D.Geometry
 
