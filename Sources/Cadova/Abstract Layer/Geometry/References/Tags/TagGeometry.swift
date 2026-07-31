@@ -2,7 +2,7 @@ internal struct TagGeometry: Geometry {
     let body: any Geometry3D
     let tag: Tag
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D3> {
         let bodyResult = try await context.buildResult(for: body, in: environment)
         let globalResult = bodyResult.modifyingNode { .transform($0, transform: environment.transform) }
 

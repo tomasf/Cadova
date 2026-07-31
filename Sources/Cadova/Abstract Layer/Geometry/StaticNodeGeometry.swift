@@ -9,7 +9,7 @@ struct StaticNodeGeometry<D: Dimensionality>: Geometry {
         self.node = node
     }
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         .init(node)
     }
 }

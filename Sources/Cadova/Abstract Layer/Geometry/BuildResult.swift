@@ -40,7 +40,7 @@ public struct _BuildResult<D: Dimensionality>: Sendable {
 internal typealias BuildResult<D: Dimensionality> = _BuildResult<D>
 
 internal extension BuildResult {
-    func replacing<New: Dimensionality>(node: New.Node) -> New.BuildResult {
+    func replacing<New: Dimensionality>(node: New.Node) -> BuildResult<New> {
         .init(node: node, elements: elements)
     }
 
@@ -48,7 +48,7 @@ internal extension BuildResult {
         .init(node: node, elements: elements)
     }
 
-    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> New.BuildResult {
+    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> BuildResult<New> {
         .init(node: modifier(node), elements: elements)
     }
 
@@ -127,7 +127,7 @@ internal extension BuildResult<D2> {
 }
 
 extension _BuildResult: Geometry {
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
         self
     }
 }

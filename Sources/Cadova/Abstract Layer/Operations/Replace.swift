@@ -34,7 +34,7 @@ internal struct Replace<D: Dimensionality, Input: Dimensionality>: Geometry {
     let source: Input.Geometry
     let replacement: D.Geometry
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let sourceResult = try await context.buildResult(for: source, in: environment)
         let replacementResult = try await context.buildResult(for: replacement, in: environment)
         return replacementResult.mergingElements(sourceResult.elements)

@@ -57,7 +57,7 @@ extension Geometry {
         }
     }
 
-    var parts: [Part: D3._BuildResult] {
+    var parts: [Part: _BuildResult<D3>] {
         get async throws {
             try await _EvaluationContext().buildModelResult(for: self, in: .defaultEnvironment)
                 .elements[PartCatalog.self].mergedOutputs

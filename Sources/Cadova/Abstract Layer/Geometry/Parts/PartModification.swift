@@ -5,7 +5,7 @@ internal struct PartModifier<D: Dimensionality>: Geometry {
     let predicate: @Sendable (Part) -> Bool
     let modifier: @Sendable (any Geometry3D, Part) -> any Geometry3D
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let output = try await context.buildResult(for: body, in: environment)
 
         return try await output.modifyingElement(PartCatalog.self) {

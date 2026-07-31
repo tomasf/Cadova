@@ -7,10 +7,10 @@ internal import Nodal
 extension MeshGL: @retroactive @unchecked Sendable {}
 
 struct ThreeMFDataProvider: OutputDataProvider {
-    let result: D3.BuildResult
+    let result: BuildResult<D3>
     let options: ModelOptions
 
-    init(result: D3.BuildResult, options: ModelOptions) {
+    init(result: BuildResult<D3>, options: ModelOptions) {
         self.result = result
         self.options = options
     }

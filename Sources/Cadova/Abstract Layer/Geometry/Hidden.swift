@@ -5,7 +5,7 @@ import Foundation
 struct Hidden<D: Dimensionality>: Geometry {
     let body: D.Geometry
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let bodyResult = try await context.buildResult(for: body, in: environment)
         return bodyResult.replacing(node: .empty)
     }

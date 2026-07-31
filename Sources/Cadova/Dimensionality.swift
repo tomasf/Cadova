@@ -21,7 +21,6 @@ public protocol Dimensionality: SendableMetatype {
     typealias Line = Cadova.Line<Self>
     typealias Alignment = GeometryAlignment<Self>
     typealias Direction = Cadova.Direction<Self>
-    typealias _BuildResult = Cadova._BuildResult<Self>
     typealias Measurements = Cadova.Measurements<Self>
     typealias BoundingBox = Cadova.BoundingBox<Self>
 
@@ -31,10 +30,6 @@ public protocol Dimensionality: SendableMetatype {
 internal extension Dimensionality {
     typealias Node = GeometryNode<Self>
     typealias Curve = ParametricCurve<Vector>
-
-    /// Internal-facing name for ``_BuildResult``, used everywhere except public API signatures,
-    /// which are required to spell out the underscore-prefixed name.
-    typealias BuildResult = _BuildResult
 }
 
 /// The two-dimensional space.

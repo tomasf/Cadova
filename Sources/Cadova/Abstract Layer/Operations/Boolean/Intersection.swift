@@ -39,7 +39,7 @@ public struct Intersection<D: Dimensionality>: Geometry, Transformable {
         self.children = children
     }
 
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
         try await .init(
             booleanOperation: .intersection,
             geometries: children(),

@@ -2,7 +2,7 @@ import Foundation
 import Manifold3D
 
 struct BinarySTLDataProvider: OutputDataProvider {
-    let result: D3.BuildResult
+    let result: BuildResult<D3>
     let options: ModelOptions
     let fileExtension = "stl"
 

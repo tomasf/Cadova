@@ -5,10 +5,10 @@ internal struct PartDetachment<D: Dimensionality, Input: Dimensionality>: Geomet
     let part: Part
     let reader: @Sendable (Input.Geometry, D3.Geometry?) -> D.Geometry
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let output = try await context.buildResult(for: source, in: environment)
 
-        var detachedPart: D3.BuildResult?
+        var detachedPart: BuildResult<D3>?
         let newOutput = output.modifyingElement(PartCatalog.self) {
             detachedPart = $0.detach(part)
         }

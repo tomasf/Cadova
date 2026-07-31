@@ -4,7 +4,7 @@ internal struct TagGeometryReader<Output: Dimensionality>: Geometry {
     let tag: Tag
     let reader: @Sendable ([D3.Geometry]) -> Output.Geometry
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<Output> {
         let geometries = environment.buildResults(for: tag).map {
             $0.transformed(environment.transform.inverse)
         }

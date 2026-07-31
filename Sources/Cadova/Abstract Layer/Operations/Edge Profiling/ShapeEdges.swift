@@ -73,7 +73,7 @@ private struct MaskResolvingShapeEdges: Geometry {
     let query: EdgeQuery
     let shape: EdgeShape
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D3> {
         let segmentation = environment.scaledSegmentation
         let bodyResult = try await context.buildResult(for: body, in: environment)
 

@@ -20,7 +20,7 @@ struct CachedConcrete<D: Dimensionality, Key: CacheKey>: Geometry {
         self.init(key: LabeledCacheKey(operationName: name, parameters: parameters), generator: generator)
     }
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         try await context.materializedResult(key: key) {
             try await D.Node.Result(generator())
         }

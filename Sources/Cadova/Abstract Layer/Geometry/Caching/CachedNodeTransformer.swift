@@ -20,7 +20,7 @@ struct CachedNodeTransformer<D: Dimensionality, Input: Dimensionality>: Geometry
         self.generator = generator
     }
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let bodyResult = try await context.buildResult(for: source, in: environment)
         let bakedKey = NodeCacheKey(base: key, node: bodyResult.node)
 

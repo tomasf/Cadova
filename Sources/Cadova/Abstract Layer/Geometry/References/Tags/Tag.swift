@@ -92,7 +92,7 @@ public struct Tag: Hashable, Sendable {
 ///     warning is printed.
 ///
 extension Tag: Geometry {
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D3._BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D3> {
         let output = Union {
             environment.buildResults(for: self)
         }.transformed(environment.transform.inverse)
@@ -132,7 +132,7 @@ internal struct TagReference: Geometry {
         return TagReference(tag: tag, transform: transform.transformed(additional))
     }
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D3> {
         let output = Union {
             environment.buildResults(for: tag)
         }

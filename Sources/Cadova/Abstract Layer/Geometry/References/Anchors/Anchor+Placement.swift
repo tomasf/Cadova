@@ -80,7 +80,7 @@ internal struct AnchorTransformReader<Output: Dimensionality>: Geometry {
     let anchor: Anchor
     let reader: @Sendable ([Output.Transform]) -> Output.Geometry
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<Output> {
         let reset = environment.transform.inverse
         let localTransforms: [Output.Transform] = environment.transforms(for: anchor).map {
             Output.Transform($0.concatenated(with: reset))

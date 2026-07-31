@@ -42,7 +42,7 @@ internal extension EvaluationContext {
 internal extension EvaluationContext {
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
-    func buildResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D.BuildResult {
+    func buildResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> BuildResult<D> {
         try await environment.whileCurrent {
             try await geometry._build(in: environment, context: self)
         }
@@ -50,7 +50,7 @@ internal extension EvaluationContext {
 
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
-    func buildResults<D: Dimensionality>(for geometries: [D.Geometry], in environment: EnvironmentValues) async throws -> [D.BuildResult] {
+    func buildResults<D: Dimensionality>(for geometries: [D.Geometry], in environment: EnvironmentValues) async throws -> [BuildResult<D>] {
         try await geometries.asyncMap {
             try await buildResult(for: $0, in: environment)
         }
@@ -69,7 +69,7 @@ internal extension EvaluationContext {
     /// Unlike `buildResult`, this method:
     /// - Resolves any `only()` modifier, returning the isolated geometry if present
     ///
-    func buildModelResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> D.BuildResult {
+    func buildModelResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> BuildResult<D> {
         try await buildResult(for: geometry, in: environment).resolvingOnly
     }
 }
@@ -80,17 +80,17 @@ internal extension EvaluationContext {
     func materializedResult<D: Dimensionality, Key: CacheKey>(
         key: Key,
         generator: @escaping @Sendable () async throws -> D.Node.Result
-    ) async throws -> D.BuildResult {
+    ) async throws -> BuildResult<D> {
         let materializedNode = D.Node.materialized(cacheKey: OpaqueKey(key))
         try await cache().declareGenerator(for: materializedNode, generator: generator)
-        return D.BuildResult(materializedNode)
+        return BuildResult<D>(materializedNode)
     }
 
     func materializedResult<D: Dimensionality, Input: Dimensionality, Key: CacheKey>(
-        buildResult: Input.BuildResult,
+        buildResult: BuildResult<Input>,
         key: Key,
         generator: @escaping @Sendable () async throws -> D.Node.Result
-    ) async throws -> D.BuildResult {
+    ) async throws -> BuildResult<D> {
         return try await materializedResult(key: key, generator: generator)
             .replacing(elements: buildResult.elements)
     }

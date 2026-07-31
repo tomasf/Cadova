@@ -8,7 +8,7 @@ public struct Empty<D: Dimensionality>: Geometry {
     /// Creates an empty geometry.
     public init() {}
 
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
         .init(.empty)
     }
 }

@@ -5,7 +5,7 @@ import Foundation
 /// turning a 2D node into a 3D one). Used to implement operations that need to manipulate the
 /// underlying `GeometryNode` tree directly rather than composing existing `Geometry` values.
 struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geometry {
-    let transformer: @Sendable (EnvironmentValues, EvaluationContext) async throws -> D.BuildResult
+    let transformer: @Sendable (EnvironmentValues, EvaluationContext) async throws -> BuildResult<D>
 
     init(
         body: Input.Geometry,
@@ -30,7 +30,7 @@ struct GeometryNodeTransformer<Input: Dimensionality, D: Dimensionality>: Geomet
         }
     }
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         try await transformer(environment, context)
     }
 }

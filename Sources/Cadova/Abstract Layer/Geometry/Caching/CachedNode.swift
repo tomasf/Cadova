@@ -38,7 +38,7 @@ struct CachedNode<D: Dimensionality>: Geometry {
         )
     }
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         try await context.materializedResult(key: key) {
             let outputNode = try await generator(environment, context)
             return try await context.result(for: outputNode)

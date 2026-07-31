@@ -32,7 +32,7 @@ public struct Evaluate<D: Dimensionality>: Geometry {
         self.action = action
     }
 
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D._BuildResult {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
         let evaluator = GeometryEvaluator(context: context, environment: environment)
         let produced = await action(evaluator)
         if let error = await evaluator.firstError {

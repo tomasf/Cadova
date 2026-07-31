@@ -6,7 +6,7 @@ struct ResultModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modifier: @Sendable (ResultElements) -> ResultElements
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let bodyResult = try await context.buildResult(for: body, in: environment)
         return bodyResult.replacing(elements: modifier(bodyResult.elements))
     }
@@ -19,7 +19,7 @@ struct ResultAndGeometryModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modifier: @Sendable (ResultElements) -> (D.Geometry, ResultElements)
 
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let bodyResult = try await context.buildResult(for: body, in: environment)
         let (newBody, elements) = modifier(bodyResult.elements)
         let newBodyResult = try await context.buildResult(for: newBody, in: environment)
