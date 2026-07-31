@@ -2,6 +2,12 @@ import Foundation
 import Testing
 @testable import Cadova
 
+private struct TagAccumulator: ResultElement {
+    var values: [String]
+    init() { values = [] }
+    init(combining elements: [TagAccumulator]) { values = elements.flatMap(\.values) }
+}
+
 struct BuildTests {
     init() {
         Settings.isFileRevealingEnabled = false
@@ -83,6 +89,95 @@ struct BuildTests {
 
         let files = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
         #expect(files.contains("with-metadata.3mf"))
+    }
+
+    @Test func `withArchiveFinalizer handler runs with a resolvable object id and can add a file`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let part = Part("box", semantic: .solid)
+
+        await confirmation("archive finalizer runs") { confirm in
+            await Project(root: tempDir) {
+                await Model("finalized") {
+                    Box(10)
+                        .inPart(part)
+                        .withArchiveFinalizer { archive in
+                            #expect(archive.objectID(for: part) != nil)
+                            #expect(archive.parts == [part])
+                            try archive.addFile(at: "Metadata/test.config", data: Data("hello".utf8))
+                            confirm()
+                        }
+                }
+            }
+        }
+
+        let files = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
+        #expect(files.contains("finalized.3mf"))
+    }
+
+    @Test func `withArchiveFinalizer's addFile accepts a content type and relationship type`() async throws {
+        // Content-type/relationship registration correctness itself is covered at the ThreeMF package
+        // level (where Nodal is available to parse [Content_Types].xml directly); this just confirms
+        // ModelArchive actually plumbs the parameters through rather than silently dropping them.
+        let data = try await ModelFileGenerator.build {
+            Box(10)
+                .withArchiveFinalizer { archive in
+                    try archive.addFile(
+                        at: "Metadata/custom.xml",
+                        contentType: "application/vnd.example+xml",
+                        relationshipType: "http://example.com/relationships/custom",
+                        data: Data("<custom/>".utf8)
+                    )
+                }
+        }.data()
+
+        // Filenames are stored uncompressed in a zip's local headers, so this substring check reliably
+        // confirms the file was added even though its content is compressed.
+        #expect(data.range(of: Data("Metadata/custom.xml".utf8)) != nil)
+    }
+
+    @Test func `withArchiveFinalizer does not rerun when the same geometry value is reused in a tree`() async throws {
+        // A geometry value that already carries a finalizer, reused at two points in the same tree
+        // (not two separate calls to withArchiveFinalizer), must not run the finalizer twice — the
+        // id is generated once per call, and value semantics mean both copies carry it along.
+        await confirmation("finalizer runs", expectedCount: 1) { confirm in
+            let taggedBox = Box(10).withArchiveFinalizer { _ in confirm() }
+            _ = try? await ModelFileGenerator.build {
+                taggedBox
+                    .adding {
+                        taggedBox.translated(x: 20)
+                    }
+            }.data()
+        }
+    }
+
+    @Test func `withArchiveFinalizer handlers can read tree-wide result elements and dedupe file writes`() async throws {
+        // Simulates a consumer (like Fabricate) that attaches a finalizer redundantly from several
+        // places in a tree, each needing to see data contributed by *all* of them, but where only
+        // one of them should actually write the combined file — a second write to the same path
+        // throws, even with identical content, unless the finalizer checks `fileExists` first.
+        let writeCombinedFile: @Sendable (ModelArchive) throws -> Void = { archive in
+            guard !archive.fileExists(at: "Metadata/combined.txt") else { return }
+            let values = archive.resultElement(TagAccumulator.self).values.sorted()
+            try archive.addFile(at: "Metadata/combined.txt", data: Data(values.joined(separator: ",").utf8))
+        }
+
+        // If dedup didn't work, the second finalizer's addFile would throw ZipError.duplicateFileEntry
+        // here, failing the test.
+        let data = try await ModelFileGenerator.build {
+            Box(10)
+                .modifyingResult(TagAccumulator.self) { $0.values.append("a") }
+                .withArchiveFinalizer(writeCombinedFile)
+                .adding {
+                    Box(5)
+                        .modifyingResult(TagAccumulator.self) { $0.values.append("b") }
+                        .withArchiveFinalizer(writeCombinedFile)
+                }
+        }.data()
+
+        #expect(data.range(of: Data("Metadata/combined.txt".utf8)) != nil)
     }
 
     @Test func `Model accepts environment directives`() async throws {

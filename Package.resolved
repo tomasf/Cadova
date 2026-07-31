@@ -1,5 +1,5 @@
 {
-  "originHash" : "31983d1b2ed3777c260a9864fb7c755888a3a8a6f9f0b9d2948ce2376ec8d20c",
+  "originHash" : "10d09069d58d8901e824978b77cb65669782592a970205b5deeba7ef44884e20",
   "pins" : [
     {
       "identity" : "apus",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/Nodal.git",
       "state" : {
-        "revision" : "a4dbde9c2d0b70e10e834bd62c46b9d78a67e5f0",
-        "version" : "1.0.1"
+        "revision" : "0ec74822bcf604f2e20d445e1e62e5e87abf8a3f",
+        "version" : "1.0.2"
       }
     },
     {
@@ -35,15 +35,6 @@
       "state" : {
         "revision" : "40118bfad25b83d46bf2a9b25327ba7189108880",
         "version" : "0.1.4"
-      }
-    },
-    {
-      "identity" : "threemf",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/tomasf/ThreeMF.git",
-      "state" : {
-        "revision" : "dc0156a495932b05928fdacb9ff4e4644102f0a6",
-        "version" : "0.2.4"
       }
     },
     {

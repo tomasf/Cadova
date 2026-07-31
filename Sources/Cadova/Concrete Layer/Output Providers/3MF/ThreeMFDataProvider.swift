@@ -5,6 +5,7 @@ internal import Zip
 internal import Nodal
 
 extension MeshGL: @retroactive @unchecked Sendable {}
+extension PackageWriter: @retroactive @unchecked Sendable {}
 
 struct ThreeMFDataProvider: OutputDataProvider {
     let result: BuildResult<D3>
@@ -102,8 +103,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
         outputs[mainPart] = result
         outputs = outputs.filter { acceptedSemantics.contains($0.key.semantic) && $0.value.node.isEmpty == false }
 
-        let modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
-            try await outputs.enumerated().asyncCompactMap { modelIndex, content -> (ThreeMF.Model, ThreeMF.Item, Int)? in
+        let modelsAndItems: [(part: Part, model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
+            try await outputs.enumerated().asyncCompactMap { modelIndex, content -> (Part, ThreeMF.Model, ThreeMF.Item, Int)? in
                 let (part, result) = content
                 let (node, transform) = result.node.deconstructTransform()
                 let nodeResult = try await context.result(for: node)
@@ -114,18 +115,18 @@ struct ThreeMFDataProvider: OutputDataProvider {
                     materials: nodeResult.materialMapping,
                     transform: transform
                 )
-                return (model, item, nodeResult.concrete.triangleCount)
+                return (part, model, item, nodeResult.concrete.triangleCount)
             }
         } results: { duration, results in
-            let triangleCount = results.map { $0.2 }.reduce(0, +)
+            let triangleCount = results.map { $0.3 }.reduce(0, +)
             logger.debug("Built 3MF structures and meshes with \(triangleCount) triangles in \(duration)")
         }
 
         var uniqueIDs: Set<String> = []
 
         if modelsAndItems.count > 1 {
-            let items = try modelsAndItems.enumerated().map(unpacked).map { index, model, item, _ in
-                let nameBase = item.partNumber?.simpleIdentifier ?? "part-\(index)"
+            let items = try modelsAndItems.enumerated().map { index, entry in
+                let nameBase = entry.item.partNumber?.simpleIdentifier ?? "part-\(index)"
                 var id = nameBase
                 var nameIndex = 1
                 while uniqueIDs.contains(id) {
@@ -134,9 +135,9 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 }
                 uniqueIDs.insert(id)
 
-                var item = item
+                var item = entry.item
                 item.partNumber = id
-                item.path = try archive.addAdditionalModel(model, named: id)
+                item.path = try archive.addAdditionalModel(entry.model, named: id)
                 return item
             }
             .sorted { ($0.partNumber ?? "").localizedStandardCompare($1.partNumber ?? "") == .orderedAscending }
@@ -150,7 +151,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 buildItems: items
             )
         } else if modelsAndItems.count == 1 {
-            var (model, item, _) = modelsAndItems[0]
+            let entry = modelsAndItems[0]
+            var item = entry.item
             item.partNumber = item.partNumber?.simpleIdentifier
 
             archive.model = ThreeMF.Model(
@@ -158,12 +160,60 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 recommendedExtensions: [.materials],
                 customNamespaces: ["c": CadovaNamespace.uri],
                 metadata: options[Metadata.self].threeMFMetadata,
-                resources: model.resources.resources,
+                resources: entry.model.resources.resources,
                 buildItems: [item]
             )
         } else {
             logger.warning("Model contains no objects. Exporting an empty 3MF file.")
             archive.model = ThreeMF.Model(metadata: options[Metadata.self].threeMFMetadata)
+        }
+
+        try await runArchiveFinalizers(archive: archive, modelsAndItems: modelsAndItems)
+    }
+
+    /// Tracks which archive paths have been written during one export. Finalizers run sequentially
+    /// within a single `write()` call, never concurrently, so plain mutation is safe despite the
+    /// `@unchecked Sendable` — this mirrors the same pattern already used for `PackageWriter` itself.
+    private final class AddedPathsTracker: @unchecked Sendable {
+        private var paths: Set<String> = []
+        func insert(_ path: String) { paths.insert(path) }
+        func contains(_ path: String) -> Bool { paths.contains(path) }
+    }
+
+    private func runArchiveFinalizers<T>(
+        archive: PackageWriter<T>,
+        modelsAndItems: [(part: Part, model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)]
+    ) async throws {
+        let finalizers = result.elements[ArchiveFinalizers.self].finalizers
+        guard !finalizers.isEmpty else { return }
+
+        let objectIDsByPart = Dictionary(uniqueKeysWithValues: modelsAndItems.map { ($0.part, $0.item.objectID) })
+        // Finalizers can be registered redundantly from several places in a tree (see
+        // `withArchiveFinalizer`'s doc comment), so track which paths have already been written
+        // this export — added paths never disappear, so a plain set is enough even though finalizers
+        // run sequentially, one export at a time.
+        let addedPaths = AddedPathsTracker()
+        let archiveHandle = ModelArchive(
+            objectIDsByPart: objectIDsByPart,
+            resultElements: result.elements,
+            addFileHandler: { path, contentType, relationshipType, relativeToRootModel, data in
+                guard let escapedPath = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+                      let url = URL(string: escapedPath) else {
+                    throw ModelArchiveError.invalidArchivePath(path)
+                }
+                archive.addFile(
+                    at: url,
+                    contentType: contentType,
+                    relationshipType: relationshipType,
+                    relativeToRootModel: relativeToRootModel,
+                    data: data
+                )
+                addedPaths.insert(path)
+            },
+            fileExistsHandler: { path in addedPaths.contains(path) }
+        )
+        for finalizer in finalizers.values {
+            try finalizer(archiveHandle)
         }
     }
 
