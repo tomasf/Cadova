@@ -32,9 +32,9 @@ public struct Rectangle: Sendable, Hashable, Codable {
     }
 }
 
-extension Rectangle: Geometry {
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D2._BuildResult {
-        .init(.shape(.rectangle(size: size)))
+extension Rectangle: Geometry2D {
+    public var body: any Geometry2D {
+        NodeBasedGeometry(.rectangle(size: size))
     }
 }
 

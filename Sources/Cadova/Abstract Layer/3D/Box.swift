@@ -1,7 +1,7 @@
 import Foundation
 
 /// A rectangular cuboid shape.
-public struct Box: Geometry {
+public struct Box {
     /// The dimensions of the box along each axis.
     public let size: Vector3D
 
@@ -44,9 +44,11 @@ public struct Box: Geometry {
     public init(_ side: Double) {
         self.init([side, side, side])
     }
+}
 
-    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> D3._BuildResult {
-        .init(.shape(.box(size: size)))
+extension Box: Geometry3D {
+    public var body: any Geometry3D {
+        NodeBasedGeometry(.box(size: size))
     }
 }
 
