@@ -199,19 +199,13 @@ internal extension BoundingBox {
     }
 
     var mask: D.Geometry {
-        D.box(size: size, at: minimum)
-    }
-}
-
-public extension D2 {
-    static func box(size: Vector2D, at origin: Vector2D) -> any Geometry2D {
-        Rectangle(size).translated(origin)
-    }
-}
-
-public extension D3 {
-    static func box(size: Vector3D, at origin: Vector3D) -> any Geometry3D {
-        Box(size).translated(origin)
+        if let box2D = self as? BoundingBox2D {
+            return Rectangle(box2D.size).translated(box2D.minimum) as! D.Geometry
+        } else if let box3D = self as? BoundingBox3D {
+            return Box(box3D.size).translated(box3D.minimum) as! D.Geometry
+        } else {
+            fatalError("BoundingBox is neither 2D nor 3D")
+        }
     }
 }
 

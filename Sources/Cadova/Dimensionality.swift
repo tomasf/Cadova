@@ -23,8 +23,6 @@ public protocol Dimensionality: SendableMetatype {
     typealias Direction = Cadova.Direction<Self>
     typealias Measurements = Cadova.Measurements<Self>
     typealias BoundingBox = Cadova.BoundingBox<Self>
-
-    static func box(size: Vector, at origin: Vector) -> Geometry
 }
 
 internal extension Dimensionality {
