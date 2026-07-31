@@ -76,32 +76,6 @@ public struct Tag: Hashable, Sendable {
     }
 }
 
-public extension Geometry3D {
-    /// Attaches a tag to this geometry, allowing it to be referenced elsewhere in the same model.
-    ///
-    /// The tagged geometry is recorded in its **current** coordinate system, meaning the world-space position
-    /// it has at the point where `tagged(_:)` is called — including any transforms applied to it earlier in
-    /// the chain. References to this tag later reproduce the geometry at that same world position.
-    ///
-    /// ```swift
-    /// // The tagged box is captured at world (5...6) — the translation is part of the anchor.
-    /// Box(1).translated(x: 5).tagged(myTag)
-    /// ```
-    ///
-    /// See ``Tag`` for how references behave when transforms are applied to them.
-    ///
-    /// - Multiple definitions:
-    ///   - You can tag multiple geometries with the same `Tag`. When that tag is referenced, all tagged geometries are
-    ///     merged (unioned) into a single result.
-    ///
-    /// - Parameter tag: The `Tag` to attach to this geometry.
-    /// - Returns: A geometry that records the association with the provided tag.
-    ///
-    func tagged(_ tag: Tag) -> any Geometry3D {
-        TagGeometry(body: self, tag: tag)
-    }
-}
-
 /// References geometry previously associated with this tag.
 ///
 /// When evaluated, this returns the geometry tagged with the same `Tag`, positioned at the same world-space
@@ -170,39 +144,6 @@ internal struct TagReference: Geometry {
     }
 }
 
-public extension Tag {
-    /// Reads the individual geometry members associated with this tag and provides them for further composition.
-    ///
-    /// This is similar to using the tag directly as geometry, except the tagged definitions are passed to the
-    /// `reader` closure as separate geometries instead of being unioned first. Each geometry is positioned in the
-    /// same coordinate system as a direct tag reference, preserving the world-space transform captured when tagged.
-    ///
-    /// - Parameter reader: A closure that receives all geometries currently associated with this tag.
-    /// - Returns: A geometry object resulting from the `reader` closure.
-    func readingMembers<Output: Dimensionality>(
-        @GeometryBuilder<Output> _ reader: @Sendable @escaping (_ members: [D3.Geometry]) -> Output.Geometry
-    ) -> Output.Geometry {
-        TagGeometryReader(tag: self, reader: reader)
-    }
-
-    /// Applies a transform to each individual geometry member associated with this tag and unions the results.
-    ///
-    /// This is a convenience wrapper around `readingMembers` for the common case where every tagged definition should
-    /// be processed independently.
-    ///
-    /// - Parameter transform: A closure called once for each tagged geometry member.
-    /// - Returns: The union of all geometries returned by `transform`.
-    func map<Output: Dimensionality>(
-        @GeometryBuilder<Output> _ transform: @Sendable @escaping (_ member: D3.Geometry) -> Output.Geometry
-    ) -> Output.Geometry {
-        readingMembers { members in
-            for member in members {
-                transform(member)
-            }
-        }
-    }
-}
-
 public extension Geometry {
     /// Removes tag definitions recorded within this geometry.
     ///
@@ -217,33 +158,6 @@ public extension Geometry {
     func removingTagDefinitions(for tag: Tag? = nil) -> D.Geometry {
         modifyingResult(ReferenceState.self) { state in
             state.removeTagDefinitions(for: tag)
-        }
-    }
-}
-
-internal struct TagGeometryReader<Output: Dimensionality>: Geometry {
-    let tag: Tag
-    let reader: @Sendable ([D3.Geometry]) -> Output.Geometry
-
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
-        let geometries = environment.buildResults(for: tag).map {
-            $0.transformed(environment.transform.inverse)
-        }
-        return try await context.buildResult(for: reader(geometries), in: environment)
-            .modifyingElement(ReferenceState.self) { $0.read(tag: tag) }
-    }
-}
-
-internal struct TagGeometry: Geometry {
-    let body: any Geometry3D
-    let tag: Tag
-
-    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
-        let bodyResult = try await context.buildResult(for: body, in: environment)
-        let globalResult = bodyResult.modifyingNode { .transform($0, transform: environment.transform) }
-
-        return bodyResult.modifyingElement(ReferenceState.self) {
-            $0.define(tag: tag, as: globalResult)
         }
     }
 }
