@@ -19,6 +19,8 @@ This centers the rectangle along the X-axis and aligns its bottom edge with Y = 
 
 The `.aligned(at:)` method repositions geometry by translating it so that parts of its *bounding box* align to the coordinate system origin, based on the criteria you provide. The geometry isn't clipped, resized, or modified, just moved so it aligns as requested. You can align any geometry, including complex compositions, boolean operations, or custom components.
 
+That bounding box is something you can read and use yourself, not just a behind-the-scenes detail of alignment. See <doc:MeasuringGeometry> for how to measure a shape's box, size, area, or volume and build new geometry from the result.
+
 You align along one or more axes:
 
 ```swift
