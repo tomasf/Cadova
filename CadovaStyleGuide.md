@@ -228,6 +228,44 @@ creates:
 }
 ```
 
+## One method call per line
+
+Break a chain so that each call sits on its own line, indented under the receiver. The chain is the
+structure of the geometry, and stacking the calls vertically makes that structure scannable: you read
+down the left edge and see every operation, in order, without parsing the line horizontally. It also
+keeps diffs to the one call that actually changed.
+
+**Preferred:**
+```swift
+Rectangle(x: width, y: length)
+    .aligned(at: .centerX)
+    .rounded(insideRadius: 8, outsideRadius: 12)
+    .extruded(height: thickness, bottomEdge: .chamfer(depth: 0.4))
+```
+
+**Avoid:**
+```swift
+Rectangle(x: width, y: length).aligned(at: .centerX).rounded(insideRadius: 8, outsideRadius: 12)
+    .extruded(height: thickness, bottomEdge: .chamfer(depth: 0.4))
+```
+
+Very short examples are the exception. A one-liner carrying a single idea, such as
+`Box(size).aligned(at: .centerXY)` or `hole.translated(x: kingpinOffset).symmetry(over: .x)`, reads
+perfectly well as it stands. Break the chain as soon as it carries real structure, and always when
+the line stops fitting comfortably.
+
+The same applies inside closures. Geometry returned from a builder closure is still a chain:
+
+**Preferred:**
+```swift
+model.split(along: .z(2)) { over, under in
+    over.colored(.darkOrange)
+        .translated(z: 7)
+
+    under
+}
+```
+
 ## Model in 2D, then extrude
 
 Cadova's 2D operations are considerably more expressive than its 3D ones. Rounding, offsetting,
