@@ -89,7 +89,7 @@ public extension Geometry3D {
     /// ## Example
     /// ```swift
     /// // Make a bottle taller by extending its neck
-    /// bottle.extended(at: Plane(z: 80), by: 20)
+    /// bottle.extended(at: Plane.z(80), by: 20)
     /// ```
     ///
     func extended(at plane: Plane, by amount: Double, alignment: AxisAlignment = .min) -> any Geometry3D {

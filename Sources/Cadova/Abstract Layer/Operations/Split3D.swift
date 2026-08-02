@@ -22,7 +22,7 @@ public extension Geometry3D {
     /// ## Example
     /// ```swift
     /// Sphere(diameter: 5)
-    ///     .split(along: Plane(z: 3)) { a, b in
+    ///     .split(along: Plane.z(3)) { a, b in
     ///         a.colored(.red)
     ///         b.colored(.blue)
     ///     }
@@ -53,7 +53,8 @@ public extension Geometry3D {
     ///
     /// ## Example
     /// ```swift
-    /// model.split(along: Plane(x: 10), arrangingPartsAlong: .y)
+    /// model.split(along: Plane.x(10), arrangingPartsAlong: .y)
+    /// ```
     ///
     func split(
         along plane: Plane,
@@ -141,7 +142,7 @@ public extension Geometry3D {
     /// ## Example
     /// ```swift
     /// Sphere(diameter: 5)
-    ///     .trimmed(along: Plane(z: 0))
+    ///     .trimmed(along: Plane.z(0))
     /// ```
     ///
     func trimmed(along plane: Plane) -> any Geometry3D {

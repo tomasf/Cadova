@@ -21,7 +21,7 @@ import Foundation
 ///     [ [0, 1, 0.5], [1, 1, 1.5], [2, 1, 0.3],  [3, 1, -0.4]  ],
 ///     [ [0, 0, 0],   [1, 0, 0.8], [2, 0, -0.2], [3, 0, 0]     ],
 /// ])
-/// .extruded(to: Plane(z: -0.5))
+/// .enclosed(against: Plane.z(-0.5))
 /// .aligned(at: .bottom)
 /// ```
 ///

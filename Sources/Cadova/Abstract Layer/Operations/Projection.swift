@@ -97,7 +97,7 @@ public extension Geometry3D {
     ///
     /// - Example:
     ///   ```swift
-    ///   let angledPlane = Plane(z: 6).rotated(y: 30°)
+    ///   let angledPlane = Plane.z(6).rotated(y: 30°)
     ///   let coneSlice = Cylinder(bottomDiameter: 10, topDiameter: 0, height: 15)
     ///       .sliced(along: angledPlane)
     ///   // coneSlice is a 2D shape where the cone intersects with the slanted plane.
