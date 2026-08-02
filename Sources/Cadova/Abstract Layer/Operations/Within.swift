@@ -135,6 +135,20 @@ public extension Geometry2D {
     /// ```
     /// This leaves the lower half of the circle unchanged, and moves the upper half (y > 0) up.
     ///
+    /// ### Compared with `whileMasked`
+    ///
+    /// ``Geometry/whileMasked(x:y:inverted:do:)`` takes the same kind of region and looks
+    /// interchangeable with this method, but the two differ in what the closure is given and in what
+    /// becomes of its result:
+    ///
+    /// - `within` passes the **clipped region** to the closure, and adds the returned geometry back
+    ///   unchanged. The operation is free to move material out of the region, as the example above does.
+    /// - `whileMasked` passes the **whole geometry** to the closure, and intersects the returned
+    ///   geometry with the region afterwards. Nothing can escape the region.
+    ///
+    /// Use `within` to relocate or replace a section. Use `whileMasked` for operations that need to
+    /// see the whole shape to give a correct answer, such as rounding or offsetting a single feature.
+    ///
     func within(
         x: (any WithinRange)? = nil,
         y: (any WithinRange)? = nil,
@@ -173,6 +187,20 @@ public extension Geometry3D {
     ///     }
     /// ```
     /// This leaves the upper hemisphere of the sphere unchanged, and moves the lower half (z < 0) down and colors it red.
+    ///
+    /// ### Compared with `whileMasked`
+    ///
+    /// ``Geometry/whileMasked(x:y:z:inverted:do:)`` takes the same kind of region and looks
+    /// interchangeable with this method, but the two differ in what the closure is given and in what
+    /// becomes of its result:
+    ///
+    /// - `within` passes the **clipped region** to the closure, and adds the returned geometry back
+    ///   unchanged. The operation is free to move material out of the region, as the example above does.
+    /// - `whileMasked` passes the **whole geometry** to the closure, and intersects the returned
+    ///   geometry with the region afterwards. Nothing can escape the region.
+    ///
+    /// Use `within` to relocate or replace a section. Use `whileMasked` for operations that need to
+    /// see the whole shape to give a correct answer, such as rounding or offsetting a single feature.
     ///
     func within(
         x: (any WithinRange)? = nil,
