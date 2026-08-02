@@ -71,8 +71,11 @@ By default the copies are simply moved to evenly spaced points along the path, e
 
 ```swift
 Union {
-    Box([24, 6, 10]).aligned(at: .minXY, .bottom)
-    Box([6, 24, 10]).aligned(at: .minXY, .bottom)
+    Box([24, 6, 10])
+        .aligned(at: .minXY, .bottom)
+
+    Box([6, 24, 10])
+        .aligned(at: .minXY, .bottom)
 }
 .translated(x: 3, y: 3)
 .symmetry(over: [.x, .y])

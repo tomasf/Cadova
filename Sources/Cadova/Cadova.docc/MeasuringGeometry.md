@@ -105,7 +105,8 @@ shape.readingOutlines { shape, outlines in
 solid.readingFirstSurface(from: [0, 0, 100], in: .down) { solid, crossing in
     solid
     if let crossing {
-        Sphere(radius: 2).translated(crossing.position)
+        Sphere(radius: 2)
+            .translated(crossing.position)
     }
 }
 ```

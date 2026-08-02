@@ -27,7 +27,8 @@ await Project(packageRelative: "Models") {
     await Model("pie") {
         Circle(diameter: 5)
             .subtracting {
-                Rectangle(5).aligned(at: .top, .right)
+                Rectangle(5)
+                    .aligned(at: .top, .right)
             }
     }
 }

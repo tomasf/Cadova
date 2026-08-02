@@ -131,7 +131,8 @@ Loft(interpolation: .easeInOut) {
         Circle(diameter: 20)
     }
     Section(at: 30) {
-        Rectangle(20).aligned(at: .center)
+        Rectangle(20)
+            .aligned(at: .center)
     }
 }
 ```
@@ -152,7 +153,8 @@ Loft(along: path, pointing: .down, toward: .direction(.negativeZ)) {
         Circle(diameter: 20)
     }
     Section(at: 40) {
-        Rectangle(20).aligned(at: .center)
+        Rectangle(20)
+            .aligned(at: .center)
     }
 }
 ```
