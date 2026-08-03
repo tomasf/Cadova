@@ -72,7 +72,6 @@ extension GeometryNode {
     }
 
     static func decompose(_ body: D.Node) -> GeometryNode {
-        guard body.isEmpty == false else { return .empty }
         return Self(.decompose(body))
     }
 

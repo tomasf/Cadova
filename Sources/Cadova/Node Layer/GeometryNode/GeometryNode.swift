@@ -102,7 +102,7 @@ extension GeometryNode {
 
         case .decompose (let node):
             let result = try await context.result(for: node)
-            return try result.modified { $0.decompose() }
+            return try result.modified { $0.decompose().filter { !$0.isEmpty } }
 
         case .materialized (_):
             preconditionFailure("Materialized geometry nodes are pre-cached and cannot be evaluated")
