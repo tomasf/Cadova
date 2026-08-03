@@ -175,6 +175,9 @@ extension GeometryNode {
 
         case .trim (let node, let plane):
             let result = try await context.result(for: node)
+            guard result.concrete.isEmpty == false else {
+                return .empty
+            }
             return try result.modified {
                 $0.translate(-plane.offset)
                     .trim(by: plane.normal.unitVector, originOffset: 0)
