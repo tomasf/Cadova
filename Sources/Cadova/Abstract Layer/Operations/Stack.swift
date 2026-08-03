@@ -66,19 +66,22 @@ extension Stack: Geometry {
     }
 
     public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
-        let union = try await Union {
-            let itemsAndBounds = try await items().asyncMap {
-                let buildResult = try await context.buildResult(for: $0, in: environment)
-                let measurements = try await Measurements(buildResult: buildResult, scope: .solidParts, context: context)
-                return ($0, measurements.boundingBox ?? .zero)
-            }
-
-            var offset = 0.0
-            for (geometry, bounds) in itemsAndBounds {
-                geometry.translated(bounds.translation(for: alignment) + .init(axis, value: offset))
-                offset += bounds.size[axis] + spacing
-            }
+        let itemsAndBounds: [(D.Geometry, D.BoundingBox?)] = try await items().asyncMap { item in
+            let buildResult = try await context.buildResult(for: item, in: environment)
+            let measurements = try await Measurements(buildResult: buildResult, scope: .solidParts, context: context)
+            return (item, measurements.boundingBox)
         }
-        return try await context.buildResult(for: union, in: environment)
+
+        var offset = 0.0
+        var arrangedItems: [D.Geometry] = []
+        for (geometry, maybeBounds) in itemsAndBounds {
+            guard let bounds = maybeBounds else {
+                arrangedItems.append(geometry)
+                continue
+            }
+            arrangedItems.append(geometry.translated(bounds.translation(for: alignment) + .init(axis, value: offset)))
+            offset += bounds.size[axis] + spacing
+        }
+        return try await context.buildResult(for: Union(arrangedItems), in: environment)
     }
 }
