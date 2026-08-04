@@ -39,8 +39,8 @@ public extension Geometry {
     ///
     /// - Parameter method: The overhang method to apply.
     func withCircularOverhangMethod(_ method: CircularOverhangMethod) -> D.Geometry {
-        withEnvironment { enviroment in
-            enviroment.withCircularOverhangMethod(method)
+        withEnvironment { environment in
+            environment.withCircularOverhangMethod(method)
         }
     }
 }

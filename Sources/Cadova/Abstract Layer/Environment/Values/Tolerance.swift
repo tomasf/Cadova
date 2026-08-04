@@ -43,8 +43,8 @@ public extension Geometry {
     /// - Returns: A modified geometry with the specified tolerance setting applied.
     ///
     func withTolerance(_ tolerance: Double) -> D.Geometry {
-        withEnvironment { enviroment in
-            enviroment.withTolerance(tolerance)
+        withEnvironment { environment in
+            environment.withTolerance(tolerance)
         }
     }
 }
