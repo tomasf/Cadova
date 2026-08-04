@@ -75,6 +75,36 @@ public extension Polygon {
     }
 }
 
+/// Deprecated. Use the `@Environment(\.tolerance)` property wrapper instead.
+@available(*, deprecated, message: "Use the @Environment(\\.tolerance) property wrapper instead.")
+public func readTolerance<D: Dimensionality>(
+    @GeometryBuilder<D> _ reader: @Sendable @escaping (Double) -> D.Geometry
+) -> D.Geometry {
+    readEnvironment { e in
+        reader(e.tolerance)
+    }
+}
+
+/// Deprecated. Use the `@Environment(\.operation)` property wrapper instead.
+@available(*, deprecated, message: "Use the @Environment(\\.operation) property wrapper instead.")
+public func readOperation(
+    @GeometryBuilder2D _ reader: @Sendable @escaping (EnvironmentValues.Operation) -> any Geometry2D
+) -> any Geometry2D {
+    readEnvironment { e in
+        reader(e.operation)
+    }
+}
+
+/// Deprecated. Use the `@Environment(\.operation)` property wrapper instead.
+@available(*, deprecated, message: "Use the @Environment(\\.operation) property wrapper instead.")
+public func readOperation(
+    @GeometryBuilder3D _ reader: @Sendable @escaping (EnvironmentValues.Operation) -> any Geometry3D
+) -> any Geometry3D {
+    readEnvironment { e in
+        reader(e.operation)
+    }
+}
+
 // `Loft.Layer` itself is gone — these functions now build `Section` values directly, so old
 // `Loft(interpolation:) { layer(z: 0) { ... } }` call sites resolve straight to the current
 // `Section`-based `Loft.init`, with no separate deprecated initializer needed to bridge them.
