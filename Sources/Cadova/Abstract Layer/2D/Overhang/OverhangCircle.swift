@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct OverhangCircle: Shape2D {
+internal struct OverhangCircle: Geometry2D {
     let radius: Double
 
     var body: any Geometry2D {
@@ -28,7 +28,7 @@ internal struct OverhangCircle: Shape2D {
     }
 }
 
-internal struct OverhangCylinder: Shape3D {
+internal struct OverhangCylinder: Geometry3D {
     let source: Cylinder
 
     var body: any Geometry3D {

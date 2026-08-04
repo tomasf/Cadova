@@ -5,8 +5,11 @@ import Foundation
 /// `GeometryBuilder` enables SwiftUI-style syntax for combining multiple geometries.
 /// When multiple geometries are provided, they are automatically combined using a union operation.
 ///
+/// It supports ordinary Swift control flow inside a builder closure: `if`/`else`, `switch`,
+/// optional bindings, and `for` loops can all be used to conditionally or repeatedly include geometry.
+///
 /// You typically use this through the ``GeometryBuilder2D`` or ``GeometryBuilder3D`` typealiases,
-/// or indirectly through ``Shape2D`` and ``Shape3D`` body properties.
+/// or indirectly through a ``Geometry`` conformance's `body` property.
 ///
 @resultBuilder public struct GeometryBuilder<D: Dimensionality> {
     public typealias G = any Geometry<D>

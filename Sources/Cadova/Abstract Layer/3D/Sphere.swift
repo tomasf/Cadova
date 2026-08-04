@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The sphere's smoothness and number of faces can be adjusted by configuring the segmentation through the ``Geometry/withSegmentation(minAngle:minSize:)`` and ``Geometry/withSegmentation(count:)`` methods, allowing for customized geometric precision and rendering quality.
 
-public struct Sphere: Geometry {
+public struct Sphere {
     /// The radius of the sphere.
     ///
     /// This property defines the overall size of the sphere from its center to its surface.
@@ -13,7 +13,7 @@ public struct Sphere: Geometry {
     /// Creates a sphere with the specified diameter.
     ///
     /// Use this initializer to create a sphere by directly specifying its diameter.
-    /// - Parameter diameter: The diameter of the sphere.
+    /// - Parameter diameter: The diameter of the sphere. A value of zero or less results in empty geometry.
     public init(diameter: Double) {
         precondition(diameter.isFinite, "Sphere diameter must be finite")
         self.init(radius: diameter / 2)
@@ -22,19 +22,20 @@ public struct Sphere: Geometry {
     /// Creates a sphere with the specified radius.
     ///
     /// This initializer provides a convenient way to define a sphere's size through its radius, automatically calculating the appropriate diameter.
-    /// - Parameter radius: The radius of the sphere. The diameter is calculated as twice the radius.
+    /// - Parameter radius: The radius of the sphere. The diameter is calculated as twice the radius. A value of zero or less results in empty geometry.
     public init(radius: Double) {
         precondition(radius.isFinite, "Sphere radius must be finite")
         self.radius = radius
     }
+}
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+extension Sphere: Geometry3D {
+    public var body: any Geometry3D {
         @Environment(\.scaledSegmentation) var segmentation
-
-        return .init(.shape(.sphere(
+        StaticNodeGeometry(.sphere(
             radius: radius,
             segmentCount: segmentation.segmentCount(circleRadius: diameter / 2)
-        )))
+        ))
     }
 }
 

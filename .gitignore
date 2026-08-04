@@ -4,5 +4,6 @@
 /*.xcodeproj
 xcuserdata/
 /.swiftpm
+.docc-build/
 
 /.claude/settings.local.json

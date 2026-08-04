@@ -40,20 +40,6 @@ internal extension CornerRoundingStyle {
         }
     }
 
-    func polygon(radius: Double, segmentation: Segmentation) -> Polygon {
-        let points = switch self {
-        case .circular:
-            Self.circularCornerPoints(radius: radius, segmentation: segmentation)
-
-        case .squircular:
-            Self.squircularCornerPoints(radius: radius, exponent: 4, segmentation: segmentation)
-
-        case .superelliptical (let exponent):
-            Self.squircularCornerPoints(radius: radius, exponent: exponent, segmentation: segmentation)
-        }
-        return Polygon(points)
-    }
-
     static func circularCornerPoints(radius: Double, segmentation: Segmentation) -> [Vector2D] {
         let segmentCount = segmentation.segmentCount(arcRadius: radius, angle: 90°)
 
@@ -76,7 +62,7 @@ internal extension CornerRoundingStyle {
     }
 }
 
-internal struct FilletCorner: Shape2D {
+internal struct FilletCorner: Geometry2D {
     let size: Vector2D
 
     var body: any Geometry2D {

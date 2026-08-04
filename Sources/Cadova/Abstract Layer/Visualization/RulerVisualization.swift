@@ -14,7 +14,7 @@ import Foundation
 /// The thickness of the ruler elements is controlled by the visualization scale in the environment.
 /// Use `withVisualizationScale(_:)` to adjust it.
 ///
-public struct Ruler: Shape3D {
+public struct Ruler: Geometry3D {
     let length: Double
     let interval: Double
 
@@ -70,7 +70,7 @@ public struct Ruler: Shape3D {
     }
 }
 
-fileprivate struct RulerLabel: Shape3D {
+fileprivate struct RulerLabel: Geometry3D {
     let value: Double
 
     var body: any Geometry3D {

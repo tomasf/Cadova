@@ -8,7 +8,7 @@ If you're looking to contribute to Cadova or just want to understand how it work
 
 ## Abstract Geometry
 
-The types users interact with directly—like ``Box``, ``Sphere``, ``Stack``, ``Union``—are part of what we call abstract geometry. These types conform to the ``Geometry`` protocol, which defines a high-level, declarative description of a shape or operation. User-defined shapes also live here, by composing existing geometry types wrapped in a Shape.
+The types users interact with directly, like ``Box``, ``Sphere``, ``Stack``, ``Union``, are part of what we call abstract geometry. These types conform to the ``Geometry`` protocol, which defines a high-level, declarative description of a shape or operation. User-defined shapes also live here, by implementing the `body` property and composing existing geometry types.
 
 The ``Geometry`` protocol is generic over a type called ``Dimensionality``, which distinguishes between 2D and 3D geometry. The concrete types `D2` and `D3` represent those dimensionalities and declare type aliases to associate with specific types like ``Vector2D``, `Transform2D`, and `Axis2D` (or their 3D equivalents). This allows geometry code to generalize over 2D and 3D while still relying on the right concrete types.
 
@@ -17,7 +17,7 @@ typealias Geometry2D = Geometry<D2>
 typealias Geometry3D = Geometry<D3>
 ```
 
-Every ``Geometry`` type implements a method called `build(in:context:)`, which, given an environment, produces the next representation: a geometry node. Many types conform to ``Shape2D`` or ``Shape3D``, which implement `build` automatically by delegating to a `body` property. This works similarly to how SwiftUI uses `View` and `body`.
+Every ``Geometry`` type implements a method called `_build(in:context:)`, which, given an environment, produces the next representation: a geometry node. It's underscore-prefixed (along with its `_EvaluationContext` parameter and `_BuildResult` return type) because it's forced to be public by protocol conformance, but isn't meant to be called or implemented by ordinary users. Internally, `EvaluationContext` and `BuildResult` typealiases avoid spelling out the underscore prefix except where a `public` signature requires the real name. `Geometry` also declares a `body` property, with a default `_build` implementation that delegates to it, so a type only needs to implement whichever one fits it. Primitives like ``Box`` and operations like ``Union`` implement `_build` directly; user-defined shapes conform to ``Geometry2D`` or ``Geometry3D`` and implement `body` instead, getting `_build` for free. This works similarly to how SwiftUI uses `View` and `body`.
 
 Composing shapes is done by nesting geometry inside each other, often with result builders or method chaining. This produces a tree of geometry values that's both readable and reusable.
 
@@ -39,4 +39,4 @@ Generating concrete geometry is the most expensive part of the process, so Cadov
 
 For example, if you create a `Circle(diameter: 10)` multiple times in different parts of a model, given the same segmentation settings, Cadova will only generate the mesh once. Later, it reuses the cached result whenever it sees the same node again.
 
-Caching becomes even more important for compound shapes. If you subtract something from a complex object, and then reuse that object again in a different way, the shared parts of the node tree can still come from the cache. Evaluation happens progressively—each operation only rebuilds the parts it needs, using the rest from cache.
+Caching becomes even more important for compound shapes. If you subtract something from a complex object, and then reuse that object again in a different way, the shared parts of the node tree can still come from the cache. Evaluation happens progressively; each operation only rebuilds the parts it needs, using the rest from cache.

@@ -38,12 +38,6 @@ extension Set {
 }
 
 extension Dictionary {
-    func setting(_ key: Key, to value: Value) -> Self {
-        var dict = self
-        dict[key] = value
-        return dict
-    }
-
     init<S: Sequence<Key>>(keys: S, values: (Key) -> Value) {
         self.init(keys.map { ($0, values($0)) }) { $1 }
     }
@@ -63,10 +57,6 @@ extension URL {
         }
         self = url
     }
-
-    func withRequiredExtension(_ requiredExtension: String) -> URL {
-        pathExtension == requiredExtension ? self : appendingPathExtension(requiredExtension)
-    }
 }
 
 extension String {
@@ -84,8 +74,10 @@ extension String {
     }
 }
 
-// Hack until we have a better solution
-extension KeyPath: @unchecked @retroactive Sendable {}
+// The standard library doesn't yet declare key paths Sendable when their root and value are, so
+// key paths into EnvironmentValues can't be captured by the @Sendable closures that geometry
+// builders use. Remove this once the stdlib provides the conformance itself.
+extension KeyPath: @unchecked @retroactive Sendable where Root: Sendable, Value: Sendable {}
 
 extension Clock {
     func measure<T>(work: () async throws -> T, results: (Instant.Duration, T) -> Void) async rethrows -> T {

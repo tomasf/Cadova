@@ -37,7 +37,7 @@ public extension Geometry {
     ///
     /// ```swift
     /// Rectangle(5)
-    ///   .swept(along: path)
+    ///   .swept(along: path, pointing: .down, toward: .direction(.negativeZ))
     ///   .withMaxTwistRate(1°)
     /// ```
     ///
@@ -45,8 +45,8 @@ public extension Geometry {
     /// - Returns: A new geometry with the twist rate applied.
     ///
     func withMaxTwistRate(_ value: Angle) -> D.Geometry {
-        withEnvironment { enviroment in
-            enviroment.withMaxTwistRate(value)
+        withEnvironment { environment in
+            environment.withMaxTwistRate(value)
         }
     }
 }

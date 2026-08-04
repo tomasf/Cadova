@@ -10,7 +10,7 @@ import Foundation
 ///     .withSegmentation(count: 3)
 /// ```
 
-public struct Cylinder: Shape3D, Hashable, Sendable, Codable {
+public struct Cylinder: Geometry3D, Hashable, Sendable, Codable {
     /// The height of the cylinder along the Z axis.
     public let height: Double
 
@@ -25,7 +25,7 @@ public struct Cylinder: Shape3D, Hashable, Sendable, Codable {
         let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
         if height > .ulpOfOne {
-            NodeBasedGeometry(.cylinder(
+            StaticNodeGeometry(.cylinder(
                 bottomRadius: bottomRadius,
                 topRadius: topRadius,
                 height: height,
@@ -41,11 +41,10 @@ public extension Cylinder {
     /// - Parameters:
     ///   - bottom: The circular face at the bottom of the cylinder
     ///   - top: The circular face at the top of the cylinder
-    ///   - height: The height between the bottom and top faces
+    ///   - height: The height between the bottom and top faces. A value of zero or less, or radii that are
+    ///     both zero or less, results in empty geometry.
     init(bottom: Circle, top: Circle, height: Double) {
-        assert(height.isFinite, "Cylinder height must be finite")
-        assert(height >= 0, "Cylinder height must not be negative")
-        assert(bottom.radius > 0 || top.radius > 0, "At least one of the radii must be positive")
+        precondition(height.isFinite, "Cylinder height must be finite")
 
         self.bottom = bottom
         self.top = top

@@ -1,13 +1,13 @@
 import Foundation
 
 internal struct Separate<D: Dimensionality, Output: Dimensionality>: Geometry {
-    let body: D.Geometry
+    let source: D.Geometry
     let reader: @Sendable ([D.Geometry]) -> Output.Geometry
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
-        let result = try await context.buildResult(for: body, in: environment)
+    public func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<Output> {
+        let result = try await context.buildResult(for: source, in: environment)
         let partCount = try await context.result(for: .decompose(result.node)).parts.count
-        let parts = (0..<partCount).map { SeparatedPart(body: body, index: $0) }
+        let parts = (0..<partCount).map { SeparatedPart(body: source, index: $0) }
         return try await context.buildResult(for: reader(parts), in: environment)
     }
 }
@@ -16,7 +16,7 @@ internal struct SeparatedPart<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let index: Int
 
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    public func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         try await context.buildResult(for: body, in: environment).modifyingNode {
             .select(.decompose($0), index: index)
         }
@@ -50,6 +50,6 @@ public extension Geometry {
     func separated <Output: Dimensionality> (
         @GeometryBuilder<Output> reader: @Sendable @escaping (_ components: [D.Geometry]) -> Output.Geometry
     ) -> Output.Geometry {
-        Separate(body: self, reader: reader)
+        Separate(source: self, reader: reader)
     }
 }

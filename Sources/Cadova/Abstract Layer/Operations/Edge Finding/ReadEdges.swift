@@ -5,9 +5,9 @@ internal struct ReadEdges: Geometry {
 
     let body: any Geometry3D
     let query: EdgeQuery
-    let action: @Sendable (D3.BuildResult, [FoundEdge]) -> any Geometry3D
+    let action: @Sendable (BuildResult<D3>, [FoundEdge]) -> any Geometry3D
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D3> {
         let bodyResult = try await context.buildResult(for: body, in: environment)
         let concreteResult = try await context.result(for: bodyResult.node)
 

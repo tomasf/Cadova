@@ -10,14 +10,14 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-15, ubuntu-latest, windows-latest]
+        os: [macos-26, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
 
     steps:
     - uses: SwiftyLab/setup-swift@latest
       with:
-        swift-version: ${{ matrix.os == 'windows-latest' && '6.3.1' || '6.2.3' }}
+        swift-version: '6.3.2'
     - uses: actions/checkout@v4
 
     - name: Install Linux dependencies
@@ -30,5 +30,4 @@ jobs:
       run: swift build -v
 
     - name: Run tests
-      if: matrix.os != 'windows-latest'
       run: swift test -v

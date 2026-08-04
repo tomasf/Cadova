@@ -18,7 +18,7 @@ Cadova provides two main vector types:
 Both types work similarly and support:
 
 - Arithmetic operations (`+`, `-`, `*`, `/`)
-- Dot products (`⋅`) and cross products (`×`, only for ``Vector3D``)
+- Dot products (`⋅`) and cross products (`×`)
 - Scalar multiplication and division
 - Array literal initialization
 
@@ -60,12 +60,13 @@ let doubled = 2 * b   // [10, 8]
 
 ### Dot and Cross Products
 
-Cadova provides two common geometric operations on vectors. The *dot product* (`⋅`) returns a scalar value and measures alignment between vectors. The *cross product* (`×`) returns a vector perpendicular to two inputs, and is only available for ``Vector3D``.
+Cadova provides two common geometric operations on vectors. The *dot product* (`⋅`) returns a scalar value and measures alignment between vectors. The *cross product* (`×`) is available for both types: for ``Vector3D``, it returns a vector perpendicular to both inputs; for ``Vector2D``, there's no perpendicular vector in the plane, so it returns a scalar — the magnitude that the 3D cross product would have if both vectors were interpreted as lying in the XY plane.
 
 ```swift
 let a: Vector2D = [1, 0]
 let b: Vector2D = [0, 1]
 let dot = a ⋅ b       // 0
+let cross2D = a × b   // 1
 
 let xAxis: Vector3D = [1, 0, 0]
 let yAxis: Vector3D = [0, 1, 0]
@@ -106,4 +107,4 @@ print(a.radians)   // 3.141592...
 print(a.turns)     // 0.5
 ```
 
-Normalization is available via `.normalized`, which maps any angle to the range -180°...180°.
+Normalization is available via `.normalized`, which maps any angle to the range from -180° (exclusive) to 180° (inclusive).

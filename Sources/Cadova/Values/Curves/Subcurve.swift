@@ -18,7 +18,7 @@ public struct Subcurve<Base: ParametricCurve>: ParametricCurve {
     /// The parameter range this subcurve covers.
     public let domain: ClosedRange<Double>
 
-    public var isEmpty: Bool { domain.length > 0 }
+    public var isEmpty: Bool { domain.length <= 0 }
     public func point(at u: Double) -> V { base.point(at: u) }
     public var derivativeView: any CurveDerivativeView<V> { base.derivativeView }
     public var sampleCountForLengthApproximation: Int { base.sampleCountForLengthApproximation }

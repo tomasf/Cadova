@@ -16,7 +16,7 @@ import Manifold3D
 ///     let polygonFromBezierPath = Polygon(bezierPath)
 ///     ```
 
-public struct Polygon: Shape2D {
+public struct Polygon: Geometry2D {
     internal let pointsProvider: PolygonPoints
 
     internal init(provider: PolygonPoints) {

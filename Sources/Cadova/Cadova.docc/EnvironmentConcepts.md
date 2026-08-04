@@ -10,7 +10,7 @@ Cadova has several built-in environment settings. For example, segmentation cont
 
 ## What Is the Environment For?
 
-The environment injects shared configuration into a subtree of your geometry. It flows down the tree — or rather *wraps around* the geometry it's attached to. Any geometry inside will receive those values, unless they're overridden further in.
+The environment injects shared configuration into a subtree of your geometry. It flows down the tree, or rather *wraps around* the geometry it's attached to. Any geometry inside will receive those values, unless they're overridden further in.
 
 ```swift
 Sphere(radius: 3)
@@ -23,38 +23,20 @@ Sphere(radius: 3)
     }
 ```
 
-In this example, the segmentation settings apply to the sphere and the cylinder, but not the circle — because the `.withSegmentation(...)` is only applied to the subtree above it.
+In this example, the segmentation settings apply to the sphere and the cylinder, but not the circle, because the `.withSegmentation(...)` is only applied to the subtree above it.
 
 This system makes it easy to apply shared settings without passing explicit parameters to every single node.
 
 ## Reading Environment Values
 
-There are two primary ways to read values from the environment:
+Use the `@Environment` property wrapper, much like SwiftUI's `@Environment`, to read values directly wherever you need them: in the body of a custom ``Geometry2D`` or ``Geometry3D`` type, or inline inside any geometry builder, such as `.adding` or `.subtracting`.
 
-### Using `.readingEnvironment(...)`
-
-This modifier reads a value from the environment and passes it into a closure:
+In a custom shape, this is ideal for defining reusable parametric shapes that adapt to configuration:
 
 ```swift
-Box(2)
-    .readingEnvironment(\.tolerance) { box, tolerance in
-        box.resized(x: 1 + tolerance)
-    }
-    // ...
-    .withTolerance(0.5)
-```
-
-Use this when you want to adjust an existing geometry based on the environment context.
-
-### Using the `@Environment` Property Wrapper
-
-If you're defining your own ``Shape2D`` or ``Shape3D``, you can use the `@Environment` property wrapper to access values directly:
-
-```swift
-struct MyShape: Shape3D {
-    @Environment(\.tolerance) var tolerance
-
+struct MyShape: Geometry3D {
     var body: any Geometry3D {
+        @Environment(\.tolerance) var tolerance
         Box(x: 10.0 + tolerance, y: 12.0 + tolerance, z: 4)
     }
 }
@@ -65,7 +47,7 @@ await Model("shape") {
 }
 ```
 
-This works much like SwiftUI's `@Environment` and is ideal for defining reusable parametric shapes that adapt to configuration. You can also use it inside geometry builders:
+The same property wrapper works directly inside a builder, without defining a new type:
 
 ```swift
 Box(10)
@@ -75,6 +57,8 @@ Box(10)
         Cylinder(diameter: 5.0 + tolerance, height: 10)
     }
 ```
+
+There's also a `.readingEnvironment(...)` modifier, which reads a value and passes it into a closure that adjusts an existing geometry.
 
 ## Custom Values
 
@@ -96,3 +80,5 @@ extension Geometry {
     }
 }
 ```
+
+A custom value isn't limited to a simple scalar like the `Double` above — it can just as well be a struct bundling several related settings, letting you thread a whole shared configuration through a subtree as a single environment value instead of one entry per field.

@@ -1,9 +1,11 @@
 import Foundation
 
+/// Defers geometry construction until build time, when the current `EnvironmentValues` are
+/// available to `body`. Powers `readEnvironment(_:)` and `readingEnvironment(_:)`.
 struct EnvironmentReader<D: Dimensionality>: Geometry {
     let body: @Sendable (EnvironmentValues) -> D.Geometry
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         try await context.buildResult(for: body(environment), in: environment)
     }
 }
@@ -12,7 +14,8 @@ struct EnvironmentReader<D: Dimensionality>: Geometry {
 ///
 /// Use this function to create a geometry that has access to environmental information. This allows for dynamic and
 /// conditional geometry creation based on the current environment settings such as segmentation, tolerance, or custom
-/// values you've defined.
+/// values you've defined. In most cases, the `@Environment` property wrapper is simpler for this — it can be used
+/// directly inside a `@GeometryBuilder` closure without needing this wrapping function at all.
 ///
 /// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a new geometry instance
 ///   based on that environment.
@@ -32,7 +35,7 @@ public func readEnvironment<D: Dimensionality>(
 ///   - body: A closure that takes the specified environment values and returns geometry based on those values.
 /// - Returns: A dynamically created geometry instance that responds to the specified environment values.
 ///
-public func readEnvironment<D: Dimensionality, each EachValue>(
+public func readEnvironment<D: Dimensionality, each EachValue: Sendable>(
     _ keyPaths: repeat KeyPath<EnvironmentValues, each EachValue>,
     @GeometryBuilder<D> body: @Sendable @escaping (repeat each EachValue) -> D.Geometry
 ) -> D.Geometry {
@@ -46,7 +49,10 @@ public func readEnvironment<D: Dimensionality, each EachValue>(
 extension Geometry {
     /// Modifies this geometry by reading the current environment values.
     ///
-    /// Use this modifier when you want to adjust an existing geometry in response to the environment.
+    /// Use this modifier when you want to adjust an existing geometry in response to the environment. If you're
+    /// just constructing new geometry and don't need to reference this existing instance, prefer the `@Environment`
+    /// property wrapper instead — it can be used directly inside a `@GeometryBuilder` closure without needing to
+    /// route the geometry through this modifier's closure parameter.
     /// - Parameter body: A closure that takes the current `EnvironmentValues` and returns a modified version of
     ///   this geometry.
     /// - Returns: A new geometry modified according to the environment.
@@ -62,14 +68,17 @@ extension Geometry {
     /// Modifies this geometry by reading specific environment values.
     ///
     /// This overload allows you to specify exactly which environment values to read using key paths.
-    /// The geometry is then modified using the current values of those keys.
+    /// The geometry is then modified using the current values of those keys. If you're just constructing new
+    /// geometry and don't need to reference this existing instance, prefer the `@Environment` property wrapper
+    /// instead — it can be used directly inside a `@GeometryBuilder` closure without needing to route the geometry
+    /// through this modifier's closure parameter.
     ///
     /// - Parameters:
     ///   - keyPaths: A variadic list of key paths into `EnvironmentValues` that this geometry depends on.
     ///   - body: A closure that takes the current geometry and the specified environment values to return a modified geometry.
     /// - Returns: A new geometry adjusted according to the specified environment values.
     ///
-    public func readingEnvironment<each EachValue>(
+    public func readingEnvironment<each EachValue: Sendable>(
         _ keyPaths: repeat KeyPath<EnvironmentValues, each EachValue>,
         @GeometryBuilder<D> body: @Sendable @escaping (D.Geometry, repeat each EachValue) -> D.Geometry
     ) -> D.Geometry {

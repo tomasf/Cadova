@@ -2,7 +2,7 @@ import Foundation
 
 /// Specifies the arc-length spacing of samples extracted from a parametric curve.
 ///
-/// Used by `ParametricCurve.readSamples(at:_:)` and `ParametricCurve.samples(at:segmentation:)`
+/// Used by `ParametricCurve.readingSamples(at:_:)` and `ParametricCurve.samples(at:segmentation:)`
 /// to select a subset of an already-subdivided polyline at requested arc-length positions.
 public enum CurveSampleInterval: Sendable, Hashable, Codable {
     /// Sample every `distance` units of arc length along the curve, starting at distance 0.

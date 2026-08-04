@@ -7,20 +7,7 @@ public struct EnvironmentValues: Sendable {
     private var values: [Key: any Sendable]
 
     // Identity token used to skip redundant task-local rebinding; regenerated on every mutation
-    internal private(set) var id = ID()
-
-    internal struct ID: Equatable, Sendable {
-        private static let lock = NSLock()
-        private static nonisolated(unsafe) var nextValue: UInt64 = 0
-        private let value: UInt64
-
-        init() {
-            Self.lock.lock()
-            Self.nextValue += 1
-            value = Self.nextValue
-            Self.lock.unlock()
-        }
-    }
+    internal private(set) var id = UUID()
 
     public init() {
         self.init(values: [:])
@@ -63,7 +50,7 @@ public struct EnvironmentValues: Sendable {
         get { values[key] }
         set {
             values[key] = newValue
-            id = ID()
+            id = UUID()
         }
     }
 }

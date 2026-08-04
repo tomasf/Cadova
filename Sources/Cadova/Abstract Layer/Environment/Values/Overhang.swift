@@ -37,8 +37,8 @@ public extension Geometry {
     /// - Parameter angle: The overhang angle to set for the geometry.
     /// - Returns: A modified geometry with the specified overhang setting applied.
     func withOverhangAngle(_ angle: Angle) -> D.Geometry {
-        withEnvironment { enviroment in
-            enviroment.withOverhangAngle(angle)
+        withEnvironment { environment in
+            environment.withOverhangAngle(angle)
         }
     }
 }

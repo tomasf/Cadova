@@ -1,7 +1,12 @@
 import Foundation
 import Manifold3D
 
-public struct BuildResult<D: Dimensionality>: Sendable {
+/// The result of building a ``Geometry`` value: a geometry node plus any attached result elements.
+///
+/// This type is public only because it appears in the signature of `Geometry`'s `_build(in:context:)`
+/// requirement, which every conforming type must satisfy. It isn't meant to be constructed, inspected,
+/// or otherwise used directly — hence the underscore prefix.
+public struct _BuildResult<D: Dimensionality>: Sendable {
     internal let node: D.Node
     internal let elements: ResultElements
 
@@ -30,20 +35,20 @@ public struct BuildResult<D: Dimensionality>: Sendable {
     }
 }
 
-internal extension BuildResult {
-    func replacing<New: Dimensionality>(node: New.Node) -> New.BuildResult {
-        .init(node: node, elements: elements)
-    }
+/// Internal-facing name for ``_BuildResult``, used everywhere except public API signatures,
+/// which are required to spell out the underscore-prefixed name.
+internal typealias BuildResult<D: Dimensionality> = _BuildResult<D>
 
-    func replacing<New: Dimensionality, Key: CacheKey>(cacheKey: Key) -> New.BuildResult {
-        .init(node: .materialized(cacheKey: OpaqueKey(cacheKey)), elements: elements)
+internal extension BuildResult {
+    func replacing<New: Dimensionality>(node: New.Node) -> BuildResult<New> {
+        .init(node: node, elements: elements)
     }
 
     func replacing(elements: ResultElements) -> Self {
         .init(node: node, elements: elements)
     }
 
-    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> New.BuildResult {
+    func modifyingNode<New: Dimensionality>(_ modifier: (D.Node) -> New.Node) -> BuildResult<New> {
         .init(node: modifier(node), elements: elements)
     }
 
@@ -51,10 +56,6 @@ internal extension BuildResult {
         var element = elements[E.self]
         modifier(&element)
         return replacing(elements: elements.setting(element))
-    }
-
-    func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E) -> E) -> Self {
-        replacing(elements: elements.setting(modifier(elements[E.self])))
     }
 
     func modifyingElement<E: ResultElement>(_ type: E.Type, _ modifier: (E) async throws -> E) async rethrows -> Self {
@@ -125,8 +126,8 @@ internal extension BuildResult<D2> {
     }
 }
 
-extension BuildResult: Geometry {
-    public func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+extension _BuildResult: Geometry {
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
         self
     }
 }

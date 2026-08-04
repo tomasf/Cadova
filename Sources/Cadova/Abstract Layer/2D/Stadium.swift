@@ -15,7 +15,7 @@ import Foundation
 /// let tall = Stadium(x: 12, y: 40)
 /// ```
 ///
-public struct Stadium: Shape2D {
+public struct Stadium: Geometry2D {
     /// The overall size of the stadium (width along X, height along Y), measured edge-to-edge.
     public let size: Vector2D
 
@@ -23,19 +23,19 @@ public struct Stadium: Shape2D {
     ///
     /// - Parameter size: The total width (x) and height (y) of the stadium. The smaller component
     ///   determines the diameter of the semicircular end caps; the larger component determines the
-    ///   overall length along the major axis.
+    ///   overall length along the major axis. A component of zero or less results in empty geometry.
     public init(_ size: Vector2D) {
+        precondition(size.x.isFinite && size.y.isFinite, "Stadium dimensions must be finite")
         self.size = size
     }
 
     /// Creates a stadium with the given width and height.
     ///
     /// - Parameters:
-    ///   - x: The overall width of the stadium along the X axis.
-    ///   - y: The overall height of the stadium along the Y axis.
+    ///   - x: The overall width of the stadium along the X axis. A value of zero or less results in empty geometry.
+    ///   - y: The overall height of the stadium along the Y axis. A value of zero or less results in empty geometry.
     ///   The smaller of `x` and `y` determines the diameter of the semicircular end caps.
     public init(x: Double, y: Double) {
-        precondition(x.isFinite && y.isFinite, "Stadium dimensions must be finite")
         self.init([x, y])
     }
 
@@ -57,6 +57,7 @@ public struct Stadium: Shape2D {
 extension Stadium: Area, Perimeter {
     /// The area of the stadium.
     public var area: Double {
+        guard size.x > 0, size.y > 0 else { return 0 }
         let diameter = min(size.x, size.y)
         return Double.pi * (diameter / 2) * (diameter / 2) + (max(size.x, size.y) - diameter) * diameter
     }

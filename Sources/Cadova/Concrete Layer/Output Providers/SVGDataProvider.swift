@@ -2,7 +2,7 @@ import Foundation
 internal import Nodal
 
 struct SVGDataProvider: OutputDataProvider {
-    let result: D2.BuildResult
+    let result: BuildResult<D2>
     let options: ModelOptions
     let fileExtension = "svg"
 

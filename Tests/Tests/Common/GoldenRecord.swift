@@ -15,10 +15,10 @@ private struct PartKey: Hashable, Codable {
 struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
     private let parts: [PartKey: D.Node]
 
-    init(result: BuildResult<D>) {
-        if let result2D = result as? D2.BuildResult {
+    init(result: _BuildResult<D>) {
+        if let result2D = result as? _BuildResult<D2> {
             parts = [PartKey(.main): result2D.node as! D.Node]
-        } else if let result3D = result as? D3.BuildResult {
+        } else if let result3D = result as? _BuildResult<D3> {
             var parts: [PartKey: D.Node] = result.elements[PartCatalog.self].mergedOutputs
                 .reduce(into: [:]) { $0[PartKey($1.key)] = $1.value.node as? D.Node }
             parts[PartKey(.main)] = (result3D.node as! D.Node)
@@ -32,10 +32,16 @@ struct GoldenRecord<D: Dimensionality>: Sendable, Hashable, Codable {
         self = try JSONDecoder().decode(Self.self, from: Data(contentsOf: url))
     }
 
+    var jsonString: String {
+        get throws {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+            return String(decoding: try encoder.encode(self), as: UTF8.self)
+        }
+    }
+
     func write(to url: URL) throws {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-        try encoder.encode(self).write(to: url)
+        try Data(jsonString.utf8).write(to: url)
     }
 }
 

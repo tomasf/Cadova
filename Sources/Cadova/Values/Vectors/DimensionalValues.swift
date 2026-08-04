@@ -44,12 +44,6 @@ internal struct DimensionalValues<Element: Sendable, D: Dimensionality>: Sendabl
         map { operation($1) }
     }
 
-    func contains(_ predicate: (Element) -> Bool) -> Bool {
-        D.Axis.allCases.contains {
-            predicate(self[$0])
-        }
-    }
-
     var values: [Element] {
         switch value {
         case .xy(let x, let y): [x, y]

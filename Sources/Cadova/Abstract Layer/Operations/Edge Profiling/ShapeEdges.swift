@@ -43,7 +43,7 @@ public extension Geometry3D {
     func shapingEdges(_ shape: EdgeShape, in edges: [FoundEdge]) -> any Geometry3D {
         readEnvironment(\.scaledSegmentation) { segmentation in
             CachedNodeTransformer<D3, D3>(
-                body: self,
+                source: self,
                 name: "Cadova.ShapeEdges.explicit",
                 parameters: edges, shape, segmentation
             ) { bodyNode, environment, context in
@@ -73,7 +73,7 @@ private struct MaskResolvingShapeEdges: Geometry {
     let query: EdgeQuery
     let shape: EdgeShape
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D3.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D3> {
         let segmentation = environment.scaledSegmentation
         let bodyResult = try await context.buildResult(for: body, in: environment)
 

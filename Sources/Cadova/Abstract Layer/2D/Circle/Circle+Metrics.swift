@@ -55,7 +55,8 @@ public extension Circle {
 
 extension Circle: Area, Perimeter {
     public var area: Double {
-        radius * radius * .pi
+        guard radius > 0 else { return 0 }
+        return radius * radius * .pi
     }
 
     public var perimeter: Double { circumference }

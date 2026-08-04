@@ -1,12 +1,40 @@
 import Foundation
 
-internal struct Evaluate<Input: Dimensionality, Output: Dimensionality>: Geometry {
-    let body: Input.Geometry
-    let action: @Sendable (Input.Geometry, GeometryEvaluator) async -> Output.Geometry
+/// A geometry type that reads derived values from other geometry using a ``GeometryEvaluator``, then
+/// builds new geometry from the results.
+///
+/// Use `Evaluate` when you need to read from geometry that isn't the receiver of a chained call — for
+/// example, geometry captured from an outer scope, or several unrelated geometries at once. If you're
+/// evaluating the geometry you're already chaining off of, ``Geometry/evaluating(_:)`` is more concise.
+///
+/// ```swift
+/// Evaluate { eval in
+///     let bounds   = await eval.bounds(of: someShape) ?? .zero
+///     let outlines = await eval.outlines(of: otherShape.projected())
+///     someShape.adding {
+///         for path in outlines {
+///             // place a marker on each outline using the bounds
+///         }
+///     }
+/// }
+/// ```
+///
+public struct Evaluate<D: Dimensionality>: Geometry {
+    let action: @Sendable (GeometryEvaluator) async -> D.Geometry
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> Output.BuildResult {
+    /// Creates a geometry that reads derived values from other geometry, then builds new geometry from
+    /// the results.
+    /// - Parameter action: An asynchronous closure that receives an evaluator and returns new geometry
+    ///   built from the values read through it.
+    public init(
+        @GeometryBuilder<D> _ action: @Sendable @escaping (GeometryEvaluator) async -> D.Geometry
+    ) {
+        self.action = action
+    }
+
+    public func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
         let evaluator = GeometryEvaluator(context: context, environment: environment)
-        let produced = await action(body, evaluator)
+        let produced = await action(evaluator)
         if let error = await evaluator.firstError {
             throw error
         }
@@ -52,6 +80,8 @@ public extension Geometry {
     func evaluating<Output: Dimensionality>(
         @GeometryBuilder<Output> _ action: @Sendable @escaping (D.Geometry, GeometryEvaluator) async -> Output.Geometry
     ) -> Output.Geometry {
-        Evaluate(body: self, action: action)
+        Evaluate { eval in
+            await action(self, eval)
+        }
     }
 }

@@ -18,10 +18,6 @@ public struct OrthogonalCorner<D: Dimensionality>: Sendable, Hashable, Comparabl
         axisDirections.map { $1 == .max }.axes
     }
 
-    internal func point(boxSize: D.Vector) -> D.Vector {
-        axisDirections.map { boxSize[$0] / 2 * $1.factor }.vector
-    }
-
     public static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.axisDirections < rhs.axisDirections
     }

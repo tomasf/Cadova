@@ -20,7 +20,7 @@ public extension Mesh {
     }
 }
 
-fileprivate struct MeshVisualization: Shape3D {
+fileprivate struct MeshVisualization: Geometry3D {
     let meshData: MeshData
 
     var body: any Geometry3D {
@@ -32,7 +32,7 @@ fileprivate struct MeshVisualization: Shape3D {
         }
     }
 
-    struct Face: Shape3D {
+    struct Face: Geometry3D {
         let vertices: (Vector3D, Vector3D, Vector3D)
 
         var body: any Geometry3D {

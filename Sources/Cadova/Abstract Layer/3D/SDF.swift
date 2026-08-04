@@ -13,7 +13,7 @@ import Manifold3D
 /// - Note: This is a computationally intensive operation. Use appropriate grid resolution
 ///   to balance quality and performance.
 ///
-public struct LevelSet: Shape3D {
+public struct LevelSet: Geometry3D {
     let function: @Sendable (Vector3D) -> Double
     let bounds: BoundingBox3D
     let edgeLength: Double
@@ -40,7 +40,7 @@ public struct LevelSet: Shape3D {
     ///   - name: A string identifying the transformation operation. Used as part of the cache key.
     ///   - cacheParameters: Optional parameters that further define the transformation. These should be values that uniquely
     ///   describe the warp operation so that results can be cached correctly.
-    ///   - sdf: A closure that returns the signed distance at a given point in 3D space. Positive values are considered *inside* the surface, and negative values *outside*.
+    ///   - sdf: A closure that returns the signed distance at a given point in 3D space. Negative values are considered *inside* the surface, and positive values *outside*.
     ///
     /// - Important: While the SDF does not have to be continuous or even a true distance function, discontinuities or poor sampling resolution may produce jagged or incorrect surfaces.
     public init(

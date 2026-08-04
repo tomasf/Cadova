@@ -18,7 +18,7 @@ public extension Geometry3D {
     }
 }
 
-fileprivate struct AxesVisualization: Shape3D {
+fileprivate struct AxesVisualization: Geometry3D {
     let length: Double
 
     var body: any Geometry3D {

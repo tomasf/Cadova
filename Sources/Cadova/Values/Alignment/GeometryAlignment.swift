@@ -88,16 +88,8 @@ public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
         .init(values.map { $0 == axis ? newValue : $1 })
     }
 
-    internal var factors: D.Vector {
-        values.map { $0?.fraction ?? 0 }.vector
-    }
-
     internal func defaultingToOrigin() -> Self {
         .init(values.map { $0 ?? .min })
-    }
-
-    internal var hasEffect: Bool {
-        values.contains { $0 != nil }
     }
 }
 

@@ -1,10 +1,13 @@
 import Foundation
 
+/// Builds `body` under an environment modified by `modification`. The modification only affects
+/// `body`'s own build — it doesn't leak out to geometry outside this wrapper. Powers the
+/// `withEnvironment` family of modifiers.
 internal struct EnvironmentModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modification: @Sendable (EnvironmentValues) -> EnvironmentValues
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         try await context.buildResult(for: body, in: modification(environment))
     }
 }
@@ -43,9 +46,5 @@ public extension Geometry {
         withEnvironment { environment in
             environment.setting(key: key, value: value)
         }
-    }
-
-    internal func withEnvironment(_ environment: EnvironmentValues) -> D.Geometry {
-        withEnvironment { _ in environment }
     }
 }

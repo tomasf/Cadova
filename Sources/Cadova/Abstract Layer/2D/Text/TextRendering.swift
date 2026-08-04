@@ -3,7 +3,6 @@ internal import Apus
 
 internal enum TextError: Error {
     case fontNotFound (family: String, style: String?)
-    case fontLoadingFailed
 }
 
 /// Generic fallback families tried, in order, when no requested family is available.

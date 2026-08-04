@@ -21,7 +21,7 @@ public extension Geometry3D {
     /// ## Example
     /// ```swift
     /// let topHalf = Part("Top Half")
-    /// model.separating(along: Plane(z: 0), into: topHalf)
+    /// model.separating(along: Plane.z(0), into: topHalf)
     /// ```
     func separating(along plane: Plane, into part: Part) -> any Geometry3D {
         split(along: plane) { over, under in

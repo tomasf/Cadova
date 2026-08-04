@@ -61,6 +61,11 @@ struct CurveSamplesTests {
         #expect(samples.map(\.position) ≈ [[2.5, 0], [3.75, 0], [5, 0], [6.25, 0], [7.5, 0]])
     }
 
+    @Test func `subcurve is empty only when its domain has no length`() {
+        #expect(line[0.25...0.75].isEmpty == false)
+        #expect(line[0.5...0.5].isEmpty)
+    }
+
     @Test func `subcurve respects step interval against its restricted length`() {
         // The subcurve covers x ∈ [2, 8], so its arc length is 6.
         let middle = line[0.2...0.8]

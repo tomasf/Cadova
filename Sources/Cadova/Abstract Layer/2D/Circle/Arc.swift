@@ -8,7 +8,7 @@ import Foundation
 /// let arcWithRadius = Arc(range: 0°..<90°, radius: 5)
 /// let arcWithDiameter = Arc(range: 0°..<90°, diameter: 10)
 /// ```
-public struct Arc: Shape2D {
+public struct Arc: Geometry2D {
     /// The angular range of the arc.
     public let range: Range<Angle>
 
@@ -18,7 +18,7 @@ public struct Arc: Shape2D {
     /// Creates a new `Arc` instance with the specified range of angles and radius.
     ///
     /// - Parameter range: The range of angles to include in the arc.
-    /// - Parameter radius: The radius of the arc.
+    /// - Parameter radius: The radius of the arc. A value of zero or less results in empty geometry.
     public init(range: Range<Angle>, radius: Double) {
         precondition(radius.isFinite, "Arc radius must be finite")
         self.range = range
@@ -36,7 +36,10 @@ public struct Arc: Shape2D {
 
     public var body: any Geometry2D {
         @Environment(\.scaledSegmentation) var segmentation
-        Polygon([.zero] + arcPoints(segmentation: segmentation))
+
+        if radius > 0 {
+            Polygon([.zero] + arcPoints(segmentation: segmentation))
+        }
     }
 
     private func arcPoints(segmentation: Segmentation) -> [Vector2D] {
@@ -54,5 +57,8 @@ extension Arc: Area {
     public var angularDistance: Angle { range.length }
 
     /// The area of the circular sector.
-    public var area: Double { radius * radius * .pi * (angularDistance / 360°) }
+    public var area: Double {
+        guard radius > 0 else { return 0 }
+        return radius * radius * .pi * (angularDistance / 360°)
+    }
 }

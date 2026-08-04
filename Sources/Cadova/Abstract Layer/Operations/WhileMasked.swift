@@ -34,6 +34,25 @@ public extension Geometry {
     /// In this example, a vertical rectangle defines a mask over one of the star’s points.
     /// The `rounded` operation is applied only within that region. All other points remain sharp.
     ///
+    /// Note that `operations` receives the *whole* star, not just the masked point, and the result is
+    /// clipped to the mask afterwards. That ordering is what makes this work: `rounded` needs the full
+    /// shape to round the corner correctly. Rounding an already-clipped fragment would round the cut
+    /// edges too, and the point would come away from the body.
+    ///
+    /// ### Compared with `within`
+    ///
+    /// ``Geometry/within(x:y:do:)`` and ``Geometry/within(x:y:z:do:)`` also leave a shape intact
+    /// outside a region and change what falls inside it, but they differ in what the closure is given
+    /// and in what becomes of its result:
+    ///
+    /// - `within` passes the **clipped region** to the closure, and adds the returned geometry back
+    ///   unchanged. The operation is free to move material out of the region.
+    /// - `whileMasked` passes the **whole geometry** to the closure, and intersects the returned
+    ///   geometry with the region afterwards. Nothing can escape the region.
+    ///
+    /// Use `within` to relocate or replace a section. Use `whileMasked` for operations that need to
+    /// see the whole shape to give a correct answer, such as rounding or offsetting a single feature.
+    ///
     @GeometryBuilder<D>
     func whileMasked(
         inverted: Bool = false,
@@ -63,6 +82,19 @@ public extension Geometry2D {
     ///               (outside the mask). If `false` (default), operations are applied only inside the bounded region.
     ///   - operations: A closure that receives the full geometry and returns a new geometry to be inserted within the masked region (or its complement if `inverted` is `true`).
     ///
+    /// ### Compared with `within`
+    ///
+    /// ``Geometry/within(x:y:do:)`` takes the same ranges as this method and is easily mistaken for
+    /// it, but the two differ in what the closure is given and in what becomes of its result:
+    ///
+    /// - `within` passes the **clipped region** to the closure, and adds the returned geometry back
+    ///   unchanged. The operation is free to move material out of the region.
+    /// - `whileMasked` passes the **whole geometry** to the closure, and intersects the returned
+    ///   geometry with the region afterwards. Nothing can escape the region.
+    ///
+    /// Use `within` to relocate or replace a section. Use `whileMasked` for operations that need to
+    /// see the whole shape to give a correct answer, such as rounding or offsetting a single feature.
+    ///
     func whileMasked(
         x: (any WithinRange)? = nil,
         y: (any WithinRange)? = nil,
@@ -91,6 +123,19 @@ public extension Geometry3D {
     ///   - inverted: If `true`, inverts the mask logic so that the operations are applied to the complement of the bounded region
     ///               (outside the mask). If `false` (default), operations are applied only inside the bounded region.
     ///   - operations: A closure that receives the full geometry and returns a new geometry to be inserted within the masked region (or its complement if `inverted` is `true`).
+    ///
+    /// ### Compared with `within`
+    ///
+    /// ``Geometry/within(x:y:z:do:)`` takes the same ranges as this method and is easily mistaken
+    /// for it, but the two differ in what the closure is given and in what becomes of its result:
+    ///
+    /// - `within` passes the **clipped region** to the closure, and adds the returned geometry back
+    ///   unchanged. The operation is free to move material out of the region.
+    /// - `whileMasked` passes the **whole geometry** to the closure, and intersects the returned
+    ///   geometry with the region afterwards. Nothing can escape the region.
+    ///
+    /// Use `within` to relocate or replace a section. Use `whileMasked` for operations that need to
+    /// see the whole shape to give a correct answer, such as rounding or offsetting a single feature.
     ///
     func whileMasked(
         x: (any WithinRange)? = nil,

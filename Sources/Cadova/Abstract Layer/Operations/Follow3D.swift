@@ -42,7 +42,7 @@ public extension Geometry3D {
 }
 
 // Makes the Z axis follow a path
-internal struct FollowPath3D<Path: D3.Curve>: Shape3D {
+internal struct FollowPath3D<Path: D3.Curve>: Geometry3D {
     let geometry: any Geometry3D
     let path: Path
     let reference: Direction2D

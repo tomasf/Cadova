@@ -171,6 +171,24 @@ struct EvaluatingTests {
         #expect(capture.single != nil)
     }
 
+    @Test func `standalone Evaluate reads geometry captured from outer scope`() async throws {
+        let base = Box([20, 10, 4])
+        let outer = Box([6, 6, 2])
+
+        let result = Evaluate { eval in
+            let baseBounds = await eval.bounds(of: base)!
+            let outerBounds = await eval.bounds(of: outer)!
+            Box(baseBounds.size).adding {
+                Box(outerBounds.size)
+                    .translated(z: baseBounds.maximum.z)
+            }
+        }
+
+        let bounds = try await result.bounds!
+        #expect(bounds.maximum.z ≈ 6)
+        #expect(bounds.maximum.x ≈ 20)
+    }
+
     @Test func `result element via evaluator matches readingResult`() async throws {
         let shape = Box(1).withResult(EvalTestElement(value: 5))
 

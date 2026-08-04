@@ -11,7 +11,7 @@ extension URL {
     }
 }
 
-extension EvaluationContext {
+extension _EvaluationContext {
     func concrete<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues = .defaultEnvironment) async throws -> D.Concrete {
         try await self.result(for: geometry, in: environment).concrete
     }

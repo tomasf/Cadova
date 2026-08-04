@@ -21,11 +21,11 @@ public struct RegularPolygon: Sendable, Hashable, Codable {
     ///
     /// - Parameters:
     ///   - sideCount: The number of sides in the polygon. Must be at least 3.
-    ///   - circumradius: The distance from the center of the polygon to a vertex. Must be greater than 0.
+    ///   - circumradius: The distance from the center of the polygon to a vertex. A value of zero or less
+    ///     results in empty geometry.
     public init(sideCount: Int, circumradius: Double) {
-        precondition(sideCount >= 3)
+        precondition(sideCount >= 3, "A polygon must have at least 3 sides")
         precondition(circumradius.isFinite, "Circumradius must be finite")
-        precondition(circumradius > 0)
         self.sideCount = sideCount
         self.circumradius = circumradius
     }
@@ -65,7 +65,7 @@ public struct RegularPolygon: Sendable, Hashable, Codable {
 
 }
 
-extension RegularPolygon: Shape2D {
+extension RegularPolygon: Geometry2D {
     public var body: any Geometry2D {
         Circle(radius: circumradius)
             .withSegmentation(count: sideCount)
@@ -95,7 +95,8 @@ public extension RegularPolygon {
 extension RegularPolygon: Area, Perimeter {
     /// The area of the polygon.
     public var area: Double {
-        Double(sideCount) / 2.0 * pow(circumradius, 2) * sin(360° / Double(sideCount))
+        guard circumradius > 0 else { return 0 }
+        return Double(sideCount) / 2.0 * pow(circumradius, 2) * sin(360° / Double(sideCount))
     }
 
     /// The perimeter of the polygon.

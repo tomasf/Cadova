@@ -20,7 +20,7 @@ import Manifold3D
 /// Use this type when importing or constructing complex geometry manually, such as converting from external
 /// sources, procedural generation, or custom geometry definitions.
 ///
-public struct Mesh<Vertex: Hashable & Sendable>: Shape3D {
+public struct Mesh<Vertex: Hashable & Sendable>: Geometry3D {
     let faces: [[Vertex]]
     let lookup: @Sendable (Vertex) -> Vector3D
     let cacheName: String
@@ -40,7 +40,7 @@ public struct Mesh<Vertex: Hashable & Sendable>: Shape3D {
 
     public var body: any Geometry3D {
         CachedNode(labeledCacheKey: LabeledCacheKey(operationName: cacheName, parameters: cacheParameters)) {
-            NodeBasedGeometry(.shape(.mesh(meshData)))
+            StaticNodeGeometry(.shape(.mesh(meshData)))
         }
     }
 
@@ -93,7 +93,7 @@ public extension Mesh {
     ///
     /// - Example:
     ///   ```swift
-    ///   struct Pyramid: Shape3D {
+    ///   struct Pyramid: Geometry3D {
     ///       let sideCount: Int
     ///       let radius: Double
     ///       let height: Double

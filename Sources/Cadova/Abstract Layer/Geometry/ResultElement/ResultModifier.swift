@@ -1,20 +1,25 @@
 import Foundation
 
+/// Builds `body`, then transforms its result elements via `modifier` without touching its shape.
+/// Powers `withResult(_:)` and the geometry-preserving overload of `modifyingResult(_:modifier:)`.
 struct ResultModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modifier: @Sendable (ResultElements) -> ResultElements
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let bodyResult = try await context.buildResult(for: body, in: environment)
         return bodyResult.replacing(elements: modifier(bodyResult.elements))
     }
 }
 
+/// Builds `body` once to read its current result elements, then lets `modifier` both mutate the
+/// element and produce a replacement geometry, which is built again to become the final result.
+/// Powers the geometry-returning overload of `modifyingResult(_:modifier:)`.
 struct ResultAndGeometryModifier<D: Dimensionality>: Geometry {
     let body: D.Geometry
     let modifier: @Sendable (ResultElements) -> (D.Geometry, ResultElements)
 
-    func build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> D.BuildResult {
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
         let bodyResult = try await context.buildResult(for: body, in: environment)
         let (newBody, elements) = modifier(bodyResult.elements)
         let newBodyResult = try await context.buildResult(for: newBody, in: environment)
@@ -60,12 +65,6 @@ public extension Geometry {
 }
 
 internal extension Geometry {
-    func mergingResultElements(with otherElements: ResultElements) -> D.Geometry {
-        ResultModifier(body: self) { elements in
-            ResultElements(combining: [elements, otherElements])
-        }
-    }
-
     func modifyingResult<E: ResultElement>(
         _ type: E.Type,
         @GeometryBuilder<D> modifier: @Sendable @escaping (D.Geometry, inout E) -> D.Geometry

@@ -42,12 +42,16 @@ await Model("swept-text") {
         .withFont("Futura", style: "Condensed Medium", size: 10)
         .wrappedAroundCircle(spanning: 230°..<310°)
         .aligned(at: .centerX, .bottom)
-        .swept(along: BezierPath {
-            curve(
-                controlX: 20, controlY: 10, controlZ: 3,
-                endX: 20, endY: 30, endZ: 12
-            )
-        })
+        .swept(
+            along: BezierPath {
+                curve(
+                    controlX: 20, controlY: 10, controlZ: 3,
+                    endX: 20, endY: 30, endZ: 12
+                )
+            },
+            pointing: .negativeY,
+            toward: .direction(.negativeZ)
+        )
 }
 ```
 
@@ -58,10 +62,10 @@ await Model("swept-text") {
 ```swift
 await Model("loft") {
     Loft(interpolation: .easeInOut) {
-        layer(z: 0) {
+        Section(at: 0) {
             Ring(outerDiameter: 20, innerDiameter: 12)
         }
-        layer(z: 30) {
+        Section(at: 30) {
             Rectangle(x: 25, y: 6)
                 .aligned(at: .center)
                 .cloned { $0.rotated(90°) }
@@ -69,7 +73,7 @@ await Model("loft") {
                     RegularPolygon(sideCount: 8, circumradius: 2)
                 }
         }
-        layer(z: 35) {
+        Section(at: 35) {
             Ring(outerDiameter: 12, innerDiameter: 10)
         }
     }
@@ -116,9 +120,9 @@ await Model("table") {
     let size = Vector2D(5, 7)
 
     Loft(interpolation: .smootherstep) {
-        layer(z: 0) { Circle(diameter: footDiameter) }
-        layer(z: footHeight) { Circle(diameter: legDiameter) }
-        layer(z: height) { Circle(diameter: legDiameter) }
+        Section(at: 0) { Circle(diameter: footDiameter) }
+        Section(at: footHeight) { Circle(diameter: legDiameter) }
+        Section(at: height) { Circle(diameter: legDiameter) }
     }
     .translated(size / 2, z: 0)
     .symmetry(over: .xy)

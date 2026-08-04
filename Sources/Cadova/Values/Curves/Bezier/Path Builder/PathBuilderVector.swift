@@ -21,10 +21,6 @@ internal struct PathBuilderVector<V: Vector>: Sendable {
         values = .init(x: x.positionedValue, y: y.positionedValue, z: z.positionedValue)
     }
 
-    func withDefaultMode(_ mode: PathBuilderPositioning) -> Self {
-        .init(values.map { $1.withDefaultMode(mode) })
-    }
-
     func value(relativeTo base: V, defaultMode: PathBuilderPositioning) -> V {
         values.map {
             $1.value(relativeTo: base[$0], defaultMode: defaultMode)

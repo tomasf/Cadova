@@ -48,10 +48,10 @@ Here's a simple example of a parametric model:
 ```swift
 await Model("getting-started") {
     Box(x: 10, y: 10, z: 5)
+        .aligned(at: .centerXY)
         .cuttingEdgeProfile(.fillet(radius: 1), on: .top)
         .subtracting {
             Cylinder(radius: 1, height: 10)
-                .translated(x: 5, y: 5)
         }
 }
 ```
@@ -68,4 +68,4 @@ We do recommend [Cadova Viewer](https://github.com/tomasf/CadovaViewer), a nativ
 
 ## What's next?
 
-Cadova is still growing. The long-term goal is to make Cadova a strong foundation for building custom modeling libraries. For example, the `Helical` package provides high-level tools for creating threads, bolts, and other helical features. Others are encouraged to build similar packages on top of Cadova's core.
+Cadova is still growing. The long-term goal is to make Cadova a strong foundation for building custom modeling libraries. For example, the [Helical](https://github.com/tomasf/Helical) package provides high-level tools for creating threads, bolts, and other helical features. Others are encouraged to build similar packages on top of Cadova's core.

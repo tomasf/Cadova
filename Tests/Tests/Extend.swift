@@ -7,7 +7,7 @@ struct ExtendTests {
 
     @Test func `3D geometry extended along Z axis increases height`() async throws {
         let bounds = try await Box(x: 10, y: 10, z: 20)
-            .extending(.z, by: 10, at: 10)
+            .extended(.z, by: 10, at: 10)
             .bounds
 
         // Original 10x10x20, extended by 10 at z=10
@@ -20,7 +20,7 @@ struct ExtendTests {
 
     @Test func `3D geometry extended along X axis increases width`() async throws {
         let bounds = try await Box(x: 20, y: 10, z: 10)
-            .extending(.x, by: 5, at: 10)
+            .extended(.x, by: 5, at: 10)
             .bounds
 
         // Original 20x10x10, extended by 5 at x=10
@@ -32,7 +32,7 @@ struct ExtendTests {
 
     @Test func `3D geometry extended along Y axis increases depth`() async throws {
         let bounds = try await Box(x: 10, y: 20, z: 10)
-            .extending(.y, by: 8, at: 15)
+            .extended(.y, by: 8, at: 15)
             .bounds
 
         // Original 10x20x10, extended by 8 at y=15
@@ -45,7 +45,7 @@ struct ExtendTests {
     @Test func `3D extend preserves geometry below cut position`() async throws {
         // Cylinder from z=0 to z=30, extended at z=15
         let bounds = try await Cylinder(diameter: 10, height: 30)
-            .extending(.z, by: 10, at: 15)
+            .extended(.z, by: 10, at: 15)
             .bounds
 
         // Bottom half stays at 0, cross-section at z=15 extruded, top half shifts up by 10
@@ -57,7 +57,7 @@ struct ExtendTests {
     @Test func `3D extend with centered geometry works correctly`() async throws {
         let bounds = try await Box(10)
             .aligned(at: .center)
-            .extending(.z, by: 5, at: 0)
+            .extended(.z, by: 5, at: 0)
             .bounds
 
         // Box from -5 to 5, extended at z=0
@@ -71,7 +71,7 @@ struct ExtendTests {
 
     @Test func `3D geometry extended along plane`() async throws {
         let bounds = try await Box(x: 10, y: 10, z: 20)
-            .extending(at: .z(10), by: 5)
+            .extended(at: .z(10), by: 5)
             .bounds
 
         // Same as axis version but using Plane API
@@ -83,7 +83,7 @@ struct ExtendTests {
     @Test func `3D extend at geometry boundary`() async throws {
         // Extend at z=0, the bottom of the box
         let bounds = try await Box(x: 10, y: 10, z: 20)
-            .extending(.z, by: 5, at: 0)
+            .extended(.z, by: 5, at: 0)
             .bounds
 
         // Cross-section at z=0 extruded, entire box shifts up by 5
@@ -95,7 +95,7 @@ struct ExtendTests {
     @Test func `3D extend cylinder preserves circular cross-section`() async throws {
         // A cylinder extended should remain cylindrical
         let measurements = try await Cylinder(diameter: 10, height: 20)
-            .extending(.z, by: 10, at: 10)
+            .extended(.z, by: 10, at: 10)
             .measurements
 
         // Volume of cylinder with diameter 10, height 30
@@ -108,7 +108,7 @@ struct ExtendTests {
 
     @Test func `3D extend with max alignment keeps upper geometry fixed`() async throws {
         let bounds = try await Box(x: 10, y: 10, z: 20)
-            .extending(.z, by: 10, at: 10, alignment: .max)
+            .extended(.z, by: 10, at: 10, alignment: .max)
             .bounds
 
         // Original box from 0-20, extended at z=10 with .max alignment
@@ -120,7 +120,7 @@ struct ExtendTests {
 
     @Test func `3D extend with mid alignment centers the extension`() async throws {
         let bounds = try await Box(x: 10, y: 10, z: 20)
-            .extending(.z, by: 10, at: 10, alignment: .mid)
+            .extended(.z, by: 10, at: 10, alignment: .mid)
             .bounds
 
         // Original box from 0-20, extended at z=10 with .mid alignment
@@ -132,7 +132,7 @@ struct ExtendTests {
 
     @Test func `3D extend with min alignment keeps lower geometry fixed`() async throws {
         let bounds = try await Box(x: 10, y: 10, z: 20)
-            .extending(.z, by: 10, at: 10, alignment: .min)
+            .extended(.z, by: 10, at: 10, alignment: .min)
             .bounds
 
         // Original box from 0-20, extended at z=10 with .min alignment (default)
@@ -144,7 +144,7 @@ struct ExtendTests {
 
     @Test func `3D extend with plane and alignment`() async throws {
         let bounds = try await Cylinder(diameter: 10, height: 30)
-            .extending(at: .z(15), by: 10, alignment: .max)
+            .extended(at: .z(15), by: 10, alignment: .max)
             .bounds
 
         // Cylinder from 0-30, extended at z=15 with .max alignment
@@ -159,7 +159,7 @@ struct ExtendTests {
     @Test func `3D resizing stretches a range`() async throws {
         // Box 10x10x30, resize z range 10...20 (length 10) to length 20
         let bounds = try await Box(x: 10, y: 10, z: 30)
-            .resizing(.z, in: 10...20, to: 20)
+            .resized(.z, in: 10...20, to: 20)
             .bounds
 
         // Original height 30, range stretched by 10, new height 40
@@ -173,7 +173,7 @@ struct ExtendTests {
     @Test func `3D resizing compresses a range`() async throws {
         // Box 10x10x30, resize z range 10...20 (length 10) to length 5
         let bounds = try await Box(x: 10, y: 10, z: 30)
-            .resizing(.z, in: 10...20, to: 5)
+            .resized(.z, in: 10...20, to: 5)
             .bounds
 
         // Original height 30, range compressed by 5, new height 25
@@ -188,7 +188,7 @@ struct ExtendTests {
         // Cylinder diameter 10, height 30
         // Resize z range 10...20 to 15 (1.5x stretch)
         let original = Cylinder(diameter: 10, height: 30)
-        let resized = original.resizing(.z, in: 10...20, to: 15)
+        let resized = original.resized(.z, in: 10...20, to: 15)
 
         let originalVolume = try await original.measurements.volume
         let resizedVolume = try await resized.measurements.volume
@@ -206,7 +206,7 @@ struct ExtendTests {
     @Test func `3D resizing to zero removes the range`() async throws {
         // Box 10x10x30, resize z range 10...20 to 0
         let bounds = try await Box(x: 10, y: 10, z: 30)
-            .resizing(.z, in: 10...20, to: 0)
+            .resized(.z, in: 10...20, to: 0)
             .bounds
 
         // Original height 30, range removed (10 units), new height 20
@@ -218,7 +218,7 @@ struct ExtendTests {
     @Test func `3D resizing with max alignment keeps upper geometry fixed`() async throws {
         // Box 10x10x30, resize z range 10...20 to 15 with .max alignment
         let bounds = try await Box(x: 10, y: 10, z: 30)
-            .resizing(.z, in: 10...20, to: 15, alignment: .max)
+            .resized(.z, in: 10...20, to: 15, alignment: .max)
             .bounds
 
         // Upper part (20-30) stays at z=30
@@ -231,7 +231,7 @@ struct ExtendTests {
     @Test func `3D resizing with mid alignment centers the change`() async throws {
         // Box 10x10x30, resize z range 10...20 to 20 with .mid alignment
         let bounds = try await Box(x: 10, y: 10, z: 30)
-            .resizing(.z, in: 10...20, to: 20, alignment: .mid)
+            .resized(.z, in: 10...20, to: 20, alignment: .mid)
             .bounds
 
         // Range center at z=15 stays fixed
@@ -243,7 +243,7 @@ struct ExtendTests {
 
     @Test func `3D resizing along X axis`() async throws {
         let bounds = try await Box(x: 30, y: 10, z: 10)
-            .resizing(.x, in: 10...20, to: 5)
+            .resized(.x, in: 10...20, to: 5)
             .bounds
 
         // Original width 30, range compressed by 5, new width 25
@@ -254,7 +254,7 @@ struct ExtendTests {
 
     @Test func `3D resizing along Y axis`() async throws {
         let bounds = try await Box(x: 10, y: 30, z: 10)
-            .resizing(.y, in: 5...15, to: 20)
+            .resized(.y, in: 5...15, to: 20)
             .bounds
 
         // Original depth 30, range stretched by 10, new depth 40
@@ -266,7 +266,7 @@ struct ExtendTests {
     @Test func `3D resizing cylinder preserves circular cross-section`() async throws {
         // Cylinder resized should remain cylindrical in cross-section
         let measurements = try await Cylinder(diameter: 10, height: 30)
-            .resizing(.z, in: 10...20, to: 5)
+            .resized(.z, in: 10...20, to: 5)
             .measurements
 
         // Height goes from 30 to 25
@@ -280,7 +280,7 @@ struct ExtendTests {
     @Test func `2D resizing stretches a range along X`() async throws {
         // Rectangle 30x10, resize x range 10...20 (length 10) to length 20
         let bounds = try await Rectangle(x: 30, y: 10)
-            .resizing(.x, in: 10...20, to: 20)
+            .resized(.x, in: 10...20, to: 20)
             .bounds
 
         // Original width 30, range stretched by 10, new width 40
@@ -293,7 +293,7 @@ struct ExtendTests {
     @Test func `2D resizing compresses a range along Y`() async throws {
         // Rectangle 10x30, resize y range 10...20 (length 10) to length 5
         let bounds = try await Rectangle(x: 10, y: 30)
-            .resizing(.y, in: 10...20, to: 5)
+            .resized(.y, in: 10...20, to: 5)
             .bounds
 
         // Original height 30, range compressed by 5, new height 25
@@ -306,7 +306,7 @@ struct ExtendTests {
     @Test func `2D resizing preserves area proportionally`() async throws {
         // Circle diameter 20, resize y range 5...15 to 15 (1.5x stretch)
         let original = Circle(diameter: 20)
-        let resized = original.resizing(.y, in: 5...15, to: 15)
+        let resized = original.resized(.y, in: 5...15, to: 15)
 
         let originalArea = try await original.measurements.area
         let resizedArea = try await resized.measurements.area
@@ -320,7 +320,7 @@ struct ExtendTests {
     @Test func `2D resizing to zero removes the range`() async throws {
         // Rectangle 30x10, resize x range 10...20 to 0
         let bounds = try await Rectangle(x: 30, y: 10)
-            .resizing(.x, in: 10...20, to: 0)
+            .resized(.x, in: 10...20, to: 0)
             .bounds
 
         // Original width 30, range removed (10 units), new width 20
@@ -332,7 +332,7 @@ struct ExtendTests {
     @Test func `2D resizing with max alignment keeps upper geometry fixed`() async throws {
         // Rectangle 30x10, resize x range 10...20 to 15 with .max alignment
         let bounds = try await Rectangle(x: 30, y: 10)
-            .resizing(.x, in: 10...20, to: 15, alignment: .max)
+            .resized(.x, in: 10...20, to: 15, alignment: .max)
             .bounds
 
         // Right part (20-30) stays at x=30
@@ -345,7 +345,7 @@ struct ExtendTests {
     @Test func `2D resizing with mid alignment centers the change`() async throws {
         // Rectangle 30x10, resize x range 10...20 to 20 with .mid alignment
         let bounds = try await Rectangle(x: 30, y: 10)
-            .resizing(.x, in: 10...20, to: 20, alignment: .mid)
+            .resized(.x, in: 10...20, to: 20, alignment: .mid)
             .bounds
 
         // Range center at x=15 stays fixed

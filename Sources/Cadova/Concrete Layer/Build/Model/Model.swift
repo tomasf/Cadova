@@ -134,7 +134,7 @@ public struct Model: Sendable, ModelBuildable {
             }
 
             for warning in warnings {
-                logger.warning("\(warning.description)")
+                logger.warning("\(warning)")
             }
 
         } catch BuildError.noGeometry {

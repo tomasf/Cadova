@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct ProfiledRectangleMask: Shape2D {
+internal struct ProfiledRectangleMask: Geometry2D {
     let size: Vector2D
     let profile: EdgeProfile
     let corners: Rectangle.Corners

@@ -58,7 +58,7 @@ public extension Sequence<Vector2D> {
     /// - Returns: A 2D geometry representing the convex hull of the points.
     ///
     func convexHull() -> D2.Geometry {
-        NodeBasedGeometry(.shape(.convexHull(points: Array(self))))
+        StaticNodeGeometry(.shape(.convexHull(points: Array(self))))
     }
 }
 
@@ -72,6 +72,6 @@ public extension Sequence<Vector3D> {
     /// - Returns: A 3D geometry representing the convex hull of the points.
     /// 
     func convexHull() -> D3.Geometry {
-        NodeBasedGeometry(.shape(.convexHull(points: Array(self))))
+        StaticNodeGeometry(.shape(.convexHull(points: Array(self))))
     }
 }

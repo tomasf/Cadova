@@ -1,6 +1,6 @@
 import Foundation
 
-extension Triangle: Shape2D {
+extension Triangle: Geometry2D {
     /// Rendering convention:
     /// When rendered as 2D geometry, this type uses a canonical pose for determinism:
     /// - Vertex A is at the origin (0, 0).

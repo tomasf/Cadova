@@ -28,8 +28,8 @@ struct SweepTests {
 
         let m = try await sweep.measurements
 
-        #expect(m.volume ≈ 11652.720)
-        #expect(m.surfaceArea ≈ 18070.740)
+        #expect(m.volume ≈ 11652.703)
+        #expect(m.surfaceArea ≈ 18070.729)
         #expect(m.boundingBox ≈ .init(minimum: [0, -5.595, -3], maximum: [105.831, 100, 155.5]))
     }
 
@@ -39,11 +39,11 @@ struct SweepTests {
         }
 
         let sweep = ExampleTests.Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
-            .swept(along: path)
+            .swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
         let m = try await sweep.measurements
 
-        #expect(m.volume ≈ 13096.100)
-        #expect(m.surfaceArea ≈ 9237.346)
+        #expect(m.volume ≈ 13096.084)
+        #expect(m.surfaceArea ≈ 9237.344)
         #expect(m.boundingBox ≈ .init(minimum: [-10.8721, -1.38221, -10.5105], maximum: [68.9987, 51.5556, 10.5105]))
     }
 
@@ -57,8 +57,24 @@ struct SweepTests {
         let expectedVolume = area * ((corner - start).magnitude + (end - corner).magnitude)
 
         let path = BezierPath3D(linesBetween: [start, corner, end])
-        let swept = Circle(diameter: diameter).swept(along: path)
+        let swept = Circle(diameter: diameter).swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
         let m = try await swept.measurements
         #expect(m.volume.equals(expectedVolume, within: expectedVolume * 0.01))
+    }
+
+    @available(*, deprecated)
+    @Test func `deprecated no-orientation swept(along:) produces identical geometry to explicit defaults`() async throws {
+        let path = BezierPath3D(linesBetween: [[0, 0, 0], [40, 0, 0], [40, 40, 0]])
+        let shape = Rectangle(x: 10, y: 6).aligned(at: .center)
+
+        let deprecatedSweep = shape.swept(along: path)
+        let explicitSweep = shape.swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
+
+        let deprecatedMeasurements = try await deprecatedSweep.measurements
+        let explicitMeasurements = try await explicitSweep.measurements
+
+        #expect(deprecatedMeasurements.volume ≈ explicitMeasurements.volume)
+        #expect(deprecatedMeasurements.surfaceArea ≈ explicitMeasurements.surfaceArea)
+        #expect(deprecatedMeasurements.boundingBox == explicitMeasurements.boundingBox)
     }
 }

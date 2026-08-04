@@ -1,6 +1,6 @@
 import Foundation
 
-public enum BuildWarning {
+public enum BuildWarning: Hashable, Sendable, CustomStringConvertible {
     case onlyModifier
     case undefinedAnchors (Set<Anchor>)
     case undefinedTags (Set<Tag>)

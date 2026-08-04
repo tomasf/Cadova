@@ -9,15 +9,6 @@ extension Range {
     }
 }
 
-extension ClosedRange {
-    init(_ first: Bound, _ second: Bound) {
-        self.init(uncheckedBounds: (
-            lower: Swift.min(first, second),
-            upper: Swift.max(first, second))
-        )
-    }
-}
-
 extension ClosedRange where Bound: AdditiveArithmetic {
     var length: Bound { upperBound - lowerBound }
 }

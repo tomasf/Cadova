@@ -18,7 +18,7 @@ internal import freetype
 ///   .withTextAlignment(horizontal: .center, vertical: .firstBaseline)
 /// ```
 ///
-public struct Text: Shape2D {
+public struct Text: Geometry2D {
     private let content: String
 
     /// Creates a text shape from a string.

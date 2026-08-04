@@ -49,10 +49,6 @@ internal extension MeshData {
         }
         return volume / 6.0
     }
-
-    func flipped() -> Self {
-        MeshData(vertices: vertices, faces: faces.map { $0.reversed() })
-    }
 }
 
 internal extension [Vector3D] {

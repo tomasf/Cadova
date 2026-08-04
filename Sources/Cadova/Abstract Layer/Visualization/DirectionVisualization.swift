@@ -1,6 +1,6 @@
 import Foundation
 
-fileprivate struct DirectionVisualization: Shape3D {
+fileprivate struct DirectionVisualization: Geometry3D {
     let direction: Direction3D
 
     var body: any Geometry3D {

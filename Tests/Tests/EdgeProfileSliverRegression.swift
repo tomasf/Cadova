@@ -14,7 +14,7 @@ struct EdgeProfileSliverRegressionTests {
     private typealias MeshTriangle = Manifold3D.Triangle
 
     private func degenerateCount(_ geometry: any Geometry3D, thresholdDegrees: Double = 179) async throws -> Int {
-        let context = EvaluationContext()
+        let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
         let mesh = try await context.result(for: result.node).concrete.meshGL()
         let verts = mesh.vertices

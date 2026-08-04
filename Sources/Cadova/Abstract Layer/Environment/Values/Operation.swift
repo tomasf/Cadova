@@ -45,19 +45,3 @@ internal extension Geometry {
         }
     }
 }
-
-public func readOperation(
-    @GeometryBuilder2D _ reader: @Sendable @escaping (EnvironmentValues.Operation) -> any Geometry2D
-) -> any Geometry2D {
-    readEnvironment { e in
-        reader(e.operation)
-    }
-}
-
-public func readOperation(
-    @GeometryBuilder3D _ reader: @Sendable @escaping (EnvironmentValues.Operation) -> any Geometry3D
-) -> any Geometry3D {
-    readEnvironment { e in
-        reader(e.operation)
-    }
-}

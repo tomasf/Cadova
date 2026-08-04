@@ -9,7 +9,7 @@ import Foundation
 /// ```swift
 /// let ring = Ring(outerDiameter: 10, innerDiameter: 4)
 /// ```
-public struct Ring: Shape2D {
+public struct Ring: Geometry2D {
     /// The outer diameter of the ring.
     public let outerDiameter: Double
 
@@ -19,13 +19,11 @@ public struct Ring: Shape2D {
     /// Creates a new `Ring` instance with the specified outer and inner diameters.
     ///
     /// - Parameters:
-    ///   - outerDiameter: The outer diameter of the ring. Must be greater than the inner diameter.
-    ///   - innerDiameter: The inner diameter of the ring. Must be positive.
+    ///   - outerDiameter: The outer diameter of the ring. A value of zero or less results in empty geometry.
+    ///   - innerDiameter: The inner diameter of the ring. A value of zero or less results in a solid disk
+    ///     (no hole). If it's greater than or equal to the outer diameter, the result is empty geometry.
     public init(outerDiameter: Double, innerDiameter: Double) {
         precondition(outerDiameter.isFinite && innerDiameter.isFinite, "Ring diameters must be finite")
-        precondition(outerDiameter > innerDiameter, "The outer diameter of the ring must be greater than the inner diameter to allow for a hole")
-        precondition(innerDiameter > 0.0, "The inner diameter must be positive")
-        precondition(outerDiameter > 0.0, "The outer diameter must be positive")
 
         self.outerDiameter = outerDiameter
         self.innerDiameter = innerDiameter
@@ -48,7 +46,6 @@ public struct Ring: Shape2D {
     ///   - thickness: The thickness of the ring.
     public init(outerDiameter: Double, thickness: Double) {
         precondition(outerDiameter.isFinite && thickness.isFinite, "Ring dimensions must be finite")
-        precondition(outerDiameter > thickness * 2.0, "The outer diameter must be greater than twice the thickness to allow for a hole")
         self.init(outerDiameter: outerDiameter, innerDiameter: outerDiameter - thickness * 2.0)
     }
 
@@ -69,7 +66,6 @@ public struct Ring: Shape2D {
     ///   - thickness: The thickness of the ring.
     public init(outerRadius: Double, thickness: Double) {
         precondition(outerRadius.isFinite && thickness.isFinite, "Ring dimensions must be finite")
-        precondition(outerRadius > thickness, "The outer radius must be greater than the thickness to allow for a hole")
         self.init(outerDiameter: outerRadius * 2.0, thickness: thickness)
     }
 
@@ -95,6 +91,7 @@ public struct Ring: Shape2D {
 extension Ring: Area {
     /// The area of the ring (outer circle minus inner circle).
     public var area: Double {
-        Circle(diameter: outerDiameter).area - Circle(diameter: innerDiameter).area
+        guard outerDiameter > 0, innerDiameter < outerDiameter else { return 0 }
+        return Circle(diameter: outerDiameter).area - Circle(diameter: max(innerDiameter, 0)).area
     }
 }

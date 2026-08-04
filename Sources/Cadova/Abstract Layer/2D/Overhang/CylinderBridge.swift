@@ -10,7 +10,7 @@ import Foundation
 /// // Example of creating a cylinder bridge with a bottom diameter of 20 and a top diameter of 10.
 /// let cylinderBridge = CylinderBridge(bottomDiameter: 20, topDiameter: 10)
 /// ```
-public struct CylinderBridge: Shape2D {
+public struct CylinderBridge: Geometry2D {
     let topDiameter: Double
     let bottomDiameter: Double
 

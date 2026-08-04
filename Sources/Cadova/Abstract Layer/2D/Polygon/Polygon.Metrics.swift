@@ -7,7 +7,7 @@ public extension Polygon {
     /// such as its point list, bounding box, total edge length, and enclosed area.
     /// This information is often used for inspection, analysis, or further geometric computation.
     ///
-    /// - SeeAlso: ``Polygon/readMetrics(_:)``
+    /// - SeeAlso: ``Polygon/readingMetrics(_:)``
     ///
     struct Metrics {
         private let polygon: SimplePolygon
@@ -50,7 +50,7 @@ public extension Polygon {
     /// further geometry processing in a 2D environment.
     /// - Parameter reader: A closure receiving `Metrics` of the polygon and returning a 2D geometry.
     /// - Returns: A 2D geometry result from the reader closure.
-    func readMetrics<D: Dimensionality>(@GeometryBuilder<D> _ reader: @Sendable @escaping (Metrics) -> D.Geometry) -> D.Geometry {
+    func readingMetrics<D: Dimensionality>(@GeometryBuilder<D> _ reader: @Sendable @escaping (Metrics) -> D.Geometry) -> D.Geometry {
         readEnvironment { reader(Metrics(polygon: self, environment: $0)) }
     }
 }

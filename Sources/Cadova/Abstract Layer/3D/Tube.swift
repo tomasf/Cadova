@@ -1,7 +1,7 @@
 import Foundation
 
 /// A hollow, three-dimensional cylinder with specified inner and outer diameters and height.
-public struct Tube: Shape3D {
+public struct Tube: Geometry3D {
     /// The outer diameter of the tube.
     public let outerDiameter: Double
 
@@ -13,14 +13,12 @@ public struct Tube: Shape3D {
 
     /// Creates a tube with specified outer and inner diameters and height.
     /// - Parameters:
-    ///   - outerDiameter: The outer diameter of the tube. Must be greater than the inner diameter.
-    ///   - innerDiameter: The inner diameter of the tube. Must be a positive value.
-    ///   - height: The height of the tube.
+    ///   - outerDiameter: The outer diameter of the tube. A value of zero or less results in empty geometry.
+    ///   - innerDiameter: The inner diameter of the tube. A value of zero or less results in a solid cylinder
+    ///     (no hole). If it's greater than or equal to the outer diameter, the result is empty geometry.
+    ///   - height: The height of the tube. A value of zero or less results in empty geometry.
     public init(outerDiameter: Double, innerDiameter: Double, height: Double) {
         precondition(outerDiameter.isFinite && innerDiameter.isFinite && height.isFinite, "Tube dimensions must be finite")
-        precondition(outerDiameter > innerDiameter, "The outer diameter of the ring must be greater than the inner diameter to allow for a hole")
-        precondition(innerDiameter > 0.0, "The inner diameter must be positive")
-        precondition(outerDiameter > 0.0, "The outer diameter must be positive")
 
         self.outerDiameter = outerDiameter
         self.innerDiameter = innerDiameter
@@ -44,7 +42,6 @@ public struct Tube: Shape3D {
     ///   - height: The height of the tube.
     public init(outerDiameter: Double, thickness: Double, height: Double) {
         precondition(outerDiameter.isFinite && thickness.isFinite && height.isFinite, "Tube dimensions must be finite")
-        precondition(outerDiameter > thickness * 2.0, "The outer diameter must be greater than twice the thickness to allow for a hole")
         self.init(outerDiameter: outerDiameter, innerDiameter: outerDiameter - thickness * 2.0, height: height)
     }
 
@@ -65,7 +62,6 @@ public struct Tube: Shape3D {
     ///   - height: The height of the tube.
     public init(outerRadius: Double, thickness: Double, height: Double) {
         precondition(outerRadius.isFinite && thickness.isFinite && height.isFinite, "Tube dimensions must be finite")
-        precondition(outerRadius > thickness, "The outer diameter must be greater than the thickness to allow for a hole")
         self.init(outerDiameter: outerRadius * 2.0, thickness: thickness, height: height)
     }
 

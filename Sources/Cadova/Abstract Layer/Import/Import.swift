@@ -20,7 +20,7 @@ import Foundation
 /// Import(model: url, parts: [.name("Handle")])
 /// ```
 ///
-public struct Import<D: Dimensionality>: Shape {
+public struct Import<D: Dimensionality>: Geometry {
     internal let makeBody: @Sendable () -> any Geometry<D>
 
     internal init(makeBody: @escaping @Sendable () -> any Geometry<D>) {

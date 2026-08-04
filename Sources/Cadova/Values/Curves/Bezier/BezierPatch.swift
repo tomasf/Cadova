@@ -21,7 +21,7 @@ import Foundation
 ///     [ [0, 1, 0.5], [1, 1, 1.5], [2, 1, 0.3],  [3, 1, -0.4]  ],
 ///     [ [0, 0, 0],   [1, 0, 0.8], [2, 0, -0.2], [3, 0, 0]     ],
 /// ])
-/// .extruded(to: Plane(z: -0.5))
+/// .enclosed(against: Plane.z(-0.5))
 /// .aligned(at: .bottom)
 /// ```
 ///
@@ -57,17 +57,6 @@ public struct BezierPatch: Sendable, Hashable, Codable {
         return BezierCurve(controlPoints: intermediatePoints).point(at: uv.x)
     }
 
-    /// Generates a grid of sampled points across the surface
-    internal func points(uSegments: Int, vSegments: Int) -> [[Vector3D]] {
-        let uSteps = (0...uSegments).map { Double($0) / Double(uSegments) }
-        let vSteps = (0...vSegments).map { Double($0) / Double(vSegments) }
-
-        return uSteps.map { u in
-            vSteps.map { v in
-                point(at: Vector2D(u, v))
-            }
-        }
-    }
 }
 
 extension BezierPatch: Transformable {

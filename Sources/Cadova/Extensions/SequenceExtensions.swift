@@ -9,22 +9,11 @@ extension Sequence {
         .init(zip(self, dropFirst() + Array(prefix(1))))
     }
 
-    func reduce(_ function: (Element, Element) -> Element) -> Element? {
-        reduce(nil as Element?) { output, input in
-            output.map { function($0, input) } ?? input
-        }
-    }
 }
 
 extension Sequence {
     func sum<Value: AdditiveArithmetic>(_ accessor: (Element) -> Value) -> Value {
         map(accessor).reduce(Value.zero, +)
-    }
-}
-
-extension Sequence where Element: AdditiveArithmetic {
-    func sum() -> Element {
-        reduce(.zero, +)
     }
 }
 
