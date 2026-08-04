@@ -74,8 +74,10 @@ extension String {
     }
 }
 
-// Hack until we have a better solution
-extension KeyPath: @unchecked @retroactive Sendable {}
+// The standard library doesn't yet declare key paths Sendable when their root and value are, so
+// key paths into EnvironmentValues can't be captured by the @Sendable closures that geometry
+// builders use. Remove this once the stdlib provides the conformance itself.
+extension KeyPath: @unchecked @retroactive Sendable where Root: Sendable, Value: Sendable {}
 
 extension Clock {
     func measure<T>(work: () async throws -> T, results: (Instant.Duration, T) -> Void) async rethrows -> T {

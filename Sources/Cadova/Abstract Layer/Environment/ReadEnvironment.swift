@@ -35,7 +35,7 @@ public func readEnvironment<D: Dimensionality>(
 ///   - body: A closure that takes the specified environment values and returns geometry based on those values.
 /// - Returns: A dynamically created geometry instance that responds to the specified environment values.
 ///
-public func readEnvironment<D: Dimensionality, each EachValue>(
+public func readEnvironment<D: Dimensionality, each EachValue: Sendable>(
     _ keyPaths: repeat KeyPath<EnvironmentValues, each EachValue>,
     @GeometryBuilder<D> body: @Sendable @escaping (repeat each EachValue) -> D.Geometry
 ) -> D.Geometry {
@@ -78,7 +78,7 @@ extension Geometry {
     ///   - body: A closure that takes the current geometry and the specified environment values to return a modified geometry.
     /// - Returns: A new geometry adjusted according to the specified environment values.
     ///
-    public func readingEnvironment<each EachValue>(
+    public func readingEnvironment<each EachValue: Sendable>(
         _ keyPaths: repeat KeyPath<EnvironmentValues, each EachValue>,
         @GeometryBuilder<D> body: @Sendable @escaping (D.Geometry, repeat each EachValue) -> D.Geometry
     ) -> D.Geometry {
