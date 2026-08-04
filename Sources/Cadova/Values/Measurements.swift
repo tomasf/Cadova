@@ -23,7 +23,6 @@ public struct Measurements<D: Dimensionality>: Sendable {
 public extension Measurements {
     /// The bounding box of the geometry.
     ///
-
     var boundingBox: BoundingBox<D>? {
         let boxes = concrete.compactMap { $0.isEmpty ? nil : BoundingBox<D>($0.bounds) }
         return boxes.isEmpty ? nil : BoundingBox(union: boxes)
@@ -42,7 +41,7 @@ public extension Measurements {
     var partCount: Int { concrete.count }
 
     /// Is this geometry empty?
-    var isEmpty: Bool { .init(concrete.allSatisfy(\.isEmpty)) }
+    var isEmpty: Bool { concrete.allSatisfy(\.isEmpty) }
 }
 
 public extension Measurements2D {
