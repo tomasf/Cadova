@@ -8,8 +8,15 @@ import Manifold3D
 /// outsideRadius:)` (then clipped by a later `.intersecting`) made `EdgeProfile.followingEdge`
 /// leave a thin, fold-back sliver standing the height of the profile right at that seam. Smaller
 /// hand-built repro shapes didn't reliably reproduce this — it needs roughly this much real
-/// shape complexity to trigger reliably, so this test is slow (well over a minute) but that's
-/// the tradeoff for actually catching a regression here.
+/// shape complexity to trigger reliably.
+///
+/// This spent a while disabled as flaky, on the reading that its remaining slivers were the
+/// boolean engine resolving a coincidence inconsistently and nothing the construction could help.
+/// That was wrong: the shape's mirrored spike tip turns inside a radius of about 0.53, well under
+/// the chamfer's own 1mm depth, so the swept construction's rings crossed there and handed the
+/// engine self-intersecting geometry — invalid input it was free to resolve differently each run,
+/// which is what made the failures come and go. Building tightly curved cutting profiles from
+/// offsets instead settled it, and incidentally made this test fast.
 struct EdgeProfileSliverRegressionTests {
     private typealias MeshTriangle = Manifold3D.Triangle
 
@@ -38,12 +45,7 @@ struct EdgeProfileSliverRegressionTests {
         return count
     }
 
-    // Disabled: flaky on this specific shape's mirrored spike tip (x≈37, y≈0, at the
-    // interfaceMargin gap between wall and chamfer) — genuine Manifold-engine non-determinism,
-    // the same class root-caused (but not fully fixed here) for EdgeProfile.fillet via
-    // weldingCoincidentVertices. Observed 1-4 degenerate edges across repeated local runs, never
-    // reliably 0, so this fails CI on most pushes. Re-enable once that residual is actually fixed.
-    @Test(.disabled("flaky: known Manifold non-determinism at the mirrored spike tip, see cadova memory seam-tick-root-cause-2026-07-15"))
+    @Test
     func `cut chamfer around a real-scale rounded-then-clipped outline has no slivers`() async throws {
         // Synthesizes the essential shape of rc1's frontHubBraceArea: a base shape with holes,
         // restricted to a y-range, unioned with a convex-hulled circle, rounded with different
