@@ -134,15 +134,26 @@ internal extension EdgeProfile {
         margin: Double,
         segmentation: Segmentation
     ) -> any Geometry3D {
-        let clear = samples.filter { $0.depth > margin }
-        let base = clear.first?.height ?? -profileSize.y
-        // The widest level sits a margin below the rest and a margin proud of the tool's own outer
-        // wall, so the tool is strictly empty where the fillet runs out rather than tapering into a
-        // face shared with the body.
+        let base = -profileSize.y
+        // Below the profile's deep end the tool is padded out past its own outer wall, so it comes
+        // to nothing there rather than tapering into a face it shares with the body. That padding
+        // is placed below the point where the profile reaches the wall, so it does its work
+        // entirely outside the body: at the deep end itself the tool has to reach the wall exactly,
+        // or the fillet visibly starts a step short of the surface it's supposed to run into.
+        //
+        // The ring where the profile reaches the wall is nudged a hair past it rather than laid
+        // exactly on it. Landing exactly on the wall makes the tool share a face with the body
+        // along that whole plane, which the boolean resolves into zero-area folds; a fraction of
+        // the margin is enough to move the crossing off the ring and in between two of them, where
+        // it's an ordinary transversal cut. What it costs is that the fillet starts a hair late,
+        // by that same fraction — around a micron, against the twenty the truncated version cost.
+        let wallClearance = margin / 10
         let levels: [(height: Double, offset: Double)] =
-            [(base - margin, margin * 2)] + clear.map { ($0.height, -$0.depth) }
+            [(base - margin, margin * 2)] + samples.map {
+                ($0.height, $0.depth > 0 ? -$0.depth : wallClearance)
+            }
 
-        let rings = levels.map { level in
+        let rings = levels.map { level -> SimplePolygonList in
             outline
                 .offset(
                     amount: level.offset,

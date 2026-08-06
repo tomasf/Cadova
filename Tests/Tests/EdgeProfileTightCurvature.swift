@@ -68,6 +68,47 @@ struct EdgeProfileTightCurvatureTests {
         }
     }
 
+    /// The profile is cut to its full depth, all the way out to where it meets the wall.
+    ///
+    /// Checking the surface for folds and measuring it where the cut is deep both miss the failure
+    /// this catches: a tool that stops short of the wall, or in the worst case never leaves it. An
+    /// earlier version of the offset construction skipped every sample shallower than its interface
+    /// margin, which trimmed a fillet's last fraction of a millimetre into a visible ledge and —
+    /// since a 45° chamfer's only shallow sample is the one that puts it against the wall at all —
+    /// reduced a chamfer to nothing, removing exactly zero material while still passing every
+    /// fold and deep-section check there was.
+    ///
+    /// Both profiles here are measured against their exact erosion at heights spanning the whole
+    /// profile, including right up against the wall, where a 45° chamfer at height `h` above its
+    /// start is inset by `h` and a fillet of radius `r` by `r - sqrt(r² - (r - h)²)`.
+    @Test func `profile is cut to full depth right up to the wall`() async throws {
+        let outline = Rectangle(Vector2D(40, 40)).cuttingEdgeProfile(.fillet(radius: 1))
+
+        func area(_ geometry: any Geometry3D, at height: Double) async throws -> Double {
+            try await geometry.sliced(along: Plane.z(height)).measurements.area
+        }
+        // The outline eroded by `depth`: a rounded rectangle until its r=1 corners collapse.
+        func expected(_ depth: Double) -> Double {
+            pow(40 - 2 * depth, 2) - (4 - Double.pi) * pow(max(1 - depth, 0), 2)
+        }
+
+        // A top-edge chamfer bites deepest at the top face itself, so at `depth` above where it
+        // starts the outline is inset by exactly that much.
+        let chamfered = outline.extruded(height: 8, topEdge: .chamfer(depth: 1))
+        for depth in [0.02, 0.25, 0.5, 0.75, 0.98] {
+            let measured = try await area(chamfered, at: 7 + depth)
+            let target = expected(depth)
+            #expect(abs(measured - target) / target < 0.005, "chamfer at \(depth): \(measured) vs \(target)")
+        }
+
+        let filleted = outline.extruded(height: 8, bottomEdge: .fillet(radius: 1))
+        for height in [0.02, 0.25, 0.5, 0.75, 0.98] {
+            let target = expected(1 - (1 - (1 - height) * (1 - height)).squareRoot())
+            let measured = try await area(filleted, at: height)
+            #expect(abs(measured - target) / target < 0.005, "fillet \(height) up: \(measured) vs \(target)")
+        }
+    }
+
     /// The fillet surface follows the outline's erosion smoothly, without rippling around the
     /// corner where that erosion collapses the outline's own arc into a sharp vertex.
     ///
