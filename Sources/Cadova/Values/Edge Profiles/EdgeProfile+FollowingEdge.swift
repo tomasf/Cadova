@@ -131,125 +131,180 @@ internal extension EdgeProfile {
         }
     }
 
+    /// The tool to cut from (or add to) the body along `shape`'s outline.
+    ///
+    /// Two constructions can build this. The swept one below is the general case: it carries a
+    /// cross-section along the outline and handles every profile shape and both operations. Where
+    /// the outline's own curvature gets tight relative to the profile's depth, though, a sweep is
+    /// the wrong description of the shape entirely (see `offsetTool`), so the tool is built from
+    /// the outline's inward offsets instead. That path only applies to cutting: a forming tool
+    /// grows the shape outward, and growing never crowds a convex corner the way reaching inward
+    /// does.
     func followingEdge(of shape: any Geometry2D, type: EnvironmentValues.Operation) -> any Geometry3D {
         profile.measuringBounds { profileShape, bounds in
-            let margin = Self.interfaceMargin
-            // A cutting tool reaches past the edge face into open space; a forming tool stops
-            // just short of it. Either way, no tool face lands exactly in the face's plane,
-            // where the boolean would resolve it unreliably.
-            let topMargin = type == .subtraction ? margin : -margin
-            let sweptRegion = Rectangle(x: bounds.size.x + margin, y: bounds.size.y + topMargin)
-                .aligned(at: .max)
-                .translated(x: margin, y: topMargin)
-                .subtracting { profileShape }
-                // The addition/forming case's own per-segment tool pieces, when unioned with
-                // each other (before ever touching the body), can leave a thin near-duplicate
-                // ring at the outer/flared edge of the profile — confirmed present in the tool
-                // alone, so it's a self-union issue between neighboring segments, not a
-                // tool/body interface issue (`interfaceMargin` above has no effect on it, at
-                // any value from 1e-6 to 1e-1). Growing the whole cross-section by a small,
-                // fixed amount gives adjacent segments' pieces enough overlap to merge cleanly.
-                // `.miter` style specifically — `.round` was tried first and made this worse, by
-                // introducing fresh tessellated points at the profile's own corners that
-                // reintroduced the same class of instability it was meant to fix. Subtraction
-                // mode doesn't show this defect (its tool is clean in isolation — the earlier
-                // subtraction-mode bug was a tool/body interface issue, fixed via
-                // `interfaceMargin` instead), so this is scoped to `.addition` only.
-                .offset(amount: type == .addition ? 0.01 : 0, style: .miter)
-                .adding {
-                    // Dip the wall-side margin strip below the profile's lower tip. Without
-                    // this, the strip's bottom corner rests exactly on the wall line, and
-                    // grazing contact resolves as unreliably as coincident faces do.
-                    //
-                    // Added after the offset above, not before: attaching this thin appendage
-                    // to the boundary *before* offsetting used to confuse the miter-offset's
-                    // corner resolution right at the attachment point — regardless of the tab's
-                    // own width or depth, offsetting it always left a near-duplicate vertex pair
-                    // a hair apart instead of one clean point (confirmed by direct inspection of
-                    // the offset's output polygon: the same fault position and magnitude
-                    // persisted across multiple tab sizes). Attaching it afterward sidesteps the
-                    // interaction entirely — the tab never has to survive an offset.
-                    Rectangle(x: margin, y: margin * 2)
-                        .translated(x: 0, y: -bounds.size.y - margin)
+            if type == .subtraction {
+                shape.simplified().readingConcrete { crossSection in
+                    let polygons = crossSection.polygonList().polygons
+                    // Everything the offset construction needs to decide on — the profile's own
+                    // outline, and the deepest erosion it would take — costs an evaluation each, so
+                    // none of it is reached until the cheap curvature test says it might be used.
+                    if Self.needsOffsetTool(polygons: polygons, profileDepth: bounds.size.x) {
+                        profileShape.readingConcrete { profileSection in
+                            shape.offset(amount: -bounds.size.x, style: .round).readingConcrete { erodedSection in
+                                if let samples = Self.inwardDepthSamples(of: profileSection.polygonList().polygons),
+                                   Self.erosionPreservesStructure(original: polygons, deepest: erodedSection.polygonList().polygons)
+                                {
+                                    readEnvironment(\.scaledSegmentation) { segmentation in
+                                        Self.welding(
+                                            Self.offsetTool(
+                                                shape: shape,
+                                                outline: crossSection,
+                                                samples: samples,
+                                                profileSize: bounds.size,
+                                                margin: Self.interfaceMargin,
+                                                segmentation: segmentation
+                                            )
+                                        )
+                                    }
+                                } else {
+                                    sweptTool(of: shape, profileShape: profileShape, bounds: bounds, type: type)
+                                }
+                            }
+                        }
+                    } else {
+                        sweptTool(of: shape, profileShape: profileShape, bounds: bounds, type: type)
+                    }
                 }
+            } else {
+                sweptTool(of: shape, profileShape: profileShape, bounds: bounds, type: type)
+            }
+        }
+    }
 
-            let tool = sweptRegion.readingConcrete { regionSection in
-                // The rectangle-plus-margin-strip construction above can leave a redundant,
-                // exactly-coincident vertex where the strip's corner lands on an existing point
-                // of the profile's own boundary — e.g. a plain 45° chamfer's swept region comes
-                // back from the subtraction with a literal repeated vertex at one corner. Left
-                // in place, this duplicate point index confuses `Mesh(extruding:along:)`'s
-                // per-vertex correspondence between neighboring rings (confirmed by direct mesh
-                // inspection: a triangle ends up spanning from one ring straight to the *next*
-                // ring over, skipping the one in between) — producing a real, protruding fold,
-                // not just a coincident-face rounding artifact.
+    private func sweptTool(
+        of shape: any Geometry2D,
+        profileShape: any Geometry2D,
+        bounds: BoundingBox2D,
+        type: EnvironmentValues.Operation
+    ) -> any Geometry3D {
+        let margin = Self.interfaceMargin
+        // A cutting tool reaches past the edge face into open space; a forming tool stops
+        // just short of it. Either way, no tool face lands exactly in the face's plane,
+        // where the boolean would resolve it unreliably.
+        let topMargin = type == .subtraction ? margin : -margin
+        let sweptRegion = Rectangle(x: bounds.size.x + margin, y: bounds.size.y + topMargin)
+            .aligned(at: .max)
+            .translated(x: margin, y: topMargin)
+            .subtracting { profileShape }
+            // The addition/forming case's own per-segment tool pieces, when unioned with
+            // each other (before ever touching the body), can leave a thin near-duplicate
+            // ring at the outer/flared edge of the profile — confirmed present in the tool
+            // alone, so it's a self-union issue between neighboring segments, not a
+            // tool/body interface issue (`interfaceMargin` above has no effect on it, at
+            // any value from 1e-6 to 1e-1). Growing the whole cross-section by a small,
+            // fixed amount gives adjacent segments' pieces enough overlap to merge cleanly.
+            // `.miter` style specifically — `.round` was tried first and made this worse, by
+            // introducing fresh tessellated points at the profile's own corners that
+            // reintroduced the same class of instability it was meant to fix. Subtraction
+            // mode doesn't show this defect (its tool is clean in isolation — the earlier
+            // subtraction-mode bug was a tool/body interface issue, fixed via
+            // `interfaceMargin` instead), so this is scoped to `.addition` only.
+            .offset(amount: type == .addition ? 0.01 : 0, style: .miter)
+            .adding {
+                // Dip the wall-side margin strip below the profile's lower tip. Without
+                // this, the strip's bottom corner rests exactly on the wall line, and
+                // grazing contact resolves as unreliably as coincident faces do.
                 //
-                // Can't use `droppingDegenerateVertices`'s default threshold here — it's the same
-                // order of magnitude as `interfaceMargin`, which this cross-section legitimately
-                // uses to keep otherwise-coincident edges a hair apart. A far smaller threshold
-                // only catches true construction-artifact duplicates, not real margin edges.
-                let regionPolygons = SimplePolygonList(regionSection.polygonList().polygons.map {
-                    SimplePolygon(droppingDegenerateVertices($0.vertices, threshold: 1e-12))
-                })
-                return shape.simplified().readingConcrete { crossSection in
-                    crossSection.polygonList().polygons.mapUnion { polygon in
-                        let rawVertices = type == .subtraction ? polygon.vertices : Array(polygon.vertices.reversed())
-                        let vertices = droppingDegenerateVertices(rawVertices)
-                        let joints = vertices.indices.map { index -> (vertex: Vector2D, direction: Direction2D, stretch: Double, isCapped: Bool) in
-                            let (direction, stretch, isCapped) = miterOffset(
-                                vertices[wrap: index] - vertices[wrap: index - 1],
-                                vertices[wrap: index + 1] - vertices[wrap: index]
-                            )
-                            return (vertices[wrap: index], direction, stretch, isCapped)
-                        }
-                        for index in vertices.indices {
-                            let a = joints[index]
-                            let b = joints[(index + 1) % joints.count]
-                            // A capped joint's stretch/direction can differ enormously from its
-                            // neighbor's — sweeping the profile through that whole change in one
-                            // step leaves a visibly creased, non-planar bevel. Subdividing only
-                            // this segment spreads the change smoothly instead.
-                            let path = (a.isCapped || b.isCapped)
-                                ? interpolatedRingTransforms(from: (a.vertex, a.direction, a.stretch), to: (b.vertex, b.direction, b.stretch), steps: 32)
-                                : [
-                                    ringTransform(direction: a.direction, stretch: a.stretch, vertex: a.vertex),
-                                    ringTransform(direction: b.direction, stretch: b.stretch, vertex: b.vertex),
-                                ]
-                            Mesh(
-                                extruding: regionPolygons,
-                                along: path,
-                                cacheName: "EdgeProfileSegment",
-                                cacheParameters: regionPolygons, path
-                            )
-                            .correctingFaceWinding()
-                        }
+                // Added after the offset above, not before: attaching this thin appendage
+                // to the boundary *before* offsetting used to confuse the miter-offset's
+                // corner resolution right at the attachment point — regardless of the tab's
+                // own width or depth, offsetting it always left a near-duplicate vertex pair
+                // a hair apart instead of one clean point (confirmed by direct inspection of
+                // the offset's output polygon: the same fault position and magnitude
+                // persisted across multiple tab sizes). Attaching it afterward sidesteps the
+                // interaction entirely — the tab never has to survive an offset.
+                Rectangle(x: margin, y: margin * 2)
+                    .translated(x: 0, y: -bounds.size.y - margin)
+            }
+
+        let tool = sweptRegion.readingConcrete { regionSection in
+            // The rectangle-plus-margin-strip construction above can leave a redundant,
+            // exactly-coincident vertex where the strip's corner lands on an existing point
+            // of the profile's own boundary — e.g. a plain 45° chamfer's swept region comes
+            // back from the subtraction with a literal repeated vertex at one corner. Left
+            // in place, this duplicate point index confuses `Mesh(extruding:along:)`'s
+            // per-vertex correspondence between neighboring rings (confirmed by direct mesh
+            // inspection: a triangle ends up spanning from one ring straight to the *next*
+            // ring over, skipping the one in between) — producing a real, protruding fold,
+            // not just a coincident-face rounding artifact.
+            //
+            // Can't use `droppingDegenerateVertices`'s default threshold here — it's the same
+            // order of magnitude as `interfaceMargin`, which this cross-section legitimately
+            // uses to keep otherwise-coincident edges a hair apart. A far smaller threshold
+            // only catches true construction-artifact duplicates, not real margin edges.
+            let regionPolygons = SimplePolygonList(regionSection.polygonList().polygons.map {
+                SimplePolygon(droppingDegenerateVertices($0.vertices, threshold: 1e-12))
+            })
+            return shape.simplified().readingConcrete { crossSection in
+                crossSection.polygonList().polygons.mapUnion { polygon in
+                    let rawVertices = type == .subtraction ? polygon.vertices : Array(polygon.vertices.reversed())
+                    let vertices = droppingDegenerateVertices(rawVertices)
+                    let joints = vertices.indices.map { index -> (vertex: Vector2D, direction: Direction2D, stretch: Double, isCapped: Bool) in
+                        let (direction, stretch, isCapped) = miterOffset(
+                            vertices[wrap: index] - vertices[wrap: index - 1],
+                            vertices[wrap: index + 1] - vertices[wrap: index]
+                        )
+                        return (vertices[wrap: index], direction, stretch, isCapped)
+                    }
+                    for index in vertices.indices {
+                        let a = joints[index]
+                        let b = joints[(index + 1) % joints.count]
+                        // A capped joint's stretch/direction can differ enormously from its
+                        // neighbor's — sweeping the profile through that whole change in one
+                        // step leaves a visibly creased, non-planar bevel. Subdividing only
+                        // this segment spreads the change smoothly instead.
+                        let path = (a.isCapped || b.isCapped)
+                            ? interpolatedRingTransforms(from: (a.vertex, a.direction, a.stretch), to: (b.vertex, b.direction, b.stretch), steps: 32)
+                            : [
+                                ringTransform(direction: a.direction, stretch: a.stretch, vertex: a.vertex),
+                                ringTransform(direction: b.direction, stretch: b.stretch, vertex: b.vertex),
+                            ]
+                        Mesh(
+                            extruding: regionPolygons,
+                            along: path,
+                            cacheName: "EdgeProfileSegment",
+                            cacheParameters: regionPolygons, path
+                        )
+                        .correctingFaceWinding()
                     }
                 }
             }
+        }
 
-            // Weld the tool into one concrete mesh before it meets the body. Union flattening
-            // would otherwise merge the segment prisms into the same n-ary boolean as the body
-            // itself, and once any prism merges with the body first, its seam face is
-            // retriangulated and no longer matches its neighbor's bit-exactly — leaving the
-            // seam to coplanar resolution, which is unreliable. Welding the prisms against
-            // each other first keeps every seam an exact shared-vertex interface.
-            //
-            // On top of that materialization barrier, explicitly re-weld any vertices Manifold's
-            // own union left merely near-coincident instead of merged. For most profiles the
-            // ring-weld's shared transforms already guarantee bit-identical seam vertices and
-            // this is a no-op — but for curved (e.g. fillet) profiles, Manifold's boolean union
-            // has been confirmed (by running the identical construction repeatedly) to
-            // non-deterministically leave two vertices at the same 3D position unmerged, some
-            // runs but not others, producing a degenerate zero-area fold between them. Neither
-            // `Manifold.simplify(epsilon:)` nor `MeshGL.merged()` fixes this (the mesh is already
-            // a valid closed manifold, just locally folded — there's no open boundary for either
-            // to act on). A direct, deterministic Swift-side weld of near-coincident vertices —
-            // independent of Manifold's own union resolution — fixes it reliably instead.
-            return CachedNodeTransformer<D3, D3>(source: tool, name: "EdgeProfileTool") { node, _, context in
-                let manifold = try await context.result(for: node).concrete
-                let (vertices, faces) = weldingCoincidentVertices(manifold.meshGL())
-                return GeometryNode.shape(.mesh(MeshData(vertices: vertices, faces: faces)))
-            }
+        return Self.welding(tool)
+    }
+
+    /// Materializes `tool` into one concrete mesh, re-welding any vertices left merely
+    /// near-coincident rather than merged.
+    ///
+    /// This is a materialization barrier as much as a cleanup. Union flattening would otherwise
+    /// fold the tool's own pieces into the same n-ary boolean as the body itself, and once any
+    /// piece merges with the body first, its seam face is retriangulated and no longer matches its
+    /// neighbor's bit-exactly — leaving the seam to coplanar resolution, which is unreliable.
+    /// Resolving the tool against itself first keeps every seam an exact shared-vertex interface.
+    ///
+    /// The weld on top of that is deterministic where the boolean engine isn't. Manifold has been
+    /// confirmed (by running an identical construction repeatedly) to sometimes leave two vertices
+    /// at the same position unmerged and sometimes not, producing a degenerate zero-area fold
+    /// between them. Neither `Manifold.simplify(epsilon:)` nor `MeshGL.merged()` addresses it — the
+    /// mesh is already a valid closed manifold, just locally folded, so there's no open boundary
+    /// for either to act on — but a direct position-based weld in Swift, independent of however
+    /// the engine happened to resolve things on a given run, fixes it reliably.
+    static func welding(_ tool: any Geometry3D) -> any Geometry3D {
+        CachedNodeTransformer<D3, D3>(source: tool, name: "EdgeProfileTool") { node, _, context in
+            let manifold = try await context.result(for: node).concrete
+            let (vertices, faces) = weldingCoincidentVertices(manifold.meshGL())
+            return GeometryNode.shape(.mesh(MeshData(vertices: vertices, faces: faces)))
         }
     }
 }
