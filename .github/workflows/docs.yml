@@ -1,0 +1,60 @@
+name: docs
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deployment finish rather than cancelling it, but never queue more
+# than one pending build behind it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: macos-26
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - uses: SwiftyLab/setup-swift@latest
+      with:
+        swift-version: '6.3.2'
+    - uses: actions/checkout@v4
+    - uses: actions/configure-pages@v5
+
+    - name: Build documentation
+      run: |
+        swift package --allow-writing-to-directory ./docs-site \
+          generate-documentation --target Cadova \
+          --disable-indexing \
+          --transform-for-static-hosting \
+          --hosting-base-path Cadova \
+          --output-path ./docs-site
+
+    # DocC puts the landing page at /documentation/cadova, so send the site root there.
+    - name: Redirect site root to the documentation landing page
+      run: |
+        cat > ./docs-site/index.html <<'HTML'
+        <!doctype html>
+        <meta charset="utf-8">
+        <title>Cadova Documentation</title>
+        <meta http-equiv="refresh" content="0; url=/Cadova/documentation/cadova">
+        <link rel="canonical" href="/Cadova/documentation/cadova">
+        <a href="/Cadova/documentation/cadova">Cadova documentation</a>
+        HTML
+
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./docs-site
+
+    - id: deployment
+      uses: actions/deploy-pages@v4

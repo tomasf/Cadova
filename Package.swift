@@ -12,6 +12,7 @@ let package = Package(
         .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.2.4")),
         .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.1.4")),
         .package(url: "https://github.com/tomasf/Pelagos.git", .upToNextMinor(from: "0.1.4")),
+        .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0"),
     ],
     targets: [
         .target(
