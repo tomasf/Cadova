@@ -44,6 +44,11 @@ public extension Geometry3D {
 @available(*, deprecated, renamed: "Loft.Transition")
 public typealias LayerTransition = Loft.Transition
 
+public extension SurfaceCrossing {
+    @available(*, deprecated, message: "Use transition == .entering instead.")
+    var entersSolid: Bool { transition == .entering }
+}
+
 public extension ParametricCurve {
     @available(*, deprecated, renamed: "readingPoints(_:)")
     func readPoints<D: Dimensionality>(

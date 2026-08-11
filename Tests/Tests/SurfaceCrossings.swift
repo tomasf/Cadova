@@ -96,18 +96,18 @@ struct SurfaceCrossingsTests {
         #expect(try await geometry.bounds ≈ .init(minimum: [0, 0, 0], maximum: [1, 1, 1]))
     }
 
-    @Test func `entersSolid alternates as ray pierces a hollow shape`() async throws {
+    @Test func `transition alternates as ray pierces a hollow shape`() async throws {
         // Outer 10×10×10 box centered at origin with a 6×6×6 cavity carved out of the middle.
         // A ray along +X through the center should hit: outer enter, outer exit-into-cavity,
-        // inner enter, inner exit — entersSolid pattern true, false, true, false.
+        // inner enter, inner exit — transition pattern entering, exiting, entering, exiting.
         let shell = Box(10).aligned(at: .center)
             .subtracting {
                 Box(6).aligned(at: .center)
             }
 
-        // Encode (index, entersSolid) into a unique sphere z-coordinate per crossing so the
+        // Encode (index, transition) into a unique sphere z-coordinate per crossing so the
         // overall z-extent of the result uniquely identifies the full sequence.
-        // z = (index + 1) × (entersSolid ? +100 : -100):
+        // z = (index + 1) × (entering ? +100 : -100), writing entering as T and exiting as F:
         //   T, F, T, F  →  100, -200, 300, -400   → z bounds [-400, 300]
         //   T, T, T, T  →  100,  200, 300,  400   → z bounds [-5 (shell), 400]
         //   F, F, F, F  → -100, -200,-300, -400   → z bounds [-400, 5 (shell)]
@@ -115,7 +115,7 @@ struct SurfaceCrossingsTests {
         let geometry = shell.readingSurfaces(from: [-10, 0, 0], in: .right) { shape, crossings in
             shape.adding {
                 for (index, c) in crossings.enumerated() {
-                    let z = Double(index + 1) * (c.entersSolid ? 100 : -100)
+                    let z = Double(index + 1) * (c.transition == .entering ? 100 : -100)
                     Sphere(radius: 0.05).translated([c.position.x, 0, z])
                 }
             }

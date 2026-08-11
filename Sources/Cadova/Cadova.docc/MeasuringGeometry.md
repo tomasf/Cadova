@@ -99,7 +99,7 @@ shape.readingOutlines { shape, outlines in
 }
 ```
 
-`.readingSurfaces(from:in:)` casts a ray through a 3D solid and reports every surface it crosses as a ``SurfaceCrossing``, each carrying a `position`, `normal`, `distance`, and whether it `entersSolid`. This is how you find where a feature should sit on an irregular surface. `.readingFirstSurface(from:in:)` is the same idea when you only care about the first hit:
+`.readingSurfaces(from:in:)` casts a ray through a 3D solid and reports every surface it crosses as a ``SurfaceCrossing``, each carrying a `position`, `normal`, `distance`, and a `transition` telling you whether the ray is `.entering` or `.exiting` the solid there. This is how you find where a feature should sit on an irregular surface. `.readingFirstSurface(from:in:)` is the same idea when you only care about the first hit:
 
 ```swift
 solid.readingFirstSurface(from: [0, 0, 100], in: .down) { solid, crossing in
