@@ -32,7 +32,7 @@ public extension GeometryEvaluator {
     ///
     /// The geometry's concrete shape is sampled and its polygonal outlines are wrapped as
     /// ``BezierPath2D`` values made of straight segments. This is the evaluator equivalent of
-    /// ``Geometry2D/readingOutlines(_:)``.
+    /// ``Geometry/readingOutlines(_:)``.
     ///
     /// - Parameter geometry: The 2D geometry whose outlines should be read.
     /// - Returns: One closed Bézier path per outline contour.
