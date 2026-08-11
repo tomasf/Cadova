@@ -165,6 +165,28 @@ struct SurfaceCrossingsTests {
         #expect(try await marker.bounds ≈ .init(minimum: [-3.05, -0.05, -0.05], maximum: [-2.95, 0.05, 0.05]))
     }
 
+    @Test func `transform maps the local origin and Z axis onto position and normal`() throws {
+        let normal = Direction3D([1, 0, 1])
+        let crossing = SurfaceCrossing(position: [1, 2, 3], normal: normal, distance: 7, transition: .exiting)
+        // Local origin lands on the crossing, and local +Z points along the outward normal.
+        let expectedTip = Vector3D(1, 2, 3) + normal.unitVector
+        #expect(crossing.transform.apply(to: .zero) ≈ Vector3D(1, 2, 3))
+        #expect(crossing.transform.apply(to: [0, 0, 1]) ≈ expectedTip)
+    }
+
+    @Test func `transform stands geometry on the surface it hit`() async throws {
+        // A post standing on the local XY plane, so its placement reveals the transform exactly.
+        let marker = Box(1).readingFirstSurface(from: [0.5, 0.5, 10], in: .down) { _, hit in
+            if let hit {
+                Box([0.2, 0.2, 2])
+                    .aligned(at: .centerXY)
+                    .transformed(hit.transform)
+            }
+        }
+        // The top face sits at z=1 with an upward normal, so the post rises from there to z=3.
+        #expect(try await marker.bounds ≈ .init(minimum: [0.4, 0.4, 1], maximum: [0.6, 0.6, 3]))
+    }
+
     @Test func `first surface with an unmatched transition produces no crossing`() async throws {
         // A ray starting inside the far wall only ever exits, so .entering matches nothing.
         let geometry = hollowShell.readingFirstSurface(from: [4, 0, 0], in: .right, transition: .entering) { shell, hit in

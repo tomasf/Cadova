@@ -50,6 +50,27 @@ public struct SurfaceCrossing: Sendable, Hashable, Codable {
     }
 }
 
+public extension SurfaceCrossing {
+    /// A transform that places geometry at `position` with its local +Z axis aligned with `normal`,
+    /// pointing out of the solid.
+    ///
+    /// Use it to stand a feature on the surface where the ray hit it:
+    ///
+    /// ```swift
+    /// Cylinder(diameter: 3, height: 5)
+    ///     .transformed(crossing.transform)
+    /// ```
+    ///
+    /// The remaining axes are determined by rotating from `.up` to `normal`, matching the convention
+    /// used by ``CurveSample/transform`` and `Geometry3D.definingAnchor(_:pointing:)`. Rotation
+    /// around the normal is otherwise unconstrained.
+    var transform: Transform3D {
+        .identity
+            .rotated(from: .up, to: normal)
+            .translated(position)
+    }
+}
+
 internal extension Sequence<SurfaceCrossing> {
     /// The first crossing with the given transition, or the first crossing of either kind if
     /// `transition` is `nil`.
