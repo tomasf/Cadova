@@ -62,24 +62,43 @@ public extension Geometry3D {
 
     /// Casts a ray forward from `origin` in `direction` and hands the first surface crossing
     /// (or `nil` if the ray hits nothing) to the reader.
+    ///
+    /// - Parameters:
+    ///   - origin: The starting point of the ray.
+    ///   - direction: The direction the ray extends.
+    ///   - transition: If given, only crossings of that kind qualify, skipping any nearer crossing
+    ///     of the other kind. For example, `.exiting` finds where the ray leaves the solid, which is
+    ///     the far side of the first solid region it passes through. Defaults to `nil`, matching the
+    ///     nearest crossing of either kind.
+    ///   - reader: Receives the original geometry and the matching crossing, if any.
+    /// - Returns: The geometry produced by `reader`.
     func readingFirstSurface<Output: Dimensionality>(
         from origin: Vector3D,
         in direction: Direction3D,
+        transition: SurfaceCrossing.Transition? = nil,
         @GeometryBuilder<Output> _ reader: @Sendable @escaping (_ geometry: any Geometry3D, _ crossing: SurfaceCrossing?) -> Output.Geometry
     ) -> Output.Geometry {
         readingSurfaces(from: origin, in: direction) { geometry, crossings in
-            reader(geometry, crossings.first)
+            reader(geometry, crossings.first(with: transition))
         }
     }
 
     /// Hands the first surface crossing within `segment` (or `nil` if it doesn't cross anything)
     /// to the reader.
+    ///
+    /// - Parameters:
+    ///   - segment: The segment to query.
+    ///   - transition: If given, only crossings of that kind qualify, skipping any nearer crossing
+    ///     of the other kind. Defaults to `nil`, matching the nearest crossing of either kind.
+    ///   - reader: Receives the original geometry and the matching crossing, if any.
+    /// - Returns: The geometry produced by `reader`.
     func readingFirstSurface<Output: Dimensionality>(
         along segment: LineSegment3D,
+        transition: SurfaceCrossing.Transition? = nil,
         @GeometryBuilder<Output> _ reader: @Sendable @escaping (_ geometry: any Geometry3D, _ crossing: SurfaceCrossing?) -> Output.Geometry
     ) -> Output.Geometry {
         readingSurfaces(along: segment) { geometry, crossings in
-            reader(geometry, crossings.first)
+            reader(geometry, crossings.first(with: transition))
         }
     }
 }

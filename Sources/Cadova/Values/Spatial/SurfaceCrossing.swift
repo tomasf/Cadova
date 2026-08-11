@@ -49,3 +49,11 @@ public struct SurfaceCrossing: Sendable, Hashable, Codable {
         )
     }
 }
+
+internal extension Sequence<SurfaceCrossing> {
+    /// The first crossing with the given transition, or the first crossing of either kind if
+    /// `transition` is `nil`.
+    func first(with transition: SurfaceCrossing.Transition?) -> SurfaceCrossing? {
+        first { transition == nil || $0.transition == transition }
+    }
+}

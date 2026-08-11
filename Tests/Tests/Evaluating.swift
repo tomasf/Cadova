@@ -151,6 +151,35 @@ struct EvaluatingTests {
         #expect(capture.hit!.position.z ≈ 1)
     }
 
+    @Test func `first surface with a transition skips the nearer crossing`() async throws {
+        // 10×10×10 box with a 6×6×6 cavity: along +X the walls sit at x = -5 (entering),
+        // -3 (exiting), 3 (entering) and 5 (exiting).
+        let shell = Box(10).aligned(at: .center)
+            .subtracting {
+                Box(6).aligned(at: .center)
+            }
+        let segment = LineSegment3D(from: [-10, 0, 0], to: [10, 0, 0])
+
+        let ray = FirstSurfaceCapture()
+        let along = FirstSurfaceCapture()
+        let unfiltered = FirstSurfaceCapture()
+        let unmatched = FirstSurfaceCapture()
+        let probe = shell.evaluating { g, eval in
+            ray.hit = await eval.firstSurface(of: g, from: [-10, 0, 0], in: .right, transition: .exiting)
+            along.hit = await eval.firstSurface(of: g, along: segment, transition: .exiting)
+            unfiltered.hit = await eval.firstSurface(of: g, from: [-10, 0, 0], in: .right)
+            // A ray starting inside the far wall only ever exits, so .entering matches nothing.
+            unmatched.hit = await eval.firstSurface(of: g, from: [4, 0, 0], in: .right, transition: .entering)
+            return g
+        }
+        _ = try await probe.node
+
+        #expect(ray.hit?.position.x ≈ -3)
+        #expect(along.hit?.position.x ≈ -3)
+        #expect(unfiltered.hit?.position.x ≈ -5)
+        #expect(unmatched.hit == nil)
+    }
+
     @Test func `parts ofType and single part lookup find the named part`() async throws {
         let knob = Part("knob")
         let geometry = Box(10).adding {
