@@ -4,8 +4,8 @@ import Manifold3D
 /// Reads derived values from geometry inside a ``Geometry/evaluating(_:)`` block.
 ///
 /// `GeometryEvaluator` exposes the same kinds of reads offered by the single-purpose reader methods
-/// (``Geometry/measuring(_:_:)``, ``Geometry2D/readingOutlines(_:)``, ``Geometry/separated(reader:)``,
-/// ``Geometry3D/readingSurfaces(from:in:_:)``, and so on), but as `async` methods on a single
+/// (``Geometry/measuring(_:_:)``, ``Geometry/readingOutlines(_:)``, ``Geometry/separated(reader:)``,
+/// ``Geometry/readingSurfaces(from:in:_:)``, and so on), but as `async` methods on a single
 /// evaluator object. This lets one closure perform several reads — across the input geometry or any
 /// other geometry in scope — without nesting reader calls.
 ///

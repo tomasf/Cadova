@@ -5,9 +5,9 @@ Cadova is a Swift library for creating 3D models through code, with a focus on 3
 
 Cadova models are written entirely in Swift, making them easy to version, reuse, and extend. The result is a flexible and maintainable approach to modeling, especially for those already comfortable with code.
 
-Cadova runs on macOS, Windows, and Linux. To get started, read the [Getting Started guide](https://swiftpackageindex.com/tomasf/Cadova/main/documentation/cadova/gettingstarted).
+Cadova runs on macOS, Windows, and Linux. To get started, read the [Getting Started guide](https://tomasf.github.io/Cadova/documentation/cadova/gettingstarted).
 
-Full documentation, including [What is Cadova?](https://swiftpackageindex.com/tomasf/Cadova/main/documentation/cadova/whatiscadova), is available on the [Swift Package Index](https://swiftpackageindex.com/tomasf/Cadova/main/documentation/cadova). See the [wiki](https://github.com/tomasf/Cadova/wiki) for related projects: the viewer app, libraries, and example models built with Cadova.
+Full documentation, including [What is Cadova?](https://tomasf.github.io/Cadova/documentation/cadova/whatiscadova), is available at [cadova.org/docs](https://cadova.org/docs). See the [wiki](https://github.com/tomasf/Cadova/wiki) for related projects: the viewer app, libraries, and example models built with Cadova.
 
 [![Swift](https://github.com/tomasf/Cadova/actions/workflows/main.yml/badge.svg)](https://github.com/tomasf/Cadova/actions/workflows/main.yml)
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
@@ -34,7 +34,7 @@ await Model("Hex key holder") {
     }
 }
 ```
-For more code examples, see [Examples](https://swiftpackageindex.com/tomasf/Cadova/main/documentation/cadova/examples).
+For more code examples, see [Examples](https://tomasf.github.io/Cadova/documentation/cadova/examples).
 
 To preview your models, check out [Cadova Viewer](https://github.com/tomasf/CadovaViewer), a native macOS 3MF viewer that reloads automatically as your model regenerates.
 

@@ -5,7 +5,7 @@ public extension GeometryEvaluator {
     ///
     /// Each crossing carries its position, surface normal, and parameter along the segment. Crossings
     /// are sorted by ascending ``SurfaceCrossing/distance`` and lie within `0...segment.length`. This
-    /// is the evaluator equivalent of ``Geometry3D/readingSurfaces(along:_:)``.
+    /// is the evaluator equivalent of ``Geometry/readingSurfaces(along:_:)``.
     ///
     /// - Parameters:
     ///   - geometry: The 3D geometry to query.
@@ -28,7 +28,7 @@ public extension GeometryEvaluator {
     /// The ray extends forward only — surfaces behind `origin` are never reported. Internally the ray
     /// is clipped to a segment long enough to span the geometry's bounding box, so all forward
     /// crossings are returned regardless of how far away the geometry is. This is the evaluator
-    /// equivalent of ``Geometry3D/readingSurfaces(from:in:_:)``.
+    /// equivalent of ``Geometry/readingSurfaces(from:in:_:)``.
     ///
     /// - Parameters:
     ///   - geometry: The 3D geometry to query.

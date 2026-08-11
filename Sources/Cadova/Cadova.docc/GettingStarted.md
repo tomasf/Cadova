@@ -10,6 +10,8 @@ If you're on macOS, the easiest path is to [install the latest version of Xcode]
 
 For Windows and Linux, install Swift directly from [swift.org](https://www.swift.org/install/). We also recommend [VS Code](https://code.visualstudio.com/) with the [Swift extension](https://marketplace.visualstudio.com/items?itemName=swiftlang.swift-vscode) for a smooth editing experience. On Linux, the Fontconfig library is required; install it with `sudo apt-get install libfontconfig1-dev`.
 
+> Tip: To skip steps 2 and 3, start from the [model package template](https://github.com/tomasf/cadova-model-template). It's a GitHub template repo with `Package.swift` and `main.swift` already set up. Press "Use this template", clone your new repository, then open `Sources/main.swift` and continue from step 4.
+
 ## 2. Create a new Swift executable package
 
 ```sh
@@ -65,8 +67,6 @@ await Model("gizmo") {
 Run it in your IDE or on the command line using `swift run`. This will generate a `gizmo.3mf` file in the current directory. You can open it in your slicer or viewer.
 
 On macOS, using [Cadova Viewer](https://github.com/tomasf/CadovaViewer) is recommended for the best experience. It automatically reloads the model when the file changes on disk, and offers split views, cross-sections, and measurements for inspecting your geometry in detail.
-
-To speed up the setup of a new model package, you can use the [template GitHub repo](https://github.com/tomasf/cadova-model-template).
 
 ## Organize your output with `Project`
 

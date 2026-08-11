@@ -45,7 +45,7 @@ public struct Evaluate<D: Dimensionality>: Geometry {
 public extension Geometry {
     /// Performs several geometry reads inside one closure, then builds new geometry from the results.
     ///
-    /// Single-purpose readers like ``measuring(_:_:)``, ``readingOutlines(_:)``, and ``separated(reader:)``
+    /// Single-purpose readers like ``measuring(_:_:)``, ``Geometry/readingOutlines(_:)``, and ``separated(reader:)``
     /// each pass one derived value to a synchronous closure. When you need several derived values at
     /// once — bounds *and* outlines *and* component count — chaining the single-purpose readers forces
     /// a pyramid of nested closures. `evaluating` collapses that into one async closure that receives a
@@ -70,7 +70,7 @@ public extension Geometry {
     /// ```
     ///
     /// For a single read, the existing single-purpose readers (``measuring(_:_:)``,
-    /// ``readingOutlines(_:)``, ``separated(reader:)``, etc.) remain the simpler choice. Reach for
+    /// ``Geometry/readingOutlines(_:)``, ``separated(reader:)``, etc.) remain the simpler choice. Reach for
     /// `evaluating` when there are two or more reads, or when reads need to be driven by a loop.
     ///
     /// - Parameter action: An asynchronous closure that receives this geometry and an evaluator, and
