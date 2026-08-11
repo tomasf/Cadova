@@ -98,16 +98,18 @@ extension SimplePolygon {
         let n = cornerIndices.count
         let additionalPoints = targetCount - n
 
-        // Compute the arc length of each inter-corner segment.
+        // Compute the arc length of each inter-corner segment. The walk runs at least one edge, so a
+        // shape with a single corner (a teardrop, say) measures the whole way around the polygon and
+        // back to that corner, rather than measuring nothing and leaving the total length at zero.
         var segmentLengths = [Double](repeating: 0, count: n)
         for i in 0..<n {
             var j = cornerIndices[i]
             let end = cornerIndices[(i + 1) % n]
-            while j != end {
+            repeat {
                 let next = (j + 1) % count
                 segmentLengths[i] += (vertices[next] - vertices[j]).magnitude
                 j = next
-            }
+            } while j != end
         }
         let totalLength = segmentLengths.reduce(0, +)
 

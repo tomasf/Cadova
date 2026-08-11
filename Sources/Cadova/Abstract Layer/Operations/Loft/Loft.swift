@@ -23,6 +23,11 @@ import Foundation
 /// Each section is specified using a distance along the path and a 2D shape (any Geometry2D-conforming type). At
 /// least two sections must be provided.
 ///
+/// A section is a cross-section of a solid rather than a free-standing drawing, so it's evaluated in the coordinate
+/// system of the point on the path where it ends up: a section on a horizontal stretch of path stands upright in
+/// space. Orientation-dependent environment values, such as ``EnvironmentValues/naturalUpDirection`` and the
+/// `.overhangSafe(_:)` modifier that builds on it, therefore reflect each section's actual placement.
+///
 /// - Example:
 ///   ```swift
 ///   Loft {
