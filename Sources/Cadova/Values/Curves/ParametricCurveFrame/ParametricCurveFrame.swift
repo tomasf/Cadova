@@ -1,6 +1,6 @@
 import Foundation
 
-struct ParametricCurveFrame {
+struct ParametricCurveFrame: Sendable {
     let t: Double
     let distance: Double
     let point: Vector3D
@@ -95,17 +95,31 @@ struct ParametricCurveFrame {
         }
     }
 
-    var transform: Transform3D {
+    /// The frame's basis: its cross-sectional X and Y axes, rotated to satisfy the reference/target
+    /// alignment, along with its Z axis (the curve's tangent).
+    private var basis: (x: Direction3D, y: Direction3D, z: Direction3D) {
         let alignedX = Direction3D(xAxis).rotated(angle: angle!, around: Direction3D(zAxis))
-        let alignedY = Direction3D(zAxis × alignedX.unitVector)
-        let base = Transform3D(orthonormalBasisOrigin: point, x: alignedX, y: alignedY, z: Direction3D(zAxis))
-        guard let miterStretch else { return base }
+        return (alignedX, Direction3D(zAxis × alignedX.unitVector), Direction3D(zAxis))
+    }
+
+    /// The frame's placement in space as a rigid transform: position and orientation only, without any
+    /// `miterStretch` compensation. Use this where a non-orthonormal factor would be harmful, such as
+    /// when expressing the frame as an environment transform, where scale feeds segmentation and
+    /// tolerance. For placing actual cross-section geometry, use `transform` instead.
+    var rigidTransform: Transform3D {
+        let basis = basis
+        return Transform3D(orthonormalBasisOrigin: point, x: basis.x, y: basis.y, z: basis.z)
+    }
+
+    var transform: Transform3D {
+        guard let miterStretch else { return rigidTransform }
+        let basis = basis
 
         // Scale, in local cross-section space, along the local direction miterStretch.direction projects
-        // to. Applied before `base` so the stretch happens in the cross-section's own coordinate system,
-        // prior to being placed/rotated into world space.
-        let localX = miterStretch.direction ⋅ alignedX.unitVector
-        let localY = miterStretch.direction ⋅ alignedY.unitVector
+        // to. Applied before the rigid placement so the stretch happens in the cross-section's own
+        // coordinate system, prior to being placed/rotated into world space.
+        let localX = miterStretch.direction ⋅ basis.x.unitVector
+        let localY = miterStretch.direction ⋅ basis.y.unitVector
         let factor = miterStretch.factor
         let localScale = Transform3D.identity.mapValues { row, column, value in
             switch (row, column) {
@@ -116,7 +130,7 @@ struct ParametricCurveFrame {
             default: value
             }
         }
-        return localScale.concatenated(with: base)
+        return localScale.concatenated(with: rigidTransform)
     }
 }
 

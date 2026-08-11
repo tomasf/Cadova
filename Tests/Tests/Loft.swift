@@ -316,6 +316,68 @@ struct LoftTests {
         #expect(m.volume < expectedVolume * 1.1)
     }
 
+    // MARK: - Orientation-dependent sections
+
+    @Test func `overhangSafe follows each section's own orientation along the path`() async throws {
+        // A loft along a horizontal path stands its cross-sections upright in space, so "up" is a real
+        // direction within a section's own 2D plane and overhangSafe must act on it. It used to be a
+        // silent no-op, because sections were built in the ambient environment (up = world +Z, which has
+        // no projection onto a section's plane) rather than in the frame they're actually placed at.
+        let radius = 6.0
+        let negativeRadius = -radius
+        // The additive teardrop's apex sits radius / sin(overhangAngle) from the center, pointing
+        // opposite the up direction: a downward spike grows at a printable angle, a circle's underside
+        // doesn't. With the default 45° overhang angle that's radius * √2 below the path.
+        let expectedApexZ = -radius / sin(45°)
+        let path = BezierPath3D(linesBetween: [[0, 0, 0], [40, 0, 0]])
+
+        let plainLoft = Loft(along: path, pointing: .negativeY, toward: .direction(.negativeZ)) {
+            Section(at: 0) { Circle(radius: radius) }
+            Section(at: 40) { Circle(radius: radius) }
+        }
+        let overhangSafeLoft = Loft(along: path, pointing: .negativeY, toward: .direction(.negativeZ)) {
+            Section(at: 0) { Circle(radius: radius).overhangSafe(.teardrop) }
+            Section(at: 40) { Circle(radius: radius).overhangSafe(.teardrop) }
+        }
+
+        try await overhangSafeLoft.writeVerificationModel(name: "loftOverhangSafeAlongPath")
+        let plain = try await plainLoft.measurements
+        let overhangSafe = try await overhangSafeLoft.measurements
+        let plainBox = try #require(plain.boundingBox)
+        let overhangSafeBox = try #require(overhangSafe.boundingBox)
+
+        // The control stays a plain cylinder lying along +X.
+        #expect(plainBox.minimum.z.equals(negativeRadius, within: 1e-2))
+        #expect(plainBox.maximum.z.equals(radius, within: 1e-2))
+
+        // The teardrop reaches its analytic apex below the path while its top stays a circle.
+        // The tolerance absorbs resampling, which doesn't necessarily land a vertex on the sharp tip.
+        #expect(overhangSafeBox.minimum.z.equals(expectedApexZ, within: 0.15))
+        #expect(overhangSafeBox.maximum.z.equals(radius, within: 1e-2))
+        #expect(overhangSafe.volume > plain.volume)
+    }
+
+    @Test func `overhangSafe stays inert in a vertical loft`() async throws {
+        // The sections of a plain (vertical) loft lie flat, perpendicular to the up direction, so there
+        // is no overhang to compensate for and overhangSafe must leave them alone.
+        let radius = 6.0
+        let plainLoft = Loft {
+            Section(at: 0) { Circle(radius: radius) }
+            Section(at: 20) { Circle(radius: radius) }
+        }
+        let overhangSafeLoft = Loft {
+            Section(at: 0) { Circle(radius: radius).overhangSafe(.teardrop) }
+            Section(at: 20) { Circle(radius: radius).overhangSafe(.teardrop) }
+        }
+
+        let plain = try await plainLoft.measurements
+        let overhangSafe = try await overhangSafeLoft.measurements
+
+        #expect(overhangSafe.volume ≈ plain.volume)
+        #expect(overhangSafe.surfaceArea ≈ plain.surfaceArea)
+        #expect(overhangSafe.boundingBox == plain.boundingBox)
+    }
+
     @Test func `Section supports a distance range for a straight run of unchanging shape`() async throws {
         let loft = Loft {
             Section(at: 0) { Circle(diameter: 10) }

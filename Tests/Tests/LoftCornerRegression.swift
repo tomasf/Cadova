@@ -53,6 +53,29 @@ struct LoftCornerRegressionTests {
         #expect(cornerOffsets.count == 1)
     }
 
+    @Test func `resampling preserves the single corner of a teardrop-shaped polygon`() {
+        // A teardrop has exactly one corner: its tip. The inter-corner walk used to measure nothing at
+        // all in that case (it stopped as soon as it reached the corner it started from), leaving the
+        // total arc length at zero and turning the point distribution into a division by zero, which
+        // then trapped converting the resulting non-finite Double to Int.
+        let radius = 10.0
+        let apex = Vector2D(0, radius * 2.0.squareRoot())
+        let arc = (0...32).map { i -> Vector2D in
+            let angle = 45° - Double(i) / 32 * 270°
+            return Vector2D(cos(angle) * radius, sin(angle) * radius)
+        }
+        let teardrop = SimplePolygon(arc + [apex])
+
+        let resampled = teardrop.resampled(count: 64)
+
+        #expect(resampled.count == 64)
+        #expect(resampled.vertices.contains { $0.distance(to: apex) < 1e-9 })
+        #expect(resampled.vertices.allSatisfy { $0.x.isFinite && $0.y.isFinite })
+        // Points spread over the whole outline rather than bunching up; resampling the arc cuts
+        // corners very slightly, hence the tolerance.
+        #expect(resampled.perimeter.equals(teardrop.perimeter, within: 0.1))
+    }
+
     @Test func `mitered loft corners interpolate regular rings into the oblique miter frame`() throws {
         let path = BezierPath3D(from: [0, 0, 0]) {
             line(x: 0, y: 0, z: 20)
