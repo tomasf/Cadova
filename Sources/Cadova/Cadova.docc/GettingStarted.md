@@ -18,6 +18,8 @@ cd gizmo
 swift package init --type executable
 ```
 
+> Note: If SPM names your project file `gizmo.swift` and tries to manually add a `main` method, rename the file `main.swift` and delete the `main` method or you'll get a bunch of errors about concurrency. 
+
 ## 3. Add Cadova as a dependency
 
 Edit `Package.swift`:
