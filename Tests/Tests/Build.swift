@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@_spi(ArchiveFinalizer)
 @testable import Cadova
 
 private struct TagAccumulator: ResultElement {
@@ -136,6 +137,24 @@ struct BuildTests {
         // Filenames are stored uncompressed in a zip's local headers, so this substring check reliably
         // confirms the file was added even though its content is compressed.
         #expect(data.range(of: Data("Metadata/custom.xml".utf8)) != nil)
+    }
+
+    @Test func `withArchiveFinalizer handlers can measure the root geometry`() async throws {
+        let data = try await ModelFileGenerator.build {
+            Box(x: 10, y: 20, z: 5)
+                .adding {
+                    Box(x: 10, y: 20, z: 5)
+                        .translated(x: 30)
+                        .inPart(Part("second", semantic: .solid))
+                }
+                .withArchiveFinalizer { archive in
+                    let bounds = await archive.evaluator.bounds(of: archive.rootGeometry, scope: .allParts)
+                    #expect(bounds?.size ?? .zero ≈ Vector3D(40, 20, 5))
+                    try archive.addFile(at: "Metadata/size.txt", data: Data("\(bounds?.size ?? .zero)".utf8))
+                }
+        }.data()
+
+        #expect(data.range(of: Data("Metadata/size.txt".utf8)) != nil)
     }
 
     @Test func `withArchiveFinalizer does not rerun when the same geometry value is reused in a tree`() async throws {

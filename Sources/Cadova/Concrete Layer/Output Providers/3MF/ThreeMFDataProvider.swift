@@ -10,10 +10,12 @@ extension PackageWriter: @retroactive @unchecked Sendable {}
 struct ThreeMFDataProvider: OutputDataProvider {
     let result: BuildResult<D3>
     let options: ModelOptions
+    let environment: EnvironmentValues
 
-    init(result: BuildResult<D3>, options: ModelOptions) {
+    init(result: BuildResult<D3>, options: ModelOptions, environment: EnvironmentValues) {
         self.result = result
         self.options = options
+        self.environment = environment
     }
 
     let fileExtension = "3mf"
@@ -168,7 +170,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             archive.model = ThreeMF.Model(metadata: options[Metadata.self].threeMFMetadata)
         }
 
-        try await runArchiveFinalizers(archive: archive, modelsAndItems: modelsAndItems)
+        try await runArchiveFinalizers(archive: archive, modelsAndItems: modelsAndItems, context: context)
     }
 
     /// Tracks which archive paths have been written during one export. Finalizers run sequentially
@@ -182,7 +184,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     private func runArchiveFinalizers<T>(
         archive: PackageWriter<T>,
-        modelsAndItems: [(part: Part, model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)]
+        modelsAndItems: [(part: Part, model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)],
+        context: EvaluationContext
     ) async throws {
         let finalizers = result.elements[ArchiveFinalizers.self].finalizers
         guard !finalizers.isEmpty else { return }
@@ -193,27 +196,39 @@ struct ThreeMFDataProvider: OutputDataProvider {
         // this export — added paths never disappear, so a plain set is enough even though finalizers
         // run sequentially, one export at a time.
         let addedPaths = AddedPathsTracker()
-        let archiveHandle = ModelArchive(
-            objectIDsByPart: objectIDsByPart,
-            resultElements: result.elements,
-            addFileHandler: { path, contentType, relationshipType, relativeToRootModel, data in
-                guard let escapedPath = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
-                      let url = URL(string: escapedPath) else {
-                    throw ModelArchiveError.invalidArchivePath(path)
-                }
-                archive.addFile(
-                    at: url,
-                    contentType: contentType,
-                    relationshipType: relationshipType,
-                    relativeToRootModel: relativeToRootModel,
-                    data: data
-                )
-                addedPaths.insert(path)
-            },
-            fileExistsHandler: { path in addedPaths.contains(path) }
-        )
+        let addFileHandler: @Sendable (String, String?, String?, Bool, Data) throws -> Void = {
+            path, contentType, relationshipType, relativeToRootModel, data in
+            guard let escapedPath = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+                  let url = URL(string: escapedPath) else {
+                throw ModelArchiveError.invalidArchivePath(path)
+            }
+            archive.addFile(
+                at: url,
+                contentType: contentType,
+                relationshipType: relationshipType,
+                relativeToRootModel: relativeToRootModel,
+                data: data
+            )
+            addedPaths.insert(path)
+        }
+
         for finalizer in finalizers.values {
-            try finalizer(archiveHandle)
+            // Each finalizer gets its own evaluator: the evaluator stops reading after its first
+            // failed read, so sharing one would silently turn every later finalizer's reads into
+            // fallback values instead of surfacing the error.
+            let evaluator = GeometryEvaluator(context: context, environment: environment)
+            let archiveHandle = ModelArchive(
+                rootGeometry: result,
+                evaluator: evaluator,
+                objectIDsByPart: objectIDsByPart,
+                resultElements: result.elements,
+                addFileHandler: addFileHandler,
+                fileExistsHandler: { path in addedPaths.contains(path) }
+            )
+            try await finalizer(archiveHandle)
+            if let error = await evaluator.firstError {
+                throw error
+            }
         }
     }
 

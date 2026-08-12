@@ -1,22 +1,51 @@
 import Foundation
 
-/// Write access to the archive while it's being generated, along with a way to look up the object
-/// id assigned to a given part.
+/// Write access to the archive while it's being generated, along with the geometry it was generated
+/// from and the means to measure it.
 ///
 /// Passed to closures registered with ``Geometry/withArchiveFinalizer(_:)``, which run after the
 /// model and its meshes have been written but before the archive is sealed.
-public struct ModelArchive: Sendable {
+@_spi(ArchiveFinalizer) public struct ModelArchive: Sendable {
+    /// The entire geometry this archive was built from, as a single 3D geometry.
+    ///
+    /// This is the finished model: everything the archive contains, after all boolean operations,
+    /// transforms and modifiers in the tree have been applied, and with every part's content
+    /// attached. Reading it through ``evaluator`` costs nothing beyond the read itself; the geometry
+    /// is already built, so no part of the tree is evaluated a second time.
+    ///
+    /// Models built from 2D geometry are represented by their extruded 3D form, the same shape
+    /// written into the archive.
+    public let rootGeometry: any Geometry3D
+
+    /// An evaluator for reading derived values from ``rootGeometry`` or any other geometry in scope.
+    ///
+    /// Its reads share the export's evaluation context and cache, so measuring geometry that was
+    /// already built for the archive doesn't rebuild it. See ``GeometryEvaluator`` for the available
+    /// reads.
+    ///
+    /// ```swift
+    /// .withArchiveFinalizer { archive in
+    ///     let bounds = await archive.evaluator.bounds(of: archive.rootGeometry) ?? .zero
+    ///     try archive.addFile(at: "Metadata/size.txt", data: Data("\(bounds.size)".utf8))
+    /// }
+    /// ```
+    public let evaluator: GeometryEvaluator
+
     private let objectIDsByPart: [Part: Int]
     private let resultElements: ResultElements
     private let addFileHandler: @Sendable (String, String?, String?, Bool, Data) throws -> Void
     private let fileExistsHandler: @Sendable (String) -> Bool
 
     internal init(
+        rootGeometry: any Geometry3D,
+        evaluator: GeometryEvaluator,
         objectIDsByPart: [Part: Int],
         resultElements: ResultElements,
         addFileHandler: @escaping @Sendable (String, String?, String?, Bool, Data) throws -> Void,
         fileExistsHandler: @escaping @Sendable (String) -> Bool
     ) {
+        self.rootGeometry = rootGeometry
+        self.evaluator = evaluator
         self.objectIDsByPart = objectIDsByPart
         self.resultElements = resultElements
         self.addFileHandler = addFileHandler
@@ -24,7 +53,7 @@ public struct ModelArchive: Sendable {
     }
 }
 
-public extension ModelArchive {
+@_spi(ArchiveFinalizer) public extension ModelArchive {
     /// The 3MF item id assigned to `part`'s object in the file being written, if the part was included
     /// in the output.
     func objectID(for part: Part) -> Int? {
@@ -87,7 +116,7 @@ internal struct ArchiveFinalizers: ResultElement {
     // the same geometry value at several points in a tree — which carries the same id along with it,
     // being a plain value — collapses back to one registration instead of running redundantly once
     // per occurrence. Genuinely separate calls get distinct ids and all run, same as before.
-    var finalizers: [UUID: @Sendable (ModelArchive) throws -> Void]
+    var finalizers: [UUID: @Sendable (ModelArchive) async throws -> Void]
 
     init() { finalizers = [:] }
     init(combining elements: [ArchiveFinalizers]) {
@@ -97,7 +126,7 @@ internal struct ArchiveFinalizers: ResultElement {
     }
 }
 
-public extension Geometry {
+@_spi(ArchiveFinalizer) public extension Geometry {
     /// Registers a closure that runs while this geometry's 3MF archive is being generated, after the
     /// model and its meshes have been written but before the archive is sealed, with the chance to
     /// add extra files to it.
@@ -110,10 +139,20 @@ public extension Geometry {
     ///
     /// Ignored when exporting to other formats (e.g. STL).
     ///
+    /// The closure is asynchronous, so it can read from the finished model through the archive's
+    /// ``ModelArchive/evaluator`` while assembling the file it adds:
+    ///
+    /// ```swift
+    /// .withArchiveFinalizer { archive in
+    ///     let bounds = await archive.evaluator.bounds(of: archive.rootGeometry) ?? .zero
+    ///     try archive.addFile(at: "Metadata/size.txt", data: Data("\(bounds.size)".utf8))
+    /// }
+    /// ```
+    ///
     /// - Parameter finalizer: A closure receiving a ``ModelArchive``, used to look up parts'
-    ///   assigned object ids and add files to the archive.
+    ///   assigned object ids, measure the finished geometry, and add files to the archive.
     func withArchiveFinalizer(
-        _ finalizer: @Sendable @escaping (ModelArchive) throws -> Void
+        _ finalizer: @Sendable @escaping (ModelArchive) async throws -> Void
     ) -> D.Geometry {
         let id = UUID()
         return modifyingResult(ArchiveFinalizers.self) { $0.finalizers[id] = finalizer }
