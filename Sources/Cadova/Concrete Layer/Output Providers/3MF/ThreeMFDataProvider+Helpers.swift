@@ -104,22 +104,3 @@ extension ThreeMF.Item {
     }
 }
 
-extension GeometryNode<D3> {
-    func deconstructTransform() -> (Self, Transform3D?) {
-        if case .transform (let node, let transform) = contents {
-            (node, transform)
-        } else {
-            (self, nil)
-        }
-    }
-}
-
-extension Transform3D {
-    var matrix3D: Matrix3D {
-        Matrix3D(values: (0..<4).map { column in
-            (0..<3).map { row in
-                self[row, column]
-            }
-        })
-    }
-}
