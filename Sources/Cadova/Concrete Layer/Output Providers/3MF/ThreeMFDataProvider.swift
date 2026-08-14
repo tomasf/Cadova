@@ -33,8 +33,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         for part: Part,
         modelIndex: Int,
         manifold: Manifold,
-        materials: [Manifold.OriginalID: Material],
-        transform: Transform3D?
+        materials: [Manifold.OriginalID: Material]
     ) async -> (ThreeMF.Model, Item) {
         // BambuStudio does not properly handle objects with the same ID in different model files,
         // so assign unique IDs for each until that bug is fixed
@@ -77,7 +76,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
             content: .mesh(mesh)
         )
 
-        var item = Item(objectID: object.id, transform: transform?.matrix3D, partNumber: part.name)
+        // No item matrix: each part's mesh is written in world coordinates, so what the file says a
+        // part's coordinates are is what they are. Peeling a top-level transform onto the item instead
+        // saved a vertex pass and an occasional cache hit, and cost every reader of the archive the
+        // ability to take the mesh at face value.
+        var item = Item(objectID: object.id, partNumber: part.name)
         item.printable = part.semantic == .solid
         item.semantic = part.semantic
 
@@ -108,14 +111,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let modelsAndItems: [(part: Part, model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
             try await outputs.enumerated().asyncCompactMap { modelIndex, content -> (Part, ThreeMF.Model, ThreeMF.Item, Int)? in
                 let (part, result) = content
-                let (node, transform) = result.node.deconstructTransform()
-                let nodeResult = try await context.result(for: node)
+                let nodeResult = try await context.result(for: result.node)
                 let (model, item) = await makeModel(
                     for: part,
                     modelIndex: modelIndex,
                     manifold: nodeResult.concrete,
-                    materials: nodeResult.materialMapping,
-                    transform: transform
+                    materials: nodeResult.materialMapping
                 )
                 return (part, model, item, nodeResult.concrete.triangleCount)
             }
