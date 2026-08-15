@@ -727,3 +727,59 @@ private final class EnvironmentCapture: @unchecked Sendable {
     var segmentation: Segmentation?
     var tolerance: Double?
 }
+
+/// Minimal box for carrying a value out of a finalizer closure.
+private final class Captured<T>: @unchecked Sendable {
+    var value: T?
+}
+
+struct ArchiveContentsTests {
+    @Test func `a finalizer can read the model file it is about to seal`() async throws {
+        // The read has to reach the model files, not just what a finalizer added itself — that's what
+        // makes it possible to take the generated model apart and put it back together differently.
+        let seen = Captured<String>()
+        _ = try await ModelFileGenerator.build {
+            Box(10)
+                .inPart(Part("A", semantic: .solid))
+                .adding { Box(5).translated(x: 20).inPart(Part("B", semantic: .solid)) }
+                .withArchiveFinalizer { archive in
+                    seen.value = archive.contents(at: "3D/3dmodel.model")
+                        .map { String(decoding: $0, as: UTF8.self) }
+                }
+        }.data()
+
+        let model = try #require(seen.value)
+        #expect(model.contains("<build"))
+        #expect(model.contains("objectid="))
+    }
+
+    @Test func `a model file written back stays written back`() async throws {
+        // Reading a model file stages it, and writing over it has to stick — otherwise the archive
+        // would regenerate the model over the top when it seals and quietly discard the edit. Checked
+        // by reading it again rather than by unpacking, which needs no zip reader here.
+        let marker = "<!--edited-->"
+        let readBack = Captured<Bool>()
+        _ = try await ModelFileGenerator.build {
+            Box(10)
+                .inPart(Part("A", semantic: .solid))
+                .withArchiveFinalizer { archive in
+                    guard let original = archive.contents(at: "3D/3dmodel.model") else { return }
+                    try archive.addFile(at: "3D/3dmodel.model", data: original + Data(marker.utf8))
+                    readBack.value = archive.contents(at: "3D/3dmodel.model")
+                        .map { String(decoding: $0, as: UTF8.self).hasSuffix(marker) }
+                }
+        }.data()
+
+        #expect(readBack.value == true)
+    }
+
+    @Test func `reading a path nothing was written to gives nothing`() async throws {
+        let seen = Captured<Bool>()
+        _ = try await ModelFileGenerator.build {
+            Box(10).withArchiveFinalizer { archive in
+                seen.value = archive.contents(at: "Metadata/nothing-here.config") == nil
+            }
+        }.data()
+        #expect(seen.value == true)
+    }
+}

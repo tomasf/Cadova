@@ -35,6 +35,7 @@ import Foundation
     private let resultElements: ResultElements
     private let addFileHandler: @Sendable (String, String?, String?, Bool, Data) throws -> Void
     private let fileExistsHandler: @Sendable (String) -> Bool
+    private let contentsHandler: @Sendable (String) -> Data?
 
     internal init(
         rootGeometry: any Geometry3D,
@@ -42,7 +43,8 @@ import Foundation
         objectIDsByPart: [Part: Int],
         resultElements: ResultElements,
         addFileHandler: @escaping @Sendable (String, String?, String?, Bool, Data) throws -> Void,
-        fileExistsHandler: @escaping @Sendable (String) -> Bool
+        fileExistsHandler: @escaping @Sendable (String) -> Bool,
+        contentsHandler: @escaping @Sendable (String) -> Data?
     ) {
         self.rootGeometry = rootGeometry
         self.evaluator = evaluator
@@ -50,6 +52,7 @@ import Foundation
         self.resultElements = resultElements
         self.addFileHandler = addFileHandler
         self.fileExistsHandler = fileExistsHandler
+        self.contentsHandler = contentsHandler
     }
 }
 
@@ -83,6 +86,21 @@ import Foundation
     /// finalizer happens to run last would win, rather than all of them contributing consistently.
     func fileExists(at path: String) -> Bool {
         fileExistsHandler(path)
+    }
+
+    /// The current contents of a file in the archive, or `nil` if nothing is there.
+    ///
+    /// This reaches the model files as well as anything added with
+    /// ``addFile(at:contentType:relationshipType:relativeToRootModel:data:)``: `3D/3dmodel.model` and
+    /// each part's own model file are serialized on demand to satisfy the read, and what's read is
+    /// what gets written. Combined with `addFile`, which replaces, that makes it possible to take the
+    /// generated model apart and put it back together differently — restructuring objects into a form
+    /// a particular slicer wants, say.
+    ///
+    /// - Parameter path: The file's path within the archive (e.g. `"3D/3dmodel.model"`).
+    /// - Returns: The file's current contents, or `nil` if no file exists there.
+    func contents(at path: String) -> Data? {
+        contentsHandler(path)
     }
 
     /// Embeds a file into the archive at the given path, replacing any existing content there.

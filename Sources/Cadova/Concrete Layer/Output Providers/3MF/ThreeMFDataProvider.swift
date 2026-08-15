@@ -213,6 +213,15 @@ struct ThreeMFDataProvider: OutputDataProvider {
             addedPaths.insert(path)
         }
 
+        // Reads go straight to the writer, which serializes a model file on demand to satisfy one and
+        // then leaves it staged — so a finalizer that reads the model, changes it and writes it back
+        // gets its version into the archive rather than having it regenerated over the top.
+        let contentsHandler: @Sendable (String) -> Data? = { path in
+            guard let escapedPath = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+                  let url = URL(string: escapedPath) else { return nil }
+            return try? archive.fileContents(at: url)
+        }
+
         for finalizer in finalizers.values {
             // Each finalizer gets its own evaluator: the evaluator stops reading after its first
             // failed read, so sharing one would silently turn every later finalizer's reads into
@@ -224,7 +233,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 objectIDsByPart: objectIDsByPart,
                 resultElements: result.elements,
                 addFileHandler: addFileHandler,
-                fileExistsHandler: { path in addedPaths.contains(path) }
+                fileExistsHandler: { path in addedPaths.contains(path) },
+                contentsHandler: contentsHandler
             )
             try await finalizer(archiveHandle)
             if let error = await evaluator.firstError {
