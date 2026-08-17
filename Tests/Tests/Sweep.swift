@@ -62,6 +62,25 @@ struct SweepTests {
         #expect(m.volume.equals(expectedVolume, within: expectedVolume * 0.01))
     }
 
+    @Test func `overhangSafe shape swept along a horizontal path resolves relief using the first frame's orientation`() async throws {
+        let path = BezierPath3D(linesBetween: [[0, 0, 0], [100, 0, 0]])
+
+        let plainSweep = Circle(diameter: 10)
+            .swept(along: path, pointing: .down, toward: .direction(.down))
+        let bridgeSweep = Circle(diameter: 10)
+            .overhangSafe(.bridge)
+            .swept(along: path, pointing: .down, toward: .direction(.down))
+
+        let plainMeasurements = try await plainSweep.measurements
+        let bridgeMeasurements = try await bridgeSweep.measurements
+
+        // Before preserving the first frame's transform for the swept shape's build environment,
+        // overhangSafe always saw a vertical (identity) up direction here, so it fell back to a plain
+        // circle and this volume matched the unmodified sweep exactly. With the fix, the path's actual
+        // starting orientation is visible, so bridge relief is added and the volume grows.
+        #expect(bridgeMeasurements.volume > plainMeasurements.volume * 1.01)
+    }
+
     @available(*, deprecated)
     @Test func `deprecated no-orientation swept(along:) produces identical geometry to explicit defaults`() async throws {
         let path = BezierPath3D(linesBetween: [[0, 0, 0], [40, 0, 0], [40, 40, 0]])

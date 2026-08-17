@@ -59,27 +59,38 @@ internal struct Sweep<Path: ParametricCurve>: Geometry3D {
     let reference: Direction2D
     let target: ReferenceTarget
 
-    var body: any Geometry3D {
-        @Environment(\.maxTwistRate) var maxTwistRate
-        @Environment(\.scaledSegmentation) var segmentation
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D3> {
+        // The cross-section is a cross-section of a solid, not a free-standing 2D drawing: build it in
+        // the environment of the path's first frame, so orientation-dependent environment values
+        // (notably naturalUpDirection, which drives overhangSafe) reflect how the sweep actually starts
+        // out in space, mirroring how Loft builds each of its sections. The same built shape is still
+        // reused for every step of the sweep; only its build-time orientation context changes.
+        let unprunedFrames = path.curve3D.frames(
+            environment: environment,
+            target: target,
+            targetReference: reference,
+            perpendicularBounds: nil,
+            miteringCorners: true
+        )
+        let shapeEnvironment = unprunedFrames.first.map { environment.applyingTransform($0.rigidTransform) } ?? environment
+        let shapeNode = try await context.buildResult(for: shape, in: shapeEnvironment).node
 
-        CachedNodeTransformer(
-            source: shape, name: "sweep", parameters: path, reference, target, maxTwistRate, segmentation
-        ) { node, environment, context in
-            let crossSection = try await context.result(for: node).concrete
-            let frames = path.curve3D.frames(
-                environment: environment,
-                target: target,
-                targetReference: reference,
-                perpendicularBounds: .init(crossSection.bounds),
-                miteringCorners: true
-            )
+        let cachedConcrete = CachedConcrete<D3, _>(
+            name: "sweep",
+            parameters: shapeNode, path, reference, target,
+            environment.segmentation, environment.scaledSegmentation, environment.maxTwistRate
+        ) {
+            let crossSection = try await context.result(for: shapeNode).concrete
+            var frames = unprunedFrames
+            frames.pruneStraightRuns(bounds: .init(crossSection.bounds), segmentation: environment.segmentation)
             let mesh = Mesh(
                 extruding: crossSection.polygonList(),
                 along: frames.map(\.transform),
                 cacheName: "Sweep"
             )
-            return GeometryNode.shape(.mesh(mesh.meshData))
+            return try await context.result(for: GeometryNode<D3>.shape(.mesh(mesh.meshData))).concrete
         }
+
+        return try await context.buildResult(for: cachedConcrete, in: environment)
     }
 }
