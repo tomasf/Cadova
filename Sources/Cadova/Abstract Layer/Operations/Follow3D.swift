@@ -61,7 +61,7 @@ internal struct FollowPath3D<Path: D3.Curve>: Geometry3D {
 
                 body.refined(maxEdgeLength: bounds.size.z / Double(segmentation.segmentCount(length: pathLength)))
                     .warped(
-                        operationName: "followPath",
+                        operationName: "Cadova.FollowPath",
                         cacheParameters: path, reference, target, segmentation, maxTwistRate
                     ) {
                         let frames = path.frames(

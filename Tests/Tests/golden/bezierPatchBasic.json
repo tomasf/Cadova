@@ -9,7 +9,7 @@
         "cacheKey" : {
           "type" : "6Cadova15LabeledCacheKeyV",
           "value" : {
-            "operationName" : "EncloseBezierPatch",
+            "operationName" : "Cadova.EncloseBezierPatch",
             "parameters" : [
               {
                 "type" : "6Cadova11BezierPatchV",

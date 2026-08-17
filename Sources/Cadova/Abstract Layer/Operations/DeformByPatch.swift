@@ -31,7 +31,7 @@ public extension Geometry3D {
 
             geometry
                 .refined(maxEdgeLength: maxLength / Double(segmentation.segmentCount(length: maxLength)))
-                .warped(operationName: "deformByPatch", cacheParameters: patch) { point in
+                .warped(operationName: "Cadova.DeformByPatch", cacheParameters: patch) { point in
                     let uv = ((point - bounds.minimum) / bounds.size).xy
                     return patch.point(at: uv) + .z(point.z)
                 }

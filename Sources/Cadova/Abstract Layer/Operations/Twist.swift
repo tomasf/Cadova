@@ -82,7 +82,7 @@ fileprivate extension Geometry3D {
 
                 geometry
                     .refined(maxEdgeLength: min(angularStep, arcStep))
-                    .warped(operationName: "twist", cacheParameters: rate, zeroZ) { point in
+                    .warped(operationName: "Cadova.Twist", cacheParameters: rate, zeroZ) { point in
                         let angle = rate * (point.z - zeroZ)
                         let cosA = cos(angle)
                         let sinA = sin(angle)

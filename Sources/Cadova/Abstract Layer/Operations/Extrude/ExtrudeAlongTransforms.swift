@@ -58,7 +58,7 @@ internal extension Mesh<SweepVertex>  {
 
         self.init(
             faces: sideFaces + startFace + endFace,
-            name: "ExtrudeAlongTransforms:" + cacheName,
+            name: "Cadova.ExtrudeAlongTransforms:" + cacheName,
             cacheParameters: cacheParameters
         ) { vertex in
             let point = polygons[vertex.polygonIndex][vertex.pointIndex]
@@ -93,7 +93,7 @@ public extension Geometry2D {
                 return Mesh(
                     extruding: polygons,
                     along: expandedPath,
-                    cacheName: "ExtrudeAlongTransforms",
+                    cacheName: "Cadova.ExtrudeAlongTransforms",
                     cacheParameters: path, steps, polygons
                 )
             }

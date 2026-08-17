@@ -30,7 +30,7 @@ public extension Geometry3D {
 
             geometry
                 .refined(maxEdgeLength: segmentLength)
-                .warped(operationName: "wrapAroundCylinder", cacheParameters: innerCircumference, innerRadius) {
+                .warped(operationName: "Cadova.WrapAroundCylinder", cacheParameters: innerCircumference, innerRadius) {
                     let angle = 360° * $0.x / innerCircumference
                     let radius = innerRadius + $0.z
                     return Vector3D(cos(angle) * radius, sin(angle) * radius, $0.y)
@@ -73,7 +73,7 @@ public extension Geometry2D {
 
             geometry
                 .refined(maxEdgeLength: segmentLength)
-                .warped(operationName: "wrapAroundCircle", cacheParameters: radius) {
+                .warped(operationName: "Cadova.WrapAroundCircle", cacheParameters: radius) {
                     let angle = -360° * $0.x / innerCircumference
                     let radius = innerRadius + $0.y
                     return Vector2D(cos(angle) * radius, sin(angle) * radius)
@@ -171,7 +171,7 @@ public extension Geometry3D {
 
             geometry
                 .refined(maxEdgeLength: sphereSegmentLength)
-                .warped(operationName: "wrapAroundSphere", cacheParameters: baseRadius) { point in
+                .warped(operationName: "Cadova.WrapAroundSphere", cacheParameters: baseRadius) { point in
                     let longitude = 360° * point.x * circumferenceScale / circumference
                     let latitude = 90° * point.y / yExtent
                     let radius = baseRadius + point.z

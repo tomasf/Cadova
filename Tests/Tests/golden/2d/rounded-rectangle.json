@@ -30,7 +30,7 @@
                             "cacheKey" : {
                               "type" : "6Cadova15LabeledCacheKeyV",
                               "value" : {
-                                "operationName" : "polygon",
+                                "operationName" : "Cadova.Polygon",
                                 "parameters" : [
                                   {
                                     "type" : "6Cadova13PolygonPointsO",
@@ -443,7 +443,7 @@
                         "cacheKey" : {
                           "type" : "6Cadova15LabeledCacheKeyV",
                           "value" : {
-                            "operationName" : "polygon",
+                            "operationName" : "Cadova.Polygon",
                             "parameters" : [
                               {
                                 "type" : "6Cadova13PolygonPointsO",
@@ -736,7 +736,7 @@
                     "cacheKey" : {
                       "type" : "6Cadova15LabeledCacheKeyV",
                       "value" : {
-                        "operationName" : "polygon",
+                        "operationName" : "Cadova.Polygon",
                         "parameters" : [
                           {
                             "type" : "6Cadova13PolygonPointsO",

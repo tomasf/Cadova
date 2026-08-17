@@ -76,7 +76,7 @@ internal struct Sweep<Path: ParametricCurve>: Geometry3D {
         let shapeNode = try await context.buildResult(for: shape, in: shapeEnvironment).node
 
         let cachedConcrete = CachedConcrete<D3, _>(
-            name: "sweep",
+            name: "Cadova.Sweep",
             parameters: shapeNode, path, reference, target,
             environment.segmentation, environment.scaledSegmentation, environment.maxTwistRate
         ) {
@@ -86,7 +86,7 @@ internal struct Sweep<Path: ParametricCurve>: Geometry3D {
             let mesh = Mesh(
                 extruding: crossSection.polygonList(),
                 along: frames.map(\.transform),
-                cacheName: "Sweep"
+                cacheName: "Cadova.Sweep"
             )
             return try await context.result(for: GeometryNode<D3>.shape(.mesh(mesh.meshData))).concrete
         }

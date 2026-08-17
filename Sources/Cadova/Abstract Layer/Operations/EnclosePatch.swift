@@ -108,7 +108,7 @@ internal extension BezierPatch {
             allFaces = surfaceFaces + rowSideFaces + columnSideFaces + bottomFaces
         }
 
-        return Mesh(faces: allFaces, name: "EncloseBezierPatch", cacheParameters: self, mode, segmentation) { vertex in
+        return Mesh(faces: allFaces, name: "Cadova.EncloseBezierPatch", cacheParameters: self, mode, segmentation) { vertex in
             return switch vertex.kind {
             case .surface (let offset): points[vertex.row][vertex.column] + offset
             case .plane (let plane): plane.project(point: points[vertex.row][vertex.column])

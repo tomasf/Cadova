@@ -233,7 +233,7 @@ internal extension EdgeProfile {
         }
 
         let points = vertices
-        return Mesh(faces: faces, name: "EdgeProfileOffsetSkin", cacheParameters: [points, faces]) {
+        return Mesh(faces: faces, name: "Cadova.EdgeProfileOffsetSkin", cacheParameters: [points, faces]) {
             points[$0]
         }
     }

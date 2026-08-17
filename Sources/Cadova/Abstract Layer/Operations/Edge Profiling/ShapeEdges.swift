@@ -44,7 +44,7 @@ public extension Geometry3D {
         readEnvironment(\.scaledSegmentation) { segmentation in
             CachedNodeTransformer<D3, D3>(
                 source: self,
-                name: "Cadova.ShapeEdges.explicit",
+                name: "Cadova.ShapeEdges.Explicit",
                 parameters: edges, shape, segmentation
             ) { bodyNode, environment, context in
                 try await shapedEdgesNode(
