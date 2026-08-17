@@ -1,17 +1,6 @@
 import Foundation
 
 internal struct Logger: Sendable {
-    enum Level: Int, Comparable, Sendable {
-        case debug = 0
-        case info = 1
-        case warning = 2
-        case error = 3
-
-        static func < (lhs: Level, rhs: Level) -> Bool {
-            lhs.rawValue < rhs.rawValue
-        }
-    }
-
     struct Message: ExpressibleByStringInterpolation, ExpressibleByStringLiteral {
         let value: String
 
@@ -23,19 +12,6 @@ internal struct Logger: Sendable {
             self.value = String(stringInterpolation: stringInterpolation)
         }
     }
-
-    static let minimumLevel: Level = {
-        if let envLevel = ProcessInfo.processInfo.environment["CADOVA_LOG_LEVEL"]?.lowercased() {
-            switch envLevel {
-            case "debug": return .debug
-            case "info": return .info
-            case "warning": return .warning
-            case "error": return .error
-            default: return .info
-            }
-        }
-        return .info
-    }()
 
     func debug(_ message: @autoclosure () -> Message) {
         log(.debug, message())
@@ -53,8 +29,8 @@ internal struct Logger: Sendable {
         log(.error, message())
     }
 
-    private func log(_ level: Level, _ message: Message) {
-        guard level >= Self.minimumLevel else { return }
+    private func log(_ level: Settings.LogLevel, _ message: Message) {
+        guard level >= Settings.logLevel else { return }
         let timestamp = Date.now.formatted(.iso8601.year().month().day().time(includingFractionalSeconds: true))
         let prefix: String
         switch level {

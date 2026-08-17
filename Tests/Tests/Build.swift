@@ -4,7 +4,7 @@ import Testing
 
 struct BuildTests {
     init() {
-        Platform.revealingFilesDisabled = true
+        Settings.isFileRevealingEnabled = false
     }
 
     // MARK: - Model Tests

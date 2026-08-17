@@ -4,7 +4,7 @@ import Testing
 
 struct ProjectCommandLineFilterTests {
     init() {
-        Platform.revealingFilesDisabled = true
+        Settings.isFileRevealingEnabled = false
     }
 
     @Test func `Project applies model filter from --model command line argument`() async throws {
