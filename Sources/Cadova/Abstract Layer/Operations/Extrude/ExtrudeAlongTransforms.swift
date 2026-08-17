@@ -84,16 +84,18 @@ public extension Geometry2D {
             (1...steps).map { .linearInterpolation(t1, t2, factor: 1.0 / Double(steps) * Double($0)) }
         }
 
-        return readEnvironment { environment in
-            readingConcrete { crossSection in
+        // Build the cross-section under the environment of the path's first transform, so
+        // orientation-dependent environment values (notably naturalUpDirection, which drives
+        // overhangSafe) reflect where the shape actually ends up, mirroring Sweep and Loft.
+        return withEnvironment { $0.applyingTransform(path[0]) }
+            .readingConcrete { crossSection in
                 let polygons = crossSection.polygonList()
                 return Mesh(
-                    extruding: crossSection.polygonList(),
+                    extruding: polygons,
                     along: expandedPath,
                     cacheName: "ExtrudeAlongTransforms",
                     cacheParameters: path, steps, polygons
                 )
             }
-        }
     }
 }
