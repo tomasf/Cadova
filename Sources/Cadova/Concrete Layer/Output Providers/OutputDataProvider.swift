@@ -1,6 +1,6 @@
 import Foundation
 
-protocol OutputDataProvider {
+protocol OutputDataProvider: Sendable {
     func generateOutput(context: EvaluationContext) async throws -> Data
     func writeOutput(to url: URL, context: EvaluationContext) async throws
 
