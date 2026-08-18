@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import ThreeMF
 @testable import Cadova
 
 struct ImportTests {
@@ -46,6 +47,36 @@ struct ImportTests {
 
         #expect(importedMeasurements.volume ≈ originalMeasurements.volume)
         #expect(importedMeasurements.surfaceArea ≈ originalMeasurements.surfaceArea)
+    }
+
+    @Test func `3MF export embeds a LiveLink token as metadata`() async throws {
+        let geometry: any Geometry3D = Box(x: 10, y: 20, z: 30)
+
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cadova-test-\(UUID().uuidString).3mf")
+        defer { try? FileManager.default.removeItem(at: tempURL) }
+
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
+        let provider = ThreeMFDataProvider(result: result, options: [])
+        try await provider.writeOutput(to: tempURL, context: context)
+
+        let reader = try ThreeMF.PackageReader(url: tempURL)
+        let model = try reader.model()
+        let tokenMetadata = model.metadata.first { $0.name == .custom(ThreeMFDataProvider.liveLinkTokenMetadataName) }
+
+        #expect(tokenMetadata?.value == provider.liveLinkToken.uuidString)
+    }
+
+    @Test func `pushToLiveLink completes without a listener present`() async throws {
+        let geometry: any Geometry3D = Box(x: 10, y: 20, z: 30)
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
+        let provider = ThreeMFDataProvider(result: result, options: [])
+
+        // No LiveLink listener is running in the test environment, so this should return quickly
+        // without throwing, exercising the same best-effort path Model.build() relies on.
+        await provider.pushToLiveLink(destination: URL(filePath: "/tmp/nonexistent.3mf"), context: context)
     }
 
     @Test func `STL export and import preserves geometry`() async throws {

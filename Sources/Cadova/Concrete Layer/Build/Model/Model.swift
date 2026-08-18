@@ -149,6 +149,8 @@ public struct Model: Sendable, ModelBuildable {
         let url = baseURL.appendingPathExtension(provider.fileExtension)
         let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
 
+        await provider.pushToLiveLink(destination: url, context: context)
+
         do {
             try await provider.writeOutput(to: url, context: context)
             logger.info("Wrote model to \(url.path)")

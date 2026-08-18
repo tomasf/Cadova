@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "Cadova", targets: ["Cadova"]),
+        .library(name: "CadovaLiveLink", targets: ["CadovaLiveLink"]),
     ],
     dependencies: [
         .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "1.1.1")),
@@ -21,13 +22,17 @@ let package = Package(
                 .product(name: "Apus", package: "Apus"),
                 .product(name: "Manifold", package: "manifold-swift"),
                 .product(name: "ThreeMF", package: "ThreeMF"),
-                .product(name: "Pelagos", package: "Pelagos")
+                .product(name: "Pelagos", package: "Pelagos"),
+                "CadovaLiveLink"
             ],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         ),
+        .target(
+            name: "CadovaLiveLink"
+        ),
         .testTarget(
             name: "Tests",
-            dependencies: ["Cadova"],
+            dependencies: ["Cadova", "CadovaLiveLink", .product(name: "ThreeMF", package: "ThreeMF")],
             resources: [.copy("golden"), .copy("resources")],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         )

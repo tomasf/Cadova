@@ -3,6 +3,7 @@ import Manifold3D
 internal import ThreeMF
 internal import Zip
 internal import Nodal
+import CadovaLiveLink
 
 extension MeshGL: @retroactive @unchecked Sendable {}
 
@@ -10,12 +11,61 @@ struct ThreeMFDataProvider: OutputDataProvider {
     let result: BuildResult<D3>
     let options: ModelOptions
 
+    /// Generated once per provider instance, i.e. once per `Model.build()` call, and used both
+    /// for the LiveLink push and for the identically-valued `cadova:livelinktoken` 3MF metadata
+    /// entry written moments later, so a LiveLink consumer can recognize the two as the same save.
+    let liveLinkToken = UUID()
+
     init(result: BuildResult<D3>, options: ModelOptions) {
         self.result = result
         self.options = options
     }
 
     let fileExtension = "3mf"
+
+    /// A single resolved part: its evaluated geometry and materials, before conversion to any
+    /// particular output shape (3MF resources or a LiveLink message).
+    struct ResolvedPart {
+        let part: Part
+        let manifold: Manifold
+        let materials: [Manifold.OriginalID: Material]
+    }
+
+    /// Evaluates every included part's geometry, deduplicated against `EvaluationContext`'s
+    /// cache. Shared by both `write(to:context:)` (the 3MF path) and `pushToLiveLink` — calling
+    /// this twice per `Model.build()` (once for each) re-evaluates the same nodes, which is a
+    /// cache hit rather than recomputation.
+    func resolvedParts(context: EvaluationContext) async throws -> [ResolvedPart] {
+        var outputs = result.elements[PartCatalog.self].mergedOutputs
+        let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
+
+        let name = options[ModelName.self].name ?? "Model"
+        let mainPart = Part(name, semantic: .solid)
+        outputs[mainPart] = result
+
+        outputs = outputs.filter { acceptedSemantics.contains($0.key.semantic) && $0.value.node.isEmpty == false }
+
+        return try await outputs.asyncCompactMap { part, result -> ResolvedPart? in
+            let nodeResult = try await context.result(for: result.node)
+            return ResolvedPart(part: part, manifold: nodeResult.concrete, materials: nodeResult.materialMapping)
+        }
+    }
+
+    func pushToLiveLink(destination url: URL, context: EvaluationContext) async {
+        guard !LiveLinkSettings.isDisabled else { return }
+        do {
+            let parts = try await resolvedParts(context: context)
+            guard !parts.isEmpty else { return }
+            let message = LiveLinkMessage(
+                token: liveLinkToken,
+                path: url.path(percentEncoded: false),
+                parts: parts.map(Self.liveLinkPart)
+            )
+            try await LiveLinkClient.push(message)
+        } catch {
+            logger.debug("LiveLink push skipped for \(url.path): \(error)")
+        }
+    }
 
     fileprivate enum ResourceIDOffset: ResourceID, CaseIterable {
         case object = 1
@@ -26,12 +76,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
         static var count: Int { allCases.last!.rawValue }
     }
 
-    private func makeModel(
-        for part: Part,
-        modelIndex: Int,
-        manifold: Manifold,
-        materials: [Manifold.OriginalID: Material]
-    ) async -> (ThreeMF.Model, Item) {
+    private func makeModel(for resolved: ResolvedPart, modelIndex: Int) async -> (ThreeMF.Model, Item) {
+        let part = resolved.part
+        let manifold = resolved.manifold
+        let materials = resolved.materials
+
         // BambuStudio does not properly handle objects with the same ID in different model files,
         // so assign unique IDs for each until that bug is fixed
         let startID = modelIndex * ResourceIDOffset.count
@@ -96,26 +145,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
     }
 
     private func write<T>(to archive: PackageWriter<T>, context: EvaluationContext) async throws {
-        var outputs = result.elements[PartCatalog.self].mergedOutputs
-        let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
-
-        let name = options[ModelName.self].name ?? "Model"
-        let mainPart = Part(name, semantic: .solid)
-
-        outputs[mainPart] = result
-        outputs = outputs.filter { acceptedSemantics.contains($0.key.semantic) && $0.value.node.isEmpty == false }
-
         let modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
-            try await outputs.enumerated().asyncCompactMap { modelIndex, content -> (ThreeMF.Model, ThreeMF.Item, Int)? in
-                let (part, result) = content
-                let nodeResult = try await context.result(for: result.node)
-                let (model, item) = await makeModel(
-                    for: part,
-                    modelIndex: modelIndex,
-                    manifold: nodeResult.concrete,
-                    materials: nodeResult.materialMapping
-                )
-                return (model, item, nodeResult.concrete.triangleCount)
+            let resolved = try await resolvedParts(context: context)
+            return await resolved.enumerated().asyncMap { modelIndex, resolvedPart -> (ThreeMF.Model, ThreeMF.Item, Int) in
+                let (model, item) = await makeModel(for: resolvedPart, modelIndex: modelIndex)
+                return (model, item, resolvedPart.manifold.triangleCount)
             }
         } results: { duration, results in
             let triangleCount = results.map { $0.2 }.reduce(0, +)
@@ -123,6 +157,9 @@ struct ThreeMFDataProvider: OutputDataProvider {
         }
 
         var uniqueIDs: Set<String> = []
+        let metadata = options[Metadata.self].threeMFMetadata + [
+            ThreeMF.Metadata(name: .custom(Self.liveLinkTokenMetadataName), value: liveLinkToken.uuidString)
+        ]
 
         if modelsAndItems.count > 1 {
             let items = try modelsAndItems.enumerated().map(unpacked).map { index, model, item, _ in
@@ -147,7 +184,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 requiredExtensions: [.production],
                 recommendedExtensions: [.materials],
                 customNamespaces: ["c": CadovaNamespace.uri],
-                metadata: options[Metadata.self].threeMFMetadata,
+                metadata: metadata,
                 buildItems: items
             )
         } else if modelsAndItems.count == 1 {
@@ -158,15 +195,17 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 unit: .millimeter,
                 recommendedExtensions: [.materials],
                 customNamespaces: ["c": CadovaNamespace.uri],
-                metadata: options[Metadata.self].threeMFMetadata,
+                metadata: metadata,
                 resources: model.resources.resources,
                 buildItems: [item]
             )
         } else {
             logger.warning("Model contains no objects. Exporting an empty 3MF file.")
-            archive.model = ThreeMF.Model(metadata: options[Metadata.self].threeMFMetadata)
+            archive.model = ThreeMF.Model(metadata: metadata)
         }
     }
+
+    static let liveLinkTokenMetadataName = "cadova:livelinktoken"
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
         let archive = PackageWriter()
