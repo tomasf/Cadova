@@ -24,7 +24,6 @@ struct EnvironmentDirectiveRerunTests {
     private let tempDir: URL
 
     init() throws {
-        Platform.revealingFilesDisabled = true
         tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
     }

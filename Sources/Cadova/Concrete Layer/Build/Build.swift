@@ -54,5 +54,5 @@ internal protocol ModelBuildable: Sendable {
         options inheritedOptions: ModelOptions?,
         URL directory: URL?,
         filterPath: [String]
-    ) async -> [URL]
+    ) async
 }

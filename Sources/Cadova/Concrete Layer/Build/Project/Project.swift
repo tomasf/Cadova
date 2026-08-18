@@ -98,11 +98,9 @@ public func Project(
     let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: []) }
     let buildables: [any ModelBuildable] = groups + filteredModels
     let finalOptions = combinedOptions
-    let urls = await buildables.asyncMap {
+    _ = await buildables.asyncMap {
         await $0.build(environment: constantEnvironment, context: context, options: finalOptions, URL: url, filterPath: [])
-    }.joined()
-
-    try? Platform.revealFiles(Array(urls))
+    }
 }
 
 public func Project(

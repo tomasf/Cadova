@@ -3,10 +3,6 @@ import Testing
 @testable import Cadova
 
 struct ProjectCommandLineFilterTests {
-    init() {
-        Platform.revealingFilesDisabled = true
-    }
-
     @Test func `Project applies model filter from --model command line argument`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)

@@ -85,7 +85,7 @@ public struct Group: Sendable, ModelBuildable {
         options inheritedOptions: ModelOptions?,
         URL directory: URL?,
         filterPath: [String]
-    ) async -> [URL] {
+    ) async {
         let directives = await ModelContext(isCollectingModels: true).whileCurrent {
             await inheritedEnvironment.whileCurrent {
                 await self.directives()
@@ -117,10 +117,8 @@ public struct Group: Sendable, ModelBuildable {
         let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: currentFilterPath) }
         let buildables: [any ModelBuildable] = groups + filteredModels
 
-        let urls = await buildables.asyncMap {
+        _ = await buildables.asyncMap {
             await $0.build(environment: environment, context: context, options: options, URL: outputDirectory, filterPath: currentFilterPath)
-        }.joined()
-
-        return Array(urls)
+        }
     }
 }

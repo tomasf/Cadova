@@ -34,8 +34,7 @@ public struct Model: Sendable, ModelBuildable {
     /// When used standalone (not nested inside a `Project`), the model is written to
     /// `Models/<name>.3mf` relative to the Swift package root, derived from the caller's source
     /// file location, unless `name` is itself a relative or full path, in which case it's
-    /// resolved against that same package-relative `Models` directory or used as-is. The file is
-    /// revealed in Finder or Explorer if it did not previously exist.
+    /// resolved against that same package-relative `Models` directory or used as-is.
     ///
     /// In addition to geometry, the model’s result builder also accepts:
     /// - `Metadata(...)`: Attaches metadata (e.g. title, author, license) that is merged into the model’s options.
@@ -99,9 +98,7 @@ public struct Model: Sendable, ModelBuildable {
             let directory = packageRoot.appending(path: "Models", directoryHint: .isDirectory)
             try? FileManager().createDirectory(at: directory, withIntermediateDirectories: true)
 
-            if let url = await build(URL: directory).first {
-                try? Platform.revealFiles([url])
-            }
+            await build(URL: directory)
         }
     }
 
@@ -111,7 +108,7 @@ public struct Model: Sendable, ModelBuildable {
         options inheritedOptions: ModelOptions? = nil,
         URL directory: URL? = nil,
         filterPath: [String] = []
-    ) async -> [URL] {
+    ) async {
         logger.info("Generating \"\(name)\"...")
 
         var directives = inheritedEnvironment.whileCurrent {
@@ -153,15 +150,14 @@ public struct Model: Sendable, ModelBuildable {
 
         } catch BuildError.noGeometry {
             logger.error("No geometry for model \"\(name)\"")
-            return []
+            return
 
         } catch {
             logger.error("Cadova caught an error while evaluating model \"\(name)\":\n\(error)\n")
-            return []
+            return
         }
 
         let url = baseURL.appendingPathExtension(provider.fileExtension)
-        let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
 
         // Shared by every path below — never called more than once per build.
         func write() async {
@@ -186,15 +182,13 @@ public struct Model: Sendable, ModelBuildable {
 
             _ = await pushTask.value
             await writeTask.value
-            return fileExisted ? [] : [url]
+            return
         }
 
         // No listener expected — plain async-let avoids the Task-split overhead above.
         async let liveLinkPush: Bool = provider.pushToLiveLink(destination: url, context: context)
         await write()
         _ = await liveLinkPush
-
-        return fileExisted ? [] : [url]
     }
 }
 

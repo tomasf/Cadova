@@ -3,10 +3,6 @@ import Testing
 @testable import Cadova
 
 struct OnlyTests {
-    init() {
-        Platform.revealingFilesDisabled = true
-    }
-
     @Test func `only isolates geometry in local coordinates`() async throws {
         // The cylinder is translated, then only() is applied, then rotated
         // The rotation should be discarded, but the translation kept

@@ -11,10 +11,6 @@ private struct TagAccumulator: ResultElement {
 }
 
 struct BuildTests {
-    init() {
-        Platform.revealingFilesDisabled = true
-    }
-
     // MARK: - Model Tests
 
     @Test func `Model creates file with correct extension for 3D geometry`() async throws {
