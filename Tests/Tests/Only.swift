@@ -4,7 +4,7 @@ import Testing
 
 struct OnlyTests {
     init() {
-        Settings.isFileRevealingEnabled = false
+        Platform.revealingFilesDisabled = true
     }
 
     @Test func `only isolates geometry in local coordinates`() async throws {
