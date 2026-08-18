@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import ThreeMF
+import CadovaLiveLink
 @testable import Cadova
 
 struct ImportTests {
@@ -63,7 +64,7 @@ struct ImportTests {
 
         let reader = try ThreeMF.PackageReader(url: tempURL)
         let model = try reader.model()
-        let tokenMetadata = model.metadata.first { $0.name == .custom(ThreeMFDataProvider.liveLinkTokenMetadataName) }
+        let tokenMetadata = model.metadata.first { $0.name == .custom(LiveLinkMessage.tokenMetadataName) }
 
         #expect(tokenMetadata?.value == provider.liveLinkToken.uuidString)
     }

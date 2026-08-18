@@ -95,3 +95,12 @@ public struct LiveLinkMessage: Sendable, Codable {
         }
     }
 }
+
+public extension LiveLinkMessage {
+    /// The 3MF `<metadata name="...">` name a sender embeds its `token` under when it writes the
+    /// file a push corresponds to, so a receiver that already applied that push can recognize the
+    /// file's on-disk write once it lands and skip a redundant reload. The single source of truth
+    /// for this string, since a sender (writing it into 3MF metadata) and a receiver (reading it
+    /// back out) both need to agree on it independently.
+    static let tokenMetadataName = "cadova:livelinktoken"
+}

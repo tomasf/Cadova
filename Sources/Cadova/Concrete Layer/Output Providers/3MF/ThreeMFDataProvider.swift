@@ -158,7 +158,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         var uniqueIDs: Set<String> = []
         let metadata = options[Metadata.self].threeMFMetadata + [
-            ThreeMF.Metadata(name: .custom(Self.liveLinkTokenMetadataName), value: liveLinkToken.uuidString)
+            ThreeMF.Metadata(name: .custom(LiveLinkMessage.tokenMetadataName), value: liveLinkToken.uuidString)
         ]
 
         if modelsAndItems.count > 1 {
@@ -204,8 +204,6 @@ struct ThreeMFDataProvider: OutputDataProvider {
             archive.model = ThreeMF.Model(metadata: metadata)
         }
     }
-
-    static let liveLinkTokenMetadataName = "cadova:livelinktoken"
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
         let archive = PackageWriter()
