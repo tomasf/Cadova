@@ -1,4 +1,5 @@
 import Foundation
+import CadovaLiveLinkCore
 
 /// Pushes a `LiveLinkMessage` to whatever is listening at the well-known LiveLink socket
 /// (e.g. Cadova Viewer's `LiveLinkServer`), if anything is. Best-effort and macOS-only:

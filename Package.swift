@@ -6,7 +6,9 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "Cadova", targets: ["Cadova"]),
-        .library(name: "CadovaLiveLink", targets: ["CadovaLiveLink"]),
+        .library(name: "CadovaLiveLinkCore", targets: ["CadovaLiveLinkCore"]),
+        .library(name: "CadovaLiveLinkClient", targets: ["CadovaLiveLinkClient"]),
+        .library(name: "CadovaLiveLinkServer", targets: ["CadovaLiveLinkServer"]),
     ],
     dependencies: [
         .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "1.1.1")),
@@ -23,16 +25,25 @@ let package = Package(
                 .product(name: "Manifold", package: "manifold-swift"),
                 .product(name: "ThreeMF", package: "ThreeMF"),
                 .product(name: "Pelagos", package: "Pelagos"),
-                "CadovaLiveLink"
+                "CadovaLiveLinkClient"
             ],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         ),
+        .target(name: "CadovaLiveLinkCore"),
         .target(
-            name: "CadovaLiveLink"
+            name: "CadovaLiveLinkClient",
+            dependencies: ["CadovaLiveLinkCore"]
+        ),
+        .target(
+            name: "CadovaLiveLinkServer",
+            dependencies: ["CadovaLiveLinkCore"]
         ),
         .testTarget(
             name: "Tests",
-            dependencies: ["Cadova", "CadovaLiveLink", .product(name: "ThreeMF", package: "ThreeMF")],
+            dependencies: [
+                "Cadova", "CadovaLiveLinkCore", "CadovaLiveLinkClient",
+                .product(name: "ThreeMF", package: "ThreeMF")
+            ],
             resources: [.copy("golden"), .copy("resources")],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         )

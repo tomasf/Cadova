@@ -1,4 +1,5 @@
 import Foundation
+import CadovaLiveLinkCore
 
 #if os(macOS)
 import Darwin
@@ -12,7 +13,6 @@ import Darwin
 extension LiveLinkClient {
     struct ConnectFailed: Error { let errno: Int32 }
     struct WriteFailed: Error { let errno: Int32 }
-    struct PathTooLong: Error {}
 
     /// Bounds a write that never completes (e.g. a listener that accepted but isn't reading),
     /// enforced by the kernel via `SO_SNDTIMEO` rather than a client-side race, since there's no
@@ -44,7 +44,7 @@ extension LiveLinkClient {
         let path = LiveLinkEndpoint.socketPath
         var addr = sockaddr_un()
         addr.sun_family = sa_family_t(AF_UNIX)
-        try Self.setPath(path, on: &addr)
+        try LiveLinkSocketAddress.setPath(path, on: &addr)
 
         let connectResult = withUnsafePointer(to: &addr) { ptr in
             ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
@@ -68,21 +68,6 @@ extension LiveLinkClient {
         }
     }
 
-    /// Copies `path`'s UTF-8 bytes into `sun_path`, which is a fixed-size C array bridged into
-    /// Swift as a tuple — `withUnsafeMutableBytes(of:)` is the standard way to write into one.
-    static func setPath(_ path: String, on addr: inout sockaddr_un) throws {
-        let pathBytes = Array(path.utf8)
-        let capacity = MemoryLayout.size(ofValue: addr.sun_path)
-        guard pathBytes.count < capacity else { throw PathTooLong() }
-
-        withUnsafeMutableBytes(of: &addr.sun_path) { raw in
-            let buffer = raw.bindMemory(to: UInt8.self)
-            for (index, byte) in pathBytes.enumerated() {
-                buffer[index] = byte
-            }
-            buffer[pathBytes.count] = 0
-        }
-    }
 }
 
 #else

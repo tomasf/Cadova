@@ -1,4 +1,5 @@
 import Foundation
+import CadovaLiveLinkCore
 
 #if os(macOS)
 import Darwin
@@ -50,7 +51,7 @@ public final class LiveLinkServer: @unchecked Sendable {
         var addr = sockaddr_un()
         addr.sun_family = sa_family_t(AF_UNIX)
         do {
-            try LiveLinkClient.setPath(path, on: &addr)
+            try LiveLinkSocketAddress.setPath(path, on: &addr)
         } catch {
             close(fd)
             throw error
