@@ -1,105 +1,87 @@
 import Foundation
 
 #if os(macOS)
-import Network
+import Darwin
 
+/// Raw POSIX socket transport, deliberately not `Network.framework`: `NWConnection` has no
+/// protocol-options class for a plain local stream, so it uses `NWProtocolTCP.Options()` even over
+/// a Unix domain socket. At some point in a connection's lifecycle it queries TCP-specific stats via
+/// `getsockopt(TCP_INFO)` for its own internal telemetry, which fails on a socket that was never
+/// really TCP and logs that failure — loudly, and to the exact console Cadova users are watching
+/// while their model builds. A raw socket never goes near that code path.
 extension LiveLinkClient {
-    struct TimedOut: Error {}
+    struct ConnectFailed: Error { let errno: Int32 }
+    struct WriteFailed: Error { let errno: Int32 }
+    struct PathTooLong: Error {}
 
-    /// How long to wait for the whole push to go through before giving up. Generous relative to
-    /// how fast a local socket transfer "should" be, because it also has to cover a real payload
-    /// (megabytes of mesh data) being sent in chunks, not just connection setup.
-    private static let timeout: Duration = .seconds(3)
+    /// Bounds a write that never completes (e.g. a listener that accepted but isn't reading),
+    /// enforced by the kernel via `SO_SNDTIMEO` rather than a client-side race, since there's no
+    /// way to safely interrupt a blocking POSIX `write()` from another thread.
+    private static let sendTimeout: TimeInterval = 3
 
     static func send(_ message: LiveLinkMessage) async throws {
         let frame = try LiveLinkFraming.makeFrame(for: message)
-        let queue = DispatchQueue(label: "se.tomasf.CadovaLiveLink.client")
-        let parameters = NWParameters(tls: nil, tcp: NWProtocolTCP.Options())
-        let connection = NWConnection(to: .unix(path: LiveLinkEndpoint.socketPath), using: parameters)
-        defer { connection.cancel() }
-
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            group.addTask {
-                try await sendFrame(frame, over: connection, queue: queue)
-            }
-            group.addTask {
-                try await Task.sleep(for: timeout)
-                // A throwing task group can't return until every child has actually finished —
-                // merely marking `sendFrame`'s task cancelled doesn't do that, since it's blocked on
-                // an NWConnection state callback, not a cancellation-aware suspension point. Without
-                // this, a connection that never reaches .ready deadlocks here forever instead of
-                // timing out, which — since Model.build() awaits this directly — silently hangs
-                // every build until the process happens to exit.
-                connection.cancel()
-                throw TimedOut()
-            }
-            try await group.next()
-            group.cancelAll()
-        }
-    }
-
-    /// Resumes a `CheckedContinuation` exactly once, ignoring any further calls. `NWConnection`
-    /// can report readiness, failure, and cancellation on the same queue in ways that would
-    /// otherwise risk resuming the continuation twice (a runtime crash).
-    private final class SingleResumeBox: @unchecked Sendable {
-        private let lock = NSLock()
-        private var didResume = false
-        private let continuation: CheckedContinuation<Void, Error>
-
-        init(_ continuation: CheckedContinuation<Void, Error>) {
-            self.continuation = continuation
-        }
-
-        func resume(_ result: Result<Void, Error>) {
-            lock.lock()
-            let alreadyResumed = didResume
-            didResume = true
-            lock.unlock()
-            guard !alreadyResumed else { return }
-            continuation.resume(with: result)
-        }
-    }
-
-    /// A single `connection.send(content:)` call carrying the whole multi-megabyte frame in one
-    /// `Data` blob is unreliable in practice — it can sit forever without its completion handler
-    /// ever firing, with nothing ever reaching the peer. Sending in bounded chunks (mirroring the
-    /// chunked reads on the receiving side) avoids that.
-    private static let chunkSize = 1 << 18 // 256 KB
-
-    private static func sendFrame(_ frame: Data, over connection: NWConnection, queue: DispatchQueue) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            let box = SingleResumeBox(continuation)
-
-            connection.stateUpdateHandler = { state in
-                switch state {
-                case .ready:
-                    sendChunk(frame, from: frame.startIndex, over: connection, box: box)
-                case .failed(let error):
-                    box.resume(.failure(error))
-                case .cancelled:
-                    box.resume(.failure(CancellationError()))
-                default:
-                    break
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    try writeBlocking(frame)
+                    continuation.resume()
+                } catch {
+                    continuation.resume(throwing: error)
                 }
             }
-            connection.start(queue: queue)
         }
     }
 
-    private static func sendChunk(_ frame: Data, from offset: Data.Index, over connection: NWConnection, box: SingleResumeBox) {
-        guard offset < frame.endIndex else {
-            box.resume(.success(()))
-            return
-        }
-        let end = frame.index(offset, offsetBy: chunkSize, limitedBy: frame.endIndex) ?? frame.endIndex
-        let chunk = frame.subdata(in: offset..<end)
-        connection.send(content: chunk, completion: .contentProcessed { error in
-            if let error {
-                box.resume(.failure(error))
-            } else {
-                sendChunk(frame, from: end, over: connection, box: box)
+    private static func writeBlocking(_ frame: Data) throws {
+        let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+        guard fd >= 0 else { throw ConnectFailed(errno: errno) }
+        defer { close(fd) }
+
+        var sendTimeoutValue = timeval(tv_sec: Int(sendTimeout), tv_usec: 0)
+        setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &sendTimeoutValue, socklen_t(MemoryLayout<timeval>.size))
+
+        let path = LiveLinkEndpoint.socketPath
+        var addr = sockaddr_un()
+        addr.sun_family = sa_family_t(AF_UNIX)
+        try Self.setPath(path, on: &addr)
+
+        let connectResult = withUnsafePointer(to: &addr) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                connect(fd, sockaddrPtr, socklen_t(MemoryLayout<sockaddr_un>.size))
             }
-        })
+        }
+        guard connectResult == 0 else { throw ConnectFailed(errno: errno) }
+
+        try frame.withUnsafeBytes { (raw: UnsafeRawBufferPointer) in
+            guard let base = raw.baseAddress else { return }
+            var offset = 0
+            while offset < raw.count {
+                let n = write(fd, base + offset, raw.count - offset)
+                if n < 0 {
+                    if errno == EINTR { continue }
+                    throw WriteFailed(errno: errno)
+                }
+                if n == 0 { break }
+                offset += n
+            }
+        }
+    }
+
+    /// Copies `path`'s UTF-8 bytes into `sun_path`, which is a fixed-size C array bridged into
+    /// Swift as a tuple — `withUnsafeMutableBytes(of:)` is the standard way to write into one.
+    static func setPath(_ path: String, on addr: inout sockaddr_un) throws {
+        let pathBytes = Array(path.utf8)
+        let capacity = MemoryLayout.size(ofValue: addr.sun_path)
+        guard pathBytes.count < capacity else { throw PathTooLong() }
+
+        withUnsafeMutableBytes(of: &addr.sun_path) { raw in
+            let buffer = raw.bindMemory(to: UInt8.self)
+            for (index, byte) in pathBytes.enumerated() {
+                buffer[index] = byte
+            }
+            buffer[pathBytes.count] = 0
+        }
     }
 }
 

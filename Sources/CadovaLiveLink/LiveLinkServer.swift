@@ -1,7 +1,7 @@
 import Foundation
 
 #if os(macOS)
-import Network
+import Darwin
 
 /// Listens for `LiveLinkMessage` pushes at the well-known LiveLink socket. Intended for a
 /// long-running consumer such as Cadova Viewer: create one instance, call `start()` once
@@ -11,11 +11,22 @@ import Network
 /// has exactly one listener per path — if another process already owns the socket, `start()`
 /// throws and this instance simply never receives anything, which callers should treat as a
 /// non-fatal degradation (e.g. a second app instance still works, just without the fast path).
+///
+/// Built on raw POSIX sockets rather than `Network.framework` — see the comment on
+/// `LiveLinkClient`'s transport for why.
 public final class LiveLinkServer: @unchecked Sendable {
+    struct BindFailed: Error { let errno: Int32 }
+
     private let queue = DispatchQueue(label: "se.tomasf.CadovaLiveLink.server")
     private let onMessage: @Sendable (LiveLinkMessage) -> Void
-    private var listener: NWListener?
-    private var connections: [ObjectIdentifier: NWConnection] = [:]
+    private var listenerFD: Int32 = -1
+    private var acceptSource: DispatchSourceRead?
+    private var connections: [Int32: ConnectionState] = [:]
+
+    private final class ConnectionState {
+        var buffer = Data()
+        var readSource: DispatchSourceRead?
+    }
 
     public init(onMessage: @escaping @Sendable (LiveLinkMessage) -> Void) {
         self.onMessage = onMessage
@@ -27,87 +38,128 @@ public final class LiveLinkServer: @unchecked Sendable {
         try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
         try? FileManager.default.removeItem(atPath: path)
 
-        let parameters = NWParameters(tls: nil, tcp: NWProtocolTCP.Options())
-        parameters.requiredLocalEndpoint = .unix(path: path)
-        parameters.allowLocalEndpointReuse = true
+        let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+        guard fd >= 0 else { throw BindFailed(errno: errno) }
+        // acceptNewConnections() below loops calling accept() until it returns EWOULDBLOCK, to
+        // drain every currently-pending connection in one DispatchSource firing — which requires
+        // the listening socket to actually be non-blocking. Without this, accept() blocks forever
+        // once the pending backlog is empty, freezing this serial queue (and with it every
+        // already-accepted connection's reads, since they share the same queue) permanently.
+        _ = fcntl(fd, F_SETFL, O_NONBLOCK)
 
-        let listener = try NWListener(using: parameters)
-        listener.newConnectionHandler = { [weak self] connection in
-            self?.accept(connection)
+        var addr = sockaddr_un()
+        addr.sun_family = sa_family_t(AF_UNIX)
+        do {
+            try LiveLinkClient.setPath(path, on: &addr)
+        } catch {
+            close(fd)
+            throw error
         }
-        listener.start(queue: queue)
-        self.listener = listener
+
+        let bindResult = withUnsafePointer(to: &addr) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                bind(fd, sockaddrPtr, socklen_t(MemoryLayout<sockaddr_un>.size))
+            }
+        }
+        guard bindResult == 0 else {
+            close(fd)
+            throw BindFailed(errno: errno)
+        }
+        guard listen(fd, 8) == 0 else {
+            close(fd)
+            throw BindFailed(errno: errno)
+        }
+
+        listenerFD = fd
+        let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: queue)
+        source.setEventHandler { [weak self] in
+            self?.acceptNewConnections()
+        }
+        source.setCancelHandler {
+            close(fd)
+        }
+        source.resume()
+        acceptSource = source
     }
 
     public func stop() {
         queue.sync {
-            listener?.cancel()
-            listener = nil
-            for connection in connections.values { connection.cancel() }
+            acceptSource?.cancel()
+            acceptSource = nil
+            listenerFD = -1
+            for (fd, state) in connections {
+                state.readSource?.cancel()
+                close(fd)
+            }
             connections.removeAll()
         }
         try? FileManager.default.removeItem(atPath: LiveLinkEndpoint.socketPath)
     }
 
-    private func accept(_ connection: NWConnection) {
-        let id = ObjectIdentifier(connection)
-        queue.async { self.connections[id] = connection }
+    private func acceptNewConnections() {
+        while true {
+            let clientFD = accept(listenerFD, nil, nil)
+            guard clientFD >= 0 else { break }
+            _ = fcntl(clientFD, F_SETFL, O_NONBLOCK)
 
-        connection.stateUpdateHandler = { [weak self] state in
-            switch state {
-            case .ready:
-                // Mirrors the client, which likewise only sends once its connection reaches
-                // .ready — receive() called any earlier appears to just be dropped rather than
-                // queued for a listener-accepted connection, silently stalling the whole read.
-                self?.receiveHeader(on: connection)
-            case .failed, .cancelled:
-                guard let self else { return }
-                queue.async { self.connections.removeValue(forKey: id) }
-            default:
-                break
+            let state = ConnectionState()
+            connections[clientFD] = state
+            let source = DispatchSource.makeReadSource(fileDescriptor: clientFD, queue: queue)
+            source.setEventHandler { [weak self] in
+                self?.readAvailable(from: clientFD)
             }
-        }
-        connection.start(queue: queue)
-    }
-
-    private func receiveHeader(on connection: NWConnection) {
-        connection.receive(minimumIncompleteLength: LiveLinkFraming.headerSize, maximumLength: LiveLinkFraming.headerSize) { [weak self] data, _, isComplete, error in
-            guard let self else { return }
-            guard let data, data.count == LiveLinkFraming.headerSize else {
-                connection.cancel()
-                return
+            source.setCancelHandler { [weak self] in
+                close(clientFD)
+                self?.connections.removeValue(forKey: clientFD)
             }
-            do {
-                let length = try LiveLinkFraming.parseHeader(data)
-                self.receivePayload(on: connection, length: length)
-            } catch {
-                connection.cancel()
-            }
+            state.readSource = source
+            source.resume()
         }
     }
 
-    private func receivePayload(on connection: NWConnection, length: Int, accumulated: Data = Data()) {
-        let remaining = length - accumulated.count
-        guard remaining > 0 else {
-            if let message = try? LiveLinkFraming.decodeMessage(accumulated) {
-                onMessage(message)
-            }
-            connection.cancel()
+    private func readAvailable(from fd: Int32) {
+        guard let state = connections[fd] else { return }
+
+        var chunk = [UInt8](repeating: 0, count: 1 << 20)
+        let n = chunk.withUnsafeMutableBytes { raw in
+            read(fd, raw.baseAddress, raw.count)
+        }
+        if n < 0 {
+            // EAGAIN/EWOULDBLOCK on a non-blocking socket just means "nothing to read yet, despite
+            // the read source firing" — not an error, and not the peer closing the connection.
+            if errno == EAGAIN || errno == EWOULDBLOCK { return }
+            state.readSource?.cancel()
+            return
+        }
+        guard n > 0 else {
+            state.readSource?.cancel()
             return
         }
 
-        let chunkSize = min(remaining, 1 << 20)
-        connection.receive(minimumIncompleteLength: 1, maximumLength: chunkSize) { [weak self] data, _, isComplete, error in
-            guard let self else { return }
-            var accumulated = accumulated
-            if let data { accumulated.append(data) }
+        state.buffer.append(contentsOf: chunk[0..<n])
+        processBuffer(state)
+    }
 
-            if error != nil || (isComplete && accumulated.count < length) {
-                connection.cancel()
-                return
-            }
-            self.receivePayload(on: connection, length: length, accumulated: accumulated)
+    /// One message per connection — the client opens a fresh connection for every push — so once
+    /// a full frame has been assembled and handed to `onMessage`, the connection is done.
+    private func processBuffer(_ state: ConnectionState) {
+        guard state.buffer.count >= LiveLinkFraming.headerSize else { return }
+
+        let header = state.buffer.subdata(in: state.buffer.startIndex..<(state.buffer.startIndex + LiveLinkFraming.headerSize))
+        guard let payloadLength = try? LiveLinkFraming.parseHeader(header) else {
+            state.readSource?.cancel()
+            return
         }
+
+        let totalLength = LiveLinkFraming.headerSize + payloadLength
+        guard state.buffer.count >= totalLength else { return }
+
+        let payloadStart = state.buffer.startIndex + LiveLinkFraming.headerSize
+        let payload = state.buffer.subdata(in: payloadStart..<(state.buffer.startIndex + totalLength))
+        if let message = try? LiveLinkFraming.decodeMessage(payload) {
+            onMessage(message)
+        }
+        state.readSource?.cancel()
     }
 }
 
