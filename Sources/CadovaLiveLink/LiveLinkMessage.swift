@@ -22,7 +22,7 @@ public struct LiveLinkMessage: Sendable, Codable {
         self.parts = parts
     }
 
-    public struct Part: Sendable, Codable {
+    public struct Part: Sendable {
         public let name: String
         public let isPrintable: Bool
 

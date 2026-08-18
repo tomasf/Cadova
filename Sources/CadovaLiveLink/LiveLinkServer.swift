@@ -23,6 +23,8 @@ public final class LiveLinkServer: @unchecked Sendable {
 
     public func start() throws {
         let path = LiveLinkEndpoint.socketPath
+        let directory = (path as NSString).deletingLastPathComponent
+        try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
         try? FileManager.default.removeItem(atPath: path)
 
         let parameters = NWParameters(tls: nil, tcp: NWProtocolTCP.Options())
@@ -53,6 +55,11 @@ public final class LiveLinkServer: @unchecked Sendable {
 
         connection.stateUpdateHandler = { [weak self] state in
             switch state {
+            case .ready:
+                // Mirrors the client, which likewise only sends once its connection reaches
+                // .ready — receive() called any earlier appears to just be dropped rather than
+                // queued for a listener-accepted connection, silently stalling the whole read.
+                self?.receiveHeader(on: connection)
             case .failed, .cancelled:
                 guard let self else { return }
                 queue.async { self.connections.removeValue(forKey: id) }
@@ -61,7 +68,6 @@ public final class LiveLinkServer: @unchecked Sendable {
             }
         }
         connection.start(queue: queue)
-        receiveHeader(on: connection)
     }
 
     private func receiveHeader(on connection: NWConnection) {

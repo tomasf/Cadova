@@ -6,10 +6,10 @@ import Network
 extension LiveLinkClient {
     struct TimedOut: Error {}
 
-    /// How long to wait for the push to be accepted before giving up. Bounds the worst-case
-    /// added latency when the socket file exists but nothing is actually accepting connections
-    /// on it (e.g. a stale file left behind by a crashed listener).
-    private static let timeout: Duration = .milliseconds(250)
+    /// How long to wait for the whole push to go through before giving up. Generous relative to
+    /// how fast a local socket transfer "should" be, because it also has to cover a real payload
+    /// (megabytes of mesh data) being sent in chunks, not just connection setup.
+    private static let timeout: Duration = .seconds(3)
 
     static func send(_ message: LiveLinkMessage) async throws {
         let frame = try LiveLinkFraming.makeFrame(for: message)
@@ -24,6 +24,13 @@ extension LiveLinkClient {
             }
             group.addTask {
                 try await Task.sleep(for: timeout)
+                // A throwing task group can't return until every child has actually finished —
+                // merely marking `sendFrame`'s task cancelled doesn't do that, since it's blocked on
+                // an NWConnection state callback, not a cancellation-aware suspension point. Without
+                // this, a connection that never reaches .ready deadlocks here forever instead of
+                // timing out, which — since Model.build() awaits this directly — silently hangs
+                // every build until the process happens to exit.
+                connection.cancel()
                 throw TimedOut()
             }
             try await group.next()
@@ -53,6 +60,12 @@ extension LiveLinkClient {
         }
     }
 
+    /// A single `connection.send(content:)` call carrying the whole multi-megabyte frame in one
+    /// `Data` blob is unreliable in practice — it can sit forever without its completion handler
+    /// ever firing, with nothing ever reaching the peer. Sending in bounded chunks (mirroring the
+    /// chunked reads on the receiving side) avoids that.
+    private static let chunkSize = 1 << 18 // 256 KB
+
     private static func sendFrame(_ frame: Data, over connection: NWConnection, queue: DispatchQueue) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let box = SingleResumeBox(continuation)
@@ -60,13 +73,7 @@ extension LiveLinkClient {
             connection.stateUpdateHandler = { state in
                 switch state {
                 case .ready:
-                    connection.send(content: frame, completion: .contentProcessed { error in
-                        if let error {
-                            box.resume(.failure(error))
-                        } else {
-                            box.resume(.success(()))
-                        }
-                    })
+                    sendChunk(frame, from: frame.startIndex, over: connection, box: box)
                 case .failed(let error):
                     box.resume(.failure(error))
                 case .cancelled:
@@ -77,6 +84,22 @@ extension LiveLinkClient {
             }
             connection.start(queue: queue)
         }
+    }
+
+    private static func sendChunk(_ frame: Data, from offset: Data.Index, over connection: NWConnection, box: SingleResumeBox) {
+        guard offset < frame.endIndex else {
+            box.resume(.success(()))
+            return
+        }
+        let end = frame.index(offset, offsetBy: chunkSize, limitedBy: frame.endIndex) ?? frame.endIndex
+        let chunk = frame.subdata(in: offset..<end)
+        connection.send(content: chunk, completion: .contentProcessed { error in
+            if let error {
+                box.resume(.failure(error))
+            } else {
+                sendChunk(frame, from: end, over: connection, box: box)
+            }
+        })
     }
 }
 
