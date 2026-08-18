@@ -1,7 +1,6 @@
 import Foundation
 import Testing
-import CadovaLiveLinkCore
-import CadovaLiveLinkClient
+import LiveLink
 
 struct LiveLinkSettingsTests {
     @Test func `CADOVA_LIVELINK_DISABLED true disables pushing`() {

@@ -3,8 +3,7 @@ import Manifold3D
 internal import ThreeMF
 internal import Zip
 internal import Nodal
-import CadovaLiveLinkCore
-import CadovaLiveLinkClient
+import LiveLink
 
 extension MeshGL: @retroactive @unchecked Sendable {}
 

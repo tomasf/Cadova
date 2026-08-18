@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 import ThreeMF
-import CadovaLiveLinkCore
+import LiveLink
 @testable import Cadova
 
 struct ImportTests {
