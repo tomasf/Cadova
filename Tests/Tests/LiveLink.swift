@@ -26,7 +26,6 @@ struct LiveLinkFramingTests {
                 LiveLinkMessage.Part(
                     name: "Body",
                     isPrintable: true,
-                    transform: nil,
                     vertices: [0, 0, 0, 1, 0, 0, 0, 1, 0],
                     triangles: [0, 1, 2],
                     triangleMaterialIndices: [0],

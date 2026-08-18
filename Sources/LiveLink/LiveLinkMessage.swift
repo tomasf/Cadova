@@ -26,9 +26,6 @@ public struct LiveLinkMessage: Sendable, Codable {
         public let name: String
         public let isPrintable: Bool
 
-        /// A 4x4 affine transform in row-major order (16 values), or `nil` for identity.
-        public let transform: [Double]?
-
         /// Flat vertex positions, 3 `Double`s (x, y, z) per vertex.
         public let vertices: [Double]
 
@@ -49,7 +46,6 @@ public struct LiveLinkMessage: Sendable, Codable {
         public init(
             name: String,
             isPrintable: Bool,
-            transform: [Double]?,
             vertices: [Double],
             triangles: [UInt32],
             triangleMaterialIndices: [Int32],
@@ -58,7 +54,6 @@ public struct LiveLinkMessage: Sendable, Codable {
         ) {
             self.name = name
             self.isPrintable = isPrintable
-            self.transform = transform
             self.vertices = vertices
             self.triangles = triangles
             self.triangleMaterialIndices = triangleMaterialIndices
