@@ -24,7 +24,13 @@ public struct LiveLinkMessage: Sendable, Codable {
 
     public struct Part: Sendable {
         public let name: String
-        public let isPrintable: Bool
+
+        /// The raw value of Cadova's `PartSemantic` ("solid", "context", or "visual") — the same
+        /// string written into a 3MF file's custom `cadova:semantic` item attribute, so a receiver
+        /// parsing this sees exactly what it would see reading the file back. An unrecognized
+        /// value should be treated the same way the 3MF reading path treats a missing attribute:
+        /// default to "solid".
+        public let semantic: String
 
         /// Flat vertex positions, 3 `Double`s (x, y, z) per vertex.
         public let vertices: [Double]
@@ -45,7 +51,7 @@ public struct LiveLinkMessage: Sendable, Codable {
 
         public init(
             name: String,
-            isPrintable: Bool,
+            semantic: String,
             vertices: [Double],
             triangles: [UInt32],
             triangleMaterialIndices: [Int32],
@@ -53,7 +59,7 @@ public struct LiveLinkMessage: Sendable, Codable {
             materials: [MaterialEntry]
         ) {
             self.name = name
-            self.isPrintable = isPrintable
+            self.semantic = semantic
             self.vertices = vertices
             self.triangles = triangles
             self.triangleMaterialIndices = triangleMaterialIndices

@@ -57,7 +57,7 @@ extension ThreeMFDataProvider {
 
         return LiveLinkMessage.Part(
             name: resolved.part.name,
-            isPrintable: resolved.part.semantic == .solid,
+            semantic: resolved.part.semantic.rawValue,
             vertices: vertexFlat,
             triangles: triangleFlat,
             triangleMaterialIndices: triangleMaterialIndices,

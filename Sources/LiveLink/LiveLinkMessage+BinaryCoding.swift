@@ -8,13 +8,13 @@ import Foundation
 /// what keeps this fast; `Data` already has an efficient built-in `Codable` conformance.
 extension LiveLinkMessage.Part: Codable {
     private enum CodingKeys: String, CodingKey {
-        case name, isPrintable, vertices, triangles, triangleMaterialIndices, defaultMaterialIndex, materials
+        case name, semantic, vertices, triangles, triangleMaterialIndices, defaultMaterialIndex, materials
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
-        isPrintable = try container.decode(Bool.self, forKey: .isPrintable)
+        semantic = try container.decode(String.self, forKey: .semantic)
         vertices = try container.decode(Data.self, forKey: .vertices).asArray()
         triangles = try container.decode(Data.self, forKey: .triangles).asArray()
         triangleMaterialIndices = try container.decode(Data.self, forKey: .triangleMaterialIndices).asArray()
@@ -25,7 +25,7 @@ extension LiveLinkMessage.Part: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
-        try container.encode(isPrintable, forKey: .isPrintable)
+        try container.encode(semantic, forKey: .semantic)
         try container.encode(vertices.asData(), forKey: .vertices)
         try container.encode(triangles.asData(), forKey: .triangles)
         try container.encode(triangleMaterialIndices.asData(), forKey: .triangleMaterialIndices)
