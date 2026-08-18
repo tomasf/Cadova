@@ -8,7 +8,6 @@ let package = Package(
         .library(name: "Cadova", targets: ["Cadova"]),
         .library(name: "CadovaLiveLinkCore", targets: ["CadovaLiveLinkCore"]),
         .library(name: "CadovaLiveLinkClient", targets: ["CadovaLiveLinkClient"]),
-        .library(name: "CadovaLiveLinkServer", targets: ["CadovaLiveLinkServer"]),
     ],
     dependencies: [
         .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "1.1.1")),
@@ -32,10 +31,6 @@ let package = Package(
         .target(name: "CadovaLiveLinkCore"),
         .target(
             name: "CadovaLiveLinkClient",
-            dependencies: ["CadovaLiveLinkCore"]
-        ),
-        .target(
-            name: "CadovaLiveLinkServer",
             dependencies: ["CadovaLiveLinkCore"]
         ),
         .testTarget(
