@@ -1,7 +1,6 @@
 import Foundation
 import Testing
 import ThreeMF
-import LiveLink
 @testable import Cadova
 
 struct ImportTests {

@@ -1,6 +1,6 @@
 import Foundation
 import Manifold3D
-import LiveLink
+import CadovaLiveLinkCore
 
 extension ThreeMFDataProvider {
     /// Converts a resolved part's evaluated geometry into a LiveLink wire message part,
