@@ -11,10 +11,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
     let result: BuildResult<D3>
     let options: ModelOptions
 
-    /// Generated once per provider instance, i.e. once per `Model.build()` call, and used both
-    /// for the LiveLink push and for the identically-valued `cadova:livelinktoken` 3MF metadata
-    /// entry written moments later, so a LiveLink consumer can recognize the two as the same save.
-    let liveLinkToken = UUID()
+    /// Generated once per provider instance, i.e. once per `Model.build()` call, and used both for
+    /// the LiveLink push and as the 3MF Production Extension's `<build p:UUID="...">` value written
+    /// moments later, so a LiveLink consumer can recognize the two as the same save.
+    let buildUUID = UUID()
 
     init(result: BuildResult<D3>, options: ModelOptions) {
         self.result = result
@@ -57,7 +57,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             let parts = try await resolvedParts(context: context)
             guard !parts.isEmpty else { return }
             let message = LiveLinkMessage(
-                token: liveLinkToken,
+                buildUUID: buildUUID,
                 path: url.path(percentEncoded: false),
                 parts: parts.map(Self.liveLinkPart)
             )
@@ -157,9 +157,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         }
 
         var uniqueIDs: Set<String> = []
-        let metadata = options[Metadata.self].threeMFMetadata + [
-            ThreeMF.Metadata(name: .custom(LiveLinkMessage.tokenMetadataName), value: liveLinkToken.uuidString)
-        ]
+        let metadata = options[Metadata.self].threeMFMetadata
 
         if modelsAndItems.count > 1 {
             let items = try modelsAndItems.enumerated().map(unpacked).map { index, model, item, _ in
@@ -185,7 +183,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 recommendedExtensions: [.materials],
                 customNamespaces: ["c": CadovaNamespace.uri],
                 metadata: metadata,
-                buildItems: items
+                build: ThreeMF.Build(items: items, uuid: buildUUID)
             )
         } else if modelsAndItems.count == 1 {
             var (model, item, _) = modelsAndItems[0]
@@ -193,11 +191,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
             archive.model = ThreeMF.Model(
                 unit: .millimeter,
-                recommendedExtensions: [.materials],
+                recommendedExtensions: [.materials, .production],
                 customNamespaces: ["c": CadovaNamespace.uri],
                 metadata: metadata,
                 resources: model.resources.resources,
-                buildItems: [item]
+                build: ThreeMF.Build(items: [item], uuid: buildUUID)
             )
         } else {
             logger.warning("Model contains no objects. Exporting an empty 3MF file.")

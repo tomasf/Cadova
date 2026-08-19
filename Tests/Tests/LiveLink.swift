@@ -20,7 +20,7 @@ struct LiveLinkSettingsTests {
 struct LiveLinkFramingTests {
     @Test func `round-trips a message through frame encode and decode`() throws {
         let message = LiveLinkMessage(
-            token: UUID(),
+            buildUUID: UUID(),
             path: "/tmp/example.3mf",
             parts: [
                 LiveLinkMessage.Part(
@@ -42,7 +42,7 @@ struct LiveLinkFramingTests {
         #expect(payload.count == payloadLength)
 
         let decoded = try LiveLinkFraming.decodeMessage(Data(payload))
-        #expect(decoded.token == message.token)
+        #expect(decoded.buildUUID == message.buildUUID)
         #expect(decoded.path == message.path)
         #expect(decoded.parts.count == 1)
         #expect(decoded.parts[0].vertices == message.parts[0].vertices)

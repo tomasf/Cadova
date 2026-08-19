@@ -50,7 +50,7 @@ struct ImportTests {
         #expect(importedMeasurements.surfaceArea ≈ originalMeasurements.surfaceArea)
     }
 
-    @Test func `3MF export embeds a LiveLink token as metadata`() async throws {
+    @Test func `3MF export sets the build's production-extension UUID to the LiveLink buildUUID`() async throws {
         let geometry: any Geometry3D = Box(x: 10, y: 20, z: 30)
 
         let tempURL = FileManager.default.temporaryDirectory
@@ -64,9 +64,8 @@ struct ImportTests {
 
         let reader = try ThreeMF.PackageReader(url: tempURL)
         let model = try reader.model()
-        let tokenMetadata = model.metadata.first { $0.name == .custom(LiveLinkMessage.tokenMetadataName) }
 
-        #expect(tokenMetadata?.value == provider.liveLinkToken.uuidString)
+        #expect(model.build.uuid == provider.buildUUID)
     }
 
     @Test func `pushToLiveLink completes without a listener present`() async throws {

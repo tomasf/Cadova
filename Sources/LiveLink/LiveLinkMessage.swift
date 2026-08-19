@@ -4,11 +4,11 @@ import Foundation
 /// carrying the same mesh/material data that's about to be written to a 3MF file, without
 /// the zip/XML overhead of that file. See ``LiveLinkClient`` and ``LiveLinkServer``.
 public struct LiveLinkMessage: Sendable, Codable {
-    /// Opaque per-save identifier. The sender embeds the same value in the 3MF file it writes
-    /// to `path`, so a receiver can recognize "this on-disk file is the one I already applied
-    /// via LiveLink" without re-reading the file's content. It carries no meaning beyond that
-    /// and is never compared across separate sender processes.
-    public let token: UUID
+    /// The value the sender puts in the 3MF Production Extension's `<build p:UUID="...">`
+    /// attribute of the file it writes to `path`, so a receiver can recognize "this on-disk
+    /// file is the one I already applied via LiveLink" without re-reading the file's content.
+    /// It carries no meaning beyond that and is never compared across separate sender processes.
+    public let buildUUID: UUID
 
     /// The absolute path of the file this message's content corresponds to.
     public let path: String
@@ -16,8 +16,8 @@ public struct LiveLinkMessage: Sendable, Codable {
     /// One entry per part/object in the model.
     public let parts: [Part]
 
-    public init(token: UUID, path: String, parts: [Part]) {
-        self.token = token
+    public init(buildUUID: UUID, path: String, parts: [Part]) {
+        self.buildUUID = buildUUID
         self.path = path
         self.parts = parts
     }
@@ -95,13 +95,4 @@ public struct LiveLinkMessage: Sendable, Codable {
             self.alpha = alpha
         }
     }
-}
-
-public extension LiveLinkMessage {
-    /// The 3MF `<metadata name="...">` name a sender embeds its `token` under when it writes the
-    /// file a push corresponds to, so a receiver that already applied that push can recognize the
-    /// file's on-disk write once it lands and skip a redundant reload. The single source of truth
-    /// for this string, since a sender (writing it into 3MF metadata) and a receiver (reading it
-    /// back out) both need to agree on it independently.
-    static let tokenMetadataName = "cadova:livelinktoken"
 }
