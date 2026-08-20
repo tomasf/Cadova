@@ -58,7 +58,7 @@ struct LiveLinkFramingTests {
     @Test func `rejects a header with the wrong magic`() {
         var bytes = [UInt8](repeating: 0, count: LiveLinkFraming.headerSize)
         bytes[3] = 1 // corrupt the magic
-        #expect(throws: LiveLinkFraming.FramingError.self) {
+        #expect(throws: LiveLinkError.self) {
             try LiveLinkFraming.parseHeader(Data(bytes))
         }
     }

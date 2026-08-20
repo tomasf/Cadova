@@ -83,7 +83,9 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
     func pushToLiveLink(destination url: URL, context: EvaluationContext) async {
         #if canImport(CadovaLiveLinkClient)
-        guard !LiveLinkSettings.isDisabled else { return }
+        // Mirrors the socket-existence check `LiveLinkClient.push` makes internally before sending,
+        // so we only log success when a listener is actually present to receive the push.
+        guard !LiveLinkSettings.isDisabled, FileManager.default.fileExists(atPath: LiveLinkEndpoint.socketPath) else { return }
         do {
             let parts = try await resolvedParts(context: context)
             guard !parts.isEmpty else { return }
@@ -96,8 +98,9 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 metadata: options[Metadata.self].liveLinkMetadata
             )
             try await LiveLinkClient.push(message)
+            logger.debug("Pushed model \"\(url.lastPathComponent)\" to Cadova Viewer")
         } catch {
-            logger.debug("LiveLink push skipped for \(url.path): \(error)")
+            logger.debug("Skipped live link push for \(url.lastPathComponent): \(error)")
         }
         #endif
     }
