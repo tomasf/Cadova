@@ -73,6 +73,14 @@ struct ThreeMFDataProvider: OutputDataProvider {
         }
     }
 
+    /// Whether `lhs` sorts before `rhs` as a file-facing identifier — the order `write(to:context:)`
+    /// puts multi-part 3MF `<item>`s in, so a receiver's `Part.itemIndex` (used to address a specific
+    /// build item when rewriting the archive, e.g. for slicing) means the same position in a LiveLink
+    /// push as it will in the file moments later.
+    static func fileOrder(_ lhs: String, _ rhs: String) -> Bool {
+        lhs.localizedStandardCompare(rhs) == .orderedAscending
+    }
+
     func pushToLiveLink(destination url: URL, context: EvaluationContext) async {
         #if canImport(CadovaLiveLinkClient)
         guard !LiveLinkSettings.isDisabled else { return }
@@ -80,10 +88,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
             let parts = try await resolvedParts(context: context)
             guard !parts.isEmpty else { return }
             let identifiers = Self.fileIdentifiers(for: parts)
+            let orderedParts = zip(identifiers, parts).sorted { Self.fileOrder($0.0, $1.0) }
             let message = LiveLinkMessage(
                 buildUUID: buildUUID,
                 path: url.path(percentEncoded: false),
-                parts: zip(identifiers, parts).map { Self.liveLinkPart(id: $0, $1) },
+                parts: orderedParts.map { Self.liveLinkPart(id: $0, $1) },
                 metadata: options[Metadata.self].liveLinkMetadata
             )
             try await LiveLinkClient.push(message)
@@ -193,7 +202,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 item.path = try archive.addAdditionalModel(entry.model, named: id)
                 return item
             }
-            .sorted { ($0.partNumber ?? "").localizedStandardCompare($1.partNumber ?? "") == .orderedAscending }
+            .sorted { Self.fileOrder($0.partNumber ?? "", $1.partNumber ?? "") }
 
             archive.model = ThreeMF.Model(
                 unit: .millimeter,

@@ -1,6 +1,8 @@
 import Foundation
 import Testing
 import CadovaLiveLinkCore
+import ThreeMF
+@testable import Cadova
 
 struct LiveLinkSettingsTests {
     @Test func `CADOVA_LIVELINK_DISABLED true disables pushing`() {
@@ -59,5 +61,46 @@ struct LiveLinkFramingTests {
         #expect(throws: LiveLinkFraming.FramingError.self) {
             try LiveLinkFraming.parseHeader(Data(bytes))
         }
+    }
+}
+
+struct ThreeMFDataProviderLiveLinkTests {
+    /// `Part.itemIndex` addresses a specific build item directly by position when rewriting the
+    /// archive (e.g. for slicing a single part) — so a LiveLink push's part order has to agree with
+    /// the 3MF file's `<item>` order, not just its evaluation order. Names are deliberately not
+    /// alphabetical, since a model whose parts happen to evaluate in file order wouldn't catch a
+    /// regression here.
+    @Test func `LiveLink part order matches the 3MF build item order`() async throws {
+        let geometry: any Geometry3D = Box(x: 10, y: 20, z: 30)
+            .adding {
+                Sphere(diameter: 5).translated(x: 20).inPart(Part("Zebra"))
+                Sphere(diameter: 5).translated(x: -20).inPart(Part("Alpha"))
+                Sphere(diameter: 5).translated(y: 20).inPart(Part("Mango"))
+            }
+
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cadova-test-\(UUID().uuidString).3mf")
+        defer { try? FileManager.default.removeItem(at: tempURL) }
+
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
+        let provider = ThreeMFDataProvider(result: result, options: [])
+        try await provider.writeOutput(to: tempURL, context: context)
+
+        let reader = try ThreeMF.PackageReader(url: tempURL)
+        let fileOrderIDs = try reader.model().build.items.map { $0.partNumber ?? "" }
+        #expect(fileOrderIDs.count > 1)
+
+        let resolved = try await provider.resolvedParts(context: context)
+        let identifiers = ThreeMFDataProvider.fileIdentifiers(for: resolved)
+        // Confirms this model actually exercises non-trivial reordering, rather than passing
+        // vacuously because evaluation order already happened to match the file's sorted order.
+        #expect(identifiers != fileOrderIDs)
+
+        let liveLinkOrderIDs = zip(identifiers, resolved)
+            .sorted { ThreeMFDataProvider.fileOrder($0.0, $1.0) }
+            .map(\.0)
+
+        #expect(liveLinkOrderIDs == fileOrderIDs)
     }
 }
