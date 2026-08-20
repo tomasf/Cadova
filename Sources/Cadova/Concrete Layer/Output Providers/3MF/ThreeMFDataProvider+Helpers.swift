@@ -3,6 +3,9 @@ import Manifold3D
 internal import ThreeMF
 internal import Zip
 internal import Nodal
+#if canImport(CadovaLiveLinkClient)
+import CadovaLiveLinkCore
+#endif
 
 struct TriangleOIDMapping {
     private typealias Entry = (range: Range<Int>, originalID: Manifold.OriginalID)
@@ -48,6 +51,12 @@ extension Metadata {
             application.map { .init(name: .application, value: $0) }
         ].compactMap { $0 }
     }
+
+    #if canImport(CadovaLiveLinkClient)
+    var liveLinkMetadata: LiveLinkMessage.Metadata {
+        .init(title: title, description: description, author: author, license: license, date: date, application: application)
+    }
+    #endif
 }
 
 extension ModelOptions.Compression {

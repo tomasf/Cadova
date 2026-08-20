@@ -63,7 +63,8 @@ struct ThreeMFDataProvider: OutputDataProvider {
             let message = LiveLinkMessage(
                 buildUUID: buildUUID,
                 path: url.path(percentEncoded: false),
-                parts: parts.map(Self.liveLinkPart)
+                parts: parts.map(Self.liveLinkPart),
+                metadata: options[Metadata.self].liveLinkMetadata
             )
             try await LiveLinkClient.push(message)
         } catch {
