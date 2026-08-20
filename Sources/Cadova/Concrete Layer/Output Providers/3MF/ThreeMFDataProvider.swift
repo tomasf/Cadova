@@ -54,16 +54,36 @@ struct ThreeMFDataProvider: OutputDataProvider {
         }
     }
 
+    /// Each part's file-facing identifier, matching exactly what `write(to:context:)` puts in each
+    /// 3MF `<item partnumber="...">` — shared so a LiveLink push's part IDs agree with what ends up
+    /// on disk moments later, letting a receiver key persistent per-part state (visibility,
+    /// selection) on something that survives both paths.
+    static func fileIdentifiers(for parts: [ResolvedPart]) -> [String] {
+        var uniqueIDs: Set<String> = []
+        return parts.map { resolved in
+            let nameBase = resolved.part.name.simpleIdentifier
+            var id = nameBase
+            var suffix = 1
+            while uniqueIDs.contains(id) {
+                suffix += 1
+                id = nameBase + "_\(suffix)"
+            }
+            uniqueIDs.insert(id)
+            return id
+        }
+    }
+
     func pushToLiveLink(destination url: URL, context: EvaluationContext) async {
         #if canImport(CadovaLiveLinkClient)
         guard !LiveLinkSettings.isDisabled else { return }
         do {
             let parts = try await resolvedParts(context: context)
             guard !parts.isEmpty else { return }
+            let identifiers = Self.fileIdentifiers(for: parts)
             let message = LiveLinkMessage(
                 buildUUID: buildUUID,
                 path: url.path(percentEncoded: false),
-                parts: parts.map(Self.liveLinkPart),
+                parts: zip(identifiers, parts).map { Self.liveLinkPart(id: $0, $1) },
                 metadata: options[Metadata.self].liveLinkMetadata
             )
             try await LiveLinkClient.push(message)
@@ -151,9 +171,11 @@ struct ThreeMFDataProvider: OutputDataProvider {
     }
 
     private func write<T>(to archive: PackageWriter<T>, context: EvaluationContext) async throws {
-        let modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = try await ContinuousClock().measure {
-            let resolved = try await resolvedParts(context: context)
-            return await resolved.enumerated().asyncMap { modelIndex, resolvedPart -> (ThreeMF.Model, ThreeMF.Item, Int) in
+        let resolved = try await resolvedParts(context: context)
+        let identifiers = Self.fileIdentifiers(for: resolved)
+
+        let modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = await ContinuousClock().measure {
+            await resolved.enumerated().asyncMap { modelIndex, resolvedPart -> (ThreeMF.Model, ThreeMF.Item, Int) in
                 let (model, item) = await makeModel(for: resolvedPart, modelIndex: modelIndex)
                 return (model, item, resolvedPart.manifold.triangleCount)
             }
@@ -162,23 +184,13 @@ struct ThreeMFDataProvider: OutputDataProvider {
             logger.debug("Built 3MF structures and meshes with \(triangleCount) triangles in \(duration)")
         }
 
-        var uniqueIDs: Set<String> = []
         let metadata = options[Metadata.self].threeMFMetadata
 
         if modelsAndItems.count > 1 {
-            let items = try modelsAndItems.enumerated().map(unpacked).map { index, model, item, _ in
-                let nameBase = item.partNumber?.simpleIdentifier ?? "part-\(index)"
-                var id = nameBase
-                var nameIndex = 1
-                while uniqueIDs.contains(id) {
-                    nameIndex += 1
-                    id = nameBase + "_\(nameIndex)"
-                }
-                uniqueIDs.insert(id)
-
-                var item = item
+            let items = try zip(identifiers, modelsAndItems).map { id, entry in
+                var item = entry.item
                 item.partNumber = id
-                item.path = try archive.addAdditionalModel(model, named: id)
+                item.path = try archive.addAdditionalModel(entry.model, named: id)
                 return item
             }
             .sorted { ($0.partNumber ?? "").localizedStandardCompare($1.partNumber ?? "") == .orderedAscending }
@@ -193,7 +205,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             )
         } else if modelsAndItems.count == 1 {
             var (model, item, _) = modelsAndItems[0]
-            item.partNumber = item.partNumber?.simpleIdentifier
+            item.partNumber = identifiers[0]
 
             archive.model = ThreeMF.Model(
                 unit: .millimeter,

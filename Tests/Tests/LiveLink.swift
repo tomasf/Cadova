@@ -24,6 +24,7 @@ struct LiveLinkFramingTests {
             path: "/tmp/example.3mf",
             parts: [
                 LiveLinkMessage.Part(
+                    id: "body",
                     name: "Body",
                     semantic: "solid",
                     vertices: [0, 0, 0, 1, 0, 0, 0, 1, 0],
@@ -32,7 +33,8 @@ struct LiveLinkFramingTests {
                     defaultMaterialIndex: 0,
                     materials: [.init(color: .init(red: 255, green: 0, blue: 0, alpha: 255))]
                 )
-            ]
+            ],
+            metadata: .init(title: "Example")
         )
 
         let frame = try LiveLinkFraming.makeFrame(for: message)
@@ -45,8 +47,10 @@ struct LiveLinkFramingTests {
         #expect(decoded.buildUUID == message.buildUUID)
         #expect(decoded.path == message.path)
         #expect(decoded.parts.count == 1)
+        #expect(decoded.parts[0].id == message.parts[0].id)
         #expect(decoded.parts[0].vertices == message.parts[0].vertices)
         #expect(decoded.parts[0].triangles == message.parts[0].triangles)
+        #expect(decoded.metadata.title == message.metadata.title)
     }
 
     @Test func `rejects a header with the wrong magic`() {

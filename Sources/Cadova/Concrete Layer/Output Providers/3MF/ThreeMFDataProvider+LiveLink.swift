@@ -5,8 +5,9 @@ import CadovaLiveLinkCore
 extension ThreeMFDataProvider {
     /// Converts a resolved part's evaluated geometry into a LiveLink wire message part,
     /// deduplicating materials the same way `makeModel`'s `addMaterial` does for the 3MF path,
-    /// just against LiveLink's own flat material palette instead of a `ColorGroup`.
-    static func liveLinkPart(_ resolved: ResolvedPart) -> LiveLinkMessage.Part {
+    /// just against LiveLink's own flat material palette instead of a `ColorGroup`. `id` is this
+    /// part's entry from `fileIdentifiers(for:)`, matching what ends up in the 3MF file.
+    static func liveLinkPart(id: String, _ resolved: ResolvedPart) -> LiveLinkMessage.Part {
         let meshGL = resolved.manifold.meshGL()
         let vertices = meshGL.vertices
         let triangles = meshGL.triangles
@@ -56,6 +57,7 @@ extension ThreeMFDataProvider {
         }
 
         return LiveLinkMessage.Part(
+            id: id,
             name: resolved.part.name,
             semantic: resolved.part.semantic.rawValue,
             vertices: vertexFlat,
