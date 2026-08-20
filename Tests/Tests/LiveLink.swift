@@ -91,11 +91,14 @@ struct ThreeMFDataProviderLiveLinkTests {
         let fileOrderIDs = try reader.model().build.items.map { $0.partNumber ?? "" }
         #expect(fileOrderIDs.count > 1)
 
+        // Confirms the file is actually in sorted order rather than passing vacuously — this compares
+        // against a hardcoded expectation rather than the parts' own evaluation order, since that order
+        // comes from a Dictionary and isn't stable across process launches, which previously made this
+        // assertion flaky whenever the random order happened to already be sorted.
+        #expect(fileOrderIDs == ["alpha", "mango", "model", "zebra"])
+
         let resolved = try await provider.resolvedParts(context: context)
         let identifiers = ThreeMFDataProvider.fileIdentifiers(for: resolved)
-        // Confirms this model actually exercises non-trivial reordering, rather than passing
-        // vacuously because evaluation order already happened to match the file's sorted order.
-        #expect(identifiers != fileOrderIDs)
 
         let liveLinkOrderIDs = zip(identifiers, resolved)
             .sorted { ThreeMFDataProvider.fileOrder($0.0, $1.0) }
