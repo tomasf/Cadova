@@ -4,7 +4,9 @@ internal import ThreeMF
 internal import Zip
 internal import Nodal
 import CadovaLiveLinkCore
+#if canImport(CadovaLiveLinkClient)
 import CadovaLiveLinkClient
+#endif
 
 extension MeshGL: @retroactive @unchecked Sendable {}
 
@@ -53,6 +55,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
     }
 
     func pushToLiveLink(destination url: URL, context: EvaluationContext) async {
+        #if canImport(CadovaLiveLinkClient)
         guard !LiveLinkSettings.isDisabled else { return }
         do {
             let parts = try await resolvedParts(context: context)
@@ -66,6 +69,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         } catch {
             logger.debug("LiveLink push skipped for \(url.path): \(error)")
         }
+        #endif
     }
 
     fileprivate enum ResourceIDOffset: ResourceID, CaseIterable {

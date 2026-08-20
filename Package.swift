@@ -23,7 +23,7 @@ let package = Package(
                 .product(name: "Manifold", package: "manifold-swift"),
                 .product(name: "ThreeMF", package: "ThreeMF"),
                 .product(name: "Pelagos", package: "Pelagos"),
-                .product(name: "CadovaLiveLinkClient", package: "CadovaLiveLink"),
+                .product(name: "CadovaLiveLinkClient", package: "CadovaLiveLink", condition: .when(platforms: [.macOS])),
             ],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         ),
@@ -32,7 +32,7 @@ let package = Package(
             dependencies: [
                 "Cadova",
                 .product(name: "ThreeMF", package: "ThreeMF"),
-                .product(name: "CadovaLiveLinkClient", package: "CadovaLiveLink"),
+                .product(name: "CadovaLiveLinkClient", package: "CadovaLiveLink", condition: .when(platforms: [.macOS])),
             ],
             resources: [.copy("golden"), .copy("resources")],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
