@@ -86,6 +86,17 @@ struct ThreeMFDataProvider: OutputDataProvider {
         // Mirrors the socket-existence check `LiveLinkClient.push` makes internally before sending,
         // so we only log success when a listener is actually present to receive the push.
         guard !LiveLinkSettings.isDisabled, FileManager.default.fileExists(atPath: LiveLinkEndpoint.socketPath) else { return }
+
+        let path = url.path(percentEncoded: false)
+        // Cheap, cached (read once per process — see LiveLinkClient.hostState) check for whether the
+        // host is even watching this path before paying for geometry-to-wire conversion, which is
+        // real, non-trivial CPU work for a large model that would otherwise happen unconditionally
+        // for every model in a project regardless of what's actually open in the viewer.
+        guard LiveLinkClient.isInterested(inPath: path) else {
+            logger.debug("Skipped live link push for \(url.lastPathComponent): host isn't watching this path")
+            return
+        }
+
         do {
             let parts = try await resolvedParts(context: context)
             guard !parts.isEmpty else { return }
@@ -93,7 +104,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
             let orderedParts = zip(identifiers, parts).sorted { Self.fileOrder($0.0, $1.0) }
             let message = LiveLinkMessage(
                 buildUUID: buildUUID,
-                path: url.path(percentEncoded: false),
+                path: path,
                 parts: orderedParts.map { Self.liveLinkPart(id: $0, $1) },
                 metadata: options[Metadata.self].liveLinkMetadata
             )
