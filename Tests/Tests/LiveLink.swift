@@ -1,6 +1,8 @@
 import Foundation
 import Testing
+#if canImport(CadovaLiveLinkClient)
 import CadovaLiveLinkCore
+#endif
 import ThreeMF
 @testable import Cadova
 
@@ -19,6 +21,7 @@ struct LiveLinkSettingsTests {
     }
 }
 
+#if canImport(CadovaLiveLinkClient)
 struct LiveLinkFramingTests {
     @Test func `round-trips a message through frame encode and decode`() throws {
         let message = LiveLinkMessage(
@@ -63,6 +66,7 @@ struct LiveLinkFramingTests {
         }
     }
 }
+#endif
 
 struct ThreeMFDataProviderLiveLinkTests {
     /// `Part.itemIndex` addresses a specific build item directly by position when rewriting the

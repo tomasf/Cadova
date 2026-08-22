@@ -1,5 +1,6 @@
 import Foundation
 import Manifold3D
+#if canImport(CadovaLiveLinkClient)
 import CadovaLiveLinkCore
 
 extension ThreeMFDataProvider {
@@ -79,3 +80,4 @@ private extension Color {
         )
     }
 }
+#endif
