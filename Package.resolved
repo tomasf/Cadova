@@ -1,5 +1,5 @@
 {
-  "originHash" : "31983d1b2ed3777c260a9864fb7c755888a3a8a6f9f0b9d2948ce2376ec8d20c",
+  "originHash" : "c442bd86e68a16c052d54dbe32d7515dd0c3a28df800e8c9f38a2e8cbc7948d2",
   "pins" : [
     {
       "identity" : "apus",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "3ccc37d65daada2a675ddcc3d8a534e5db94726d",
         "version" : "0.1.4"
+      }
+    },
+    {
+      "identity" : "cadovalivelink",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tomasf/CadovaLiveLink.git",
+      "state" : {
+        "revision" : "afd58626dd2d5e880715c426078e84843215cca2",
+        "version" : "0.2.0"
       }
     },
     {
@@ -35,6 +44,24 @@
       "state" : {
         "revision" : "40118bfad25b83d46bf2a9b25327ba7189108880",
         "version" : "0.1.4"
+      }
+    },
+    {
+      "identity" : "swift-docc-plugin",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-docc-plugin",
+      "state" : {
+        "revision" : "647c708be89f834fa6a6d4945442793a77ddf5b6",
+        "version" : "1.5.0"
+      }
+    },
+    {
+      "identity" : "swift-docc-symbolkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-docc-symbolkit",
+      "state" : {
+        "revision" : "b45d1f2ed151d057b54504d653e0da5552844e34",
+        "version" : "1.0.0"
       }
     },
     {
