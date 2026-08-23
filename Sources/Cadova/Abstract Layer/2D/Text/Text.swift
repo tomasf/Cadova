@@ -35,7 +35,7 @@ public struct Text: Geometry2D {
         @Environment(\.scaledSegmentation) var segmentation
         let attributes = textAttributes.applyingDefaults()
 
-        CachedNode(name: "text", parameters: content, attributes, segmentation) { context in
+        CachedNode(name: "Cadova.Text", parameters: content, attributes, segmentation) { context in
             let polygons = try attributes.render(text: content, with: segmentation)
             return .shape(.polygons(polygons, fillRule: .nonZero))
         }

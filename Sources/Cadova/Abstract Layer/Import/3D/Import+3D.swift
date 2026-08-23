@@ -14,7 +14,7 @@ extension Import where D == D3 {
     ///
     public init(model url: URL, parts: [PartIdentifier]? = nil) {
         self.init {
-            CachedNode(name: "import", parameters: url, parts) { _ in
+            CachedNode(name: "Cadova.Import", parameters: url, parts) { _ in
                 guard let format = try ModelFileFormat.detect(at: url) else {
                     throw ModelError.unrecognizedFormat
                 }
@@ -57,7 +57,7 @@ extension Import where D == D3 {
     public init<T: DataProtocol>(model data: T, parts: [PartIdentifier]? = nil) {
         let resolvedData = Data(data)
         self.init {
-            CachedNode(name: "import", parameters: resolvedData, parts) { _ in
+            CachedNode(name: "Cadova.Import", parameters: resolvedData, parts) { _ in
                 guard let format = ModelFileFormat.detect(from: resolvedData) else {
                     throw ModelError.unrecognizedFormat
                 }

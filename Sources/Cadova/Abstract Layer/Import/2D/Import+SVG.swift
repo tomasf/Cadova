@@ -17,7 +17,7 @@ extension Import where D == D2 {
     public init(svg url: URL, elementID: String? = nil, scale: SVGScale = .physical, origin: SVGOrigin = .flipped) {
         self.init {
             readEnvironment(\.scaledSegmentation) { segmentation in
-                CachedNode(name: "import-svg", parameters: url, elementID, scale, origin, segmentation) {
+                CachedNode(name: "Cadova.ImportSVG", parameters: url, elementID, scale, origin, segmentation) {
                     return try SVG(url: url).geometry(segmentation: segmentation, scale: scale, origin: origin, elementID: elementID)
                 }
             }
@@ -51,7 +51,7 @@ extension Import where D == D2 {
         let resolvedData = Data(data)
         self.init {
             readEnvironment(\.scaledSegmentation) { segmentation in
-                CachedNode(name: "import-svg", parameters: resolvedData, elementID, scale, origin, segmentation) {
+                CachedNode(name: "Cadova.ImportSVG", parameters: resolvedData, elementID, scale, origin, segmentation) {
                     return try SVG(data: resolvedData).geometry(segmentation: segmentation, scale: scale, origin: origin, elementID: elementID)
                 }
             }

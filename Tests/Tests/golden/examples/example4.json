@@ -9,7 +9,7 @@
         "type" : "6Cadova12NodeCacheKeyVyAA07LabeledcD0VAA2D2VG",
         "value" : {
           "base" : {
-            "operationName" : "sweep",
+            "operationName" : "Cadova.Sweep",
             "parameters" : [
               {
                 "type" : "6Cadova10BezierPathVyAA8Vector2DVG",

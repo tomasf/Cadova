@@ -84,6 +84,8 @@ shape.split {
 }
 ```
 
+When you need both halves inside async code rather than inside a geometry tree, `GeometryEvaluator.split(_:along:)` (and its mask- and range-based counterparts) gives you the same two parts as a tuple instead of a closure.
+
 ## Splitting a model for printing
 
 Cutting a tall model in half so both pieces fit the build volume is common enough to have its own method. `.split(along:arrangingPartsAlong:)` cuts, rotates each half so its cut face lies flat, and arranges the pieces side by side:

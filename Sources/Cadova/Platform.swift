@@ -30,7 +30,17 @@ struct WindowsError: Error {
 #endif
 
 extension Platform {
-    nonisolated(unsafe) static var revealingFilesDisabled = false
+    /// Set `CADOVA_REVEAL_FILES=false` to suppress automatic file revealing.
+    nonisolated(unsafe) static var revealingFilesDisabled = defaultRevealingFilesDisabled()
+
+    static func defaultRevealingFilesDisabled(environment: [String: String] = ProcessInfo.processInfo.environment) -> Bool {
+        switch environment["CADOVA_REVEAL_FILES"]?.lowercased() {
+        case "0", "false", "no", "off":
+            true
+        default:
+            false
+        }
+    }
 
     static func revealFiles(_ urls: [URL]) throws {
         guard !urls.isEmpty else { return }

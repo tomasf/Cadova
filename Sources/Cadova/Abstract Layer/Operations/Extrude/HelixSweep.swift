@@ -39,7 +39,7 @@ public extension Geometry2D {
             extruded(height: lengthPerRev * Double(fullRevolutions), divisions: totalSegments - 1)
                 .rotated(x: -90°)
                 .flipped(along: .z)
-                .warped(operationName: "extrudeAlongHelix", cacheParameters: pitch) {
+                .warped(operationName: "Cadova.ExtrudeAlongHelix", cacheParameters: pitch) {
                     let turns = $0.y / lengthPerRev
                     let angle = Angle(turns: turns)
                     return Vector3D(

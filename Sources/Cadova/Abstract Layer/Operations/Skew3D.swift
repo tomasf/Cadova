@@ -59,7 +59,7 @@ internal extension Geometry3D {
         let delta = max - min
         guard delta.x > 1e-8, delta.y > 1e-8, delta.z > 1e-8 else { return self }
 
-        return warped(operationName: "skewCorners", cacheParameters: source, destination) { point in
+        return warped(operationName: "Cadova.SkewCorners", cacheParameters: source, destination) { point in
             let t = (point - min) / delta
             let c000 = lerp(destination[0], destination[1], t: t.x)
             let c001 = lerp(destination[3], destination[2], t: t.x)

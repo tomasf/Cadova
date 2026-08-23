@@ -22,7 +22,7 @@ public extension Geometry2D {
             let segmentLength = bounds.size.x / Double(segmentCount)
 
             refined(maxEdgeLength: segmentLength)
-                .warped(operationName: "deformByPath", cacheParameters: curve, segmentation) {
+                .warped(operationName: "Cadova.DeformByPath", cacheParameters: curve, segmentation) {
                     (0...segmentCount).map {
                         let value = bounds.minimum.x + bounds.size.x * Double($0) / Double(segmentCount)
                         guard let parameter = curve.parameter(matching: value, along: .x) else {
@@ -63,7 +63,7 @@ public extension Geometry3D {
             let segmentLength = bounds.size.z / Double(segmentCount)
 
             refined(maxEdgeLength: segmentLength)
-                .warped(operationName: "deformByPath", cacheParameters: curve, segmentation) {
+                .warped(operationName: "Cadova.DeformByPath", cacheParameters: curve, segmentation) {
                     (0...segmentCount).map {
                         let value = bounds.minimum.z + bounds.size.z * Double($0) / Double(segmentCount)
                         guard let parameter = curve.parameter(matching: value, along: .z) else {

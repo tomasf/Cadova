@@ -102,7 +102,7 @@ internal struct RoundedBoxCornerMask: Geometry3D {
             boxSize: boxSize, radius: radius, segmentCount: segmentCount, cornerStyle: cornerRoundingStyle
         )
 
-        Mesh(faces: segmentedMask.faces, name: "RoundedBoxCornerMask", cacheParameters: boxSize, radius, segmentCount, cornerRoundingStyle) {
+        Mesh(faces: segmentedMask.faces, name: "Cadova.RoundedBoxCornerMask", cacheParameters: boxSize, radius, segmentCount, cornerRoundingStyle) {
             segmentedMask.resolve(vertex: $0)
         }
     }

@@ -12,6 +12,7 @@ let package = Package(
         .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.2.4")),
         .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.1.4")),
         .package(url: "https://github.com/tomasf/Pelagos.git", .upToNextMinor(from: "0.1.4")),
+        .package(url: "https://github.com/tomasf/CadovaLiveLink.git", .upToNextMinor(from: "0.2.1")),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0"),
     ],
     targets: [
@@ -21,13 +22,18 @@ let package = Package(
                 .product(name: "Apus", package: "Apus"),
                 .product(name: "Manifold", package: "manifold-swift"),
                 .product(name: "ThreeMF", package: "ThreeMF"),
-                .product(name: "Pelagos", package: "Pelagos")
+                .product(name: "Pelagos", package: "Pelagos"),
+                .product(name: "CadovaLiveLinkClient", package: "CadovaLiveLink", condition: .when(platforms: [.macOS])),
             ],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         ),
         .testTarget(
             name: "Tests",
-            dependencies: ["Cadova"],
+            dependencies: [
+                "Cadova",
+                .product(name: "ThreeMF", package: "ThreeMF"),
+                .product(name: "CadovaLiveLinkClient", package: "CadovaLiveLink", condition: .when(platforms: [.macOS])),
+            ],
             resources: [.copy("golden"), .copy("resources")],
             swiftSettings: [ .interoperabilityMode(.Cxx) ]
         )

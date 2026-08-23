@@ -272,7 +272,7 @@ internal extension EdgeProfile {
                         Mesh(
                             extruding: regionPolygons,
                             along: path,
-                            cacheName: "EdgeProfileSegment",
+                            cacheName: "Cadova.EdgeProfileSegment",
                             cacheParameters: regionPolygons, path
                         )
                         .correctingFaceWinding()
@@ -301,7 +301,7 @@ internal extension EdgeProfile {
     /// for either to act on — but a direct position-based weld in Swift, independent of however
     /// the engine happened to resolve things on a given run, fixes it reliably.
     static func welding(_ tool: any Geometry3D) -> any Geometry3D {
-        CachedNodeTransformer<D3, D3>(source: tool, name: "EdgeProfileTool") { node, _, context in
+        CachedNodeTransformer<D3, D3>(source: tool, name: "Cadova.EdgeProfileTool") { node, _, context in
             let manifold = try await context.result(for: node).concrete
             let (vertices, faces) = weldingCoincidentVertices(manifold.meshGL())
             return GeometryNode.shape(.mesh(MeshData(vertices: vertices, faces: faces)))

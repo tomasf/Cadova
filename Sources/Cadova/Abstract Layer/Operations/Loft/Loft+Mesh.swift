@@ -61,7 +61,7 @@ internal extension Mesh where Vertex == PolygonGroupVertex {
 
         self.init(
             faces: sideFaces + bottomFaces + topFaces,
-            name: "PolygonGroupMesh",
+            name: "Cadova.PolygonGroupMesh",
             cacheParameters: polygonGroups.map(\.polygons), polygonGroups.map(\.transforms)
         ) { vertex in
             point(vertex)

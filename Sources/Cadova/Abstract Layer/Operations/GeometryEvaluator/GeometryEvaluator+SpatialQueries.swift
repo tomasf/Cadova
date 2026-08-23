@@ -50,10 +50,16 @@ public extension GeometryEvaluator {
     /// - Parameters:
     ///   - geometry: The 3D geometry to query.
     ///   - segment: The segment along which to look for crossings.
-    /// - Returns: The nearest crossing within `segment`, or `nil` if none.
+    ///   - transition: If given, only crossings of that kind qualify, skipping any nearer crossing
+    ///     of the other kind. Defaults to `nil`, matching the nearest crossing of either kind.
+    /// - Returns: The nearest matching crossing within `segment`, or `nil` if none.
     ///
-    func firstSurface(of geometry: any Geometry3D, along segment: LineSegment3D) async -> SurfaceCrossing? {
-        await surfaces(of: geometry, along: segment).first
+    func firstSurface(
+        of geometry: any Geometry3D,
+        along segment: LineSegment3D,
+        transition: SurfaceCrossing.Transition? = nil
+    ) async -> SurfaceCrossing? {
+        await surfaces(of: geometry, along: segment).first(with: transition)
     }
 
     /// Returns the first surface crossing along the ray from `origin` in `direction`, or `nil` if the
@@ -65,9 +71,18 @@ public extension GeometryEvaluator {
     ///   - geometry: The 3D geometry to query.
     ///   - origin: The starting point of the ray.
     ///   - direction: The direction the ray extends.
-    /// - Returns: The nearest forward crossing, or `nil` if the ray misses.
+    ///   - transition: If given, only crossings of that kind qualify, skipping any nearer crossing
+    ///     of the other kind. For example, `.exiting` finds where the ray leaves the solid, which is
+    ///     the far side of the first solid region it passes through. Defaults to `nil`, matching the
+    ///     nearest crossing of either kind.
+    /// - Returns: The nearest matching forward crossing, or `nil` if the ray misses.
     ///
-    func firstSurface(of geometry: any Geometry3D, from origin: Vector3D, in direction: Direction3D) async -> SurfaceCrossing? {
-        await surfaces(of: geometry, from: origin, in: direction).first
+    func firstSurface(
+        of geometry: any Geometry3D,
+        from origin: Vector3D,
+        in direction: Direction3D,
+        transition: SurfaceCrossing.Transition? = nil
+    ) async -> SurfaceCrossing? {
+        await surfaces(of: geometry, from: origin, in: direction).first(with: transition)
     }
 }

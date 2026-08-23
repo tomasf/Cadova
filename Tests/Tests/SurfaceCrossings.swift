@@ -96,18 +96,18 @@ struct SurfaceCrossingsTests {
         #expect(try await geometry.bounds ≈ .init(minimum: [0, 0, 0], maximum: [1, 1, 1]))
     }
 
-    @Test func `entersSolid alternates as ray pierces a hollow shape`() async throws {
+    @Test func `transition alternates as ray pierces a hollow shape`() async throws {
         // Outer 10×10×10 box centered at origin with a 6×6×6 cavity carved out of the middle.
         // A ray along +X through the center should hit: outer enter, outer exit-into-cavity,
-        // inner enter, inner exit — entersSolid pattern true, false, true, false.
+        // inner enter, inner exit — transition pattern entering, exiting, entering, exiting.
         let shell = Box(10).aligned(at: .center)
             .subtracting {
                 Box(6).aligned(at: .center)
             }
 
-        // Encode (index, entersSolid) into a unique sphere z-coordinate per crossing so the
+        // Encode (index, transition) into a unique sphere z-coordinate per crossing so the
         // overall z-extent of the result uniquely identifies the full sequence.
-        // z = (index + 1) × (entersSolid ? +100 : -100):
+        // z = (index + 1) × (entering ? +100 : -100), writing entering as T and exiting as F:
         //   T, F, T, F  →  100, -200, 300, -400   → z bounds [-400, 300]
         //   T, T, T, T  →  100,  200, 300,  400   → z bounds [-5 (shell), 400]
         //   F, F, F, F  → -100, -200,-300, -400   → z bounds [-400, 5 (shell)]
@@ -115,7 +115,7 @@ struct SurfaceCrossingsTests {
         let geometry = shell.readingSurfaces(from: [-10, 0, 0], in: .right) { shape, crossings in
             shape.adding {
                 for (index, c) in crossings.enumerated() {
-                    let z = Double(index + 1) * (c.entersSolid ? 100 : -100)
+                    let z = Double(index + 1) * (c.transition == .entering ? 100 : -100)
                     Sphere(radius: 0.05).translated([c.position.x, 0, z])
                 }
             }
@@ -124,5 +124,78 @@ struct SurfaceCrossingsTests {
         // Max z = 300 + 0.05 (the +100 sphere at index 2). Min z = -400 - 0.05 (the -100 sphere at index 3).
         #expect(bounds?.maximum.z ≈ 300.05)
         #expect(bounds?.minimum.z ≈ -400.05)
+    }
+
+    // A 10×10×10 box centered at origin with a 6×6×6 cavity. Along +X through the center the wall
+    // faces sit at x = -5 (entering), -3 (exiting), 3 (entering) and 5 (exiting).
+    private var hollowShell: any Geometry3D {
+        Box(10).aligned(at: .center)
+            .subtracting {
+                Box(6).aligned(at: .center)
+            }
+    }
+
+    @Test func `first surface (ray) with a transition skips the nearer crossing`() async throws {
+        // Only the marker sphere is returned, so its bounds pin down the crossing position exactly.
+        let marker = hollowShell.readingFirstSurface(from: [-10, 0, 0], in: .right, transition: .exiting) { _, hit in
+            if let hit {
+                Sphere(radius: 0.05).translated(hit.position)
+            }
+        }
+        // The nearest crossing is the entry at x = -5; .exiting skips it for the cavity wall at x = -3.
+        #expect(try await marker.bounds ≈ .init(minimum: [-3.05, -0.05, -0.05], maximum: [-2.95, 0.05, 0.05]))
+    }
+
+    @Test func `first surface (ray) without a transition keeps the nearest crossing`() async throws {
+        let marker = hollowShell.readingFirstSurface(from: [-10, 0, 0], in: .right) { _, hit in
+            if let hit {
+                Sphere(radius: 0.05).translated(hit.position)
+            }
+        }
+        #expect(try await marker.bounds ≈ .init(minimum: [-5.05, -0.05, -0.05], maximum: [-4.95, 0.05, 0.05]))
+    }
+
+    @Test func `first surface (segment) with a transition skips the nearer crossing`() async throws {
+        let segment = LineSegment3D(from: [-10, 0, 0], to: [10, 0, 0])
+        let marker = hollowShell.readingFirstSurface(along: segment, transition: .exiting) { _, hit in
+            if let hit {
+                Sphere(radius: 0.05).translated(hit.position)
+            }
+        }
+        #expect(try await marker.bounds ≈ .init(minimum: [-3.05, -0.05, -0.05], maximum: [-2.95, 0.05, 0.05]))
+    }
+
+    @Test func `transform maps the local origin and Z axis onto position and normal`() throws {
+        let normal = Direction3D([1, 0, 1])
+        let crossing = SurfaceCrossing(position: [1, 2, 3], normal: normal, distance: 7, transition: .exiting)
+        // Local origin lands on the crossing, and local +Z points along the outward normal.
+        let expectedTip = Vector3D(1, 2, 3) + normal.unitVector
+        #expect(crossing.transform.apply(to: .zero) ≈ Vector3D(1, 2, 3))
+        #expect(crossing.transform.apply(to: [0, 0, 1]) ≈ expectedTip)
+    }
+
+    @Test func `transform stands geometry on the surface it hit`() async throws {
+        // A post standing on the local XY plane, so its placement reveals the transform exactly.
+        let marker = Box(1).readingFirstSurface(from: [0.5, 0.5, 10], in: .down) { _, hit in
+            if let hit {
+                Box([0.2, 0.2, 2])
+                    .aligned(at: .centerXY)
+                    .transformed(hit.transform)
+            }
+        }
+        // The top face sits at z=1 with an upward normal, so the post rises from there to z=3.
+        #expect(try await marker.bounds ≈ .init(minimum: [0.4, 0.4, 1], maximum: [0.6, 0.6, 3]))
+    }
+
+    @Test func `first surface with an unmatched transition produces no crossing`() async throws {
+        // A ray starting inside the far wall only ever exits, so .entering matches nothing.
+        let geometry = hollowShell.readingFirstSurface(from: [4, 0, 0], in: .right, transition: .entering) { shell, hit in
+            shell.adding {
+                if let hit {
+                    Sphere(radius: 5).translated(hit.position)
+                }
+            }
+        }
+        #expect(try await geometry.bounds ≈ .init(minimum: [-5, -5, -5], maximum: [5, 5, 5]))
     }
 }

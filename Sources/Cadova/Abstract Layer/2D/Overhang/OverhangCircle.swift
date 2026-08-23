@@ -48,3 +48,22 @@ internal struct OverhangCylinder: Geometry3D {
         }
     }
 }
+
+internal struct OverhangSphere: Geometry3D {
+    let radius: Double
+
+    var body: any Geometry3D {
+        @Environment(\.circularOverhangMethod) var method
+        @Environment(\.naturalUpDirection) var upDirection
+
+        switch method {
+        case .none:
+            Sphere(radius: radius)
+        case .teardrop, .bridge:
+            OverhangCircle(radius: radius)
+                .definingNaturalUpDirection(.positiveY)
+                .revolved()
+                .rotated(from: .positiveZ, to: upDirection)
+        }
+    }
+}

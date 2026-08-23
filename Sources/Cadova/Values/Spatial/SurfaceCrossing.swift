@@ -16,15 +16,24 @@ public struct SurfaceCrossing: Sendable, Hashable, Codable {
     /// Always non-negative.
     public let distance: Double
 
-    /// `true` if the ray or segment is moving from the outside to the inside of the solid at this
-    /// crossing — i.e. the surface normal opposes the direction of travel. `false` for an exit.
-    public let entersSolid: Bool
+    /// Whether the ray or segment is moving into or out of the solid at this crossing.
+    public let transition: Transition
 
-    internal init(position: Vector3D, normal: Direction3D, distance: Double, entersSolid: Bool) {
+    /// The direction a ray or segment passes through a surface.
+    public enum Transition: Sendable, Hashable, Codable, CaseIterable {
+        /// The ray moves from the outside to the inside of the solid, meaning the surface normal
+        /// opposes the direction of travel.
+        case entering
+        /// The ray moves from the inside to the outside of the solid, meaning the surface normal
+        /// points along the direction of travel.
+        case exiting
+    }
+
+    internal init(position: Vector3D, normal: Direction3D, distance: Double, transition: Transition) {
         self.position = position
         self.normal = normal
         self.distance = distance
-        self.entersSolid = entersSolid
+        self.transition = transition
     }
 
     /// Builds a crossing from a Manifold ray hit, expressing the hit's parametric distance in
@@ -36,7 +45,36 @@ public struct SurfaceCrossing: Sendable, Hashable, Codable {
             position: hit.position,
             normal: normal,
             distance: (hit.position - origin) ⋅ dir,
-            entersSolid: (normal.unitVector ⋅ dir) < 0
+            transition: (normal.unitVector ⋅ dir) < 0 ? .entering : .exiting
         )
+    }
+}
+
+public extension SurfaceCrossing {
+    /// A transform that places geometry at `position` with its local +Z axis aligned with `normal`,
+    /// pointing out of the solid.
+    ///
+    /// Use it to stand a feature on the surface where the ray hit it:
+    ///
+    /// ```swift
+    /// Cylinder(diameter: 3, height: 5)
+    ///     .transformed(crossing.transform)
+    /// ```
+    ///
+    /// The remaining axes are determined by rotating from `.up` to `normal`, matching the convention
+    /// used by ``CurveSample/transform`` and `Geometry3D.definingAnchor(_:pointing:)`. Rotation
+    /// around the normal is otherwise unconstrained.
+    var transform: Transform3D {
+        .identity
+            .rotated(from: .up, to: normal)
+            .translated(position)
+    }
+}
+
+internal extension Sequence<SurfaceCrossing> {
+    /// The first crossing with the given transition, or the first crossing of either kind if
+    /// `transition` is `nil`.
+    func first(with transition: SurfaceCrossing.Transition?) -> SurfaceCrossing? {
+        first { transition == nil || $0.transition == transition }
     }
 }

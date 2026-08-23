@@ -73,3 +73,35 @@ public extension Cylinder {
             }
     }
 }
+
+public extension Sphere {
+    /// Returns a modified version of this sphere with geometry adjusted to improve printability.
+    ///
+    /// If the sphere would otherwise produce steep overhangs when printed, this method adds relief
+    /// geometry — such as a pointed teardrop or bridged profile — to make the shape printable
+    /// without support.
+    ///
+    /// The overhang angle threshold is taken from the environment's `overhangAngle`, which defaults
+    /// to 45° — a safe value for most FDM printers.
+    ///
+    /// The direction of extension depends on whether the sphere is added or subtracted. When
+    /// subtracted from another shape, the top side is extended upward. When added, the bottom is
+    /// extended downward.
+    ///
+    /// The "top" direction is determined by the environment’s `naturalUpDirection`, which defaults
+    /// to positive Z in world space, but can be customized via `definingNaturalUpDirection(_:)`.
+    ///
+    /// If the method resolves to `.none`, the result is a regular sphere without overhang relief.
+    ///
+    /// - Parameter method: The overhang relief method to use. If `nil`, the method is inherited from
+    ///   the environment’s `circularOverhangMethod`.
+    ///
+    func overhangSafe(_ method: CircularOverhangMethod? = nil) -> any Geometry3D {
+        OverhangSphere(radius: radius)
+            .withEnvironment {
+                if let method {
+                    $0.circularOverhangMethod = method
+                }
+            }
+    }
+}

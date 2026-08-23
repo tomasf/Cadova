@@ -1,5 +1,5 @@
 {
-  "originHash" : "c5ac46d253d303f069f373a48163f619d6f9dc2c9851045dff8cf3d1692879d9",
+  "originHash" : "2b97f5f991faf669c2afe8799c17fe2c674750b7a277e96a68a36f3b9c3c940d",
   "pins" : [
     {
       "identity" : "apus",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "3ccc37d65daada2a675ddcc3d8a534e5db94726d",
         "version" : "0.1.4"
+      }
+    },
+    {
+      "identity" : "cadovalivelink",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tomasf/CadovaLiveLink.git",
+      "state" : {
+        "revision" : "4e6cdee60cecf1cde2204578485445533ad0324b",
+        "version" : "0.2.1"
       }
     },
     {

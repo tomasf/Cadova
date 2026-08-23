@@ -10,7 +10,7 @@
           "type" : "6Cadova12NodeCacheKeyVyAA07LabeledcD0VAA2D3VG",
           "value" : {
             "base" : {
-              "operationName" : "wrapAroundSphere",
+              "operationName" : "Cadova.WrapAroundSphere",
               "parameters" : [
                 {
                   "type" : "Sd",

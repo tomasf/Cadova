@@ -34,7 +34,7 @@ internal struct FollowPath2D<Path: ParametricCurve<Vector2D>>: Geometry2D {
             let lengthFactor = pathLength / bounds.size.x
 
             body.refined(maxEdgeLength: bounds.size.x / Double(segmentation.segmentCount(length: pathLength)))
-                .warped(operationName: "followPath", cacheParameters: path, segmentation) {
+                .warped(operationName: "Cadova.FollowPath", cacheParameters: path, segmentation) {
                     path.samples(segmentation: segmentation)
                 } transform: { p, frames in
                     let distanceTarget = (p.x - bounds.minimum.x) * lengthFactor

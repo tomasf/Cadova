@@ -75,7 +75,7 @@ internal struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Geometry2D {
         @Environment(\.lineCapStyle) var capStyle
 
         CachedNode(
-            name: "strokeCurve",
+            name: "Cadova.StrokeCurve",
             parameters: curve, width, alignment, style, capStyle, segmentation, miterLimit
         ) {
             guard width > 0 else { return Empty() }
