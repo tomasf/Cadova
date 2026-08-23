@@ -113,7 +113,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 metadata: options[Metadata.self].liveLinkMetadata
             )
             try await LiveLinkClient.push(message)
-            logger.debug("Pushed model \"\(url.lastPathComponent)\" to Cadova Viewer")
+            logger.info("Pushed model \"\(url.lastPathComponent)\" to Cadova Viewer")
         } catch {
             logger.debug("Skipped live link push for \(url.lastPathComponent): \(error)")
         }
