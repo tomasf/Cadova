@@ -110,4 +110,31 @@ struct ThreeMFDataProviderLiveLinkTests {
 
         #expect(liveLinkOrderIDs == fileOrderIDs)
     }
+
+    /// A part whose geometry evaluates to nothing (as opposed to being structurally `.empty`, e.g.
+    /// a subtraction that fully cancels) must not appear in `resolvedParts` — the shared assembly
+    /// point behind both the 3MF file and the LiveLink push — or in the written 3MF file itself.
+    @Test func `parts that evaluate to empty geometry are dropped`() async throws {
+        let geometry: any Geometry3D = Box(x: 10, y: 20, z: 30)
+            .adding {
+                Sphere(diameter: 5).translated(x: 20).inPart(Part("Zebra"))
+                Sphere(diameter: 5).subtracting { Sphere(diameter: 5) }.inPart(Part("Nothing"))
+            }
+
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cadova-test-\(UUID().uuidString).3mf")
+        defer { try? FileManager.default.removeItem(at: tempURL) }
+
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
+        let provider = ThreeMFDataProvider(result: result, options: [])
+
+        let resolved = try await provider.resolvedParts(context: context)
+        #expect(Set(resolved.map(\.part.name)) == ["Model", "Zebra"])
+
+        try await provider.writeOutput(to: tempURL, context: context)
+        let reader = try ThreeMF.PackageReader(url: tempURL)
+        let fileOrderIDs = try reader.model().build.items.map { $0.partNumber ?? "" }
+        #expect(Set(fileOrderIDs) == ["model", "zebra"])
+    }
 }

@@ -38,6 +38,9 @@ struct ThreeMFDataProvider: OutputDataProvider {
     /// cache. Shared by both `write(to:context:)` (the 3MF path) and `pushToLiveLink` — calling
     /// this twice per `Model.build()` (once for each) re-evaluates the same nodes, which is a
     /// cache hit rather than recomputation.
+    ///
+    /// Parts whose geometry evaluates to nothing (e.g. a subtraction that fully cancels) are
+    /// dropped, so neither the 3MF file nor a LiveLink push ever carries an empty part.
     func resolvedParts(context: EvaluationContext) async throws -> [ResolvedPart] {
         var outputs = result.elements[PartCatalog.self].mergedOutputs
         let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
@@ -50,6 +53,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
 
         return try await outputs.asyncCompactMap { part, result -> ResolvedPart? in
             let nodeResult = try await context.result(for: result.node)
+            guard nodeResult.concrete.isEmpty == false else { return nil }
             return ResolvedPart(part: part, manifold: nodeResult.concrete, materials: nodeResult.materialMapping)
         }
     }
