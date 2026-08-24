@@ -28,7 +28,7 @@ public extension EdgeProfile {
     /// - Returns: An edge profile representing the chamfer with the specified angle.
     ///
     static func chamfer(depth: Double, angle: Angle) -> Self {
-        assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
+        precondition((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
         return .chamfer(depth: depth, height: depth * tan(angle))
     }
 
@@ -39,7 +39,7 @@ public extension EdgeProfile {
     /// - Returns: An edge profile representing the chamfer with the specified angle.
     ///
     static func chamfer(height: Double, angle: Angle) -> Self {
-        assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
+        precondition((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
         return .chamfer(depth: height / tan(angle), height: height)
     }
 }

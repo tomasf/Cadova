@@ -54,7 +54,7 @@ internal extension MeshData {
 internal extension [Vector3D] {
     // Flatten an array of coplanar 3D points into 2D. The output has the same ordering as the input.
     func flattenCoplanar() -> [Vector2D] {
-        assert(count >= 3)
+        precondition(count >= 3)
 
         let v1 = (self[1] - self[0]).normalized
         let v2 = ((self[1] - self[0]) × (self[2] - self[0])).normalized × v1

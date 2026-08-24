@@ -157,7 +157,7 @@ public extension Transform3D {
     ///   - otherAxis: The axis to shear with respect to.
     ///   - angle: The angle of shearing.
     static func shearing(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> Transform3D {
-        assert(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
+        precondition(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
         let factor = sin(angle) / sin(90° - angle)
         return shearing(axis, along: otherAxis, factor: factor)
     }

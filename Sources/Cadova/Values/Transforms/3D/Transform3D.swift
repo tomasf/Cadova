@@ -32,13 +32,13 @@ public struct Transform3D: Transform {
     ///   - column: The column index (0 to 3).
     public subscript(_ row: Int, _ column: Int) -> Double {
         get {
-            assert((0...3).contains(row), "Row index out of range")
-            assert((0...3).contains(column), "Column index out of range")
+            precondition((0...3).contains(row), "Row index out of range")
+            precondition((0...3).contains(column), "Column index out of range")
             return matrix[column, row]
         }
         set {
-            assert((0...3).contains(row), "Row index out of range")
-            assert((0...3).contains(column), "Column index out of range")
+            precondition((0...3).contains(row), "Row index out of range")
+            precondition((0...3).contains(column), "Column index out of range")
             matrix[column, row] = newValue
         }
     }
