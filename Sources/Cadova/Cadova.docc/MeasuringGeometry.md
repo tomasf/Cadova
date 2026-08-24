@@ -50,7 +50,7 @@ If the shape might be empty, `.measuringBounds(_:)` won't have a box to give you
 
 When you need more than the bounding box, `.measuring(_:)` passes a full ``Measurements`` value. Which properties are available depends on whether the geometry is 2D or 3D.
 
-For 2D geometry you get `area`, `contourCount` (the number of closed paths), `isConvex`, `pointCount`, `isEmpty`, and the `boundingBox`. For example, only hatch a region if it's large enough to be worth it:
+For 2D geometry you get `area`, `centroid` (the area-weighted center), `contourCount` (the number of closed paths), `isConvex`, `pointCount`, `isEmpty`, and the `boundingBox`. For example, only hatch a region if it's large enough to be worth it:
 
 ```swift
 region.measuring { shape, measurements in
@@ -61,7 +61,7 @@ region.measuring { shape, measurements in
 }
 ```
 
-For 3D geometry you get `volume`, `surfaceArea`, `edgeCount`, `triangleCount`, `pointCount`, `isEmpty`, `partCount`, and the `boundingBox`.
+For 3D geometry you get `volume`, `centroid` (the volume-weighted center), `surfaceArea`, `edgeCount`, `triangleCount`, `pointCount`, `isEmpty`, `partCount`, and the `boundingBox`.
 
 By default, measurements cover the main geometry together with its solid (printable) parts. Pass a ``MeasurementScope`` to change that: `.mainPart` measures only the main geometry, while `.allParts` includes context and visual parts too. Parts are a 3D concept (see <doc:WorkingWithParts>), so the scope has no effect on 2D geometry.
 

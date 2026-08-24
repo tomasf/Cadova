@@ -79,6 +79,7 @@ extension Measurements: CustomDebugStringConvertible {
         if let self = self as? Measurements2D {
             items = [
                 "Bounding box": boundingBox ?? "none",
+                "Centroid": self.centroid ?? "none",
                 "Is empty": isEmpty,
                 "Area": self.area,
                 "Point count": self.pointCount,
@@ -88,6 +89,7 @@ extension Measurements: CustomDebugStringConvertible {
         } else if let self = self as? Measurements3D {
             items = [
                 "Bounding box": boundingBox ?? "none",
+                "Centroid": self.centroid ?? "none",
                 "Is empty": isEmpty,
                 "Surface area": self.surfaceArea,
                 "Volume": self.volume,
