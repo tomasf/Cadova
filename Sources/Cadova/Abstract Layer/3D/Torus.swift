@@ -4,7 +4,7 @@ import Foundation
 ///
 /// A `Torus` is characterized by two primary parameters: a major radius and a minor radius. The major radius determines the distance from the center of the torus to the center of the tube, while the minor radius defines the radius of the tube itself.
 
-public struct Torus: Geometry3D {
+public struct Torus: Geometry3D, Hashable, Sendable, Codable {
     /// The radius of the tube.
     public let minorRadius: Double
 

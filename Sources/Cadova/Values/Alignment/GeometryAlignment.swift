@@ -28,7 +28,7 @@ import Foundation
 ///
 /// See also: `AxisAlignment`, `Geometry.aligned(at:)`, and `Stack`.
 ///
-public struct GeometryAlignment<D: Dimensionality>: Equatable, Sendable {
+public struct GeometryAlignment<D: Dimensionality>: Hashable, Sendable {
     internal let values: DimensionalValues<AxisAlignment?, D>
 
     private init(_ values: DimensionalValues<AxisAlignment?, D>) {

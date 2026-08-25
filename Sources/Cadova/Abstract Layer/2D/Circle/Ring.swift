@@ -9,7 +9,7 @@ import Foundation
 /// ```swift
 /// let ring = Ring(outerDiameter: 10, innerDiameter: 4)
 /// ```
-public struct Ring: Geometry2D {
+public struct Ring: Geometry2D, Hashable, Sendable, Codable {
     /// The outer diameter of the ring.
     public let outerDiameter: Double
 

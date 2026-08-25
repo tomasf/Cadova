@@ -8,7 +8,7 @@ import Foundation
 /// let arcWithRadius = Arc(range: 0°..<90°, radius: 5)
 /// let arcWithDiameter = Arc(range: 0°..<90°, diameter: 10)
 /// ```
-public struct Arc: Geometry2D {
+public struct Arc: Geometry2D, Hashable, Sendable, Codable {
     /// The angular range of the arc.
     public let range: Range<Angle>
 
