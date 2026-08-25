@@ -2,23 +2,24 @@ import Foundation
 
 /// Imports geometry from an external file.
 ///
-/// Use `Import` to bring in geometry from existing files. The supported formats depend on
-/// the dimensionality:
+/// Use `Import` to bring in geometry from existing files. In 2D, SVG documents are supported:
 ///
-/// **2D (SVG)**
 /// ```swift
 /// Import(svg: "drawing.svg")
 /// Import(svg: url, scale: .pixels, origin: .native)
 /// ```
 ///
-/// **3D (Models)**
-/// - **3MF**: Full support including part selection by name or part number
-/// - **STL**: Binary and ASCII formats (single mesh, no part selection)
+/// In 3D, both 3MF and STL models are supported. 3MF files additionally support selecting
+/// individual parts by name or part number; STL files are always imported as a single mesh.
 ///
 /// ```swift
 /// Import(model: "part.3mf")
 /// Import(model: url, parts: [.name("Handle")])
 /// ```
+///
+/// > Important: Imported 3D models must be manifold (watertight, with consistently oriented,
+/// > non-self-intersecting faces). Non-manifold geometry may fail or produce unexpected
+/// > results in later operations.
 ///
 public struct Import<D: Dimensionality>: Geometry {
     internal let makeBody: @Sendable () -> any Geometry<D>
