@@ -156,18 +156,3 @@ public func Project(
         content: content
     )
 }
-
-private extension URL {
-    /// Finds the package root by locating the last `Sources` component in the path
-    /// and returning its parent directory.
-    var packageRootURL: URL? {
-        var url = self
-        while url.pathComponents.count > 1 {
-            if url.lastPathComponent == "Sources" {
-                return url.deletingLastPathComponent()
-            }
-            url = url.deletingLastPathComponent()
-        }
-        return nil
-    }
-}

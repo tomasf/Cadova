@@ -57,6 +57,34 @@ extension URL {
         }
         self = url
     }
+
+    /// Finds the root of the Swift package containing this file by walking up the directory tree
+    /// to the nearest ancestor containing a `Package.swift` manifest.
+    ///
+    /// For nested packages, this resolves to the innermost package that owns the file. Returns `nil`
+    /// if no manifest is found, which happens when the file isn't part of a Swift package or the
+    /// source tree isn't present at runtime.
+    var packageRootURL: URL? {
+        var url = standardizedFileURL.deletingLastPathComponent()
+        while url.pathComponents.count > 1 {
+            if url.appending(path: "Package.swift").isRegularFile {
+                return url
+            }
+            // Stop if the path can no longer be shortened. `deletingLastPathComponent` is not
+            // guaranteed to reduce the component count at every filesystem root on every platform,
+            // and this loop must terminate regardless.
+            let parent = url.deletingLastPathComponent()
+            guard parent.pathComponents.count < url.pathComponents.count else { break }
+            url = parent
+        }
+        return nil
+    }
+
+    /// Whether this URL points at an existing regular file, as opposed to a directory, a
+    /// nonexistent path, or something unreadable.
+    private var isRegularFile: Bool {
+        (try? resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+    }
 }
 
 extension String {
