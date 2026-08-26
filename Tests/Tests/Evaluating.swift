@@ -77,8 +77,8 @@ struct EvaluatingTests {
         }
         _ = try await evaluator.node
 
-        #expect(capture.fromReader.count == capture.fromEvaluator.count)
         #expect(capture.fromReader.count == 1)
+        #expect(capture.fromReader ≈ capture.fromEvaluator)
     }
 
     @Test func `components via evaluator match separated reader`() async throws {

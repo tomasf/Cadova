@@ -207,30 +207,32 @@ struct ProjectionTests {
     // MARK: - Projection with Reader Closure
 
     @Test func `projected with reader provides both geometries`() async throws {
-        let box = Box(10)
-
-        let result: any Geometry3D = box.projected { original, projection in
-            // Use projection to create an extruded version
-            projection.extruded(height: 5)
+        // Combine both parameters, so the test fails if either the original or its shadow is wrong.
+        let result: any Geometry3D = Box(x: 10, y: 20, z: 5).projected { original, projection in
+            original.adding {
+                projection.extruded(height: 3).translated(z: 5)
+            }
         }
-        let bounds = try await result.bounds
+        let m = try await result.measurements
 
-        #expect(bounds?.size.x ≈ 10)
-        #expect(bounds?.size.y ≈ 10)
-        #expect(bounds?.size.z ≈ 5)
+        // The 10×20×5 box (1000) capped by a 3-tall slab extruded from its own 10×20 shadow (600).
+        #expect(m.volume.equals(1600, within: 0.01))
+        #expect(m.boundingBox ≈ .init(minimum: .zero, maximum: [10, 20, 8]))
     }
 
     @Test func `sliced with reader provides both geometries`() async throws {
-        let cylinder = Cylinder(diameter: 10, height: 20)
-
-        let result: any Geometry3D = cylinder.sliced(atZ: 10) { original, slice in
-            // Use slice as a cap
-            slice.extruded(height: 2)
+        // Combine both parameters, so the test fails if either the original or the slice is wrong.
+        let result: any Geometry3D = Cylinder(diameter: 10, height: 20).sliced(atZ: 10) { original, slice in
+            original.adding {
+                slice.extruded(height: 2).translated(z: 20)
+            }
         }
-        let bounds = try await result.bounds
+        let m = try await result.measurements
 
-        #expect(bounds != nil)
-        #expect(bounds?.size.z ≈ 2)
+        // The cylinder (π·25·20) capped by a 2-tall disc extruded from its own cross-section (π·25·2).
+        let expectedVolume = Double.pi * 25 * 22
+        #expect(m.volume.equals(expectedVolume, within: 1))
+        #expect(m.boundingBox ≈ .init(minimum: [-5, -5, 0], maximum: [5, 5, 22]))
     }
 
     // MARK: - Complex Shapes

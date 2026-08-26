@@ -123,12 +123,15 @@ struct WarpTests {
                 point.x *= scale
                 point.y *= scale
             }
-        let bounds = try await geometry.bounds
+        let measurements = try await geometry.measurements
 
-        // Top should be narrower than bottom
-        #expect(bounds?.minimum.x ≈ 0)
-        #expect(bounds?.minimum.y ≈ 0)
-        #expect(bounds?.size.z ≈ 10)
+        // The taper leaves the bounding box alone — the widest cross-section is still the
+        // untouched one at z=0 — so only the volume shows whether it happened at all.
+        // The side shrinks linearly from 10 at z=0 to 5 at z=10:
+        // V = ∫₀¹⁰ (10·(1 - 0.05z))² dz = 2000·(1 - 0.5³)/3.
+        let expectedVolume = 2000.0 * (1 - 0.125) / 3
+        #expect(measurements.volume.equals(expectedVolume, within: 0.01))
+        #expect(measurements.boundingBox ≈ .init(minimum: .zero, maximum: [10, 10, 10]))
     }
 
     // MARK: - Non-linear Transformations
