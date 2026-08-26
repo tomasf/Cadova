@@ -17,6 +17,17 @@ import Foundation
 /// Import(model: url, parts: [.name("Handle")])
 /// ```
 ///
+/// A closure form gives you each part of a 3MF file in turn, letting you leave parts out, route
+/// them into ``Part``s or modify them as they're imported:
+///
+/// ```swift
+/// Import(model: url) { geometry, part in
+///     if part.name != "Support" {
+///         geometry.inPart(Part(part.defaultName))
+///     }
+/// }
+/// ```
+///
 /// > Important: Imported 3D models must be manifold (watertight, with consistently oriented,
 /// > non-self-intersecting faces). Non-manifold geometry may fail or produce unexpected
 /// > results in later operations.

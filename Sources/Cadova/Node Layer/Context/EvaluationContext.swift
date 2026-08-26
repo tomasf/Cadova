@@ -9,6 +9,7 @@ import Manifold3D
 public struct _EvaluationContext: Sendable {
     internal let cache2D = GeometryCache<D2>()
     internal let cache3D = GeometryCache<D3>()
+    internal let threeMFModelCache = ThreeMFModelCache()
 
     internal init() {}
 }
