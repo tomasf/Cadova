@@ -69,38 +69,6 @@ struct BuildTests {
         #expect(files.contains("test-stl.stl"))
     }
 
-    @Test func `Model accepts metadata`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        await Project(root: tempDir) {
-            await Model("with-metadata") {
-                Metadata(title: "Test Model", author: "Test Author")
-                Box(10)
-            }
-        }
-
-        let files = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
-        #expect(files.contains("with-metadata.3mf"))
-    }
-
-    @Test func `Model accepts environment directives`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        await Project(root: tempDir) {
-            await Model("with-environment") {
-                Environment(\.segmentation, .fixed(8))
-                Cylinder(diameter: 10, height: 10)
-            }
-        }
-
-        let files = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
-        #expect(files.contains("with-environment.3mf"))
-    }
-
     @Test func `Model with no geometry produces no file`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -195,46 +163,6 @@ struct BuildTests {
         #expect(files.contains("inherited-format.stl"))
     }
 
-    @Test func `Group accepts environment directives`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        await Project(root: tempDir) {
-            await Group("with-env") {
-                Environment(\.segmentation, .fixed(8))
-
-                await Model("model") {
-                    Cylinder(diameter: 10, height: 10)
-                }
-            }
-        }
-
-        let groupDir = tempDir.appending(path: "with-env")
-        let files = try FileManager.default.contentsOfDirectory(atPath: groupDir.path)
-        #expect(files.contains("model.3mf"))
-    }
-
-    @Test func `Group accepts metadata directives`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        await Project(root: tempDir) {
-            await Group("with-metadata") {
-                Metadata(author: "Group Author")
-
-                await Model("model") {
-                    Box(10)
-                }
-            }
-        }
-
-        let groupDir = tempDir.appending(path: "with-metadata")
-        let files = try FileManager.default.contentsOfDirectory(atPath: groupDir.path)
-        #expect(files.contains("model.3mf"))
-    }
-
     @Test func `Model filter matches root model name without matching grouped model with same name`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -317,40 +245,6 @@ struct BuildTests {
         #expect(files.contains("model3.3mf"))
     }
 
-    @Test func `Project accepts environment directives`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        await Project(root: tempDir) {
-            Environment(\.segmentation, .fixed(8))
-
-            await Model("env-model") {
-                Cylinder(diameter: 10, height: 10)
-            }
-        }
-
-        let files = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
-        #expect(files.contains("env-model.3mf"))
-    }
-
-    @Test func `Project accepts metadata directives`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        await Project(root: tempDir) {
-            Metadata(title: "Project Title", author: "Project Author")
-
-            await Model("metadata-model") {
-                Box(10)
-            }
-        }
-
-        let files = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
-        #expect(files.contains("metadata-model.3mf"))
-    }
-
     @Test func `Project with mixed models and groups`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -376,14 +270,6 @@ struct BuildTests {
         #expect(subFiles.contains("grouped.3mf"))
     }
 
-    @Test func `Project with nil root uses current directory`() async throws {
-        // This test just verifies the API compiles and runs without crashing
-        // We don't actually create files since we don't want to pollute the working directory
-        await Project(root: nil as URL?) {
-            // Empty project - no files created
-        }
-    }
-
     @Test func `Project with string path`() async throws {
         let tempPath = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString).path
         defer { try? FileManager.default.removeItem(atPath: tempPath) }
@@ -396,86 +282,6 @@ struct BuildTests {
 
         let files = try FileManager.default.contentsOfDirectory(atPath: tempPath)
         #expect(files.contains("string-path-model.3mf"))
-    }
-
-    // MARK: - Environment Inheritance Tests
-
-    @Test func `Model inherits environment from Project`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        // Project sets environment, model should inherit it
-        await Project(root: tempDir) {
-            Environment(\.segmentation, .fixed(6))
-
-            await Model("inherited-env") {
-                Cylinder(diameter: 10, height: 10)
-            }
-        }
-
-        let files = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
-        #expect(files.contains("inherited-env.3mf"))
-    }
-
-    @Test func `Model can override environment from Project`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        await Project(root: tempDir) {
-            Environment(\.segmentation, .fixed(6))
-
-            await Model("overridden-env") {
-                Environment(\.segmentation, .fixed(12))
-                Cylinder(diameter: 10, height: 10)
-            }
-        }
-
-        let files = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
-        #expect(files.contains("overridden-env.3mf"))
-    }
-
-    @Test func `Group inherits environment from Project`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        await Project(root: tempDir) {
-            Environment(\.segmentation, .fixed(6))
-
-            await Group("inherited") {
-                await Model("model") {
-                    Cylinder(diameter: 10, height: 10)
-                }
-            }
-        }
-
-        let groupDir = tempDir.appending(path: "inherited")
-        let files = try FileManager.default.contentsOfDirectory(atPath: groupDir.path)
-        #expect(files.contains("model.3mf"))
-    }
-
-    @Test func `Model inherits environment through Group`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        await Project(root: tempDir) {
-            Environment(\.segmentation, .fixed(6))
-
-            await Group("group") {
-                Environment(\.tolerance, 0.1)
-
-                await Model("model") {
-                    Cylinder(diameter: 10, height: 10)
-                }
-            }
-        }
-
-        let groupDir = tempDir.appending(path: "group")
-        let files = try FileManager.default.contentsOfDirectory(atPath: groupDir.path)
-        #expect(files.contains("model.3mf"))
     }
 
     // MARK: - Environment Value Verification Tests

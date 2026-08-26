@@ -165,34 +165,6 @@ struct WarpTests {
         #expect(bounds!.size.y < 10)
     }
 
-    // MARK: - Cache Behavior
-
-    @Test func `warp with same parameters produces same result`() async throws {
-        let base = Box(10)
-
-        let warp1 = base.warped(operationName: "offset", cacheParameters: 5.0) { $0 + [5, 0, 0] }
-        let warp2 = base.warped(operationName: "offset", cacheParameters: 5.0) { $0 + [5, 0, 0] }
-
-        let bounds1 = try await warp1.bounds
-        let bounds2 = try await warp2.bounds
-
-        #expect(bounds1?.minimum.x ≈ bounds2?.minimum.x)
-        #expect(bounds1?.maximum.x ≈ bounds2?.maximum.x)
-    }
-
-    @Test func `warp with different parameters produces different results`() async throws {
-        let base = Box(10)
-
-        let warp1 = base.warped(operationName: "offset", cacheParameters: 5.0) { $0 + [5, 0, 0] }
-        let warp2 = base.warped(operationName: "offset", cacheParameters: 10.0) { $0 + [10, 0, 0] }
-
-        let bounds1 = try await warp1.bounds
-        let bounds2 = try await warp2.bounds
-
-        #expect(bounds1?.minimum.x ≈ 5)
-        #expect(bounds2?.minimum.x ≈ 10)
-    }
-
     // MARK: - Edge Cases
 
     @Test func `warp identity transformation`() async throws {

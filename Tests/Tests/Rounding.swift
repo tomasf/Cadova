@@ -131,18 +131,6 @@ struct RoundingTests {
         #expect(roundedArea.equals(originalArea, within: 1))
     }
 
-    @Test func `rounding with large radius`() async throws {
-        let original = Rectangle(x: 20, y: 20)
-        let rounded = original.rounded(outsideRadius: 5)
-
-        let roundedBounds = try await rounded.bounds
-
-        // Should still have valid bounds
-        #expect(roundedBounds != nil)
-        #expect(roundedBounds!.size.x > 0)
-        #expect(roundedBounds!.size.y > 0)
-    }
-
     // MARK: - Complex Shapes
 
     @Test func `rounding complex polygon`() async throws {

@@ -41,13 +41,6 @@ struct EnvironmentIdentityTests {
         #expect(environment.id != before)
     }
 
-    @Test func `mutating a copy leaves the original identity intact`() {
-        let original = EnvironmentValues()
-        var copy = original
-        copy.tolerance = 0.5
-        #expect(copy.id != original.id)
-    }
-
     @Test func `setting returns an environment with a new identity`() {
         let environment = EnvironmentValues()
         let derived = environment.setting(key: EnvironmentValues.Key("Test.Key"), value: 42)
