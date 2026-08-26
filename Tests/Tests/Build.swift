@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import ThreeMF
 @testable import Cadova
 
 struct BuildTests {
@@ -282,6 +283,75 @@ struct BuildTests {
 
         let files = try FileManager.default.contentsOfDirectory(atPath: tempPath)
         #expect(files.contains("string-path-model.3mf"))
+    }
+
+    // MARK: - Metadata Tests
+
+    /// Reads the metadata actually stored in a written 3MF, keyed by field.
+    private func metadataFields(of url: URL) throws -> [ThreeMF.Metadata.Name: String] {
+        let reader = try ThreeMF.PackageReader(url: url)
+        return try reader.model().metadata.reduce(into: [:]) { $0[$1.name] = $1.value }
+    }
+
+    @Test func `Model metadata reaches the 3MF file`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        await Project(root: tempDir) {
+            await Model("with-metadata") {
+                Metadata(title: "Test Model", author: "Test Author", license: "MIT")
+                Box(10)
+            }
+        }
+
+        let fields = try metadataFields(of: tempDir.appending(path: "with-metadata.3mf"))
+        #expect(fields[.title] == "Test Model")
+        #expect(fields[.designer] == "Test Author")
+        #expect(fields[.licenseTerms] == "MIT")
+    }
+
+    @Test func `Model metadata overrides Project metadata field by field`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        await Project(root: tempDir) {
+            Metadata(title: "Project Title", author: "Project Author")
+
+            await Model("model") {
+                Metadata(title: "Model Title")
+                Box(10)
+            }
+        }
+
+        // Fields are merged individually rather than replaced wholesale: the model's title wins,
+        // and the author it leaves unset is still inherited from the project.
+        let fields = try metadataFields(of: tempDir.appending(path: "model.3mf"))
+        #expect(fields[.title] == "Model Title")
+        #expect(fields[.designer] == "Project Author")
+    }
+
+    @Test func `Group metadata applies to the models inside it`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        await Project(root: tempDir) {
+            Metadata(title: "Project Title", author: "Project Author")
+
+            await Group("with-metadata") {
+                Metadata(author: "Group Author")
+
+                await Model("model") {
+                    Box(10)
+                }
+            }
+        }
+
+        let fields = try metadataFields(of: tempDir.appending(path: "with-metadata/model.3mf"))
+        #expect(fields[.designer] == "Group Author")
+        #expect(fields[.title] == "Project Title")
     }
 
     // MARK: - Environment Value Verification Tests
