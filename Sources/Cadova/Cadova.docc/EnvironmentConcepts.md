@@ -58,8 +58,6 @@ Box(10)
     }
 ```
 
-There's also a `.readingEnvironment(...)` modifier, which reads a value and passes it into a closure that adjusts an existing geometry.
-
 ## Custom Values
 
 You can define your own environment values. This is useful for advanced users and custom geometry behavior.

@@ -367,10 +367,9 @@ struct BuildTests {
             Environment(\.segmentation, .fixed(42))
 
             await Model("test") {
-                readEnvironment { env in
-                    capture.segmentation = env.segmentation
-                    return Box(10)
-                }
+                @Environment(\.segmentation) var segmentation
+                capture.segmentation = segmentation
+                Box(10)
             }
         }
 
@@ -390,10 +389,9 @@ struct BuildTests {
             await Model("test") {
                 Environment(\.segmentation, .fixed(99))
 
-                readEnvironment { env in
-                    capture.segmentation = env.segmentation
-                    return Box(10)
-                }
+                @Environment(\.segmentation) var segmentation
+                capture.segmentation = segmentation
+                Box(10)
             }
         }
 
@@ -414,10 +412,9 @@ struct BuildTests {
                 Environment(\.tolerance, 0.1)
 
                 await Model("test") {
-                    readEnvironment { env in
-                        capture.tolerance = env.tolerance
-                        return Box(10)
-                    }
+                    @Environment(\.tolerance) var tolerance
+                    capture.tolerance = tolerance
+                    Box(10)
                 }
             }
         }
@@ -441,10 +438,9 @@ struct BuildTests {
                 await Model("test") {
                     Environment(\.tolerance, 0.01)
 
-                    readEnvironment { env in
-                        capture.tolerance = env.tolerance
-                        return Box(10)
-                    }
+                    @Environment(\.tolerance) var tolerance
+                    capture.tolerance = tolerance
+                    Box(10)
                 }
             }
         }
@@ -470,11 +466,11 @@ struct BuildTests {
                     Environment(\.segmentation, .fixed(20))  // Override segmentation, keep tolerance
 
                     await Model("test") {
-                        readEnvironment { env in
-                            capture.segmentation = env.segmentation
-                            capture.tolerance = env.tolerance
-                            return Box(10)
-                        }
+                        @Environment(\.segmentation) var segmentation
+                        @Environment(\.tolerance) var tolerance
+                        capture.segmentation = segmentation
+                        capture.tolerance = tolerance
+                        Box(10)
                     }
                 }
             }
