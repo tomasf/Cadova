@@ -35,7 +35,7 @@ internal extension BezierPatch {
         case offset (Vector3D)
     }
 
-    private func enclosed(to mode: EnclosureMode, segmentation: Segmentation) -> any Geometry3D {
+    func enclosed(to mode: EnclosureMode, segmentation: Segmentation) -> any Geometry3D {
         let points = points(segmentation: segmentation)
         let lastRow = points.count - 1
         let lastColumn = points[0].count - 1
@@ -119,6 +119,16 @@ internal extension BezierPatch {
 
 }
 
+private struct EnclosedPatch: Geometry3D {
+    let patch: BezierPatch
+    let mode: BezierPatch.EnclosureMode
+
+    var body: any Geometry3D {
+        @Environment(\.scaledSegmentation) var segmentation
+        patch.enclosed(to: mode, segmentation: segmentation)
+    }
+}
+
 public extension BezierPatch {
     /// Encloses this Bézier patch against a plane, producing a closed 3D solid.
     ///
@@ -135,9 +145,7 @@ public extension BezierPatch {
     /// - SeeAlso: ``enclosed(to:)``
     /// - SeeAlso: ``enclosed(offset:)``
     func enclosed(against plane: Plane) -> any Geometry3D {
-        readEnvironment(\.scaledSegmentation) { segments in
-            enclosed(to: .plane(plane), segmentation: segments)
-        }
+        EnclosedPatch(patch: self, mode: .plane(plane))
     }
 
     /// Encloses this Bézier patch to an apex point, producing a closed 3D solid.
@@ -154,9 +162,7 @@ public extension BezierPatch {
     /// - SeeAlso: ``enclosed(against:)``
     /// - SeeAlso: ``enclosed(offset:)``
     func enclosed(to point: Vector3D) -> any Geometry3D {
-        readEnvironment(\.scaledSegmentation) { segments in
-            enclosed(to: .point(point), segmentation: segments)
-        }
+        EnclosedPatch(patch: self, mode: .point(point))
     }
 
     /// Encloses this Bézier patch with an offset copy of itself, producing a closed 3D solid.
@@ -174,8 +180,6 @@ public extension BezierPatch {
     /// - SeeAlso: ``enclosed(against:)``
     /// - SeeAlso: ``enclosed(to:)``
     func enclosed(offset: Vector3D) -> any Geometry3D {
-        readEnvironment(\.scaledSegmentation) { segments in
-            enclosed(to: .offset(offset), segmentation: segments)
-        }
+        EnclosedPatch(patch: self, mode: .offset(offset))
     }
 }

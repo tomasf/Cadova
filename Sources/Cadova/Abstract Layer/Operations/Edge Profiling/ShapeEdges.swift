@@ -41,17 +41,26 @@ public extension Geometry3D {
     /// - Returns: The geometry with the edges shaped.
     ///
     func shapingEdges(_ shape: EdgeShape, in edges: [FoundEdge]) -> any Geometry3D {
-        readEnvironment(\.scaledSegmentation) { segmentation in
-            CachedNodeTransformer<D3, D3>(
-                source: self,
-                name: "Cadova.ShapeEdges.Explicit",
-                parameters: edges, shape, segmentation
-            ) { bodyNode, environment, context in
-                try await shapedEdgesNode(
-                    bodyNode: bodyNode, edges: edges, shape: shape,
-                    segmentation: segmentation, environment: environment, context: context
-                )
-            }
+        ShapeEdgesExplicit(source: self, shape: shape, edges: edges)
+    }
+}
+
+private struct ShapeEdgesExplicit: Geometry3D {
+    let source: any Geometry3D
+    let shape: EdgeShape
+    let edges: [FoundEdge]
+
+    var body: any Geometry3D {
+        @Environment(\.scaledSegmentation) var segmentation
+        CachedNodeTransformer<D3, D3>(
+            source: source,
+            name: "Cadova.ShapeEdges.Explicit",
+            parameters: edges, shape, segmentation
+        ) { bodyNode, environment, context in
+            try await shapedEdgesNode(
+                bodyNode: bodyNode, edges: edges, shape: shape,
+                segmentation: environment.scaledSegmentation, environment: environment, context: context
+            )
         }
     }
 }

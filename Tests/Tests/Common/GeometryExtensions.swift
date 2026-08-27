@@ -71,10 +71,28 @@ extension Geometry {
     }
 
     func readingOperation(_ action: @Sendable @escaping (EnvironmentValues.Operation) -> ()) -> D.Geometry {
-        readEnvironment(\.operation) {
-            action($0)
-            return self
+        EnvironmentValueReader(source: self, read: \.operation) { geometry, operation in
+            action(operation)
+            return geometry
         }
+    }
+
+    func readingNaturalUpDirection(
+        @GeometryBuilder<D> _ action: @Sendable @escaping (D.Geometry, Direction3D) -> D.Geometry
+    ) -> D.Geometry {
+        EnvironmentValueReader(source: self, read: \.naturalUpDirection, action: action)
+    }
+
+    func readingNaturalUpDirectionXYAngle(
+        @GeometryBuilder<D> _ action: @Sendable @escaping (D.Geometry, Angle?) -> D.Geometry
+    ) -> D.Geometry {
+        EnvironmentValueReader(source: self, read: \.naturalUpDirectionXYAngle, action: action)
+    }
+
+    func readingNaturalUpDirection2D(
+        @GeometryBuilder<D> _ action: @Sendable @escaping (D.Geometry, Direction2D?) -> D.Geometry
+    ) -> D.Geometry {
+        EnvironmentValueReader(source: self, read: \.naturalUpDirection2D, action: action)
     }
 
     func writeOutputFiles(_ name: String, types: Set<TestGeneratedOutputType>) async throws {
@@ -117,6 +135,17 @@ extension Geometry {
         if TestGeneratedOutputType.fromEnvironment?.contains(.model) == true {
             try await writeOutputFiles(name, types: [.model])
         }
+    }
+}
+
+private struct EnvironmentValueReader<D: Dimensionality, Value: Sendable>: Geometry {
+    let source: D.Geometry
+    let read: KeyPath<EnvironmentValues, Value>
+    let action: @Sendable (D.Geometry, Value) -> D.Geometry
+
+    var body: any Geometry<D> {
+        @Environment(read) var value
+        action(source, value)
     }
 }
 

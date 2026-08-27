@@ -85,20 +85,19 @@ public extension Geometry2D {
     /// ```
     ///
     func revolved(in range: Range<Angle> = 0°..<360°) -> any Geometry3D {
-        readEnvironment(\.scaledSegmentation) { segmentation in
-            self.measuringBounds { geometry, bounds in
-                let radius = max(bounds.maximum.x, 0)
+        measuringBounds { geometry, bounds in
+            @Environment(\.scaledSegmentation) var segmentation
+            let radius = max(bounds.maximum.x, 0)
 
-                GeometryNodeTransformer(body: geometry) {
-                    GeometryNode.extrusion($0, type: .rotational(
-                        angle: range.length,
-                        segments: segmentation.segmentCount(circleRadius: radius)
-                    ))
-                } environment: {
-                    $0.applyingTransform(.rotation(x: 90°))
-                }
-                .rotated(z: range.lowerBound)
+            GeometryNodeTransformer(body: geometry) {
+                GeometryNode.extrusion($0, type: .rotational(
+                    angle: range.length,
+                    segments: segmentation.segmentCount(circleRadius: radius)
+                ))
+            } environment: {
+                $0.applyingTransform(.rotation(x: 90°))
             }
+            .rotated(z: range.lowerBound)
         }
     }
 }

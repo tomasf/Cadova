@@ -1,5 +1,27 @@
 import Foundation
 
+private struct PolylineOffsetReader<Curve: ParametricCurve, D: Dimensionality>: Geometry where Curve.V == Vector2D {
+    let curve: Curve
+    let distance: Double
+    let style: LineJoinStyle
+    let reader: @Sendable (Curve, any ParametricCurve<Vector2D>) -> D.Geometry
+
+    var body: any Geometry<D> {
+        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.miterLimit) var miterLimit
+        let points = curve.points(segmentation: segmentation)
+        let offsetPoints = offsetPolyline(
+            points: points,
+            offset: distance,
+            style: style,
+            segmentation: segmentation,
+            miterLimit: miterLimit
+        )
+        let offsetCurve = BezierPath2D(linesBetween: offsetPoints)
+        reader(curve, offsetCurve)
+    }
+}
+
 public extension ParametricCurve where V == Vector2D {
     /// Offsets the curve by a specified distance and passes both the original and offset curves to a reader closure.
     ///
@@ -20,18 +42,7 @@ public extension ParametricCurve where V == Vector2D {
             _ offset: any ParametricCurve<Vector2D>
         ) -> D.Geometry
     ) -> D.Geometry {
-        readEnvironment(\.scaledSegmentation, \.miterLimit) { segmentation, miterLimit in
-            let points = self.points(segmentation: segmentation)
-            let offsetPoints = offsetPolyline(
-                points: points,
-                offset: distance,
-                style: style,
-                segmentation: segmentation,
-                miterLimit: miterLimit
-            )
-            let offsetCurve = BezierPath2D(linesBetween: offsetPoints)
-            return reader(self, offsetCurve)
-        }
+        PolylineOffsetReader(curve: self, distance: distance, style: style, reader: reader)
     }
 }
 

@@ -107,13 +107,20 @@ public extension EdgeProfile {
     ///
     static func overhangFillet(radius: Double) -> Self {
         Self {
-            readEnvironment(\.overhangAngle) { overhangAngle in
-                Circle(radius: radius)
-                    .overhangSafe(.bridge)
-                    .definingNaturalUpDirection(.up)
-                    .withEnvironment { $0.withOperation(.subtraction) }
-                    .within(x: 0..., y: 0...)
-            }
+            OverhangFilletProfile(radius: radius)
         }
+    }
+}
+
+private struct OverhangFilletProfile: Geometry2D {
+    let radius: Double
+
+    var body: any Geometry2D {
+        @Environment(\.overhangAngle) var overhangAngle
+        Circle(radius: radius)
+            .overhangSafe(.bridge)
+            .definingNaturalUpDirection(.up)
+            .withEnvironment { $0.withOperation(.subtraction) }
+            .within(x: 0..., y: 0...)
     }
 }

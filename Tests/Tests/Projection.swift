@@ -149,7 +149,7 @@ struct ProjectionTests {
 
     @Test func `slice along plane preserves source environment transform`() async throws {
         try await Box(10)
-            .readingEnvironment(\.naturalUpDirection) { body, up in
+            .readingNaturalUpDirection { body, up in
                 #expect(up ≈ .positiveX)
                 body
             }
@@ -195,7 +195,7 @@ struct ProjectionTests {
 
     @Test func `project onto plane preserves source environment transform`() async throws {
         try await Box(10)
-            .readingEnvironment(\.naturalUpDirection) { body, up in
+            .readingNaturalUpDirection { body, up in
                 #expect(up ≈ .positiveX)
                 body
             }
