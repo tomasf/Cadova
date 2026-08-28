@@ -153,9 +153,11 @@ struct PartTests {
             }
             .measurements(for: .mainPart)
 
+        let volume = await measurements.volume
+        let surfaceArea = await measurements.surfaceArea
         #expect(measurements.boundingBox ≈ .init(minimum: [-6, -6, -6], maximum: [10, 10, 10]))
-        #expect(measurements.volume ≈ 1676.119)
-        #expect(measurements.surfaceArea ≈ 882.572)
+        #expect(volume ≈ 1676.119)
+        #expect(surfaceArea ≈ 882.572)
     }
 
     @Test func `measurement scopes correctly filter parts`() async throws {
@@ -235,8 +237,10 @@ struct PartTests {
             }
             .subtractingParts([boxPart])
 
-        #expect(try await geometry.measurements.volume ≈ 1000.0)
-        #expect(try await geometry.mainModelMeasurements.volume ≈ (1000.0 - 64.0))
+        let volume = try await geometry.measurements.volume
+        let mainModelVolume = try await geometry.mainModelMeasurements.volume
+        #expect(volume ≈ 1000.0)
+        #expect(mainModelVolume ≈ (1000.0 - 64.0))
     }
 
     @Test func `detaching parts removes them from parts list`() async throws {
@@ -255,8 +259,10 @@ struct PartTests {
             }
 
         #expect(try await geometry.partNames.isEmpty)
-        #expect(try await geometry.mainModelMeasurements.volume ≈ 1064)
-        #expect(try await geometry.measurements.volume ≈ 1064)
+        let mainModelVolume = try await geometry.mainModelMeasurements.volume
+        let volume = try await geometry.measurements.volume
+        #expect(mainModelVolume ≈ 1064)
+        #expect(volume ≈ 1064)
     }
 
     @Test func `modifyingParts transforms all parts`() async throws {
@@ -274,8 +280,10 @@ struct PartTests {
         }
 
         #expect(try await geometry.partNames == ["box1", "box2"])
-        #expect(try await geometry.mainModelMeasurements.volume ≈ 1000)
-        #expect(try await geometry.measurements.volume ≈ 1009)
+        let mainModelVolume = try await geometry.mainModelMeasurements.volume
+        let volume = try await geometry.measurements.volume
+        #expect(mainModelVolume ≈ 1000)
+        #expect(volume ≈ 1009)
     }
 
     @Test func `modifyingPart transforms single part`() async throws {
@@ -293,8 +301,10 @@ struct PartTests {
         }
 
         #expect(try await geometry.partNames == ["box1", "box2"])
-        #expect(try await geometry.mainModelMeasurements.volume ≈ 1000)
-        #expect(try await geometry.measurements.volume ≈ 1016)
+        let mainModelVolume = try await geometry.mainModelMeasurements.volume
+        let volume = try await geometry.measurements.volume
+        #expect(mainModelVolume ≈ 1000)
+        #expect(volume ≈ 1016)
     }
 
     @Test func `modifyingBodyAndParts applies operation to body and matching parts`() async throws {
@@ -320,11 +330,14 @@ struct PartTests {
         // Slab carves 10 from Box(10) and 4 from the solid Box(4) at x=12. The .visual part is
         // skipped because the default semantic filter is .solid, leaving it at its full volume of 64.
         #expect(try await geometry.partNames.sorted() == ["box", "visual"])
-        #expect(try await geometry.mainModelMeasurements.volume ≈ 990) // 1000 - 10
+        let mainModelVolume = try await geometry.mainModelMeasurements.volume
+        #expect(mainModelVolume ≈ 990) // 1000 - 10
         // body (990) + solid part (64 - 4 = 60), all disjoint; visual excluded by .solidParts scope
-        #expect(try await geometry.measurements.volume ≈ 1050)
+        let volume = try await geometry.measurements.volume
+        #expect(volume ≈ 1050)
         // body (990) + solid part (60) + untouched visual part (64) = 1114
-        #expect(try await geometry.measurements(for: .allParts).volume ≈ 1114)
+        let allPartsVolume = try await geometry.measurements(for: .allParts).volume
+        #expect(allPartsVolume ≈ 1114)
     }
 
     @Test func `removingParts removes all parts of semantic`() async throws {
@@ -340,8 +353,10 @@ struct PartTests {
         }.removingParts()
 
         #expect(try await geometry.partNames == [])
-        #expect(try await geometry.mainModelMeasurements.volume ≈ 1000)
-        #expect(try await geometry.measurements.volume ≈ 1000)
+        let mainModelVolume = try await geometry.mainModelMeasurements.volume
+        let volume = try await geometry.measurements.volume
+        #expect(mainModelVolume ≈ 1000)
+        #expect(volume ≈ 1000)
     }
 
     @Test func `removingPart removes single part`() async throws {
@@ -357,8 +372,10 @@ struct PartTests {
         }.removingPart(box1Part)
 
         #expect(try await geometry.partNames == ["box2"])
-        #expect(try await geometry.mainModelMeasurements.volume ≈ 1000)
-        #expect(try await geometry.measurements.volume ≈ 1008)
+        let mainModelVolume = try await geometry.mainModelMeasurements.volume
+        let volume = try await geometry.measurements.volume
+        #expect(mainModelVolume ≈ 1000)
+        #expect(volume ≈ 1008)
     }
 
     @Test func `Part with custom material and semantic`() async throws {

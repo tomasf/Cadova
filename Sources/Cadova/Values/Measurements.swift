@@ -67,21 +67,32 @@ public extension Measurements {
 
 public extension Measurements2D {
     /// The total area of the 2D geometry, in square millimeters (mm²).
-    var area: Double { parts.sum(\.area) }
+    var area: Double {
+        get async { await parts.asyncMap { await $0.area }.reduce(0, +) }
+    }
 
     /// The number of contours (closed paths) in the geometry.
     var contourCount: Int { concrete.sum(\.contourCount) }
 
     /// Indicates whether the geometry consists of a single convex shape.
-    var isConvex: Bool { parts.first?.isConvex ?? false }
+    var isConvex: Bool {
+        get async {
+            guard let first = parts.first else { return false }
+            return await first.isConvex
+        }
+    }
 }
 
 public extension Measurements3D {
     /// The total surface area of the 3D geometry, in square millimeters (mm²).
-    var surfaceArea: Double { parts.sum(\.surfaceArea) }
+    var surfaceArea: Double {
+        get async { await parts.asyncMap { await $0.surfaceArea }.reduce(0, +) }
+    }
 
     /// The total volume enclosed by the 3D geometry, in cubic millimeters (mm³).
-    var volume: Double { parts.sum(\.volume) }
+    var volume: Double {
+        get async { await parts.asyncMap { await $0.volume }.reduce(0, +) }
+    }
 
     /// The total number of edges in the geometry.
     var edgeCount: Int { concrete.sum(\.edgeCount) }
@@ -94,51 +105,40 @@ internal extension MeasuredPart where D == D2 {
     // 2D measurement scopes always resolve to a single part (parts are a 3D-only concept), so
     // `isConvex` only ever needs to consider this one body.
     var isConvex: Bool {
-        if let cached = cache.cachedMeasurements(for: node).isConvex { return cached }
-        let polygons = SimplePolygonList([concrete.polygonList()])
-        let value = polygons.count == 1 && polygons[0].isConvex
-        cache.updateCachedMeasurements(for: node) { $0.isConvex = value }
-        return value
+        get async {
+            await cache.cachedIsConvex(for: node) {
+                let polygons = SimplePolygonList([concrete.polygonList()])
+                return polygons.count == 1 && polygons[0].isConvex
+            }
+        }
     }
 
-    // `centroidAndWeight`, when already cached, derived this same area as a byproduct: reuse it
-    // instead of asking the underlying geometry to redo the work.
     var area: Double {
-        let cached = cache.cachedMeasurements(for: node)
-        if let value = cached.area { return value }
-        if let value = cached.centroidAndWeight?.weight { return value }
-        let value = concrete.area
-        cache.updateCachedMeasurements(for: node) { $0.area = value }
-        return value
+        get async { await cache.cachedArea(for: node) { concrete.area } }
     }
 }
 
 internal extension MeasuredPart where D == D3 {
-    // `centroidAndWeight`, when already cached, derived this same volume as a byproduct: reuse it
-    // instead of asking the underlying geometry to redo the work.
     var volume: Double {
-        let cached = cache.cachedMeasurements(for: node)
-        if let value = cached.volume { return value }
-        if let value = cached.centroidAndWeight?.weight { return value }
-        let value = concrete.volume
-        cache.updateCachedMeasurements(for: node) { $0.volume = value }
-        return value
+        get async { await cache.cachedVolume(for: node) { concrete.volume } }
     }
 
     var surfaceArea: Double {
-        if let cached = cache.cachedMeasurements(for: node).surfaceArea { return cached }
-        let value = concrete.surfaceArea
-        cache.updateCachedMeasurements(for: node) { $0.surfaceArea = value }
-        return value
+        get async { await cache.cachedSurfaceArea(for: node) { concrete.surfaceArea } }
     }
 }
 
-extension Measurements: CustomDebugStringConvertible {
-    public var debugDescription: String {
+public extension Measurements {
+    /// A human-readable summary of this measurement's properties, in no particular order.
+    ///
+    /// This is a method rather than a `CustomDebugStringConvertible` conformance because
+    /// producing it requires evaluating this value's expensive properties (volume, centroid,
+    /// etc.), which is an asynchronous operation.
+    func debugDescription() async -> String {
         let items: [String: Any]
 
         if let self = self as? Measurements2D {
-            items = [
+            items = await [
                 "Bounding box": boundingBox ?? "none",
                 "Centroid": self.centroid ?? "none",
                 "Is empty": isEmpty,
@@ -148,7 +148,7 @@ extension Measurements: CustomDebugStringConvertible {
                 "Is convex": self.isConvex
             ]
         } else if let self = self as? Measurements3D {
-            items = [
+            items = await [
                 "Bounding box": boundingBox ?? "none",
                 "Centroid": self.centroid ?? "none",
                 "Is empty": isEmpty,

@@ -41,7 +41,7 @@ struct EnvironmentDirectiveRerunTests {
             let _ = capturedTolerance.value = tolerance
 
             Box(1.0 + tolerance).measuring { geometry, measurements in
-                let _ = volume.value = measurements.volume
+                let _ = volume.value = await measurements.volume
                 geometry
             }
         }

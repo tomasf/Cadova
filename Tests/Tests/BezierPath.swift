@@ -40,7 +40,8 @@ struct BezierPathTests {
 
         let geometry = Polygon(path)
         let m = try await geometry.measurements
-        #expect(floor(m.area) ≈ 314)
+        let area = await m.area
+        #expect(floor(area) ≈ 314)
     }
 
     @Test func `partial arc produces correct control points and bounds`() async throws {
@@ -55,8 +56,9 @@ struct BezierPathTests {
         #expect(controlPoints ≈ expectedControlPoints)
 
         let m = try await Polygon(path).measurements
-        
-        #expect(m.area ≈ 44.211)
+        let area = await m.area
+
+        #expect(area ≈ 44.211)
         #expect(m.boundingBox ≈ .init(minimum: [-0.601, 0], maximum: [10.220, 11.220]))
     }
 }

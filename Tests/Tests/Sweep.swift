@@ -27,13 +27,15 @@ struct SweepTests {
             .withSegmentation(minAngle: 4°, minSize: 0.3)
 
         let m = try await sweep.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
         // Exactly one of this sweep's 1553 frames has no resolvable twist angle (the tangent is briefly
         // antiparallel to the `.down` target where the path runs vertically), bracketed by frames at 0°
         // and 90°. interpolateMissingAngles() used to hand it the preceding angle verbatim, leaving a
         // 0° → 0° → 90° step; it now interpolates to 45°. These figures are that corrected frame.
-        #expect(m.volume ≈ 11653.029)
-        #expect(m.surfaceArea ≈ 18070.705)
+        #expect(volume ≈ 11653.029)
+        #expect(surfaceArea ≈ 18070.705)
         #expect(m.boundingBox ≈ .init(minimum: [0, -5.60051, -3], maximum: [105.831, 100, 155.5]))
     }
 
@@ -45,9 +47,11 @@ struct SweepTests {
         let sweep = ExampleTests.Star(pointCount: 5, radius: 10, pointRadius: 1, centerSize: 4)
             .swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
         let m = try await sweep.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        #expect(m.volume ≈ 13096.084)
-        #expect(m.surfaceArea ≈ 9237.344)
+        #expect(volume ≈ 13096.084)
+        #expect(surfaceArea ≈ 9237.344)
         #expect(m.boundingBox ≈ .init(minimum: [-10.8721, -1.38221, -10.5105], maximum: [68.9987, 51.5556, 10.5105]))
     }
 
@@ -63,7 +67,8 @@ struct SweepTests {
         let path = BezierPath3D(linesBetween: [start, corner, end])
         let swept = Circle(diameter: diameter).swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
         let m = try await swept.measurements
-        #expect(m.volume.equals(expectedVolume, within: expectedVolume * 0.01))
+        let volume = await m.volume
+        #expect(volume.equals(expectedVolume, within: expectedVolume * 0.01))
     }
 
     @Test func `overhangSafe shape swept along a horizontal path resolves relief using the first frame's orientation`() async throws {
@@ -82,7 +87,9 @@ struct SweepTests {
         // overhangSafe always saw a vertical (identity) up direction here, so it fell back to a plain
         // circle and this volume matched the unmodified sweep exactly. With the fix, the path's actual
         // starting orientation is visible, so bridge relief is added and the volume grows.
-        #expect(bridgeMeasurements.volume > plainMeasurements.volume * 1.01)
+        let bridgeVolume = await bridgeMeasurements.volume
+        let plainVolume = await plainMeasurements.volume
+        #expect(bridgeVolume > plainVolume * 1.01)
     }
 
     @available(*, deprecated)
@@ -96,8 +103,12 @@ struct SweepTests {
         let deprecatedMeasurements = try await deprecatedSweep.measurements
         let explicitMeasurements = try await explicitSweep.measurements
 
-        #expect(deprecatedMeasurements.volume ≈ explicitMeasurements.volume)
-        #expect(deprecatedMeasurements.surfaceArea ≈ explicitMeasurements.surfaceArea)
+        let deprecatedVolume = await deprecatedMeasurements.volume
+        let explicitVolume = await explicitMeasurements.volume
+        let deprecatedSurfaceArea = await deprecatedMeasurements.surfaceArea
+        let explicitSurfaceArea = await explicitMeasurements.surfaceArea
+        #expect(deprecatedVolume ≈ explicitVolume)
+        #expect(deprecatedSurfaceArea ≈ explicitSurfaceArea)
         #expect(deprecatedMeasurements.boundingBox == explicitMeasurements.boundingBox)
     }
 }

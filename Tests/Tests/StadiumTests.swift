@@ -6,8 +6,9 @@ struct StadiumTests {
     @Test func `horizontal stadium has correct measurements`() async throws {
         let s = Stadium([40, 12])
         let m = try await s.measurements
+        let area = await m.area
 
-        #expect(m.area ≈ 449.074)
+        #expect(area ≈ 449.074)
         #expect(s.area ≈ 449.097)
         #expect(m.boundingBox ≈ .init(minimum: [-20, -6], maximum: [20, 6]))
     }
@@ -15,8 +16,9 @@ struct StadiumTests {
     @Test func `vertical stadium has correct measurements`() async throws {
         let s = Stadium([12, 40])
         let m = try await s.measurements
+        let area = await m.area
 
-        #expect(m.area ≈ 449.074)
+        #expect(area ≈ 449.074)
         #expect(s.area ≈ 449.097)
         #expect(m.boundingBox ≈ .init(minimum: [-6, -20], maximum: [6, 20]))
     }
@@ -24,8 +26,9 @@ struct StadiumTests {
     @Test func `square stadium becomes circle`() async throws {
         let s = Stadium([12, 12])
         let m = try await s.measurements
+        let area = await m.area
 
-        #expect(m.area ≈ 113.074)
+        #expect(area ≈ 113.074)
         #expect(s.area ≈ 113.097)
         #expect(m.boundingBox ≈ .init(minimum: [-6, -6], maximum: [6, 6]))
     }
@@ -33,8 +36,9 @@ struct StadiumTests {
     @Test func `stadium works with non-integer sizes`() async throws {
         let s = Stadium([7.3, 2.1])
         let m = try await s.measurements
+        let area = await m.area
 
-        #expect(m.area ≈ 14.371)
+        #expect(area ≈ 14.371)
         #expect(s.area ≈ 14.384)
         #expect(m.boundingBox ≈ .init(minimum: [-3.647, -1.05], maximum: [3.65, 1.05]))
     }

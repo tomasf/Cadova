@@ -8,7 +8,7 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
     // building whatever it returns replays the build performed here instead of walking the same
     // subtree a second time. A stand-in that's handed a different environment — because the builder
     // wrapped it in an environment modifier — still rebuilds its target for real.
-    let builder: @Sendable ([Input.Geometry], [Measurements<Input>]) -> D.Geometry
+    let builder: @Sendable ([Input.Geometry], [Measurements<Input>]) async -> D.Geometry
 
     @_specialize(exported: false, where Input == D2, D == D2)
     @_specialize(exported: false, where Input == D2, D == D3)
@@ -22,7 +22,7 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
         let standIns = zip(target, buildResults).map { source, result in
             result.standingIn(for: source, in: environment, context: context)
         }
-        let generatedGeometry = builder(standIns, measurements)
+        let generatedGeometry = await builder(standIns, measurements)
         return try await context.buildResult(for: generatedGeometry, in: environment)
     }
 }
@@ -49,10 +49,10 @@ public extension Geometry {
     ///
     func measuring<Output: Dimensionality>(
         _ scope: MeasurementScope = .solidParts,
-        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.Measurements) -> Output.Geometry
+        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.Measurements) async -> Output.Geometry
     ) -> Output.Geometry {
         Measure(target: [self], scope: scope) { targets, measurements in
-            builder(targets[0], measurements[0])
+            await builder(targets[0], measurements[0])
         }
     }
 

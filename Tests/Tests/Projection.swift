@@ -214,9 +214,10 @@ struct ProjectionTests {
             }
         }
         let m = try await result.measurements
+        let volume = await m.volume
 
         // The 10×20×5 box (1000) capped by a 3-tall slab extruded from its own 10×20 shadow (600).
-        #expect(m.volume.equals(1600, within: 0.01))
+        #expect(volume.equals(1600, within: 0.01))
         #expect(m.boundingBox ≈ .init(minimum: .zero, maximum: [10, 20, 8]))
     }
 
@@ -228,10 +229,11 @@ struct ProjectionTests {
             }
         }
         let m = try await result.measurements
+        let volume = await m.volume
 
         // The cylinder (π·25·20) capped by a 2-tall disc extruded from its own cross-section (π·25·2).
         let expectedVolume = Double.pi * 25 * 22
-        #expect(m.volume.equals(expectedVolume, within: 1))
+        #expect(volume.equals(expectedVolume, within: 1))
         #expect(m.boundingBox ≈ .init(minimum: [-5, -5, 0], maximum: [5, 5, 22]))
     }
 

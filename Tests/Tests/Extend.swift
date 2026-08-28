@@ -99,13 +99,15 @@ struct ExtendTests {
         // Volume of cylinder with diameter 10, height 30
         // Using 1 unit tolerance due to mesh discretization
         let expectedVolume = Double.pi * 5 * 5 * 30
-        #expect(try await extended.measurements.volume.equals(expectedVolume, within: 1))
+        let volume = try await extended.measurements.volume
+        #expect(volume.equals(expectedVolume, within: 1))
 
         // A total volume is the same for every cross-section of equal area, so it says nothing
         // about the shape being circular. Check a section from inside the extended stretch.
         let section = try await extended.sliced(atZ: 25).measurements
         let expectedArea = Double.pi * 25
-        #expect(section.area.equals(expectedArea, within: 0.05))
+        let area = await section.area
+        #expect(area.equals(expectedArea, within: 0.05))
         #expect(section.boundingBox ≈ .init(minimum: [-5, -5], maximum: [5, 5]))
     }
 
@@ -275,13 +277,15 @@ struct ExtendTests {
         // Height goes from 30 to 25
         // Volume = pi * r^2 * h = pi * 25 * 25
         let expectedVolume = Double.pi * 25 * 25
-        #expect(try await resized.measurements.volume.equals(expectedVolume, within: 1))
+        let volume = try await resized.measurements.volume
+        #expect(volume.equals(expectedVolume, within: 1))
 
         // As above, the total volume cannot tell a circular section from any other of equal area.
         // Check a slice from inside the compressed band, where the resize actually acted.
         let section = try await resized.sliced(atZ: 12).measurements
         let expectedArea = Double.pi * 25
-        #expect(section.area.equals(expectedArea, within: 0.1))
+        let area = await section.area
+        #expect(area.equals(expectedArea, within: 0.1))
         #expect(section.boundingBox ≈ .init(minimum: [-5, -5], maximum: [5, 5]))
     }
 
