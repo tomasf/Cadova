@@ -145,7 +145,7 @@ struct ImportTests {
 
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
-        let provider = ThreeMFDataProvider(result: result, options: [])
+        let provider = ThreeMFDataProvider(result: result, options: [], environment: .defaultEnvironment)
         try await provider.writeOutput(to: tempURL, context: context)
 
         // Cadova writes the part name as the object name and a file identifier as the item's
@@ -195,7 +195,7 @@ struct ImportTests {
 
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
-        let provider = ThreeMFDataProvider(result: result, options: [])
+        let provider = ThreeMFDataProvider(result: result, options: [], environment: .defaultEnvironment)
         try await provider.writeOutput(to: tempURL, context: context)
 
         // Import and verify measurements match
@@ -214,7 +214,7 @@ struct ImportTests {
 
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
-        let provider = ThreeMFDataProvider(result: result, options: [])
+        let provider = ThreeMFDataProvider(result: result, options: [], environment: .defaultEnvironment)
         try await provider.writeOutput(to: tempURL, context: context)
 
         let reader = try ThreeMF.PackageReader(url: tempURL)
@@ -227,7 +227,7 @@ struct ImportTests {
         let geometry: any Geometry3D = Box(x: 10, y: 20, z: 30)
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
-        let provider = ThreeMFDataProvider(result: result, options: [])
+        let provider = ThreeMFDataProvider(result: result, options: [], environment: .defaultEnvironment)
 
         // No LiveLink listener is running in the test environment, so this should return quickly
         // without throwing, exercising the same best-effort path Model.build() relies on.

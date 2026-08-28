@@ -106,7 +106,9 @@ extension Geometry {
         }
         if types.contains(.model) {
             let verificationURL = goldenRoot.appending(component: name).appendingPathExtension("3mf")
-            let provider = ThreeMFDataProvider(result: result.for3MFVerification, options: [])
+            let provider = ThreeMFDataProvider(
+                result: result.for3MFVerification, options: [], environment: .defaultEnvironment
+            )
             try await provider.writeOutput(to: verificationURL, context: context)
         }
     }
