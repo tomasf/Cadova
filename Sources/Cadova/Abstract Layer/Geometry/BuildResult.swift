@@ -27,7 +27,7 @@ public struct _BuildResult<D: Dimensionality>: Sendable {
     }
 
     internal init<Key: CacheKey>(cacheKey key: Key, elements: ResultElements) {
-        self.init(node: .materialized(cacheKey: OpaqueKey(key)), elements: elements)
+        self.init(node: .materialized(cacheKey: AnyCacheKey(key)), elements: elements)
     }
 
     internal init<E: ResultElement>(_ node: D.Node = .empty, element: E) {

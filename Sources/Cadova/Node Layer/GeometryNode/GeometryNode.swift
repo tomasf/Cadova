@@ -29,7 +29,7 @@ internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
         case simplify (D.Node, tolerance: Double)
         case select (D.Node, index: Int)
         case decompose (D.Node)
-        case materialized (cacheKey: OpaqueKey)
+        case materialized (cacheKey: AnyCacheKey)
 
         // 2D
         case shape2D (PrimitiveShape2D)

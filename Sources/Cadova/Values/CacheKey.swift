@@ -15,10 +15,10 @@ internal struct NodeCacheKey<Key: CacheKey, D: Dimensionality>: CacheKey {
 
 internal struct LabeledCacheKey: CacheKey {
     let operationName: String
-    let parameters: [OpaqueKey]
+    let parameters: [AnyCacheKey]
 
     init(operationName: String, parameters: [any Hashable & Sendable & Codable]) {
         self.operationName = operationName
-        self.parameters = parameters.map { OpaqueKey($0) }
+        self.parameters = parameters.map { AnyCacheKey($0) }
     }
 }

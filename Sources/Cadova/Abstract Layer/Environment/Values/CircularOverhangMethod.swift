@@ -2,7 +2,7 @@ import Foundation
 
 /// Defines methods for adjusting circular shapes to avoid steep overhangs when 3D printed horizontally.
 /// These adjustments help improve printability without the need for support structures.
-public enum CircularOverhangMethod: Sendable {
+public enum CircularOverhangMethod: Sendable, Hashable, Codable {
     /// No adjustment is made. The shape remains a pure circle, which may lead to steep unsupported overhangs.
     case none
 

@@ -75,7 +75,7 @@ extension GeometryNode {
         return Self(.decompose(body))
     }
 
-    static func materialized(cacheKey: OpaqueKey) -> GeometryNode {
+    static func materialized(cacheKey: AnyCacheKey) -> GeometryNode {
         Self(.materialized(cacheKey: cacheKey))
     }
 }

@@ -85,7 +85,7 @@ public extension EdgeShape {
         curve: @escaping @Sendable (EdgeShapeParameters) -> [Vector2D]
     ) -> EdgeShape {
         EdgeShape(
-            kind: .custom(name: name, parameters: parameters.map { OpaqueKey($0) }),
+            kind: .custom(name: name, parameters: parameters.map { AnyCacheKey($0) }),
             customCurve: curve
         )
     }
