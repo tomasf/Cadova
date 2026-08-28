@@ -4,15 +4,12 @@ import Manifold3D
 public extension Measurements2D {
     /// The area-weighted center of the 2D geometry, or `nil` if the geometry is empty.
     var centroid: Vector2D? {
-        let weighted = concrete
-            .map(\.areaCentroidAndArea)
-            .filter { $0.area > 0 }
-
-        let totalArea = weighted.sum(\.area)
+        let weighted = parts.map(\.centroidAndWeight).filter { $0.weight > 0 }
+        let totalArea = weighted.sum(\.weight)
         guard totalArea > 0 else { return nil }
 
         return weighted
-            .map { $0.centroid * $0.area }
+            .map { $0.centroid * $0.weight }
             .reduce(.zero, +) / totalArea
     }
 }
@@ -20,16 +17,45 @@ public extension Measurements2D {
 public extension Measurements3D {
     /// The volume-weighted center of the 3D geometry, or `nil` if the geometry is empty.
     var centroid: Vector3D? {
-        let weighted = concrete
-            .map(\.volumeCentroidAndVolume)
-            .filter { $0.volume > 0 }
-
-        let totalVolume = weighted.sum(\.volume)
+        let weighted = parts.map(\.centroidAndWeight).filter { $0.weight > 0 }
+        let totalVolume = weighted.sum(\.weight)
         guard totalVolume > 0 else { return nil }
 
         return weighted
-            .map { $0.centroid * $0.volume }
+            .map { $0.centroid * $0.weight }
             .reduce(.zero, +) / totalVolume
+    }
+}
+
+internal extension MeasuredPart where D == D2 {
+    // Computing the centroid derives area as a byproduct of the same triangulation pass, so it's
+    // stashed in `area` too (unless something else already settled that value first) instead of
+    // making `.area` redo an independent pass over the geometry later.
+    var centroidAndWeight: (centroid: Vector2D, weight: Double) {
+        if let cached = cache.cachedMeasurements(for: node).centroidAndWeight { return cached }
+        let raw = concrete.areaCentroidAndArea
+        let value = (centroid: raw.centroid, weight: raw.area)
+        cache.updateCachedMeasurements(for: node) {
+            $0.centroidAndWeight = value
+            if $0.area == nil { $0.area = raw.area }
+        }
+        return value
+    }
+}
+
+internal extension MeasuredPart where D == D3 {
+    // Computing the centroid derives volume as a byproduct of the same mesh traversal, so it's
+    // stashed in `volume` too (unless something else already settled that value first) instead of
+    // making `.volume` redo an independent pass over the geometry later.
+    var centroidAndWeight: (centroid: Vector3D, weight: Double) {
+        if let cached = cache.cachedMeasurements(for: node).centroidAndWeight { return cached }
+        let raw = concrete.volumeCentroidAndVolume
+        let value = (centroid: raw.centroid, weight: raw.volume)
+        cache.updateCachedMeasurements(for: node) {
+            $0.centroidAndWeight = value
+            if $0.volume == nil { $0.volume = raw.volume }
+        }
+        return value
     }
 }
 

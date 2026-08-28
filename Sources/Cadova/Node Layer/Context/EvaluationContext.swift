@@ -19,7 +19,7 @@ public struct _EvaluationContext: Sendable {
 internal typealias EvaluationContext = _EvaluationContext
 
 internal extension EvaluationContext {
-    private func cache<D: Dimensionality>() -> GeometryCache<D> {
+    func cache<D: Dimensionality>() -> GeometryCache<D> {
         switch D.self {
         case is D2.Type: cache2D as! GeometryCache<D>
         case is D3.Type: cache3D as! GeometryCache<D>
