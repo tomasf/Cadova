@@ -61,7 +61,7 @@ import PackageDescription
 
 let package = Package(
     name: "<#name#>",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v15)],
     dependencies: [
         .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.10.0")),
     ],

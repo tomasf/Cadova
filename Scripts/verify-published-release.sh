@@ -38,7 +38,7 @@ import PackageDescription
 
 let package = Package(
     name: "Consumer",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v15)],
     dependencies: [
         .package(url: "$repository", exact: "$version"),
     ],

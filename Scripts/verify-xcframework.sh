@@ -86,7 +86,7 @@ import PackageDescription
 
 let package = Package(
     name: "SmokeTest",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v15)],
     dependencies: [$package_dependency],
     targets: [
         .binaryTarget(name: "Cadova", path: "Cadova.xcframework"),

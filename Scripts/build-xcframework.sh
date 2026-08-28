@@ -27,7 +27,7 @@ package_root=$(cd "$(dirname "$0")/.." && pwd)
 output_dir="$package_root/.build/xcframework"
 scratch_path="$package_root/.build/xcframework-scratch"
 triples=(arm64-apple-macosx x86_64-apple-macosx)
-deployment_target=14.0
+deployment_target=15.0
 
 while [[ $# -gt 0 ]]; do
     case $1 in

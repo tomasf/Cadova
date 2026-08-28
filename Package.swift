@@ -122,7 +122,7 @@ let testTarget: Target = .testTarget(
 
 let package = Package(
     name: "Cadova",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v15)],
     products: [.library(name: "Cadova", targets: ["Cadova"])] + (useBinary ? [] : [
         // Cadova and all of its dependencies as a single static archive. This is what
         // Scripts/build-xcframework.sh packages; it is not meant to be depended on directly.
