@@ -10,6 +10,12 @@ extension GeometryNode {
         return children
     }
 
+    private var differenceChildren: [D.Node]? {
+        guard case let .boolean(children, type) = contents, type == .difference else { return nil }
+        return children
+    }
+
+
     static func boolean(_ children: [D.Node], type: BooleanOperationType) -> GeometryNode {
         guard children.isEmpty == false else { return .empty }
         var children = children
@@ -17,6 +23,21 @@ extension GeometryNode {
         switch type {
         case .difference:
             guard children[0].isEmpty == false else { return .empty }
+
+            // (A - B) - C is A - B - C. Unions are already flattened below; differences nest
+            // just as often, because every `.subtracting {}` in a chain wraps the previous
+            // one, and each link then makes Manifold walk a solid that grew at the last step.
+            // Splicing them into one N-ary difference hands it a single batch boolean instead.
+            //
+            // Only the first child is the positive term, and only it can be spliced. The rest
+            // are subtracted and stay where they are — unlike the union case below, this must
+            // not sort, because difference is not commutative in its first position.
+            //
+            // One level is enough: the factory runs bottom-up, so an inner difference was
+            // already flattened when it was built.
+            if let inner = children[0].differenceChildren {
+                children = inner + children.dropFirst()
+            }
 
         case .intersection:
             guard children.isEmpty == false else { return .empty }
@@ -149,3 +170,4 @@ extension GeometryNode.PrimitiveShape3D {
         }
     }
 }
+
