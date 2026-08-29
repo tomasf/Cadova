@@ -27,6 +27,31 @@ public enum Segmentation: Sendable, Hashable, Codable {
     /// between performance and visual quality.
     public static let defaults = Segmentation.adaptive(minAngle: 2°, minSize: 0.15)
 
+    /// A global ceiling on every segment count, read once from `CADOVA_MAX_SEGMENTS`.
+    ///
+    /// This is deliberately not an environment value. Setting `segmentation` in the
+    /// environment is a *default* that any subtree can override with its own
+    /// `withSegmentation(...)`, so a model that pins its own resolution cannot be made
+    /// coarse from outside. An interactive preview needs exactly that: draw the whole model
+    /// roughly, without editing it. Applying the ceiling inside the segment-count funnels
+    /// catches every caller, including those overrides.
+    ///
+    /// Values below 3 are ignored, since 3 is already the floor for a closed shape.
+    internal static let maximumCount: Int? = {
+        guard let raw = ProcessInfo.processInfo.environment["CADOVA_MAX_SEGMENTS"],
+              let value = Int(raw), value >= 3
+        else { return nil }
+        return value
+    }()
+
+    /// The segment counts below are what the geometry is actually built from, so capping
+    /// here also changes the node tree — and with it the cache keys. A coarse preview and a
+    /// full-resolution build can never be confused for one another.
+    private func capped(_ count: Int) -> Int {
+        guard let maximum = Self.maximumCount else { return count }
+        return Swift.min(count, maximum)
+    }
+
     /// Computes the number of segments required to approximate a full circle of the given radius.
     ///
     /// The number of segments is determined either by a fixed count or, in adaptive mode, based on
@@ -39,12 +64,12 @@ public enum Segmentation: Sendable, Hashable, Codable {
     public func segmentCount(circleRadius r: Double) -> Int {
         switch self {
         case .fixed (let count):
-            return max(count, 3)
+            return capped(max(count, 3))
 
         case .adaptive(let minAngle, let minSize):
             let angularSegmentCount = 360° / minAngle
             let lengthSegmentCount = r * 2 * .pi / minSize
-            return Int(max(min(angularSegmentCount, lengthSegmentCount), 5))
+            return capped(Int(max(min(angularSegmentCount, lengthSegmentCount), 5)))
         }
     }
 
@@ -73,10 +98,10 @@ public enum Segmentation: Sendable, Hashable, Codable {
     public func segmentCount(length: Double) -> Int {
         switch self {
         case .fixed (let count):
-            return max(count, 3)
+            return capped(max(count, 3))
 
         case .adaptive(_, let minSize):
-            return Int(ceil(max(length / minSize, 5)))
+            return capped(Int(ceil(max(length / minSize, 5))))
         }
     }
 }
