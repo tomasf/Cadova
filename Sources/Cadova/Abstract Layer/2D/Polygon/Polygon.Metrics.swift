@@ -51,6 +51,9 @@ public extension Polygon {
     /// - Parameter reader: A closure receiving `Metrics` of the polygon and returning a 2D geometry.
     /// - Returns: A 2D geometry result from the reader closure.
     func readingMetrics<D: Dimensionality>(@GeometryBuilder<D> _ reader: @Sendable @escaping (Metrics) -> D.Geometry) -> D.Geometry {
-        readEnvironment { reader(Metrics(polygon: self, environment: $0)) }
+        Deferred {
+            @Environment var environment
+            return reader(Metrics(polygon: self, environment: environment))
+        }
     }
 }

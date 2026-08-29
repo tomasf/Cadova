@@ -18,17 +18,17 @@ public extension Geometry {
     ///   recorded transforms.
     ///
     func anchored(to anchor: Anchor) -> D.Geometry {
-        readEnvironment { environment in
-            modifyingResult(ReferenceState.self) { body, referenceState in
-                let reset = environment.transform.inverse
-                let globalTransforms = referenceState.read(anchor: anchor)
-                    .union(environment.transforms(for: anchor))
-                let localTransforms: [D.Transform] = globalTransforms.map {
-                    D.Transform($0.concatenated(with: reset))
-                }
+        modifyingResult(ReferenceState.self) { body, referenceState in
+            @Environment var environment
 
-                body.distributed(at: localTransforms)
+            let reset = environment.transform.inverse
+            let globalTransforms = referenceState.read(anchor: anchor)
+                .union(environment.transforms(for: anchor))
+            let localTransforms: [D.Transform] = globalTransforms.map {
+                D.Transform($0.concatenated(with: reset))
             }
+
+            body.distributed(at: localTransforms)
         }
     }
 
