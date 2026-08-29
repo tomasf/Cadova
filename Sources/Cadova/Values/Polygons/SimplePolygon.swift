@@ -200,6 +200,49 @@ extension SimplePolygon {
         })
     }
 
+    // Drops vertices that lie exactly on the straight line between their neighbors. This never
+    // changes the polygon's boundary or area; it only removes a redundant way of describing the
+    // same edge. Offset algorithms (see `CrossSection.offset`) determine a join type per vertex
+    // from its local turn angle, and floating-point noise in that angle at a redundant collinear
+    // point can flip it between "straight" and "concave", corrupting the offset result.
+    func removingRedundantCollinearPoints(tolerance: Double = 1e-6) -> Self {
+        guard vertices.count > 3 else { return self }
+
+        var result: [Vector2D] = []
+        result.reserveCapacity(vertices.count)
+
+        for vertex in vertices {
+            while result.count >= 2, Self.isRedundant(result[result.count - 2], result[result.count - 1], vertex, tolerance: tolerance) {
+                result.removeLast()
+            }
+            result.append(vertex)
+        }
+
+        while result.count > 3, Self.isRedundant(result[result.count - 2], result[result.count - 1], result[0], tolerance: tolerance) {
+            result.removeLast()
+        }
+        while result.count > 3, Self.isRedundant(result.last!, result[0], result[1], tolerance: tolerance) {
+            result.removeFirst()
+        }
+
+        return Self(result)
+    }
+
+    // Whether `b` can be dropped because it lies (within `tolerance`) on the segment strictly
+    // between `a` and `c`. Requiring strict betweenness (not just collinearity) avoids collapsing
+    // a genuine spike or cusp, where the path reverses direction along the same line.
+    private static func isRedundant(_ a: Vector2D, _ b: Vector2D, _ c: Vector2D, tolerance: Double) -> Bool {
+        let ac = c - a
+        let lengthSquared = ac.squaredEuclideanNorm
+        guard lengthSquared > tolerance * tolerance else { return false }
+
+        let perpendicularDistance = abs((b - a) × ac) / lengthSquared.squareRoot()
+        guard perpendicularDistance < tolerance else { return false }
+
+        let t = ((b - a) ⋅ ac) / lengthSquared
+        return t > 0 && t < 1
+    }
+
     var length: Double {
         vertices.paired().map { $0.distance(to: $1) }.reduce(0, +)
     }

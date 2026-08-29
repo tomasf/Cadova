@@ -123,9 +123,14 @@ extension GeometryNode {
             return try EvaluationResult(shape.evaluate())
 
         case .offset (let node, let amount, let joinStyle, let miterLimit, let segmentCount):
+            let concrete = try await context.result(for: node).concrete
+            let original = concrete.polygonList()
+            let cleaned = original.removingRedundantCollinearPoints()
+            // Rebuilding a CrossSection from a polygon list costs about as much as the offset itself,
+            // so only pay for it on the rare input that actually has redundant points to remove.
+            let source = cleaned.vertexCount == original.vertexCount ? concrete : CrossSection(cleaned)
             return try EvaluationResult(
-                try await context.result(for: node).concrete
-                    .offset(amount: amount, joinType: joinStyle.manifoldRepresentation, miterLimit: miterLimit, circularSegments: segmentCount)
+                source.offset(amount: amount, joinType: joinStyle.manifoldRepresentation, miterLimit: miterLimit, circularSegments: segmentCount)
             )
 
         case .projection (let node, let projection):

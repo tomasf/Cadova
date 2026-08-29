@@ -22,6 +22,7 @@ internal struct SimplePolygonList: Sendable, Hashable, Codable {
     }
 
     var count: Int { polygons.count }
+    var vertexCount: Int { polygons.reduce(0) { $0 + $1.count } }
 
     static func +(_ lhs: SimplePolygonList, _ rhs: SimplePolygonList) -> SimplePolygonList {
         SimplePolygonList(lhs.polygons + rhs.polygons)
@@ -78,6 +79,10 @@ extension SimplePolygonList {
 
     func refined(maxEdgeLength: Double) -> Self {
         Self(polygons.map { $0.refined(maxEdgeLength: maxEdgeLength) })
+    }
+
+    func removingRedundantCollinearPoints(tolerance: Double = 1e-6) -> Self {
+        Self(polygons.map { $0.removingRedundantCollinearPoints(tolerance: tolerance) })
     }
 
 
