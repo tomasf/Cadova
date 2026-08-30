@@ -88,25 +88,37 @@ struct ThreeMFDataProvider: OutputDataProvider {
         lhs.localizedStandardCompare(rhs) == .orderedAscending
     }
 
-    func pushToLiveLink(destination url: URL, context: EvaluationContext) async {
+    /// Whether a push to `url` is expected to reach a listener, without doing any of the real
+    /// work a push or output generation requires — safe to call speculatively to schedule other
+    /// work (e.g. pick a write's priority) before the actual push has run.
+    func isLikelyToReachLiveLinkListener(destination url: URL) -> Bool {
         #if canImport(CadovaLiveLinkClient)
-        // Mirrors the socket-existence check `LiveLinkClient.push` makes internally before sending,
-        // so we only log success when a listener is actually present to receive the push.
-        guard !LiveLinkSettings.isDisabled, FileManager.default.fileExists(atPath: LiveLinkEndpoint.socketPath) else { return }
+        Self.isInterestedListenerPresent(for: url)
+        #else
+        false
+        #endif
+    }
 
-        let path = url.path(percentEncoded: false)
-        // Cheap, cached (read once per process — see LiveLinkClient.hostState) check for whether the
-        // host is even watching this path before paying for geometry-to-wire conversion, which is
-        // real, non-trivial CPU work for a large model that would otherwise happen unconditionally
-        // for every model in a project regardless of what's actually open in the viewer.
-        guard LiveLinkClient.isInterested(inPath: path) else {
+    #if canImport(CadovaLiveLinkClient)
+    // Shared by pushToLiveLink and isLikelyToReachLiveLinkListener: is a listener present and
+    // watching this path, cheaply and synchronously, before paying for geometry-to-wire work.
+    private static func isInterestedListenerPresent(for url: URL) -> Bool {
+        guard !LiveLinkSettings.isDisabled, FileManager.default.fileExists(atPath: LiveLinkEndpoint.socketPath) else { return false }
+        return LiveLinkClient.isInterested(inPath: url.path(percentEncoded: false))
+    }
+    #endif
+
+    func pushToLiveLink(destination url: URL, context: EvaluationContext) async -> Bool {
+        #if canImport(CadovaLiveLinkClient)
+        guard Self.isInterestedListenerPresent(for: url) else {
             logger.debug("Skipped live link push for \(url.lastPathComponent): host isn't watching this path")
-            return
+            return false
         }
+        let path = url.path(percentEncoded: false)
 
         do {
             let parts = try await resolvedParts(context: context)
-            guard !parts.isEmpty else { return }
+            guard !parts.isEmpty else { return false }
             let identifiers = Self.fileIdentifiers(for: parts)
             let orderedParts = zip(identifiers, parts).sorted { Self.fileOrder($0.0, $1.0) }
             let message = LiveLinkMessage(
@@ -117,9 +129,13 @@ struct ThreeMFDataProvider: OutputDataProvider {
             )
             try await LiveLinkClient.push(message)
             logger.info("Pushed model \"\(url.lastPathComponent)\" to Cadova Viewer")
+            return true
         } catch {
             logger.debug("Skipped live link push for \(url.lastPathComponent): \(error)")
         }
+        return false
+        #else
+        return false
         #endif
     }
 

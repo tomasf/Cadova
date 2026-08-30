@@ -8,7 +8,16 @@ protocol OutputDataProvider: Sendable {
     /// Viewer), bypassing the format-specific encoding `generateOutput` performs. Best-effort:
     /// implementations must never throw out of this method. The default does nothing, which is
     /// appropriate for formats with no 3D mesh worth short-circuiting a reload for.
-    func pushToLiveLink(destination url: URL, context: EvaluationContext) async
+    ///
+    /// Returns whether the data actually reached a listener.
+    @discardableResult
+    func pushToLiveLink(destination url: URL, context: EvaluationContext) async -> Bool
+
+    /// A cheap, synchronous best guess at whether `pushToLiveLink` would succeed, without doing
+    /// any of its real work — lets a caller schedule other work (e.g. a write's priority) around
+    /// the push before it's run. Best-effort: the real push can still turn out differently.
+    func isLikelyToReachLiveLinkListener(destination url: URL) -> Bool
+
     var fileExtension: String { get }
 }
 
@@ -17,5 +26,6 @@ extension OutputDataProvider {
         try await generateOutput(context: context).write(to: url)
     }
 
-    func pushToLiveLink(destination url: URL, context: EvaluationContext) async {}
+    func pushToLiveLink(destination url: URL, context: EvaluationContext) async -> Bool { false }
+    func isLikelyToReachLiveLinkListener(destination url: URL) -> Bool { false }
 }
