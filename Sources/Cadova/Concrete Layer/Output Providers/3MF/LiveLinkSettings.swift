@@ -8,7 +8,29 @@ internal enum LiveLinkSettings {
     nonisolated(unsafe) static var isDisabled = defaultIsDisabled()
 
     static func defaultIsDisabled(environment: [String: String] = ProcessInfo.processInfo.environment) -> Bool {
-        switch environment["CADOVA_LIVELINK_DISABLED"]?.lowercased() {
+        boolean(environment["CADOVA_LIVELINK_DISABLED"])
+    }
+
+    /// Set `CADOVA_LIVELINK_ONLY=true` to skip the model file entirely when the push actually
+    /// reached a listener watching that path.
+    ///
+    /// Deprioritizing the write already gets the mesh on screen first, but the run still pays
+    /// for generating a file nothing is waiting for: on a 330k-triangle model the 3MF archive
+    /// is ~0.28s of a ~0.75s build. In an interactive edit loop that file is written on every
+    /// save and never read.
+    ///
+    /// Deliberately narrow. The write is skipped only when `pushToLiveLink` returns true. If
+    /// the live link is disabled, no host is listening, the host isn't watching this path, or
+    /// the push fails for any reason, the file is written exactly as before — so the output can
+    /// only be missing in the one case where something else demonstrably already has it.
+    nonisolated(unsafe) static var isLiveLinkOnly = defaultIsLiveLinkOnly()
+
+    static func defaultIsLiveLinkOnly(environment: [String: String] = ProcessInfo.processInfo.environment) -> Bool {
+        boolean(environment["CADOVA_LIVELINK_ONLY"])
+    }
+
+    private static func boolean(_ value: String?) -> Bool {
+        switch value?.lowercased() {
         case "1", "true", "yes", "on": true
         default: false
         }

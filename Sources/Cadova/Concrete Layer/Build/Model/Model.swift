@@ -160,6 +160,19 @@ public struct Model: Sendable, ModelBuildable {
         }
 
         if provider.isLikelyToReachLiveLinkListener(destination: url) {
+            if LiveLinkSettings.isLiveLinkOnly {
+                // Redundant is redundant: rather than demote the write, don't do it. This gives
+                // up the concurrency below — the push has to be awaited before we can know it
+                // landed — but a push that lands saves the whole archive, which costs far more
+                // than the overlap. A push that misses falls through and writes as usual.
+                if await provider.pushToLiveLink(destination: url, context: context) {
+                    logger.debug("Skipped writing \(url.lastPathComponent): pushed over the live link")
+                    return []
+                }
+                await write()
+                return fileExisted ? [] : [url]
+            }
+
             // The push is expected to land, making this write redundant with it — push at
             // `.high` so the listener sees it ASAP, write at `.utility` so it yields cores.
             // Gated per-path rather than "any host exists": splitting into two Tasks has real
