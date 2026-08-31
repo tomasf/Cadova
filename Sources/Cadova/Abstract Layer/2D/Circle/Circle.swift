@@ -53,7 +53,7 @@ public struct Circle: Hashable, Sendable, Codable {
 
 extension Circle: Geometry2D {
     public var body: any Geometry2D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         StaticNodeGeometry(.circle(
             radius: radius,
             segmentCount: segmentation.segmentCount(circleRadius: radius)

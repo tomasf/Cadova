@@ -2,6 +2,7 @@ import Foundation
 
 public extension EnvironmentValues {
     static private let environmentKey = Key("Cadova.Transform")
+    static private let scaleKey = Key("Cadova.Scale")
 
     /// Accesses the current affine transformation applied to this environment.
     ///
@@ -20,44 +21,35 @@ public extension EnvironmentValues {
     /// Returns a new environment with the specified affine transformation applied.
     ///
     /// This method allows you to apply a new affine transformation to the geometry, concatenating it with any existing
-    /// transformations.
+    /// transformations. The environment's ``scale`` is updated at the same time, using the transform's own
+    /// dimensionality, so that a 2D transform contributes the scale of its X and Y axes.
     ///
-    /// - Parameter newTransform: The `Transform3D` to apply.
+    /// - Parameter newTransform: The transform to apply.
     /// - Returns: A new `EnvironmentValues` instance with the updated transformation.
     ///
-    func applyingTransform(_ newTransform: Transform3D) -> EnvironmentValues {
-        setting(key: Self.environmentKey, value:newTransform.concatenated(with: transform))
+    func applyingTransform<T: Transform>(_ newTransform: T) -> EnvironmentValues {
+        setting([
+            Self.environmentKey: newTransform.transform3D.concatenated(with: transform),
+            Self.scaleKey: scale * newTransform.scaleFactor
+        ])
     }
 }
 
 public extension EnvironmentValues {
-    /// A single scalar that summarizes the overall scale of the current transform.
+    /// A single scalar that summarizes the overall scale of the current coordinate system.
     ///
     /// This value is suitable for adapting tolerances and thresholds to the local coordinate system.
-    /// It is computed from the per‑axis scales (ignoring translation) by taking the minimum component.
-    /// For the identity transform, this is `1.0`.
+    /// It accumulates the ``Transform/scaleFactor`` of every transform applied on the way down the geometry tree,
+    /// where each transform contributes the smallest of its per-axis scales. At the root, this is `1.0`.
+    ///
+    /// Because it is a running product of per-transform factors, it is an approximation when non-uniform scaling is
+    /// combined with rotation. It is exact for the common cases of uniform scaling, rotation and translation.
     ///
     var scale: Double {
-        let s = transform.scale
-        return min(s.x, s.y, s.z)
+        (self[Self.scaleKey] as? Double) ?? 1
     }
 
-    /// Returns a segmentation adjusted to the current environment scale.
-    ///
-    /// - For `.fixed`, the value is returned unchanged.
-    /// - For `.adaptive(minAngle:minSize:)`, the `minSize` is multiplied by `scale`.
-    ///
-    /// This helps keep geometric detail consistent under scaled coordinate systems.
-    var scaledSegmentation: Segmentation {
-        switch segmentation {
-        case .fixed:
-            return segmentation
-        case .adaptive(let minAngle, let minSize):
-            return .adaptive(minAngle: minAngle, minSize: minSize / scale)
-        }
-    }
-
-    /// The environment’s tolerance scaled by the current transform’s scalar scale.
+    /// The environment's tolerance scaled by the current coordinate system's scale.
     ///
     /// Useful for adapting tolerances to the local coordinate system.
     var scaledTolerance: Double {

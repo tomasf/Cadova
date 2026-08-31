@@ -52,7 +52,7 @@ public extension Geometry2D {
     func offset(amount: Double, style: LineJoinStyle = .miter) -> any Geometry2D {
         GeometryNodeTransformer(body: self) {
             @Environment(\.miterLimit) var miterLimit
-            @Environment(\.scaledSegmentation) var segmentation
+            @Environment(\.segmentation) var segmentation
             return .offset(
                 $0,
                 amount: amount,

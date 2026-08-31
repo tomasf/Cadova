@@ -16,6 +16,9 @@ public enum Segmentation: Sendable, Hashable, Codable {
     /// This option dynamically adjusts the number of segments depending on the size and curvature
     /// of the geometry. It aims to balance detail and performance.
     ///
+    /// `minSize` is a length, and is measured in the coordinate system where the segmentation is set. Scaling
+    /// geometry after the fact scales the segmentation with it, leaving the shape of the result unchanged.
+    ///
     /// - Parameters:
     ///   - minAngle: The minimum angle per segment.
     ///   - minSize: The minimum segment length.

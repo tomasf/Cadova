@@ -32,7 +32,7 @@ public extension Geometry2D {
                 let numRevolutions = abs(twist) / 360°
                 let maxRadius = bounds.maximumDistanceToOrigin
                 @Environment(\.twistSubdivisionThreshold) var maxCrease
-                @Environment(\.scaledSegmentation) var segmentation
+                @Environment(\.segmentation) var segmentation
 
                 let pitch = height / numRevolutions
                 let helixLength = sqrt(pow(maxRadius * 2 * .pi, 2) + pow(pitch, 2)) * numRevolutions
@@ -86,7 +86,7 @@ public extension Geometry2D {
     ///
     func revolved(in range: Range<Angle> = 0°..<360°) -> any Geometry3D {
         measuringBounds { geometry, bounds in
-            @Environment(\.scaledSegmentation) var segmentation
+            @Environment(\.segmentation) var segmentation
             let radius = max(bounds.maximum.x, 0)
 
             GeometryNodeTransformer(body: geometry) {
@@ -95,7 +95,7 @@ public extension Geometry2D {
                     segments: segmentation.segmentCount(circleRadius: radius)
                 ))
             } environment: {
-                $0.applyingTransform(.rotation(x: 90°))
+                $0.applyingTransform(Transform3D.rotation(x: 90°))
             }
             .rotated(z: range.lowerBound)
         }

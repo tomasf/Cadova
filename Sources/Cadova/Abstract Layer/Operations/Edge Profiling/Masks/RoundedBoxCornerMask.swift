@@ -94,7 +94,7 @@ internal struct RoundedBoxCornerMask: Geometry3D {
     }
 
     var body: any Geometry3D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         @Environment(\.cornerRoundingStyle) var cornerRoundingStyle
         let segmentCount = max(segmentation.segmentCount(circleRadius: radius) / 4 - 1, 1)
 

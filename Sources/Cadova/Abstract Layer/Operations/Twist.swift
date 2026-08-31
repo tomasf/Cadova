@@ -63,7 +63,7 @@ fileprivate extension Geometry3D {
     ) -> any Geometry3D {
         measuringBounds { geometry, bounds in
             if let parameters = parameters(bounds), !parameters.rate.isZero {
-                @Environment(\.scaledSegmentation) var segmentation
+                @Environment(\.segmentation) var segmentation
                 let rate = parameters.rate
                 let zeroZ = parameters.zeroZ
                 let radius = bounds.bounds2D.maximumDistanceToOrigin

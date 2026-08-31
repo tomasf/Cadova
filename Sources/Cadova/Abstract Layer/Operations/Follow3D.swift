@@ -51,7 +51,7 @@ internal struct FollowPath3D<Path: D3.Curve>: Geometry3D {
     var body: any Geometry3D {
         @Environment var environment
         @Environment(\.maxTwistRate) var maxTwistRate
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
 
         if path.isEmpty {
             Empty()

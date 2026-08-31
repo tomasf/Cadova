@@ -27,7 +27,7 @@ internal struct FollowPath2D<Path: ParametricCurve<Vector2D>>: Geometry2D {
     let path: Path
 
     var body: any Geometry2D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
 
         geometry.measuringBounds { body, bounds in
             let pathLength = path.approximateLength

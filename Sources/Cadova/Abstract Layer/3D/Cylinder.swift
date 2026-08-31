@@ -21,7 +21,7 @@ public struct Cylinder: Geometry3D, Hashable, Sendable, Codable {
     public let top: Circle
 
     public var body: any Geometry3D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
         if height > .ulpOfOne {

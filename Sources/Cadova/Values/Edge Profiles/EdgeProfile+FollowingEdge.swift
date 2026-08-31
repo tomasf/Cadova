@@ -154,7 +154,7 @@ internal extension EdgeProfile {
                                 if let samples = Self.inwardDepthSamples(of: profileSection.polygonList().polygons),
                                    Self.erosionPreservesStructure(original: polygons, deepest: erodedSection.polygonList().polygons)
                                 {
-                                    @Environment(\.scaledSegmentation) var segmentation
+                                    @Environment(\.segmentation) var segmentation
                                     Self.welding(
                                         Self.offsetTool(
                                             shape: shape,

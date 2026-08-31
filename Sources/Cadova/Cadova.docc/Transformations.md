@@ -209,7 +209,17 @@ Cadova records the accumulated transform in the environment as geometry is built
 
 The first is direction. `naturalUpDirection` and the overhang helpers that read it (see <doc:DesigningFor3DPrinting>) need to know which way is up *after* all the rotations that will be applied to a part, and the recorded transform is how they find out.
 
-The second is scale. Because adaptive segmentation is expressed in millimeters, geometry built inside a `.scaled(...)` would otherwise come out coarser or finer than intended once the scaling is applied. Cadova compensates: the environment exposes a `scale` factor derived from the current transform, and both segmentation and tolerance are adjusted by it so that detail and fit stay consistent no matter what frame a part is built in.
+The second is scale. Adaptive segmentation is expressed as a minimum segment length, so it only means something relative to a coordinate system. The environment accumulates a `scale` factor from the transforms applied on the way down, and Cadova uses it to convert lengths between frames.
+
+For segmentation, that conversion is anchored to the coordinate system where you set it. A `minSize` of `0.2` written next to a shape means 0.2 of that shape's own units, and stays that way however the result is scaled afterwards:
+
+```swift
+detail
+    .withSegmentation(minAngle: 2°, minSize: 0.2)   // 0.2 units of `detail`
+    .scaled(10)                                     // still 0.2 units of `detail`, i.e. 2 units here
+```
+
+Move the modifier above the scale and it means 0.2 units of the scaled result instead. This is the same idea as `naturalUpDirection`: both remember the frame they were defined in. Tolerance works differently, and is always measured in world space.
 
 ## Beyond affine transforms
 

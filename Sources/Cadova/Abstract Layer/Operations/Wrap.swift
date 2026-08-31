@@ -22,7 +22,7 @@ public extension Geometry3D {
     ///
     func wrappedAroundCylinder(diameter: Double? = nil) -> any Geometry3D {
         measuringBounds { geometry, bounds in
-            @Environment(\.scaledSegmentation) var segmentation
+            @Environment(\.segmentation) var segmentation
             let innerRadius = (diameter ?? bounds.maximum.x / .pi) / 2
             let maximumRadius = innerRadius + bounds.maximum.z
             let segmentLength = (maximumRadius * 2 * .pi) / Double(segmentation.segmentCount(circleRadius: maximumRadius))
@@ -65,7 +65,7 @@ public extension Geometry2D {
     ///
     func wrappedAroundCircle(radius: Double? = nil) -> any Geometry2D {
         measuringBounds { geometry, bounds in
-            @Environment(\.scaledSegmentation) var segmentation
+            @Environment(\.segmentation) var segmentation
             let innerRadius = radius ?? bounds.maximum.x / 2 / .pi
             let maximumRadius = innerRadius + bounds.maximum.y
             let segmentLength = (maximumRadius * 2 * .pi) / Double(segmentation.segmentCount(circleRadius: maximumRadius))
@@ -159,7 +159,7 @@ public extension Geometry3D {
     ///
     func wrappedAroundSphere(radius: Double? = nil) -> any Geometry3D {
         measuringBounds { geometry, bounds in
-            @Environment(\.scaledSegmentation) var segmentation
+            @Environment(\.segmentation) var segmentation
             let naturalCircumference = bounds.maximum.x
             let baseRadius = radius ?? (naturalCircumference / .pi / 2.0)
             let circumference = baseRadius * 2.0 * .pi

@@ -16,7 +16,7 @@ public extension Geometry3D {
         guard strength > .ulpOfOne else { return self }
 
         return measuringBounds { geometry, bounds in
-            @Environment(\.scaledSegmentation) var segmentation
+            @Environment(\.segmentation) var segmentation
             let maxDimension = max(bounds.size.x, max(bounds.size.y, bounds.size.z))
             let segmentCount = segmentation.segmentCount(length: maxDimension)
             let maxEdgeLength = maxDimension / Double(segmentCount)

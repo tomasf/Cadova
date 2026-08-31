@@ -10,7 +10,7 @@ internal extension Loft {
         target sweepTarget: ReferenceTarget,
         environment: EnvironmentValues
     ) -> [(polygons: SimplePolygonList, transforms: [Transform3D])] {
-        let segmentation = environment.scaledSegmentation
+        let segmentation = environment.segmentation
         var refinedGroups: [(polygons: SimplePolygonList, transforms: [Transform3D])] = []
 
         // `frames` is ordered by distance, so the corner frames within it are too. Collecting their

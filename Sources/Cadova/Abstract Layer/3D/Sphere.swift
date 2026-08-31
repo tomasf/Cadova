@@ -31,7 +31,7 @@ public struct Sphere: Hashable, Sendable, Codable {
 
 extension Sphere: Geometry3D {
     public var body: any Geometry3D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         StaticNodeGeometry(.sphere(
             radius: radius,
             segmentCount: segmentation.segmentCount(circleRadius: diameter / 2)

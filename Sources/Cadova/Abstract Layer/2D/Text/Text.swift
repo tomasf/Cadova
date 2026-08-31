@@ -32,7 +32,7 @@ public struct Text: Geometry2D {
     public var body: any Geometry2D {
         @Environment var environment
         @Environment(\.textAttributes) var textAttributes
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         let attributes = textAttributes.applyingDefaults()
 
         CachedNode(name: "Cadova.Text", parameters: content, attributes, segmentation) { context in

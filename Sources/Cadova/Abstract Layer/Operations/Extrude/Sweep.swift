@@ -78,7 +78,7 @@ internal struct Sweep<Path: ParametricCurve>: Geometry3D {
         let cachedConcrete = CachedConcrete<D3, _>(
             name: "Cadova.Sweep",
             parameters: shapeNode, path, reference, target,
-            environment.segmentation, environment.scaledSegmentation, environment.maxTwistRate
+            environment.segmentation, environment.maxTwistRate
         ) {
             let crossSection = try await context.result(for: shapeNode).concrete
             var frames = unprunedFrames

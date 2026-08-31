@@ -97,7 +97,7 @@ internal extension Loft {
             // Determine target count based on longest perimeter
             let maxPerimeter = groupPolygons.polygons.map(\.perimeter).max()!
 
-            let targetCount = environment.scaledSegmentation.segmentCount(length: maxPerimeter)
+            let targetCount = environment.segmentation.segmentCount(length: maxPerimeter)
             var newPolygons = SimplePolygonList(groupPolygons.polygons.map {
                 $0.resampled(count: targetCount)
             })

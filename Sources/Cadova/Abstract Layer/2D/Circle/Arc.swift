@@ -35,7 +35,7 @@ public struct Arc: Geometry2D, Hashable, Sendable, Codable {
     }
 
     public var body: any Geometry2D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
 
         if radius > 0 {
             Polygon([.zero] + arcPoints(segmentation: segmentation))

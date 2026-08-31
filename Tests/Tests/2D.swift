@@ -40,6 +40,24 @@ struct Geometry2DTests {
         .expectEquals(goldenFile: "2d/circular")
     }
 
+    @Test func `2D scaling refines curved geometry`() async throws {
+        // A Transform2D lifts to a Transform3D with a unit Z axis, which used to hide 2D scaling from the
+        // environment entirely. Every shape here is enlarged on both axes, so an uncompensated scale would leave
+        // them all at the segment count of their unscaled originals.
+        try await Union {
+            Circle(radius: 0.2)
+                .scaled(4)
+            Arc(range: 20°..<160°, radius: 0.3)
+                .scaled(3)
+                .translated(x: 4)
+            Circle(radius: 0.25)
+                .withSegmentation(minAngle: 2°, minSize: 0.05)
+                .scaled(5)
+                .translated(x: 8)
+        }
+        .expectEquals(goldenFile: "2d/scaled-curves")
+    }
+
     @Test func `rectangle corners can be rounded with edge profiles`() async throws {
         try await Rectangle(x: 10, y: 10)
             .cuttingEdgeProfile(.fillet(radius: 5), on: .bottomLeft)

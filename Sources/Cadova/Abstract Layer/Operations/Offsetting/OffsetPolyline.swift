@@ -7,7 +7,7 @@ private struct PolylineOffsetReader<Curve: ParametricCurve, D: Dimensionality>: 
     let reader: @Sendable (Curve, any ParametricCurve<Vector2D>) -> D.Geometry
 
     var body: any Geometry<D> {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         @Environment(\.miterLimit) var miterLimit
         let points = curve.points(segmentation: segmentation)
         let offsetPoints = offsetPolyline(

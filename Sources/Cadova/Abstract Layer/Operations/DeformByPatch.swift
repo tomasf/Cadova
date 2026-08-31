@@ -25,7 +25,7 @@ public extension Geometry3D {
     /// with its thickness stacked vertically on top of the patch’s surface.
     ///
     func deformed(by patch: BezierPatch) -> any Geometry3D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         return measuringBounds { geometry, bounds in
             let maxLength = max(bounds.size.x, bounds.size.y)
 
