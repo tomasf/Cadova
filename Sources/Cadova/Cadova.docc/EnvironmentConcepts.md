@@ -25,7 +25,7 @@ Sphere(radius: 3)
 
 In this example, the segmentation settings apply to the sphere and the cylinder, but not the circle, because the `.withSegmentation(...)` is only applied to the subtree above it.
 
-A value that describes a length is measured in the coordinate system where you set it. Segmentation's `minSize` is the one to watch: writing `.withSegmentation(minAngle: 1°, minSize: 0.5)` inside a `.scaled(...)` means half a unit of the geometry it's attached to, not half a unit of the finished model. See <doc:Transformations> for how the environment tracks that.
+A value that describes a length is measured in the coordinate system where you set it. That covers segmentation's `minSize` and `tolerance`: writing `.withSegmentation(minAngle: 1°, minSize: 0.5)` inside a `.scaled(...)` means half a unit of the geometry it's attached to, not half a unit of the finished model. See <doc:Transformations> for how the environment tracks that.
 
 This system makes it easy to apply shared settings without passing explicit parameters to every single node.
 

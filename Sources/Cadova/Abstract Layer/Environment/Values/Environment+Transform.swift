@@ -48,11 +48,18 @@ public extension EnvironmentValues {
     var scale: Double {
         (self[Self.scaleKey] as? Double) ?? 1
     }
+}
 
-    /// The environment's tolerance scaled by the current coordinate system's scale.
+internal extension EnvironmentValues {
+    /// Re-expresses a length that was defined in a coordinate system of the given scale in this environment's own
+    /// coordinate system.
     ///
-    /// Useful for adapting tolerances to the local coordinate system.
-    var scaledTolerance: Double {
-        tolerance / scale
+    /// This is what lets environment values that describe a length keep their meaning as geometry is transformed
+    /// around them. A coordinate system whose scale has collapsed to zero has no meaningful lengths at all, so the
+    /// length is passed through unchanged rather than becoming infinite.
+    ///
+    func length(_ length: Double, definedAtScale referenceScale: Double) -> Double {
+        guard referenceScale != scale, scale != 0 else { return length }
+        return length * referenceScale / scale
     }
 }

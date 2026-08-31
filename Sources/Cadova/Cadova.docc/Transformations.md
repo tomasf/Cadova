@@ -219,7 +219,7 @@ detail
     .scaled(10)                                     // still 0.2 units of `detail`, i.e. 2 units here
 ```
 
-Move the modifier above the scale and it means 0.2 units of the scaled result instead. This is the same idea as `naturalUpDirection`: both remember the frame they were defined in. Tolerance works differently, and is always measured in world space.
+Move the modifier above the scale and it means 0.2 units of the scaled result instead. `tolerance` behaves the same way, for the same reason: a print-fit clearance describes a physical gap, and scaling the part should scale the gap with it. This is the same idea as `naturalUpDirection`, which remembers the frame it was defined in so it can point the right way afterwards.
 
 ## Beyond affine transforms
 

@@ -13,13 +13,13 @@ internal extension EnvironmentValues {
 
         static let standard = Self(segmentation: .defaults, scale: 1)
 
-        /// Re-expresses the segmentation in a coordinate system with the given scale.
-        func segmentation(at scale: Double) -> Segmentation {
+        /// Re-expresses the segmentation in the given environment's coordinate system.
+        func segmentation(in environment: EnvironmentValues) -> Segmentation {
             switch segmentation {
             case .fixed:
                 segmentation
             case .adaptive(let minAngle, let minSize):
-                .adaptive(minAngle: minAngle, minSize: minSize * self.scale / scale)
+                .adaptive(minAngle: minAngle, minSize: environment.length(minSize, definedAtScale: scale))
             }
         }
     }
@@ -41,7 +41,7 @@ public extension EnvironmentValues {
     /// If not explicitly set, this defaults to `Segmentation.defaults`, expressed in world space.
     ///
     var segmentation: Segmentation {
-        get { segmentationData.segmentation(at: scale) }
+        get { segmentationData.segmentation(in: self) }
         set {
             switch newValue {
             case .adaptive (let minAngle, let minSize):

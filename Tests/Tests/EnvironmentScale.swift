@@ -4,6 +4,7 @@ import Foundation
 
 private final class EnvironmentProbeCapture: @unchecked Sendable {
     var segmentation: Segmentation?
+    var tolerance: Double?
     var scale: Double?
 }
 
@@ -15,6 +16,7 @@ private struct EnvironmentProbe<D: Dimensionality>: Geometry {
     @GeometryBuilder<D> var body: any Geometry<D> {
         @Environment var environment
         capture.segmentation = environment.segmentation
+        capture.tolerance = environment.tolerance
         capture.scale = environment.scale
     }
 }
@@ -26,7 +28,7 @@ private extension Geometry {
     }
 }
 
-struct SegmentationScaleTests {
+struct EnvironmentScaleTests {
     private func probing(
         _ body: (any Geometry3D) -> any Geometry3D
     ) async throws -> EnvironmentProbeCapture {
@@ -104,6 +106,47 @@ struct SegmentationScaleTests {
         let capture = EnvironmentProbeCapture()
         try await EnvironmentProbe<D2>(capture: capture).scaled(10).build()
         #expect(capture.scale == 10)
+    }
+
+    @Test func `tolerance set inside a scale keeps its own units`() async throws {
+        // A clearance describes a physical gap. Scaling the part it belongs to has to scale the gap with it, or the
+        // fit the model asked for silently changes.
+        let capture = try await probing { probe in
+            probe
+                .withTolerance(0.2)
+                .scaled(0.5)
+        }
+        #expect(capture.tolerance == 0.2)
+    }
+
+    @Test func `tolerance set outside a scale is measured in the outer system`() async throws {
+        let capture = try await probing { probe in
+            probe
+                .scaled(0.5)
+                .withTolerance(0.2)
+        }
+        #expect(capture.tolerance == 0.4)
+    }
+
+    @Test func `the default tolerance stays zero at any scale`() async throws {
+        // Zero has no scale to speak of, and the conversion must not turn it into a NaN.
+        let capture = try await probing { probe in
+            probe.scaled(0.001)
+        }
+        #expect(capture.tolerance == 0)
+    }
+
+    @Test func `a collapsed coordinate system leaves lengths alone`() async throws {
+        // Scaling to nothing makes every length in that system meaningless. Passing the values through unchanged
+        // beats handing the caller an infinity.
+        let capture = try await probing { probe in
+            probe
+                .withTolerance(0.2)
+                .withSegmentation(minAngle: 2°, minSize: 0.3)
+                .scaled(0)
+        }
+        #expect(capture.tolerance == 0.2)
+        #expect(capture.segmentation == .adaptive(minAngle: 2°, minSize: 0.3))
     }
 
     @Test func `an enlarged 2D circle is segmented for its enlarged size`() async throws {
