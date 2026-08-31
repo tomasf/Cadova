@@ -38,19 +38,6 @@ public extension Geometry2D {
     ) -> any Geometry3D {
         Sweep(shape: self, path: path, reference: reference, target: target)
     }
-
-    /// Sweeps the 2D geometry along a 3D path to create a 3D solid, using the default orientation
-    /// (facing gravity-down as the path allows).
-    ///
-    /// - Parameter path: The path the shape should follow. This can be a 2D or 3D parametric curve.
-    ///   If 2D, the path is interpreted as lying in the XY plane.
-    /// - Returns: A 3D geometry created by sweeping the shape along the path.
-    ///
-    /// - SeeAlso: ``swept(along:pointing:toward:)``
-    @available(*, deprecated, message: "Specify pointing and toward explicitly — the previous default (.negativeY, .direction(.negativeZ)) can be degenerate for non-horizontal paths")
-    func swept<Path: ParametricCurve>(along path: Path) -> any Geometry3D {
-        swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
-    }
 }
 
 internal struct Sweep<Path: ParametricCurve>: Geometry3D {

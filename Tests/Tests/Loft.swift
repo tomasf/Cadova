@@ -429,112 +429,77 @@ struct LoftTests {
         #expect(loft.sections.map(\.distance) == [0, 10, 15, 25, 28])
     }
 
-    // MARK: - Deprecated API compatibility
-
-    @available(*, deprecated)
-    @Test func `deprecated layer API produces identical geometry to Section`() async throws {
-        let deprecatedLoft = Loft {
-            layer(z: 0) { Circle(diameter: 5) }
-            layer(z: 10) { Circle(diameter: 12) }
-            layer(z: 25) { Circle(diameter: 8) }
-        }
-        let newLoft = Loft {
-            Section(at: 0) { Circle(diameter: 5) }
-            Section(at: 10) { Circle(diameter: 12) }
-            Section(at: 25) { Circle(diameter: 8) }
-        }
-
-        let deprecatedMeasurements = try await deprecatedLoft.measurements
-        let newMeasurements = try await newLoft.measurements
-
-        let deprecatedVolume = await deprecatedMeasurements.volume
-        let newVolume = await newMeasurements.volume
-        let deprecatedSurfaceArea = await deprecatedMeasurements.surfaceArea
-        let newSurfaceArea = await newMeasurements.surfaceArea
-        #expect(deprecatedVolume ≈ newVolume)
-        #expect(deprecatedSurfaceArea ≈ newSurfaceArea)
-        #expect(deprecatedMeasurements.boundingBox == newMeasurements.boundingBox)
-    }
-
     // MARK: - Section resolution
 
-    @available(*, deprecated)
-    @Test func `absolute layers resolve to correct Z positions`() {
+    @Test func `absolute sections resolve to correct Z positions`() {
         let loft = Loft {
-            layer(z: 0) { Circle(diameter: 5) }
-            layer(z: 10) { Circle(diameter: 5) }
-            layer(z: 25) { Circle(diameter: 5) }
+            Section(at: 0) { Circle(diameter: 5) }
+            Section(at: 10) { Circle(diameter: 5) }
+            Section(at: 25) { Circle(diameter: 5) }
         }
         #expect(loft.sections.map(\.distance) == [0, 10, 25])
     }
 
-    @available(*, deprecated)
-    @Test func `offset layers resolve relative to previous layer`() {
+    @Test func `offset sections resolve relative to the previous section`() {
         let loft = Loft {
-            layer(z: 0) { Circle(diameter: 5) }
-            layer(zOffset: 10) { Circle(diameter: 5) }
-            layer(zOffset: 5) { Circle(diameter: 5) }
+            Section(at: 0) { Circle(diameter: 5) }
+            Section(atRelative: 10) { Circle(diameter: 5) }
+            Section(atRelative: 5) { Circle(diameter: 5) }
         }
         #expect(loft.sections.map(\.distance) == [0, 10, 15])
     }
 
-    @available(*, deprecated)
-    @Test func `absolute range creates two layers at bounds`() {
+    @Test func `absolute range creates two sections at bounds`() {
         let loft = Loft {
-            layer(z: 0) { Circle(diameter: 5) }
-            layer(z: 5..<15) { Circle(diameter: 5) }
-            layer(z: 20) { Circle(diameter: 5) }
+            Section(at: 0) { Circle(diameter: 5) }
+            Section(at: 5..<15) { Circle(diameter: 5) }
+            Section(at: 20) { Circle(diameter: 5) }
         }
         #expect(loft.sections.map(\.distance) == [0, 5, 15, 20])
     }
 
-    @available(*, deprecated)
-    @Test func `offset range creates two layers relative to previous`() {
+    @Test func `offset range creates two sections relative to previous`() {
         let loft = Loft {
-            layer(z: 0) { Circle(diameter: 5) }
-            layer(zOffset: 5..<15) { Circle(diameter: 5) }
-            layer(zOffset: 3) { Circle(diameter: 5) }
+            Section(at: 0) { Circle(diameter: 5) }
+            Section(atRelative: 5..<15) { Circle(diameter: 5) }
+            Section(atRelative: 3) { Circle(diameter: 5) }
         }
         #expect(loft.sections.map(\.distance) == [0, 5, 15, 18])
     }
 
-    @available(*, deprecated)
-    @Test func `mixed absolute and offset layers resolve correctly`() {
+    @Test func `mixed absolute and offset sections resolve correctly`() {
         let loft = Loft {
-            layer(z: 0) { Circle(diameter: 5) }
-            layer(zOffset: 10) { Circle(diameter: 5) }
-            layer(z: 30) { Circle(diameter: 5) }
-            layer(zOffset: 5) { Circle(diameter: 5) }
+            Section(at: 0) { Circle(diameter: 5) }
+            Section(atRelative: 10) { Circle(diameter: 5) }
+            Section(at: 30) { Circle(diameter: 5) }
+            Section(atRelative: 5) { Circle(diameter: 5) }
         }
         #expect(loft.sections.map(\.distance) == [0, 10, 30, 35])
     }
 
-    @available(*, deprecated)
-    @Test func `out-of-order absolute layers are sorted by Z`() {
+    @Test func `out-of-order absolute sections are sorted by Z`() {
         let loft = Loft {
-            layer(z: 20) { Circle(diameter: 5) }
-            layer(z: 0) { Circle(diameter: 5) }
-            layer(z: 10) { Circle(diameter: 5) }
+            Section(at: 20) { Circle(diameter: 5) }
+            Section(at: 0) { Circle(diameter: 5) }
+            Section(at: 10) { Circle(diameter: 5) }
         }
         #expect(loft.sections.map(\.distance) == [0, 10, 20])
     }
 
-    @available(*, deprecated)
     @Test func `offset after absolute range starts from range upper bound`() {
         let loft = Loft {
-            layer(z: 0) { Circle(diameter: 5) }
-            layer(z: 10..<20) { Circle(diameter: 5) }
-            layer(zOffset: 5) { Circle(diameter: 5) }
+            Section(at: 0) { Circle(diameter: 5) }
+            Section(at: 10..<20) { Circle(diameter: 5) }
+            Section(atRelative: 5) { Circle(diameter: 5) }
         }
         #expect(loft.sections.map(\.distance) == [0, 10, 20, 25])
     }
 
-    @available(*, deprecated)
     @Test func `offset after offset range starts from range upper bound`() {
         let loft = Loft {
-            layer(z: 0) { Circle(diameter: 5) }
-            layer(zOffset: 10..<20) { Circle(diameter: 5) }
-            layer(zOffset: 5) { Circle(diameter: 5) }
+            Section(at: 0) { Circle(diameter: 5) }
+            Section(atRelative: 10..<20) { Circle(diameter: 5) }
+            Section(atRelative: 5) { Circle(diameter: 5) }
         }
         #expect(loft.sections.map(\.distance) == [0, 10, 20, 25])
     }

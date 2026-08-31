@@ -218,19 +218,6 @@ struct DegenerateInputTests {
 
     // MARK: - Deformations driven by a measured extent
 
-    @available(*, deprecated)
-    @Test func `deforming geometry with no footprint leaves it unchanged`() async throws {
-        let patch = BezierPatch(controlPoints: [
-            [[0, 0, 0], [10, 0, 0], [20, 0, 0]],
-            [[0, 10, 0], [10, 10, 5], [20, 10, 0]],
-            [[0, 20, 0], [10, 20, 0], [20, 20, 0]]
-        ])
-        let original = try #require(try await Self.flatInX.bounds)
-        let deformed = try #require(try await Self.flatInX.deformed(by: patch).bounds)
-
-        #expect(deformed ≈ original)
-    }
-
     @Test func `making 2D geometry with no extent follow a path leaves it unchanged`() async throws {
         let path = BezierPath2D(linesBetween: [[0, 0], [20, 0]])
         let flat = Rectangle(x: 10, y: 10).scaled(x: 0)

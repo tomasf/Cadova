@@ -419,10 +419,4 @@ struct SurfaceTests {
         #expect(bounds.minimum.z ≈ 0)
         #expect(bounds.maximum.z ≈ 11)
     }
-
-    @available(*, deprecated)
-    @Test func `the deprecated deformation still stretches the footprint over the whole surface`() async throws {
-        let bounds = try #require(try await Box([10, 5, 2]).translated(x: 12, y: 20).deformed(by: Self.flatPatch).withSegmentation(count: 8).bounds)
-        #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [40, 30, 2]))
-    }
 }

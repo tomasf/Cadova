@@ -91,24 +91,4 @@ struct SweepTests {
         let plainVolume = await plainMeasurements.volume
         #expect(bridgeVolume > plainVolume * 1.01)
     }
-
-    @available(*, deprecated)
-    @Test func `deprecated no-orientation swept(along:) produces identical geometry to explicit defaults`() async throws {
-        let path = BezierPath3D(linesBetween: [[0, 0, 0], [40, 0, 0], [40, 40, 0]])
-        let shape = Rectangle(x: 10, y: 6).aligned(at: .center)
-
-        let deprecatedSweep = shape.swept(along: path)
-        let explicitSweep = shape.swept(along: path, pointing: .negativeY, toward: .direction(.negativeZ))
-
-        let deprecatedMeasurements = try await deprecatedSweep.measurements
-        let explicitMeasurements = try await explicitSweep.measurements
-
-        let deprecatedVolume = await deprecatedMeasurements.volume
-        let explicitVolume = await explicitMeasurements.volume
-        let deprecatedSurfaceArea = await deprecatedMeasurements.surfaceArea
-        let explicitSurfaceArea = await explicitMeasurements.surfaceArea
-        #expect(deprecatedVolume ≈ explicitVolume)
-        #expect(deprecatedSurfaceArea ≈ explicitSurfaceArea)
-        #expect(deprecatedMeasurements.boundingBox == explicitMeasurements.boundingBox)
-    }
 }
