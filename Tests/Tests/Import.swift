@@ -163,11 +163,11 @@ struct ImportTests {
     @Test func `an error thrown by the part closure propagates`() async throws {
         let modelURL = Bundle.module.url(forResource: "cube_gears", withExtension: "3mf", subdirectory: "resources")!
 
+        // Explicit `return` opts the closure out of the result-builder transform, which would
+        // otherwise emit an unreachable build call after the throw.
         let geometry = Import(model: modelURL) { geometry, part in
-            if part.name == "gear 2" {
-                throw UnexpectedPart()
-            }
-            geometry
+            guard part.name != "gear 2" else { throw UnexpectedPart() }
+            return geometry
         }
 
         do {
@@ -230,8 +230,12 @@ struct ImportTests {
         let provider = ThreeMFDataProvider(result: result, options: [], environment: .defaultEnvironment)
 
         // No LiveLink listener is running in the test environment, so this should return quickly
-        // without throwing, exercising the same best-effort path Model.build() relies on.
-        await provider.pushToLiveLink(destination: URL(filePath: "/tmp/nonexistent.3mf"), context: context)
+        // without throwing, exercising the same best-effort path Model.build() relies on. It
+        // reports false, having reached nobody.
+        let reached = await provider.pushToLiveLink(
+            destination: URL(filePath: "/tmp/nonexistent.3mf"), context: context
+        )
+        #expect(reached == false)
     }
 
     @Test func `STL export and import preserves geometry`() async throws {
