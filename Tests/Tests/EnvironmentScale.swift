@@ -5,6 +5,7 @@ import Foundation
 private final class EnvironmentProbeCapture: @unchecked Sendable {
     var segmentation: Segmentation?
     var tolerance: Double?
+    var simplificationThreshold: Double?
     var scale: Double?
 }
 
@@ -17,6 +18,7 @@ private struct EnvironmentProbe<D: Dimensionality>: Geometry {
         @Environment var environment
         capture.segmentation = environment.segmentation
         capture.tolerance = environment.tolerance
+        capture.simplificationThreshold = environment.simplificationThreshold
         capture.scale = environment.scale
     }
 }
@@ -134,6 +136,57 @@ struct EnvironmentScaleTests {
             probe.scaled(0.001)
         }
         #expect(capture.tolerance == 0)
+    }
+
+    @Test func `simplification threshold set inside a scale keeps its own units`() async throws {
+        let capture = try await probing { probe in
+            probe
+                .withSimplificationThreshold(0.01)
+                .scaled(0.5)
+        }
+        #expect(capture.simplificationThreshold == 0.01)
+    }
+
+    @Test func `simplification threshold set outside a scale is measured in the outer system`() async throws {
+        let capture = try await probing { probe in
+            probe
+                .scaled(0.5)
+                .withSimplificationThreshold(0.01)
+        }
+        #expect(capture.simplificationThreshold == 0.02)
+    }
+
+    @Test func `the default simplification threshold stays world-relative`() async throws {
+        let capture = try await probing { probe in
+            probe.scaled(0.001)
+        }
+        #expect(capture.simplificationThreshold == 5)
+    }
+
+    @Test func `restoring the default simplification threshold discards the reference scale`() async throws {
+        // `nil` removes the stored value rather than pinning the default at the current scale, so the default stays
+        // anchored to the root wherever it is restored.
+        let capture = try await probing { probe in
+            probe
+                .withDefaultSimplificationThreshold()
+                .scaled(0.001)
+                .withSimplificationThreshold(2)
+        }
+        #expect(capture.simplificationThreshold == 5)
+    }
+
+    @Test func `the simplification threshold reaching geometry is converted to local units`() async throws {
+        // The threshold is handed to a simplify node that merges vertices in the geometry's own coordinate system,
+        // so it is the converted value that has to arrive there. Under a 100x scale the default 0.005 has to become
+        // 0.00005 locally to stay 0.005 in the finished model; unconverted it would merge across 0.5 units of output
+        // and eat real detail.
+        let node = try await Box(1).simplified().scaled(100).node
+        guard case .transform(let inner, _) = node.contents,
+              case .simplify(_, let tolerance) = inner.contents else {
+            Issue.record("Expected a transformed simplify node, got \(node)")
+            return
+        }
+        #expect(tolerance == 0.00005)
     }
 
     @Test func `a collapsed coordinate system leaves lengths alone`() async throws {
