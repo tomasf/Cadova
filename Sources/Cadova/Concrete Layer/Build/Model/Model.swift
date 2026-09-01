@@ -149,19 +149,36 @@ public struct Model: Sendable, ModelBuildable {
         let url = baseURL.appendingPathExtension(provider.fileExtension)
         let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
 
-        // Measured to overlap almost for free with writeOutput below (they touch the same cached
-        // EvaluationContext concurrently, which is safe — GeometryCache is dedup'd per node) —
-        // ~20% faster wall-clock on a substantial model, negligible difference on a small one.
-        async let liveLinkPush: Void = provider.pushToLiveLink(destination: url, context: context)
-
-        do {
-            try await provider.writeOutput(to: url, context: context)
-            logger.info("Wrote model to \(url.path)")
-        } catch {
-            logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+        // Shared by every path below — never called more than once per build.
+        func write() async {
+            do {
+                try await provider.writeOutput(to: url, context: context)
+                logger.info("Wrote model to \(url.path)")
+            } catch {
+                logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+            }
         }
 
-        await liveLinkPush
+        if provider.isLikelyToReachLiveLinkListener(destination: url) {
+            // The push is expected to land, making this write redundant with it — push at
+            // `.high` so the listener sees it ASAP, write at `.utility` so it yields cores.
+            // Gated per-path rather than "any host exists": splitting into two Tasks has real
+            // overhead (~20% slower at 60 concurrent models) not worth paying for a push that
+            // would just miss anyway (e.g. a host watching a different project).
+            let pushTask = Task(priority: .high) {
+                await provider.pushToLiveLink(destination: url, context: context)
+            }
+            let writeTask = Task(priority: .utility) { await write() }
+
+            _ = await pushTask.value
+            await writeTask.value
+            return fileExisted ? [] : [url]
+        }
+
+        // No listener expected — plain async-let avoids the Task-split overhead above.
+        async let liveLinkPush: Bool = provider.pushToLiveLink(destination: url, context: context)
+        await write()
+        _ = await liveLinkPush
 
         return fileExisted ? [] : [url]
     }

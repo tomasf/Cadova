@@ -212,7 +212,10 @@ internal enum EdgeJunctionPlanner {
         guard abs(determinant) > 1e-9 else { return nil }
 
         let sign = isConvex ? -1.0 : 1.0
-        let solution = ((n2 × n3) * offsets[0] + (n3 × n1) * offsets[1] + (n1 × n2) * offsets[2]) / determinant
+        let weighted1: Vector3D = (n2 × n3) * offsets[0]
+        let weighted2: Vector3D = (n3 × n1) * offsets[1]
+        let weighted3: Vector3D = (n1 × n2) * offsets[2]
+        let solution: Vector3D = (weighted1 + weighted2 + weighted3) / determinant
         return junction + solution * sign
     }
 }

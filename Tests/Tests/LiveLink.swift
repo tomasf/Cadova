@@ -88,7 +88,7 @@ struct ThreeMFDataProviderLiveLinkTests {
 
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
-        let provider = ThreeMFDataProvider(result: result, options: [])
+        let provider = ThreeMFDataProvider(result: result, options: [], environment: .defaultEnvironment)
         try await provider.writeOutput(to: tempURL, context: context)
 
         let reader = try ThreeMF.PackageReader(url: tempURL)
@@ -127,7 +127,7 @@ struct ThreeMFDataProviderLiveLinkTests {
 
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
-        let provider = ThreeMFDataProvider(result: result, options: [])
+        let provider = ThreeMFDataProvider(result: result, options: [], environment: .defaultEnvironment)
 
         let resolved = try await provider.resolvedParts(context: context)
         #expect(Set(resolved.map(\.part.name)) == ["Model", "Zebra"])

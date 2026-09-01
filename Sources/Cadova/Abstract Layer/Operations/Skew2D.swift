@@ -82,7 +82,7 @@ public extension Geometry2D {
 
 internal extension Geometry2D {
     func skewingCorners(from source: [Vector2D], to destination: [Vector2D]) -> any Geometry2D {
-        assert(source.count == 4 && destination.count == 4)
+        precondition(source.count == 4 && destination.count == 4)
 
         let min = Vector2D(source.map(\.x).min()!, source.map(\.y).min()!)
         let max = Vector2D(source.map(\.x).max()!, source.map(\.y).max()!)

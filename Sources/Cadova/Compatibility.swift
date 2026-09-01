@@ -110,6 +110,59 @@ public func readOperation(
     }
 }
 
+/// Defers geometry construction until build time, when the current `EnvironmentValues` are
+/// available to `body`. Powers `readEnvironment(_:)` and `readingEnvironment(_:)`.
+struct EnvironmentReader<D: Dimensionality>: Geometry {
+    let body: @Sendable (EnvironmentValues) -> D.Geometry
+
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
+        try await context.buildResult(for: body(environment), in: environment)
+    }
+}
+
+/// Deprecated. Use the `@Environment` property wrapper instead.
+@available(*, deprecated, message: "Use the @Environment property wrapper instead.")
+public func readEnvironment<D: Dimensionality>(
+    @GeometryBuilder<D> _ body: @Sendable @escaping (EnvironmentValues) -> D.Geometry
+) -> D.Geometry {
+    EnvironmentReader(body: body)
+}
+
+/// Deprecated. Use the `@Environment` property wrapper instead.
+@available(*, deprecated, message: "Use the @Environment property wrapper instead.")
+public func readEnvironment<D: Dimensionality, each EachValue: Sendable>(
+    _ keyPaths: repeat KeyPath<EnvironmentValues, each EachValue>,
+    @GeometryBuilder<D> body: @Sendable @escaping (repeat each EachValue) -> D.Geometry
+) -> D.Geometry {
+    let localKeyPaths = (repeat each keyPaths)
+    return readEnvironment { environment in
+        body(repeat environment[keyPath: each localKeyPaths])
+    }
+}
+
+public extension Geometry {
+    /// Deprecated. Use the `@Environment` property wrapper instead.
+    @available(*, deprecated, message: "Use the @Environment property wrapper instead.")
+    func readingEnvironment(
+        @GeometryBuilder<D> _ body: @Sendable @escaping (D.Geometry, EnvironmentValues) -> D.Geometry
+    ) -> D.Geometry {
+        readEnvironment { env in
+            body(self, env)
+        }
+    }
+
+    /// Deprecated. Use the `@Environment` property wrapper instead.
+    @available(*, deprecated, message: "Use the @Environment property wrapper instead.")
+    func readingEnvironment<each EachValue: Sendable>(
+        _ keyPaths: repeat KeyPath<EnvironmentValues, each EachValue>,
+        @GeometryBuilder<D> body: @Sendable @escaping (D.Geometry, repeat each EachValue) -> D.Geometry
+    ) -> D.Geometry {
+        return readEnvironment(repeat each keyPaths) { (values: repeat each EachValue) in
+            body(self, repeat each values)
+        }
+    }
+}
+
 // `Loft.Layer` itself is gone — these functions now build `Section` values directly, so old
 // `Loft(interpolation:) { layer(z: 0) { ... } }` call sites resolve straight to the current
 // `Section`-based `Loft.init`, with no separate deprecated initializer needed to bridge them.

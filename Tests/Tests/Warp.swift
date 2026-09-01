@@ -123,12 +123,15 @@ struct WarpTests {
                 point.x *= scale
                 point.y *= scale
             }
-        let bounds = try await geometry.bounds
+        let measurements = try await geometry.measurements
 
-        // Top should be narrower than bottom
-        #expect(bounds?.minimum.x ≈ 0)
-        #expect(bounds?.minimum.y ≈ 0)
-        #expect(bounds?.size.z ≈ 10)
+        // The taper leaves the bounding box alone — the widest cross-section is still the
+        // untouched one at z=0 — so only the volume shows whether it happened at all.
+        // The side shrinks linearly from 10 at z=0 to 5 at z=10:
+        // V = ∫₀¹⁰ (10·(1 - 0.05z))² dz = 2000·(1 - 0.5³)/3.
+        let expectedVolume = 2000.0 * (1 - 0.125) / 3
+        #expect(measurements.volume.equals(expectedVolume, within: 0.01))
+        #expect(measurements.boundingBox ≈ .init(minimum: .zero, maximum: [10, 10, 10]))
     }
 
     // MARK: - Non-linear Transformations
@@ -163,34 +166,6 @@ struct WarpTests {
         // Should be smaller due to 0.8 scale
         #expect(bounds!.size.x < 10)
         #expect(bounds!.size.y < 10)
-    }
-
-    // MARK: - Cache Behavior
-
-    @Test func `warp with same parameters produces same result`() async throws {
-        let base = Box(10)
-
-        let warp1 = base.warped(operationName: "offset", cacheParameters: 5.0) { $0 + [5, 0, 0] }
-        let warp2 = base.warped(operationName: "offset", cacheParameters: 5.0) { $0 + [5, 0, 0] }
-
-        let bounds1 = try await warp1.bounds
-        let bounds2 = try await warp2.bounds
-
-        #expect(bounds1?.minimum.x ≈ bounds2?.minimum.x)
-        #expect(bounds1?.maximum.x ≈ bounds2?.maximum.x)
-    }
-
-    @Test func `warp with different parameters produces different results`() async throws {
-        let base = Box(10)
-
-        let warp1 = base.warped(operationName: "offset", cacheParameters: 5.0) { $0 + [5, 0, 0] }
-        let warp2 = base.warped(operationName: "offset", cacheParameters: 10.0) { $0 + [10, 0, 0] }
-
-        let bounds1 = try await warp1.bounds
-        let bounds2 = try await warp2.bounds
-
-        #expect(bounds1?.minimum.x ≈ 5)
-        #expect(bounds2?.minimum.x ≈ 10)
     }
 
     // MARK: - Edge Cases

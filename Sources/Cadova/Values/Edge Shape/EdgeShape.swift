@@ -25,7 +25,7 @@ public struct EdgeShape: Sendable {
         case chamferByWidth (width: Double)
         case fillet (radius: Double)
         case filletByDepth (depth: Double)
-        case custom (name: String, parameters: [OpaqueKey])
+        case custom (name: String, parameters: [AnyCacheKey])
     }
 
     internal let kind: Kind

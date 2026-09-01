@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The sphere's smoothness and number of faces can be adjusted by configuring the segmentation through the ``Geometry/withSegmentation(minAngle:minSize:)`` and ``Geometry/withSegmentation(count:)`` methods, allowing for customized geometric precision and rendering quality.
 
-public struct Sphere {
+public struct Sphere: Hashable, Sendable, Codable {
     /// The radius of the sphere.
     ///
     /// This property defines the overall size of the sphere from its center to its surface.

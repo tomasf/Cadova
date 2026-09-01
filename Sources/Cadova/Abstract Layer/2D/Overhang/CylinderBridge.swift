@@ -20,7 +20,7 @@ public struct CylinderBridge: Geometry2D {
     ///   - topDiameter: The diameter of the top part of the bridged cylinder.
     /// - Warning: Bridging where the top diameter is less than half the bottom diameter may not work optimally.
     public init(bottomDiameter: Double, topDiameter: Double) {
-        assert(bottomDiameter > topDiameter, "The bottom diameter should be larger than the top diameter")
+        precondition(bottomDiameter > topDiameter, "The bottom diameter should be larger than the top diameter")
         if topDiameter < bottomDiameter / 2.0 {
             logger.warning("Bridging where the top diameter is less than half the bottom diameter may not work optimally.")
         }

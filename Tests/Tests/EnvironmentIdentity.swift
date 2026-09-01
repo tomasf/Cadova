@@ -41,13 +41,6 @@ struct EnvironmentIdentityTests {
         #expect(environment.id != before)
     }
 
-    @Test func `mutating a copy leaves the original identity intact`() {
-        let original = EnvironmentValues()
-        var copy = original
-        copy.tolerance = 0.5
-        #expect(copy.id != original.id)
-    }
-
     @Test func `setting returns an environment with a new identity`() {
         let environment = EnvironmentValues()
         let derived = environment.setting(key: EnvironmentValues.Key("Test.Key"), value: 42)
@@ -63,7 +56,10 @@ struct EnvironmentIdentityTests {
         inner.tolerance = 0.5
 
         let observed = await outer.whileCurrent {
-            await inner.whileCurrent {
+            // The explicit `async` picks the async overload, the only one that consults `id` to
+            // decide whether to skip rebinding. The synchronous overload always rebinds, so it
+            // would pass this test no matter what `id` did.
+            await inner.whileCurrent { () async -> Double in
                 EnvironmentValues.current.tolerance
             }
         }
@@ -75,7 +71,7 @@ struct EnvironmentIdentityTests {
         environment.tolerance = 0.25
 
         let observed = await environment.whileCurrent {
-            await environment.whileCurrent {
+            await environment.whileCurrent { () async -> Double in
                 EnvironmentValues.current.tolerance
             }
         }

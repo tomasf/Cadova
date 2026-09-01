@@ -79,7 +79,7 @@ public extension Transform2D {
     ///   - angle: The angle of shearing.
     ///
     static func shearing(_ axis: Axis2D, angle: Angle) -> Transform2D {
-        assert(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
+        precondition(angle > -90° && angle < 90°, "Angle needs to be between -90° and 90°")
         let factor = sin(angle) / sin(90° - angle)
         return shearing(axis, factor: factor)
     }

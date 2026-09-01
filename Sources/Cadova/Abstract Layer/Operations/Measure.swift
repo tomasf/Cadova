@@ -138,12 +138,13 @@ internal extension MeasurementScope {
     func includedConcretes<D: Dimensionality>(
         for buildResult: BuildResult<D>,
         in context: EvaluationContext
-    ) async throws -> [D.Concrete] {
+    ) async throws -> [MeasuredPart<D>] {
+        let cache: GeometryCache<D> = context.cache()
         let main = try await context.result(for: buildResult.node)
         guard let main3D = main as? EvaluationResult<D3> else {
             // Parts are currently always 3D. Because we can't mix dimensionalities for measurement
             // purposes, we can't use parts in 2D measurements at all.
-            return [main.concrete]
+            return [MeasuredPart(node: buildResult.node, concrete: main.concrete, cache: cache)]
         }
 
         let allParts = buildResult.elements[PartCatalog.self].mergedOutputs
@@ -155,9 +156,14 @@ internal extension MeasurementScope {
         case .allParts: additionalParts = Array(allParts.values)
         }
 
-        let partResults = try await additionalParts.asyncMap { try await context.result(for: $0.node) }
+        let partResults = try await additionalParts.asyncMap { part in
+            (node: part.node, concrete: try await context.result(for: part.node).concrete)
+        }
 
-        let concretes = [main3D.concrete] + partResults.map(\.concrete)
-        return concretes as! [D.Concrete]
+        let cache3D: GeometryCache<D3> = context.cache()
+        let mainNode3D = buildResult.node as! D3.Node
+        let measuredParts = [MeasuredPart(node: mainNode3D, concrete: main3D.concrete, cache: cache3D)]
+            + partResults.map { MeasuredPart(node: $0.node, concrete: $0.concrete, cache: cache3D) }
+        return measuredParts as! [MeasuredPart<D>]
     }
 }

@@ -52,7 +52,7 @@ public extension Geometry3D {
 
 internal extension Geometry3D {
     func skewingCorners(from source: [Vector3D], to destination: [Vector3D]) -> any Geometry3D {
-        assert(source.count == 8 && destination.count == 8)
+        precondition(source.count == 8 && destination.count == 8)
 
         let min = Vector3D(source.map(\.x).min()!, source.map(\.y).min()!, source.map(\.z).min()!)
         let max = Vector3D(source.map(\.x).max()!, source.map(\.y).max()!, source.map(\.z).max()!)

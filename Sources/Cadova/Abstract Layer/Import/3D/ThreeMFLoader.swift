@@ -3,29 +3,40 @@ internal import ThreeMF
 
 /// Loads 3MF files into mesh data.
 internal struct ThreeMFLoader<T: Sendable> {
-    let loader: ModelLoader<T>
+    let source: T
     let parts: [Import<D3>.PartIdentifier]?
 
     init(url: URL, parts: [Import<D3>.PartIdentifier]?) where T == URL {
-        self.loader = ModelLoader(url: url)
+        self.source = url
         self.parts = parts
     }
 
     init(data: Data, parts: [Import<D3>.PartIdentifier]?) where T == Data {
-        self.loader = ModelLoader(data: data)
+        self.source = data
         self.parts = parts
     }
 
-    func load() async throws -> D3.Node {
-        let loadedModel = try await loader.load()
-        let loadedItems = try loadedModel.loadedItems(for: parts)
-        return D3.Node.boolean(loadedItems.map {
-            $0.buildNode(model: loadedModel)
-        }, type: .union)
+    private func node(from loadedModel: ModelLoader<T>.LoadedModel) throws -> D3.Node {
+        .boolean(try loadedModel.loadedItems(for: parts).map { $0.buildNode(model: loadedModel) }, type: .union)
+    }
+}
+
+internal extension ThreeMFLoader where T == URL {
+    func load(context: EvaluationContext) async throws -> D3.Node {
+        try node(from: try await context.threeMFModelCache.loadedModel(url: source))
+    }
+}
+
+internal extension ThreeMFLoader where T == Data {
+    func load(context: EvaluationContext) async throws -> D3.Node {
+        try node(from: try await context.threeMFModelCache.loadedModel(data: source))
     }
 }
 
 internal extension ModelLoader.LoadedModel {
+    /// Returns the items to import: all of them when `identifiers` is `nil`, or one item per
+    /// identifier otherwise. An item can't be matched twice. Throws `.missingPart` on the first
+    /// identifier with no match.
     func loadedItems(for identifiers: [Import<D3>.PartIdentifier]?) throws -> [LoadedItem] {
         var remainingItems = items
         guard let identifiers else { return remainingItems }
@@ -49,6 +60,16 @@ internal extension ModelLoader.LoadedModel.LoadedItem {
 
     func buildNode(model: ModelLoader.LoadedModel) -> D3.Node {
         .boolean(components.map { $0.buildNode(model: model) }, type: .union)
+    }
+}
+
+internal extension Import<D3>.ModelPart {
+    init(item: ModelLoader<some Sendable>.LoadedModel.LoadedItem, index: Int) {
+        self.init(
+            index: index,
+            name: item.rootObject.name.flatMap { $0.isEmpty ? nil : $0 },
+            partNumber: item.item.partNumber.flatMap { $0.isEmpty ? nil : $0 }
+        )
     }
 }
 

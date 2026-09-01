@@ -45,10 +45,10 @@ public extension Cylinder {
     ///   - topDiameter: The diameter at the top
     ///   - slantHeight: The length of the side between the top and bottom edges
     init(bottomDiameter: Double, topDiameter: Double, slantHeight: Double) {
-        assert(slantHeight.isFinite, "Cylinder slant height must be finite")
+        precondition(slantHeight.isFinite, "Cylinder slant height must be finite")
 
         let radiusDifference = (topDiameter - bottomDiameter) / 2
-        assert(
+        precondition(
             slantHeight >= abs(radiusDifference),
             "Cylinder slant height must be at least the difference between the radii"
         )
@@ -70,12 +70,12 @@ public extension Cylinder {
     ///   - apexAngle: The apex angle between the two slanted sides
     ///   - height: The height between the bottom and top edges
     init(bottomDiameter: Double, apexAngle: Angle, height: Double) {
-        assert(height > 0, "Cylinder height must be positive")
-        assert(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Cylinder angle is outside valid range 0° < |a| < 180°")
-        assert(bottomDiameter >= 0, "Bottom diameter must be non-negative")
+        precondition(height > 0, "Cylinder height must be positive")
+        precondition(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Cylinder angle is outside valid range 0° < |a| < 180°")
+        precondition(bottomDiameter >= 0, "Bottom diameter must be non-negative")
 
         let topDiameter = bottomDiameter + (2 * height * tan(apexAngle / 2))
-        assert(topDiameter >= 0, "Resulting top diameter is negative; check the apex angle and height")
+        precondition(topDiameter >= 0, "Resulting top diameter is negative; check the apex angle and height")
         self.init(bottomDiameter: bottomDiameter, topDiameter: topDiameter, height: height)
     }
 
@@ -90,12 +90,12 @@ public extension Cylinder {
     ///   - apexAngle: The apex angle between the two slanted sides
     ///   - height: The height between the bottom and top edges
     init(topDiameter: Double, apexAngle: Angle, height: Double) {
-        assert(height > 0, "Cylinder height must be positive")
-        assert(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Cylinder angle is outside valid range 0° < |a| < 180°")
-        assert(topDiameter >= 0, "Top diameter must be non-negative")
+        precondition(height > 0, "Cylinder height must be positive")
+        precondition(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Cylinder angle is outside valid range 0° < |a| < 180°")
+        precondition(topDiameter >= 0, "Top diameter must be non-negative")
 
         let bottomDiameter = topDiameter - (2 * height * tan(apexAngle / 2))
-        assert(bottomDiameter >= 0, "Resulting bottom diameter is negative; check the apex angle and height")
+        precondition(bottomDiameter >= 0, "Resulting bottom diameter is negative; check the apex angle and height")
         self.init(bottomDiameter: bottomDiameter, topDiameter: topDiameter, height: height)
     }
 
@@ -111,18 +111,18 @@ public extension Cylinder {
     ///   - apexAngle: The apex angle between the two slanted sides
     ///   - height: The height between the larger and smaller ends
     init(largerDiameter: Double, apexAngle: Angle, height: Double) {
-        assert(height > 0, "Cylinder height must be positive")
-        assert(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Cylinder angle is outside valid range 0° < |a| < 180°")
+        precondition(height > 0, "Cylinder height must be positive")
+        precondition(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Cylinder angle is outside valid range 0° < |a| < 180°")
 
         if apexAngle > 0° {
             // Expanding shape: `largerDiameter` is at the top
             let smallerDiameter = largerDiameter - (2 * height * tan(apexAngle / 2))
-            assert(smallerDiameter >= 0, "Resulting smaller diameter is negative; check the apex angle and height")
+            precondition(smallerDiameter >= 0, "Resulting smaller diameter is negative; check the apex angle and height")
             self.init(bottomDiameter: smallerDiameter, topDiameter: largerDiameter, height: height)
         } else {
             // Narrowing shape: `largerDiameter` is at the bottom
             let smallerDiameter = largerDiameter - (2 * height * tan(-apexAngle / 2))
-            assert(smallerDiameter >= 0, "Resulting smaller diameter is negative; check the apex angle and height")
+            precondition(smallerDiameter >= 0, "Resulting smaller diameter is negative; check the apex angle and height")
             self.init(bottomDiameter: largerDiameter, topDiameter: smallerDiameter, height: height)
         }
 
@@ -140,18 +140,18 @@ public extension Cylinder {
     ///   - apexAngle: The apex angle between the two slanted sides
     ///   - height: The height between the larger and smaller ends
     init(smallerDiameter: Double, apexAngle: Angle, height: Double) {
-        assert(height > 0, "Cylinder height must be positive")
-        assert(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Cylinder angle is outside valid range 0° < |a| < 180°")
+        precondition(height > 0, "Cylinder height must be positive")
+        precondition(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Cylinder angle is outside valid range 0° < |a| < 180°")
 
         if apexAngle > 0° {
             // Expanding shape: `smallerDiameter` is at the bottom
             let largerDiameter = smallerDiameter + (2 * height * tan(apexAngle / 2))
-            assert(largerDiameter >= 0, "Resulting larger diameter is negative; check the apex angle and height")
+            precondition(largerDiameter >= 0, "Resulting larger diameter is negative; check the apex angle and height")
             self.init(bottomDiameter: smallerDiameter, topDiameter: largerDiameter, height: height)
         } else {
             // Narrowing shape: `smallerDiameter` is at the top
             let largerDiameter = smallerDiameter + (2 * height * tan(-apexAngle / 2))
-            assert(largerDiameter >= 0, "Resulting larger diameter is negative; check the apex angle and height")
+            precondition(largerDiameter >= 0, "Resulting larger diameter is negative; check the apex angle and height")
             self.init(bottomDiameter: largerDiameter, topDiameter: smallerDiameter, height: height)
         }
     }
@@ -164,8 +164,8 @@ public extension Cylinder {
     ///   - topDiameter: The diameter at the top of the cone
     ///   - apexAngle: The apex angle between the two slanted sides
     init(bottomDiameter: Double, topDiameter: Double, apexAngle: Angle) {
-        assert(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Apex angle is outside valid range 0° < |a| < 180°")
-        assert(bottomDiameter >= 0 && topDiameter >= 0, "Diameters must be non-negative")
+        precondition(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Apex angle is outside valid range 0° < |a| < 180°")
+        precondition(bottomDiameter >= 0 && topDiameter >= 0, "Diameters must be non-negative")
 
         // Calculate the radius difference between the bottom and top
         let radiusDifference = abs(bottomDiameter - topDiameter) / 2
@@ -185,16 +185,16 @@ public extension Cylinder {
     ///   - apexAngle: The apex angle between the two slanted sides
     ///   - slantHeight: The length of the side between the bottom and top edges
     init(topDiameter: Double, apexAngle: Angle, slantHeight: Double) {
-        assert(slantHeight > 0, "Cylinder slant height must be positive")
-        assert(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Apex angle is outside valid range 0° < |a| < 180°")
-        assert(topDiameter >= 0, "Top diameter must be non-negative")
+        precondition(slantHeight > 0, "Cylinder slant height must be positive")
+        precondition(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Apex angle is outside valid range 0° < |a| < 180°")
+        precondition(topDiameter >= 0, "Top diameter must be non-negative")
 
         let radiusDifference = slantHeight * sin(abs(apexAngle) / 2)
         let diameterDifference = radiusDifference * 2
 
         if apexAngle > 0° {
             let bottomDiameter = topDiameter - diameterDifference
-            assert(bottomDiameter >= 0, "Resulting bottom diameter is negative; check the apex angle and slant height")
+            precondition(bottomDiameter >= 0, "Resulting bottom diameter is negative; check the apex angle and slant height")
             self.init(bottomDiameter: bottomDiameter, topDiameter: topDiameter, slantHeight: slantHeight)
         } else {
             let bottomDiameter = topDiameter + diameterDifference
@@ -213,13 +213,13 @@ public extension Cylinder {
     ///   - apexAngle: The apex angle between the two slanted sides
     ///   - slantHeight: The length of the side between the bottom and top edges
     init(bottomDiameter: Double, apexAngle: Angle, slantHeight: Double) {
-        assert(slantHeight > 0, "Cylinder slant height must be positive")
-        assert(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Apex angle is outside valid range 0° < |a| < 180°")
-        assert(bottomDiameter >= 0, "Bottom diameter must be non-negative")
+        precondition(slantHeight > 0, "Cylinder slant height must be positive")
+        precondition(abs(apexAngle) > 0° && abs(apexAngle) < 180°, "Apex angle is outside valid range 0° < |a| < 180°")
+        precondition(bottomDiameter >= 0, "Bottom diameter must be non-negative")
 
         let diameterDifference = 2 * slantHeight * sin(apexAngle / 2)
         let topDiameter = bottomDiameter + diameterDifference
-        assert(topDiameter >= 0, "Resulting top diameter is negative; check the apex angle and slant height")
+        precondition(topDiameter >= 0, "Resulting top diameter is negative; check the apex angle and slant height")
         self.init(bottomDiameter: bottomDiameter, topDiameter: topDiameter, slantHeight: slantHeight)
     }
 }

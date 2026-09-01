@@ -6,19 +6,36 @@ internal extension Geometry3D {
         with shape: any Geometry2D,
         at plane: Plane
     ) -> any Geometry3D {
-        readingEnvironment(\.operation) { body, operation in
-            // The traced slice describes the source body, so it must keep the source operation even though the
-            // swept profile itself is evaluated in the subtraction branch.
-            let sourceShape = shape.withEnvironment { $0.withOperation(operation) }
+        CuttingEdgeProfile(source: self, edgeProfile: edgeProfile, shape: shape, plane: plane)
+    }
+}
 
-            // Edge profiling works in plane-local coordinates, but the profiled geometry must still build in source space.
-            ApplyTransform(
-                body: ApplyTransform(body: body, transform: plane.transform.inverse, transformEnvironment: false)
-                    .subtracting(edgeProfile.followingEdge(of: sourceShape, type: .subtraction)),
-                transform: plane.transform,
-                transformEnvironment: false
-            )
-        }
+private struct CuttingEdgeProfile: Geometry3D {
+    let source: any Geometry3D
+    let edgeProfile: EdgeProfile
+    let shape: any Geometry2D
+    let plane: Plane
+
+    var body: any Geometry3D {
+        @Environment(\.operation) var operation
+        // Snapshotted into a plain `let`: `operation` is read here, but used inside the `withEnvironment`
+        // closure below, which `EnvironmentModifier` stores and invokes later — potentially from deep
+        // inside an already-flipped `.subtracting` branch. `@Environment`'s wrappedValue re-reads the
+        // ambient environment on every access rather than snapshotting, so referencing `operation` itself
+        // (instead of this pinned copy) inside that closure would silently pick up the wrong value.
+        let pinnedOperation = operation
+
+        // The traced slice describes the source body, so it must keep the source operation even though the
+        // swept profile itself is evaluated in the subtraction branch.
+        let sourceShape = shape.withEnvironment { $0.withOperation(pinnedOperation) }
+
+        // Edge profiling works in plane-local coordinates, but the profiled geometry must still build in source space.
+        ApplyTransform(
+            body: ApplyTransform(body: source, transform: plane.transform.inverse, transformEnvironment: false)
+                .subtracting(edgeProfile.followingEdge(of: sourceShape, type: .subtraction)),
+            transform: plane.transform,
+            transformEnvironment: false
+        )
     }
 }
 

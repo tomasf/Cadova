@@ -28,7 +28,7 @@ public extension EdgeProfile {
     /// - Returns: An edge profile representing the chamfer with the specified angle.
     ///
     static func chamfer(depth: Double, angle: Angle) -> Self {
-        assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
+        precondition((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
         return .chamfer(depth: depth, height: depth * tan(angle))
     }
 
@@ -39,7 +39,7 @@ public extension EdgeProfile {
     /// - Returns: An edge profile representing the chamfer with the specified angle.
     ///
     static func chamfer(height: Double, angle: Angle) -> Self {
-        assert((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
+        precondition((0°..<90°).contains(angle), "Chamfer angle must be between 0° and 90°")
         return .chamfer(depth: height / tan(angle), height: height)
     }
 }
@@ -107,13 +107,20 @@ public extension EdgeProfile {
     ///
     static func overhangFillet(radius: Double) -> Self {
         Self {
-            readEnvironment(\.overhangAngle) { overhangAngle in
-                Circle(radius: radius)
-                    .overhangSafe(.bridge)
-                    .definingNaturalUpDirection(.up)
-                    .withEnvironment { $0.withOperation(.subtraction) }
-                    .within(x: 0..., y: 0...)
-            }
+            OverhangFilletProfile(radius: radius)
         }
+    }
+}
+
+private struct OverhangFilletProfile: Geometry2D {
+    let radius: Double
+
+    var body: any Geometry2D {
+        @Environment(\.overhangAngle) var overhangAngle
+        Circle(radius: radius)
+            .overhangSafe(.bridge)
+            .definingNaturalUpDirection(.up)
+            .withEnvironment { $0.withOperation(.subtraction) }
+            .within(x: 0..., y: 0...)
     }
 }

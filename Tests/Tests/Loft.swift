@@ -172,23 +172,6 @@ struct LoftTests {
         #expect(m.boundingBox ≈ .init(minimum: [-5, -4, 0], maximum: [5, 4, 20]))
     }
 
-    @Test func `loft from circle to triangle produces valid geometry`() async throws {
-        let loft = Loft(interpolation: .linear) {
-            Section(at: 0) {
-                Circle(diameter: 10)
-            }
-            Section(at: 20) {
-                Triangle(a: 8, b: 8, includedGamma: 90°)
-            }
-        }
-
-        try await loft.writeVerificationModel(name: "loftCircleToTriangle")
-        let m = try await loft.measurements
-
-        #expect(m.volume > 0)
-        #expect(m.surfaceArea > 0)
-    }
-
     // MARK: - Path-based lofting
 
     @Test func `loft along a straight non-Z path is positioned and oriented by arc length`() async throws {

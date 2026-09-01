@@ -7,17 +7,38 @@ import Manifold3D
 /// tailored to either 2D or 3D geometries based on the specified dimensionality.
 ///
 public struct Measurements<D: Dimensionality>: Sendable {
-    internal let concrete: [D.Concrete]
+    internal let parts: [MeasuredPart<D>]
 
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
     init(buildResult: BuildResult<D>, scope: MeasurementScope, context: EvaluationContext) async throws {
-        self.concrete = try await scope.includedConcretes(for: buildResult, in: context)
+        self.parts = try await scope.includedConcretes(for: buildResult, in: context)
     }
 
     internal init() {
-        self.concrete = []
+        self.parts = []
     }
+
+    internal var concrete: [D.Concrete] { parts.map(\.concrete) }
+}
+
+// A single measured body together with the node it came from and the cache that memoizes its
+// expensive derived properties (volume, surface area, centroid, convexity). Keying the cache by
+// node lets these survive across separate `Measurements` instances that measure the same geometry.
+internal struct MeasuredPart<D: Dimensionality>: Sendable {
+    let node: D.Node
+    let concrete: D.Concrete
+    let cache: GeometryCache<D>
+}
+
+// `centroidAndWeight`'s outer optional distinguishes "not yet computed" from a computed result;
+// the weight itself may legitimately be zero (empty/degenerate geometry).
+internal struct CachedMeasurements<D: Dimensionality>: Sendable {
+    var volume: Double?
+    var surfaceArea: Double?
+    var area: Double?
+    var centroidAndWeight: (centroid: D.Vector, weight: Double)?
+    var isConvex: Bool?
 }
 
 public extension Measurements {
@@ -46,30 +67,70 @@ public extension Measurements {
 
 public extension Measurements2D {
     /// The total area of the 2D geometry, in square millimeters (mm²).
-    var area: Double { concrete.sum(\.area) }
+    var area: Double { parts.sum(\.area) }
 
     /// The number of contours (closed paths) in the geometry.
     var contourCount: Int { concrete.sum(\.contourCount) }
 
     /// Indicates whether the geometry consists of a single convex shape.
-    var isConvex: Bool {
-        let polygons = SimplePolygonList(concrete.map { $0.polygonList() })
-        return polygons.count == 1 && polygons[0].isConvex
-    }
+    var isConvex: Bool { parts.first?.isConvex ?? false }
 }
 
 public extension Measurements3D {
     /// The total surface area of the 3D geometry, in square millimeters (mm²).
-    var surfaceArea: Double { concrete.sum(\.surfaceArea) }
+    var surfaceArea: Double { parts.sum(\.surfaceArea) }
 
     /// The total volume enclosed by the 3D geometry, in cubic millimeters (mm³).
-    var volume: Double { concrete.sum(\.volume) }
+    var volume: Double { parts.sum(\.volume) }
 
     /// The total number of edges in the geometry.
     var edgeCount: Int { concrete.sum(\.edgeCount) }
 
     /// The number of triangular faces in the geometry.
     var triangleCount: Int { concrete.sum(\.triangleCount) }
+}
+
+internal extension MeasuredPart where D == D2 {
+    // 2D measurement scopes always resolve to a single part (parts are a 3D-only concept), so
+    // `isConvex` only ever needs to consider this one body.
+    var isConvex: Bool {
+        if let cached = cache.cachedMeasurements(for: node).isConvex { return cached }
+        let polygons = SimplePolygonList([concrete.polygonList()])
+        let value = polygons.count == 1 && polygons[0].isConvex
+        cache.updateCachedMeasurements(for: node) { $0.isConvex = value }
+        return value
+    }
+
+    // `centroidAndWeight`, when already cached, derived this same area as a byproduct: reuse it
+    // instead of asking the underlying geometry to redo the work.
+    var area: Double {
+        let cached = cache.cachedMeasurements(for: node)
+        if let value = cached.area { return value }
+        if let value = cached.centroidAndWeight?.weight { return value }
+        let value = concrete.area
+        cache.updateCachedMeasurements(for: node) { $0.area = value }
+        return value
+    }
+}
+
+internal extension MeasuredPart where D == D3 {
+    // `centroidAndWeight`, when already cached, derived this same volume as a byproduct: reuse it
+    // instead of asking the underlying geometry to redo the work.
+    var volume: Double {
+        let cached = cache.cachedMeasurements(for: node)
+        if let value = cached.volume { return value }
+        if let value = cached.centroidAndWeight?.weight { return value }
+        let value = concrete.volume
+        cache.updateCachedMeasurements(for: node) { $0.volume = value }
+        return value
+    }
+
+    var surfaceArea: Double {
+        if let cached = cache.cachedMeasurements(for: node).surfaceArea { return cached }
+        let value = concrete.surfaceArea
+        cache.updateCachedMeasurements(for: node) { $0.surfaceArea = value }
+        return value
+    }
 }
 
 extension Measurements: CustomDebugStringConvertible {
@@ -79,6 +140,7 @@ extension Measurements: CustomDebugStringConvertible {
         if let self = self as? Measurements2D {
             items = [
                 "Bounding box": boundingBox ?? "none",
+                "Centroid": self.centroid ?? "none",
                 "Is empty": isEmpty,
                 "Area": self.area,
                 "Point count": self.pointCount,
@@ -88,6 +150,7 @@ extension Measurements: CustomDebugStringConvertible {
         } else if let self = self as? Measurements3D {
             items = [
                 "Bounding box": boundingBox ?? "none",
+                "Centroid": self.centroid ?? "none",
                 "Is empty": isEmpty,
                 "Surface area": self.surfaceArea,
                 "Volume": self.volume,

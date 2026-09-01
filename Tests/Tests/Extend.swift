@@ -93,15 +93,20 @@ struct ExtendTests {
     }
 
     @Test func `3D extend cylinder preserves circular cross-section`() async throws {
-        // A cylinder extended should remain cylindrical
-        let measurements = try await Cylinder(diameter: 10, height: 20)
+        let extended = Cylinder(diameter: 10, height: 20)
             .extended(.z, by: 10, at: 10)
-            .measurements
 
         // Volume of cylinder with diameter 10, height 30
         // Using 1 unit tolerance due to mesh discretization
         let expectedVolume = Double.pi * 5 * 5 * 30
-        #expect(measurements.volume.equals(expectedVolume, within: 1))
+        #expect(try await extended.measurements.volume.equals(expectedVolume, within: 1))
+
+        // A total volume is the same for every cross-section of equal area, so it says nothing
+        // about the shape being circular. Check a section from inside the extended stretch.
+        let section = try await extended.sliced(atZ: 25).measurements
+        let expectedArea = Double.pi * 25
+        #expect(section.area.equals(expectedArea, within: 0.05))
+        #expect(section.boundingBox ≈ .init(minimum: [-5, -5], maximum: [5, 5]))
     }
 
     // MARK: - Alignment Tests
@@ -264,15 +269,20 @@ struct ExtendTests {
     }
 
     @Test func `3D resizing cylinder preserves circular cross-section`() async throws {
-        // Cylinder resized should remain cylindrical in cross-section
-        let measurements = try await Cylinder(diameter: 10, height: 30)
+        let resized = Cylinder(diameter: 10, height: 30)
             .resized(.z, in: 10...20, to: 5)
-            .measurements
 
         // Height goes from 30 to 25
         // Volume = pi * r^2 * h = pi * 25 * 25
         let expectedVolume = Double.pi * 25 * 25
-        #expect(measurements.volume.equals(expectedVolume, within: 1))
+        #expect(try await resized.measurements.volume.equals(expectedVolume, within: 1))
+
+        // As above, the total volume cannot tell a circular section from any other of equal area.
+        // Check a slice from inside the compressed band, where the resize actually acted.
+        let section = try await resized.sliced(atZ: 12).measurements
+        let expectedArea = Double.pi * 25
+        #expect(section.area.equals(expectedArea, within: 0.1))
+        #expect(section.boundingBox ≈ .init(minimum: [-5, -5], maximum: [5, 5]))
     }
 
     // MARK: - 2D Resize Tests
@@ -304,17 +314,23 @@ struct ExtendTests {
     }
 
     @Test func `2D resizing preserves area proportionally`() async throws {
-        // Circle diameter 20, resize y range 5...15 to 15 (1.5x stretch)
+        // Circle diameter 20 centred on the origin, resize y range 5...15 to 15 (1.5x stretch).
         let original = Circle(diameter: 20)
         let resized = original.resized(.y, in: 5...15, to: 15)
 
         let originalArea = try await original.measurements.area
         let resizedArea = try await resized.measurements.area
 
-        // The middle section (y: 5...15) gets stretched by 1.5x
-        // This increases the area of that section by 1.5x
-        // The area increase should be roughly 0.5 * (area of middle band)
-        #expect(resizedArea > originalArea)
+        // The circle only reaches y=10, so the band actually being stretched is y ∈ 5...10, whose
+        // area is ∫ 2√(100-y²) dy = [y√(100-y²) + 100·asin(y/10)] evaluated over that range.
+        // asin(10/10) = π/2 and asin(5/10) = π/6.
+        let bandTop = 100 * Double.pi / 2
+        let bandBottom = 5 * 75.0.squareRoot() + 100 * Double.pi / 6
+        let bandArea = bandTop - bandBottom
+
+        // Scaling that band by 1.5 adds half of it; the rest of the circle just slides along.
+        let expectedIncrease = bandArea * 0.5
+        #expect((resizedArea - originalArea).equals(expectedIncrease, within: 0.1))
     }
 
     @Test func `2D resizing to zero removes the range`() async throws {

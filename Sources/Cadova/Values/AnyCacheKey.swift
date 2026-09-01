@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct OpaqueKey: Hashable, Sendable, Codable, CustomDebugStringConvertible {
+internal struct AnyCacheKey: Hashable, Sendable, Codable, CustomDebugStringConvertible {
     private let content: any Hashable & Sendable & Codable
     private let contentHash: Int
 
@@ -28,7 +28,7 @@ internal struct OpaqueKey: Hashable, Sendable, Codable, CustomDebugStringConvert
     }
 }
 
-extension OpaqueKey {
+extension AnyCacheKey {
     private enum CodingKeys: CodingKey {
         case type
         case value

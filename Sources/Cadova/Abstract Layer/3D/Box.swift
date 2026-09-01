@@ -1,7 +1,7 @@
 import Foundation
 
 /// A rectangular cuboid shape.
-public struct Box {
+public struct Box: Hashable, Sendable, Codable {
     /// The dimensions of the box along each axis.
     public let size: Vector3D
 

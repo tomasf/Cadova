@@ -67,7 +67,7 @@ struct Geometry3DTests {
 
     @Test func `edge profiling preserves source environment transform`() async throws {
         try await Box(10)
-            .readingEnvironment(\.naturalUpDirection) { body, up in
+            .readingNaturalUpDirection { body, up in
                 #expect(up ≈ .positiveX)
                 body
             }

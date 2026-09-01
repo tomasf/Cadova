@@ -55,12 +55,19 @@ public extension Geometry {
     /// - Returns: A new, simplified geometry based on the threshold set in the environment.
     ///
     func simplified() -> D.Geometry {
-        readEnvironment(\.simplificationThreshold) { threshold in
-            if threshold > .ulpOfOne {
-                simplified(threshold: threshold)
-            } else {
-                self
-            }
+        ThresholdSimplified(source: self)
+    }
+}
+
+private struct ThresholdSimplified<D: Dimensionality>: Geometry {
+    let source: D.Geometry
+
+    var body: any Geometry<D> {
+        @Environment(\.simplificationThreshold) var threshold
+        if threshold > .ulpOfOne {
+            source.simplified(threshold: threshold)
+        } else {
+            source
         }
     }
 }

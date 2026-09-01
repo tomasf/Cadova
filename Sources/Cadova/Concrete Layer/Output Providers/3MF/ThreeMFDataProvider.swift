@@ -9,19 +9,22 @@ import CadovaLiveLinkClient
 #endif
 
 extension MeshGL: @retroactive @unchecked Sendable {}
+extension PackageWriter: @retroactive @unchecked Sendable {}
 
 struct ThreeMFDataProvider: OutputDataProvider {
     let result: BuildResult<D3>
     let options: ModelOptions
+    let environment: EnvironmentValues
 
     /// Generated once per provider instance, i.e. once per `Model.build()` call, and used both for
     /// the LiveLink push and as the 3MF Production Extension's `<build p:UUID="...">` value written
     /// moments later, so a LiveLink consumer can recognize the two as the same save.
     let buildUUID = UUID()
 
-    init(result: BuildResult<D3>, options: ModelOptions) {
+    init(result: BuildResult<D3>, options: ModelOptions, environment: EnvironmentValues) {
         self.result = result
         self.options = options
+        self.environment = environment
     }
 
     let fileExtension = "3mf"
@@ -85,25 +88,37 @@ struct ThreeMFDataProvider: OutputDataProvider {
         lhs.localizedStandardCompare(rhs) == .orderedAscending
     }
 
-    func pushToLiveLink(destination url: URL, context: EvaluationContext) async {
+    /// Whether a push to `url` is expected to reach a listener, without doing any of the real
+    /// work a push or output generation requires — safe to call speculatively to schedule other
+    /// work (e.g. pick a write's priority) before the actual push has run.
+    func isLikelyToReachLiveLinkListener(destination url: URL) -> Bool {
         #if canImport(CadovaLiveLinkClient)
-        // Mirrors the socket-existence check `LiveLinkClient.push` makes internally before sending,
-        // so we only log success when a listener is actually present to receive the push.
-        guard !LiveLinkSettings.isDisabled, FileManager.default.fileExists(atPath: LiveLinkEndpoint.socketPath) else { return }
+        Self.isInterestedListenerPresent(for: url)
+        #else
+        false
+        #endif
+    }
 
-        let path = url.path(percentEncoded: false)
-        // Cheap, cached (read once per process — see LiveLinkClient.hostState) check for whether the
-        // host is even watching this path before paying for geometry-to-wire conversion, which is
-        // real, non-trivial CPU work for a large model that would otherwise happen unconditionally
-        // for every model in a project regardless of what's actually open in the viewer.
-        guard LiveLinkClient.isInterested(inPath: path) else {
+    #if canImport(CadovaLiveLinkClient)
+    // Shared by pushToLiveLink and isLikelyToReachLiveLinkListener: is a listener present and
+    // watching this path, cheaply and synchronously, before paying for geometry-to-wire work.
+    private static func isInterestedListenerPresent(for url: URL) -> Bool {
+        guard !LiveLinkSettings.isDisabled, FileManager.default.fileExists(atPath: LiveLinkEndpoint.socketPath) else { return false }
+        return LiveLinkClient.isInterested(inPath: url.path(percentEncoded: false))
+    }
+    #endif
+
+    func pushToLiveLink(destination url: URL, context: EvaluationContext) async -> Bool {
+        #if canImport(CadovaLiveLinkClient)
+        guard Self.isInterestedListenerPresent(for: url) else {
             logger.debug("Skipped live link push for \(url.lastPathComponent): host isn't watching this path")
-            return
+            return false
         }
+        let path = url.path(percentEncoded: false)
 
         do {
             let parts = try await resolvedParts(context: context)
-            guard !parts.isEmpty else { return }
+            guard !parts.isEmpty else { return false }
             let identifiers = Self.fileIdentifiers(for: parts)
             let orderedParts = zip(identifiers, parts).sorted { Self.fileOrder($0.0, $1.0) }
             let message = LiveLinkMessage(
@@ -114,9 +129,13 @@ struct ThreeMFDataProvider: OutputDataProvider {
             )
             try await LiveLinkClient.push(message)
             logger.info("Pushed model \"\(url.lastPathComponent)\" to Cadova Viewer")
+            return true
         } catch {
             logger.debug("Skipped live link push for \(url.lastPathComponent): \(error)")
         }
+        return false
+        #else
+        return false
         #endif
     }
 
@@ -201,13 +220,13 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let resolved = try await resolvedParts(context: context)
         let identifiers = Self.fileIdentifiers(for: resolved)
 
-        let modelsAndItems: [(model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = await ContinuousClock().measure {
-            await resolved.enumerated().asyncMap { modelIndex, resolvedPart -> (ThreeMF.Model, ThreeMF.Item, Int) in
+        let modelsAndItems: [(part: Part, model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = await ContinuousClock().measure {
+            await resolved.enumerated().asyncMap { modelIndex, resolvedPart -> (Part, ThreeMF.Model, ThreeMF.Item, Int) in
                 let (model, item) = await makeModel(for: resolvedPart, modelIndex: modelIndex)
-                return (model, item, resolvedPart.manifold.triangleCount)
+                return (resolvedPart.part, model, item, resolvedPart.manifold.triangleCount)
             }
         } results: { duration, results in
-            let triangleCount = results.map { $0.2 }.reduce(0, +)
+            let triangleCount = results.map { $0.3 }.reduce(0, +)
             logger.debug("Built 3MF structures and meshes with \(triangleCount) triangles in \(duration)")
         }
 
@@ -231,7 +250,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 build: ThreeMF.Build(items: items, uuid: buildUUID)
             )
         } else if modelsAndItems.count == 1 {
-            var (model, item, _) = modelsAndItems[0]
+            var (_, model, item, _) = modelsAndItems[0]
             item.partNumber = identifiers[0]
 
             archive.model = ThreeMF.Model(
@@ -245,6 +264,77 @@ struct ThreeMFDataProvider: OutputDataProvider {
         } else {
             logger.warning("Model contains no objects. Exporting an empty 3MF file.")
             archive.model = ThreeMF.Model(metadata: metadata)
+        }
+
+        try await runArchiveFinalizers(archive: archive, modelsAndItems: modelsAndItems, context: context)
+    }
+
+    /// Tracks which archive paths have been written during one export. Finalizers run sequentially
+    /// within a single `write()` call, never concurrently, so plain mutation is safe despite the
+    /// `@unchecked Sendable` — this mirrors the same pattern already used for `PackageWriter` itself.
+    private final class AddedPathsTracker: @unchecked Sendable {
+        private var paths: Set<String> = []
+        func insert(_ path: String) { paths.insert(path) }
+        func contains(_ path: String) -> Bool { paths.contains(path) }
+    }
+
+    private func runArchiveFinalizers<T>(
+        archive: PackageWriter<T>,
+        modelsAndItems: [(part: Part, model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)],
+        context: EvaluationContext
+    ) async throws {
+        let finalizers = result.elements[ArchiveFinalizers.self].finalizers
+        guard !finalizers.isEmpty else { return }
+
+        let objectIDsByPart = Dictionary(uniqueKeysWithValues: modelsAndItems.map { ($0.part, $0.item.objectID) })
+        // Finalizers can be registered redundantly from several places in a tree (see
+        // `withArchiveFinalizer`'s doc comment), so track which paths have already been written
+        // this export — added paths never disappear, so a plain set is enough even though finalizers
+        // run sequentially, one export at a time.
+        let addedPaths = AddedPathsTracker()
+        let addFileHandler: @Sendable (String, String?, String?, Bool, Data) throws -> Void = {
+            path, contentType, relationshipType, relativeToRootModel, data in
+            guard let escapedPath = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+                  let url = URL(string: escapedPath) else {
+                throw ModelArchiveError.invalidArchivePath(path)
+            }
+            archive.addFile(
+                at: url,
+                contentType: contentType,
+                relationshipType: relationshipType,
+                relativeToRootModel: relativeToRootModel,
+                data: data
+            )
+            addedPaths.insert(path)
+        }
+
+        // Reads go straight to the writer, which serializes a model file on demand to satisfy one and
+        // then leaves it staged — so a finalizer that reads the model, changes it and writes it back
+        // gets its version into the archive rather than having it regenerated over the top.
+        let contentsHandler: @Sendable (String) -> Data? = { path in
+            guard let escapedPath = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+                  let url = URL(string: escapedPath) else { return nil }
+            return try? archive.fileContents(at: url)
+        }
+
+        for finalizer in finalizers.values {
+            // Each finalizer gets its own evaluator: the evaluator stops reading after its first
+            // failed read, so sharing one would silently turn every later finalizer's reads into
+            // fallback values instead of surfacing the error.
+            let evaluator = GeometryEvaluator(context: context, environment: environment)
+            let archiveHandle = ModelArchive(
+                rootGeometry: result,
+                evaluator: evaluator,
+                objectIDsByPart: objectIDsByPart,
+                resultElements: result.elements,
+                addFileHandler: addFileHandler,
+                fileExistsHandler: { path in addedPaths.contains(path) },
+                contentsHandler: contentsHandler
+            )
+            try await finalizer(archiveHandle)
+            if let error = await evaluator.firstError {
+                throw error
+            }
         }
     }
 

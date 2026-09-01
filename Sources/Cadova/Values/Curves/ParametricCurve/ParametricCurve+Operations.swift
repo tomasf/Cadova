@@ -22,7 +22,8 @@ public extension ParametricCurve {
         toward target: ReferenceTarget = .direction(.down),
         @GeometryBuilder3D reader: @Sendable @escaping ([Transform3D]) -> any Geometry3D
     ) -> any Geometry3D {
-        readEnvironment { environment in
+        Deferred {
+            @Environment var environment
             let frames = curve3D.frames(environment: environment, target: target, targetReference: reference, perpendicularBounds: .zero)
             return reader(frames.map(\.transform))
         }
@@ -37,8 +38,9 @@ public extension ParametricCurve {
     func readingPoints<D: Dimensionality>(
         @GeometryBuilder<D> _ reader: @Sendable @escaping ([V]) -> D.Geometry
     ) -> D.Geometry {
-        readEnvironment { e in
-            reader(points(segmentation: e.segmentation))
+        Deferred {
+            @Environment(\.segmentation) var segmentation
+            return reader(points(segmentation: segmentation))
         }
     }
 
@@ -51,8 +53,9 @@ public extension ParametricCurve {
     func readingSamples<D: Dimensionality>(
         @GeometryBuilder<D> _ reader: @Sendable @escaping ([CurveSample<V>]) -> D.Geometry
     ) -> D.Geometry {
-        readEnvironment { e in
-            reader(samples(segmentation: e.segmentation))
+        Deferred {
+            @Environment(\.segmentation) var segmentation
+            return reader(samples(segmentation: segmentation))
         }
     }
 
@@ -118,8 +121,9 @@ public extension ParametricCurve {
         at interval: CurveSampleInterval,
         @GeometryBuilder<D> _ reader: @Sendable @escaping ([CurveSample<V>]) -> D.Geometry
     ) -> D.Geometry {
-        readEnvironment { e in
-            reader(samples(at: interval, segmentation: e.segmentation))
+        Deferred {
+            @Environment(\.segmentation) var segmentation
+            return reader(samples(at: interval, segmentation: segmentation))
         }
     }
 

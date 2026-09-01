@@ -9,6 +9,7 @@ import Manifold3D
 public struct _EvaluationContext: Sendable {
     internal let cache2D = GeometryCache<D2>()
     internal let cache3D = GeometryCache<D3>()
+    internal let threeMFModelCache = ThreeMFModelCache()
 
     internal init() {}
 }
@@ -18,7 +19,7 @@ public struct _EvaluationContext: Sendable {
 internal typealias EvaluationContext = _EvaluationContext
 
 internal extension EvaluationContext {
-    private func cache<D: Dimensionality>() -> GeometryCache<D> {
+    func cache<D: Dimensionality>() -> GeometryCache<D> {
         switch D.self {
         case is D2.Type: cache2D as! GeometryCache<D>
         case is D3.Type: cache3D as! GeometryCache<D>
@@ -81,7 +82,7 @@ internal extension EvaluationContext {
         key: Key,
         generator: @escaping @Sendable () async throws -> D.Node.Result
     ) async throws -> BuildResult<D> {
-        let materializedNode = D.Node.materialized(cacheKey: OpaqueKey(key))
+        let materializedNode = D.Node.materialized(cacheKey: AnyCacheKey(key))
         try await cache().declareGenerator(for: materializedNode, generator: generator)
         return BuildResult<D>(materializedNode)
     }
@@ -93,5 +94,16 @@ internal extension EvaluationContext {
     ) async throws -> BuildResult<D> {
         return try await materializedResult(key: key, generator: generator)
             .replacing(elements: buildResult.elements)
+    }
+
+    // Runs `body` at most once per `key` (coalescing concurrent/repeated calls), returning its
+    // full `BuildResult` including result elements. Unlike `materializedResult`, this doesn't
+    // defer `body` behind an opaque placeholder node: the node it returns is `body`'s real node,
+    // so mesh evaluation is still deduplicated by the existing node-keyed cache once realized.
+    func cachedBodyResult<D: Dimensionality, Key: CacheKey>(
+        key: Key,
+        body: @escaping @Sendable () async throws -> BuildResult<D>
+    ) async throws -> BuildResult<D> {
+        try await cache().bodyResult(for: AnyCacheKey(key), generator: body)
     }
 }

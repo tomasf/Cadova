@@ -140,7 +140,7 @@ extension GeometryNode: Codable {
             let node = try container.decode(D.Node.self, forKey: .body)
             self.init(.decompose(node))
         case .materialized:
-            let cacheKey = try container.decode(OpaqueKey.self, forKey: .cacheKey)
+            let cacheKey = try container.decode(AnyCacheKey.self, forKey: .cacheKey)
             self.init(.materialized(cacheKey: cacheKey))
         case .shape2D:
             self.init(.shape2D(try container.decode(PrimitiveShape2D.self, forKey: .primitive)))

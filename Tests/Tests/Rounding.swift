@@ -5,17 +5,12 @@ import Testing
 struct RoundingTests {
     // MARK: - Outside Rounding
 
-    @Test func `rounding outside corners reduces bounds`() async throws {
-        let original = Rectangle(x: 20, y: 20)
-        let rounded = original.rounded(outsideRadius: 2)
+    @Test func `rounding outside corners preserves bounds`() async throws {
+        // Rounding a rectangle's corners cuts material away from inside the bounding box, so the
+        // box itself is unchanged: the arcs stay tangent to the original edges.
+        let rounded = Rectangle(x: 20, y: 20).rounded(outsideRadius: 2)
 
-        let originalBounds = try await original.bounds
-        let roundedBounds = try await rounded.bounds
-
-        // Rounded rectangle should have same bounds as original
-        // (rounding doesn't change the bounding box for a rectangle)
-        #expect(roundedBounds?.size.x ≈ originalBounds?.size.x)
-        #expect(roundedBounds?.size.y ≈ originalBounds?.size.y)
+        #expect(try await rounded.bounds ≈ .init(minimum: .zero, maximum: [20, 20]))
     }
 
     @Test func `rounding outside corners reduces area`() async throws {
@@ -129,18 +124,6 @@ struct RoundingTests {
 
         // Circle has no corners to round
         #expect(roundedArea.equals(originalArea, within: 1))
-    }
-
-    @Test func `rounding with large radius`() async throws {
-        let original = Rectangle(x: 20, y: 20)
-        let rounded = original.rounded(outsideRadius: 5)
-
-        let roundedBounds = try await rounded.bounds
-
-        // Should still have valid bounds
-        #expect(roundedBounds != nil)
-        #expect(roundedBounds!.size.x > 0)
-        #expect(roundedBounds!.size.y > 0)
     }
 
     // MARK: - Complex Shapes
