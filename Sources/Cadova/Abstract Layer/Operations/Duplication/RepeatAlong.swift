@@ -25,9 +25,9 @@ extension Geometry {
     @GeometryBuilder<D>
     public func repeated(along axis: D.Axis, in range: Range<Double>, count: Int) -> D.Geometry {
         if count > 0 {
-            let step = (range.upperBound - range.lowerBound) / Double(count)
-            for value in stride(from: range.lowerBound, to: range.upperBound, by: step) {
-                translated(D.Vector(axis, value: value))
+            let span = range.upperBound - range.lowerBound
+            for i in 0..<count {
+                translated(D.Vector(axis, value: range.lowerBound + span * (Double(i) / Double(count))))
             }
         }
     }
@@ -43,9 +43,9 @@ extension Geometry {
     @GeometryBuilder<D>
     public func repeated(along axis: D.Axis, in range: ClosedRange<Double>, count: Int) -> D.Geometry {
         if count > 1 {
-            let step = (range.upperBound - range.lowerBound) / Double(count - 1)
-            for value in stride(from: range.lowerBound, through: range.upperBound, by: step) {
-                translated(D.Vector(axis, value: value))
+            let span = range.upperBound - range.lowerBound
+            for i in 0..<count {
+                translated(D.Vector(axis, value: range.lowerBound + span * (Double(i) / Double(count - 1))))
             }
         } else if count == 1 {
             translated(D.Vector(axis, value: range.lowerBound))
@@ -103,25 +103,54 @@ extension Geometry {
     ///
     public func repeated(along axis: D.Axis, in range: ClosedRange<Double>, minimumSpacing: Double, cyclically: Bool = false) -> D.Geometry {
         measuringBounds { _, bounds in
-            let boundsLength = bounds.size[axis]
-            let rangeLength = range.upperBound - range.lowerBound
+            let placement = automaticSpacingPlacement(
+                rangeLength: range.upperBound - range.lowerBound,
+                instanceLength: bounds.size[axis],
+                minimumSpacing: minimumSpacing,
+                cyclically: cyclically
+            )
 
-            if cyclically {
-                let count = Int(floor(rangeLength / (boundsLength + minimumSpacing)))
-                if count > 0 {
-                    let step = rangeLength / Double(count)
-                    self.repeated(along: axis, step: step, count: count)
-                        .translated(D.Vector(axis, value: range.lowerBound))
-                }
-            } else {
-                let availableLength = rangeLength - boundsLength
-                let count = Int(floor(availableLength / (boundsLength + minimumSpacing)))
-                if count > 0 {
-                    let step = availableLength / Double(count)
-                    self.repeated(along: axis, step: step, count: count + 1)
-                        .translated(D.Vector(axis, value: range.lowerBound))
-                }
+            if let placement {
+                self.repeated(along: axis, step: placement.step, count: placement.count)
+                    .translated(D.Vector(axis, value: range.lowerBound))
             }
         }
+    }
+}
+
+/// Works out how many instances fit in a range and how far apart to put them, or `nil` if not even one
+/// fits.
+///
+/// The instance count and the gap count are not the same number, and conflating them is what used to
+/// drop the single instance that fits into a range too short for two.
+///
+private func automaticSpacingPlacement(
+    rangeLength: Double,
+    instanceLength: Double,
+    minimumSpacing: Double,
+    cyclically: Bool
+) -> (count: Int, step: Double)? {
+    guard rangeLength >= instanceLength else {
+        logger.warning("Repeating with a minimum spacing: geometry measuring \(instanceLength) doesn't fit in a range of \(rangeLength). No geometry produced.")
+        return nil
+    }
+
+    if cyclically {
+        // Cyclic spacing leaves a gap after the last instance as well, so every instance costs a full
+        // slot of its own length plus the spacing.
+        let count = Int(floor(rangeLength / (instanceLength + minimumSpacing)))
+        guard count > 0 else {
+            logger.warning("Repeating cyclically with a minimum spacing: a range of \(rangeLength) has no room for an instance and its trailing gap. No geometry produced.")
+            return nil
+        }
+        return (count, rangeLength / Double(count))
+
+    } else {
+        // The first instance takes up its own length; what remains is what further instances have to
+        // fit into, each costing its length plus the spacing. That count is the number of gaps, so
+        // there is one more instance than gaps.
+        let availableLength = rangeLength - instanceLength
+        let count = Int(floor(availableLength / (instanceLength + minimumSpacing))) + 1
+        return (count, count > 1 ? availableLength / Double(count - 1) : 0)
     }
 }

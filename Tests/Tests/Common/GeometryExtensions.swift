@@ -57,6 +57,25 @@ extension Geometry {
         }
     }
 
+    /// The number of copies a duplication operation emitted, counted at the node level.
+    ///
+    /// `partCount` and `.separated` both go through `decompose`, which merges copies that touch or
+    /// coincide. That hides exactly the failure mode duplication counts need to be checked against: a
+    /// copy landing on top of another one. The union node's children are neither merged nor
+    /// deduplicated, so counting them reports what the operation actually emitted.
+    ///
+    /// The context is passed in so a sweep over many counts can share one, since building a fresh
+    /// `_EvaluationContext` per call dominates the run time.
+    ///
+    func emittedCopyCount(in context: _EvaluationContext) async throws -> Int {
+        let node = try await context.buildResult(for: withDefaultSegmentation(), in: .defaultEnvironment).node
+        switch node.contents {
+        case .empty: return 0
+        case .boolean(let children, type: .union): return children.count
+        default: return 1
+        }
+    }
+
     var parts: [Part: _BuildResult<D3>] {
         get async throws {
             try await _EvaluationContext().buildModelResult(for: self, in: .defaultEnvironment)

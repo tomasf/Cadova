@@ -117,7 +117,10 @@ public extension Geometry3D {
         precondition(spacing > 0, "Spacing needs to be greater than zero.")
 
         return repeatedInternal(along: path.curve3D, target: target, reference: reference) {
-            (Int(floor($0 / spacing)), spacing)
+            // The instance at distance 0 doesn't consume any spacing, so the number of instances is one
+            // more than the number of whole steps that fit. The epsilon keeps a step that divides the
+            // length evenly from losing its final instance to rounding.
+            (Int(floor($0 / spacing + 1e-9)) + 1, spacing)
         }
     }
 }
