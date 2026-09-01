@@ -73,6 +73,11 @@ struct BinarySTLTests {
                 .appending(component: Self.referenceFixtureName)
                 .appendingPathExtension("stl")
             try data.write(to: resources)
+            Issue.record(
+                """
+                Fixture regenerated from the current encoder. This run verified nothing.                 Re-run without CADOVA_REGENERATE_STL_FIXTURE to check the new bytes.
+                """
+            )
             return
         }
 
