@@ -87,11 +87,13 @@ Mirroring reverses handedness, which a rotation never does. For a chiral part li
 
 ### Shearing
 
-`.sheared(_:...)` slants geometry by displacing one axis in proportion to another. In 2D you name the axis to be displaced; in 3D you name both the displaced axis and the axis that drives it:
+`.sheared(_:...)` slants geometry by displacing one axis in proportion to another. You always name the displaced axis first, so the cube below leans along X as it rises in Z. In 3D you name the driving axis too; in 2D there is only one other axis, so it is implied:
 
 ```swift
 Box([24, 24, 24])
     .sheared(.x, along: .z, angle: 25°)
+
+plate.sheared(.x, angle: 25°)       // 2D: X displaced in proportion to Y
 ```
 
 ![A gray cube beside an orange copy sheared into a leaning parallelogram, its top face displaced along X in proportion to height](transformations-shear)

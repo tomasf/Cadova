@@ -3,7 +3,7 @@ import Foundation
 public extension Transformable<Transform2D> {
     /// Applies a shearing transformation to this 2D object.
     /// - Parameters:
-    ///   - axis: The primary axis that will be affected by the shear.
+    ///   - axis: The axis that will be displaced, in proportion to the other axis.
     ///   - factor: The magnitude of the shear.
     /// - Returns: A sheared object.
     func sheared(_ axis: Axis2D, factor: Double) -> Transformed {
@@ -12,7 +12,7 @@ public extension Transformable<Transform2D> {
 
     /// Applies a shearing transformation to this 2D object using an angle.
     /// - Parameters:
-    ///   - axis: The primary axis that will be affected by the shear.
+    ///   - axis: The axis that will be displaced, in proportion to the other axis.
     ///   - angle: The angle defining the magnitude of the shear.
     /// - Returns: A sheared object.
     func sheared(_ axis: Axis2D, angle: Angle) -> Transformed {

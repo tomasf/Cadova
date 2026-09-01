@@ -19,11 +19,23 @@ struct TransformTests {
     }
 */
     
+    @Test func `axis shearing displaces the named axis in both dimensionalities`() {
+        let shear2D = Transform2D.shearing(.x, factor: 0.5)
+        #expect(shear2D.apply(to: Vector2D(0, 1)) ≈ Vector2D(0.5, 1))
+        #expect(shear2D.apply(to: Vector2D(1, 0)) ≈ Vector2D(1, 0))
+
+        let shear3D = Transform3D.shearing(.x, along: .z, factor: 0.5)
+        #expect(shear3D.apply(to: Vector3D(0, 0, 1)) ≈ Vector3D(0.5, 0, 1))
+        #expect(shear3D.apply(to: Vector3D(1, 0, 0)) ≈ Vector3D(1, 0, 0))
+    }
+
     @Test func `2D transforms convert correctly to 3D`() {
         let transforms2D: [Transform2D] = [
             .translation(x: 10, y: 3),
             .scaling(x: 3, y: 9),
             .rotation(30°),
+            .shearing(.x, factor: 0.4),
+            .shearing(.y, angle: 20°),
             .translation(x: 10, y: 5)
                 .scaled(x: 2)
                 .rotated(15°)
@@ -33,6 +45,8 @@ struct TransformTests {
             .translation(x: 10, y: 3),
             .scaling(x: 3, y: 9),
             .rotation(z: 30°),
+            .shearing(.x, along: .y, factor: 0.4),
+            .shearing(.y, along: .x, angle: 20°),
             .translation(x: 10, y: 5)
                 .scaled(x: 2)
                 .rotated(z: 15°)

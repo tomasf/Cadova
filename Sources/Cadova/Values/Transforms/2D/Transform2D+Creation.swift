@@ -56,26 +56,22 @@ public extension Transform2D {
         return transform
     }
 
-    /// Creates a shearing `Transform2D` that skews along one axis with respect to another axis.
+    /// Creates a shearing `Transform2D` that displaces one axis in proportion to the other.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear.
+    ///   - axis: The axis to shear. Its coordinates are displaced in proportion to the other axis.
     ///   - factor: The shearing factor.
     ///
     static func shearing(_ axis: Axis2D, factor: Double) -> Transform2D {
         var transform = Transform2D.identity
-        if axis == .x {
-            transform[1, 0] = factor
-        } else {
-            transform[0, 1] = factor
-        }
+        transform[axis.index, axis.otherAxis.index] = factor
         return transform
     }
 
-    /// Creates a shearing `Transform2D` that skews along one axis with respect to another axis at the given angle.
+    /// Creates a shearing `Transform2D` that displaces one axis in proportion to the other, at the given angle.
     ///
     /// - Parameters:
-    ///   - axis: The axis to shear.
+    ///   - axis: The axis to shear. Its coordinates are displaced in proportion to the other axis.
     ///   - angle: The angle of shearing.
     ///
     static func shearing(_ axis: Axis2D, angle: Angle) -> Transform2D {
