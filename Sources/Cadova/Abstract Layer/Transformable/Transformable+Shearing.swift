@@ -40,4 +40,43 @@ public extension Transformable<Transform3D> {
     func sheared(_ axis: Axis3D, along otherAxis: Axis3D, angle: Angle) -> Transformed {
         transformed(.shearing(axis, along: otherAxis, angle: angle))
     }
+
+    /// Shears this object, leaning one direction towards another.
+    ///
+    /// The plane through the origin perpendicular to `from` stays fixed, and the rest of the object slants so that
+    /// the `from` direction points along `to`. Cross sections perpendicular to `from` keep their shape and their
+    /// position along `from`, so an extruded part keeps its height, its profile and its volume; it only leans.
+    ///
+    ///     prism.sheared(to: Direction3D(x: 0.3, y: 0.1, z: 1))
+    ///
+    /// This is the shearing counterpart of `rotated(from:to:)`, which turns the part instead of leaning it. The two
+    /// directions have to be less than 90° apart.
+    ///
+    /// - Parameters:
+    ///   - from: The direction to lean. Defaults to `.up`.
+    ///   - to: The direction it should point in afterwards.
+    /// - Returns: A sheared object.
+    func sheared(from: Direction3D = .up, to: Direction3D) -> Transformed {
+        transformed(.shearing(from: from, to: to))
+    }
+}
+
+public extension Transformable<Transform2D> {
+    /// Shears this object, leaning one direction towards another.
+    ///
+    /// The line through the origin perpendicular to `from` stays fixed, and the rest of the object slants so that
+    /// the `from` direction points along `to`. Distances measured along `from` are unchanged, as is the area of
+    /// the object.
+    ///
+    ///     square.sheared(to: Direction2D(x: 0.5, y: 1))
+    ///
+    /// The two directions have to be less than 90° apart.
+    ///
+    /// - Parameters:
+    ///   - from: The direction to lean. Defaults to `.up`.
+    ///   - to: The direction it should point in afterwards.
+    /// - Returns: A sheared object.
+    func sheared(from: Direction2D = .up, to: Direction2D) -> Transformed {
+        transformed(.shearing(from: from, to: to))
+    }
 }

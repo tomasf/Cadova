@@ -147,3 +147,35 @@ public extension Transform {
         return errSq.squareRoot() <= 1e-9 + max(other.frobeniusNorm, 1.0) * 1e-12
     }
 }
+
+public extension Transform {
+    /// Creates a shearing transform that leans one direction towards another.
+    ///
+    /// The plane through the origin perpendicular to `from` stays fixed, and everything else slides parallel to that
+    /// plane in proportion to its distance from it. The `from` direction ends up pointing along `to`.
+    ///
+    /// Unlike `rotation(from:to:)`, which turns the whole coordinate frame, this keeps cross sections perpendicular
+    /// to `from` unchanged in both shape and position along `from`. An extruded shape sheared this way keeps its
+    /// height, its profile and its volume; it only leans. A shear can't shorten anything along `from`, so the
+    /// `from` direction is stretched by a factor of `1 / cos v`, where `v` is the angle between the two directions.
+    ///
+    /// - Parameters:
+    ///   - from: The direction to lean.
+    ///   - to: The direction it should point in afterwards.
+    ///
+    static func shearing(from: D.Direction, to: D.Direction) -> Self {
+        let normal = from.unitVector
+        let target = to.unitVector
+        let alignment = normal ⋅ target
+        precondition(alignment > 0, "Shearing directions need to be less than 90° apart")
+
+        let displacement = target / alignment - normal
+        var transform = identity
+        for row in 0..<D.Vector.elementCount {
+            for column in 0..<D.Vector.elementCount {
+                transform[row, column] += displacement[row] * normal[column]
+            }
+        }
+        return transform
+    }
+}

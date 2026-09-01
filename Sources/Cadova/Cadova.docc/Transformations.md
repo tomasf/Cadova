@@ -100,6 +100,14 @@ plate.sheared(.x, angle: 25°)       // 2D: X displaced in proportion to Y
 
 The magnitude can be given as an `angle:`, which is how far the sheared face leans away from square, or as a raw `factor:`, which is the displacement per unit of the driving axis. The two axes must be different, and shear angles have to stay between `-90°` and `90°`.
 
+When you know the direction you want something to end up pointing in rather than the angle to lean it by, `.sheared(from:to:)` takes two directions instead:
+
+```swift
+prism.sheared(to: Direction3D(x: 0.3, y: 0.1, z: 1))
+```
+
+Like `.rotated(from:to:)` it defaults its `from` to `.up`, and the two make a useful pair: rotating turns the part, shearing leans it. The plane through the origin perpendicular to `from` stays fixed, and everything else slides parallel to that plane in proportion to its distance from it, so the part keeps its height, its cross sections and its volume. The one thing a shear cannot do is shorten anything, so `from` comes out stretched by `1 / cos v` over the angle `v` between the two directions, and those directions have to be less than 90° apart. The 2D form works the same way, with a line taking the place of the fixed plane.
+
 ## Order matters
 
 Transformations compose, and composition is not commutative. Rotating and then moving is not the same as moving and then rotating:
