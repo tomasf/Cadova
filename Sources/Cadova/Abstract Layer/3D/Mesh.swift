@@ -21,10 +21,12 @@ import Manifold3D
 /// sources, procedural generation, or custom geometry definitions.
 ///
 public struct Mesh<Vertex: Hashable & Sendable>: Geometry3D {
-    let faces: [[Vertex]]
+    private let storage: MeshStorage<Vertex>
     let lookup: @Sendable (Vertex) -> Vector3D
     let cacheName: String
     let cacheParameters: [any CacheKey]
+
+    var faces: [[Vertex]] { storage.faces }
 
     internal init<Face: Sequence<Vertex>, FaceList: Sequence<Face>>(
         faces: FaceList,
@@ -32,7 +34,21 @@ public struct Mesh<Vertex: Hashable & Sendable>: Geometry3D {
         cacheParameters: [any Hashable & Sendable & Codable],
         value lookup: @escaping @Sendable (Vertex) -> Vector3D
     ){
-        self.faces = faces.map { Array($0) }
+        self.init(
+            storage: MeshStorage(faces: faces.map { Array($0) }, lookup: lookup),
+            name: cacheName,
+            cacheParameters: cacheParameters,
+            value: lookup
+        )
+    }
+
+    internal init(
+        storage: MeshStorage<Vertex>,
+        name cacheName: String,
+        cacheParameters: [any Hashable & Sendable & Codable],
+        value lookup: @escaping @Sendable (Vertex) -> Vector3D
+    ){
+        self.storage = storage
         self.lookup = lookup
         self.cacheName = cacheName
         self.cacheParameters = cacheParameters
@@ -44,12 +60,94 @@ public struct Mesh<Vertex: Hashable & Sendable>: Geometry3D {
         }
     }
 
+    /// The mesh's vertex table and index-based faces, built at most once per mesh.
     internal var meshData: MeshData {
+        storage.meshData
+    }
+}
+
+/// Backing store for a `Mesh`, holding its faces and the `MeshData` derived from them and building each at most
+/// once.
+///
+/// `Mesh` is an immutable `Sendable` value that gets captured by the `@Sendable` closure behind `body`'s
+/// `CachedNode`, so a `lazy var` can't memoize anything here: the closure works on its own copy of the struct and
+/// any value computed there is discarded along with it. A lock-guarded reference box gives compute-once behavior
+/// that survives copying and stays safe to share across concurrency domains.
+///
+/// The work is also deferred rather than done in `init`, because a `Mesh` frequently never needs its `MeshData` at
+/// all — `body`'s `CachedNode` only asks for it when the geometry cache misses, and sweeps and lofts produce these
+/// meshes in bulk.
+internal final class MeshStorage<Vertex: Hashable & Sendable>: @unchecked Sendable {
+    /// A mesh's faces, optionally accompanied by an already-built `MeshData` describing exactly those faces.
+    internal typealias Content = (faces: [[Vertex]], meshData: MeshData?)
+
+    private enum State {
+        case deferred(@Sendable () -> Content)
+        case resolved(Content)
+    }
+
+    private let lock = NSLock()
+    private let lookup: @Sendable (Vertex) -> Vector3D
+    private var state: State
+
+    internal init(faces: [[Vertex]], lookup: @escaping @Sendable (Vertex) -> Vector3D) {
+        self.lookup = lookup
+        self.state = .resolved((faces: faces, meshData: nil))
+    }
+
+    /// Creates a store whose faces — and possibly a `MeshData` inherited from another mesh — are produced on first
+    /// use, so a mesh that is never realized costs nothing to build.
+    internal init(
+        deferring provider: @escaping @Sendable () -> Content,
+        lookup: @escaping @Sendable (Vertex) -> Vector3D
+    ) {
+        self.lookup = lookup
+        self.state = .deferred(provider)
+    }
+
+    internal var faces: [[Vertex]] {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolvedContent().faces
+    }
+
+    internal var meshData: MeshData {
+        lock.lock()
+        defer { lock.unlock() }
+
+        let content = resolvedContent()
+        if let meshData = content.meshData {
+            return meshData
+        }
+
+        let meshData = Self.buildMeshData(faces: content.faces, lookup: lookup)
+        state = .resolved((faces: content.faces, meshData: meshData))
+        return meshData
+    }
+
+    private func resolvedContent() -> Content {
+        switch state {
+        case .resolved(let content):
+            return content
+
+        case .deferred(let provider):
+            let content = provider()
+            state = .resolved(content)
+            return content
+        }
+    }
+
+    private static func buildMeshData(
+        faces: [[Vertex]],
+        lookup: @Sendable (Vertex) -> Vector3D
+    ) -> MeshData {
         var vertices: [Vector3D] = []
         var keyIndices: [Vertex: Int] = [:]
 
-        vertices.reserveCapacity(faces.count * 2)
-        keyIndices.reserveCapacity(faces.count * 2)
+        // A closed triangle mesh has roughly half as many vertices as faces, and a polygonal one fewer still, so
+        // the face count is already a generous estimate.
+        vertices.reserveCapacity(faces.count)
+        keyIndices.reserveCapacity(faces.count)
 
         let indexedFaces = faces.map {
             $0.map { key in
@@ -166,8 +264,19 @@ public extension Mesh {
     ///
     /// - Returns: A mesh with outward-facing normals.
     func correctingFaceWinding() -> Mesh<Vertex> {
-        Mesh<Vertex>(
-            faces: meshData.signedVolume < 0 ? faces.map { $0.reversed() } : faces,
+        // The resulting cache key doesn't depend on the winding decision, so the decision itself — and the
+        // `MeshData` it needs — can wait until something actually asks for this mesh's faces. That keeps a cache
+        // hit on the returned mesh free. When the winding already points outward, the faces are unchanged and the
+        // `MeshData` built to answer the question describes the new mesh just as well, so it carries over.
+        let source = self
+
+        return Mesh<Vertex>(
+            storage: MeshStorage(deferring: {
+                let meshData = source.meshData
+                return meshData.signedVolume < 0
+                    ? (faces: source.faces.map { $0.reversed() }, meshData: nil)
+                    : (faces: source.faces, meshData: meshData)
+            }, lookup: lookup),
             name: cacheName,
             cacheParameters: cacheParameters + ["flippedWinding"],
             value: lookup
@@ -187,13 +296,15 @@ public extension Mesh {
 
     /// Returns the total surface area of the mesh, calculated from triangulated faces.
     var surfaceArea: Double {
-        meshData.faces.reduce(0.0) { total, face in
+        let data = meshData
+
+        return data.faces.reduce(0.0) { total, face in
             guard face.count >= 3 else { return total }
-            let p0 = meshData.vertices[face[0]]
+            let p0 = data.vertices[face[0]]
             var faceArea = 0.0
             for i in 1..<(face.count - 1) {
-                let p1 = meshData.vertices[face[i]]
-                let p2 = meshData.vertices[face[i + 1]]
+                let p1 = data.vertices[face[i]]
+                let p2 = data.vertices[face[i + 1]]
                 faceArea += ((p1 - p0) × (p2 - p0)).magnitude * 0.5
             }
             return total + faceArea
