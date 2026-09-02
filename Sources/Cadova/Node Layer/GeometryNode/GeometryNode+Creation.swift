@@ -46,10 +46,13 @@ extension GeometryNode {
             return Self(.boolean(children, type: type))
 
         case .union:
-            // Flatten unions
+            // Flatten unions, then put the members in a canonical order so that the same set of
+            // children always produces the same node. The order comes from each child's stable
+            // digest, which is the same number in every process — sorting by `hashValue` here is
+            // what used to make a model export a different mesh on every run.
             children = children
                 .flatMap { $0.unionChildren ?? [$0] }
-                .sorted { $0.hash < $1.hash }
+                .sorted { $0.digest < $1.digest }
         }
 
         let filteredChildren = children.filter { !$0.isEmpty }

@@ -5,11 +5,47 @@ internal struct MeshData: Sendable, Hashable, Codable {
     internal let vertices: [Vector3D]
     internal let faces: [Face]
 
+    /// The mesh's stable content digest, computed once here at construction. An imported mesh is
+    /// therefore walked once, where it enters the node tree, rather than again at every ancestor
+    /// node and again on every comparison.
+    internal let digest: StableDigest
+
     internal typealias Face = [[Vector3D].Index]
 
     internal init(vertices: [Vector3D], faces: [Face]) {
         self.vertices = vertices
         self.faces = faces
+
+        var hasher = StableHasher()
+        hasher.combine(vertices)
+        hasher.combine(faces)
+        self.digest = hasher.finalize()
+    }
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.digest == rhs.digest
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(digest)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case vertices, faces
+    }
+
+    internal init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            vertices: try container.decode([Vector3D].self, forKey: .vertices),
+            faces: try container.decode([Face].self, forKey: .faces)
+        )
+    }
+
+    internal func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(vertices, forKey: .vertices)
+        try container.encode(faces, forKey: .faces)
     }
 
     internal func meshGL() -> MeshGL {
@@ -63,5 +99,11 @@ internal extension [Vector3D] {
             ($0 - self[0]) ⋅ v1,
             ($0 - self[0]) ⋅ v2
         )}
+    }
+}
+
+extension MeshData: StableHashable {
+    func stableHash(into hasher: inout StableHasher) {
+        hasher.combine(digest)
     }
 }
