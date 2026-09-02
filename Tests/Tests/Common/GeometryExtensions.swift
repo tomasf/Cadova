@@ -137,7 +137,7 @@ extension Geometry {
         let goldenRoot = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appending(path: "golden")
         if types.contains(.node) {
             let goldenURL = goldenRoot.appending(component: name).appendingPathExtension("json")
-            try GoldenRecord(result: result).write(to: goldenURL)
+            try await GoldenRecord(result: result, context: context).write(to: goldenURL)
         }
         if types.contains(.model) {
             let verificationURL = goldenRoot.appending(component: name).appendingPathExtension("3mf")
@@ -166,7 +166,7 @@ extension Geometry {
 
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: withDefaultSegmentation(), in: .defaultEnvironment)
-        let computedGoldenRecord = GoldenRecord(result: result)
+        let computedGoldenRecord = try await GoldenRecord(result: result, context: context)
         let goldenRecord = try GoldenRecord<D>(url: URL(goldenFileNamed: name, extension: "json"))
 
         if !(computedGoldenRecord ≈ goldenRecord) {

@@ -1,4 +1,31 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "boundingBox" : {
+        "maximum" : [
+          5,
+          5,
+          5
+        ],
+        "minimum" : [
+          -5,
+          -5,
+          -5
+        ]
+      },
+      "centroid" : [
+        -1.9895196601282803e-16,
+        3.6237679523765107e-16,
+        -2.8421709430404003e-16
+      ],
+      "isEmpty" : false,
+      "volume" : 1000.0000000000001
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",
@@ -6,75 +33,6 @@
     },
     {
       "children" : [
-        {
-          "body" : {
-            "body" : {
-              "body" : {
-                "kind" : "shape3D",
-                "primitive" : {
-                  "box" : {
-                    "size" : {
-                      "x" : 10,
-                      "y" : 10,
-                      "z" : 10
-                    }
-                  }
-                }
-              },
-              "kind" : "transform",
-              "transform" : [
-                [
-                  1,
-                  0,
-                  0,
-                  -5
-                ],
-                [
-                  0,
-                  1,
-                  0,
-                  -5
-                ],
-                [
-                  0,
-                  0,
-                  1,
-                  -5
-                ],
-                [
-                  0,
-                  0,
-                  0,
-                  1
-                ]
-              ]
-            },
-            "kind" : "trim",
-            "plane" : {
-              "normal" : {
-                "unitVector" : {
-                  "x" : -0,
-                  "y" : 0.3420201433256687,
-                  "z" : -0.9396926207859084
-                }
-              },
-              "offset" : {
-                "x" : 0,
-                "y" : 0,
-                "z" : 0
-              }
-            }
-          },
-          "kind" : "applyMaterial",
-          "material" : {
-            "baseColor" : {
-              "alpha" : 1,
-              "blue" : 1,
-              "green" : 0,
-              "red" : 0
-            }
-          }
-        },
         {
           "body" : {
             "body" : {
@@ -141,6 +99,75 @@
               "blue" : 0,
               "green" : 0,
               "red" : 1
+            }
+          }
+        },
+        {
+          "body" : {
+            "body" : {
+              "body" : {
+                "kind" : "shape3D",
+                "primitive" : {
+                  "box" : {
+                    "size" : {
+                      "x" : 10,
+                      "y" : 10,
+                      "z" : 10
+                    }
+                  }
+                }
+              },
+              "kind" : "transform",
+              "transform" : [
+                [
+                  1,
+                  0,
+                  0,
+                  -5
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  -5
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  -5
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            },
+            "kind" : "trim",
+            "plane" : {
+              "normal" : {
+                "unitVector" : {
+                  "x" : -0,
+                  "y" : 0.3420201433256687,
+                  "z" : -0.9396926207859084
+                }
+              },
+              "offset" : {
+                "x" : 0,
+                "y" : 0,
+                "z" : 0
+              }
+            }
+          },
+          "kind" : "applyMaterial",
+          "material" : {
+            "baseColor" : {
+              "alpha" : 1,
+              "blue" : 1,
+              "green" : 0,
+              "red" : 0
             }
           }
         }

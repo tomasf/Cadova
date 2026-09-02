@@ -1,4 +1,31 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "boundingBox" : {
+        "maximum" : [
+          1.5,
+          1.4980747607565792,
+          4
+        ],
+        "minimum" : [
+          -1.5,
+          -1.4980747607565794,
+          0
+        ]
+      },
+      "centroid" : [
+        1.602117378901118e-16,
+        2.8177943850019665e-17,
+        2.717388962691907
+      ],
+      "isEmpty" : false,
+      "volume" : 17.23768688939193
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",
@@ -6,17 +33,6 @@
     },
     {
       "children" : [
-        {
-          "kind" : "shape3D",
-          "primitive" : {
-            "cylinder" : {
-              "bottomRadius" : 0.5,
-              "height" : 1,
-              "segmentCount" : 20,
-              "topRadius" : 0.5
-            }
-          }
-        },
         {
           "body" : {
             "kind" : "shape3D",
@@ -96,6 +112,17 @@
               1
             ]
           ]
+        },
+        {
+          "kind" : "shape3D",
+          "primitive" : {
+            "cylinder" : {
+              "bottomRadius" : 0.5,
+              "height" : 1,
+              "segmentCount" : 20,
+              "topRadius" : 0.5
+            }
+          }
         }
       ],
       "kind" : "boolean",

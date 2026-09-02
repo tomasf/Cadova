@@ -1,4 +1,31 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "boundingBox" : {
+        "maximum" : [
+          5,
+          5,
+          17
+        ],
+        "minimum" : [
+          -5,
+          -5,
+          0
+        ]
+      },
+      "centroid" : [
+        0.00031328367276850673,
+        -4.3217768690369716e-16,
+        10.872507893777168
+      ],
+      "isEmpty" : false,
+      "volume" : 567.6314685200318
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",
@@ -8,71 +35,55 @@
       "children" : [
         {
           "body" : {
-            "children" : [
-              {
-                "kind" : "shape3D",
-                "primitive" : {
-                  "cylinder" : {
-                    "bottomRadius" : 0.5,
-                    "height" : 20,
-                    "segmentCount" : 20,
-                    "topRadius" : 0.5
+            "body" : {
+              "kind" : "shape3D",
+              "primitive" : {
+                "box" : {
+                  "size" : {
+                    "x" : 4,
+                    "y" : 4,
+                    "z" : 4
                   }
                 }
-              },
-              {
-                "body" : {
-                  "kind" : "shape3D",
-                  "primitive" : {
-                    "cylinder" : {
-                      "bottomRadius" : 4,
-                      "height" : 10,
-                      "segmentCount" : 167,
-                      "topRadius" : 4
-                    }
-                  }
-                },
-                "kind" : "transform",
-                "transform" : [
-                  [
-                    1,
-                    0,
-                    0,
-                    -0.0003538783514165367
-                  ],
-                  [
-                    0,
-                    0,
-                    1,
-                    -5
-                  ],
-                  [
-                    0,
-                    -1,
-                    0,
-                    12
-                  ],
-                  [
-                    0,
-                    0,
-                    0,
-                    1
-                  ]
-                ]
               }
-            ],
-            "kind" : "boolean",
-            "type" : "intersection"
-          },
-          "kind" : "applyMaterial",
-          "material" : {
-            "baseColor" : {
-              "alpha" : 1,
-              "blue" : 0,
-              "green" : 0,
-              "red" : 1
+            },
+            "kind" : "applyMaterial",
+            "material" : {
+              "baseColor" : {
+                "alpha" : 1,
+                "blue" : 0,
+                "green" : 0.502,
+                "red" : 0
+              }
             }
-          }
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              -2
+            ],
+            [
+              0,
+              1,
+              0,
+              -2
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
         },
         {
           "body" : {
@@ -203,55 +214,71 @@
         },
         {
           "body" : {
-            "body" : {
-              "kind" : "shape3D",
-              "primitive" : {
-                "box" : {
-                  "size" : {
-                    "x" : 4,
-                    "y" : 4,
-                    "z" : 4
+            "children" : [
+              {
+                "kind" : "shape3D",
+                "primitive" : {
+                  "cylinder" : {
+                    "bottomRadius" : 0.5,
+                    "height" : 20,
+                    "segmentCount" : 20,
+                    "topRadius" : 0.5
                   }
                 }
+              },
+              {
+                "body" : {
+                  "kind" : "shape3D",
+                  "primitive" : {
+                    "cylinder" : {
+                      "bottomRadius" : 4,
+                      "height" : 10,
+                      "segmentCount" : 167,
+                      "topRadius" : 4
+                    }
+                  }
+                },
+                "kind" : "transform",
+                "transform" : [
+                  [
+                    1,
+                    0,
+                    0,
+                    -0.0003538783514165367
+                  ],
+                  [
+                    0,
+                    0,
+                    1,
+                    -5
+                  ],
+                  [
+                    0,
+                    -1,
+                    0,
+                    12
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
               }
-            },
-            "kind" : "applyMaterial",
-            "material" : {
-              "baseColor" : {
-                "alpha" : 1,
-                "blue" : 0,
-                "green" : 0.502,
-                "red" : 0
-              }
-            }
+            ],
+            "kind" : "boolean",
+            "type" : "intersection"
           },
-          "kind" : "transform",
-          "transform" : [
-            [
-              1,
-              0,
-              0,
-              -2
-            ],
-            [
-              0,
-              1,
-              0,
-              -2
-            ],
-            [
-              0,
-              0,
-              1,
-              0
-            ],
-            [
-              0,
-              0,
-              0,
-              1
-            ]
-          ]
+          "kind" : "applyMaterial",
+          "material" : {
+            "baseColor" : {
+              "alpha" : 1,
+              "blue" : 0,
+              "green" : 0,
+              "red" : 1
+            }
+          }
         }
       ],
       "kind" : "boolean",

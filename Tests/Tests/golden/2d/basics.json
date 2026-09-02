@@ -1,4 +1,28 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "area" : 144.16369445719585,
+      "boundingBox" : {
+        "maximum" : [
+          20,
+          5
+        ],
+        "minimum" : [
+          -3.5,
+          -5
+        ]
+      },
+      "centroid" : [
+        7.453102020044474,
+        0.44316905935480716
+      ],
+      "isEmpty" : false
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",
@@ -6,6 +30,109 @@
     },
     {
       "children" : [
+        {
+          "children" : [
+            {
+              "children" : [
+                {
+                  "body" : {
+                    "kind" : "shape2D",
+                    "primitive" : {
+                      "rectangle" : {
+                        "size" : {
+                          "x" : 30,
+                          "y" : 10
+                        }
+                      }
+                    }
+                  },
+                  "kind" : "transform",
+                  "transform" : [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      -5
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                },
+                {
+                  "kind" : "shape2D",
+                  "primitive" : {
+                    "circle" : {
+                      "radius" : 4,
+                      "segmentCount" : 167
+                    }
+                  }
+                }
+              ],
+              "kind" : "boolean",
+              "type" : "difference"
+            },
+            {
+              "cacheKey" : {
+                "type" : "6Cadova15LabeledCacheKeyV",
+                "value" : {
+                  "operationName" : "Cadova.Polygon",
+                  "parameters" : [
+                    {
+                      "type" : "6Cadova13PolygonPointsO",
+                      "value" : {
+                        "literal" : {
+                          "_0" : [
+                            {
+                              "x" : 0,
+                              "y" : -10
+                            },
+                            {
+                              "x" : 20,
+                              "y" : 2
+                            },
+                            {
+                              "x" : 0,
+                              "y" : 10
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type" : "6Cadova8FillRuleO",
+                      "value" : {
+                        "nonZero" : {
+
+                        }
+                      }
+                    },
+                    {
+                      "type" : "6Cadova12SegmentationO",
+                      "value" : {
+                        "adaptive" : {
+                          "minAngle" : {
+                            "degrees" : 2
+                          },
+                          "minSize" : 0.15
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "kind" : "materialized"
+            }
+          ],
+          "kind" : "boolean",
+          "type" : "intersection"
+        },
         {
           "cacheKey" : {
             "type" : "6Cadova15LabeledCacheKeyV",
@@ -380,109 +507,6 @@
             }
           },
           "kind" : "materialized"
-        },
-        {
-          "children" : [
-            {
-              "children" : [
-                {
-                  "body" : {
-                    "kind" : "shape2D",
-                    "primitive" : {
-                      "rectangle" : {
-                        "size" : {
-                          "x" : 30,
-                          "y" : 10
-                        }
-                      }
-                    }
-                  },
-                  "kind" : "transform",
-                  "transform" : [
-                    [
-                      1,
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      1,
-                      -5
-                    ],
-                    [
-                      0,
-                      0,
-                      1
-                    ]
-                  ]
-                },
-                {
-                  "kind" : "shape2D",
-                  "primitive" : {
-                    "circle" : {
-                      "radius" : 4,
-                      "segmentCount" : 167
-                    }
-                  }
-                }
-              ],
-              "kind" : "boolean",
-              "type" : "difference"
-            },
-            {
-              "cacheKey" : {
-                "type" : "6Cadova15LabeledCacheKeyV",
-                "value" : {
-                  "operationName" : "Cadova.Polygon",
-                  "parameters" : [
-                    {
-                      "type" : "6Cadova13PolygonPointsO",
-                      "value" : {
-                        "literal" : {
-                          "_0" : [
-                            {
-                              "x" : 0,
-                              "y" : -10
-                            },
-                            {
-                              "x" : 20,
-                              "y" : 2
-                            },
-                            {
-                              "x" : 0,
-                              "y" : 10
-                            }
-                          ]
-                        }
-                      }
-                    },
-                    {
-                      "type" : "6Cadova8FillRuleO",
-                      "value" : {
-                        "nonZero" : {
-
-                        }
-                      }
-                    },
-                    {
-                      "type" : "6Cadova12SegmentationO",
-                      "value" : {
-                        "adaptive" : {
-                          "minAngle" : {
-                            "degrees" : 2
-                          },
-                          "minSize" : 0.15
-                        }
-                      }
-                    }
-                  ]
-                }
-              },
-              "kind" : "materialized"
-            }
-          ],
-          "kind" : "boolean",
-          "type" : "intersection"
         }
       ],
       "kind" : "boolean",
