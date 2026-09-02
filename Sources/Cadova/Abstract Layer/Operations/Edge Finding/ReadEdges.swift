@@ -5,7 +5,7 @@ internal struct ReadEdges: Geometry {
 
     let body: any Geometry3D
     let query: EdgeQuery
-    let action: @Sendable (BuildResult<D3>, [FoundEdge]) -> any Geometry3D
+    let action: @Sendable (any Geometry3D, [FoundEdge]) -> any Geometry3D
 
     func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D3> {
         let bodyResult = try await context.buildResult(for: body, in: environment)
@@ -21,7 +21,12 @@ internal struct ReadEdges: Geometry {
             try await context.result(for: $0.geometry, in: maskEnvironment).concrete
         }
         let edges = EdgeExtractor.edges(in: concreteResult.concrete, matching: query, maskManifolds: maskManifolds)
-        return try await context.buildResult(for: action(bodyResult, edges), in: environment)
+        // Handing the closure the raw `BuildResult` would build to itself, so a closure that wraps
+        // the geometry in an environment modifier would silently get no rebuild. The stand-in
+        // replays the finished build under this environment and context, and does a real build of
+        // `body` under any other.
+        let standIn = bodyResult.standingIn(for: body, in: environment, context: context)
+        return try await context.buildResult(for: action(standIn, edges), in: environment)
     }
 }
 
@@ -36,8 +41,10 @@ public extension Geometry3D {
     /// }
     /// ```
     ///
-    /// The `geometry` parameter of the closure is the already-evaluated body; operations
-    /// on it hit the evaluation cache, so the geometry is not evaluated twice.
+    /// The `geometry` parameter of the closure stands in for the body that was just built: building
+    /// it again under the same environment replays that build rather than walking the body a second
+    /// time. A closure that wraps it in an environment modifier still gets a real build, under the
+    /// environment it asked for.
     ///
     /// - Parameters:
     ///   - query: The criteria used to select edges. Defaults to `.all`.

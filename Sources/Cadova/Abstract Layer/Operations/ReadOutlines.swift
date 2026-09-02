@@ -14,8 +14,8 @@ public extension Geometry2D {
     func readingOutlines<D: Dimensionality>(
         @GeometryBuilder<D> _ reader: @escaping @Sendable (_ geometry: any Geometry2D, _ paths: [BezierPath2D]) -> D.Geometry
     ) -> D.Geometry {
-        readingConcrete { crossSection, _ in
-            reader(self, crossSection.polygonList().polygons.map {
+        readingConcrete { crossSection, geometry in
+            reader(geometry, crossSection.polygonList().polygons.map {
                 BezierPath2D(linesBetween: $0.vertices).closed()
             })
         }

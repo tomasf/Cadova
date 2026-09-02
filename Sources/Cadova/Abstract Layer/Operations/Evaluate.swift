@@ -42,6 +42,27 @@ public struct Evaluate<D: Dimensionality>: Geometry {
     }
 }
 
+/// The receiver-taking form of ``Evaluate``, used by ``Geometry/evaluating(_:)``.
+///
+/// It builds `source` once up front and hands the closure a stand-in for it, so reads of that
+/// geometry through the evaluator — and the geometry the closure returns — reuse that build instead
+/// of walking the subtree again for each one.
+internal struct EvaluateSource<Input: Dimensionality, D: Dimensionality>: Geometry {
+    let source: Input.Geometry
+    let action: @Sendable (Input.Geometry, GeometryEvaluator) async -> D.Geometry
+
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
+        let sourceResult = try await context.buildResult(for: source, in: environment)
+        let evaluator = GeometryEvaluator(context: context, environment: environment)
+        let standIn = sourceResult.standingIn(for: source, in: environment, context: context)
+        let produced = await action(standIn, evaluator)
+        if let error = await evaluator.firstError {
+            throw error
+        }
+        return try await context.buildResult(for: produced, in: environment)
+    }
+}
+
 public extension Geometry {
     /// Performs several geometry reads inside one closure, then builds new geometry from the results.
     ///
@@ -53,9 +74,14 @@ public extension Geometry {
     /// code, loops, and `let` bindings.
     ///
     /// The evaluator runs in the same evaluation context and environment that the surrounding pipeline
-    /// uses, so reads share the same cache. Reading the same geometry several times inside one
-    /// `evaluating` block costs no more than reading it once. The evaluator can read any geometry in
-    /// scope — the closure's input, geometry captured from outer scope, or geometry built on the fly.
+    /// uses, so reads share the same cache. The evaluator can read any geometry in scope — the
+    /// closure's input, geometry captured from outer scope, or geometry built on the fly.
+    ///
+    /// The closure's input is built once, before the closure runs, so reading it repeatedly — and
+    /// returning geometry derived from it — costs no more than reading it once. Other geometry is
+    /// cheaper on repeat reads but not free: the mesh behind it is cached by node, so it is realized
+    /// only once, but each read still walks that geometry's abstract tree again to arrive at the node.
+    /// Bind such a value to a `let` if you need it more than once.
     ///
     /// ```swift
     /// shape.evaluating { g, eval in
@@ -80,8 +106,8 @@ public extension Geometry {
     func evaluating<Output: Dimensionality>(
         @GeometryBuilder<Output> _ action: @Sendable @escaping (D.Geometry, GeometryEvaluator) async -> Output.Geometry
     ) -> Output.Geometry {
-        Evaluate { eval in
-            await action(self, eval)
+        EvaluateSource(source: self) { geometry, eval in
+            await action(geometry, eval)
         }
     }
 }
