@@ -80,3 +80,27 @@ public enum Segmentation: Sendable, Hashable, Codable {
         }
     }
 }
+
+internal extension Segmentation {
+    /// The surface deviation this segmentation already accepts everywhere else, used as the budget
+    /// for deciding whether a loft needs another ring.
+    ///
+    /// Adaptive segmentation states two limits on a *chord*: `minSize` is the shortest chord worth
+    /// emitting, and `minAngle` the smallest turn worth resolving. Both bind at once on a circle of
+    /// radius `r = minSize / (2·sin(minAngle/2))`, and the sagitta there — the gap between the chord
+    /// and the arc it stands in for — is
+    ///
+    ///     s = r · (1 − cos(minAngle / 2)) = minSize · tan(minAngle / 4) / 2
+    ///
+    /// The radius cancels out, leaving the one error budget the two limits agree on. Spending that
+    /// same budget along the path makes a ring inserted between two sections worth exactly what a
+    /// vertex inserted around a ring is worth, so a loft's surface ends up neither coarser nor finer
+    /// than the circles it interpolates. With the defaults (2°, 0.15 mm) it comes to 0.65 µm.
+    ///
+    /// `\.tolerance` deliberately plays no part in this. That value is a fit clearance between mating
+    /// parts, orders of magnitude larger than a tessellation error; spending it here would let the
+    /// surface wander by the whole gap it exists to guarantee.
+    static func surfaceDeviation(minAngle: Angle, minSize: Double) -> Double {
+        minSize * tan(minAngle / 4) / 2
+    }
+}

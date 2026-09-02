@@ -30,8 +30,16 @@ struct LoftTests {
         try await loft.writeVerificationModel(name: "loftThreeLayers")
         let m = try await loft.measurements
 
-        #expect(m.volume ≈ 7853.445)
-        #expect(m.surfaceArea ≈ 3791.824)
+        // Adaptive subdivision places rings by how far the surface would stray without them, so the
+        // exact triangulation — and with it the last digits of volume and area — depends on where
+        // those rings land. Building this same loft under fixed segmentation, which doesn't go
+        // through the adaptive criterion at all, spans 7850.1…7862.0 in volume and 3791.4…3793.9 in
+        // area from 64 to 1024 segments, so the value below is inside that bracket rather than at
+        // its edge. It is bit-identical over three separate processes, so it is pinned at the same
+        // tolerances as the two lofts below rather than loosely: a tolerance wide enough to admit
+        // the value this test carried before the change would not be pinning the change at all.
+        #expect(m.volume.equals(7853.271, within: 5e-2))
+        #expect(m.surfaceArea.equals(3792.011, within: 1e-2))
         #expect(m.boundingBox ≈ .init(minimum: [-12.5, -12.5, 0], maximum: [12.5, 12.5, 35]))
     }
 
@@ -54,9 +62,12 @@ struct LoftTests {
         try await loft.writeVerificationModel(name: "loftLayerSpecificShaping")
         let m = try await loft.measurements
 
-        // Manifold simplification produces slightly different floating-point results across platforms.
-        #expect(m.volume.equals(3863.623, within: 3e-2))
-        #expect(m.surfaceArea.equals(1236.890, within: 2e-3))
+        // Manifold simplification produces slightly different floating-point results across platforms,
+        // and adaptive subdivision decides where the rings go, so both are pinned loosely. Fixed
+        // segmentation from 128 to 1024 segments puts this shape at 3864.0…3864.7 in volume and
+        // 1236.9…1237.2 in area.
+        #expect(m.volume.equals(3864.48, within: 5e-2))
+        #expect(m.surfaceArea.equals(1237.073, within: 1e-2))
         #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
 
@@ -79,9 +90,12 @@ struct LoftTests {
         try await loft.writeVerificationModel(name: "loftLayerSpecificShapingWithDefault")
         let m = try await loft.measurements
 
-        // Manifold simplification produces slightly different floating-point results across platforms.
-        #expect(m.volume.equals(2732.312, within: 5e-2))
-        #expect(m.surfaceArea.equals(1117.823, within: 1e-2))
+        // Manifold simplification produces slightly different floating-point results across platforms,
+        // and adaptive subdivision decides where the rings go, so both are pinned loosely. Fixed
+        // segmentation from 128 to 1024 segments puts this shape at 2732.4…2733.4 in volume and
+        // 1117.8…1118.4 in area.
+        #expect(m.volume.equals(2732.606, within: 5e-2))
+        #expect(m.surfaceArea.equals(1117.979, within: 1e-2))
         #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
 
