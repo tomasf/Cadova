@@ -1,24 +1,39 @@
 import Foundation
 
 extension [ParametricCurveFrame] {
+    /// Fills in frames whose reference/target alignment was momentarily degenerate, by interpolating
+    /// between the resolved angles bracketing each run.
+    ///
+    /// The bounding angles are deliberately *not* treated as an ordered pair. They come straight from
+    /// `atan2` and land anywhere in (-180°, 180°] in whatever order the curve happens to produce;
+    /// `normalizeAngles()` only monotonizes them afterwards, so a run whose preceding angle is larger
+    /// than its following one is entirely ordinary here.
     mutating func interpolateMissingAngles() {
         var offset = 0
         while let start = self[offset...].firstIndex(where: { $0.angle == nil }) {
             let end = self[start...].firstIndex(where: { $0.angle != nil })
+            let missingIndexes = start..<(end ?? count)
 
-            let resolvedIndexes = start..<(end ?? count)
-            let resolvedRange: Range<Angle>
-
+            // A run at the very start of the sequence extends the following known angle backwards, and a
+            // run at the very end extends the preceding one forwards. Both fall out of the shared
+            // interpolation below as a zero step, since their two bounds are the same angle.
+            let lowerAngle: Angle
+            let upperAngle: Angle
             if start == 0 {
-                let value = end.map { self[$0].angle! } ?? 0°
-                resolvedRange = value..<value
+                lowerAngle = end.map { self[$0].angle! } ?? 0°
+                upperAngle = lowerAngle
             } else {
-                resolvedRange = (self[start - 1].angle!)..<(self[end ?? start - 1].angle!)
+                lowerAngle = self[start - 1].angle!
+                upperAngle = end.map { self[$0].angle! } ?? lowerAngle
             }
 
-            let step = resolvedRange.length / Double(resolvedIndexes.length)
-            for i in resolvedIndexes {
-                self[i].angle = resolvedRange.lowerBound + Double(i - resolvedIndexes.lowerBound) * step
+            // The shortest signed arc, so a run spanning the ±180° seam takes the short way round rather
+            // than unwinding nearly a full turn. Interpolating k interior angles between two known ones
+            // divides the arc into k + 1 steps: the missing frames sit strictly between their bounds
+            // rather than duplicating the preceding one and stopping short of the following one.
+            let step = (upperAngle - lowerAngle).normalized / Double(missingIndexes.count + 1)
+            for (position, index) in missingIndexes.enumerated() {
+                self[index].angle = lowerAngle + step * Double(position + 1)
             }
 
             if let end {

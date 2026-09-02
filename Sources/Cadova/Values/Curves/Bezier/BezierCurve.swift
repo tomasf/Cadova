@@ -25,8 +25,40 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         BezierCurve(controlPoints: controlPoints.paired().map { ($1 - $0) * Double(degree) })
     }
 
+    /// The largest distance from the first control point to any other. Used as the curve's own length
+    /// scale, so tolerances below are relative rather than assuming millimetre-sized geometry.
+    private var controlPolygonExtent: Double {
+        controlPoints.dropFirst().reduce(0) { Swift.max($0, controlPoints[0].distance(to: $1)) }
+    }
+
+    /// The direction of travel at `fraction`.
+    ///
+    /// Ordinarily this is just the first derivative, but a curve whose control points coincide at that
+    /// end has a first derivative of exactly zero there — a cubic leaving its start point with no
+    /// tension is a perfectly ordinary way to author a curve — and `Direction` would normalize that zero
+    /// vector into a zero-length "unit" direction without complaint, producing a frame with no Z axis or
+    /// a plane with no normal further downstream.
+    ///
+    /// L'Hôpital's rule gives the true tangent as the first derivative that doesn't vanish, so fall back
+    /// to the second, and finally to the chord across the whole curve.
     func tangent(at fraction: Double) -> Direction<V.D> {
-        Direction(derivative.point(at: fraction))
+        guard controlPoints.count > 1 else { return .undefined }
+        let epsilon = controlPolygonExtent * 1e-9
+
+        let firstDerivative = derivative
+        let velocity = firstDerivative.point(at: fraction)
+        if velocity.magnitude > epsilon { return Direction(velocity) }
+
+        if firstDerivative.controlPoints.count > 1 {
+            // B'(t₀ + h) ≈ B''(t₀)·h, so B'' gives the direction of travel for h > 0. At the very end of
+            // the curve the only h available points backwards, and the sign flips with it.
+            let sign: Double = fraction >= 1 ? -1 : 1
+            let acceleration = firstDerivative.derivative.point(at: fraction) * sign
+            if acceleration.magnitude > epsilon { return Direction(acceleration) }
+        }
+
+        let chord = controlPoints.last! - controlPoints.first!
+        return chord.magnitude > epsilon ? Direction(chord) : .undefined
     }
 
     private func points(in range: Range<Double>, segmentLength: Double) -> [(Double, V)] {
@@ -54,7 +86,13 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     }
 
     func points(in range: Range<Double> = 0..<1, segmentation: Segmentation, subdividingStraightLines: Bool) -> [(Double, V)] {
-        guard subdividingStraightLines || controlPoints.count > 2 else {
+        // A curve collapsed onto a single control point (from `subcurve(in:)` over a degenerate range)
+        // is that point everywhere; it has no interior to sample and no second control point to read.
+        if controlPoints.count == 1 {
+            return [(range.lowerBound, controlPoints[0]), (range.upperBound, controlPoints[0])]
+        }
+
+        if !subdividingStraightLines, controlPoints.count == 2 {
             let p1 = controlPoints[0] + (controlPoints[1] - controlPoints[0]) * range.lowerBound
             let p2 = controlPoints[0] + (controlPoints[1] - controlPoints[0]) * range.upperBound
             return [(range.lowerBound, p1), (range.upperBound, p2)]

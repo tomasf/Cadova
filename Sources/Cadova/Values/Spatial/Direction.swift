@@ -13,6 +13,17 @@ public struct Direction<D: Dimensionality>: Hashable, Sendable, Codable {
     }
 }
 
+internal extension Direction {
+    /// A deterministic stand-in for a direction that is genuinely undefined, such as the tangent of a
+    /// curve that has collapsed to a single point.
+    ///
+    /// `Direction`'s contract is that `unitVector` has unit length, so there is no honest "no direction"
+    /// value to return. Normalizing a zero vector yields the zero vector back (see `Vector.normalized`),
+    /// which passes silently as a direction and then propagates as a degenerate frame basis or a plane
+    /// with no normal. Producing a valid, arbitrary direction at least keeps the invariant intact.
+    static var undefined: Self { Self(D.Axis.allCases.first!, .positive) }
+}
+
 /// A direction in three-dimensional space.
 public typealias Direction3D = Direction<D3>
 

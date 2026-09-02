@@ -62,9 +62,12 @@ public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable
         let t3 = t2 + dt(p2, p3)
         let t = t1 + localFraction * (t2 - t1)
 
-        // Tangents (general CR with centripetal times)
-        let m1 = (p2 - p0) * (1.0 / max(t2, .leastNonzeroMagnitude))
-        let m2 = (p3 - p1) * (1.0 / max(t3 - t1, .leastNonzeroMagnitude))
+        // Tangents (general CR with centripetal times). The floor is `leastNormalMagnitude` rather than
+        // `leastNonzeroMagnitude` because the reciprocal of a subnormal overflows to infinity, and
+        // coincident control points make these times exactly zero: 0 × ∞ is NaN, which then propagates
+        // into every point on the segment.
+        let m1 = (p2 - p0) * (1.0 / max(t2, .leastNormalMagnitude))
+        let m2 = (p3 - p1) * (1.0 / max(t3 - t1, .leastNormalMagnitude))
 
         // Cubic Hermite basis over s in [0,1]
         let s = (t - t1) / max(t2 - t1, .leastNonzeroMagnitude)
@@ -190,10 +193,10 @@ extension InterpolatingCurve: Transformable {
 internal struct InterpolatingCurveDerivativeView<V: Vector>: CurveDerivativeView {
     let curve: InterpolatingCurve<V>
 
+    /// Two coincident control points collapse a whole segment onto a single position, where a plain
+    /// difference is exactly zero; ``finiteDifferenceTangent(at:over:baseStep:point:)`` widens the
+    /// sampling window until it finds real geometry instead of normalizing that zero.
     func tangent(at u: Double) -> Direction<V.D> {
-        Direction(
-            from: curve.point(at: (u - 1e-6).clamped(to: curve.domain)),
-            to: curve.point(at: (u + 1e-6).clamped(to: curve.domain))
-        )
+        finiteDifferenceTangent(at: u, over: curve.domain, baseStep: 1e-6, point: curve.point(at:))
     }
 }

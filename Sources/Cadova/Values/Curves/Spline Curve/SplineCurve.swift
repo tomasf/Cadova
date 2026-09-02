@@ -86,11 +86,17 @@ public struct SplineCurve<V: Vector>: Sendable, Hashable, Codable {
     }
     
     /// Tangent direction via finite difference. Suitable for framing and sampling.
+    ///
+    /// Repeated control points can leave the curve stationary across a whole knot span, where a plain
+    /// difference is exactly zero; ``finiteDifferenceTangent(at:over:baseStep:point:)`` widens the
+    /// sampling window until it finds real geometry instead of normalizing that zero.
     public func tangent(at u: Double) -> Direction<V.D> {
-        let eps = max(1e-6, 1e-6 * domain.length)
-        let a = point(at: (u - eps).clamped(to: domain))
-        let b = point(at: (u + eps).clamped(to: domain))
-        return Direction(b - a)
+        finiteDifferenceTangent(
+            at: u,
+            over: domain,
+            baseStep: max(1e-6, 1e-6 * domain.length),
+            point: point(at:)
+        )
     }
     
     /// Reversed curve (parameterization flipped). Knots, control points, and weights are mirrored accordingly.

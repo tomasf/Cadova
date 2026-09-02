@@ -24,17 +24,30 @@ internal extension BezierPath {
 
     func subpath(in range: ClosedRange<Double>) -> BezierPath {
         guard !isEmpty else { return self }
-        let (lowerIndex, lowerFraction) = curveIndexAndFraction(for: range.lowerBound)
-        var (upperIndex, upperFraction) = curveIndexAndFraction(for: range.upperBound)
 
-        if upperIndex > 0, upperFraction < Double.ulpOfOne {
-            upperIndex -= 1
-            upperFraction = 1.0
+        // A collapsed range selects no curve at all. Say so with a curveless path carrying the point the
+        // range collapsed onto, rather than fabricating a curve index span (which inverts, and traps) or
+        // a single-control-point curve (which sampling then reads out of bounds).
+        guard range.length > .ulpOfOne else {
+            return BezierPath(startPoint: point(at: range.lowerBound), curves: [])
         }
 
-        let newCurves: [BezierCurve<V>] = (lowerIndex...upperIndex).map { i in
+        let (lowerIndex, lowerFraction) = curveIndexAndFraction(for: range.lowerBound)
+        let (upperIndex, upperFraction) = curveIndexAndFraction(for: range.upperBound)
+
+        // A range ending exactly on a curve boundary belongs to the end of the preceding curve, not to a
+        // zero-length piece of the next one. The guard above makes this safe: the range spans more than
+        // one curve whenever the pull-back applies, so `lastIndex` can never fall below `lowerIndex`.
+        var lastIndex = upperIndex
+        var lastFraction = upperFraction
+        if lastFraction < .ulpOfOne, lastIndex > lowerIndex {
+            lastIndex -= 1
+            lastFraction = 1.0
+        }
+
+        let newCurves: [BezierCurve<V>] = (lowerIndex...lastIndex).map { i in
             let start = (i == lowerIndex) ? lowerFraction : 0
-            let end = (i == upperIndex) ? upperFraction : 1
+            let end = (i == lastIndex) ? lastFraction : 1
             return (start == 0 && end == 1) ? curves[i] : curves[i].subcurve(in: start...end)
         }
         let newStartPoint = newCurves.first?.controlPoints[0] ?? startPoint

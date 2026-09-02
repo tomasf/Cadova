@@ -120,7 +120,7 @@ extension BezierPath: ParametricCurve {
     }
 
     public var derivativeView: any CurveDerivativeView<V> {
-        BezierPathDerivativeView(derivative: derivative)
+        BezierPathDerivativeView(path: self)
     }
 
     /// Returns points sampled along a parameter subrange.
@@ -144,10 +144,15 @@ extension BezierPath: ParametricCurve {
 }
 
 internal struct BezierPathDerivativeView<V: Vector>: CurveDerivativeView {
-    let derivative: BezierPath<V>
+    let path: BezierPath<V>
 
+    /// Defers to the containing curve's own `tangent(at:)` rather than normalizing a point off the
+    /// derivative path directly, so a vanishing derivative at a coincident control point is resolved
+    /// there instead of becoming a zero-length "unit" direction here.
     func tangent(at u: Double) -> Direction<V.D> {
-        Direction(derivative.point(at: u))
+        guard !path.isEmpty else { return .undefined }
+        let (curveIndex, fraction) = path.curveIndexAndFraction(for: u)
+        return path.curves[curveIndex].tangent(at: fraction)
     }
 }
 

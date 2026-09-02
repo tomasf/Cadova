@@ -28,9 +28,13 @@ struct SweepTests {
 
         let m = try await sweep.measurements
 
-        #expect(m.volume ≈ 11652.703)
-        #expect(m.surfaceArea ≈ 18070.729)
-        #expect(m.boundingBox ≈ .init(minimum: [0, -5.595, -3], maximum: [105.831, 100, 155.5]))
+        // Exactly one of this sweep's 1553 frames has no resolvable twist angle (the tangent is briefly
+        // antiparallel to the `.down` target where the path runs vertically), bracketed by frames at 0°
+        // and 90°. interpolateMissingAngles() used to hand it the preceding angle verbatim, leaving a
+        // 0° → 0° → 90° step; it now interpolates to 45°. These figures are that corrected frame.
+        #expect(m.volume ≈ 11653.029)
+        #expect(m.surfaceArea ≈ 18070.705)
+        #expect(m.boundingBox ≈ .init(minimum: [0, -5.60051, -3], maximum: [105.831, 100, 155.5]))
     }
 
     @Test func `star shape can be swept along 2D path`() async throws {
