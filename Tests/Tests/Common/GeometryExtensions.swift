@@ -2,13 +2,29 @@ import Testing
 import Foundation
 @testable import Cadova
 
-enum TestGeneratedOutputType: String, Hashable {
+enum TestGeneratedOutputType: String, Hashable, CaseIterable {
     case node, model
 
+    /// The output types named by `CADOVA_TESTS_OUTPUT_TYPES`, or `nil` when the variable is unset.
+    ///
+    /// A variable that names nothing recognizable records an issue rather than falling through to a
+    /// normal verifying run. Ignoring it silently would make a typo in a shell profile look exactly
+    /// like a request that was honored, which is the confusion this whole path exists to prevent.
     static var fromEnvironment: Set<Self>? {
-        let strings = ProcessInfo.processInfo.environment["CADOVA_TESTS_OUTPUT_TYPES"]?.split(separator: ",") ?? []
-        let values = strings.compactMap { TestGeneratedOutputType(rawValue: String($0)) }
-        return values.isEmpty ? nil : Set(values)
+        guard let variable = ProcessInfo.processInfo.environment["CADOVA_TESTS_OUTPUT_TYPES"] else {
+            return nil
+        }
+        let names = variable.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        let values = names.compactMap { TestGeneratedOutputType(rawValue: $0) }
+        guard !values.isEmpty, values.count == names.count else {
+            Issue.record("""
+                CADOVA_TESTS_OUTPUT_TYPES is set to "\(variable)", which names no known output type. \
+                Valid names are \(allCases.map(\.rawValue).joined(separator: " and ")), separated by \
+                commas. Unset it to run normal verification.
+                """)
+            return nil
+        }
+        return Set(values)
     }
 }
 
@@ -135,6 +151,16 @@ extension Geometry {
     func expectEquals(goldenFile name: String) async throws {
         if let types = TestGeneratedOutputType.fromEnvironment {
             try await writeOutputFiles(name, types: types)
+            let written = TestGeneratedOutputType.allCases
+                .filter { types.contains($0) }
+                .map { $0 == .node ? "golden record" : "3MF verification model" }
+                .joined(separator: " and ")
+            Issue.record(
+                """
+                Regenerated the \(written) for \(name) from the current build. This run verified \
+                nothing. Re-run without CADOVA_TESTS_OUTPUT_TYPES to check the new files.
+                """
+            )
             return
         }
 
