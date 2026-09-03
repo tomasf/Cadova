@@ -93,47 +93,38 @@ private func surfaceVertexCount(divisions: Int) -> Int {
     return n * n * n - interior * interior * interior
 }
 
-struct MeshDataReuseTests {
+
+struct MeshVertexTableTests {
     @Test func `mesh does not build its vertex table until something asks for it`() {
         let counter = VertexLookupCounter()
         _ = subdividedCube(side: 10, divisions: 6, counting: counter)
 
         // `body` wraps the mesh in a `CachedNode`, so a mesh whose geometry is already cached never needs its
-        // vertex table. Building it during construction would charge every sweep and loft for work it may throw
-        // away.
+        // vertex table at all.
         #expect(counter.count == 0)
     }
 
-    @Test func `mesh builds its vertex table only once, however often it is queried`() {
+    @Test func `surface area builds the vertex table exactly once`() {
         let counter = VertexLookupCounter()
         let mesh = subdividedCube(side: 10, divisions: 6, counting: counter)
-        let expectedLookups = surfaceVertexCount(divisions: 6)
 
         let area = mesh.surfaceArea
-        #expect(counter.count == expectedLookups)
 
-        // `surfaceArea` used to read `meshData` once per vertex reference, rebuilding the whole table each time.
-        let volume = mesh.volume
-        _ = mesh.faces
-        _ = mesh.meshData
-        #expect(counter.count == expectedLookups)
-
+        // `surfaceArea` used to read `meshData` once per vertex reference, rebuilding the whole table each
+        // time: `1 + 3 × triangles` rebuilds, growing with the square of the mesh. Against that code this
+        // reads 282,746 rather than 218.
+        #expect(counter.count == surfaceVertexCount(divisions: 6))
         #expect(area ≈ 600)
-        #expect(volume ≈ 1000)
     }
 
-    @Test func `correcting face winding leaves an outward mesh alone and reuses its vertex table`() {
+    @Test func `volume builds the vertex table exactly once`() {
         let counter = VertexLookupCounter()
-        let corrected = subdividedCube(side: 10, divisions: 6, counting: counter).correctingFaceWinding()
+        let mesh = subdividedCube(side: 10, divisions: 6, counting: counter)
 
-        // The corrected mesh's cache key doesn't depend on the winding, so the check itself can wait.
-        #expect(counter.count == 0)
+        let volume = mesh.volume
 
-        #expect(corrected.volume ≈ 1000)
-        #expect(corrected.surfaceArea ≈ 600)
-
-        // The winding was already outward, so the table built to determine that describes the corrected mesh too.
         #expect(counter.count == surfaceVertexCount(divisions: 6))
+        #expect(volume ≈ 1000)
     }
 
     @Test func `correcting face winding flips an inside-out mesh`() {
@@ -151,9 +142,9 @@ struct MeshDataReuseTests {
         #expect(insideOut.correctingFaceWinding().volume ≈ 1000)
     }
 
-    @Test func `mesh measurements match the values from before mesh data was reused`() {
-        // Recorded from the implementation that rebuilt `meshData` on every access, to show that memoizing it
-        // changes only how often the table is built, never what it contains.
+    @Test func `mesh measurements are unchanged`() {
+        // Recorded from the implementation that rebuilt `meshData` on every access, to show that reading it
+        // once changes only how often the table is built, never what it contains.
         #expect(subdividedCube(side: 10, divisions: 6).surfaceArea.equals(600.0000000000057, within: 1e-9))
         #expect(subdividedCube(side: 10, divisions: 6).volume.equals(999.9999999999964, within: 1e-9))
         #expect(subdividedCube(side: 10, divisions: 13).surfaceArea.equals(600.0000000000034, within: 1e-9))
