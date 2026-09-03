@@ -6,6 +6,12 @@ struct BinarySTLDataProvider: OutputDataProvider {
     let options: ModelOptions
     let fileExtension = "stl"
 
+    /// A binary STL starts with a fixed 80 bytes of free-form text, followed by a 32-bit triangle
+    /// count. Each triangle is then a 50-byte record: four vectors of three single-precision
+    /// floats (the normal and three corners), plus a 16-bit attribute byte count.
+    private static let headerLength = 80
+    private static let triangleRecordLength = MemoryLayout<Float32>.size * 3 * 4 + MemoryLayout<UInt16>.size
+
     func generateOutput(context: EvaluationContext) async throws -> Data {
         let acceptedSemantics = options.includedPartSemantics(for: .stl)
         let solidParts = result.elements[PartCatalog.self].mergedOutputs
@@ -33,48 +39,73 @@ struct BinarySTLDataProvider: OutputDataProvider {
             ((vertices[triangle.b] - vertices[triangle.a]) × (vertices[triangle.c] - vertices[triangle.a])).normalized
         }
 
-        func append(_ int: UInt32) {
-            var value = int.littleEndian
-            data.append(Data(bytes: &value, count: 4))
-        }
+        let headerBytes = Self.headerBytes(for: header)
+        let size = Self.headerLength
+            + MemoryLayout<UInt32>.size
+            + triangles.count * Self.triangleRecordLength
 
-        func append(_ int: UInt16) {
-            var value = int.littleEndian
-            data.append(Data(bytes: &value, count: 2))
-        }
+        // The whole file is sized up front and filled through a moving cursor. Appending scalar by
+        // scalar instead boxes each of the thirteen values per triangle in its own reference
+        // counted Data, which for a large mesh costs more than generating the mesh did.
+        var data = Data(count: size)
 
-        func append(_ double: Double) {
-            var value = Float32(double).bitPattern.littleEndian
-            data.append(Data(bytes: &value, count: 4))
-        }
+        data.withUnsafeMutableBytes { buffer in
+            guard let base = buffer.baseAddress else { return }
+            var offset = 0
 
-        func append(_ vector: Vector3D) {
-            append(vector.x)
-            append(vector.y)
-            append(vector.z)
-        }
+            // `storeBytes(of:toByteOffset:as:)` wants an offset aligned for the type it writes,
+            // and STL's 50-byte record deliberately leaves floats on two-byte offsets.
+            // `copyMemory` carries no alignment requirement.
+            func append<T: FixedWidthInteger>(_ value: T) {
+                withUnsafeBytes(of: value.littleEndian) {
+                    base.advanced(by: offset).copyMemory(from: $0.baseAddress!, byteCount: MemoryLayout<T>.size)
+                }
+                offset += MemoryLayout<T>.size
+            }
 
-        var data = Data(capacity: 80 // 80 byte header
-                        + MemoryLayout<UInt32>.size // 32-bit triangle count
-                        + triangles.count * ( // For each triangle:
-                            MemoryLayout<UInt16>.size // 16-bit attribute count
-                            + MemoryLayout<Float32>.size * 3 * 4 // Single-precision float, three each for four vectors
-                                            ))
+            func append(_ double: Double) {
+                append(Float32(double).bitPattern)
+            }
 
-        data.append(Data(repeating: 0, count: 80))
-        let nameData = Data(header.utf8.prefix(80)).replacing("\n".utf8, with: [0])
-        data.replaceSubrange(0..<nameData.count, with: nameData)
+            func append(_ vector: Vector3D) {
+                append(vector.x)
+                append(vector.y)
+                append(vector.z)
+            }
 
-        append(UInt32(triangles.count))
+            headerBytes.withUnsafeBytes { bytes in
+                if let start = bytes.baseAddress {
+                    base.copyMemory(from: start, byteCount: bytes.count)
+                }
+            }
+            offset = Self.headerLength // Whatever the header didn't fill stays zeroed
 
-        for triangle in triangles {
-            append(triangleNormal(triangle))
-            append(vertices[triangle.a])
-            append(vertices[triangle.b])
-            append(vertices[triangle.c])
-            append(UInt16(0)) // attribute byte count
+            append(UInt32(triangles.count))
+
+            for triangle in triangles {
+                append(triangleNormal(triangle))
+                append(vertices[triangle.a])
+                append(vertices[triangle.b])
+                append(vertices[triangle.c])
+                append(UInt16(0)) // Attribute byte count
+            }
         }
 
         return data
+    }
+
+    /// The text of the 80-byte prologue, cut to fit.
+    ///
+    /// The cut falls on a character boundary: truncating the UTF-8 bytes directly can land in the
+    /// middle of a multi-byte sequence and leave a header no reader can decode. Newlines separate
+    /// the metadata fields, which the fixed-size header has no room to keep apart, so they become
+    /// nulls.
+    private static func headerBytes(for header: String) -> Data {
+        var bytes = Data(capacity: headerLength)
+        for character in header {
+            guard bytes.count + character.utf8.count <= headerLength else { break }
+            bytes.append(contentsOf: character.utf8.lazy.map { $0 == UInt8(ascii: "\n") ? 0 : $0 })
+        }
+        return bytes
     }
 }
