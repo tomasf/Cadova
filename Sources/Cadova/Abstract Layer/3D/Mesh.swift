@@ -48,8 +48,10 @@ public struct Mesh<Vertex: Hashable & Sendable>: Geometry3D {
         var vertices: [Vector3D] = []
         var keyIndices: [Vertex: Int] = [:]
 
-        vertices.reserveCapacity(faces.count * 2)
-        keyIndices.reserveCapacity(faces.count * 2)
+        // A closed triangle mesh has roughly half as many vertices as faces, and a polygonal one fewer still, so
+        // the face count is already a generous estimate.
+        vertices.reserveCapacity(faces.count)
+        keyIndices.reserveCapacity(faces.count)
 
         let indexedFaces = faces.map {
             $0.map { key in
@@ -187,13 +189,17 @@ public extension Mesh {
 
     /// Returns the total surface area of the mesh, calculated from triangulated faces.
     var surfaceArea: Double {
-        meshData.faces.reduce(0.0) { total, face in
+        // `meshData` rebuilds the whole vertex table on every access, so it's read once here. Reading it inside
+        // the loop instead costs `1 + 3 × triangles` rebuilds, which grows with the square of the mesh.
+        let data = meshData
+
+        return data.faces.reduce(0.0) { total, face in
             guard face.count >= 3 else { return total }
-            let p0 = meshData.vertices[face[0]]
+            let p0 = data.vertices[face[0]]
             var faceArea = 0.0
             for i in 1..<(face.count - 1) {
-                let p1 = meshData.vertices[face[i]]
-                let p2 = meshData.vertices[face[i + 1]]
+                let p1 = data.vertices[face[i]]
+                let p2 = data.vertices[face[i + 1]]
                 faceArea += ((p1 - p0) × (p2 - p0)).magnitude * 0.5
             }
             return total + faceArea
