@@ -19,7 +19,7 @@ import Foundation
 ///   - domain: The curve's parameter domain. Samples are never taken outside it.
 ///   - baseStep: The initial half-width of the sampling window, in parameter units.
 ///   - point: The curve's point function.
-/// - Returns: A unit direction, or ``Direction/undefined`` for a curve that is a single point and so
+/// - Returns: A unit direction, or `Direction.undefined` for a curve that is a single point and so
 ///   has no tangent at all.
 ///
 internal func finiteDifferenceTangent<V: Vector>(

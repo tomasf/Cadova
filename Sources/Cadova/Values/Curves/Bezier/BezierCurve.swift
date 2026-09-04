@@ -40,7 +40,8 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
     /// a plane with no normal further downstream.
     ///
     /// L'Hôpital's rule gives the true tangent as the first derivative that doesn't vanish, so fall back
-    /// to the second, and finally to the chord across the whole curve.
+    /// to the second, and finally to the chord across the whole curve. A curve that is genuinely a single
+    /// point has no direction at all, and reports `Direction.undefined`.
     func tangent(at fraction: Double) -> Direction<V.D> {
         guard controlPoints.count > 1 else { return .undefined }
         let epsilon = controlPolygonExtent * 1e-9
@@ -57,6 +58,8 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
             if acceleration.magnitude > epsilon { return Direction(acceleration) }
         }
 
+        // Below the threshold the chord is numerical dust, and normalizing it would amplify that
+        // noise into a full-length unit vector pointing nowhere meaningful.
         let chord = controlPoints.last! - controlPoints.first!
         return chord.magnitude > epsilon ? Direction(chord) : .undefined
     }

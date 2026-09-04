@@ -125,9 +125,27 @@ struct CurveDegenerateInputTests {
         #expect(tangent ≈ Direction3D(x: 0, y: 0, z: 1))
     }
 
-    @Test func `a straight line collapsed to a point falls back to a unit tangent`() {
+    @Test func `an undefined direction is exactly the zero direction`() {
+        #expect(Direction3D.undefined.isUndefined)
+        #expect(Direction3D(Vector3D.zero).isUndefined)
+        #expect(Direction3D(Vector3D.zero) == .undefined)
+        #expect(Direction2D.undefined.isUndefined)
+
+        // A vector of any usable length normalizes to unit length, however small.
+        let small = Direction3D(Vector3D(1e-100, 0, 0))
+        #expect(small.isUndefined == false)
+        #expect(small.unitVector.magnitude ≈ 1)
+
+        // An ordinary direction is defined.
+        #expect(Direction3D(Vector3D(0, 0, 5)).isUndefined == false)
+    }
+
+    @Test func `a line collapsed to a point has no direction to report`() {
+        // Nothing here is a tangent: the curve never moves. This documents that the degenerate case is
+        // left as it has always been rather than being given an arbitrary direction that would be
+        // indistinguishable from a real one.
         let curve = BezierPath2D.Curve(controlPoints: [[3, 4], [3, 4]])
-        #expect(curve.tangent(at: 0.5).unitVector.magnitude ≈ 1)
+        #expect(curve.tangent(at: 0.5).isUndefined)
     }
 
     @Test func `a path end direction is unit length when the last curve has no end tension`() {
