@@ -19,7 +19,9 @@ public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable
         self.points = points
     }
 
-    private var isClosed: Bool {
+    /// Compares the control points directly, which is both cheaper and more faithful than evaluating
+    /// the curve, since an interpolating curve passes through its first and last points exactly.
+    public var isClosed: Bool {
         points.first!.distance(to: points.last!) < 1e-6
     }
 

@@ -27,6 +27,12 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     /// with zero length/degenerate data) and `false` otherwise.
     var isEmpty: Bool { get }
 
+    /// Indicates whether the curve returns to where it started.
+    ///
+    /// A closed curve's end position coincides with its start, so the two are the same point on the
+    /// curve rather than two distinct ones. A default implementation compares the positions at the ends of `domain`. Conformers that already know whether they are closed should provide their own.
+    var isClosed: Bool { get }
+
     /// The parameter interval over which the curve is naturally defined.
     ///
     /// Conformers may clamp or extrapolate outside this range. Callers should not
@@ -133,6 +139,13 @@ public protocol ParametricCurve<V>: Sendable, Hashable, Codable {
     /// along with optional labels (e.g., indices or weights). Curves that are not control‑point‑based
     /// may return `nil`.
     var labeledControlPoints: [(V, label: String?)]? { get }
+}
+
+public extension ParametricCurve {
+    var isClosed: Bool {
+        guard !isEmpty else { return false }
+        return point(at: domain.lowerBound).distance(to: point(at: domain.upperBound)) < 1e-6
+    }
 }
 
 /// A lightweight interface for evaluating derivatives of a parametric curve.
