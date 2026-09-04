@@ -1,16 +1,38 @@
 /// A unit-length direction vector in a given dimensionality.
 ///
 /// `Direction` represents only the orientation of a vector, not its magnitude.
-/// All directions are normalized upon creation.
+/// Directions are normalized upon creation, with one exception: a zero-length vector has no
+/// orientation to extract, and gives ``undefined``. Curve tangents report that where the geometry has
+/// no direction, such as a curve collapsed onto a single point. Check for it with ``isUndefined``.
 public struct Direction<D: Dimensionality>: Hashable, Sendable, Codable {
     /// The normalized vector representing the direction.
     public let unitVector: D.Vector
 
     /// Creates a new direction by normalizing the provided vector.
+    ///
+    /// Passing a zero-length vector yields ``undefined`` rather than a unit direction, since there is
+    /// no orientation to extract.
+    ///
     /// - Parameter vector: The vector whose direction is used.
     public init(_ vector: D.Vector) {
         self.unitVector = vector.normalized
     }
+}
+
+public extension Direction {
+    /// The value reported where there is no direction to represent, such as the tangent of a curve
+    /// that has collapsed to a single point, or of an empty path.
+    ///
+    /// Its `unitVector` is the zero vector, making this the one `Direction` that isn't unit length.
+    /// A frame, plane or transform built from it is degenerate, so where a curve may be degenerate,
+    /// test with ``isUndefined`` before using the result.
+    static var undefined: Self { Self(D.Vector.zero) }
+
+    /// Whether this is ``undefined``.
+    ///
+    /// Equivalent to `self == .undefined`. The test is exact: any vector of usable length normalizes
+    /// to unit length, so a direction never lands near zero without being zero.
+    var isUndefined: Bool { unitVector == .zero }
 }
 
 /// A direction in three-dimensional space.
