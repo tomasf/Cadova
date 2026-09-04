@@ -196,9 +196,9 @@ internal struct InterpolatingCurveDerivativeView<V: Vector>: CurveDerivativeView
     let curve: InterpolatingCurve<V>
 
     /// Two coincident control points collapse a whole segment onto a single position, where a plain
-    /// difference is exactly zero; ``finiteDifferenceTangent(at:over:baseStep:point:)`` widens the
-    /// sampling window until it finds real geometry instead of normalizing that zero.
+    /// difference is exactly zero. The sampling window is widened until it finds real geometry instead
+    /// of normalizing that zero.
     func tangent(at u: Double) -> Direction<V.D> {
-        finiteDifferenceTangent(at: u, over: curve.domain, baseStep: 1e-6, point: curve.point(at:))
+        curve.finiteDifferenceTangent(at: u, baseStep: 1e-6)
     }
 }
