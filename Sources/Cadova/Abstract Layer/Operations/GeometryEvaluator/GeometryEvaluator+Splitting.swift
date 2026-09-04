@@ -3,7 +3,7 @@ import Foundation
 public extension GeometryEvaluator {
     /// Splits `geometry` into two parts along the specified plane.
     ///
-    /// This is the evaluator equivalent of ``Geometry3D/split(along:reader:)``. Instead of passing
+    /// This is the evaluator equivalent of `Geometry3D.split(along:reader:)`. Instead of passing
     /// both parts to a closure, they're returned directly, so they can be read or composed alongside
     /// other evaluator calls in the same block.
     ///
@@ -30,7 +30,7 @@ public extension GeometryEvaluator {
 
     /// Splits `geometry` into two parts along the specified line.
     ///
-    /// This is the evaluator equivalent of ``Geometry2D/split(along:reader:)``. Instead of passing
+    /// This is the evaluator equivalent of `Geometry2D.split(along:reader:)`. Instead of passing
     /// both parts to a closure, they're returned directly, so they can be read or composed alongside
     /// other evaluator calls in the same block.
     ///
@@ -55,7 +55,7 @@ public extension GeometryEvaluator {
 
     /// Splits `geometry` using a mask geometry.
     ///
-    /// This is the evaluator equivalent of ``Geometry3D/split(with:result:)``. Instead of passing
+    /// This is the evaluator equivalent of `Geometry3D.split(with:result:)`. Instead of passing
     /// both parts to a closure, they're returned directly, so they can be read or composed alongside
     /// other evaluator calls in the same block.
     ///
@@ -73,7 +73,7 @@ public extension GeometryEvaluator {
 
     /// Splits `geometry` using a mask geometry.
     ///
-    /// This is the evaluator equivalent of ``Geometry2D/split(with:result:)``. Instead of passing
+    /// This is the evaluator equivalent of `Geometry2D.split(with:result:)`. Instead of passing
     /// both parts to a closure, they're returned directly, so they can be read or composed alongside
     /// other evaluator calls in the same block.
     ///
@@ -91,7 +91,7 @@ public extension GeometryEvaluator {
 
     /// Splits `geometry` into two parts using axis-aligned ranges.
     ///
-    /// This is the evaluator equivalent of ``Geometry3D/split(x:y:z:reader:)``. Instead of passing
+    /// This is the evaluator equivalent of `Geometry3D.split(x:y:z:reader:)`. Instead of passing
     /// both parts to a closure, they're returned directly, so they can be read or composed alongside
     /// other evaluator calls in the same block.
     ///
@@ -115,7 +115,7 @@ public extension GeometryEvaluator {
 
     /// Splits `geometry` into two parts using axis-aligned ranges.
     ///
-    /// This is the evaluator equivalent of ``Geometry2D/split(x:y:reader:)``. Instead of passing
+    /// This is the evaluator equivalent of `Geometry2D.split(x:y:reader:)`. Instead of passing
     /// both parts to a closure, they're returned directly, so they can be read or composed alongside
     /// other evaluator calls in the same block.
     ///

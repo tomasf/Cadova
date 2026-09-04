@@ -62,7 +62,7 @@ public extension SurfaceCrossing {
     /// ```
     ///
     /// The remaining axes are determined by rotating from `.up` to `normal`, matching the convention
-    /// used by ``CurveSample/transform`` and `Geometry3D.definingAnchor(_:pointing:)`. Rotation
+    /// used by `CurveSample.transform` and `Geometry3D.definingAnchor(_:pointing:)`. Rotation
     /// around the normal is otherwise unconstrained.
     var transform: Transform3D {
         .identity
