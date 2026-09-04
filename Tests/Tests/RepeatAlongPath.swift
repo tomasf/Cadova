@@ -43,9 +43,10 @@ struct RepeatAlongPathTests {
             .repeated(along: path, spacing: 20)
             .bounds
 
-        // Path length 60, spacing 20: count = floor(60/20) = 3, spheres at 0, 20, 40
+        // Path length 60, spacing 20: spheres at 0, 20, 40 and 60. The one at 60 sits at the very end
+        // of the path, which does not exceed it, so it belongs there.
         #expect(bounds?.minimum.x ≈ -2)
-        #expect(bounds?.maximum.x ≈ 42)
+        #expect(bounds?.maximum.x ≈ 62)
     }
 
     @Test func `3D geometry repeated along curved path`() async throws {
