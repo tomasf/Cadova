@@ -23,7 +23,10 @@ protocol OutputDataProvider: Sendable {
 
 extension OutputDataProvider {
     func writeOutput(to url: URL, context: EvaluationContext) async throws {
-        try await generateOutput(context: context).write(to: url)
+        // Written beside the destination and moved into place once complete, so a write that fails
+        // partway through, on a full disk say, leaves the previous file untouched rather than
+        // truncated.
+        try await generateOutput(context: context).write(to: url, options: .atomic)
     }
 
     func pushToLiveLink(destination url: URL, context: EvaluationContext) async -> Bool { false }
