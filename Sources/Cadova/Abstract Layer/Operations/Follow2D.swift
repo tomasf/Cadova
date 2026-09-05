@@ -31,22 +31,34 @@ internal struct FollowPath2D<Path: ParametricCurve<Vector2D>>: Geometry2D {
 
         geometry.measuringBounds { body, bounds in
             let pathLength = path.approximateLength
-            let lengthFactor = pathLength / bounds.size.x
 
-            body.refined(maxEdgeLength: bounds.size.x / Double(segmentation.segmentCount(length: pathLength)))
-                .warped(operationName: "Cadova.FollowPath", cacheParameters: path, segmentation) {
-                    path.samples(segmentation: segmentation)
-                } transform: { p, frames in
-                    let distanceTarget = (p.x - bounds.minimum.x) * lengthFactor
-                    let (index, fraction) = frames.binarySearch(target: distanceTarget, key: \.distance)
-                    let frame = if fraction > .ulpOfOne {
-                        frames[index].interpolated(with: frames[index + 1], fraction: fraction)
-                    } else {
-                        frames[index]
+            // The geometry's X extent is stretched to span the path, so it is what maps a point to a
+            // position along the curve. Without it there is nothing to stretch and no factor to
+            // stretch it by.
+            if bounds.size.x > .ulpOfOne {
+                let lengthFactor = pathLength / bounds.size.x
+
+                body.refined(maxEdgeLength: bounds.size.x / Double(segmentation.segmentCount(length: pathLength)))
+                    .warped(operationName: "Cadova.FollowPath", cacheParameters: path, segmentation) {
+                        path.samples(segmentation: segmentation)
+                    } transform: { p, frames in
+                        let distanceTarget = (p.x - bounds.minimum.x) * lengthFactor
+                        let (index, fraction) = frames.binarySearch(target: distanceTarget, key: \.distance)
+                        let frame = if fraction > .ulpOfOne {
+                            frames[index].interpolated(with: frames[index + 1], fraction: fraction)
+                        } else {
+                            frames[index]
+                        }
+                        return frame.position + frame.tangent.counterclockwiseNormal.unitVector * p.y
                     }
-                    return frame.position + frame.tangent.counterclockwiseNormal.unitVector * p.y
-                }
-                .simplified()
+                    .simplified()
+            } else {
+                let _ = logger.warning("""
+                    Cannot make geometry measuring \(bounds.size) follow a path; it has no extent in X to \
+                    stretch along the path. Leaving it unchanged.
+                    """)
+                body
+            }
         }
     }
 }

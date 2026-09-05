@@ -6,32 +6,41 @@ public extension Geometry3D {
         calculator: @Sendable @escaping (Vector3D) -> Vector3D
     ) -> any Geometry3D {
         measuringBounds { geometry, box in
-            let translation = box.translation(for: alignment)
-            geometry
-                .translated(translation)
-                .scaled(calculator(box.size) / box.size)
-                .translated(-translation)
+            // Every public overload checks the sizes it was handed, but a calculator produces them
+            // here, after that check. Without this one, a calculator returning zero collapses the
+            // geometry into exactly the zero-volume mesh the other overloads now refuse to make.
+            let target = calculator(box.size)
+            if resizeTargetsAreValid(("x", target.x), ("y", target.y), ("z", target.z)) {
+                let translation = box.translation(for: alignment)
+                geometry
+                    .translated(translation)
+                    .scaled(box.scaleFactors(to: target))
+                    .translated(-translation)
+            }
         }
     }
 
     /// Resizes the geometry to specific dimensions in 3D space.
     /// - Parameters:
-    ///   - x: The target size in the X direction.
-    ///   - y: The target size in the Y direction.
-    ///   - z: The target size in the Z direction.
+    ///   - x: The target size in the X direction. A value of zero or less results in empty geometry.
+    ///   - y: The target size in the Y direction. A value of zero or less results in empty geometry.
+    ///   - z: The target size in the Z direction. A value of zero or less results in empty geometry.
     ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
     ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
     ///     example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of
     ///     its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and repositioned according to the specified dimensions and alignment.
     ///
+    @GeometryBuilder3D
     func resized(x: Double, y: Double, z: Double, alignment: GeometryAlignment3D...) -> any Geometry3D {
-        resized(alignment.merged.defaultingToOrigin()) { _ in Vector3D(x, y, z) }
+        if resizeTargetsAreValid(("x", x), ("y", y), ("z", z)) {
+            resized(alignment.merged.defaultingToOrigin()) { _ in Vector3D(x, y, z) }
+        }
     }
 
     /// Resizes the geometry in the X direction with optional behaviors in the other directions.
     /// - Parameters:
-    ///   - x: The target size in the X direction.
+    ///   - x: The target size in the X direction. A value of zero or less results in empty geometry.
     ///   - y: The resize behavior for the Y direction.
     ///   - z: The resize behavior for the Z direction.
     ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
@@ -40,25 +49,28 @@ public extension Geometry3D {
     ///     its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
     ///
+    @GeometryBuilder3D
     func resized(
         x: Double,
         y: ResizeBehavior = .fixed,
         z: ResizeBehavior = .fixed,
         alignment: GeometryAlignment3D...
     ) -> any Geometry3D {
-        resized(alignment.merged.defaultingToOrigin()) { current in
-            Vector3D(
-                x,
-                y.value(current: current.y, from: current.x, to: x),
-                z.value(current: current.z, from: current.x, to: x)
-            )
+        if resizeTargetsAreValid(("x", x)) {
+            resized(alignment.merged.defaultingToOrigin()) { current in
+                Vector3D(
+                    x,
+                    y.value(current: current.y, from: current.x, to: x),
+                    z.value(current: current.z, from: current.x, to: x)
+                )
+            }
         }
     }
 
     /// Resizes the geometry in the Y direction with optional behaviors in the other directions.
     /// - Parameters:
     ///   - x: The resize behavior for the X direction.
-    ///   - y: The target size in the Y direction.
+    ///   - y: The target size in the Y direction. A value of zero or less results in empty geometry.
     ///   - z: The resize behavior for the Z direction.
     ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
     ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
@@ -66,18 +78,21 @@ public extension Geometry3D {
     ///     its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
     ///
+    @GeometryBuilder3D
     func resized(
         x: ResizeBehavior = .fixed,
         y: Double,
         z: ResizeBehavior = .fixed,
         alignment: GeometryAlignment3D...
     ) -> any Geometry3D {
-        resized(alignment.merged.defaultingToOrigin()) { current in
-            Vector3D(
-                x.value(current: current.x, from: current.y, to: y),
-                y,
-                z.value(current: current.z, from: current.y, to: y)
-            )
+        if resizeTargetsAreValid(("y", y)) {
+            resized(alignment.merged.defaultingToOrigin()) { current in
+                Vector3D(
+                    x.value(current: current.x, from: current.y, to: y),
+                    y,
+                    z.value(current: current.z, from: current.y, to: y)
+                )
+            }
         }
     }
 
@@ -85,25 +100,28 @@ public extension Geometry3D {
     /// - Parameters:
     ///   - x: The resize behavior for the X direction.
     ///   - y: The resize behavior for the Y direction.
-    ///   - z: The target size in the Z direction.
+    ///   - z: The target size in the Z direction. A value of zero or less results in empty geometry.
     ///   - alignment: Determines the reference point for the geometry's position during resizing. Aligning affects how
     ///     the geometry is repositioned to maintain its alignment relative to its bounding box after resizing. For
     ///     example, aligning to `.center` maintains the geometry's center, while `.top` aligns with the top edge of
     ///     its original position. By default, a geometry is resized relative to its origin.
     /// - Returns: A new geometry resized and aligned according to the specified behaviors and alignment.
     ///
+    @GeometryBuilder3D
     func resized(
         x: ResizeBehavior = .fixed,
         y: ResizeBehavior = .fixed,
         z: Double,
         alignment: GeometryAlignment3D...
     ) -> any Geometry3D {
-        resized(alignment.merged.defaultingToOrigin()) { current in
-            Vector3D(
-                x.value(current: current.x, from: current.z, to: z),
-                y.value(current: current.y, from: current.z, to: z),
-                z
-            )
+        if resizeTargetsAreValid(("z", z)) {
+            resized(alignment.merged.defaultingToOrigin()) { current in
+                Vector3D(
+                    x.value(current: current.x, from: current.z, to: z),
+                    y.value(current: current.y, from: current.z, to: z),
+                    z
+                )
+            }
         }
     }
 

@@ -102,7 +102,7 @@ Sphere(diameter: 44)
 
 ![A plain sphere beside the same sphere drawn up into a teardrop after being attracted toward a point above it](bending-and-deforming-attracted)
 
-`influenceRadius` is the distance beyond which points are left alone, `maxMovement` caps how far any point may travel, and `falloff` is a ``ShapingFunction`` mapping relative distance to strength. It defaults to `.smoothstep`, which is what gives the taper above its soft shoulder; pass `nil` for full strength everywhere inside the radius. `.pulled(toward:distance:)` is exactly this call with an unlimited radius and no falloff.
+`influenceRadius` is the distance beyond which points are left alone, `maxMovement` caps how far any point may travel, and `falloff` is a ``ShapingFunction`` mapping relative proximity to strength — it is evaluated at 1 at the target and at 0 on the influence radius. It defaults to `.smoothstep`, which is what gives the taper above its soft shoulder: full strength near the target, fading smoothly to nothing where the influence ends. Pass `nil` for full strength everywhere inside the radius, which leaves a step at its boundary. `.pulled(toward:distance:)` is exactly this call with an unlimited radius and no falloff.
 
 ## Skewing by the corners
 

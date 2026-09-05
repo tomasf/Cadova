@@ -10,8 +10,11 @@ public extension Geometry {
     ///   - target: The point to attract toward.
     ///   - influenceRadius: The distance within which points are affected. Points beyond this radius are unaffected.
     ///   - maxMovement: The maximum distance any point may be moved, even if the falloff would suggest more.
-    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`,
-    ///     full strength is used within the influence radius.
+    ///   - falloff: A shaping function defining the strength of the attraction. It is evaluated on
+    ///     proximity to the target: 1 at the target itself and 0 at the influence radius. Defaults to
+    ///     `.smoothstep`, which pulls hardest close to the target and fades smoothly to nothing at the
+    ///     edge of the influence. If `nil`, full strength is used everywhere within the influence
+    ///     radius, which leaves a step at its boundary.
     /// - Returns: A new geometry attracted toward the target.
     ///
     func attracted(
@@ -37,8 +40,11 @@ public extension Geometry {
     ///   - line: The line to attract toward.
     ///   - influenceRadius: The distance within which points are affected. Points beyond this radius are unaffected.
     ///   - maxMovement: The maximum distance any point may be moved, even if the falloff would suggest more.
-    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`,
-    ///     full strength is used within the influence radius.
+    ///   - falloff: A shaping function defining the strength of the attraction. It is evaluated on
+    ///     proximity to the target: 1 at the target itself and 0 at the influence radius. Defaults to
+    ///     `.smoothstep`, which pulls hardest close to the target and fades smoothly to nothing at the
+    ///     edge of the influence. If `nil`, full strength is used everywhere within the influence
+    ///     radius, which leaves a step at its boundary.
     /// - Returns: A new geometry attracted toward the line.
     ///
     func attracted(
@@ -61,8 +67,11 @@ public extension Geometry3D {
     ///   - plane: The plane to attract toward.
     ///   - influenceRadius: The distance within which points are affected. Points beyond this radius are unaffected.
     ///   - maxMovement: The maximum distance any point may be moved, even if the falloff would suggest more.
-    ///   - falloff: A shaping function defining the strength based on distance. Defaults to `.smoothstep`. If `nil`,
-    ///     full strength is used within the influence radius.
+    ///   - falloff: A shaping function defining the strength of the attraction. It is evaluated on
+    ///     proximity to the target: 1 at the target itself and 0 at the influence radius. Defaults to
+    ///     `.smoothstep`, which pulls hardest close to the target and fades smoothly to nothing at the
+    ///     edge of the influence. If `nil`, full strength is used everywhere within the influence
+    ///     radius, which leaves a step at its boundary.
     /// - Returns: A new geometry attracted toward the plane.
     ///
     func attracted(
@@ -85,6 +94,7 @@ internal extension Geometry {
         falloff: ShapingFunction?
     ) -> D.Geometry {
         let function = falloff?.function
+
         return warped(
             operationName: "Cadova.AttractTowardTarget",
             cacheParameters: target, influenceRadius, maxMovement, falloff
@@ -95,9 +105,13 @@ internal extension Geometry {
             guard length > 1e-6 else { return point }
             guard length <= influenceRadius else { return point }
 
-            let normalized = min(length / influenceRadius, 1.0)
+            // The falloff is evaluated on proximity, not distance: 1 at the target and 0 at the
+            // influence radius. That way a rising function such as `.smoothstep` pulls hardest close
+            // to the target and fades to nothing exactly where the influence ends, leaving the
+            // deformation continuous across that boundary.
+            let proximity = 1 - length / influenceRadius
             let amount = min(length, maxMovement)
-            return point + offset.normalized * (function?(normalized) ?? 1.0) * amount
+            return point + offset.normalized * (function?(proximity) ?? 1.0) * amount
         }
     }
 }

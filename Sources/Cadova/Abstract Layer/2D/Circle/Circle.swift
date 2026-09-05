@@ -62,12 +62,29 @@ extension Circle: Geometry2D {
 }
 
 public extension Circle {
+    /// Creates an ellipse filling the given size.
+    ///
+    /// - Parameter size: The width and height of the ellipse. A size with any dimension of zero or less
+    ///   results in empty geometry.
+    @GeometryBuilder2D
     static func ellipse(size: Vector2D) -> any Geometry2D {
-        let radius = max(size.x, size.y) / 2
-        return Circle(radius: radius)
-            .scaled(size / radius / 2)
+        // The circle this is scaled from has the largest dimension as its diameter, so that dimension is
+        // what there is to scale. Every dimension has to be positive, though: a negative one survives the
+        // scale as a mirror, which is a full-size wrong answer where the caller asked for nothing.
+        let diameter = max(size.x, size.y)
+        if min(size.x, size.y) > 0 {
+            Circle(diameter: diameter)
+                .scaled(size / diameter)
+        }
     }
 
+    /// Creates an ellipse filling the given width and height.
+    ///
+    /// - Parameters:
+    ///   - x: The width of the ellipse.
+    ///   - y: The height of the ellipse.
+    ///
+    /// A size with any dimension of zero or less results in empty geometry.
     static func ellipse(x: Double, y: Double) -> any Geometry2D {
         ellipse(size: .init(x, y))
     }
