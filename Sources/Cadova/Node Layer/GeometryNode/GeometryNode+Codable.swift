@@ -101,80 +101,121 @@ extension GeometryNode: Codable {
         }
     }
 
+    /// Decoding routes every case through the same normalizing factory that ordinary construction
+    /// uses, rather than the raw memberwise initializer. Without that, a decoded tree could hold
+    /// shapes the factories would never produce — nested unions, retained `.empty` children,
+    /// unfolded transform chains — and would compare unequal to the same model built normally.
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let kind = try container.decode(Kind.self, forKey: .kind)
 
         switch kind {
         case .empty:
-            self.init(.empty)
+            self = .empty
+
         case .boolean:
+            // No re-sort here. The encoded order already is the canonical one, because the
+            // factory sorted the children by a digest that means the same thing in every process.
             let type = try container.decode(BooleanOperationType.self, forKey: .type)
-            var children = try container.decode([D.Node].self, forKey: .children)
+            let children = try container.decode([D.Node].self, forKey: .children)
+            self = .boolean(children, type: type)
 
-            if type == .union {
-                children.sort { $0.hash < $1.hash }
-            }
-
-            self.init(.boolean(children, type: type))
         case .transform:
-            let node = try container.decode(D.Node.self, forKey: .body)
-            let transform = try container.decode(D.Transform.self, forKey: .transform)
-            self.init(.transform(node, transform: transform))
+            self = .transform(
+                try container.decode(D.Node.self, forKey: .body),
+                transform: try container.decode(D.Transform.self, forKey: .transform)
+            )
+
         case .convexHull:
-            let node = try container.decode(D.Node.self, forKey: .body)
-            self.init(.convexHull(node))
+            self = .convexHull(try container.decode(D.Node.self, forKey: .body))
+
         case .refine:
-            let node = try container.decode(D.Node.self, forKey: .body)
-            let edgeLength = try container.decode(Double.self, forKey: .edgeLength)
-            self.init(.refine(node, edgeLength: edgeLength))
+            self = .refine(
+                try container.decode(D.Node.self, forKey: .body),
+                maxEdgeLength: try container.decode(Double.self, forKey: .edgeLength)
+            )
+
         case .simplify:
-            let node = try container.decode(D.Node.self, forKey: .body)
-            let tolerance = try container.decode(Double.self, forKey: .tolerance)
-            self.init(.simplify(node, tolerance: tolerance))
+            self = .simplify(
+                try container.decode(D.Node.self, forKey: .body),
+                tolerance: try container.decode(Double.self, forKey: .tolerance)
+            )
+
         case .select:
-            let node = try container.decode(D.Node.self, forKey: .body)
-            let index = try container.decode(Int.self, forKey: .index)
-            self.init(.select(node, index: index))
+            self = .select(
+                try container.decode(D.Node.self, forKey: .body),
+                index: try container.decode(Int.self, forKey: .index)
+            )
+
         case .decompose:
-            let node = try container.decode(D.Node.self, forKey: .body)
-            self.init(.decompose(node))
+            self = .decompose(try container.decode(D.Node.self, forKey: .body))
+
         case .materialized:
-            let cacheKey = try container.decode(AnyCacheKey.self, forKey: .cacheKey)
-            self.init(.materialized(cacheKey: cacheKey))
+            self = .materialized(cacheKey: try container.decode(AnyCacheKey.self, forKey: .cacheKey))
+
         case .shape2D:
-            self.init(.shape2D(try container.decode(PrimitiveShape2D.self, forKey: .primitive)))
+            self = try Self.matchingDimensionality(GeometryNode<D2>.shape(
+                try container.decode(GeometryNode<D2>.PrimitiveShape2D.self, forKey: .primitive)
+            ), kind: kind)
+
         case .offset:
-            self.init(.offset(
+            self = try Self.matchingDimensionality(GeometryNode<D2>.offset(
                 try container.decode(D2.Node.self, forKey: .body),
                 amount: try container.decode(Double.self, forKey: .amount),
                 joinStyle: try container.decode(LineJoinStyle.self, forKey: .joinStyle),
                 miterLimit: try container.decode(Double.self, forKey: .miterLimit),
                 segmentCount: try container.decode(Int.self, forKey: .segmentCount)
-            ))
+            ), kind: kind)
+
         case .projection:
-            let node = try container.decode(D3.Node.self, forKey: .body)
-            let type = try container.decode(Projection.self, forKey: .type)
-            self.init(.projection(node, type: type))
+            self = try Self.matchingDimensionality(GeometryNode<D2>.projection(
+                try container.decode(D3.Node.self, forKey: .body),
+                type: try container.decode(GeometryNode<D2>.Projection.self, forKey: .type)
+            ), kind: kind)
+
         case .shape3D:
-            self.init(.shape3D(try container.decode(PrimitiveShape3D.self, forKey: .primitive)))
+            self = try Self.matchingDimensionality(GeometryNode<D3>.shape(
+                try container.decode(GeometryNode<D3>.PrimitiveShape3D.self, forKey: .primitive)
+            ), kind: kind)
+
         case .applyMaterial:
-            let node = try container.decode(D3.Node.self, forKey: .body)
-            let material = try container.decode(Material?.self, forKey: .material)
-            self.init(.applyMaterial(node, material))
+            self = try Self.matchingDimensionality(GeometryNode<D3>.applyMaterial(
+                try container.decode(D3.Node.self, forKey: .body),
+                material: try container.decode(Material?.self, forKey: .material)
+            ), kind: kind)
+
         case .extrusion:
-            let node = try container.decode(D2.Node.self, forKey: .crossSection)
-            let type = try container.decode(Extrusion.self, forKey: .type)
-            self.init(.extrusion(node, type: type))
+            self = try Self.matchingDimensionality(GeometryNode<D3>.extrusion(
+                try container.decode(D2.Node.self, forKey: .crossSection),
+                type: try container.decode(GeometryNode<D3>.Extrusion.self, forKey: .type)
+            ), kind: kind)
+
         case .trim:
-            let node = try container.decode(D3.Node.self, forKey: .body)
-            let plane = try container.decode(Plane.self, forKey: .plane)
-            self.init(.trim(node, plane))
+            self = try Self.matchingDimensionality(GeometryNode<D3>.trim(
+                try container.decode(D3.Node.self, forKey: .body),
+                plane: try container.decode(Plane.self, forKey: .plane)
+            ), kind: kind)
+
         case .smoothOut:
-            let node = try container.decode(D3.Node.self, forKey: .body)
-            let minSharpAngle = try container.decode(Double.self, forKey: .minSharpAngle)
-            let minSmoothness = try container.decode(Double.self, forKey: .minSmoothness)
-            self.init(.smoothOut(node, minSharpAngle: minSharpAngle, minSmoothness: minSmoothness))
+            self = try Self.matchingDimensionality(GeometryNode<D3>.smoothOut(
+                try container.decode(D3.Node.self, forKey: .body),
+                minSharpAngle: try container.decode(Double.self, forKey: .minSharpAngle),
+                minSmoothness: try container.decode(Double.self, forKey: .minSmoothness)
+            ), kind: kind)
         }
+    }
+
+    /// Several node kinds only exist in one dimensionality. Encountering one while decoding the
+    /// other means the payload is corrupt, which is a decoding error rather than a crash.
+    private static func matchingDimensionality<Other: Dimensionality>(
+        _ node: GeometryNode<Other>, kind: Kind
+    ) throws -> Self {
+        guard let node = node as? Self else {
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: [],
+                debugDescription: "Node of kind '\(kind.rawValue)' can't appear in \(D.self) geometry"
+            ))
+        }
+        return node
     }
 }
