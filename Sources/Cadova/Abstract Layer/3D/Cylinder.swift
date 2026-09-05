@@ -60,9 +60,11 @@ public extension Cylinder {
     /// Returns the circular cross-section at a specific height `z` along the cylinder.
     ///
     /// - Parameter z: The height along the cylinder's axis, where 0 is the bottom and `height` is the top.
-    /// - Returns: A `Circle` representing the cross-section at that height.
-    func crossSection(at z: Double) -> Circle {
-        Circle(radius: bottomRadius + (topRadius - bottomRadius) * z / height)
+    /// - Returns: A `Circle` representing the cross-section at that height, or `nil` if the cylinder has no
+    ///   positive height. Such a cylinder is empty geometry, so it has no cross-section to take at any height.
+    func crossSection(at z: Double) -> Circle? {
+        guard height > .ulpOfOne else { return nil }
+        return Circle(radius: bottomRadius + (topRadius - bottomRadius) * z / height)
     }
 
     /// The slant height of the cylinder, which is the length of the side connecting the top and bottom edges.

@@ -59,30 +59,48 @@ internal struct FollowPath3D<Path: D3.Curve>: Geometry3D {
             geometry.measuringBounds { body, bounds in
                 let pathLength = path.approximateLength
 
-                body.refined(maxEdgeLength: bounds.size.z / Double(segmentation.segmentCount(length: pathLength)))
-                    .warped(
-                        operationName: "Cadova.FollowPath",
-                        cacheParameters: path, reference, target, segmentation, maxTwistRate
-                    ) {
-                        let frames = path.frames(
-                            environment: environment,
-                            target: target,
-                            targetReference: reference,
-                            perpendicularBounds: bounds.bounds2D
-                        )
-                        return (frames, frames.last!.distance / bounds.size.z)
-                    } transform: { (p: Vector3D, result: (frames: [ParametricCurveFrame], lengthFactor: Double)) in
-                        let distanceTarget = (p.z - bounds.minimum.z) * result.lengthFactor
-                        let (index, fraction) = result.frames.binarySearch(target: distanceTarget, key: \.distance)
+                // The geometry's Z extent is stretched to span the path, so it is what maps a point to
+                // a position along the curve. Without it there is nothing to stretch and no factor to
+                // stretch it by.
+                if bounds.size.z > .ulpOfOne {
+                    body.refined(maxEdgeLength: bounds.size.z / Double(segmentation.segmentCount(length: pathLength)))
+                        .warped(
+                            operationName: "Cadova.FollowPath",
+                            cacheParameters: path, reference, target, segmentation, maxTwistRate
+                        ) {
+                            let frames = path.frames(
+                                environment: environment,
+                                target: target,
+                                targetReference: reference,
+                                perpendicularBounds: bounds.bounds2D
+                            )
+                            guard let lastFrame = frames.last else {
+                                // Every sampled curve yields at least one frame, and the transform
+                                // closure below indexes into this array, so an empty one is a broken
+                                // invariant rather than a degenerate input to absorb. Say so here
+                                // rather than crashing on a subscript further down.
+                                preconditionFailure("A path produced no frames to follow")
+                            }
+                            return (frames, lastFrame.distance / bounds.size.z)
+                        } transform: { (p: Vector3D, result: (frames: [ParametricCurveFrame], lengthFactor: Double)) in
+                            let distanceTarget = (p.z - bounds.minimum.z) * result.lengthFactor
+                            let (index, fraction) = result.frames.binarySearch(target: distanceTarget, key: \.distance)
 
-                        let transform: Transform3D = if fraction > .ulpOfOne {
-                            .linearInterpolation(result.frames[index].transform, result.frames[index + 1].transform, factor: fraction)
-                        } else {
-                            result.frames[index].transform
+                            let transform: Transform3D = if fraction > .ulpOfOne {
+                                .linearInterpolation(result.frames[index].transform, result.frames[index + 1].transform, factor: fraction)
+                            } else {
+                                result.frames[index].transform
+                            }
+                            return transform.apply(to: Vector3D(p.x, p.y, 0))
                         }
-                        return transform.apply(to: Vector3D(p.x, p.y, 0))
-                    }
-                    .simplified()
+                        .simplified()
+                } else {
+                    let _ = logger.warning("""
+                        Cannot make geometry measuring \(bounds.size) follow a path; it has no extent in Z to \
+                        stretch along the path. Leaving it unchanged.
+                        """)
+                    body
+                }
             }
         }
     }
