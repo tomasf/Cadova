@@ -1,4 +1,5 @@
 import Foundation
+import Testing
 @testable import Cadova
 
 infix operator ≈: ComparisonPrecedence
@@ -168,6 +169,82 @@ private func transformsEqual<T>(_ lhs: T, _ rhs: T, within tolerance: Double) ->
     return false
 }
 
+// A materialized node is a placeholder for a subtree the build computed ahead of time, and its cache
+// key is the entire payload: the operation name plus every parameter that went into it. Ignoring the
+// key leaves edge profiles, edge shaping, wrap, loft meshes and polygon literals uncompared. The key's
+// own `==` is exact, though, which is brittle for the doubles it carries, so fall back to walking the
+// encoded form and comparing numbers with the same tolerance as everything else here.
+extension AnyCacheKey: ApproximatelyEquatable {
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        if self == other { return true }
+        guard let mine = JSONValue(encoding: self), let theirs = JSONValue(encoding: other) else {
+            // Returning false alone would tell the reader the geometry changed, when what actually
+            // happened is that the comparison never ran. Say which it was.
+            Issue.record("A cache key could not be encoded for comparison, so it went unchecked.")
+            return false
+        }
+        return mine.equals(theirs, within: tolerance)
+    }
+}
+
+/// A structural view of an encoded value, letting two `Codable` values be compared field by field with
+/// a numeric tolerance instead of byte for byte.
+enum JSONValue: Decodable {
+    case null
+    case bool (Bool)
+    case number (Double)
+    case string (String)
+    case array ([JSONValue])
+    case object ([String: JSONValue])
+
+    init?(encoding value: some Encodable) {
+        guard let data = try? JSONEncoder().encode(value),
+              let decoded = try? JSONDecoder().decode(Self.self, from: data)
+        else { return nil }
+        self = decoded
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if container.decodeNil() {
+            self = .null
+        } else if let value = try? container.decode(Bool.self) {
+            self = .bool(value)
+        } else if let value = try? container.decode(Double.self) {
+            self = .number(value)
+        } else if let value = try? container.decode(String.self) {
+            self = .string(value)
+        } else if let value = try? container.decode([JSONValue].self) {
+            self = .array(value)
+        } else {
+            self = .object(try container.decode([String: JSONValue].self))
+        }
+    }
+}
+
+extension JSONValue: ApproximatelyEquatable {
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        switch (self, other) {
+        case (.null, .null):
+            true
+        case let (.bool(a), .bool(b)):
+            a == b
+        case let (.number(a), .number(b)):
+            a.equals(b, within: tolerance)
+        case let (.string(a), .string(b)):
+            a == b
+        case let (.array(a), .array(b)):
+            a.equals(b, within: tolerance)
+        case let (.object(a), .object(b)):
+            // `Dictionary.equals` compares counts and then looks every key up, so an unequal key set
+            // already fails there.
+            a.equals(b, within: tolerance)
+        case (.null, _), (.bool, _), (.number, _), (.string, _), (.array, _), (.object, _):
+            false
+        }
+    }
+}
+
 extension GeometryNode.Projection: ApproximatelyEquatable {
     func equals(_ other: Self, within tolerance: Double) -> Bool {
         switch (self, other) {
@@ -264,8 +341,8 @@ extension GeometryNode.Contents: ApproximatelyEquatable {
             return bodyA.equals(bodyB, within: tolerance) && indexA == indexB
         case let (.decompose(bodyA), .decompose(bodyB)):
             return bodyA.equals(bodyB, within: tolerance)
-        case (.materialized, .materialized):
-            return true
+        case let (.materialized(keyA), .materialized(keyB)):
+            return keyA.equals(keyB, within: tolerance)
         case let (.shape2D(shapeA), .shape2D(shapeB)):
             return shapeA.equals(shapeB, within: tolerance)
         case let (.offset(bodyA, amountA, joinStyleA, miterLimitA, segmentCountA), .offset(bodyB, amountB, joinStyleB, miterLimitB, segmentCountB)):

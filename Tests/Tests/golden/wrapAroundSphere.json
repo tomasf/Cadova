@@ -1,4 +1,31 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "boundingBox" : {
+        "maximum" : [
+          18.99892230271408,
+          19.5,
+          18.990584310487503
+        ],
+        "minimum" : [
+          -19.5,
+          -19.5,
+          -18.99059842113153
+        ]
+      },
+      "centroid" : [
+        -0.08833275620123045,
+        0.006882117770760309,
+        0.00011654152369548983
+      ],
+      "isEmpty" : false,
+      "volume" : 11411.6585486744
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",
@@ -70,7 +97,121 @@
                             "children" : [
                               {
                                 "body" : {
+                                  "kind" : "shape3D",
+                                  "primitive" : {
+                                    "sphere" : {
+                                      "radius" : 1.5,
+                                      "segmentCount" : 62
+                                    }
+                                  }
+                                },
+                                "kind" : "transform",
+                                "transform" : [
+                                  [
+                                    1,
+                                    0,
+                                    0,
+                                    10
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    1,
+                                    3
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    0,
+                                    1
+                                  ]
+                                ]
+                              },
+                              {
+                                "body" : {
                                   "children" : [
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          10
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          15
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
                                     {
                                       "body" : {
                                         "kind" : "shape3D",
@@ -125,7 +266,7 @@
                                           1,
                                           0,
                                           0,
-                                          15
+                                          30
                                         ],
                                         [
                                           0,
@@ -239,6 +380,231 @@
                                           1,
                                           0,
                                           0,
+                                          20
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    }
+                                  ],
+                                  "kind" : "boolean",
+                                  "type" : "union"
+                                },
+                                "kind" : "transform",
+                                "transform" : [
+                                  [
+                                    1,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0,
+                                    5
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    1,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    0,
+                                    1
+                                  ]
+                                ]
+                              },
+                              {
+                                "body" : {
+                                  "kind" : "shape3D",
+                                  "primitive" : {
+                                    "sphere" : {
+                                      "radius" : 1.5,
+                                      "segmentCount" : 62
+                                    }
+                                  }
+                                },
+                                "kind" : "transform",
+                                "transform" : [
+                                  [
+                                    1,
+                                    0,
+                                    0,
+                                    15
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    1,
+                                    3
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    0,
+                                    1
+                                  ]
+                                ]
+                              },
+                              {
+                                "body" : {
+                                  "children" : [
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          10
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          15
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          25
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
                                           30
                                         ],
                                         [
@@ -277,7 +643,346 @@
                                           1,
                                           0,
                                           0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          5
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          20
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    }
+                                  ],
+                                  "kind" : "boolean",
+                                  "type" : "union"
+                                },
+                                "kind" : "transform",
+                                "transform" : [
+                                  [
+                                    1,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0,
+                                    10
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    1,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    0,
+                                    1
+                                  ]
+                                ]
+                              },
+                              {
+                                "body" : {
+                                  "children" : [
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
                                           10
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          15
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          25
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          30
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          5
                                         ],
                                         [
                                           0,
@@ -371,7 +1076,159 @@
                               },
                               {
                                 "body" : {
+                                  "kind" : "shape3D",
+                                  "primitive" : {
+                                    "sphere" : {
+                                      "radius" : 1.5,
+                                      "segmentCount" : 62
+                                    }
+                                  }
+                                },
+                                "kind" : "transform",
+                                "transform" : [
+                                  [
+                                    1,
+                                    0,
+                                    0,
+                                    25
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    1,
+                                    3
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    0,
+                                    1
+                                  ]
+                                ]
+                              },
+                              {
+                                "body" : {
+                                  "kind" : "shape3D",
+                                  "primitive" : {
+                                    "sphere" : {
+                                      "radius" : 1.5,
+                                      "segmentCount" : 62
+                                    }
+                                  }
+                                },
+                                "kind" : "transform",
+                                "transform" : [
+                                  [
+                                    1,
+                                    0,
+                                    0,
+                                    30
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    1,
+                                    3
+                                  ],
+                                  [
+                                    0,
+                                    0,
+                                    0,
+                                    1
+                                  ]
+                                ]
+                              },
+                              {
+                                "body" : {
                                   "children" : [
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          10
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
+                                    {
+                                      "body" : {
+                                        "kind" : "shape3D",
+                                        "primitive" : {
+                                          "sphere" : {
+                                            "radius" : 1.5,
+                                            "segmentCount" : 62
+                                          }
+                                        }
+                                      },
+                                      "kind" : "transform",
+                                      "transform" : [
+                                        [
+                                          1,
+                                          0,
+                                          0,
+                                          15
+                                        ],
+                                        [
+                                          0,
+                                          1,
+                                          0,
+                                          0
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          1,
+                                          3
+                                        ],
+                                        [
+                                          0,
+                                          0,
+                                          0,
+                                          1
+                                        ]
+                                      ]
+                                    },
                                     {
                                       "body" : {
                                         "kind" : "shape3D",
@@ -426,7 +1283,7 @@
                                           1,
                                           0,
                                           0,
-                                          15
+                                          30
                                         ],
                                         [
                                           0,
@@ -503,82 +1360,6 @@
                                           0,
                                           0,
                                           5
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          30
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          10
                                         ],
                                         [
                                           0,
@@ -672,383 +1453,6 @@
                               },
                               {
                                 "body" : {
-                                  "children" : [
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          25
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          15
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          5
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          30
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          10
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          20
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    }
-                                  ],
-                                  "kind" : "boolean",
-                                  "type" : "union"
-                                },
-                                "kind" : "transform",
-                                "transform" : [
-                                  [
-                                    1,
-                                    0,
-                                    0,
-                                    0
-                                  ],
-                                  [
-                                    0,
-                                    1,
-                                    0,
-                                    10
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    1,
-                                    0
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    0,
-                                    1
-                                  ]
-                                ]
-                              },
-                              {
-                                "body" : {
-                                  "kind" : "shape3D",
-                                  "primitive" : {
-                                    "sphere" : {
-                                      "radius" : 1.5,
-                                      "segmentCount" : 62
-                                    }
-                                  }
-                                },
-                                "kind" : "transform",
-                                "transform" : [
-                                  [
-                                    1,
-                                    0,
-                                    0,
-                                    25
-                                  ],
-                                  [
-                                    0,
-                                    1,
-                                    0,
-                                    0
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    1,
-                                    3
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    0,
-                                    1
-                                  ]
-                                ]
-                              },
-                              {
-                                "body" : {
-                                  "kind" : "shape3D",
-                                  "primitive" : {
-                                    "sphere" : {
-                                      "radius" : 1.5,
-                                      "segmentCount" : 62
-                                    }
-                                  }
-                                },
-                                "kind" : "transform",
-                                "transform" : [
-                                  [
-                                    1,
-                                    0,
-                                    0,
-                                    15
-                                  ],
-                                  [
-                                    0,
-                                    1,
-                                    0,
-                                    0
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    1,
-                                    3
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    0,
-                                    1
-                                  ]
-                                ]
-                              },
-                              {
-                                "body" : {
                                   "kind" : "shape3D",
                                   "primitive" : {
                                     "sphere" : {
@@ -1076,307 +1480,6 @@
                                     0,
                                     1,
                                     3
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    0,
-                                    1
-                                  ]
-                                ]
-                              },
-                              {
-                                "body" : {
-                                  "children" : [
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          25
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          15
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          5
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          30
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          10
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    },
-                                    {
-                                      "body" : {
-                                        "kind" : "shape3D",
-                                        "primitive" : {
-                                          "sphere" : {
-                                            "radius" : 1.5,
-                                            "segmentCount" : 62
-                                          }
-                                        }
-                                      },
-                                      "kind" : "transform",
-                                      "transform" : [
-                                        [
-                                          1,
-                                          0,
-                                          0,
-                                          20
-                                        ],
-                                        [
-                                          0,
-                                          1,
-                                          0,
-                                          0
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          1,
-                                          3
-                                        ],
-                                        [
-                                          0,
-                                          0,
-                                          0,
-                                          1
-                                        ]
-                                      ]
-                                    }
-                                  ],
-                                  "kind" : "boolean",
-                                  "type" : "union"
-                                },
-                                "kind" : "transform",
-                                "transform" : [
-                                  [
-                                    1,
-                                    0,
-                                    0,
-                                    0
-                                  ],
-                                  [
-                                    0,
-                                    1,
-                                    0,
-                                    5
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    1,
-                                    0
                                   ],
                                   [
                                     0,
@@ -1403,82 +1506,6 @@
                                     0,
                                     0,
                                     5
-                                  ],
-                                  [
-                                    0,
-                                    1,
-                                    0,
-                                    0
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    1,
-                                    3
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    0,
-                                    1
-                                  ]
-                                ]
-                              },
-                              {
-                                "body" : {
-                                  "kind" : "shape3D",
-                                  "primitive" : {
-                                    "sphere" : {
-                                      "radius" : 1.5,
-                                      "segmentCount" : 62
-                                    }
-                                  }
-                                },
-                                "kind" : "transform",
-                                "transform" : [
-                                  [
-                                    1,
-                                    0,
-                                    0,
-                                    30
-                                  ],
-                                  [
-                                    0,
-                                    1,
-                                    0,
-                                    0
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    1,
-                                    3
-                                  ],
-                                  [
-                                    0,
-                                    0,
-                                    0,
-                                    1
-                                  ]
-                                ]
-                              },
-                              {
-                                "body" : {
-                                  "kind" : "shape3D",
-                                  "primitive" : {
-                                    "sphere" : {
-                                      "radius" : 1.5,
-                                      "segmentCount" : 62
-                                    }
-                                  }
-                                },
-                                "kind" : "transform",
-                                "transform" : [
-                                  [
-                                    1,
-                                    0,
-                                    0,
-                                    10
                                   ],
                                   [
                                     0,
