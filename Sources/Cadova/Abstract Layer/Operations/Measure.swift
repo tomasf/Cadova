@@ -4,7 +4,11 @@ import Foundation
 fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
     let target: [Input.Geometry]
     let scope: MeasurementScope
-    let builder: @Sendable ([Measurements<Input>]) -> D.Geometry
+    // The builder receives stand-ins for the targets rather than the targets themselves, so that
+    // building whatever it returns replays the build performed here instead of walking the same
+    // subtree a second time. A stand-in that's handed a different environment — because the builder
+    // wrapped it in an environment modifier — still rebuilds its target for real.
+    let builder: @Sendable ([Input.Geometry], [Measurements<Input>]) -> D.Geometry
 
     @_specialize(exported: false, where Input == D2, D == D2)
     @_specialize(exported: false, where Input == D2, D == D3)
@@ -15,7 +19,10 @@ fileprivate struct Measure<Input: Dimensionality, D: Dimensionality>: Geometry {
         let measurements = try await buildResults.asyncMap {
             try await Measurements(buildResult: $0, scope: scope, context: context)
         }
-        let generatedGeometry = builder(measurements)
+        let standIns = zip(target, buildResults).map { source, result in
+            result.standingIn(for: source, in: environment, context: context)
+        }
+        let generatedGeometry = builder(standIns, measurements)
         return try await context.buildResult(for: generatedGeometry, in: environment)
     }
 }
@@ -44,8 +51,8 @@ public extension Geometry {
         _ scope: MeasurementScope = .solidParts,
         @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.Measurements) -> Output.Geometry
     ) -> Output.Geometry {
-        Measure(target: [self], scope: scope) {
-            builder(self, $0[0])
+        Measure(target: [self], scope: scope) { targets, measurements in
+            builder(targets[0], measurements[0])
         }
     }
 
@@ -127,7 +134,7 @@ public func measureBounds<Input: Dimensionality, D: Dimensionality>(
     scope: MeasurementScope = .solidParts,
     reader: @Sendable @escaping ([BoundingBox<Input>?]) -> D.Geometry
 ) -> D.Geometry {
-    Measure(target: targets, scope: scope) { measurements in
+    Measure(target: targets, scope: scope) { _, measurements in
         reader(measurements.map(\.boundingBox))
     }
 }

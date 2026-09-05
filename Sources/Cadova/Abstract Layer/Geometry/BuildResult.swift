@@ -131,3 +131,45 @@ extension _BuildResult: Geometry {
         self
     }
 }
+
+/// A geometry that stands in for another one whose build has already been performed.
+///
+/// Reader operations — `measuring`, `separated`, `readingConcrete`, `evaluating` — have to build
+/// their target before they can hand anything to their closure. Handing the *source* geometry back
+/// to that closure makes the closure's result build the same subtree all over again, so nesting `k`
+/// readers walks the base `2^k` times. Handing back the finished `BuildResult` avoids the rebuild,
+/// but freezes the build: `BuildResult` builds to itself, so an environment modifier applied inside
+/// the closure would silently do nothing.
+///
+/// This type does both. It replays the finished build when it is asked to build under the very same
+/// environment and evaluation context that produced it, and falls back to a real build of `source`
+/// under anything else — which is exactly the case where a builder closure legitimately wraps the
+/// geometry it was handed in an environment modifier.
+///
+/// The environment half of the key is exact rather than approximate: ``EnvironmentValues/id`` is
+/// regenerated on every mutation, so an unchanged `id` means an unchanged environment. The context
+/// half matters because a `BuildResult` isn't portable between contexts — a `.materialized` node
+/// only resolves in the context whose cache the generator was declared on.
+internal struct PrebuiltGeometry<D: Dimensionality>: Geometry {
+    let source: D.Geometry
+    let environmentID: UUID
+    let contextToken: GeometryCache<D2>
+    let result: BuildResult<D>
+
+    func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
+        guard environment.id == environmentID, context.identityToken === contextToken else {
+            return try await context.buildResult(for: source, in: environment)
+        }
+        return result
+    }
+}
+
+internal extension BuildResult {
+    /// A geometry that replays this build when asked for it under `environment` in `context`, and
+    /// builds `source` from scratch under anything else.
+    func standingIn(for source: D.Geometry, in environment: EnvironmentValues, context: EvaluationContext) -> D.Geometry {
+        PrebuiltGeometry(
+            source: source, environmentID: environment.id, contextToken: context.identityToken, result: self
+        )
+    }
+}
