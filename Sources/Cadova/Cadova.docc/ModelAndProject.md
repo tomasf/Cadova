@@ -93,6 +93,14 @@ Control compression level for 3MF files. Higher compression reduces file size bu
 await Model("spade", options: .compression(.smallest)) { ... }
 ```
 
+## Publishing Model Files
+
+An existing output file is never damaged by a failed write. Each model is written to a temporary
+file next to its destination and moved into place only once it is complete, so an interrupted or
+failed export leaves the previous file exactly as it was rather than truncating it. The temporary
+file is created in the destination's own directory, so publishing needs that directory to be
+writable even when only replacing a file already in it.
+
 ## Programmatic API
 
 For GUI applications, servers, or other contexts where you need control over where and how files are saved, use ``ModelFileGenerator`` instead of ``Model``.
