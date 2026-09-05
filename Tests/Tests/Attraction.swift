@@ -9,6 +9,10 @@ import Testing
 ///   deformation is continuous across the boundary of the influence sphere. A falloff applied the
 ///   other way round yanks points just inside the boundary by the full movement while leaving points
 ///   just outside untouched, which tears the mesh exactly on that sphere.
+/// * The surface has to be refined before the warp, the way every other non-linear deformation in
+///   the library does it. A warp only relocates vertices that already exist, so an unrefined box
+///   only ever moves its eight corners — and moves nothing at all when the influence radius excludes
+///   them.
 struct AttractionTests {
     /// The distance a tiny marker cube moves toward the origin when it starts out `distance` away
     /// from it. The marker is small enough that the falloff is effectively constant across it, so
@@ -110,5 +114,44 @@ struct AttractionTests {
         let farCorner = 10 * (1 - 2 / Vector3D(10, 10, 10).magnitude)
         #expect(bounds.minimum ≈ .zero)
         #expect(bounds.maximum ≈ Vector3D(farCorner, farCorner, farCorner))
+    }
+
+    // MARK: - Refinement
+
+    @Test func `pulling deforms the faces of a box and not only its corners`() async throws {
+        let measurements = try await Box(10)
+            .aligned(at: .center)
+            .pulled(toward: .zero, distance: 2)
+            .measurements
+        let boundingBox = try #require(measurements.boundingBox)
+        let boundingBoxVolume = boundingBox.size.reduce(1, *)
+
+        // Moving only the eight corners leaves a box, whose volume equals its bounding box's.
+        // A surface that actually follows the pull is drawn in between them, so it must enclose
+        // distinctly less.
+        #expect(measurements.volume < boundingBoxVolume * 0.8)
+    }
+
+    @Test func `pulling deforms the edges of a rectangle and not only its corners`() async throws {
+        let measurements = try await Rectangle(10)
+            .aligned(at: .center)
+            .pulled(toward: .zero, distance: 2)
+            .measurements
+        let boundingBox = try #require(measurements.boundingBox)
+        let boundingBoxArea = boundingBox.size.reduce(1, *)
+
+        #expect(measurements.area < boundingBoxArea * 0.9)
+    }
+
+    @Test func `attraction reaches faces even when the influence radius excludes the corners`() async throws {
+        // The corners of this box are 5·√3 ≈ 8.66 from the centre, well outside the influence
+        // radius; only the middles of the faces, 5 away, are inside it. Without refinement there is
+        // nothing inside the radius to move and the box comes out untouched.
+        let measurements = try await Box(10)
+            .aligned(at: .center)
+            .attracted(toward: .zero, influenceRadius: 6, maxMovement: 2, falloff: nil)
+            .measurements
+
+        #expect(measurements.volume < 990)
     }
 }
