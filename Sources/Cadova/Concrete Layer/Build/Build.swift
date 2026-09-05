@@ -24,8 +24,14 @@ extension [BuildDirective] {
     }
 }
 
-enum BuildError: Error {
+enum BuildError: Error, CustomStringConvertible {
     case noGeometry
+
+    var description: String {
+        switch self {
+        case .noGeometry: "The model contains no geometry"
+        }
+    }
 }
 
 fileprivate extension Geometry2D {
@@ -48,11 +54,15 @@ internal extension EnvironmentValues {
 }
 
 internal protocol ModelBuildable: Sendable {
+    /// Builds and writes everything this buildable contains.
+    ///
+    /// Never throws: one model failing must not cancel the rest of the build, so failures are
+    /// collected into the returned outcome and handed up to whoever started the build.
     func build(
         environment inheritedEnvironment: EnvironmentValues,
         context: EvaluationContext,
         options inheritedOptions: ModelOptions?,
         URL directory: URL?,
         filterPath: [String]
-    ) async -> [URL]
+    ) async -> BuildOutcome
 }

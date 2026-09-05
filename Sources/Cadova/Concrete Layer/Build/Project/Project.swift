@@ -31,6 +31,13 @@ import Foundation
 ///   - content: A result builder that asynchronously returns an array of directives. It can include `Model` instances
 ///     to be evaluated and saved, as well as `Environment` and `Metadata` directives that set project-wide defaults.
 ///
+/// - Returns: A ``BuildOutcome`` listing the files that were created and every model that failed.
+///
+/// One model failing doesn't stop the others: every model that can be built still is, and the
+/// failures are collected into the returned outcome. Once the build has finished, the process ends
+/// with a non-zero exit status if anything failed — see ``BuildFailureBehavior`` to inspect the
+/// outcome instead.
+///
 /// ### Example
 /// ```swift
 /// await Project(root: "pieces", options: .format3D(.stl)) {
@@ -62,18 +69,21 @@ import Foundation
 /// }
 /// ```
 ///
+@discardableResult
 public func Project(
     root url: URL?,
     options: ModelOptions...,
     @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
-) async {
+) async -> BuildOutcome {
     // Collect directives
     let directives = await ModelContext(isCollectingModels: true).whileCurrent {
         await content()
     }
 
-    if let url {
-        try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
+    if let url, let failure = FileManager().createOutputDirectory(at: url, modelName: nil) {
+        let outcome = BuildOutcome(failures: [failure])
+        outcome.terminateIfFailed()
+        return outcome
     }
 
     var combinedOptions = ModelOptions(options + directives.compactMap(\.options))
@@ -89,7 +99,7 @@ public func Project(
 
     // Build models and groups
     let groups = directives.compactMap(\.group)
-    guard models.isEmpty == false || groups.isEmpty == false else { return }
+    guard models.isEmpty == false || groups.isEmpty == false else { return BuildOutcome() }
     let context = EvaluationContext()
 
     let constantEnvironment = environment
@@ -98,18 +108,21 @@ public func Project(
     let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: []) }
     let buildables: [any ModelBuildable] = groups + filteredModels
     let finalOptions = combinedOptions
-    let urls = await buildables.asyncMap {
+    let outcome = BuildOutcome(combining: await buildables.asyncMap {
         await $0.build(environment: constantEnvironment, context: context, options: finalOptions, URL: url, filterPath: [])
-    }.joined()
+    })
 
-    try? Platform.revealFiles(Array(urls))
+    try? Platform.revealFiles(outcome.createdFiles)
+    outcome.terminateIfFailed()
+    return outcome
 }
 
+@discardableResult
 public func Project(
     root: String? = nil,
     options: ModelOptions...,
     @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
-) async {
+) async -> BuildOutcome {
     await Project(
         root: root.map { URL(expandingFilePath: $0) },
         options: .init(options),
@@ -140,17 +153,18 @@ public func Project(
 ///
 /// This will save models to `<package-root>/Models/`.
 ///
+@discardableResult
 public func Project(
     packageRelative root: String,
     sourceFile: String = #filePath,
     options: ModelOptions...,
     @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
-) async {
+) async -> BuildOutcome {
     let sourceURL = URL(filePath: sourceFile)
     let packageRoot = sourceURL.packageRootURL ?? sourceURL.deletingLastPathComponent()
     let outputURL = packageRoot.appending(path: root, directoryHint: .isDirectory)
 
-    await Project(
+    return await Project(
         root: outputURL,
         options: .init(options),
         content: content
