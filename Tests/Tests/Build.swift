@@ -216,19 +216,24 @@ struct BuildTests {
         #expect(files.contains("with-environment.3mf"))
     }
 
-    @Test func `Model with no geometry produces no file`() async throws {
+    @Test func `Model with no geometry produces no file and reports a failure`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        await Project(root: tempDir) {
-            await Model("empty-model") {
-                // No geometry
+        // Without `.report`, a build with a failure in it ends the process — which is the point of
+        // the default behavior, but not something a test process can survive.
+        let outcome = await BuildFailureBehavior.report.whileCurrent {
+            await Project(root: tempDir) {
+                await Model("empty-model") {
+                    // No geometry
+                }
             }
         }
 
         let files = try FileManager.default.contentsOfDirectory(atPath: tempDir.path)
         #expect(files.isEmpty)
+        #expect(outcome.failures.map(\.modelName) == ["empty-model"])
     }
 
     // MARK: - Group Tests

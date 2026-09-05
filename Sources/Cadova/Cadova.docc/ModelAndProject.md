@@ -93,6 +93,47 @@ Control compression level for 3MF files. Higher compression reduces file size bu
 await Model("spade", options: .compression(.smallest)) { ... }
 ```
 
+## When a Model Fails
+
+A model can fail to build — geometry that can't be evaluated, an import that isn't there, a builder
+that produces no geometry at all — or fail to be written, because the destination directory is
+read-only or the disk is full.
+
+Within a `Project`, one failure never stops the rest of the build. Every model that can be built
+still is, each failure is logged, and then the program ends once, with a **non-zero exit status**.
+That last part is what lets a shell, a Makefile or a CI job tell a failed build from a successful
+one:
+
+```sh
+swift run && open Models/knob.3mf
+```
+
+Two limits on that are worth knowing, because both follow from where the process ends. A standalone
+`Model` is its own top-level build, so it ends the program as soon as it fails: a script listing
+several bare models stops at the first one that fails, and wrapping them in a `Project` is what
+builds them all. And a `Group` whose directory cannot be created skips the models inside it, since
+there is nowhere left to write them.
+
+`Project` also returns a ``BuildOutcome`` describing what happened, which you can inspect instead of
+letting the failure end the process:
+
+```swift
+let outcome = await BuildFailureBehavior.report.whileCurrent {
+    await Project(packageRelative: "Models") {
+        await Model("knob") { Knob() }
+    }
+}
+
+for failure in outcome.failures {
+    print(failure)          // "Failed to write model "knob" to …: …"
+}
+```
+
+``BuildFailureBehavior/report`` is what you want if Cadova is embedded in a program that has to stay
+alive, and it's also what a test that deliberately builds a broken model needs, since the default
+behavior would end the test process. A standalone `Model` has no return value to carry an outcome,
+so under `.report` its failures are only logged.
+
 ## Programmatic API
 
 For GUI applications, servers, or other contexts where you need control over where and how files are saved, use ``ModelFileGenerator`` instead of ``Model``.
