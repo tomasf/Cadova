@@ -4,10 +4,12 @@ import Manifold3D
 internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
     internal let contents: Contents
     internal let hash: Int
+    internal let subtreeSize: Int
 
     internal init(_ contents: Contents) {
         self.contents = contents
         self.hash = contents.hashValue
+        self.subtreeSize = contents.subtreeSize
     }
 
     func hash(into hasher: inout Hasher) {
@@ -210,6 +212,28 @@ internal enum BooleanOperationType: String, Hashable, Sendable, Codable {
         case .union: .union
         case .difference: .difference
         case .intersection: .intersection
+        }
+    }
+}
+
+
+internal extension GeometryNode.Contents {
+    var subtreeSize: Int {
+        switch self {
+        case .empty, .materialized, .shape2D, .shape3D: 1
+        case .boolean(let children, _): 1 + children.reduce(0) { $0 + $1.subtreeSize }
+        case .transform(let body, _): 1 + body.subtreeSize
+        case .convexHull(let body): 1 + body.subtreeSize
+        case .refine(let body, _): 1 + body.subtreeSize
+        case .simplify(let body, _): 1 + body.subtreeSize
+        case .select(let body, _): 1 + body.subtreeSize
+        case .decompose(let body): 1 + body.subtreeSize
+        case .offset(let body, _, _, _, _): 1 + body.subtreeSize
+        case .projection(let body, _): 1 + body.subtreeSize
+        case .applyMaterial(let body, _): 1 + body.subtreeSize
+        case .extrusion(let body, _): 1 + body.subtreeSize
+        case .trim(let body, _): 1 + body.subtreeSize
+        case .smoothOut(let body, _, _): 1 + body.subtreeSize
         }
     }
 }

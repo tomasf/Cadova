@@ -49,7 +49,7 @@ extension GeometryNode {
             // Flatten unions
             children = children
                 .flatMap { $0.unionChildren ?? [$0] }
-                .sorted { $0.hash < $1.hash }
+                .sorted { ($0.subtreeSize, $0.hash) > ($1.subtreeSize, $1.hash) }
         }
 
         let filteredChildren = children.filter { !$0.isEmpty }
