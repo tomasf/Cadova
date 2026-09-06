@@ -113,7 +113,7 @@ extension GeometryNode: Codable {
             var children = try container.decode([D.Node].self, forKey: .children)
 
             if type == .union {
-                children.sort { $0.hash < $1.hash }
+                children = Self.canonicalUnionOrder(children)
             }
 
             self.init(.boolean(children, type: type))
