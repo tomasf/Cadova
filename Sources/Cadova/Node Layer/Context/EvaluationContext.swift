@@ -7,6 +7,10 @@ import Manifold3D
 /// requirement, which every conforming type must satisfy. It isn't meant to be constructed or used
 /// directly — hence the underscore prefix.
 public struct _EvaluationContext: Sendable {
+    /// Identifies this context, so a result tied to it (such as a `.materialized` node, whose
+    /// generator lives in this context's cache) isn't replayed in another.
+    internal let id = UUID()
+
     internal let cache2D = GeometryCache<D2>()
     internal let cache3D = GeometryCache<D3>()
     internal let threeMFModelCache = ThreeMFModelCache()
@@ -19,19 +23,6 @@ public struct _EvaluationContext: Sendable {
 internal typealias EvaluationContext = _EvaluationContext
 
 internal extension EvaluationContext {
-    /// Identifies this context. `_EvaluationContext` is a struct, but its caches are actors, so the
-    /// identity of one of them identifies every copy of the same context — and distinguishes it from
-    /// any other. Used to keep results that only make sense within one context (such as a
-    /// `.materialized` node, whose generator is declared on that context's cache) from being replayed
-    /// in another.
-    ///
-    /// This is the cache itself rather than an `ObjectIdentifier` for it. Holding the object keeps
-    /// its address from being reused: a bare identifier stored in a value that outlived its context
-    /// would compare equal to a later cache that happened to land in the same memory, and a
-    /// `.materialized` node would then be replayed into a cache that never saw its generator, which
-    /// is the one thing this check exists to prevent.
-    var identityToken: GeometryCache<D2> { cache2D }
-
     func cache<D: Dimensionality>() -> GeometryCache<D> {
         switch D.self {
         case is D2.Type: cache2D as! GeometryCache<D>

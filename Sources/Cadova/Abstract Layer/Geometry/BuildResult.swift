@@ -146,18 +146,19 @@ extension _BuildResult: Geometry {
 /// under anything else — which is exactly the case where a builder closure legitimately wraps the
 /// geometry it was handed in an environment modifier.
 ///
-/// The environment half of the key is exact rather than approximate: ``EnvironmentValues/id`` is
-/// regenerated on every mutation, so an unchanged `id` means an unchanged environment. The context
-/// half matters because a `BuildResult` isn't portable between contexts — a `.materialized` node
-/// only resolves in the context whose cache the generator was declared on.
+/// Both halves of the key are exact. ``EnvironmentValues/id`` is regenerated on every mutation, so
+/// an unchanged `id` means an unchanged environment. The context half matters because a
+/// `BuildResult` isn't portable between contexts: a `.materialized` node only resolves in the
+/// context whose cache the generator was declared on, and more than one context can be alive at
+/// once, since each `ModelFileGenerator` holds its own.
 internal struct PrebuiltGeometry<D: Dimensionality>: Geometry {
     let source: D.Geometry
     let environmentID: UUID
-    let contextToken: GeometryCache<D2>
+    let contextID: UUID
     let result: BuildResult<D>
 
     func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D> {
-        guard environment.id == environmentID, context.identityToken === contextToken else {
+        guard environment.id == environmentID, context.id == contextID else {
             return try await context.buildResult(for: source, in: environment)
         }
         return result
@@ -169,7 +170,7 @@ internal extension BuildResult {
     /// builds `source` from scratch under anything else.
     func standingIn(for source: D.Geometry, in environment: EnvironmentValues, context: EvaluationContext) -> D.Geometry {
         PrebuiltGeometry(
-            source: source, environmentID: environment.id, contextToken: context.identityToken, result: self
+            source: source, environmentID: environment.id, contextID: context.id, result: self
         )
     }
 }
