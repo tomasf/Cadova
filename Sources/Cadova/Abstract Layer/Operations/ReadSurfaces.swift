@@ -50,13 +50,13 @@ public extension Geometry3D {
         along segment: LineSegment3D,
         @GeometryBuilder<Output> _ reader: @Sendable @escaping (_ geometry: any Geometry3D, _ crossings: [SurfaceCrossing]) -> Output.Geometry
     ) -> Output.Geometry {
-        readingConcrete { (manifold: Manifold) in
+        readingConcrete { (manifold: Manifold, geometry: any Geometry3D) in
             let hits = manifold.rayCast(from: segment.start, to: segment.end)
             let direction = segment.direction
             let crossings = hits.map {
                 SurfaceCrossing(hit: $0, origin: segment.start, direction: direction)
             }
-            return reader(self, crossings)
+            return reader(geometry, crossings)
         }
     }
 

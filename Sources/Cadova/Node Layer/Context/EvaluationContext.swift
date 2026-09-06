@@ -7,6 +7,10 @@ import Manifold3D
 /// requirement, which every conforming type must satisfy. It isn't meant to be constructed or used
 /// directly — hence the underscore prefix.
 public struct _EvaluationContext: Sendable {
+    /// Identifies this context, so a result tied to it (such as a `.materialized` node, whose
+    /// generator lives in this context's cache) isn't replayed in another.
+    internal let id = UUID()
+
     internal let cache2D = GeometryCache<D2>()
     internal let cache3D = GeometryCache<D3>()
     internal let threeMFModelCache = ThreeMFModelCache()
