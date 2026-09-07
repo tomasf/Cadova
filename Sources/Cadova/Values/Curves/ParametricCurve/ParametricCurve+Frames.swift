@@ -40,16 +40,28 @@ internal extension ParametricCurve<Vector3D> {
         guard fraction < 1 - 1e-12 else { return upper }
 
         let t = lower.t + (upper.t - lower.t) * fraction
-        let sample = CurveSample(u: t, position: point(at: t), tangent: derivativeView.tangent(at: t), distance: distance)
+        // A curve that has collapsed at `t` reports an undefined (zero) tangent, and a frame built
+        // from one has no orientation at all. Both bracketing frames are already resolved, so fall
+        // back to the nearer of them, the way the `fraction` guards above do for the same reason.
+        let tangent = derivativeView.tangent(at: t)
+        guard !tangent.isUndefined else { return fraction < 0.5 ? lower : upper }
+
+        let sample = CurveSample(u: t, position: point(at: t), tangent: tangent, distance: distance)
         var frame = ParametricCurveFrame(
             sample: sample, reference: reference, target: target,
             previousSample: lower.frameForContinuingPastCorner(curve: self)
         )
-        // Reference/target can be momentarily degenerate (e.g. parallel to the tangent) exactly at this
-        // point even though neither bracketing sample was; `frames()` resolves this array-wide via
-        // interpolateMissingAngles(), which isn't available here, so fall back to interpolating between
-        // the two (already-resolved) bracketing angles instead of leaving it unset.
-        if frame.angle == nil, let lowerAngle = lower.angle, let upperAngle = upper.angle {
+        // The angle in `frames` is not a raw target alignment: `frames()` resolves degenerate samples
+        // array-wide (interpolateMissingAngles), unwraps the sequence so it never jumps by a turn
+        // (normalizeAngles), and then damps it to the environment's `maxTwistRate`. Constructing the
+        // frame above recomputes the angle from the target alone and so knows none of that, which
+        // makes this function disagree with the very array it interpolates — by well over a
+        // millimetre of vertex displacement wherever twist damping bit — and leaves any surface
+        // built from it with a step at every stored frame. Bracketing angles are continuous and
+        // already carry all of that resolution, so interpolate between them instead. (They also
+        // cover the case where the reference and target are momentarily degenerate here, e.g.
+        // parallel to the tangent, even though neither bracketing sample was.)
+        if let lowerAngle = lower.angle, let upperAngle = upper.angle {
             frame.angle = lowerAngle + (upperAngle - lowerAngle) * fraction
         }
         // miterStretch is a compensation for the corner frame's own oblique miter slice, not a property
