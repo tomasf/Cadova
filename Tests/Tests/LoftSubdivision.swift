@@ -60,6 +60,29 @@ struct LoftSubdivisionTests {
 
     static let verticalPath = BezierPath3D(linesBetween: [[0, 0, 0], [0, 0, 100]])
 
+    /// A shaping function that rises overall but ripples on the way, so the surface between two
+    /// sections gains `waves` bulges instead of running straight.
+    ///
+    /// This is the family that catches a criterion which samples at fixed fractions. A whole number
+    /// of waves puts a zero crossing on every dyadic fraction at once, so the deviation from the
+    /// chord vanishes at a quarter, a half and three quarters together, and a test that only looks
+    /// there reads the whole thing as flat.
+    static func ripple(waves: Double, phase: Double = 0, amplitude: Double = 0.15) -> ShapingFunction {
+        .custom(name: "ripple", parameters: waves, phase, amplitude) { t in
+            t + amplitude * sin((waves * t + phase) * 2 * .pi)
+        }
+    }
+
+    static func rippleRings(waves: Double, phase: Double = 0) -> Int {
+        rings(
+            from: polygonCircle(radius: 25, count: 128),
+            to: polygonCircle(radius: 8, count: 128),
+            along: verticalPath,
+            distance: 100,
+            interpolation: ripple(waves: waves, phase: phase)
+        ).transforms.count
+    }
+
     // MARK: - How many rings the criterion asks for
 
     @Test func `linear shaping along a straight path needs no intermediate rings`() throws {
@@ -108,6 +131,67 @@ struct LoftSubdivisionTests {
         // without it, an implementation that recursed to `maximumSubdivisionDepth` on every span
         // would pass, and spending rings is the very thing this criterion exists to stop.
         #expect((20..<300).contains(result.transforms.count))
+    }
+
+    @Test func `a rippling shaping function is subdivided at every wave count`() throws {
+        // The criterion may not measure the surface at fractions fixed in advance. A whole number of
+        // waves lands a zero of the chord deviation on all of a quarter, a half and three quarters at
+        // once, so a test that samples only there reports no error and collapses the ripples into a
+        // plain cone. Every one of these wave counts did exactly that before the probe was added:
+        // 1 and 3 were subdivided, while 2, 4, 8, 16, 20 and 32 came out at two rings.
+        //
+        // The bounds are per wave, since a ripple genuinely needs rings in proportion to how many
+        // bulges it has. The lower one has teeth against the collapse; the upper one against an
+        // implementation that recurses to `maximumSubdivisionDepth` and calls it accuracy.
+        for waves in [1.0, 2, 3, 4, 8, 16, 20, 32] {
+            let count = Self.rippleRings(waves: waves)
+            #expect(
+                (Int(20 * waves)..<Int(400 * waves)).contains(count),
+                "\(waves) waves produced \(count) rings"
+            )
+        }
+    }
+
+    @Test func `the ring count for a rippling shaping function grows with the wave count`() throws {
+        // Subdividing every ripple is not enough on its own: an implementation could pass the test
+        // above by splitting blindly. Following the shape means paying for the bulges that are
+        // actually there, so twice the waves has to cost meaningfully more than half as many.
+        let two = Self.rippleRings(waves: 2)
+        let four = Self.rippleRings(waves: 4)
+        let eight = Self.rippleRings(waves: 8)
+        #expect(four > two)
+        #expect(eight > four)
+    }
+
+    @Test func `a rippling shaping function is subdivided off the dyadic fractions too`() throws {
+        // Nothing about the fix may depend on the waves lining up with the sample fractions. A wave
+        // count just off a whole number, and a whole one shifted in phase, both have to come out in
+        // the same range as the aligned counts above, not merely be caught by luck.
+        for waves in [2.001, 3.5, 4.25] {
+            let count = Self.rippleRings(waves: waves)
+            #expect((Int(20 * waves)..<Int(400 * waves)).contains(count), "\(waves) waves gave \(count) rings")
+        }
+        for phase in [0.125, 0.25, 0.5] {
+            let count = Self.rippleRings(waves: 4, phase: phase)
+            #expect((80..<1600).contains(count), "phase \(phase) gave \(count) rings")
+        }
+    }
+
+    @Test func `a shaping function whose waves speed up along the loft is subdivided`() throws {
+        // A chirp has no single wave count to line up with anything, and its bulges are wide at one
+        // end and narrow at the other. The criterion has to keep finding them as they tighten, which
+        // a search over the shape does and a fixed set of fractions cannot.
+        let chirp = ShapingFunction.custom(name: "chirp", parameters: 0) { t in
+            t + 0.1 * sin(2 * .pi * (2 * t + 6 * t * t))
+        }
+        let count = Self.rings(
+            from: Self.polygonCircle(radius: 25, count: 128),
+            to: Self.polygonCircle(radius: 8, count: 128),
+            along: Self.verticalPath,
+            distance: 100,
+            interpolation: chirp
+        ).transforms.count
+        #expect((200..<6000).contains(count), "chirp gave \(count) rings")
     }
 
     @Test func `a twisting path is still subdivided`() throws {
@@ -337,6 +421,43 @@ struct LoftSubdivisionTests {
             areaTolerance: 3e-3,
             boundsTolerance: 0.1
         )
+    }
+
+    @Test func `a rippling shaping function keeps its bulges at the default segmentation`() async throws {
+        // The report this test comes from: a four wave ripple between a wide and a narrow circle came
+        // out as a plain truncated cone, with volume and surface area equal to the same loft shaped
+        // `.linear`. So the check is against `.linear` as well as against a fine reference. Matching
+        // the fine reference alone would not catch it, because a mesh can agree with an over-refined
+        // version of the wrong shape.
+        let sections = { (interpolation: ShapingFunction) in
+            Loft(interpolation: interpolation) {
+                Section(at: 0) { Circle(radius: 25) }
+                Section(at: 100) { Circle(radius: 8) }
+            }
+        }
+        let rippled = sections(Self.ripple(waves: 4))
+        let straight = sections(.linear)
+
+        let rippledMeasurements = try await rippled.measurements
+        let straightMeasurements = try await straight.measurements
+
+        // Surface area is the figure that separates the two, at 13640 against 12678. Volume is not,
+        // and deliberately is not asserted on: this ripple is symmetric in the blend parameter, so it
+        // removes almost exactly as much material as it adds and comes out within 0.06% of the cone
+        // either way. That is a property of the shape, not evidence about the mesh, and a volume
+        // check here would be a check that passes for the wrong reason.
+        let areaRatio = rippledMeasurements.surfaceArea / straightMeasurements.surfaceArea
+        #expect(areaRatio > 1.05, "rippled surface area was \(areaRatio) times the cone's")
+
+        // The cone simplifies to 716 triangles and the ripples cannot: measured at 173698 against 716.
+        // This is the figure from the report, where the collapsed version came out at 716 as well.
+        #expect(
+            rippledMeasurements.triangleCount > straightMeasurements.triangleCount * 20,
+            "rippled mesh had \(rippledMeasurements.triangleCount) triangles against the cone's \(straightMeasurements.triangleCount)"
+        )
+
+        // Measured at 1.1e-4 and 1.4e-4, so this is pinned close rather than merely loosely bracketed.
+        try await Self.expectMatchesFineReference(rippled, volumeTolerance: 1e-3, areaTolerance: 1e-3)
     }
 
     @Test func `a mitered sharp corner keeps its shape`() async throws {

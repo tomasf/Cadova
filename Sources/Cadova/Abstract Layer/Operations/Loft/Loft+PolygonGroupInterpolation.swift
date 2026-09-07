@@ -41,6 +41,30 @@ internal extension Loft {
             return low
         }
 
+        // One probe lattice per section pair, shared by every polygon group. Its samples depend only
+        // on the shaping function and the path, so building it inside the group loop would repeat
+        // identical work for every hole and island a section has. It is built on demand because a
+        // section pair whose shapes and orientation already match needs no subdivision at all, and so
+        // never asks for one.
+        var latticeCache: [Int: DeviationProbe.Lattice] = [:]
+        func deviationLattice(forSectionPair index: Int) -> DeviationProbe.Lattice {
+            if let cached = latticeCache[index] { return cached }
+            let start = sections[index - 1].distance
+            let span = sections[index].distance - start
+            let pathSampleCount = frames.reduce(0) {
+                $1.distance > start && $1.distance < start + span ? $0 + 1 : $0
+            }
+            let lattice = DeviationProbe.Lattice(
+                shaping: (sections[index].shapingFunction ?? .linear).function,
+                frames: frames,
+                startDistance: start,
+                span: span,
+                count: segmentation.deviationProbeCount(pathLength: span, pathSampleCount: pathSampleCount)
+            )
+            latticeCache[index] = lattice
+            return lattice
+        }
+
         for polygons in polygonGroups {
             var newPolygons: [SimplePolygon] = [polygons[0]]
             var newTransforms: [Transform3D] = [transform(atDistance: sections[0].distance)]
@@ -88,6 +112,10 @@ internal extension Loft {
                         // which bisection can never resolve. The deviation test bottoms out long
                         // before this on anything continuous.
                         let maximumSubdivisionDepth = 32
+
+                        let probe = DeviationProbe(
+                            lattice: deviationLattice(forSectionPair: i), lower: lower, upper: upper
+                        )
 
                         func exactFrame(at fraction: Double) -> ParametricCurveFrame {
                             let distance = section0.distance + sectionSpan * fraction
@@ -139,12 +167,21 @@ internal extension Loft {
                         /// deviation budget. Linear shaping along a straight path makes the two agree
                         /// exactly, which is why such a loft now stops at its two section rings.
                         ///
-                        /// Three interior rings are checked, not just the midpoint. Shaping functions
-                        /// that are symmetric about (0.5, 0.5) — `.smoothstep`, `.sine`, `.easeInOut`,
-                        /// `.smootherstep` — pass exactly through the midpoint of their own chord, so a
-                        /// midpoint-only test measures no error for them and would flatten the entire
-                        /// S-curve into one band. The quarter points see the bulge, and they aren't
-                        /// extra work: each becomes the midpoint of one of the two halves.
+                        /// Where the interior rings are measured matters as much as how. Three of them
+                        /// sit at fixed fractions: the midpoint, which is where the span will be split
+                        /// anyway, and the two quarter points, which cost nothing because each becomes
+                        /// the midpoint of one half. Those three are not enough on their own. Shaping
+                        /// functions symmetric about (0.5, 0.5), such as `.smoothstep`, `.sine`,
+                        /// `.easeInOut` and `.smootherstep`, pass exactly through the midpoint of their
+                        /// own chord, so a midpoint-only test reads no error for them at all, and any
+                        /// fixed set of fractions can be cancelled the same way by a function whose
+                        /// deviation vanishes at every one of them.
+                        ///
+                        /// A fourth ring closes that off. `DeviationProbe` searches a lattice far finer
+                        /// than anything that will be built, without building anything, and says where
+                        /// the surface is furthest from this band. The ring goes there. Nothing is
+                        /// decided from the probe's estimate; it only chooses the spot, and the error is
+                        /// then measured on a real ring exactly as the other three are.
                         func subdivideSpan(
                             range: Range<Double>,
                             start: RingSample,
@@ -154,9 +191,26 @@ internal extension Loft {
                             skipLowerBound: Bool,
                             sample: (Double) -> RingSample
                         ) {
-                            let quarter = sample((range.lowerBound + range.mid) / 2)
-                            let threeQuarters = sample((range.mid + range.upperBound) / 2)
+                            let spanWidth = range.upperBound - range.lowerBound
+                            let quarterFraction = (range.lowerBound + range.mid) / 2
+                            let threeQuartersFraction = (range.mid + range.upperBound) / 2
+                            let quarter = sample(quarterFraction)
+                            let threeQuarters = sample(threeQuartersFraction)
                             let bandLength = start.separation(from: end)
+
+                            // The one ring whose position is chosen by the shape rather than fixed in
+                            // advance. It is skipped when the probe finds nothing the three fixed
+                            // fractions do not already cover, which is the usual case on a function
+                            // that simply bulges one way.
+                            var probedDeviation = 0.0
+                            if spanWidth > 1e-12, let probedFraction = probe.worstFraction(
+                                in: range, tested: [quarterFraction, range.mid, threeQuartersFraction]
+                            ) {
+                                probedDeviation = sample(probedFraction).deviation(
+                                    fromChordBetween: start, and: end,
+                                    at: (probedFraction - range.lowerBound) / spanWidth
+                                )
+                            }
 
                             // Warp is a two-directional error, so it is only worth acting on while the
                             // band is still longer than the rings' own edges. Below that the triangles
@@ -171,6 +225,7 @@ internal extension Loft {
                                 quarter.deviation(fromChordBetween: start, and: end, at: 0.25),
                                 middle.deviation(fromChordBetween: start, and: end, at: 0.5),
                                 threeQuarters.deviation(fromChordBetween: start, and: end, at: 0.75),
+                                probedDeviation,
                                 warp
                             )
 
@@ -287,6 +342,171 @@ internal extension Loft {
         }
 
         return refinedGroups
+    }
+}
+
+/// A dense, precomputed picture of everything that can push a ring away from a straight band between
+/// two sections, used to choose where the subdivision test should look.
+///
+/// The test that decides whether a band is accurate enough can only measure rings it actually builds,
+/// and building a ring transforms every one of its vertices, so the test can only afford a few. Fixed
+/// sample positions are not a safe way to spend them. Whatever fractions are chosen, a shaping
+/// function whose deviation happens to vanish at all of them reads as perfectly flat, and the band is
+/// never split. Sampling at a quarter, a half and three quarters is cancelled exactly by
+/// `t + a·sin(4·2πt)` and by every other wave count that lines up with those three points, and adding
+/// a fifth fixed position only moves the blind spot to a different wave count. No fixed set of
+/// positions can be safe, because the function is free to have zeros wherever the set does.
+///
+/// So this stops guessing where to look and lets the shape say. Evaluating a shaping function is
+/// scalar arithmetic, thousands of times cheaper than building a ring, and the path has already been
+/// sampled into the frame array. This probe walks a lattice fine enough to resolve anything the
+/// segmentation could draw, estimates how far each lattice point's ring would sit from the band
+/// without building a single ring, and reports the worst point. The subdivision test then builds one
+/// real ring there and measures it exactly.
+///
+/// The estimate itself does not need to be accurate, and nothing is decided from it. It only has to
+/// point at roughly the right place, because the accuracy decision is still made by the exact
+/// measurement in `RingSample.deviation(fromChordBetween:and:at:)` on a ring that really was built.
+/// That leaves one limit, and it is a stated one rather than an accident of where three samples fell:
+/// a bump narrower than a lattice step can still hide, and a lattice step is finer than the shortest
+/// band this segmentation will ever emit, so a bump that narrow could not have been drawn either way.
+fileprivate struct DeviationProbe {
+    /// The lattice itself, separated from the polygons so that a section with holes or islands builds
+    /// it once rather than once per group. Its samples depend only on the shaping function and the
+    /// path, neither of which varies between the groups of one section pair.
+    struct Lattice {
+        struct Sample {
+            let fraction: Double
+            /// The blend parameter the shaping function asks for at this fraction.
+            let shaping: Double
+            /// Where the path's own frame sits here, read out of the frame array.
+            let point: Vector3D
+            /// That frame's roll about the path, in radians, or zero where the frames state none.
+            let angle: Double
+        }
+
+        let samples: [Sample]
+        /// One lattice step, in fraction units.
+        let step: Double
+
+        /// Walks the lattice and the frame array together in a single pass.
+        ///
+        /// Both are sorted and the lattice is uniform, so the frame bracketing each sample is found by
+        /// advancing one index rather than by searching from scratch every time. This is the whole
+        /// cost of the probe, and it needs to stay well under the cost of one ring.
+        ///
+        /// Reading the frames is deliberate, rather than calling `exactFrame`, which would evaluate
+        /// the curve and construct a frame at every lattice point. The frames are the path's own
+        /// sampling, so every feature the path has is already resolved among them, and the roll they
+        /// carry has been unwrapped and twist damped, which a freshly built frame would not know
+        /// about. Between two frames this treats the path as straight, which is exactly the
+        /// approximation the frame spacing was chosen to make safe.
+        init(
+            shaping: (Double) -> Double,
+            frames: [ParametricCurveFrame],
+            startDistance: Double,
+            span: Double,
+            count: Int
+        ) {
+            let count = max(count, 4)
+            self.step = 1 / Double(count)
+
+            var samples: [Sample] = []
+            samples.reserveCapacity(count + 1)
+            var frameIndex = 0
+            for index in 0...count {
+                let fraction = Double(index) / Double(count)
+                let distance = startDistance + span * fraction
+
+                while frameIndex + 2 < frames.count, frames[frameIndex + 1].distance <= distance {
+                    frameIndex += 1
+                }
+
+                var point = Vector3D.zero
+                var angle = 0.0
+                if frameIndex + 1 < frames.count {
+                    let lower = frames[frameIndex]
+                    let upper = frames[frameIndex + 1]
+                    let gap = upper.distance - lower.distance
+                    let within = gap > 1e-12 ? min(max((distance - lower.distance) / gap, 0), 1) : 0
+                    let lowerAngle = lower.angle?.radians ?? 0
+                    let upperAngle = upper.angle?.radians ?? lowerAngle
+                    point = lower.point + (upper.point - lower.point) * within
+                    angle = lowerAngle + (upperAngle - lowerAngle) * within
+                } else if let only = frames.first {
+                    point = only.point
+                    angle = only.angle?.radians ?? 0
+                }
+
+                samples.append(Sample(fraction: fraction, shaping: shaping(fraction), point: point, angle: angle))
+            }
+            self.samples = samples
+        }
+    }
+
+    private let lattice: Lattice
+    /// The furthest any single vertex travels as the blend runs from the lower section to the upper
+    /// one. Multiplying a blend error by this turns it into a distance.
+    private let morphScale: Double
+    /// The furthest any vertex sits from its own frame's origin. Multiplying a roll error in radians
+    /// by this turns it into a distance.
+    private let maximumRadius: Double
+
+    init(lattice: Lattice, lower: SimplePolygon, upper: SimplePolygon) {
+        self.lattice = lattice
+        // Vertices are blended one for one, so a blend error of d moves vertex i by d times its own
+        // travel, and the largest travel bounds them all.
+        self.morphScale = zip(lower.vertices, upper.vertices).reduce(0) { max($0, ($1.1 - $1.0).magnitude) }
+        self.maximumRadius = max(
+            lower.vertices.reduce(0) { max($0, $1.magnitude) },
+            upper.vertices.reduce(0) { max($0, $1.magnitude) }
+        )
+    }
+
+    /// The lattice point inside `range` whose ring is estimated to sit furthest from a straight band
+    /// across the range, or `nil` when there is nothing there worth building a ring for.
+    ///
+    /// `tested` lists the fractions the caller is going to build rings at anyway. A candidate within
+    /// one lattice step of one of those is skipped, since the ring the caller already builds is close
+    /// enough to measure the same error. That is what keeps this free on an ordinary bulging function
+    /// like `.circularEaseOut`, whose worst point is near the middle: its ring counts are unchanged.
+    /// A ring is spent only where the surface leaves the band somewhere the fixed fractions cannot
+    /// see.
+    func worstFraction(in range: Range<Double>, tested: [Double]) -> Double? {
+        let samples = lattice.samples
+        let step = lattice.step
+        // The lattice is uniform, so the bracketing indices come straight from the fractions.
+        let firstIndex = max(Int(ceil(range.lowerBound / step - 1e-9)), 0)
+        let lastIndex = min(Int(floor(range.upperBound / step + 1e-9)), samples.count - 1)
+        guard lastIndex - firstIndex >= 2 else { return nil }
+
+        let low = samples[firstIndex]
+        let high = samples[lastIndex]
+        let width = high.fraction - low.fraction
+        guard width > 1e-12 else { return nil }
+
+        var bestFraction: Double?
+        var bestEstimate = 0.0
+        for index in (firstIndex + 1)..<lastIndex {
+            let sample = samples[index]
+            if tested.contains(where: { abs(sample.fraction - $0) <= step }) { continue }
+
+            let fraction = (sample.fraction - low.fraction) / width
+            // A distance estimate, summed rather than combined properly. Each term is the largest
+            // displacement its own error can cause, so the sum overstates the true one, which is the
+            // right way round for a search: it can send the test somewhere it did not need to go, but
+            // it cannot talk it out of somewhere it did.
+            let blendError = abs(sample.shaping - (low.shaping + (high.shaping - low.shaping) * fraction))
+            let pointError = (sample.point - (low.point + (high.point - low.point) * fraction)).magnitude
+            let angleError = abs(sample.angle - (low.angle + (high.angle - low.angle) * fraction))
+            let estimate = blendError * morphScale + pointError + angleError * maximumRadius
+
+            if estimate > bestEstimate {
+                bestEstimate = estimate
+                bestFraction = sample.fraction
+            }
+        }
+        return bestEstimate > 0 ? bestFraction : nil
     }
 }
 

@@ -103,4 +103,28 @@ internal extension Segmentation {
     static func surfaceDeviation(minAngle: Angle, minSize: Double) -> Double {
         minSize * tan(minAngle / 4) / 2
     }
+
+    /// How many points to probe when looking for the place a loft's surface departs furthest from a
+    /// straight band, over a stretch of path `pathLength` long that the path itself sampled at
+    /// `pathSampleCount` points.
+    ///
+    /// This is a detection resolution, not an output resolution, so it is deliberately finer than
+    /// anything that gets built. The count comes from the two things that already bound how fine the
+    /// output can be. `segmentCount(length:)` is the most bands this segmentation would ever emit
+    /// over that length, and the path's own sample count is how finely the path was resolved, which
+    /// on a tight curve is the denser of the two. A feature narrower than the shorter of those two
+    /// spacings cannot be drawn, so probing finer than that can never change the mesh.
+    ///
+    /// The factor of four is headroom. Two samples per feature is the bare minimum to see a feature
+    /// at all, and four keeps detection comfortably away from being the limit, so the thing that
+    /// bounds accuracy stays the segmentation rather than the search.
+    ///
+    /// Probing is scalar arithmetic and costs nothing next to building a ring, so the only reason to
+    /// bound the count at all is to keep a very long path from paying for samples it cannot use. At
+    /// the cap the probe still matches `minSize` exactly on a path of about two and a half metres,
+    /// and only drops below four times oversampling beyond that.
+    func deviationProbeCount(pathLength: Double, pathSampleCount: Int) -> Int {
+        let byLength = segmentCount(length: pathLength)
+        return min(4 * max(byLength, pathSampleCount), 65536)
+    }
 }
