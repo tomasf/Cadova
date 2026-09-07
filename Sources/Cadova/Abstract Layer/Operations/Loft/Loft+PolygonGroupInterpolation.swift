@@ -212,21 +212,28 @@ internal extension Loft {
                                 )
                             }
 
-                            // Warp is a two-directional error, so it is only worth acting on while the
-                            // band is still longer than the rings' own edges. Below that the triangles
-                            // are already more elongated along the path than around the ring, the
-                            // surface error is dominated by the ring's own resolution, and splitting
-                            // again refines the finer of the two directions for nothing. This also
-                            // keeps the criterion from chasing a hand-built, deliberately coarse ring
-                            // to absurd depth.
-                            let warp = bandLength > start.maximumEdgeLength ? start.warp(across: end) : 0
+                            // Warp is a two-directional error, so it stops being worth chasing once the
+                            // band is shorter than the rings' own edges. Below that the triangles are
+                            // already more elongated along the path than around the ring, the surface
+                            // error is dominated by the ring's own resolution, and splitting again
+                            // refines the finer of the two directions for nothing. This also keeps the
+                            // criterion from chasing a hand-built, deliberately coarse ring to absurd
+                            // depth. It fades the warp out across that crossover rather than dropping
+                            // it, so a short but strongly sheared band still reports the shear it has,
+                            // and it takes the longer of the two rings' edges so that one coarse end
+                            // ring cannot excuse the whole band on its own.
+                            let edgeLength = max(start.maximumEdgeLength, end.maximumEdgeLength)
+                            let warp = start.warp(across: end)
+                            let weightedWarp = bandLength >= edgeLength || edgeLength < 1e-12
+                                ? warp
+                                : warp * (bandLength / edgeLength)
 
                             let deviation = max(
                                 quarter.deviation(fromChordBetween: start, and: end, at: 0.25),
                                 middle.deviation(fromChordBetween: start, and: end, at: 0.5),
                                 threeQuarters.deviation(fromChordBetween: start, and: end, at: 0.75),
                                 probedDeviation,
-                                warp
+                                weightedWarp
                             )
 
                             // Bisection stops on three counts: the band is already accurate enough;

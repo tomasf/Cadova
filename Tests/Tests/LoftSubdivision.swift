@@ -206,7 +206,9 @@ struct LoftSubdivisionTests {
             distance: 100,
             toward: .line(skewLine)
         )
-        // Measured at 78 rings. The upper bound matters as much as the lower one:
+        // Measured at 127 rings, up from 78 before the warp test stopped exempting bands shorter than
+        // their own rings' edges: a twist is exactly the case where a band is sheared, so this is the
+        // shape that exemption was quietly costing. The upper bound matters as much as the lower one:
         // without it, an implementation that recursed to `maximumSubdivisionDepth` on every span
         // would pass, and spending rings is the very thing this criterion exists to stop.
         #expect((20..<200).contains(result.transforms.count))
