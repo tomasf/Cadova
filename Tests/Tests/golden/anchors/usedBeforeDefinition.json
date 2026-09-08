@@ -1,4 +1,31 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "boundingBox" : {
+        "maximum" : [
+          12,
+          2,
+          5
+        ],
+        "minimum" : [
+          -2,
+          -2,
+          0
+        ]
+      },
+      "centroid" : [
+        1.2955971943081268,
+        0.011869231294088132,
+        2.940653843529574
+      ],
+      "isEmpty" : false,
+      "volume" : 42.12572723635874
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",
@@ -6,6 +33,44 @@
     },
     {
       "children" : [
+        {
+          "body" : {
+            "kind" : "shape3D",
+            "primitive" : {
+              "sphere" : {
+                "radius" : 2,
+                "segmentCount" : 83
+              }
+            }
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              3
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
         {
           "body" : {
             "children" : [
@@ -113,44 +178,6 @@
               0,
               1,
               -0
-            ],
-            [
-              0,
-              0,
-              0,
-              1
-            ]
-          ]
-        },
-        {
-          "body" : {
-            "kind" : "shape3D",
-            "primitive" : {
-              "sphere" : {
-                "radius" : 2,
-                "segmentCount" : 83
-              }
-            }
-          },
-          "kind" : "transform",
-          "transform" : [
-            [
-              1,
-              0,
-              0,
-              0
-            ],
-            [
-              0,
-              1,
-              0,
-              0
-            ],
-            [
-              0,
-              0,
-              1,
-              3
             ],
             [
               0,
