@@ -40,12 +40,30 @@ extension Sphere: Geometry3D {
 }
 
 public extension Sphere {
+    /// Creates an ellipsoid filling the given size.
+    ///
+    /// - Parameter size: The extent of the ellipsoid along each axis. A size with any dimension of zero
+    ///   or less results in empty geometry.
+    @GeometryBuilder3D
     static func ellipsoid(size: Vector3D) -> any Geometry3D {
+        // The sphere this is scaled from has the largest dimension as its diameter, so that dimension is
+        // what there is to scale. Every dimension has to be positive, though: a negative one survives the
+        // scale as a mirror, turning the ellipsoid inside out where the caller asked for nothing.
         let diameter = max(size.x, size.y, size.z)
-        return Sphere(diameter: diameter)
-            .scaled(size / diameter)
+        if min(size.x, size.y, size.z) > 0 {
+            Sphere(diameter: diameter)
+                .scaled(size / diameter)
+        }
     }
 
+    /// Creates an ellipsoid filling the given extents.
+    ///
+    /// - Parameters:
+    ///   - x: The extent of the ellipsoid along the X axis.
+    ///   - y: The extent of the ellipsoid along the Y axis.
+    ///   - z: The extent of the ellipsoid along the Z axis.
+    ///
+    /// A size with any dimension of zero or less results in empty geometry.
     static func ellipsoid(x: Double, y: Double, z: Double) -> any Geometry3D {
         ellipsoid(size: .init(x, y, z))
     }
