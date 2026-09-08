@@ -21,21 +21,23 @@ struct DegenerateInputTests {
 
     // MARK: - Cylinder cross sections
 
-    @Test func `a cylinder with no height has no cross section`() throws {
-        // A cylinder of zero or negative height is empty geometry, so there is no cross-section to
-        // take. Interpolating one divides by the height.
-        #expect(Cylinder(radius: 5, height: 0).crossSection(at: 0) == nil)
-        #expect(Cylinder(radius: 5, height: -3).crossSection(at: 0) == nil)
-        #expect(Cylinder(bottomRadius: 2, topRadius: 6, height: 0).crossSection(at: 1) == nil)
-        #expect(Cylinder(bottomRadius: 2, topRadius: 6, height: -3).crossSection(at: 1) == nil)
+    @Test func `a cylinder with no height has an empty cross section`() throws {
+        // A cylinder of zero or negative height is itself empty geometry, so there is no meaningful
+        // cross-section to take at any height. Interpolating one would divide by the height, so this
+        // returns the empty circle instead — the same `Circle(radius: 0)` a degenerate radius already
+        // produces everywhere else, rather than an optional the caller has to unwrap.
+        #expect(Cylinder(radius: 5, height: 0).crossSection(at: 0).radius == 0)
+        #expect(Cylinder(radius: 5, height: -3).crossSection(at: 0).radius == 0)
+        #expect(Cylinder(bottomRadius: 2, topRadius: 6, height: 0).crossSection(at: 1).radius == 0)
+        #expect(Cylinder(bottomRadius: 2, topRadius: 6, height: -3).crossSection(at: 1).radius == 0)
     }
 
     @Test func `a cone's cross section interpolates between its end radii`() throws {
         let cone = Cylinder(bottomRadius: 2, topRadius: 6, height: 10)
 
-        #expect(try #require(cone.crossSection(at: 0)).radius ≈ 2)
-        #expect(try #require(cone.crossSection(at: 5)).radius ≈ 4)
-        #expect(try #require(cone.crossSection(at: 10)).radius ≈ 6)
+        #expect(cone.crossSection(at: 0).radius ≈ 2)
+        #expect(cone.crossSection(at: 5).radius ≈ 4)
+        #expect(cone.crossSection(at: 10).radius ≈ 6)
     }
 
     // MARK: - Ellipses and ellipsoids
