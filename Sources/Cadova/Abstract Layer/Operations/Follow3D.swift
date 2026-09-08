@@ -95,7 +95,7 @@ internal struct FollowPath3D<Path: D3.Curve>: Geometry3D {
                         }
                         .simplified()
                 } else {
-                    let _ = logger.warning("""
+                    logger.warning("""
                         Cannot make geometry measuring \(bounds.size) follow a path; it has no extent in Z to \
                         stretch along the path. Leaving it unchanged.
                         """)

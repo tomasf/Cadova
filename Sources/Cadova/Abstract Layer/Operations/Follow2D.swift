@@ -53,7 +53,7 @@ internal struct FollowPath2D<Path: ParametricCurve<Vector2D>>: Geometry2D {
                     }
                     .simplified()
             } else {
-                let _ = logger.warning("""
+                logger.warning("""
                     Cannot make geometry measuring \(bounds.size) follow a path; it has no extent in X to \
                     stretch along the path. Leaving it unchanged.
                     """)

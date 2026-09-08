@@ -44,7 +44,7 @@ public extension Geometry3D {
                     }
                     .simplified()
             } else {
-                let _ = logger.warning("""
+                logger.warning("""
                     Cannot deform geometry measuring \(bounds.size) by a patch; it has no extent in X or Y \
                     to map onto the patch. Leaving it unchanged.
                     """)
