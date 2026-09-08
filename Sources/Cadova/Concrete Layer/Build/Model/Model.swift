@@ -14,6 +14,11 @@ import Foundation
 /// Models can also be grouped within a `Project` to share environment settings and metadata
 /// across multiple output files.
 ///
+/// A model that can't be built or written is logged and then ends the process with a non-zero exit
+/// status, so that whatever ran the program can tell that the build failed. See
+/// ``BuildFailureBehavior`` for how to inspect failures instead of ending the process, and
+/// ``BuildOutcome`` for what `Project` reports.
+///
 /// For fine-grained control of file output, see ``ModelFileGenerator``.
 ///
 public struct Model: Sendable, ModelBuildable {
@@ -85,9 +90,9 @@ public struct Model: Sendable, ModelBuildable {
         self.options = .init(options)
 
         if ModelContext.current.isCollectingModels == false {
-            if let url = await build().first {
-                try? Platform.revealFiles([url])
-            }
+            let outcome = await build()
+            try? Platform.revealFiles(outcome.createdFiles)
+            outcome.terminateIfFailed()
         }
     }
 
@@ -97,8 +102,9 @@ public struct Model: Sendable, ModelBuildable {
         options inheritedOptions: ModelOptions? = nil,
         URL directory: URL? = nil,
         filterPath: [String] = []
-    ) async -> [URL] {
+    ) async -> BuildOutcome {
         logger.info("Generating \"\(name)\"...")
+        let qualifiedName = filterName(in: filterPath)
 
         var directives = inheritedEnvironment.whileCurrent {
             self.directives()
@@ -137,26 +143,33 @@ public struct Model: Sendable, ModelBuildable {
                 logger.warning("\(warning)")
             }
 
-        } catch BuildError.noGeometry {
-            logger.error("No geometry for model \"\(name)\"")
-            return []
-
         } catch {
-            logger.error("Cadova caught an error while evaluating model \"\(name)\":\n\(error)\n")
-            return []
+            let failure = BuildFailure(stage: .evaluating, modelName: qualifiedName, url: nil, underlyingError: error)
+            logger.error("\(failure)")
+            return BuildOutcome(failures: [failure])
         }
 
         let url = baseURL.appendingPathExtension(provider.fileExtension)
         let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
 
         // Shared by every path below — never called more than once per build.
-        func write() async {
+        func write() async -> BuildFailure? {
             do {
                 try await provider.writeOutput(to: url, context: context)
                 logger.info("Wrote model to \(url.path)")
+                return nil
             } catch {
-                logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+                let failure = BuildFailure(stage: .writing, modelName: qualifiedName, url: url, underlyingError: error)
+                logger.error("\(failure)")
+                return failure
             }
+        }
+
+        func outcome(_ failure: BuildFailure?) -> BuildOutcome {
+            BuildOutcome(
+                createdFiles: fileExisted || failure != nil ? [] : [url],
+                failures: [failure].compactMap { $0 }
+            )
         }
 
         if provider.isLikelyToReachLiveLinkListener(destination: url) {
@@ -171,16 +184,15 @@ public struct Model: Sendable, ModelBuildable {
             let writeTask = Task(priority: .utility) { await write() }
 
             _ = await pushTask.value
-            await writeTask.value
-            return fileExisted ? [] : [url]
+            return outcome(await writeTask.value)
         }
 
         // No listener expected — plain async-let avoids the Task-split overhead above.
         async let liveLinkPush: Bool = provider.pushToLiveLink(destination: url, context: context)
-        await write()
+        let writeFailure = await write()
         _ = await liveLinkPush
 
-        return fileExisted ? [] : [url]
+        return outcome(writeFailure)
     }
 }
 

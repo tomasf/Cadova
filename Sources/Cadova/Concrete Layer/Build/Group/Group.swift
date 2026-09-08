@@ -85,7 +85,7 @@ public struct Group: Sendable, ModelBuildable {
         options inheritedOptions: ModelOptions?,
         URL directory: URL?,
         filterPath: [String]
-    ) async -> [URL] {
+    ) async -> BuildOutcome {
         let directives = await ModelContext(isCollectingModels: true).whileCurrent {
             await inheritedEnvironment.whileCurrent {
                 await self.directives()
@@ -99,12 +99,18 @@ public struct Group: Sendable, ModelBuildable {
         let currentFilterPath: [String]
         if let name {
             currentFilterPath = filterPath + [name]
-            if let parent = directory {
-                outputDirectory = parent.appendingPathComponent(name, isDirectory: true)
+            let groupDirectory = if let parent = directory {
+                parent.appendingPathComponent(name, isDirectory: true)
             } else {
-                outputDirectory = URL(expandingFilePath: name)
+                URL(expandingFilePath: name)
             }
-            try? FileManager().createDirectory(at: outputDirectory!, withIntermediateDirectories: true)
+
+            if let failure = FileManager().createOutputDirectory(
+                at: groupDirectory, modelName: currentFilterPath.joined(separator: "/")
+            ) {
+                return BuildOutcome(failures: [failure])
+            }
+            outputDirectory = groupDirectory
         } else {
             currentFilterPath = filterPath
             outputDirectory = directory
@@ -117,10 +123,8 @@ public struct Group: Sendable, ModelBuildable {
         let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: currentFilterPath) }
         let buildables: [any ModelBuildable] = groups + filteredModels
 
-        let urls = await buildables.asyncMap {
+        return BuildOutcome(combining: await buildables.asyncMap {
             await $0.build(environment: environment, context: context, options: options, URL: outputDirectory, filterPath: currentFilterPath)
-        }.joined()
-
-        return Array(urls)
+        })
     }
 }
