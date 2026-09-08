@@ -10,7 +10,7 @@ public extension Geometry3D {
             // here, after that check. Without this one, a calculator returning zero collapses the
             // geometry into exactly the zero-volume mesh the other overloads now refuse to make.
             let target = calculator(box.size)
-            if resizeTargetsAreValid(("x", target.x), ("y", target.y), ("z", target.z)) {
+            if ResizeBehavior.targetsAreValid(("x", target.x), ("y", target.y), ("z", target.z)) {
                 let translation = box.translation(for: alignment)
                 geometry
                     .translated(translation)
@@ -33,7 +33,7 @@ public extension Geometry3D {
     ///
     @GeometryBuilder3D
     func resized(x: Double, y: Double, z: Double, alignment: GeometryAlignment3D...) -> any Geometry3D {
-        if resizeTargetsAreValid(("x", x), ("y", y), ("z", z)) {
+        if ResizeBehavior.targetsAreValid(("x", x), ("y", y), ("z", z)) {
             resized(alignment.merged.defaultingToOrigin()) { _ in Vector3D(x, y, z) }
         }
     }
@@ -56,7 +56,7 @@ public extension Geometry3D {
         z: ResizeBehavior = .fixed,
         alignment: GeometryAlignment3D...
     ) -> any Geometry3D {
-        if resizeTargetsAreValid(("x", x)) {
+        if ResizeBehavior.targetsAreValid(("x", x)) {
             resized(alignment.merged.defaultingToOrigin()) { current in
                 Vector3D(
                     x,
@@ -85,7 +85,7 @@ public extension Geometry3D {
         z: ResizeBehavior = .fixed,
         alignment: GeometryAlignment3D...
     ) -> any Geometry3D {
-        if resizeTargetsAreValid(("y", y)) {
+        if ResizeBehavior.targetsAreValid(("y", y)) {
             resized(alignment.merged.defaultingToOrigin()) { current in
                 Vector3D(
                     x.value(current: current.x, from: current.y, to: y),
@@ -114,7 +114,7 @@ public extension Geometry3D {
         z: Double,
         alignment: GeometryAlignment3D...
     ) -> any Geometry3D {
-        if resizeTargetsAreValid(("z", z)) {
+        if ResizeBehavior.targetsAreValid(("z", z)) {
             resized(alignment.merged.defaultingToOrigin()) { current in
                 Vector3D(
                     x.value(current: current.x, from: current.z, to: z),

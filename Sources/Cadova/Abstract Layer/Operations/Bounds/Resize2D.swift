@@ -24,6 +24,24 @@ public enum ResizeBehavior: Sendable {
             return (to / from) * current
         }
     }
+
+    /// Whether every requested resize target is a real length.
+    ///
+    /// Resizing to zero used to scale by exactly zero, collapsing the geometry into a zero-volume mesh that
+    /// `measurements.isEmpty` still reported as solid; a negative length turns geometry inside out. Neither is
+    /// worth crashing over — parametric design produces non-positive intermediate values easily — so a resize
+    /// asked for an impossible size resolves to empty geometry, the way the primitives do.
+    internal static func targetsAreValid(_ targets: (name: String, value: Double)...) -> Bool {
+        var valid = true
+        for target in targets where !(target.value > 0) {
+            logger.warning("""
+                Resize target \(target.name) must be greater than zero, but was \(target.value). \
+                The resized geometry is empty.
+                """)
+            valid = false
+        }
+        return valid
+    }
 }
 
 internal extension BoundingBox {
@@ -42,24 +60,6 @@ internal extension BoundingBox {
     }
 }
 
-/// Whether every requested resize target is a real length.
-///
-/// Resizing to zero used to scale by exactly zero, collapsing the geometry into a zero-volume mesh that
-/// `measurements.isEmpty` still reported as solid; a negative length turns geometry inside out. Neither is
-/// worth crashing over — parametric design produces non-positive intermediate values easily — so a resize
-/// asked for an impossible size resolves to empty geometry, the way the primitives do.
-internal func resizeTargetsAreValid(_ targets: (name: String, value: Double)...) -> Bool {
-    var valid = true
-    for target in targets where !(target.value > 0) {
-        logger.warning("""
-            Resize target \(target.name) must be greater than zero, but was \(target.value). \
-            The resized geometry is empty.
-            """)
-        valid = false
-    }
-    return valid
-}
-
 public extension Geometry2D {
     private func resized(
         _ alignment: GeometryAlignment2D,
@@ -70,7 +70,7 @@ public extension Geometry2D {
             // here, after that check. Without this one, a calculator returning zero collapses the
             // geometry into exactly the zero-volume mesh the other overloads now refuse to make.
             let target = calculator(box.size)
-            if resizeTargetsAreValid(("x", target.x), ("y", target.y)) {
+            if ResizeBehavior.targetsAreValid(("x", target.x), ("y", target.y)) {
                 let translation = box.translation(for: alignment)
                 geometry
                     .translated(translation)
@@ -93,7 +93,7 @@ public extension Geometry2D {
 
     @GeometryBuilder2D
     func resized(x: Double, y: Double, alignment: GeometryAlignment2D...) -> any Geometry2D {
-        if resizeTargetsAreValid(("x", x), ("y", y)) {
+        if ResizeBehavior.targetsAreValid(("x", x), ("y", y)) {
             resized(alignment.merged.defaultingToOrigin()) { _ in [x, y] }
         }
     }
@@ -111,7 +111,7 @@ public extension Geometry2D {
 
     @GeometryBuilder2D
     func resized(x: Double, y: ResizeBehavior = .fixed, alignment: GeometryAlignment2D...) -> any Geometry2D {
-        if resizeTargetsAreValid(("x", x)) {
+        if ResizeBehavior.targetsAreValid(("x", x)) {
             resized(alignment.merged.defaultingToOrigin()) { currentSize in
                 Vector2D(x, y.value(current: currentSize.y, from: currentSize.x, to: x))
             }
@@ -131,7 +131,7 @@ public extension Geometry2D {
 
     @GeometryBuilder2D
     func resized(x: ResizeBehavior = .fixed, y: Double, alignment: GeometryAlignment2D...) -> any Geometry2D {
-        if resizeTargetsAreValid(("y", y)) {
+        if ResizeBehavior.targetsAreValid(("y", y)) {
             resized(alignment.merged.defaultingToOrigin()) { currentSize in
                 Vector2D(x.value(current: currentSize.x, from: currentSize.y, to: y), y)
             }
