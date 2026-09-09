@@ -68,7 +68,7 @@ public extension Geometry2D {
         }
 
         return measuringBounds { _, bounds in
-            @Environment(\.scaledSegmentation) var segmentation
+            @Environment(\.segmentation) var segmentation
             let revolutions = height / pitch
             let outerRadius = bounds.maximum.x
             let lengthPerRev = outerRadius * 2 * .pi

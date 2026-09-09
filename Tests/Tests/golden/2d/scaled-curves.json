@@ -1,4 +1,28 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "area" : 7.858922550671597,
+      "boundingBox" : {
+        "maximum" : [
+          9.25,
+          1.248395636677742
+        ],
+        "minimum" : [
+          -0.7963775396347046,
+          -1.248395636677742
+        ]
+      },
+      "centroid" : [
+        5.464172914711325,
+        0.05772644574156919
+      ],
+      "isEmpty" : false
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",
@@ -26,35 +50,6 @@
             [
               0,
               5,
-              0
-            ],
-            [
-              0,
-              0,
-              1
-            ]
-          ]
-        },
-        {
-          "body" : {
-            "kind" : "shape2D",
-            "primitive" : {
-              "circle" : {
-                "radius" : 0.2,
-                "segmentCount" : 33
-              }
-            }
-          },
-          "kind" : "transform",
-          "transform" : [
-            [
-              4,
-              0,
-              0
-            ],
-            [
-              0,
-              4,
               0
             ],
             [
@@ -182,6 +177,35 @@
             [
               0,
               3,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "kind" : "shape2D",
+            "primitive" : {
+              "circle" : {
+                "radius" : 0.2,
+                "segmentCount" : 33
+              }
+            }
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              4,
+              0,
+              0
+            ],
+            [
+              0,
+              4,
               0
             ],
             [

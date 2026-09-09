@@ -96,7 +96,7 @@ internal extension Geometry {
         let function = falloff?.function
 
         return measuringBounds { geometry, bounds in
-            @Environment(\.scaledSegmentation) var segmentation
+            @Environment(\.segmentation) var segmentation
 
             // A warp only relocates the vertices a mesh already has, so the surface has to be dense
             // enough to follow the attraction before it happens. The deformation varies over the

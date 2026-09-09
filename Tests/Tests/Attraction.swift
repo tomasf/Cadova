@@ -129,7 +129,7 @@ struct AttractionTests {
         // Moving only the eight corners leaves a box, whose volume equals its bounding box's.
         // A surface that actually follows the pull is drawn in between them, so it must enclose
         // distinctly less.
-        #expect(measurements.volume < boundingBoxVolume * 0.8)
+        #expect(await measurements.volume < boundingBoxVolume * 0.8)
     }
 
     @Test func `pulling deforms the edges of a rectangle and not only its corners`() async throws {
@@ -140,7 +140,7 @@ struct AttractionTests {
         let boundingBox = try #require(measurements.boundingBox)
         let boundingBoxArea = boundingBox.size.reduce(1, *)
 
-        #expect(measurements.area < boundingBoxArea * 0.9)
+        #expect(await measurements.area < boundingBoxArea * 0.9)
     }
 
     @Test func `attraction reaches faces even when the influence radius excludes the corners`() async throws {
@@ -152,6 +152,6 @@ struct AttractionTests {
             .attracted(toward: .zero, influenceRadius: 6, maxMovement: 2, falloff: nil)
             .measurements
 
-        #expect(measurements.volume < 990)
+        #expect(await measurements.volume < 990)
     }
 }

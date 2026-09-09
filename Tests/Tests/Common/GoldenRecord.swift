@@ -124,13 +124,13 @@ struct RealizedMeasurements: Sendable, Hashable, Codable {
         }
 
         if let measurements = measurements as? Measurements2D {
-            centroid = measurements.centroid.map { Array($0) }
-            area = measurements.area
+            centroid = await measurements.centroid.map { Array($0) }
+            area = await measurements.area
             volume = nil
         } else if let measurements = measurements as? Measurements3D {
-            centroid = measurements.centroid.map { Array($0) }
+            centroid = await measurements.centroid.map { Array($0) }
             area = nil
-            volume = measurements.volume
+            volume = await measurements.volume
         } else {
             fatalError("Invalid geometry type")
         }

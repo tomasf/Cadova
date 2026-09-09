@@ -273,8 +273,12 @@ struct LoftSubdivisionTests {
         let actual = try await geometry.measurements
         let reference = try await geometry.withSegmentation(referenceSegmentation).measurements
 
-        let volumeError = abs(actual.volume - reference.volume) / reference.volume
-        let areaError = abs(actual.surfaceArea - reference.surfaceArea) / reference.surfaceArea
+        let actualVolume = await actual.volume
+        let referenceVolume = await reference.volume
+        let actualSurfaceArea = await actual.surfaceArea
+        let referenceSurfaceArea = await reference.surfaceArea
+        let volumeError = abs(actualVolume - referenceVolume) / referenceVolume
+        let areaError = abs(actualSurfaceArea - referenceSurfaceArea) / referenceSurfaceArea
         #expect(volumeError < volumeTolerance, "relative volume error \(volumeError)", sourceLocation: sourceLocation)
         #expect(areaError < areaTolerance, "relative surface area error \(areaError)", sourceLocation: sourceLocation)
 
@@ -297,7 +301,8 @@ struct LoftSubdivisionTests {
         // so the mesh sits very slightly inside the analytic solid.
         let analyticVolume = .pi * height
             * (bottomRadius * bottomRadius + bottomRadius * topRadius + topRadius * topRadius) / 3
-        #expect(abs(m.volume - analyticVolume) / analyticVolume < 1e-3)
+        let volume = await m.volume
+        #expect(abs(volume - analyticVolume) / analyticVolume < 1e-3)
 
         try await Self.expectMatchesFineReference(loft, volumeTolerance: 1e-3, areaTolerance: 1e-3)
     }
@@ -369,7 +374,8 @@ struct LoftSubdivisionTests {
         // A twisted prism of constant cross-section keeps its untwisted volume when the twist is
         // followed rather than cut across.
         let m = try await loft.measurements
-        #expect(m.volume.equals(1600, within: 1))
+        let volume = await m.volume
+        #expect(volume.equals(1600, within: 1))
 
         try await Self.expectMatchesFineReference(loft, volumeTolerance: 2e-3, areaTolerance: 3e-3, boundsTolerance: 0.1)
     }
@@ -448,7 +454,9 @@ struct LoftSubdivisionTests {
         // removes almost exactly as much material as it adds and comes out within 0.06% of the cone
         // either way. That is a property of the shape, not evidence about the mesh, and a volume
         // check here would be a check that passes for the wrong reason.
-        let areaRatio = rippledMeasurements.surfaceArea / straightMeasurements.surfaceArea
+        let rippledSurfaceArea = await rippledMeasurements.surfaceArea
+        let straightSurfaceArea = await straightMeasurements.surfaceArea
+        let areaRatio = rippledSurfaceArea / straightSurfaceArea
         #expect(areaRatio > 1.05, "rippled surface area was \(areaRatio) times the cone's")
 
         // The cone simplifies to 716 triangles and the ripples cannot: measured at 173698 against 716.
