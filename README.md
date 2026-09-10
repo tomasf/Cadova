@@ -45,6 +45,34 @@ Cadova uses [Manifold-Swift](https://github.com/tomasf/manifold-swift), [Apus](h
 
 Cadova is currently in pre-release, with a version number below 1.0. The API is still evolving, but stability is maintained within each minor version — so `upToNextMinor(from:)` is recommended for your dependency. You're very welcome to start using Cadova today, and feedback is appreciated!
 
+## Prebuilt binary on macOS
+
+On macOS, Cadova resolves to a prebuilt XCFramework instead of building from source. Nothing in your manifest changes; you depend on Cadova exactly as shown above and get the binary automatically. It removes Cadova and its nine C and C++ targets from your build, and because the binary is always an optimized release build, your models run at release speed even while you build in debug.
+
+Measured on a boolean-heavy model, building it clean and running it once:
+
+| | From source | From the binary |
+| --- | --- | --- |
+| Clean debug build, wall clock | 75 s | 35 s |
+| Clean debug build, CPU time | 271 s | 27 s |
+| Running the model from a debug build | 1.63 s | 0.27 s |
+
+The CPU figure is the one to watch on a laptop or a CI runner with few cores, where wall clock follows CPU time far more closely than on a many-core machine. Heavier models gain more at run time than the 6x above. The download is about 10 MB.
+
+Linux and Windows build from source, as before.
+
+The XCFramework carries its own copies of Manifold, ThreeMF, Nodal, Zip, Apus and Pelagos, but keeps them private, so you can still depend on any of those packages yourself and get your own copy. The one module it shares with you is `Manifold3D`, because Cadova's own API is written in terms of it: `import Manifold3D` works without declaring `manifold-swift`, and declaring it anyway gives you two copies of the same module.
+
+To build from source on macOS too, set `CADOVA_BUILD_FROM_SOURCE=1` in the environment when you build. Cadova's own checkout always builds from source, so working on Cadova itself needs no extra setup.
+
+To produce the artifact yourself:
+
+```bash
+Scripts/build-xcframework.sh
+Scripts/verify-xcframework.sh .build/xcframework/Cadova.xcframework
+Scripts/verify-manifest-selection.sh .build/xcframework/Cadova.xcframework
+```
+
 ## Contributions
 Contributions are welcome! If you have ideas, suggestions, or improvements, feel free to open an issue or submit a pull request. You’re also welcome to browse the [open GitHub issues](https://github.com/tomasf/Cadova/issues) and pick one to work on — especially those marked as good first issues or help wanted.
 
