@@ -192,6 +192,8 @@ internal final class ShapeExtractionRenderer: SVGRenderer {
         case .start: .left
         case .middle: .center
         case .end: .right
+        // SVG's initial value for text-anchor
+        @unknown default: .left
         }
 
         let position = transformPoint(x: text.x, y: text.y)
