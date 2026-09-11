@@ -93,10 +93,15 @@ stage_module_files() {
 # a boolean-heavy model: 0.220 s median without it against 0.224 s with it, over five runs each,
 # with the two ranges overlapping. Cadova's hot path is Manifold's C++, which resilience does not
 # touch, so the difference is not worth a more complicated build.
+#
+# The native build system is pinned because everything below reads its output layout. From Swift
+# 6.4 `swift build` defaults to Swift Build, which writes elsewhere, so this script would silently
+# package whatever an earlier native build left behind.
 for triple in "${triples[@]}"; do
     echo "==> Building Cadova for $triple"
     # Cadova's own manifest must not pull in the binary it is about to produce.
     CADOVA_BUILD_FROM_SOURCE=1 swift build \
+        --build-system native \
         --package-path "$package_root" \
         --scratch-path "$scratch_path" \
         --configuration release \
@@ -144,11 +149,14 @@ print("    commit %s (%s tree)" % (info["commit"], info["workingTree"]))
 ' "$staging_dir/Headers/cadova-build-info.json"
 
 stage_module_files "MODULE.build" swiftinterface
+# The private interface is the public one plus @_spi declarations. A client compiling from
+# interfaces picks it up automatically, and without it that client cannot use any SPI.
+stage_module_files "MODULE.build" private.swiftinterface
 
-# Repairs a Swift interface printer bug and, either way, proves that every exported interface
-# type-checks the way a client importing it would. See the script for details. This runs before
-# the binary modules are staged, so it exercises the interface-only path that a client on a
-# different Swift version falls back to.
+# Repairs a Swift interface printer bug and, either way, proves that every exported interface,
+# public and private, type-checks the way a client importing it would. See the script for
+# details. This runs before the binary modules are staged, so it exercises the interface-only
+# path that a client on a different Swift version falls back to.
 module_arguments=()
 for module in $modules; do
     module_arguments+=(--module "$module")
@@ -214,6 +222,16 @@ xcodebuild -create-xcframework \
     -library "$staging_dir/libCadova.a" \
     -headers "$staging_dir/Headers" \
     -output "$xcframework"
+
+# xcodebuild copies Headers without the binary .swiftmodule files, so the module bundles are put
+# back afterwards. Each also goes next to the library: the native build system finds Swift modules
+# in Headers, but Swift Build (Xcode, and `swift build` from Swift 6.4) copies Headers somewhere
+# only clang searches, and picks up modules only from beside the library.
+slice=$(dirname "$(find "$xcframework" -name libCadova.a -print -quit)")
+for module in $modules; do
+    ditto "$staging_dir/Headers/$module.swiftmodule" "$slice/Headers/$module.swiftmodule"
+    ditto "$staging_dir/Headers/$module.swiftmodule" "$slice/$module.swiftmodule"
+done
 
 echo "==> Creating $xcframework.zip"
 ditto -c -k --keepParent "$xcframework" "$xcframework.zip"
