@@ -46,6 +46,8 @@ let package = Package(
 )
 ```
 
+> Note: On macOS this resolves to a prebuilt XCFramework rather than building Cadova from source, which roughly halves the first build and cuts the CPU work it costs by about ten times. The binary is an optimized release build, so your models also run at release speed in a debug build, several times faster than a debug Cadova. Linux and Windows build from source. To build from source on macOS as well, set `CADOVA_BUILD_FROM_SOURCE=1` in the environment.
+
 ## 4. Use Cadova
 
 Edit `main.swift`:

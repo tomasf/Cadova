@@ -1,0 +1,166 @@
+name: xcframework
+
+# Builds the macOS XCFramework and proves that a package can consume it.
+#
+# On a push or pull request this is a check only. Run the workflow manually with a version to
+# publish: it uploads the artifact to a GitHub release and records that release's checksum in
+# Package.swift.
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, for example 0.11.0. Leave empty to only build and verify."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xcframework-${{ github.ref }}
+  # A release run must not be cancelled part-way through publishing.
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
+jobs:
+  build:
+    runs-on: macos-26
+
+    outputs:
+      checksum: ${{ steps.checksum.outputs.checksum }}
+
+    steps:
+    - uses: SwiftyLab/setup-swift@latest
+      with:
+        swift-version: '6.3.2'
+    - uses: actions/checkout@v4
+
+    - name: Build the XCFramework
+      run: Scripts/build-xcframework.sh --output .build/xcframework
+
+    - name: Verify the XCFramework
+      run: Scripts/verify-xcframework.sh .build/xcframework/Cadova.xcframework
+
+    - name: Verify that the manifest selects the XCFramework
+      run: Scripts/verify-manifest-selection.sh .build/xcframework/Cadova.xcframework
+
+    # Computed here, where Swift is installed, so the publish job needs no toolchain.
+    - id: checksum
+      run: |
+        set -euo pipefail
+        checksum=$(swift package compute-checksum .build/xcframework/Cadova.xcframework.zip)
+        echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: Cadova.xcframework
+        path: .build/xcframework/Cadova.xcframework.zip
+        retention-days: 7
+
+  # The textual interfaces exist for people whose Swift differs from the one that built the
+  # artifact. The build job already compiles them in isolation, but only this consumes the
+  # artifact on a toolchain it was not built with, which is the situation they are for.
+  other-toolchain:
+    needs: build
+    runs-on: macos-26
+
+    steps:
+    - uses: SwiftyLab/setup-swift@latest
+      with:
+        swift-version: 'latest'
+    - uses: actions/checkout@v4
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: Cadova.xcframework
+        path: artifact
+
+    - name: Unpack the XCFramework
+      run: unzip -q artifact/Cadova.xcframework.zip -d artifact
+
+    - name: Report the toolchain in use
+      run: swift --version
+
+    - name: Verify the XCFramework
+      run: Scripts/verify-xcframework.sh artifact/Cadova.xcframework
+
+  publish:
+    needs: [build, other-toolchain]
+    if: github.event_name == 'workflow_dispatch' && inputs.version != ''
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: Cadova.xcframework
+        path: artifact
+
+    - name: Publish the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ inputs.version }}
+        CHECKSUM: ${{ needs.build.outputs.checksum }}
+      run: |
+        set -euo pipefail
+
+        if [[ "$GITHUB_REF_TYPE" != "branch" ]]; then
+          echo "error: run this workflow from a branch, not from $GITHUB_REF_TYPE $GITHUB_REF_NAME" >&2
+          exit 1
+        fi
+        # The version is interpolated into Package.swift below, so it has to be a plain version.
+        if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "error: '$VERSION' is not a version of the form 1.2.3" >&2
+          exit 1
+        fi
+        if [[ ! "$CHECKSUM" =~ ^[0-9a-f]{64}$ ]]; then
+          echo "error: '$CHECKSUM' is not a SHA-256 checksum" >&2
+          exit 1
+        fi
+
+        # The tag has to carry the checksum, so the commit is made and pushed first. The release
+        # creates the tag and uploads the artifact together, so a failure before that point
+        # leaves an ordinary commit on the branch and nothing referring to a missing download.
+        sed -i \
+          -e "s|^let binaryRelease = \".*\"$|let binaryRelease = \"$VERSION\"|" \
+          -e "s|^let binaryChecksum = \".*\"$|let binaryChecksum = \"$CHECKSUM\"|" \
+          Package.swift
+        if git diff --quiet Package.swift; then
+          echo "error: Package.swift was not updated; check the binaryRelease and binaryChecksum lines" >&2
+          exit 1
+        fi
+
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add Package.swift
+        git commit -m "Record the Cadova $VERSION XCFramework in Package.swift"
+        git push origin "HEAD:$GITHUB_REF_NAME"
+
+        gh release create "$VERSION" \
+          --target "$(git rev-parse HEAD)" \
+          --title "Cadova $VERSION" \
+          --generate-notes \
+          artifact/Cadova.xcframework.zip
+
+  # Downloading from the release URL and checking the recorded checksum is the one path that
+  # cannot be tried before the release exists, and the one whose failure blocks every macOS user.
+  verify-release:
+    needs: publish
+    runs-on: macos-26
+
+    steps:
+    - uses: SwiftyLab/setup-swift@latest
+      with:
+        swift-version: '6.3.2'
+    - uses: actions/checkout@v4
+
+    - name: Consume the published release as a new user would
+      run: Scripts/verify-published-release.sh "${{ inputs.version }}" "${{ github.server_url }}/${{ github.repository }}.git"

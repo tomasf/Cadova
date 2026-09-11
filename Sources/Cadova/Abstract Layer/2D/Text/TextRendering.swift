@@ -203,6 +203,9 @@ fileprivate extension Apus.Path {
             case .close:
                 // Close is implicit in BezierPath - just continue with current path
                 break
+
+            @unknown default:
+                preconditionFailure("Unsupported glyph path element: \(element)")
             }
         }
 
