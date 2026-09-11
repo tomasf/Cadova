@@ -8,6 +8,9 @@ internal extension FillRule {
             self = .nonZero
         case .evenodd:
             self = .evenOdd
+        @unknown default:
+            // SVG's initial value for fill-rule
+            self = .nonZero
         }
     }
 }
@@ -21,6 +24,9 @@ internal extension LineJoinStyle {
             self = .round
         case .bevel:
             self = .bevel
+        @unknown default:
+            // SVG's initial value for stroke-linejoin
+            self = .miter
         }
     }
 }
@@ -34,6 +40,9 @@ internal extension LineCapStyle {
             self = .round
         case .square:
             self = .square
+        @unknown default:
+            // SVG's initial value for stroke-linecap
+            self = .butt
         }
     }
 }

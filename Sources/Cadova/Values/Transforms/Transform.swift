@@ -35,6 +35,19 @@ public protocol Transform: Sendable, Hashable, Codable, Transformable where T ==
 }
 
 public extension Transform {
+    /// A single scalar summarizing how much this transform scales its coordinate system.
+    ///
+    /// This is the smallest of the per-axis scales in ``scale``, which makes it a conservative
+    /// choice for adapting tolerances and thresholds. Unlike going through ``transform3D``, this
+    /// only considers the axes the transform actually has, so a `Transform2D` reports the scale of
+    /// its X and Y axes rather than being diluted by an implicit unit Z axis.
+    ///
+    /// For the identity transform, this is `1.0`.
+    ///
+    var scaleFactor: Double {
+        scale.min() ?? 1
+    }
+
     /// A 2D array representing the values of the affine transformation.
     var values: [[Double]] {
         (0..<Self.size.rows).map { row in

@@ -46,13 +46,8 @@ extension GeometryNode {
             return Self(.boolean(children, type: type))
 
         case .union:
-            // Flatten unions, then put the members in a canonical order so that the same set of
-            // children always produces the same node. The order comes from each child's stable
-            // digest, which is the same number in every process — sorting by `hashValue` here is
-            // what used to make a model export a different mesh on every run.
-            children = children
-                .flatMap { $0.unionChildren ?? [$0] }
-                .sorted { $0.digest < $1.digest }
+            // Flatten unions
+            children = Self.canonicalUnionOrder(children.flatMap { $0.unionChildren ?? [$0] })
         }
 
         let filteredChildren = children.filter { !$0.isEmpty }
@@ -63,6 +58,17 @@ extension GeometryNode {
         } else {
             return Self(.boolean(filteredChildren, type: type))
         }
+    }
+
+    /// The canonical order for a union's members: largest subtree first, with each child's stable
+    /// digest breaking ties.
+    ///
+    /// Ordering by subtree size rather than by digest alone means the primary key reflects how much
+    /// work a member represents, which Manifold is sensitive to. The tiebreak has to be stable
+    /// rather than `hashValue` — which Swift seeds per process — or two children with equal subtree
+    /// size would still land in a different order in every run.
+    static func canonicalUnionOrder(_ children: [D.Node]) -> [D.Node] {
+        children.sorted { ($0.subtreeSize, $0.digest) > ($1.subtreeSize, $1.digest) }
     }
 
     static func convexHull(_ body: D.Node) -> GeometryNode {

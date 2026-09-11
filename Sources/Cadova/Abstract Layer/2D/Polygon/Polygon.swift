@@ -43,7 +43,7 @@ public struct Polygon: Geometry2D {
 
     public var body: any Geometry2D {
         @Environment(\.fillRule) var fillRule
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         CachedNode(name: "Cadova.Polygon", parameters: pointsProvider, fillRule, segmentation) { context in
             let polygonList = SimplePolygonList([SimplePolygon(points(with: segmentation))])
             return .shape(.polygons(polygonList, fillRule: fillRule))

@@ -98,15 +98,13 @@ public func Project(
     let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: []) }
     let buildables: [any ModelBuildable] = groups + filteredModels
     let finalOptions = combinedOptions
-    let urls = await buildables.asyncMap {
+    _ = await buildables.asyncMap {
         await $0.build(environment: constantEnvironment, context: context, options: finalOptions, URL: url, filterPath: [])
-    }.joined()
-
-    try? Platform.revealFiles(Array(urls))
+    }
 }
 
 public func Project(
-    root: String? = nil,
+    root: String?,
     options: ModelOptions...,
     @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
 ) async {
@@ -119,9 +117,9 @@ public func Project(
 
 /// Creates a project with the output directory relative to the Swift package root.
 ///
-/// This convenience initializer derives the package root from the source file path by finding
-/// the `Sources` directory and using its parent. The output directory is then created at
-/// `<package-root>/<packageRelative>`.
+/// This convenience initializer derives the package root from the source file path by walking up
+/// to the nearest ancestor directory containing a `Package.swift` manifest. The output directory
+/// is then created at `<package-root>/<packageRelative>`.
 ///
 /// - Parameters:
 ///   - root: The path relative to the package root where models will be saved.
@@ -152,6 +150,35 @@ public func Project(
 
     await Project(
         root: outputURL,
+        options: .init(options),
+        content: content
+    )
+}
+
+/// Creates a project with the output directory at `Models`, relative to the Swift package root.
+///
+/// This is a convenience for the common case of `Project(packageRelative: "Models")`. See that
+/// initializer for details on how the package root is derived.
+///
+/// ### Example
+/// ```swift
+/// await Project {
+///     await Model("example") {
+///         Box(10)
+///     }
+/// }
+/// ```
+///
+/// This will save models to `<package-root>/Models/`.
+///
+public func Project(
+    sourceFile: String = #filePath,
+    options: ModelOptions...,
+    @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
+) async {
+    await Project(
+        packageRelative: "Models",
+        sourceFile: sourceFile,
         options: .init(options),
         content: content
     )

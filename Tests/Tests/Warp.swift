@@ -130,7 +130,8 @@ struct WarpTests {
         // The side shrinks linearly from 10 at z=0 to 5 at z=10:
         // V = ∫₀¹⁰ (10·(1 - 0.05z))² dz = 2000·(1 - 0.5³)/3.
         let expectedVolume = 2000.0 * (1 - 0.125) / 3
-        #expect(measurements.volume.equals(expectedVolume, within: 0.01))
+        let volume = await measurements.volume
+        #expect(volume.equals(expectedVolume, within: 0.01))
         #expect(measurements.boundingBox ≈ .init(minimum: .zero, maximum: [10, 10, 10]))
     }
 

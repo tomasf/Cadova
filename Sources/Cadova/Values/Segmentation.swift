@@ -16,6 +16,9 @@ public enum Segmentation: Sendable, Hashable, Codable {
     /// This option dynamically adjusts the number of segments depending on the size and curvature
     /// of the geometry. It aims to balance detail and performance.
     ///
+    /// `minSize` is a length, and is measured in the coordinate system where the segmentation is set. Scaling
+    /// geometry after the fact scales the segmentation with it, leaving the shape of the result unchanged.
+    ///
     /// - Parameters:
     ///   - minAngle: The minimum angle per segment.
     ///   - minSize: The minimum segment length.
@@ -78,5 +81,53 @@ public enum Segmentation: Sendable, Hashable, Codable {
         case .adaptive(_, let minSize):
             return Int(ceil(max(length / minSize, 5)))
         }
+    }
+}
+
+internal extension Segmentation {
+    /// The surface deviation this segmentation already accepts everywhere else, used as the budget
+    /// for deciding whether a loft needs another ring.
+    ///
+    /// Adaptive segmentation states two limits on a *chord*: `minSize` is the shortest chord worth
+    /// emitting, and `minAngle` the smallest turn worth resolving. Both bind at once on a circle of
+    /// radius `r = minSize / (2·sin(minAngle/2))`, and the sagitta there — the gap between the chord
+    /// and the arc it stands in for — is
+    ///
+    ///     s = r · (1 − cos(minAngle / 2)) = minSize · tan(minAngle / 4) / 2
+    ///
+    /// The radius cancels out, leaving the one error budget the two limits agree on. Spending that
+    /// same budget along the path makes a ring inserted between two sections worth exactly what a
+    /// vertex inserted around a ring is worth, so a loft's surface ends up neither coarser nor finer
+    /// than the circles it interpolates. With the defaults (2°, 0.15 mm) it comes to 0.65 µm.
+    ///
+    /// `\.tolerance` deliberately plays no part in this. That value is a fit clearance between mating
+    /// parts, orders of magnitude larger than a tessellation error; spending it here would let the
+    /// surface wander by the whole gap it exists to guarantee.
+    static func surfaceDeviation(minAngle: Angle, minSize: Double) -> Double {
+        minSize * tan(minAngle / 4) / 2
+    }
+
+    /// How many points to probe when looking for the place a loft's surface departs furthest from a
+    /// straight band, over a stretch of path `pathLength` long that the path itself sampled at
+    /// `pathSampleCount` points.
+    ///
+    /// This is a detection resolution, not an output resolution, so it is deliberately finer than
+    /// anything that gets built. The count comes from the two things that already bound how fine the
+    /// output can be. `segmentCount(length:)` is the most bands this segmentation would ever emit
+    /// over that length, and the path's own sample count is how finely the path was resolved, which
+    /// on a tight curve is the denser of the two. A feature narrower than the shorter of those two
+    /// spacings cannot be drawn, so probing finer than that can never change the mesh.
+    ///
+    /// The factor of four is headroom. Two samples per feature is the bare minimum to see a feature
+    /// at all, and four keeps detection comfortably away from being the limit, so the thing that
+    /// bounds accuracy stays the segmentation rather than the search.
+    ///
+    /// Probing is scalar arithmetic and costs nothing next to building a ring, so the only reason to
+    /// bound the count at all is to keep a very long path from paying for samples it cannot use. At
+    /// the cap the probe still matches `minSize` exactly on a path of about two and a half metres,
+    /// and only drops below four times oversampling beyond that.
+    func deviationProbeCount(pathLength: Double, pathSampleCount: Int) -> Int {
+        let byLength = segmentCount(length: pathLength)
+        return min(4 * max(byLength, pathSampleCount), 65536)
     }
 }

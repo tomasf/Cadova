@@ -16,11 +16,11 @@ await Model("pie") {
 }
 ```
 
-This writes a 2D or 3D model to disk. The string `pie` is used to name the model file: If the name is a simple string (no path), the file is written to the current working directory. If it's a full path or URL, the model is saved there.
+This writes a 2D or 3D model to disk. The string `pie` is used to name the model file: the file is saved to `Models/pie.3mf`, relative to your package root. In Xcode, files placed this way also show up directly in the project navigator, making them easy to find and open.
 
 ## Using Projects
 
-Even for a single model, it's usually worth wrapping it in a `Project` using `packageRelative`:
+`Project` groups multiple models together so they share output settings and environment values:
 
 ```swift
 await Project(packageRelative: "Models") {
@@ -31,12 +31,13 @@ await Project(packageRelative: "Models") {
                     .aligned(at: .top, .right)
             }
     }
+    await Model("cake") {
+        Circle(diameter: 20)
+    }
 }
 ```
 
-This saves output to `Models/pie.3mf`, relative to your package root — regardless of the current working directory the program happens to be run from (Xcode and the terminal often differ here). In Xcode, files placed this way also show up directly in the project navigator, making them easy to find and open. Plain `Model("pie") { ... }` writes to the current working directory instead, which is fine for a quick one-off test but not something to rely on otherwise.
-
-Once a project holds more than one model, you get further benefits:
+Once a project holds more than one model, you get benefits beyond what a plain `Model` gives you:
 
 - Models are evaluated in parallel, speeding up builds.
 - You can apply default *environment values* to all models by using Environment directives in the project builder.

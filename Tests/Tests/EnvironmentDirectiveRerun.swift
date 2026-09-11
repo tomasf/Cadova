@@ -24,7 +24,6 @@ struct EnvironmentDirectiveRerunTests {
     private let tempDir: URL
 
     init() throws {
-        Platform.revealingFilesDisabled = true
         tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
     }
@@ -42,7 +41,7 @@ struct EnvironmentDirectiveRerunTests {
             let _ = capturedTolerance.value = tolerance
 
             Box(1.0 + tolerance).measuring { geometry, measurements in
-                let _ = volume.value = measurements.volume
+                let _ = volume.value = await measurements.volume
                 geometry
             }
         }

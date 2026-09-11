@@ -35,8 +35,9 @@ struct SVGImportTests {
         let geometry = Import(svg: Data(svg.utf8), scale: .pixels)
         let measurements = try await geometry.measurements
         let bounds = try await geometry.bounds
+        let area = await measurements.area
 
-        #expect(measurements.area.equals(50, within: 0.05))
+        #expect(area.equals(50, within: 0.05))
         #expect(measurements.contourCount == 1)
         #expect(bounds != nil)
         #expect(bounds!.minimum ≈ [0, 10])

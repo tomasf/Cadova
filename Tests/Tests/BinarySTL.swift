@@ -152,8 +152,12 @@ struct BinarySTLTests {
 
         let imported = try await Import(model: url).measurements
         #expect(imported.triangleCount == expected.triangleCount)
-        #expect(imported.volume ≈ expected.volume)
-        #expect(imported.surfaceArea ≈ expected.surfaceArea)
+        let importedVolume = await imported.volume
+        let expectedVolume = await expected.volume
+        let importedSurfaceArea = await imported.surfaceArea
+        let expectedSurfaceArea = await expected.surfaceArea
+        #expect(importedVolume ≈ expectedVolume)
+        #expect(importedSurfaceArea ≈ expectedSurfaceArea)
         #expect(imported.boundingBox ≈ expected.boundingBox)
     }
 

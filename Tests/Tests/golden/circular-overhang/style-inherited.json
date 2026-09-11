@@ -1,4 +1,31 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "boundingBox" : {
+        "maximum" : [
+          7.5,
+          0,
+          7.5
+        ],
+        "minimum" : [
+          -7.5,
+          -1,
+          -7.5
+        ]
+      },
+      "centroid" : [
+        -0.2087939726541659,
+        -0.4999999999999999,
+        -3.272978720728567e-16
+      ],
+      "isEmpty" : false,
+      "volume" : 141.11084050716235
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",

@@ -7,7 +7,10 @@ internal struct Separate<D: Dimensionality, Output: Dimensionality>: Geometry {
     public func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<Output> {
         let result = try await context.buildResult(for: source, in: environment)
         let partCount = try await context.result(for: .decompose(result.node)).parts.count
-        let parts = (0..<partCount).map { SeparatedPart(body: source, index: $0) }
+        // Each component is built from a stand-in for the source rather than the source itself, so
+        // decomposing into n components costs one build of the source rather than n + 1.
+        let standIn = result.standingIn(for: source, in: environment, context: context)
+        let parts = (0..<partCount).map { SeparatedPart(body: standIn, index: $0) }
         return try await context.buildResult(for: reader(parts), in: environment)
     }
 }

@@ -1,4 +1,56 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "boundingBox" : {
+        "maximum" : [
+          10,
+          20,
+          10
+        ],
+        "minimum" : [
+          0,
+          10,
+          0
+        ]
+      },
+      "centroid" : [
+        4.999999999999999,
+        14.999999999999996,
+        4.999999999999999
+      ],
+      "isEmpty" : false,
+      "volume" : 1000
+    },
+    {
+      "name" : "separate",
+      "semantic" : "solid"
+    },
+    {
+      "boundingBox" : {
+        "maximum" : [
+          2.5,
+          12.5,
+          2.5
+        ],
+        "minimum" : [
+          -2.5,
+          7.5,
+          -2.5
+        ]
+      },
+      "centroid" : [
+        1.3064035282173294e-15,
+        9.999999999999988,
+        -6.795508268118119e-16
+      ],
+      "isEmpty" : false,
+      "volume" : 65.30955987149599
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",

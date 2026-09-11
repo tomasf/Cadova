@@ -92,7 +92,7 @@ struct ShearingTests {
         let sheared = box.sheared(to: Direction3D(x: 0.4, y: 0.25, z: 1))
         let measurements = try await sheared.measurements
 
-        #expect(measurements.volume ≈ 2000)
+        #expect(await measurements.volume ≈ 2000)
         #expect(measurements.boundingBox?.size.z ≈ 20)
         #expect(measurements.boundingBox?.size.x ≈ 18)
         #expect(measurements.boundingBox?.size.y ≈ 15)
@@ -102,7 +102,7 @@ struct ShearingTests {
         let sheared = Rectangle([10, 20]).sheared(to: Direction2D(x: 0.5, y: 1))
         let measurements = try await sheared.measurements
 
-        #expect(measurements.area ≈ 200)
+        #expect(await measurements.area ≈ 200)
         #expect(measurements.boundingBox?.size ≈ [20, 20])
     }
 }

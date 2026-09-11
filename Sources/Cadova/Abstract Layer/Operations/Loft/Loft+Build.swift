@@ -33,7 +33,7 @@ extension Loft {
         let cachedConcrete = CachedConcrete<D3, _>(
             name: "Cadova.Loft",
             parameters: sectionNodes, shapingFunction, path, reference, target,
-            environment.segmentation, environment.scaledSegmentation, environment.maxTwistRate
+            environment.segmentation, environment.maxTwistRate
         ) {
             let sectionTrees = try await sectionNodes.asyncMap {
                 SectionTree(

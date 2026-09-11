@@ -1,4 +1,31 @@
 {
+  "measurements" : [
+    {
+      "name" : "Model",
+      "semantic" : "solid"
+    },
+    {
+      "boundingBox" : {
+        "maximum" : [
+          10,
+          85.54700538379251,
+          28.356409098088548
+        ],
+        "minimum" : [
+          -10,
+          0,
+          0
+        ]
+      },
+      "centroid" : [
+        -1.5711769204035163e-15,
+        51.322575798345405,
+        12.071884252840574
+      ],
+      "isEmpty" : false,
+      "volume" : 12283.859831092086
+    }
+  ],
   "parts" : [
     {
       "name" : "Model",
@@ -6,6 +33,126 @@
     },
     {
       "children" : [
+        {
+          "body" : {
+            "kind" : "shape3D",
+            "primitive" : {
+              "cylinder" : {
+                "bottomRadius" : 10,
+                "height" : 25,
+                "segmentCount" : 180,
+                "topRadius" : 3.301270189221933
+              }
+            }
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              34
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "kind" : "shape3D",
+            "primitive" : {
+              "cylinder" : {
+                "bottomRadius" : 3.25022672948152,
+                "height" : 20,
+                "segmentCount" : 180,
+                "topRadius" : 5
+              }
+            }
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              18
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "body" : {
+            "kind" : "shape3D",
+            "primitive" : {
+              "cylinder" : {
+                "bottomRadius" : 3,
+                "height" : 10,
+                "segmentCount" : 180,
+                "topRadius" : 6
+              }
+            }
+          },
+          "kind" : "transform",
+          "transform" : [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              6
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
         {
           "body" : {
             "kind" : "shape3D",
@@ -71,126 +218,6 @@
               1,
               0,
               54.773502691896255
-            ],
-            [
-              0,
-              0,
-              1,
-              0
-            ],
-            [
-              0,
-              0,
-              0,
-              1
-            ]
-          ]
-        },
-        {
-          "body" : {
-            "kind" : "shape3D",
-            "primitive" : {
-              "cylinder" : {
-                "bottomRadius" : 3,
-                "height" : 10,
-                "segmentCount" : 180,
-                "topRadius" : 6
-              }
-            }
-          },
-          "kind" : "transform",
-          "transform" : [
-            [
-              1,
-              0,
-              0,
-              0
-            ],
-            [
-              0,
-              1,
-              0,
-              6
-            ],
-            [
-              0,
-              0,
-              1,
-              0
-            ],
-            [
-              0,
-              0,
-              0,
-              1
-            ]
-          ]
-        },
-        {
-          "body" : {
-            "kind" : "shape3D",
-            "primitive" : {
-              "cylinder" : {
-                "bottomRadius" : 3.25022672948152,
-                "height" : 20,
-                "segmentCount" : 180,
-                "topRadius" : 5
-              }
-            }
-          },
-          "kind" : "transform",
-          "transform" : [
-            [
-              1,
-              0,
-              0,
-              0
-            ],
-            [
-              0,
-              1,
-              0,
-              18
-            ],
-            [
-              0,
-              0,
-              1,
-              0
-            ],
-            [
-              0,
-              0,
-              0,
-              1
-            ]
-          ]
-        },
-        {
-          "body" : {
-            "kind" : "shape3D",
-            "primitive" : {
-              "cylinder" : {
-                "bottomRadius" : 10,
-                "height" : 25,
-                "segmentCount" : 180,
-                "topRadius" : 3.301270189221933
-              }
-            }
-          },
-          "kind" : "transform",
-          "transform" : [
-            [
-              1,
-              0,
-              0,
-              0
-            ],
-            [
-              0,
-              1,
-              0,
-              34
             ],
             [
               0,

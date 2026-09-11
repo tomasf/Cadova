@@ -124,7 +124,7 @@ private struct EnclosedPatch: Geometry3D {
     let mode: BezierPatch.EnclosureMode
 
     var body: any Geometry3D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         patch.enclosed(to: mode, segmentation: segmentation)
     }
 }

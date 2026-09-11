@@ -6,11 +6,7 @@ import Manifold3D
 internal actor GeometryCache<D: Dimensionality> {
     private var entries: [D.Node: Task<D.Node.Result, any Error>] = [:]
     private var bodyEntries: [AnyCacheKey: Task<BuildResult<D>, any Error>] = [:]
-
-    // Measurements (volume, surface area, centroid, etc.) are read through synchronous properties,
-    // so this side table can't be actor-isolated state like `entries` above; it's guarded by its
-    // own lock instead, letting Measurements share results across instances without `await`.
-    private nonisolated let measurementsCache = LockedBox<[D.Node: CachedMeasurements<D>]>([:])
+    private var measurementsCache: [D.Node: CachedMeasurements<D>] = [:]
 
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
@@ -43,33 +39,69 @@ internal actor GeometryCache<D: Dimensionality> {
         return try await task.value
     }
 
-    nonisolated func cachedMeasurements(for node: D.Node) -> CachedMeasurements<D> {
-        measurementsCache.withValue { $0[node] ?? CachedMeasurements() }
+}
+
+// Memoizes Measurements' expensive derived properties (volume, surface area, centroid,
+// convexity) per node, so repeated measurement of the same geometry is free after the first call.
+// Each accessor below runs entirely within one actor call, so there's no race window between
+// checking the cache and storing a freshly computed value.
+internal extension GeometryCache where D == D2 {
+    func cachedArea(for node: D.Node, compute: () -> Double) -> Double {
+        if let value = measurementsCache[node]?.area { return value }
+        if let value = measurementsCache[node]?.centroidAndWeight?.weight { return value }
+        let value = compute()
+        measurementsCache[node, default: CachedMeasurements()].area = value
+        return value
     }
 
-    nonisolated func updateCachedMeasurements(for node: D.Node, _ update: (inout CachedMeasurements<D>) -> Void) {
-        measurementsCache.withValue { cache in
-            var entry = cache[node] ?? CachedMeasurements()
-            update(&entry)
-            cache[node] = entry
-        }
+    func cachedIsConvex(for node: D.Node, compute: () -> Bool) -> Bool {
+        if let value = measurementsCache[node]?.isConvex { return value }
+        let value = compute()
+        measurementsCache[node, default: CachedMeasurements()].isConvex = value
+        return value
+    }
+
+    // Deriving the centroid also derives area as a byproduct of the same triangulation pass, so
+    // it's stashed into `area` too (unless something else already settled that value first).
+    func cachedCentroidAndWeight(
+        for node: D.Node,
+        compute: () -> (centroid: Vector2D, weight: Double)
+    ) -> (centroid: Vector2D, weight: Double) {
+        if let value = measurementsCache[node]?.centroidAndWeight { return value }
+        let value = compute()
+        measurementsCache[node, default: CachedMeasurements()].centroidAndWeight = value
+        if measurementsCache[node]?.area == nil { measurementsCache[node]?.area = value.weight }
+        return value
     }
 }
 
-// A minimal cross-platform lock-guarded box, used where `Synchronization.Mutex` isn't available
-// (it requires macOS 15+, but Cadova's deployment target is macOS 14).
-private final class LockedBox<Value>: @unchecked Sendable {
-    private let lock = NSLock()
-    private var value: Value
-
-    init(_ value: Value) {
-        self.value = value
+internal extension GeometryCache where D == D3 {
+    func cachedVolume(for node: D.Node, compute: () -> Double) -> Double {
+        if let value = measurementsCache[node]?.volume { return value }
+        if let value = measurementsCache[node]?.centroidAndWeight?.weight { return value }
+        let value = compute()
+        measurementsCache[node, default: CachedMeasurements()].volume = value
+        return value
     }
 
-    func withValue<R>(_ body: (inout Value) -> R) -> R {
-        lock.lock()
-        defer { lock.unlock() }
-        return body(&value)
+    func cachedSurfaceArea(for node: D.Node, compute: () -> Double) -> Double {
+        if let value = measurementsCache[node]?.surfaceArea { return value }
+        let value = compute()
+        measurementsCache[node, default: CachedMeasurements()].surfaceArea = value
+        return value
+    }
+
+    // Deriving the centroid also derives volume as a byproduct of the same mesh traversal, so
+    // it's stashed into `volume` too (unless something else already settled that value first).
+    func cachedCentroidAndWeight(
+        for node: D.Node,
+        compute: () -> (centroid: Vector3D, weight: Double)
+    ) -> (centroid: Vector3D, weight: Double) {
+        if let value = measurementsCache[node]?.centroidAndWeight { return value }
+        let value = compute()
+        measurementsCache[node, default: CachedMeasurements()].centroidAndWeight = value
+        if measurementsCache[node]?.volume == nil { measurementsCache[node]?.volume = value.weight }
+        return value
     }
 }
 

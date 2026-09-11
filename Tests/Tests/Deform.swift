@@ -10,7 +10,8 @@ struct DeformTests {
             })
 
         let m = try await deformation.measurements
-        #expect(m.area ≈ 499.992)
+        let area = await m.area
+        #expect(area ≈ 499.992)
         #expect(m.boundingBox ≈ .init(minimum: [0, -20.8497], maximum: [50, 34.999]))
     }
 
@@ -22,9 +23,11 @@ struct DeformTests {
             .withSegmentation(count: 100)
 
         let m = try await deformation.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        #expect(m.volume ≈ 5999.99)
-        #expect(m.surfaceArea ≈ 5311.03)
+        #expect(volume ≈ 5999.99)
+        #expect(surfaceArea ≈ 5311.03)
         #expect(m.boundingBox ≈ .init(minimum: .zero, maximum: [100, 27.998, 20]))
     }
 }

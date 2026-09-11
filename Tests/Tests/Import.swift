@@ -201,8 +201,12 @@ struct ImportTests {
         // Import and verify measurements match
         let importedMeasurements = try await Import(model: tempURL).measurements
 
-        #expect(importedMeasurements.volume ≈ originalMeasurements.volume)
-        #expect(importedMeasurements.surfaceArea ≈ originalMeasurements.surfaceArea)
+        let importedVolume = await importedMeasurements.volume
+        let originalVolume = await originalMeasurements.volume
+        let importedSurfaceArea = await importedMeasurements.surfaceArea
+        let originalSurfaceArea = await originalMeasurements.surfaceArea
+        #expect(importedVolume ≈ originalVolume)
+        #expect(importedSurfaceArea ≈ originalSurfaceArea)
     }
 
     @Test func `3MF export sets the build's production-extension UUID to the LiveLink buildUUID`() async throws {
@@ -259,8 +263,12 @@ struct ImportTests {
         // Import and verify measurements match
         let importedMeasurements = try await Import(model: tempURL).measurements
 
-        #expect(importedMeasurements.volume ≈ originalMeasurements.volume)
-        #expect(importedMeasurements.surfaceArea ≈ originalMeasurements.surfaceArea)
+        let importedVolume = await importedMeasurements.volume
+        let originalVolume = await originalMeasurements.volume
+        let importedSurfaceArea = await importedMeasurements.surfaceArea
+        let originalSurfaceArea = await originalMeasurements.surfaceArea
+        #expect(importedVolume ≈ originalVolume)
+        #expect(importedSurfaceArea ≈ originalSurfaceArea)
     }
 
     @Test func `STL import with parts throws appropriate error`() async throws {
@@ -344,7 +352,9 @@ struct ImportTests {
         let importedGeometry = Import(svg: tempURL, scale: .pixels)
         let importedMeasurements = try await importedGeometry.measurements
 
-        #expect(importedMeasurements.area ≈ originalMeasurements.area)
+        let importedArea = await importedMeasurements.area
+        let originalArea = await originalMeasurements.area
+        #expect(importedArea ≈ originalArea)
         #expect(importedMeasurements.contourCount == originalMeasurements.contourCount)
         #expect(importedMeasurements.boundingBox!.size ≈ originalMeasurements.boundingBox!.size)
     }

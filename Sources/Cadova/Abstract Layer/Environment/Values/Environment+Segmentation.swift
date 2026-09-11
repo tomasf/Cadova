@@ -1,13 +1,47 @@
 import Foundation
 
+internal extension EnvironmentValues {
+    /// A segmentation setting together with the scale of the coordinate system it was set in.
+    ///
+    /// Storing the scale is what lets ``EnvironmentValues/segmentation`` be re-expressed for each reader, so that an
+    /// adaptive `minSize` keeps meaning the same physical size in the coordinate system where it was written, no
+    /// matter what transforms are applied above or below it.
+    ///
+    struct SegmentationData: Sendable {
+        let segmentation: Segmentation
+        let scale: Double
+
+        static let standard = Self(segmentation: .defaults, scale: 1)
+
+        /// Re-expresses the segmentation in the given environment's coordinate system.
+        func segmentation(in environment: EnvironmentValues) -> Segmentation {
+            switch segmentation {
+            case .fixed:
+                segmentation
+            case .adaptive(let minAngle, let minSize):
+                .adaptive(minAngle: minAngle, minSize: environment.length(minSize, definedAtScale: scale))
+            }
+        }
+    }
+
+    var segmentationData: SegmentationData {
+        self[Self.segmentationKey] as? SegmentationData ?? .standard
+    }
+}
+
 public extension EnvironmentValues {
-    static private let environmentKey = Key("Cadova.Segmentation")
+    static fileprivate let segmentationKey = Key("Cadova.Segmentation")
 
     /// Accesses the current segmentation settings from the environment.
     ///
-    /// If not explicitly set, this defaults to `Segmentation.defaults`.
+    /// Segmentation is expressed in the coordinate system it is set in. Reading it from a coordinate system that has
+    /// been scaled since then returns the equivalent segmentation for that system, so the geometry it produces has the
+    /// same shape either way. Setting it and immediately reading it back always gives you the value you set.
+    ///
+    /// If not explicitly set, this defaults to `Segmentation.defaults`, expressed in world space.
+    ///
     var segmentation: Segmentation {
-        get { self[Self.environmentKey] as? Segmentation ?? .defaults }
+        get { segmentationData.segmentation(in: self) }
         set {
             switch newValue {
             case .adaptive (let minAngle, let minSize):
@@ -15,23 +49,27 @@ public extension EnvironmentValues {
             case .fixed (let count):
                 precondition(count > 0)
             }
-            self[Self.environmentKey] = newValue
+            self[Self.segmentationKey] = SegmentationData(segmentation: newValue, scale: scale)
         }
     }
 
     /// Returns a modified environment with the specified segmentation strategy.
     ///
+    /// The segmentation is interpreted in this environment's current coordinate system.
+    ///
     /// - Parameter segmentation: The `Segmentation` value to apply.
     /// - Returns: A new environment with the updated segmentation configuration.
     func withSegmentation(_ segmentation: Segmentation) -> EnvironmentValues {
-        setting(key: Self.environmentKey, value: segmentation)
+        var environment = self
+        environment.segmentation = segmentation
+        return environment
     }
 
     /// Sets an adaptive segmentation strategy in the environment.
     ///
     /// - Parameters:
     ///   - minAngle: The minimum angle per segment.
-    ///   - minSize: The minimum segment length.
+    ///   - minSize: The minimum segment length, in the current coordinate system.
     mutating func setSegmentation(minAngle: Angle, minSize: Double) {
         segmentation = .adaptive(minAngle: minAngle, minSize: minSize)
     }
@@ -53,6 +91,9 @@ public extension Geometry {
     ///
     /// This method enables dynamic adjustment of segment counts based on both angular resolution
     /// and linear size. It ensures smooth appearance while balancing performance and model size.
+    ///
+    /// `minSize` is expressed in the coordinate system this modifier is applied in. If the geometry is scaled
+    /// further out in the chain, the segmentation scales with it, so the shape of the result is unaffected.
     ///
     /// - Parameters:
     ///   - minAngle: The minimum angular resolution per segment.

@@ -49,7 +49,7 @@ private var referenceTree: GeometryNode<D3> {
         #expect(GeometryNode<D3>.empty.digest.description
                 == "abda8f5b62cf5d47ec2a186782650355")
         #expect(referenceTree.digest.description
-                == "6250bf80b02995b3597292326cab4660")
+                == "ed183b46bc3c7723f014722cf5a4308b")
     }
 
     /// A union's canonical child order comes from the children's digests, so writing the same
@@ -89,7 +89,7 @@ private var referenceTree: GeometryNode<D3> {
         let node = try await context
             .buildResult(for: probeGeometry.withDefaultSegmentation(), in: .defaultEnvironment).node
 
-        #expect(node.digest.description == "e2f376b9e5b35cd448f30085c6507f6e")
+        #expect(node.digest.description == "0940f4efb91c4b709d62d12394e8d3ba")
     }
 
     // MARK: - Digest agrees with equality

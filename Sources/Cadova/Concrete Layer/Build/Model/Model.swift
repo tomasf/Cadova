@@ -1,6 +1,6 @@
 import Foundation
 
-/// A model that will be exported to a file in the current working directory.
+/// A model that will be exported to a file.
 ///
 /// Use `Model` to build geometry and write it to disk in formats like 3MF, STL, or SVG.
 /// The model is created and exported in a single step using an async initializer.
@@ -10,6 +10,9 @@ import Foundation
 ///     Box(x: 10, y: 10, z: 5)
 /// }
 /// ```
+///
+/// Used standalone like this, the model is saved to `Models/my-part.3mf`, relative to the Swift
+/// package root, which is derived from the caller's source file location.
 ///
 /// Models can also be grouped within a `Project` to share environment settings and metadata
 /// across multiple output files.
@@ -22,14 +25,16 @@ public struct Model: Sendable, ModelBuildable {
     private let directives: @Sendable () -> [BuildDirective]
     private let options: ModelOptions
 
-    /// Creates and exports a model to the current working directory based on the provided geometry.
+    /// Creates and exports a model based on the provided geometry.
     ///
     /// Use this initializer to construct and write a 3D or 2D model to disk. The model is
     /// generated from a geometry tree you define using the result builder. Supported output
     /// formats include 3MF, STL, and SVG, and can be customized via `ModelOptions`.
     ///
-    /// The model will be written to a file in the current working directory (unless a full
-    /// path is specified) and revealed in Finder or Explorer if the file did not previously exist.
+    /// When used standalone (not nested inside a `Project`), the model is written to
+    /// `Models/<name>.3mf` relative to the Swift package root, derived from the caller's source
+    /// file location, unless `name` is itself a relative or full path, in which case it's
+    /// resolved against that same package-relative `Models` directory or used as-is.
     ///
     /// In addition to geometry, the model’s result builder also accepts:
     /// - `Metadata(...)`: Attaches metadata (e.g. title, author, license) that is merged into the model’s options.
@@ -49,6 +54,8 @@ public struct Model: Sendable, ModelBuildable {
     /// - Parameters:
     ///   - name: The base filename (without extension) or a relative/full path to where the model should be saved.
     ///   - options: One or more `ModelOptions` used to customize output format, compression, metadata, etc.
+    ///   - sourceFile: The path to the source file. Defaults to `#filePath`, which expands to the caller's file
+    ///     path. Used to derive the package root when the model is created standalone.
     ///   - content: A result builder that builds the model geometry, and may also include `Environment` and `Metadata`.
     ///
     /// ### Examples
@@ -78,6 +85,7 @@ public struct Model: Sendable, ModelBuildable {
     public init(
         _ name: String,
         options: ModelOptions...,
+        sourceFile: String = #filePath,
         @ModelContentBuilder content: @Sendable @escaping () -> [BuildDirective]
     ) async {
         self.name = name
@@ -85,9 +93,12 @@ public struct Model: Sendable, ModelBuildable {
         self.options = .init(options)
 
         if ModelContext.current.isCollectingModels == false {
-            if let url = await build().first {
-                try? Platform.revealFiles([url])
-            }
+            let sourceURL = URL(filePath: sourceFile)
+            let packageRoot = sourceURL.packageRootURL ?? sourceURL.deletingLastPathComponent()
+            let directory = packageRoot.appending(path: "Models", directoryHint: .isDirectory)
+            try? FileManager().createDirectory(at: directory, withIntermediateDirectories: true)
+
+            await build(URL: directory)
         }
     }
 
@@ -97,7 +108,7 @@ public struct Model: Sendable, ModelBuildable {
         options inheritedOptions: ModelOptions? = nil,
         URL directory: URL? = nil,
         filterPath: [String] = []
-    ) async -> [URL] {
+    ) async {
         logger.info("Generating \"\(name)\"...")
 
         var directives = inheritedEnvironment.whileCurrent {
@@ -118,7 +129,7 @@ public struct Model: Sendable, ModelBuildable {
         }
 
         let baseURL: URL
-        if let parent = directory {
+        if let parent = directory, !(name as NSString).isAbsolutePath {
             baseURL = parent.appendingPathComponent(name, isDirectory: false)
         } else {
             baseURL = URL(expandingFilePath: name)
@@ -139,15 +150,14 @@ public struct Model: Sendable, ModelBuildable {
 
         } catch BuildError.noGeometry {
             logger.error("No geometry for model \"\(name)\"")
-            return []
+            return
 
         } catch {
             logger.error("Cadova caught an error while evaluating model \"\(name)\":\n\(error)\n")
-            return []
+            return
         }
 
         let url = baseURL.appendingPathExtension(provider.fileExtension)
-        let fileExisted = FileManager().fileExists(atPath: url.path(percentEncoded: false))
 
         // Shared by every path below — never called more than once per build.
         func write() async {
@@ -172,15 +182,13 @@ public struct Model: Sendable, ModelBuildable {
 
             _ = await pushTask.value
             await writeTask.value
-            return fileExisted ? [] : [url]
+            return
         }
 
         // No listener expected — plain async-let avoids the Task-split overhead above.
         async let liveLinkPush: Bool = provider.pushToLiveLink(destination: url, context: context)
         await write()
         _ = await liveLinkPush
-
-        return fileExisted ? [] : [url]
     }
 }
 

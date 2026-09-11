@@ -8,3 +8,5 @@ xcuserdata/
 /docs-site
 
 /.claude/settings.local.json
+
+__pycache__/

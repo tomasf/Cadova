@@ -51,7 +51,7 @@ private struct ShapeEdgesExplicit: Geometry3D {
     let edges: [FoundEdge]
 
     var body: any Geometry3D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         CachedNodeTransformer<D3, D3>(
             source: source,
             name: "Cadova.ShapeEdges.Explicit",
@@ -59,7 +59,7 @@ private struct ShapeEdgesExplicit: Geometry3D {
         ) { bodyNode, environment, context in
             try await shapedEdgesNode(
                 bodyNode: bodyNode, edges: edges, shape: shape,
-                segmentation: environment.scaledSegmentation, environment: environment, context: context
+                segmentation: environment.segmentation, environment: environment, context: context
             )
         }
     }
@@ -83,7 +83,7 @@ private struct MaskResolvingShapeEdges: Geometry {
     let shape: EdgeShape
 
     func _build(in environment: EnvironmentValues, context: EvaluationContext) async throws -> BuildResult<D3> {
-        let segmentation = environment.scaledSegmentation
+        let segmentation = environment.segmentation
         let bodyResult = try await context.buildResult(for: body, in: environment)
 
         let maskEnvironment = bodyResult.elements[ifPresent: ReferenceState.self].map {

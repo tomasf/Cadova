@@ -25,17 +25,31 @@ public extension Geometry3D {
     /// with its thickness stacked vertically on top of the patch’s surface.
     ///
     func deformed(by patch: BezierPatch) -> any Geometry3D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         return measuringBounds { geometry, bounds in
             let maxLength = max(bounds.size.x, bounds.size.y)
 
-            geometry
-                .refined(maxEdgeLength: maxLength / Double(segmentation.segmentCount(length: maxLength)))
-                .warped(operationName: "Cadova.DeformByPatch", cacheParameters: patch) { point in
-                    let uv = ((point - bounds.minimum) / bounds.size).xy
-                    return patch.point(at: uv) + .z(point.z)
-                }
-                .simplified()
+            // The X/Y footprint is what gets normalized into the patch's UV space. Geometry with no
+            // extent along either of those axes has no footprint to map, and normalizing it would
+            // divide by zero.
+            if bounds.size.x > .ulpOfOne && bounds.size.y > .ulpOfOne {
+                geometry
+                    .refined(maxEdgeLength: maxLength / Double(segmentation.segmentCount(length: maxLength)))
+                    .warped(operationName: "Cadova.DeformByPatch", cacheParameters: patch) { point in
+                        let uv = Vector2D(
+                            (point.x - bounds.minimum.x) / bounds.size.x,
+                            (point.y - bounds.minimum.y) / bounds.size.y
+                        )
+                        return patch.point(at: uv) + .z(point.z)
+                    }
+                    .simplified()
+            } else {
+                logger.warning("""
+                    Cannot deform geometry measuring \(bounds.size) by a patch; it has no extent in X or Y \
+                    to map onto the patch. Leaving it unchanged.
+                    """)
+                geometry
+            }
         }
     }
 }

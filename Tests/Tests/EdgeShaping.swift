@@ -14,7 +14,8 @@ struct EdgeShapingTests {
 
         // Each of the 4 edges loses a 45° right triangle (area 0.5) along its 10 mm length
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(1000 - 4 * 0.5 * 10, within: 0.05))
+        let volume = await measurements.volume
+        #expect(volume.equals(1000 - 4 * 0.5 * 10, within: 0.05))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -25,7 +26,8 @@ struct EdgeShapingTests {
         let result = Box(10).shapingEdges(.chamfer(width: 2.0.squareRoot()), matching: .along(.z))
 
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(1000 - 4 * 0.5 * 10, within: 0.05))
+        let volume = await measurements.volume
+        #expect(volume.equals(1000 - 4 * 0.5 * 10, within: 0.05))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -38,7 +40,8 @@ struct EdgeShapingTests {
         // Each edge loses (r² − πr²/4) per unit length
         let expected = 1000.0 - 4 * (radius * radius - .pi * radius * radius / 4) * 10
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(expected, within: 0.5))
+        let volume = await measurements.volume
+        #expect(volume.equals(expected, within: 0.5))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -51,7 +54,8 @@ struct EdgeShapingTests {
 
         let expected = 1000.0 - 4 * (radius * radius - .pi * radius * radius / 4) * 10
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(expected, within: 0.5))
+        let volume = await measurements.volume
+        #expect(volume.equals(expected, within: 0.5))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -65,7 +69,8 @@ struct EdgeShapingTests {
         // The inside corner gains a cove: (r² − πr²/4) per unit length
         let expected = 750.0 + (radius * radius - .pi * radius * radius / 4) * 10
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(expected, within: 0.1))
+        let volume = await measurements.volume
+        #expect(volume.equals(expected, within: 0.1))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -77,7 +82,8 @@ struct EdgeShapingTests {
 
         // 5 convex vertical edges are cut (−0.5·10 each), 1 concave is filled (+0.5·10)
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(750 - 5 * 5 + 5, within: 0.1))
+        let volume = await measurements.volume
+        #expect(volume.equals(750 - 5 * 5 + 5, within: 0.1))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -93,7 +99,8 @@ struct EdgeShapingTests {
         // Each rim loses a toroidal ring; by Pappus, V ≈ 2π·centroidRadius·area
         let ringCut = 2 * .pi * (radius - depth / 3) * (depth * depth / 2)
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(baseVolume - 2 * ringCut, within: baseVolume * 0.01))
+        let volume = await measurements.volume
+        #expect(volume.equals(baseVolume - 2 * ringCut, within: baseVolume * 0.01))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -106,7 +113,8 @@ struct EdgeShapingTests {
         // includes the flat corner facet): 12 prisms of 5 − 8·(3·⅓ − ¼) = 54
         let expected: Double = 1000 - 54
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(expected, within: 0.05))
+        let volume = await measurements.volume
+        #expect(volume.equals(expected, within: 0.05))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -119,7 +127,8 @@ struct EdgeShapingTests {
 
         // Same as the axis-aligned all-edges chamfer
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(946, within: 0.05))
+        let volume = await measurements.volume
+        #expect(volume.equals(946, within: 0.05))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -137,7 +146,8 @@ struct EdgeShapingTests {
         let result = Box(10).shapingEdges(shape, matching: .along(.z))
 
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(980, within: 0.05))
+        let volume = await measurements.volume
+        #expect(volume.equals(980, within: 0.05))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -152,7 +162,8 @@ struct EdgeShapingTests {
 
         // Only the two vertical edges at x == 0 qualify
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(1000 - 2 * 0.5 * 10, within: 0.05))
+        let volume = await measurements.volume
+        #expect(volume.equals(1000 - 2 * 0.5 * 10, within: 0.05))
     }
 
     @Test func `filleting all box edges produces a rounded box`() async throws {
@@ -165,7 +176,8 @@ struct EdgeShapingTests {
         let quarterCylinders = 12 * (.pi * radius * radius / 4) * 6
         let sphereOctants = 4.0 / 3 * .pi * radius * radius * radius
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(core + slabs + quarterCylinders + sphereOctants, within: 1.0))
+        let volume = await measurements.volume
+        #expect(volume.equals(core + slabs + quarterCylinders + sphereOctants, within: 1.0))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -183,7 +195,8 @@ struct EdgeShapingTests {
         let quarterCylinders = 12 * (.pi * radius * radius / 4) * 6
         let sphereOctants = 4.0 / 3 * .pi * radius * radius * radius
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(core + slabs + quarterCylinders + sphereOctants, within: 1.0))
+        let volume = await measurements.volume
+        #expect(volume.equals(core + slabs + quarterCylinders + sphereOctants, within: 1.0))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -197,7 +210,8 @@ struct EdgeShapingTests {
         // the cut triangle's centroid is inset 1/3 from each side face
         let expected = 1000.0 - 0.5 * 4 * (10 - 2.0 / 3)
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(expected, within: 0.05))
+        let volume = await measurements.volume
+        #expect(volume.equals(expected, within: 0.05))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -212,7 +226,8 @@ struct EdgeShapingTests {
         // 8 prisms of 5, minus the top-corner overlaps: 4 corners × (3·⅓ − ¼)
         let expected: Double = 1000 - (8 * 5 - 4 * 0.75)
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(expected, within: 0.05))
+        let volume = await measurements.volume
+        #expect(volume.equals(expected, within: 0.05))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -231,7 +246,8 @@ struct EdgeShapingTests {
         let cornerFill = pow(radius, 3) - Double.pi * pow(radius, 3) / 6
         let expected = 7000 + coves + cornerFill
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(expected, within: 1.0))
+        let volume = await measurements.volume
+        #expect(volume.equals(expected, within: 1.0))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -244,7 +260,8 @@ struct EdgeShapingTests {
         })
 
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(1000 - 0.5 * 10, within: 0.05))
+        let volume = await measurements.volume
+        #expect(volume.equals(1000 - 0.5 * 10, within: 0.05))
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -293,7 +310,8 @@ struct EdgeShapingTests {
         // The mask must resolve to the (non-empty) tagged cylinder, not an empty placeholder —
         // otherwise the mask admits nothing and the volume is unchanged.
         let measurements = try await result.measurements
-        #expect(measurements.volume < unshaped)
+        let volume = await measurements.volume
+        #expect(volume < unshaped)
 
         let partCount = try await result.partCount
         #expect(partCount == 1)
@@ -352,7 +370,8 @@ struct EdgeShapingTests {
         let result = Sphere(radius: 5).shapingEdges(.chamfer(depth: 1), matching: .all)
         let sphereVolume = try await Sphere(radius: 5).measurements.volume
         let measurements = try await result.measurements
-        #expect(measurements.volume.equals(sphereVolume, within: 1e-6))
+        let volume = await measurements.volume
+        #expect(volume.equals(sphereVolume, within: 1e-6))
     }
 
 }

@@ -13,6 +13,10 @@ import Foundation
         [BuildDirective(payload: .options(ModelOptions(metadata)))]
     }
 
+    public static func buildExpression(_ options: ModelOptions) -> [BuildDirective] {
+        [BuildDirective(payload: .options(options))]
+    }
+
     public static func buildExpression(_ environment: Environment<@Sendable (inout EnvironmentValues) -> ()>) -> [BuildDirective] {
         [BuildDirective(payload: .environment(environment.getter(.init())))]
     }

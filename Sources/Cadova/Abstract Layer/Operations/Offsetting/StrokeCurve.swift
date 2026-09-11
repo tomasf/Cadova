@@ -70,7 +70,7 @@ internal struct StrokeCurve<Curve: ParametricCurve<Vector2D>>: Geometry2D {
     let style: LineJoinStyle
 
     var body: any Geometry2D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         @Environment(\.miterLimit) var miterLimit
         @Environment(\.lineCapStyle) var capStyle
 

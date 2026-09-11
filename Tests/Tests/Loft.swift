@@ -29,9 +29,19 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftThreeLayers")
         let m = try await loft.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        #expect(m.volume ≈ 7853.445)
-        #expect(m.surfaceArea ≈ 3791.824)
+        // Adaptive subdivision places rings by how far the surface would stray without them, so the
+        // exact triangulation — and with it the last digits of volume and area — depends on where
+        // those rings land. Building this same loft under fixed segmentation, which doesn't go
+        // through the adaptive criterion at all, spans 7850.1…7862.0 in volume and 3791.4…3793.9 in
+        // area from 64 to 1024 segments, so the value below is inside that bracket rather than at
+        // its edge. It is bit-identical over three separate processes, so it is pinned at the same
+        // tolerances as the two lofts below rather than loosely: a tolerance wide enough to admit
+        // the value this test carried before the change would not be pinning the change at all.
+        #expect(volume.equals(7853.271, within: 5e-2))
+        #expect(surfaceArea.equals(3792.011, within: 1e-2))
         #expect(m.boundingBox ≈ .init(minimum: [-12.5, -12.5, 0], maximum: [12.5, 12.5, 35]))
     }
 
@@ -53,10 +63,15 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftLayerSpecificShaping")
         let m = try await loft.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        // Manifold simplification produces slightly different floating-point results across platforms.
-        #expect(m.volume.equals(3863.623, within: 3e-2))
-        #expect(m.surfaceArea.equals(1236.890, within: 2e-3))
+        // Manifold simplification produces slightly different floating-point results across platforms,
+        // and adaptive subdivision decides where the rings go, so both are pinned loosely. Fixed
+        // segmentation from 128 to 1024 segments puts this shape at 3864.0…3864.7 in volume and
+        // 1236.9…1237.2 in area.
+        #expect(volume.equals(3864.48, within: 5e-2))
+        #expect(surfaceArea.equals(1237.073, within: 1e-2))
         #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
 
@@ -78,10 +93,15 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftLayerSpecificShapingWithDefault")
         let m = try await loft.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        // Manifold simplification produces slightly different floating-point results across platforms.
-        #expect(m.volume.equals(2732.312, within: 5e-2))
-        #expect(m.surfaceArea.equals(1117.823, within: 1e-2))
+        // Manifold simplification produces slightly different floating-point results across platforms,
+        // and adaptive subdivision decides where the rings go, so both are pinned loosely. Fixed
+        // segmentation from 128 to 1024 segments puts this shape at 2732.4…2733.4 in volume and
+        // 1117.8…1118.4 in area.
+        #expect(volume.equals(2732.606, within: 5e-2))
+        #expect(surfaceArea.equals(1117.979, within: 1e-2))
         #expect(m.boundingBox?.equals(.init(minimum: [-10, -10, 0], maximum: [10, 10, 20]), within: 1e-2) == true)
     }
 
@@ -98,11 +118,13 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftConvexHull")
         let m = try await loft.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
         // The convex hull of a circle at distance 0 and a square at distance 10
         // should produce a solid that's larger than a simple loft
-        #expect(m.volume > 0)
-        #expect(m.surfaceArea > 0)
+        #expect(volume > 0)
+        #expect(surfaceArea > 0)
         #expect(m.boundingBox ≈ .init(minimum: [-10, -10, 0], maximum: [10, 10, 10]))
     }
 
@@ -126,9 +148,11 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftMixedTransitions")
         let m = try await loft.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        #expect(m.volume > 0)
-        #expect(m.surfaceArea > 0)
+        #expect(volume > 0)
+        #expect(surfaceArea > 0)
         // Bounding box should span from the circle at bottom to rectangle at top
         #expect(m.boundingBox ≈ .init(minimum: [-10, -10, 0], maximum: [10, 10, 30]))
     }
@@ -145,9 +169,11 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftLinearTriangles")
         let m = try await loft.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        #expect(m.volume > 0)
-        #expect(m.surfaceArea > 0)
+        #expect(volume > 0)
+        #expect(surfaceArea > 0)
         // With corners preserved, the loft reaches exactly to the outer vertices of the top triangle.
         // Triangle(a:5, b:5, includedGamma:90°) places B at (5√2, 0) and C at (5/√2, 5/√2).
         #expect(m.boundingBox ≈ .init(minimum: [0, 0, 0], maximum: [5 * 2.squareRoot(), 5 / 2.squareRoot(), 30]))
@@ -165,9 +191,11 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftRectangles")
         let m = try await loft.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        #expect(m.volume > 0)
-        #expect(m.surfaceArea > 0)
+        #expect(volume > 0)
+        #expect(surfaceArea > 0)
         // Corners of the top rectangle are at exactly ±5 and ±4
         #expect(m.boundingBox ≈ .init(minimum: [-5, -4, 0], maximum: [5, 4, 20]))
     }
@@ -232,7 +260,8 @@ struct LoftTests {
         // A twisted prism with constant 10x4 cross-section should retain close to its untwisted
         // volume (1600) when properly subdivided. The unfixed bug undercounted this substantially
         // (collapsing straight across the twist instead of following it).
-        #expect(m.volume.equals(1600, within: 1))
+        let volume = await m.volume
+        #expect(volume.equals(1600, within: 1))
     }
 
     @Test func `loft along a path orients cross-sections using pointing and toward`() async throws {
@@ -248,9 +277,11 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftAlongPathWithOrientation")
         let m = try await loft.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        #expect(m.volume > 0)
-        #expect(m.surfaceArea > 0)
+        #expect(volume > 0)
+        #expect(surfaceArea > 0)
         #expect(m.boundingBox ≈ .init(minimum: [0, -5, -2], maximum: [40, 5, 2]))
     }
 
@@ -267,9 +298,11 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftAlongBentPath")
         let m = try await loft.measurements
+        let volume = await m.volume
+        let surfaceArea = await m.surfaceArea
 
-        #expect(m.volume > 0)
-        #expect(m.surfaceArea > 0)
+        #expect(volume > 0)
+        #expect(surfaceArea > 0)
         // The loft should follow the bend: it must extend along both Z (first leg) and X (second leg),
         // unlike a Z-only loft which would have zero X extent.
         #expect(m.boundingBox!.size.x > 1)
@@ -295,8 +328,9 @@ struct LoftTests {
 
         try await loft.writeVerificationModel(name: "loftMiteredCorner")
         let m = try await loft.measurements
-        #expect(m.volume > expectedVolume * 0.85)
-        #expect(m.volume < expectedVolume * 1.1)
+        let volume = await m.volume
+        #expect(volume > expectedVolume * 0.85)
+        #expect(volume < expectedVolume * 1.1)
     }
 
     // MARK: - Orientation-dependent sections
@@ -337,7 +371,9 @@ struct LoftTests {
         // The tolerance absorbs resampling, which doesn't necessarily land a vertex on the sharp tip.
         #expect(overhangSafeBox.minimum.z.equals(expectedApexZ, within: 0.15))
         #expect(overhangSafeBox.maximum.z.equals(radius, within: 1e-2))
-        #expect(overhangSafe.volume > plain.volume)
+        let overhangSafeVolume = await overhangSafe.volume
+        let plainVolume = await plain.volume
+        #expect(overhangSafeVolume > plainVolume)
     }
 
     @Test func `overhangSafe stays inert in a vertical loft`() async throws {
@@ -356,8 +392,12 @@ struct LoftTests {
         let plain = try await plainLoft.measurements
         let overhangSafe = try await overhangSafeLoft.measurements
 
-        #expect(overhangSafe.volume ≈ plain.volume)
-        #expect(overhangSafe.surfaceArea ≈ plain.surfaceArea)
+        let overhangSafeVolume = await overhangSafe.volume
+        let plainVolume = await plain.volume
+        let overhangSafeSurfaceArea = await overhangSafe.surfaceArea
+        let plainSurfaceArea = await plain.surfaceArea
+        #expect(overhangSafeVolume ≈ plainVolume)
+        #expect(overhangSafeSurfaceArea ≈ plainSurfaceArea)
         #expect(overhangSafe.boundingBox == plain.boundingBox)
     }
 
@@ -407,8 +447,12 @@ struct LoftTests {
         let deprecatedMeasurements = try await deprecatedLoft.measurements
         let newMeasurements = try await newLoft.measurements
 
-        #expect(deprecatedMeasurements.volume ≈ newMeasurements.volume)
-        #expect(deprecatedMeasurements.surfaceArea ≈ newMeasurements.surfaceArea)
+        let deprecatedVolume = await deprecatedMeasurements.volume
+        let newVolume = await newMeasurements.volume
+        let deprecatedSurfaceArea = await deprecatedMeasurements.surfaceArea
+        let newSurfaceArea = await newMeasurements.surfaceArea
+        #expect(deprecatedVolume ≈ newVolume)
+        #expect(deprecatedSurfaceArea ≈ newSurfaceArea)
         #expect(deprecatedMeasurements.boundingBox == newMeasurements.boundingBox)
     }
 
@@ -519,6 +563,7 @@ struct LoftTests {
         #expect(m.boundingBox!.minimum.z ≈ 0)
         #expect(m.boundingBox!.maximum.z ≈ 25)
         // Should have some volume (the extruded section slabs)
-        #expect(m.volume > 0)
+        let volume = await m.volume
+        #expect(volume > 0)
     }
 }

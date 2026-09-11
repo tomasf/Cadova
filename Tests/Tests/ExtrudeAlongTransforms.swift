@@ -24,6 +24,8 @@ struct ExtrudeAlongTransformsTests {
         // a vertical (identity) up direction here, so it fell back to a plain circle and this volume
         // matched the unmodified extrusion exactly. With the fix, the first transform's actual
         // orientation is visible, so bridge relief is added and the volume's magnitude grows.
-        #expect(abs(bridgeMeasurements.volume) > abs(plainMeasurements.volume) * 1.01)
+        let bridgeVolume = await bridgeMeasurements.volume
+        let plainVolume = await plainMeasurements.volume
+        #expect(abs(bridgeVolume) > abs(plainVolume) * 1.01)
     }
 }

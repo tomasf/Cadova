@@ -15,8 +15,8 @@ import Foundation
 /// let fileData = try await modelFile.data()
 /// ```
 ///
-/// For command-line apps, see ``Model`` for a pre-built convenient workflow for outputting to
-/// the current working directory.
+/// For command-line apps, see ``Model`` for a pre-built convenient workflow that writes directly
+/// to disk.
 public struct ModelFileGenerator {
     
     /// Render a one-shot model to a model file.

@@ -21,7 +21,7 @@ public struct Cylinder: Geometry3D, Hashable, Sendable, Codable {
     public let top: Circle
 
     public var body: any Geometry3D {
-        @Environment(\.scaledSegmentation) var segmentation
+        @Environment(\.segmentation) var segmentation
         let segmentCount = segmentation.segmentCount(circleRadius: max(bottomRadius, topRadius))
 
         if height > .ulpOfOne {
@@ -60,9 +60,11 @@ public extension Cylinder {
     /// Returns the circular cross-section at a specific height `z` along the cylinder.
     ///
     /// - Parameter z: The height along the cylinder's axis, where 0 is the bottom and `height` is the top.
-    /// - Returns: A `Circle` representing the cross-section at that height.
+    /// - Returns: A `Circle` representing the cross-section at that height. A cylinder with no positive
+    ///   height is empty geometry, has no meaningful cross-section and returns a zero radius circle.
     func crossSection(at z: Double) -> Circle {
-        Circle(radius: bottomRadius + (topRadius - bottomRadius) * z / height)
+        guard height > 0 else { return Circle(radius: 0) }
+        return Circle(radius: bottomRadius + (topRadius - bottomRadius) * z / height)
     }
 
     /// The slant height of the cylinder, which is the length of the side connecting the top and bottom edges.

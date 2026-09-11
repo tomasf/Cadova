@@ -78,7 +78,7 @@ Box(x: 20, y: 20, z: 4)
     .withTolerance(0.2)
 ```
 
-See <doc:EnvironmentConcepts> for more on reading and setting environment values like this one.
+Because a clearance is a length, it's measured in the coordinate system you set it in: scaling a part scales its tolerance along with it, so the fit you asked for survives. See <doc:EnvironmentConcepts> for more on reading and setting environment values like this one, and <doc:Transformations> for how they travel through transforms.
 
 ## Segmentation and print quality
 
