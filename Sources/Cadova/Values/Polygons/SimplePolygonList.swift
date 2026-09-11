@@ -2,23 +2,62 @@ import Foundation
 import Manifold3D
 
 internal struct SimplePolygonList: Sendable, Hashable, Codable {
-    var polygons: [SimplePolygon]
+    var polygons: [SimplePolygon] {
+        // Assigning the list re-derives the digest, which walks every vertex. That is the right cost
+        // once per list, and the wrong cost per edit, so there is deliberately no way to write a
+        // single polygon or a single vertex in place: edit a plain `[SimplePolygon]` and assign it
+        // back when you are done. The subscripts below are read-only for that reason.
+        didSet { digest = Self.digest(of: polygons) }
+    }
+
+    /// The list's stable content digest, computed once at construction, so that a node built from
+    /// a large polygon list walks it once rather than at every level of the tree.
+    private(set) var digest: StableDigest
 
     init() {
         self.polygons = []
+        self.digest = Self.digest(of: [])
     }
 
     init(_ polygons: [SimplePolygon]) {
         self.polygons = polygons
+        self.digest = Self.digest(of: polygons)
     }
 
     init(_ polygonLists: [SimplePolygonList]) {
-        self.polygons = polygonLists.flatMap(\.polygons)
+        self.init(polygonLists.flatMap(\.polygons))
+    }
+
+    private static func digest(of polygons: [SimplePolygon]) -> StableDigest {
+        var hasher = StableHasher()
+        hasher.combine(polygons)
+        return hasher.finalize()
+    }
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.digest == rhs.digest
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(digest)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case polygons
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(try container.decode([SimplePolygon].self, forKey: .polygons))
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(polygons, forKey: .polygons)
     }
 
     subscript(index: Int) -> SimplePolygon {
-        get { polygons[index] }
-        set { polygons[index] = newValue }
+        polygons[index]
     }
 
     var count: Int { polygons.count }
@@ -55,8 +94,7 @@ extension SimplePolygonList {
     typealias Vertex = (polygon: Int, vertex: Int)
 
     subscript(vertex: Vertex) -> Vector2D {
-        get { polygons[vertex.polygon][vertex.vertex] }
-        set { polygons[vertex.polygon][vertex.vertex] = newValue }
+        polygons[vertex.polygon][vertex.vertex]
     }
 
     func vertex(at index: Int) -> Vertex {
@@ -98,5 +136,11 @@ extension D2.Concrete {
 
     init(_ polygonList: SimplePolygonList) {
         self.init(polygons: polygonList.polygons.map(\.manifoldPolygon), fillRule: .nonZero)
+    }
+}
+
+extension SimplePolygonList: StableHashable {
+    func stableHash(into hasher: inout StableHasher) {
+        hasher.combine(digest)
     }
 }

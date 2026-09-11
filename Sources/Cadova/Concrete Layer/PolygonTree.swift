@@ -49,11 +49,13 @@ extension PolygonTree {
     }
 
     func flattened() -> SimplePolygonList {
-        var list = SimplePolygonList([polygon])
+        // Collected as a plain array and wrapped once at the end: appending to the list itself
+        // would re-derive its content digest at every step.
+        var polygons = [polygon]
         for child in children {
-            list += child.flattened()
+            polygons += child.flattened().polygons
         }
-        return list
+        return SimplePolygonList(polygons)
     }
 }
 

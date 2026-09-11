@@ -4,16 +4,19 @@ extension SimplePolygonList {
     /// Align polygon vertices by minimizing total distance between consecutive layers.
     /// Uses a two-phase search: coarse sampling followed by local refinement.
     mutating func alignOffsets() {
-        for i in 1..<count {
-            let reference = self[i - 1]
-            let candidate = self[i]
+        // Shifted into a local array and assigned back in one go: writing through the list's own
+        // subscript would re-derive its content digest on every polygon.
+        var aligned = polygons
+        for i in 1..<aligned.count {
+            let reference = aligned[i - 1]
+            let candidate = aligned[i]
             let vertexCount = candidate.count
 
             guard vertexCount > 0 else { continue }
 
             // For small polygons, just check all offsets
             if vertexCount <= 40 {
-                self[i] = candidate.shifted(bestOffset(for: candidate, relativeTo: reference, in: 0..<vertexCount))
+                aligned[i] = candidate.shifted(bestOffset(for: candidate, relativeTo: reference, in: 0..<vertexCount))
                 continue
             }
 
@@ -27,8 +30,9 @@ extension SimplePolygonList {
             let fineEnd = Swift.min(vertexCount, bestCoarse + coarseStride + 1)
             let bestFine = bestOffset(for: candidate, relativeTo: reference, in: fineStart..<fineEnd)
 
-            self[i] = candidate.shifted(bestFine)
+            aligned[i] = candidate.shifted(bestFine)
         }
+        polygons = aligned
     }
 
     /// Finds the offset that minimizes total vertex-to-vertex distance.

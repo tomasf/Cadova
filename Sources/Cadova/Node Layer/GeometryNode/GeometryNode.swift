@@ -3,23 +3,33 @@ import Manifold3D
 
 internal struct GeometryNode<D: Dimensionality>: Sendable, Hashable {
     internal let contents: Contents
-    internal let hash: Int
+
+    /// A 128-bit content digest, computed once here and never recomputed.
+    ///
+    /// It is derived from the case discriminant, the payload, and the digests the children already
+    /// carry — never from `hashValue`, which Swift seeds per process. Two structurally identical
+    /// trees therefore have the same digest in every run, on every machine.
+    internal let digest: StableDigest
+
+    /// The number of nodes in this node's subtree, including itself. Used to order a union's
+    /// members by how much work they represent rather than arbitrarily; see `canonicalUnionOrder`.
     internal let subtreeSize: Int
 
     internal init(_ contents: Contents) {
         self.contents = contents
-        self.hash = contents.hashValue
+        self.digest = StableDigest(contents)
         self.subtreeSize = contents.subtreeSize
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(hash)
+        hasher.combine(digest)
     }
 
-    // Checking the precomputed hash first prunes deep recursive contents
-    // comparisons for nodes that differ.
+    // Node identity is digest identity. With 128 bits, a collision between two structurally
+    // different nodes is far less likely than a hardware fault, and comparing two words beats the
+    // O(subtree) structural walk this used to fall through to on every cache hit.
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.hash == rhs.hash && lhs.contents == rhs.contents
+        lhs.digest == rhs.digest
     }
 
     internal indirect enum Contents: Sendable {

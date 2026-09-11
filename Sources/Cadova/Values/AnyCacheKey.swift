@@ -2,29 +2,33 @@ import Foundation
 
 internal struct AnyCacheKey: Hashable, Sendable, Codable, CustomDebugStringConvertible {
     private let content: any Hashable & Sendable & Codable
-    private let contentHash: Int
+
+    /// The wrapped value's stable content digest, including its type. Computed once, in `init`.
+    internal let digest: StableDigest
 
     internal init<T: Hashable & Sendable & Codable>(_ item: T) {
         content = item
-        contentHash = item.hashValue
+        digest = StableDigest(cacheKeyContent: item)
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(contentHash)
+        hasher.combine(digest)
     }
 
+    // The digest folds in the wrapped value's dynamic type name, so two different types can't
+    // collide the way a bare content comparison would have to guard against.
     static func == (left: Self, right: Self) -> Bool {
-        guard left.contentHash == right.contentHash,
-              type(of: left.content) == type(of: right.content) else { return false }
-
-        func compare<T: Equatable>(lhs: T, rhs: any Equatable) -> Bool {
-            (rhs as? T).map { lhs == $0 } ?? false
-        }
-        return compare(lhs: left.content, rhs: right.content)
+        left.digest == right.digest
     }
 
     var debugDescription: String {
         String(describing: content)
+    }
+}
+
+extension AnyCacheKey: StableHashable {
+    func stableHash(into hasher: inout StableHasher) {
+        hasher.combine(digest)
     }
 }
 
@@ -57,7 +61,7 @@ extension AnyCacheKey {
         guard let wrapper = try container.decode(type, forKey: .value) as? any Hashable & Codable else {
             fatalError("Failed to cast wrapped value")
         }
-        self.content = (wrapper as Any) as! any CacheKey
-        self.contentHash = wrapper.hashValue
+        let key = (wrapper as Any) as! any CacheKey
+        self.init(key)
     }
 }

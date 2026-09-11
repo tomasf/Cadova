@@ -60,13 +60,15 @@ extension GeometryNode {
         }
     }
 
-    /// The canonical order for a union's members: largest subtree first, with `hash` breaking ties.
+    /// The canonical order for a union's members: largest subtree first, with each child's stable
+    /// digest breaking ties.
     ///
-    /// Ordering by subtree size rather than by hash alone means the primary key reflects how much
-    /// work a member represents, which Manifold is sensitive to. The decoder has to reproduce this
-    /// exact order, or a node stops surviving a coding round trip, so both go through here.
+    /// Ordering by subtree size rather than by digest alone means the primary key reflects how much
+    /// work a member represents, which Manifold is sensitive to. The tiebreak has to be stable
+    /// rather than `hashValue` — which Swift seeds per process — or two children with equal subtree
+    /// size would still land in a different order in every run.
     static func canonicalUnionOrder(_ children: [D.Node]) -> [D.Node] {
-        children.sorted { ($0.subtreeSize, $0.hash) > ($1.subtreeSize, $1.hash) }
+        children.sorted { ($0.subtreeSize, $0.digest) > ($1.subtreeSize, $1.digest) }
     }
 
     static func convexHull(_ body: D.Node) -> GeometryNode {

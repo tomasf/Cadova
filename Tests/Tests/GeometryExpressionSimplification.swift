@@ -80,12 +80,12 @@ struct GeometryNodeSimplificationTests {
         let circle = GeometryNode.shape(.circle(radius: 1, segmentCount: 10))
         let inner2D = GeometryNode.boolean([rectangle, circle], type: .difference)
         let flattened2D = GeometryNode.boolean([inner2D, rectangle], type: .difference)
-        #expect(flattened2D.contents == .boolean([rectangle, circle, rectangle], type: .difference))
+        #expect(flattened2D == GeometryNode.boolean([rectangle, circle, rectangle], type: .difference))
 
         let sphere = GeometryNode.shape(.sphere(radius: 1, segmentCount: 10))
         let inner3D = GeometryNode.boolean([box, sphere], type: .difference)
         let flattened3D = GeometryNode.boolean([inner3D, box], type: .difference)
-        #expect(flattened3D.contents == .boolean([box, sphere, box], type: .difference))
+        #expect(flattened3D == GeometryNode.boolean([box, sphere, box], type: .difference))
     }
 
     @Test func `nested empty children simplify correctly`() {
