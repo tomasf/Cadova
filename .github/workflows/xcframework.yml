@@ -3,14 +3,20 @@ name: xcframework
 # Builds the macOS XCFramework and proves that a package can consume it.
 #
 # On a push or pull request this is a check only. Run the workflow manually with a version to
-# publish: it uploads the artifact to a GitHub release and records that release's checksum in
-# Package.swift.
+# release: it records the artifact's checksum in Package.swift and uploads the artifact to a draft
+# release. Nothing is announced and no tag exists until the draft is published, for example with
+#
+#   gh release edit <version> --notes-file <notes.md> --draft=false
+#
+# Publishing creates the tag and runs this workflow again to verify the release as a user meets it.
 
 on:
   push:
     branches: [ "main", "dev" ]
   pull_request:
     branches: [ "main", "dev" ]
+  release:
+    types: [ published ]
   workflow_dispatch:
     inputs:
       version:
@@ -28,6 +34,8 @@ concurrency:
 
 jobs:
   build:
+    # Publishing a release only verifies what was already built and uploaded.
+    if: github.event_name != 'release'
     runs-on: macos-26
 
     outputs:
@@ -126,9 +134,9 @@ jobs:
           exit 1
         fi
 
-        # The tag has to carry the checksum, so the commit is made and pushed first. The release
-        # creates the tag and uploads the artifact together, so a failure before that point
-        # leaves an ordinary commit on the branch and nothing referring to a missing download.
+        # The tag has to carry the checksum, so the commit is made and pushed first. The draft
+        # records that commit and holds the artifact; publishing it creates the tag, so a tag can
+        # never point at a missing download.
         sed -i \
           -e "s|^let binaryRelease = \".*\"$|let binaryRelease = \"$VERSION\"|" \
           -e "s|^let binaryChecksum = \".*\"$|let binaryChecksum = \"$CHECKSUM\"|" \
@@ -148,12 +156,14 @@ jobs:
           --target "$(git rev-parse HEAD)" \
           --title "Cadova $VERSION" \
           --generate-notes \
+          --draft \
           artifact/Cadova.xcframework.zip
 
   # Downloading from the release URL and checking the recorded checksum is the one path that
-  # cannot be tried before the release exists, and the one whose failure blocks every macOS user.
+  # cannot be tried before the release is published, and the one whose failure blocks every
+  # macOS user. A draft has no tag and its download is not public, so this waits for publishing.
   verify-release:
-    needs: publish
+    if: github.event_name == 'release'
     runs-on: macos-26
 
     steps:
@@ -163,4 +173,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Consume the published release as a new user would
-      run: Scripts/verify-published-release.sh "${{ inputs.version }}" "${{ github.server_url }}/${{ github.repository }}.git"
+      env:
+        VERSION: ${{ github.event.release.tag_name }}
+        REPOSITORY: ${{ github.server_url }}/${{ github.repository }}.git
+      run: Scripts/verify-published-release.sh "$VERSION" "$REPOSITORY"
