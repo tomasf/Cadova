@@ -21,12 +21,23 @@ import PackageDescription
 //
 // The two flags are off when set to 0, no, false or nothing at all, so that setting one to zero
 // does the obvious thing rather than the opposite of it.
+//
+// To run models against a local build from packages that depend on this working copy by path, run
+// Scripts/build-xcframework.sh and set useLocalXCFramework below to true. Unlike
+// CADOVA_LOCAL_XCFRAMEWORK this also works in Xcode, which does not pass the environment on to
+// manifests. It is a line in this file rather than, say, a file on disk, because SwiftPM caches a
+// manifest's result until its contents change. This working copy has no Tests target while it is
+// on, and Scripts/verify-manifest-selection.sh fails if it is committed switched on. With no
+// dependencies left to pin, SwiftPM also deletes Package.resolved, so restore that from git after
+// switching back off.
+
+let useLocalXCFramework = false
 
 // Scripts/build-xcframework.sh prints the checksum, and the xcframework workflow writes both of
 // these lines when it publishes a release. Until a release records a real checksum here, the
 // placeholder makes this manifest fall back to a source build rather than fail to resolve.
-let binaryRelease = "0.10.0"
-let binaryChecksum = "0000000000000000000000000000000000000000000000000000000000000000"
+let binaryRelease = ""
+let binaryChecksum = ""
 let binaryURL = "https://github.com/tomasf/Cadova/releases/download/\(binaryRelease)/Cadova.xcframework.zip"
 let hasPublishedBinary = !binaryChecksum.allSatisfy { $0 == "0" }
 
@@ -39,8 +50,6 @@ func environmentFlag(_ name: String) -> Bool {
     return ["", "0", "no", "false"].contains(value) == false
 }
 
-let localXCFramework = environment["CADOVA_LOCAL_XCFRAMEWORK"].flatMap { $0.isEmpty ? nil : $0 }
-
 /// True when this manifest belongs to a checkout that SwiftPM or Xcode made for a dependency,
 /// rather than to a working copy of Cadova itself.
 ///
@@ -51,6 +60,14 @@ let isDependencyCheckout: Bool = {
     let directory = Context.packageDirectory
     if directory.contains("/registry/downloads/") { return true }
     return directory.split(separator: "/").dropLast().last == "checkouts"
+}()
+
+/// An XCFramework on disk to use instead of a download: the one named by CADOVA_LOCAL_XCFRAMEWORK,
+/// or else the build script's output when useLocalXCFramework is on in a working copy.
+let localXCFramework: String? = {
+    if let path = environment["CADOVA_LOCAL_XCFRAMEWORK"], !path.isEmpty { return path }
+    guard useLocalXCFramework, !isDependencyCheckout else { return nil }
+    return ".build/xcframework/Cadova.xcframework"
 }()
 
 let useBinary: Bool = {
