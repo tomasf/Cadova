@@ -51,6 +51,16 @@ extension Geometry {
         }
     }
 
+    /// The evaluated geometry. Building and evaluating share one context, since an import's node
+    /// refers to cached geometry that only the context that built it can resolve.
+    var evaluationResult: EvaluationResult<D> {
+        get async throws {
+            let context = _EvaluationContext()
+            let node = try await context.buildResult(for: self.withDefaultSegmentation(), in: .defaultEnvironment).node
+            return try await context.result(for: node)
+        }
+    }
+
     func measurements(for scope: MeasurementScope) async throws -> D.Measurements {
         let context = _EvaluationContext()
         let buildResult = try await context.buildResult(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
@@ -214,5 +224,15 @@ extension _BuildResult {
         } else {
             return replacing(node: .empty)
         }
+    }
+}
+
+extension Geometry3D {
+    /// Writes the geometry as a 3MF file the way `Model` would, without a model or its options.
+    func export3MF(to url: URL) async throws {
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
+        let provider = ThreeMFDataProvider(result: result, options: [], environment: .defaultEnvironment)
+        try await provider.writeOutput(to: url, context: context)
     }
 }
