@@ -28,6 +28,14 @@ import Foundation
 /// }
 /// ```
 ///
+/// The colors and materials of a 3MF file come along with its geometry. Each face keeps the color,
+/// base material or composite material the file gives it, including metallic display properties,
+/// with multiproperties blended into one material per face. They're written back out on export the
+/// same way ``Geometry/colored(_:)`` ones are. Apply ``Geometry/colored(_:)`` or
+/// ``Geometry/withMaterial(_:)`` to the import to replace them, or ``Geometry/withoutMaterials()``
+/// to drop them. A face has a single material here, so a triangle whose vertices name different
+/// properties takes its first vertex's. Textures have no counterpart in Cadova and are left out.
+///
 /// > Important: Imported 3D models must be manifold (watertight, with consistently oriented,
 /// > non-self-intersecting faces). Non-manifold geometry may fail or produce unexpected
 /// > results in later operations.

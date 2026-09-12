@@ -42,49 +42,29 @@ extension GeometryNode.PrimitiveShape2D {
 }
 
 extension GeometryNode.PrimitiveShape3D {
-    func evaluate() throws -> Manifold {
+    /// The shape as a solid. A mesh carries its face materials along in the result's material mapping.
+    func evaluate() throws -> EvaluationResult<D3> {
         switch self {
         case .box (let size):
             guard size.x > 0, size.y > 0, size.z > 0 else { return .empty }
-            return Manifold.cube(size: size)
+            return try EvaluationResult(Manifold.cube(size: size))
 
         case .sphere (let radius, let segmentCount):
             guard radius > 0 else { return .empty }
-            return Manifold.sphere(radius: radius, segmentCount: segmentCount)
+            return try EvaluationResult(Manifold.sphere(radius: radius, segmentCount: segmentCount))
 
         case .cylinder (let bottomRadius, let topRadius, let height, let segmentCount):
             guard height > 0, (bottomRadius > 0 || topRadius > 0) else { return .empty }
-            return Manifold.cylinder(height: height, bottomRadius: bottomRadius, topRadius: topRadius, segmentCount: segmentCount)
+            return try EvaluationResult(
+                Manifold.cylinder(height: height, bottomRadius: bottomRadius, topRadius: topRadius, segmentCount: segmentCount)
+            )
 
         case .convexHull (let points):
             guard points.count >= 4 else { return .empty }
-            return Manifold.hull(points)
+            return try EvaluationResult(Manifold.hull(points))
 
         case .mesh (let meshData):
-            do {
-                return try Manifold(meshData.meshGL()).asOriginal()
-            } catch ManifoldError.notManifold {
-                throw MeshNotManifoldError()
-            }
+            return try meshData.evaluate()
         }
-    }
-}
-
-struct MeshNotManifoldError: LocalizedError {
-    var errorDescription: String? {
-"""
-Mesh creation failed: The mesh is not manifold.
-
-This means some edges or vertices are shared in a way that makes the shape ambiguous or invalid for solid geometry. 
-Common causes include:
-- Holes or missing faces
-- Edges shared by more than two faces
-- Non-contiguous face loops
-- Duplicate or misordered vertices
-
-Ensure that your mesh defines a closed, watertight surface where every edge is shared by exactly two faces, and all
-faces have consistent winding. Try visualizedForDebugging() to visualize the faces of a mesh without requiring it to
-be manifold.
-"""
     }
 }

@@ -152,10 +152,17 @@ extension SimplePolygonList: ApproximatelyEquatable {
     }
 }
 
+extension MeshData.FaceMaterials: ApproximatelyEquatable {
+    func equals(_ other: Self, within tolerance: Double) -> Bool {
+        indices == other.indices && materials.equals(other.materials, within: tolerance)
+    }
+}
+
 extension MeshData: ApproximatelyEquatable {
     func equals(_ other: Self, within tolerance: Double) -> Bool {
         vertices.equals(other.vertices, within: tolerance)
         && faces == other.faces
+        && faceMaterials.equals(other.faceMaterials, within: tolerance)
     }
 }
 

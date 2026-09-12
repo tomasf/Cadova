@@ -152,7 +152,7 @@ extension GeometryNode {
     private func evaluate3D(in context: EvaluationContext) async throws -> EvaluationResult<D3> {
         switch contents {
         case .shape3D (let shape):
-            return try EvaluationResult(shape.evaluate())
+            return try shape.evaluate()
 
         case .applyMaterial (let node, let material):
             let result = try await context.result(for: node)
