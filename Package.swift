@@ -4,32 +4,24 @@ import PackageDescription
 
 // MARK: - Binary distribution
 //
-// On macOS, Cadova is distributed as a prebuilt, optimized XCFramework. It removes Cadova and its
-// C/C++ dependencies (Manifold, oneTBB, Clipper2, pugixml, miniz, FreeType, HarfBuzz) from the
-// build entirely, and it is always an optimized release build, so models run at release speed
-// even while you develop in debug. Every other platform builds from source, as before.
+// On macOS, dependents consume Cadova as a prebuilt, optimized XCFramework: no dependencies
+// to build, and always release speed even in debug. Every other platform, and Cadova's own
+// checkout (tests, docs and the XCFramework itself build from the working tree), builds
+// from source as before.
 //
-// The binary is used when Cadova is consumed as a dependency. Cadova's own checkout builds from
-// source, so that its tests, its documentation and the XCFramework itself are built from the
-// code in the working tree.
-//
-// Environment overrides:
+// Environment overrides (0, no, false or unset all mean off):
 //   CADOVA_BUILD_FROM_SOURCE=1        Always build from source.
 //   CADOVA_USE_BINARY=1               Always use the binary, even in Cadova's own checkout.
-//   CADOVA_LOCAL_XCFRAMEWORK=<path>   Use an XCFramework on disk instead of downloading one.
-//                                     SwiftPM requires this path to be relative to this package.
+//   CADOVA_LOCAL_XCFRAMEWORK=<path>   Use an XCFramework on disk instead of downloading one
+//                                     (relative to this package).
 //
-// The two flags are off when set to 0, no, false or nothing at all, so that setting one to zero
-// does the obvious thing rather than the opposite of it.
-//
-// To run models against a local build from packages that depend on this working copy by path, run
-// Scripts/build-xcframework.sh and set useLocalXCFramework below to true. Unlike
-// CADOVA_LOCAL_XCFRAMEWORK this also works in Xcode, which does not pass the environment on to
-// manifests. It is a line in this file rather than, say, a file on disk, because SwiftPM caches a
-// manifest's result until its contents change. This working copy has no Tests target while it is
-// on, and Scripts/verify-manifest-selection.sh fails if it is committed switched on. With no
-// dependencies left to pin, SwiftPM also deletes Package.resolved, so restore that from git after
-// switching back off.
+// To test a local build from a package that depends on this working copy by path, run
+// Scripts/build-xcframework.sh and flip useLocalXCFramework below to true. Unlike an env var,
+// this also works in Xcode, which doesn't pass environment variables to manifests. It's a
+// line here rather than a file on disk because SwiftPM caches a manifest's result until its
+// contents change. With it on: this working copy has no Tests target, SwiftPM deletes
+// Package.resolved (restore it from git after switching back off), and
+// Scripts/verify-manifest-selection.sh fails if it's committed switched on.
 
 let useLocalXCFramework = false
 
