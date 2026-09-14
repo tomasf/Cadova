@@ -78,7 +78,7 @@ internal extension ModelLoader.LoadedModel.LoadedComponent {
         let loadedMesh = model.meshes[meshIndex]
         // A property names a resource of the model file the mesh lives in: the object's own, or one
         // inherited from a parent in the same file. The loader stops inherited properties at a
-        // file boundary, since ids mean nothing in another file (tomasf/ThreeMF#3).
+        // file boundary, since ids mean nothing in another file.
         let meshNode = D3.Node.shape(.mesh(MeshData(loadedMesh.mesh, objectProperty: objectProperty) {
             model.material(for: $0, inModel: loadedMesh.modelIndex)
         }))

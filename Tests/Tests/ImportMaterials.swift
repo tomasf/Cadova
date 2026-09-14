@@ -279,6 +279,38 @@ struct ImportMaterialTests {
         #expect(unmappedIDs.allSatisfy { idsByTriangleCount[$0] == 2 })
     }
 
+    @Test func `a property inherited across model files yields no material`() async throws {
+        // The root file's components object carries a property and points into another file,
+        // where the same group id names a different color group. The core specification forbids
+        // the property on the components object, and every file numbers its resources on its own,
+        // so the mesh gets no material rather than the unrelated file's color.
+        var meshModel = ThreeMF.Model(unit: .millimeter, recommendedExtensions: [.materials])
+        meshModel.resources.resources = [
+            ThreeMF.ColorGroup(id: 2, colors: [threeMFBlue]),
+            ThreeMF.Object(id: 40, content: .mesh(.init(
+                vertices: unitCubeVertices,
+                triangles: unitCubeCorners.map { .init(v1: $0.0, v2: $0.1, v3: $0.2, propertyIndex: nil) }
+            ))),
+        ]
+
+        let writer = ThreeMF.PackageWriter<Data>()
+        let meshModelURL = try writer.addAdditionalModel(meshModel, named: "mesh")
+        var rootModel = ThreeMF.Model(unit: .millimeter, recommendedExtensions: [.materials, .production])
+        rootModel.resources.resources = [
+            ThreeMF.ColorGroup(id: 2, colors: [threeMFRed]),
+            ThreeMF.Object(id: 41, propertyGroupID: 2, propertyIndex: 0, content: .components([
+                .init(objectID: 40, path: meshModelURL),
+            ])),
+        ]
+        rootModel.build.items = [.init(objectID: 41)]
+        writer.model = rootModel
+        let data = try await writer.finalize()
+
+        let result = try await Import(model: data).evaluationResult
+        #expect(result.materialMapping.isEmpty)
+        #expect(result.concrete.volume ≈ 1)
+    }
+
     @Test func `multiproperties layers blend by their blend method`() async throws {
         // A half-transparent blue and an opaque lime, each layered over the steel: the first mixed,
         // the second multiplied. The materials extension gives both formulas. Lime keeps the two

@@ -1,5 +1,5 @@
 {
-  "originHash" : "a868b0f13b3a2bb120448010bd9f49b5a7e64516f856d9d4a117d6860bd708c6",
+  "originHash" : "e7bceb7d3ea69eebb3b6688f72337ee1affc2dc4e0bccd94f6689183b0b49a87",
   "pins" : [
     {
       "identity" : "apus",
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/ThreeMF.git",
       "state" : {
-        "revision" : "5429e65667eff6fd095d33619217afbd55fa5eec",
-        "version" : "0.3.1"
+        "revision" : "79d19d6ff5094c6ea65e6a5bfcf605e13a998e10",
+        "version" : "0.3.2"
       }
     },
     {
