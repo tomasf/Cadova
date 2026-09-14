@@ -11,6 +11,16 @@ extension Color {
             alpha: UInt8(round(alpha * 255.0))
         )
     }
+
+    /// The 8-bit color of a 3MF file as a unit-range color. This is the inverse of `threeMFColor`.
+    init(_ color: ThreeMF.Color) {
+        self.init(
+            red: Double(color.red) / 255.0,
+            green: Double(color.green) / 255.0,
+            blue: Double(color.blue) / 255.0,
+            alpha: Double(color.alpha) / 255.0
+        )
+    }
 }
 
 extension Manifold3D.Vector3 {

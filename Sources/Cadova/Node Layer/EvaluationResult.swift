@@ -22,7 +22,7 @@ public struct EvaluationResult<D: Dimensionality>: Sendable {
         self.materialMapping = materialMapping
     }
 
-    private init(concrete: D.Concrete, materialMapping: [Manifold.OriginalID: Material]) throws {
+    internal init(concrete: D.Concrete, materialMapping: [Manifold.OriginalID: Material]) throws {
         try self.init(parts: [concrete], materialMapping: materialMapping)
     }
 

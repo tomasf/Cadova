@@ -1,5 +1,5 @@
 {
-  "originHash" : "f5fb22b2353208d5ba5d5a2e921e78b811a941ebc19ddd18baaea91859bd71c4",
+  "originHash" : "e7bceb7d3ea69eebb3b6688f72337ee1affc2dc4e0bccd94f6689183b0b49a87",
   "pins" : [
     {
       "identity" : "apus",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/manifold-swift.git",
       "state" : {
-        "revision" : "59fa5c3e567df75fd9bb6aacb57d52fd5b3074ec",
-        "version" : "1.1.1"
+        "revision" : "46d6b9332831f3960cdb4ac6dba367b20292495c",
+        "version" : "1.1.2"
       }
     },
     {
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/ThreeMF.git",
       "state" : {
-        "revision" : "05391c47c4f8579a2dbd50d060aab76178a91a90",
-        "version" : "0.3.0"
+        "revision" : "79d19d6ff5094c6ea65e6a5bfcf605e13a998e10",
+        "version" : "0.3.2"
       }
     },
     {
