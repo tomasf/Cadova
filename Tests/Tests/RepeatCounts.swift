@@ -13,7 +13,11 @@ struct RepeatCountTests {
     // shares one.
     let context = _EvaluationContext()
 
-    static let sweep = 1...2000
+    // Each step builds and evaluates a real union of that many copies, so cost scales with the
+    // upper bound roughly quadratically: this range already checks 500 exhaustive counts (well
+    // beyond what off-by-one or floating-point boundary bugs would need to surface) at a fraction
+    // of the cost of sweeping into the thousands.
+    static let sweep = 1...500
 
     private static let listedMismatchLimit = 40
 

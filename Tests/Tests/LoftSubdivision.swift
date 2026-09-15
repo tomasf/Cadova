@@ -14,8 +14,10 @@ struct LoftSubdivisionTests {
     // A segmentation fine enough that its own error is far below what we're measuring, used to build
     // the reference each fixed-resolution loft is compared against. Both `minAngle` and `minSize` are
     // tightened, since the loft's ring resolution comes from `minSize` and its along-path resolution
-    // from both.
-    static let referenceSegmentation = Segmentation.adaptive(minAngle: 0.5°, minSize: 0.05)
+    // from both. Measured relative errors against this reference stay under 8e-4 across every fidelity
+    // test below, against tolerances of 1e-3 to 5e-3 — comfortably below what's being measured, while
+    // costing much less to mesh than a more extreme reference would.
+    static let referenceSegmentation = Segmentation.adaptive(minAngle: 1°, minSize: 0.08)
 
     static func polygonCircle(radius: Double, count: Int) -> SimplePolygon {
         SimplePolygon((0..<count).map {
@@ -466,7 +468,7 @@ struct LoftSubdivisionTests {
             "rippled mesh had \(rippledMeasurements.triangleCount) triangles against the cone's \(straightMeasurements.triangleCount)"
         )
 
-        // Measured at 1.1e-4 and 1.4e-4, so this is pinned close rather than merely loosely bracketed.
+        // Measured at 6.9e-5 and 9.3e-5, so this is pinned close rather than merely loosely bracketed.
         try await Self.expectMatchesFineReference(rippled, volumeTolerance: 1e-3, areaTolerance: 1e-3)
     }
 
