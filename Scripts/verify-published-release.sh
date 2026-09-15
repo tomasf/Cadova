@@ -71,7 +71,7 @@ swift package --package-path "$package_dir" resolve
 # publishing one, so check what it actually chose before trusting the run below.
 target_kind=$(swift package --package-path "$package_dir" dump-package \
     | python3 -c 'import json,sys; print(next((t["type"] for t in json.load(sys.stdin)["targets"] if t["name"] == "Consumer"), "missing"))')
-[[ $target_kind == regular ]] || fail "the consumer target came out as '$target_kind'"
+[[ $target_kind == executable ]] || fail "the consumer target came out as '$target_kind'"
 
 checkout=$(find "$package_dir/.build" -type d -name Cadova -path "*checkouts*" -print -quit)
 [[ -n $checkout ]] || fail "Cadova was not checked out"
