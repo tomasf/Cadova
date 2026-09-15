@@ -23,9 +23,10 @@ Complex models and high segment counts can slow down model generation. Here's ho
 
 ### Use Release Mode
 
-Release builds are dramatically faster than debug builds.
+On macOS, Cadova is distributed as a prebuilt, optimized binary, so its geometry engine already runs at release speed even when your own project is built in debug mode.
 
-- **In Xcode**: Go to *Product → Scheme → Edit Scheme…*, then under the *Info* tab, change *Build Configuration* to *Release*.
+On other platforms, release builds are still dramatically faster:
+
 - **In VS Code**: Click the *Run and Debug* button in the sidebar, and change from *Debug MyProject* to *Release MyProject* in the dropdown menu.
 - **From the Command Line**: `swift run -c release`
 

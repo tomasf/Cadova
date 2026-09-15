@@ -6,7 +6,7 @@ Evaluate a shape, read back its size and other properties, then build new geomet
 
 Most of the time you build geometry from numbers you already know: a box is 20 mm wide because you typed `20`. Sometimes, though, you need to react to what a shape actually turns out to be after it's been assembled. How wide is this composite once everything is combined and rotated? What's its volume? Where is its center? Measuring answers those questions and lets you feed the answers straight back into more geometry.
 
-The mental model is a two-step handoff. Cadova evaluates the shape, computes its measurements, and passes both the original geometry and the measurements to a closure you provide. Your closure returns new geometry that can use those values. Because the measurements describe the shape *after* all its operations have been applied, this happens when the model is built rather than immediately, but you never deal with that directly: you just read the values in the closure.
+The mental model is a two-step handoff. Cadova evaluates the shape, computes its measurements, and passes both the original geometry and the measurements to a closure you provide. Your closure returns new geometry that can use those values.
 
 This is the same machinery that powers alignment. When you write `.aligned(at: .center)` (see <doc:AlignmentAndStacking>), Cadova measures the geometry's bounding box and translates it for you. Measuring exposes that capability directly so you can do your own positioning and sizing.
 
@@ -44,7 +44,7 @@ someShape.measuringBounds { shape, box in
 
 ![The same composite resting on a rectangular base plate automatically sized to its footprint with a margin](measuring-fitted-base)
 
-If the shape might be empty, `.measuringBounds(_:)` won't have a box to give you. You can supply a fallback with its trailing `empty:` closure, which runs when there are no bounds.
+If the shape might be empty, `.measuringBounds(_:)` won't have a box to give you, so it returns empty geometry. Chain `.ifEmpty(_:)` (see below), or use `.measuring(_:)` directly if you'd rather handle the empty case and the bounding box together in one closure.
 
 ## Reading other properties
 
