@@ -17,6 +17,15 @@ public protocol Shape3D: Geometry where D == D3 {
 }
 
 public extension Geometry {
+    @available(*, deprecated, message: "Use measuringBounds(scope:_:) and add .ifEmpty(_:) for a fallback, or use measuring(_:_:) directly.")
+    func measuringBounds<Output: Dimensionality>(
+        scope: MeasurementScope = .solidParts,
+        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.BoundingBox) -> Output.Geometry,
+        @GeometryBuilder<Output> empty emptyBuilder: @Sendable @escaping () -> Output.Geometry = { Empty() },
+    ) -> Output.Geometry {
+        measuringBounds(scope: scope, builder).ifEmpty(emptyBuilder)
+    }
+
     @available(*, deprecated, renamed: "resized(_:in:to:alignment:)")
     @GeometryBuilder<D>
     func resizing(

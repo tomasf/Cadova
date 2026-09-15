@@ -35,14 +35,16 @@ internal extension EdgeProfile {
     func readingNegativeShape<D: Dimensionality>(
         @GeometryBuilder<D> reader: @Sendable @escaping (_ negativeProfile: any Geometry2D, _ size: Vector2D) -> D.Geometry
     ) -> D.Geometry {
-        profile.measuringBounds { shape, bounds in
-            let negativeShape = Rectangle(bounds.size)
-                .aligned(at: .max)
-                .subtracting { shape }
+        profile.measuring { shape, measurements in
+            if let bounds = measurements.boundingBox {
+                let negativeShape = Rectangle(bounds.size)
+                    .aligned(at: .max)
+                    .subtracting { shape }
 
-            reader(negativeShape, bounds.size)
-        } empty: {
-            reader(Empty(), .zero)
+                reader(negativeShape, bounds.size)
+            } else {
+                reader(Empty(), .zero)
+            }
         }
     }
 }

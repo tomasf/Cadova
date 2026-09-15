@@ -67,27 +67,24 @@ public extension Geometry {
     /// 2D geometry, the scope has no effect.
     ///
     /// If the geometry has a bounding box (i.e., it’s not empty), it is passed to the closure along
-    /// with the geometry itself. If the geometry is empty and has no bounds, the `empty` closure is
-    /// evaluated to provide a fallback geometry instead.
+    /// with the geometry itself. If the geometry is empty and has no bounds, the result is empty.
+    /// Use ``ifEmpty(_:)`` to supply a fallback in that case, or use ``measuring(_:_:)`` directly if
+    /// you'd rather handle the empty case within a single closure.
     ///
     /// - Parameters:
     ///   - scope: Which parts to include when computing the bounding box. Use `.mainPart` to consider
     ///            only the main geometry, `.solidParts` (default) to include solid/printable parts, or
     ///            `.allParts` to include every part (solid, context, and visual).
     ///   - builder: A closure that receives the geometry and its bounding box, and returns a new geometry.
-    ///   - emptyBuilder: A closure that provides fallback geometry when the original geometry is empty. Defaults to `Empty()`.
-    /// - Returns: A modified geometry based on the bounding box, or the result of `empty` if no bounds exist.
+    /// - Returns: A modified geometry based on the bounding box, or empty geometry if no bounds exist.
     ///
     func measuringBounds<Output: Dimensionality>(
         scope: MeasurementScope = .solidParts,
-        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.BoundingBox) -> Output.Geometry,
-        @GeometryBuilder<Output> empty emptyBuilder: @Sendable @escaping () -> Output.Geometry = { Empty() },
+        @GeometryBuilder<Output> _ builder: @Sendable @escaping (D.Geometry, D.BoundingBox) -> Output.Geometry
     ) -> Output.Geometry {
         measuring(scope) { geometry, measurements in
             if let box = measurements.boundingBox {
                 builder(geometry, box)
-            } else {
-                geometry.replaced { _ in emptyBuilder() }
             }
         }
     }

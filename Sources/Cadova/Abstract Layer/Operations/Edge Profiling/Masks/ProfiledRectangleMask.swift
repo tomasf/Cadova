@@ -14,25 +14,27 @@ internal struct ProfiledRectangleMask: Geometry2D {
     var body: any Geometry2D {
         let orderedCorners = corners.sorted()
 
-        profile.profile.measuringBounds { profile, bounds in
-            Rectangle(size)
-                .aligned(at: .center)
-                .subtracting {
-                    for corner in orderedCorners {
-                        Rectangle(bounds.size)
-                            .translated(size / 2 - bounds.size)
-                            .flipped(along: corner.flippedAxes)
+        profile.profile.measuring { profile, measurements in
+            if let bounds = measurements.boundingBox {
+                Rectangle(size)
+                    .aligned(at: .center)
+                    .subtracting {
+                        for corner in orderedCorners {
+                            Rectangle(bounds.size)
+                                .translated(size / 2 - bounds.size)
+                                .flipped(along: corner.flippedAxes)
+                        }
                     }
-                }
-                .adding {
-                    for corner in orderedCorners {
-                        profile
-                            .translated(size / 2)
-                            .flipped(along: corner.flippedAxes)
+                    .adding {
+                        for corner in orderedCorners {
+                            profile
+                                .translated(size / 2)
+                                .flipped(along: corner.flippedAxes)
+                        }
                     }
-                }
-        } empty: {
-            Rectangle(size).aligned(at: .center)
+            } else {
+                Rectangle(size).aligned(at: .center)
+            }
         }
     }
 }
