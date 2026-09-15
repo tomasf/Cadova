@@ -176,6 +176,9 @@ public struct ModelFile {
     }
     
     /// Writes the file's contents to the given location on disk.
+    ///
+    /// The file is written beside its destination and moved into place once complete, so a write
+    /// that fails partway through leaves any file already at `fileURL` exactly as it was.
     public func write(to fileURL: URL) async throws {
         try await dataProvider.writeOutput(to: fileURL, context: evaluationContext)
     }
