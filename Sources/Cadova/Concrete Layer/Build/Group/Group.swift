@@ -85,7 +85,7 @@ public struct Group: Sendable, ModelBuildable {
         options inheritedOptions: ModelOptions?,
         URL directory: URL?,
         filterPath: [String]
-    ) async {
+    ) async -> Int {
         let directives = await ModelContext(isCollectingModels: true).whileCurrent {
             await inheritedEnvironment.whileCurrent {
                 await self.directives()
@@ -99,12 +99,24 @@ public struct Group: Sendable, ModelBuildable {
         let currentFilterPath: [String]
         if let name {
             currentFilterPath = filterPath + [name]
-            if let parent = directory {
-                outputDirectory = parent.appendingPathComponent(name, isDirectory: true)
+            let groupDirectory = if let parent = directory {
+                parent.appendingPathComponent(name, isDirectory: true)
             } else {
-                outputDirectory = URL(expandingFilePath: name)
+                URL(expandingFilePath: name)
             }
-            try? FileManager().createDirectory(at: outputDirectory!, withIntermediateDirectories: true)
+
+            // Without this directory there is nowhere for the models below it to go, so the
+            // failure belongs to the directory and is reported once, rather than once per model
+            // that then cannot be saved into it.
+            do {
+                try FileManager().createDirectory(at: groupDirectory, withIntermediateDirectories: true)
+            } catch {
+                logger.error(
+                    "Failed to create output directory \(groupDirectory.path): \(error.descriptiveString)"
+                )
+                return 1
+            }
+            outputDirectory = groupDirectory
         } else {
             currentFilterPath = filterPath
             outputDirectory = directory
@@ -117,8 +129,8 @@ public struct Group: Sendable, ModelBuildable {
         let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: currentFilterPath) }
         let buildables: [any ModelBuildable] = groups + filteredModels
 
-        _ = await buildables.asyncMap {
+        return await buildables.asyncMap {
             await $0.build(environment: environment, context: context, options: options, URL: outputDirectory, filterPath: currentFilterPath)
-        }
+        }.reduce(0, +)
     }
 }

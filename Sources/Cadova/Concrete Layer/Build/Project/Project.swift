@@ -72,8 +72,17 @@ public func Project(
         await content()
     }
 
+    var failures = 0
+
     if let url {
-        try? FileManager().createDirectory(at: url, withIntermediateDirectories: true)
+        // Reported once for the directory, rather than once per model that then cannot be saved
+        // into it. The models are still attempted, in case they name absolute paths of their own.
+        do {
+            try FileManager().createDirectory(at: url, withIntermediateDirectories: true)
+        } catch {
+            logger.error("Failed to create output directory \(url.path): \(error.descriptiveString)")
+            failures += 1
+        }
     }
 
     var combinedOptions = ModelOptions(options + directives.compactMap(\.options))
@@ -89,7 +98,10 @@ public func Project(
 
     // Build models and groups
     let groups = directives.compactMap(\.group)
-    guard models.isEmpty == false || groups.isEmpty == false else { return }
+    guard models.isEmpty == false || groups.isEmpty == false else {
+        BuildFailureBehavior.endBuild(failureCount: failures)
+        return
+    }
     let context = EvaluationContext()
 
     let constantEnvironment = environment
@@ -98,9 +110,11 @@ public func Project(
     let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: []) }
     let buildables: [any ModelBuildable] = groups + filteredModels
     let finalOptions = combinedOptions
-    _ = await buildables.asyncMap {
+    failures += await buildables.asyncMap {
         await $0.build(environment: constantEnvironment, context: context, options: finalOptions, URL: url, filterPath: [])
-    }
+    }.reduce(0, +)
+
+    BuildFailureBehavior.endBuild(failureCount: failures)
 }
 
 public func Project(

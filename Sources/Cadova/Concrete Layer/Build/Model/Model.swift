@@ -98,7 +98,9 @@ public struct Model: Sendable, ModelBuildable {
             let directory = packageRoot.appending(path: "Models", directoryHint: .isDirectory)
             try? FileManager().createDirectory(at: directory, withIntermediateDirectories: true)
 
-            await build(URL: directory)
+            // A standalone model has no `Project` above it to end the process, so its failures
+            // are still only logged. See the note in the pull request; it needs its own decision.
+            _ = await build(URL: directory)
         }
     }
 
@@ -108,7 +110,7 @@ public struct Model: Sendable, ModelBuildable {
         options inheritedOptions: ModelOptions? = nil,
         URL directory: URL? = nil,
         filterPath: [String] = []
-    ) async {
+    ) async -> Int {
         logger.info("Generating \"\(name)\"...")
 
         var directives = inheritedEnvironment.whileCurrent {
@@ -149,23 +151,29 @@ public struct Model: Sendable, ModelBuildable {
             }
 
         } catch BuildError.noGeometry {
+            // Deliberately not counted as a failure. A model that builds to nothing under some
+            // condition is a reasonable thing to write, and deciding otherwise is a separate
+            // argument from this one.
             logger.error("No geometry for model \"\(name)\"")
-            return
+            return 0
 
         } catch {
             logger.error("Cadova caught an error while evaluating model \"\(name)\":\n\(error)\n")
-            return
+            return 1
         }
 
         let url = baseURL.appendingPathExtension(provider.fileExtension)
 
         // Shared by every path below — never called more than once per build.
-        func write() async {
+        // Returns the number of failures, so every caller can hand it straight up.
+        func write() async -> Int {
             do {
                 try await provider.writeOutput(to: url, context: context)
                 logger.info("Wrote model to \(url.path)")
+                return 0
             } catch {
                 logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+                return 1
             }
         }
 
@@ -181,14 +189,14 @@ public struct Model: Sendable, ModelBuildable {
             let writeTask = Task(priority: .utility) { await write() }
 
             _ = await pushTask.value
-            await writeTask.value
-            return
+            return await writeTask.value
         }
 
         // No listener expected — plain async-let avoids the Task-split overhead above.
         async let liveLinkPush: Bool = provider.pushToLiveLink(destination: url, context: context)
-        await write()
+        let failures = await write()
         _ = await liveLinkPush
+        return failures
     }
 }
 

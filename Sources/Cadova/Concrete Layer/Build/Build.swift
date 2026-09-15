@@ -48,11 +48,15 @@ internal extension EnvironmentValues {
 }
 
 internal protocol ModelBuildable: Sendable {
+    /// Builds and writes everything this buildable contains, returning how much of it failed.
+    ///
+    /// Never throws. One model failing must not cancel the rest of the build, so each failure is
+    /// logged where it happens and counted here, for the `Project` at the top to act on.
     func build(
         environment inheritedEnvironment: EnvironmentValues,
         context: EvaluationContext,
         options inheritedOptions: ModelOptions?,
         URL directory: URL?,
         filterPath: [String]
-    ) async
+    ) async -> Int
 }
