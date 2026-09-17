@@ -53,9 +53,8 @@ struct BuildFailureExitStatusTests {
         }
     }
 
-    @Test func `a project that cannot create its output directory exits with a non-zero status`() async throws {
-        try #require(readOnlyDirectoriesAreEnforced)
-
+    @Test(.enabled(if: readOnlyDirectoriesAreEnforced))
+    func `a project that cannot create its output directory exits with a non-zero status`() async throws {
         await #expect(processExitsWith: .failure) {
             let parent = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
             try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
@@ -67,9 +66,8 @@ struct BuildFailureExitStatusTests {
         }
     }
 
-    @Test func `a group that cannot create its directory exits with a non-zero status`() async throws {
-        try #require(readOnlyDirectoriesAreEnforced)
-
+    @Test(.enabled(if: readOnlyDirectoriesAreEnforced))
+    func `a group that cannot create its directory exits with a non-zero status`() async throws {
         await #expect(processExitsWith: .failure) {
             let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -117,9 +115,8 @@ struct BuildFailureExitStatusTests {
         #expect(files.contains("bad.3mf") == false)
     }
 
-    @Test func `a group whose directory cannot be created does not stop its siblings`() async throws {
-        try #require(readOnlyDirectoriesAreEnforced)
-
+    @Test(.enabled(if: readOnlyDirectoriesAreEnforced))
+    func `a group whose directory cannot be created does not stop its siblings`() async throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 
