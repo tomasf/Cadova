@@ -4,8 +4,8 @@ internal import ThreeMF
 internal import Zip
 internal import Nodal
 #if canImport(CadovaLiveLinkClient)
-import CadovaLiveLinkCore
-import CadovaLiveLinkClient
+internal import CadovaLiveLinkCore
+internal import CadovaLiveLinkClient
 #endif
 
 extension MeshGL: @retroactive @unchecked Sendable {}
