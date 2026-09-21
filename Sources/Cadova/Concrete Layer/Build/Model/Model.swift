@@ -5,6 +5,12 @@ import Foundation
 /// Use `Model` to build geometry and write it to disk in formats like 3MF, STL, or SVG.
 /// The model is created and exported in a single step using an async initializer.
 ///
+/// `Model` is meant for direct, interactive use, standalone or nested inside a `Project`, as part
+/// of a dedicated model executable that a person runs themselves. It isn't meant to be called
+/// from other code that needs to know whether the build succeeded, such as a build tool, an app,
+/// or a CI script. For that, use ``ModelFileGenerator``, which throws real errors instead of only
+/// logging them and has no side effects of its own.
+///
 /// ```swift
 /// await Model("my-part") {
 ///     Box(x: 10, y: 10, z: 5)
@@ -16,8 +22,6 @@ import Foundation
 ///
 /// Models can also be grouped within a `Project` to share environment settings and metadata
 /// across multiple output files.
-///
-/// For fine-grained control of file output, see ``ModelFileGenerator``.
 ///
 public struct Model: Sendable, ModelBuildable {
     let name: String

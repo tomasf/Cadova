@@ -7,6 +7,11 @@ import Foundation
 /// This is useful when exporting several models as a cohesive set, such as for a product or library,
 /// where consistent output format, compression, or metadata is desired.
 ///
+/// Like `Model`, `Project` is meant for direct, interactive use: it's the entry point of a
+/// dedicated model executable that a person runs themselves, not a step in a build or CI
+/// pipeline that needs to check whether it succeeded. For that, build directly on
+/// ``ModelFileGenerator`` instead, which throws real errors rather than only logging them.
+///
 /// In addition to `Model` entries, the project's result builder also accepts:
 /// - `Metadata(...)`: Attaches metadata that is combined into the project's shared `ModelOptions`
 ///   (for example title, author, license). This metadata is merged and applied to all models unless
