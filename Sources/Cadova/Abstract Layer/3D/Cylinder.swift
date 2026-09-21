@@ -82,16 +82,6 @@ public extension Cylinder {
         (topRadius + bottomRadius) * .pi * slantHeight
     }
 
-    /// The total surface area, including the top, bottom, and lateral surface.
-    var surfaceArea: Double {
-        lateralSurfaceArea + top.area + bottom.area
-    }
-
-    /// The volume of the solid, whether a full cylinder or truncated cone.
-    var volume: Double {
-        .pi / 3.0 * height * (bottomRadius * bottomRadius + bottomRadius * topRadius + topRadius * topRadius)
-    }
-
     /// The angle between the side of the cylinder and its base.
     ///
     /// A value of 0 means the side is vertical (as in a regular cylinder).
@@ -100,5 +90,17 @@ public extension Cylinder {
     ///
     var sideAngle: Angle {
         atan((topRadius - bottomRadius) / height)
+    }
+}
+
+extension Cylinder: Volume, SurfaceArea {
+    /// The volume of the solid, whether a full cylinder or truncated cone.
+    public var volume: Double {
+        .pi / 3.0 * height * (bottomRadius * bottomRadius + bottomRadius * topRadius + topRadius * topRadius)
+    }
+
+    /// The total surface area, including the top, bottom, and lateral surface.
+    public var surfaceArea: Double {
+        lateralSurfaceArea + top.area + bottom.area
     }
 }

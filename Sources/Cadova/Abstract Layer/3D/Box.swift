@@ -52,17 +52,19 @@ extension Box: Geometry3D {
     }
 }
 
-public extension Box {
+extension Box: Volume, SurfaceArea {
     /// The volume of the box.
-    var volume: Double {
+    public var volume: Double {
         size.x * size.y * size.z
     }
 
     /// The surface area of the box.
-    var surfaceArea: Double {
+    public var surfaceArea: Double {
         2 * (size.x * size.y + size.x * size.z + size.y * size.z)
     }
+}
 
+public extension Box {
     /// The length of the space diagonal of the box.
     var diagonal: Double {
         (size.x * size.x + size.y * size.y + size.z * size.z).squareRoot()

@@ -110,18 +110,20 @@ public extension Torus {
         .pi * minorRadius * minorRadius
     }
 
+    /// The circumference of the torus centerline (the circular path of the tube center).
+    var centerlineCircumference: Double {
+        2 * .pi * majorRadius
+    }
+}
+
+extension Torus: Volume, SurfaceArea {
     /// The volume of the torus.
-    var volume: Double {
+    public var volume: Double {
         2 * .pi * .pi * majorRadius * minorRadius * minorRadius
     }
 
     /// The surface area of the torus.
-    var surfaceArea: Double {
+    public var surfaceArea: Double {
         4 * .pi * .pi * majorRadius * minorRadius
-    }
-
-    /// The circumference of the torus centerline (the circular path of the tube center).
-    var centerlineCircumference: Double {
-        2 * .pi * majorRadius
     }
 }

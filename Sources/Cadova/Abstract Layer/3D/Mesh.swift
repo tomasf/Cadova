@@ -178,17 +178,17 @@ public extension Mesh {
 }
 
 
-public extension Mesh {
+extension Mesh: Volume, SurfaceArea {
     /// Returns the total enclosed volume of the mesh, assuming a watertight solid.
     ///
     /// A positive value indicates outward-facing face winding. If the result is negative,
     /// consider calling `correctingFaceWinding()` to fix the orientation.
-    var volume: Double {
+    public var volume: Double {
         meshData.signedVolume
     }
 
     /// Returns the total surface area of the mesh, calculated from triangulated faces.
-    var surfaceArea: Double {
+    public var surfaceArea: Double {
         // `meshData` rebuilds the whole vertex table on every access, so it's read once here. Reading it inside
         // the loop instead costs `1 + 3 × triangles` rebuilds, which grows with the square of the mesh.
         let data = meshData

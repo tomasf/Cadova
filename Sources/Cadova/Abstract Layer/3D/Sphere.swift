@@ -74,14 +74,16 @@ public extension Sphere {
     ///
     /// This property defines the overall size of the sphere from one side to the other through its center.
     var diameter: Double { radius * 2}
+}
 
+extension Sphere: Volume, SurfaceArea {
     /// The surface area of the sphere.
-    var surfaceArea: Double {
+    public var surfaceArea: Double {
         4 * .pi * radius * radius
     }
 
     /// The volume of the sphere.
-    var volume: Double {
+    public var volume: Double {
         (4.0 / 3.0) * .pi * radius * radius * radius
     }
 }

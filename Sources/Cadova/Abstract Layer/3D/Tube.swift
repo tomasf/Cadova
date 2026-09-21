@@ -103,14 +103,16 @@ public extension Tube {
     var ringFaceArea: Double {
         .pi * (outerRadius * outerRadius - innerRadius * innerRadius)
     }
+}
 
+extension Tube: Volume, SurfaceArea {
     /// The total surface area of the tube (outer + inner sides + two ring faces).
-    var surfaceArea: Double {
+    public var surfaceArea: Double {
         lateralSurfaceArea + ringFaceArea * 2
     }
 
     /// The volume enclosed by the tube wall.
-    var volume: Double {
+    public var volume: Double {
         ringFaceArea * height
     }
 }
