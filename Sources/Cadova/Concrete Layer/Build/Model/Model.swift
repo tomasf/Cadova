@@ -99,7 +99,7 @@ public struct Model: Sendable, ModelBuildable {
             try? FileManager().createDirectory(at: directory, withIntermediateDirectories: true)
 
             // A standalone model has no `Project` above it to end the process, so its failures
-            // are still only logged. See the note in the pull request; it needs its own decision.
+            // are still only logged.
             _ = await build(URL: directory)
         }
     }

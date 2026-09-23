@@ -97,13 +97,13 @@ struct BuildFailureExitStatusTests {
 
     // MARK: - What still happens around the failure
 
-    /// Also covers `.report` keeping the process alive: under the default behavior this test would
-    /// end its own process before reaching an expectation.
+    /// The build runs in the child process, so the directory is made here and captured into it.
+    /// What the child wrote is still on disk once it has exited, which is what this asserts.
     @Test func `a failing model does not stop the models beside it`() async throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 
-        await BuildFailureBehavior.report.whileCurrent {
+        await #expect(processExitsWith: .failure) { [directory = directory as URL] in
             await Project(root: directory) {
                 await Model("good") { Box(10) }
                 await Model("bad") { unbuildableGeometry }
@@ -125,7 +125,7 @@ struct BuildFailureExitStatusTests {
         try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: blocked.path)
         defer { try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: blocked.path) }
 
-        await BuildFailureBehavior.report.whileCurrent {
+        await #expect(processExitsWith: .failure) { [directory = directory as URL] in
             await Project(root: directory) {
                 await Group("blocked") {
                     await Group("inner") {

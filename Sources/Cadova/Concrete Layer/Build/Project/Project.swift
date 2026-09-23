@@ -99,7 +99,7 @@ public func Project(
     // Build models and groups
     let groups = directives.compactMap(\.group)
     guard models.isEmpty == false || groups.isEmpty == false else {
-        BuildFailureBehavior.endBuild(failureCount: failures)
+        endBuild(failureCount: failures)
         return
     }
     let context = EvaluationContext()
@@ -114,7 +114,19 @@ public func Project(
         await $0.build(environment: constantEnvironment, context: context, options: finalOptions, URL: url, filterPath: [])
     }.reduce(0, +)
 
-    BuildFailureBehavior.endBuild(failureCount: failures)
+    endBuild(failureCount: failures)
+}
+
+/// Ends a build that reported a failure.
+///
+/// `Project` is the entry point of a command-line model program, so a failed build ends that
+/// program with a non-zero exit status. That status is the only thing a shell, a Makefile or a CI
+/// job can act on; a logged error is not, since nothing obliges the caller to read it. Each failure
+/// is already logged where it happened, so this only says how many there were.
+private func endBuild(failureCount: Int) {
+    guard failureCount > 0 else { return }
+    logger.error("Build failed with \(failureCount) error\(failureCount == 1 ? "" : "s").")
+    exit(EXIT_FAILURE)
 }
 
 public func Project(
