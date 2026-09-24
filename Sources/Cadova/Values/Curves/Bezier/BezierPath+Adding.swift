@@ -126,12 +126,16 @@ public extension BezierPath2D {
         let startAngle: Angle = atan2(delta)
         guard radius > 0 else { return self }
 
-        // Compute signed sweep toward the requested end angle using Angle arithmetic
+        // Compute signed sweep toward the requested end angle using Angle arithmetic. The start angle is in
+        // -180°...180° but the end angle can be anything, so the difference can be off by whole turns in either
+        // direction; bring it into at most one full turn the requested way.
         var sweep: Angle = endAngle - startAngle
         if clockwise {
             while sweep > 0° { sweep = sweep - 360° }
+            while sweep < -360° { sweep = sweep + 360° }
         } else {
             while sweep < 0° { sweep = sweep + 360° }
+            while sweep > 360° { sweep = sweep - 360° }
         }
         guard !sweep.isZero else { return self }
 

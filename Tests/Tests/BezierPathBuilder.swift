@@ -91,6 +91,18 @@ struct BezierPathBuilderTests {
         #expect(builderPath.point(at: builderPath.domain.upperBound) ≈ [10, 20])
     }
 
+    @Test func `absolute arcs sweep less than a full turn to an end angle given past 360 degrees`() {
+        // The start angle is measured in -180°...180°, so starting at (0, -10) is -90°. Reaching 360° from
+        // there is a quarter turn counterclockwise, not a turn and a quarter.
+        let counterclockwise = BezierPath2D(startPoint: [0, -10]).addingArc(center: .zero, to: 360°, clockwise: false)
+        #expect(counterclockwise.point(at: counterclockwise.domain.upperBound) ≈ [10, 0])
+        #expect(counterclockwise.length(segmentation: .fixed(100)).equals(5 * .pi, within: 0.01))
+
+        let clockwise = BezierPath2D(startPoint: [0, 10]).addingArc(center: .zero, to: -360°, clockwise: true)
+        #expect(clockwise.point(at: clockwise.domain.upperBound) ≈ [10, 0])
+        #expect(clockwise.length(segmentation: .fixed(100)).equals(5 * .pi, within: 0.01))
+    }
+
     @Test func `builder relative arcs sweep by an angle from the current point`() {
         let builderPath = BezierPath2D(from: [10, 0], mode: .relative) {
             counterclockwiseArc(centerX: -10, angle: 90°)
