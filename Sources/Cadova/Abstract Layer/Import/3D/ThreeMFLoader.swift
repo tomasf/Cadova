@@ -68,7 +68,8 @@ internal extension Import<D3>.ModelPart {
         self.init(
             index: index,
             name: item.rootObject.name.flatMap { $0.isEmpty ? nil : $0 },
-            partNumber: item.item.partNumber.flatMap { $0.isEmpty ? nil : $0 }
+            partNumber: item.item.partNumber.flatMap { $0.isEmpty ? nil : $0 },
+            semantic: item.item.semantic ?? .solid
         )
     }
 }
