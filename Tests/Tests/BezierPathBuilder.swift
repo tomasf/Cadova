@@ -76,4 +76,32 @@ struct BezierPathBuilderTests {
 
         #expect(builderPath ≈ manualPath)
     }
+
+    @Test func `builder absolute arcs sweep to an absolute end angle`() {
+        let builderPath = BezierPath2D(from: [10, 0]) {
+            counterclockwiseArc(center: [0, 0], angle: 90°)
+            clockwiseArc(center: [0, 20], angle: 0°)
+        }
+
+        let manualPath = BezierPath2D(startPoint: [10, 0])
+            .addingArc(center: .zero, to: 90°, clockwise: false)
+            .addingArc(center: [0, 20], to: 0°, clockwise: true)
+
+        #expect(builderPath ≈ manualPath)
+        #expect(builderPath.point(at: builderPath.domain.upperBound) ≈ [10, 20])
+    }
+
+    @Test func `builder relative arcs sweep by an angle from the current point`() {
+        let builderPath = BezierPath2D(from: [10, 0], mode: .relative) {
+            counterclockwiseArc(centerX: -10, angle: 90°)
+            counterclockwiseArc(centerY: -5, angle: 90°)
+        }
+
+        let manualPath = BezierPath2D(startPoint: [10, 0])
+            .addingArc(center: .zero, to: 90°, clockwise: false)
+            .addingArc(center: [0, 5], to: 180°, clockwise: false)
+
+        #expect(builderPath ≈ manualPath)
+        #expect(builderPath.point(at: builderPath.domain.upperBound) ≈ [-5, 5])
+    }
 }
