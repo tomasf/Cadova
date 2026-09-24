@@ -2,7 +2,7 @@
 
 Set up a new Swift package and create your first 3D model with Cadova.
 
-> tl;dr: Create a new executable Swift package with Cadova as a dependency, import it, define your geometry inside `Model(...) { ... }` and run the program to generate a 3MF file. Use [the model template repo](https://github.com/tomasf/cadova-model-template) to get going quickly.
+> tl;dr: Create a new executable Swift package with Cadova as a dependency, import it, define your geometry inside `Model(...) { ... }` and run the program to generate a 3MF file. Use [the model template repo](https://github.com/tomasf/cadova-model-template) to get going quickly: `gh repo create gizmo --template tomasf/cadova-model-template --private --clone`
 
 ## 1. Install Swift
 
@@ -10,7 +10,11 @@ If you're on macOS, the easiest path is to [install the latest version of Xcode]
 
 For Windows and Linux, install Swift directly from [swift.org](https://www.swift.org/install/). We also recommend [VS Code](https://code.visualstudio.com/) with the [Swift extension](https://marketplace.visualstudio.com/items?itemName=swiftlang.swift-vscode) for a smooth editing experience. On Linux, the Fontconfig library is required; install it with `sudo apt-get install libfontconfig1-dev`.
 
-> Tip: To skip steps 2 and 3, start from the [model package template](https://github.com/tomasf/cadova-model-template). It's a GitHub template repo with `Package.swift` and `main.swift` already set up. Press "Use this template", clone your new repository, then open `Sources/main.swift` and continue from step 4.
+> Tip: To skip steps 2 and 3, start from the [model package template](https://github.com/tomasf/cadova-model-template), which has the basics already set up. Using the [GitHub CLI](https://cli.github.com):
+> ```sh
+> gh repo create gizmo --template tomasf/cadova-model-template --private --clone
+> ```
+> Then open `Sources/main.swift` and continue from step 4.
 
 ## 2. Create a new Swift executable package
 
