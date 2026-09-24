@@ -18,18 +18,22 @@ internal extension Geometry3D {
             )
 
             let pathLength = frames.last!.distance
-            let (count, spacing) = calculator(pathLength)
 
-            for i in 0..<count {
-                let distance = Double(i) * spacing
-                // Instances past the end of the path continue straight along its end tangent
-                var transform = path.exactFrame(
-                    atDistance: distance, in: frames, reference: reference, target: resolvedTarget
-                ).transform
-                if target == nil {
-                    transform = .translation(transform.offset)
+            // A path without length has no direction to orient or continue along, so there's nothing to place
+            if pathLength > 0 {
+                let (count, spacing) = calculator(pathLength)
+
+                for i in 0..<count {
+                    let distance = Double(i) * spacing
+                    // Instances past the end of the path continue straight along its end tangent
+                    var transform = path.exactFrame(
+                        atDistance: distance, in: frames, reference: reference, target: resolvedTarget
+                    ).transform
+                    if target == nil {
+                        transform = .translation(transform.offset)
+                    }
+                    self.transformed(transform)
                 }
-                self.transformed(transform)
             }
         }
     }
@@ -168,17 +172,20 @@ public extension Geometry2D {
                 perpendicularBounds: nil
             )
 
-            for i in 0..<count {
-                // Instances past the end of the path continue straight along its end tangent
-                var transform = curve.exactFrame(
-                    atDistance: Double(i) * spacing, in: frames, reference: .down, target: .direction(.down)
-                ).transform
-                if rotating {
-                    transform = Transform3D.rotation(x: -90°, y: -90°).concatenated(with: transform)
-                } else {
-                    transform = .translation(transform.offset)
+            // A path without length has no direction to orient or continue along, so there's nothing to place
+            if frames.last!.distance > 0 {
+                for i in 0..<count {
+                    // Instances past the end of the path continue straight along its end tangent
+                    var transform = curve.exactFrame(
+                        atDistance: Double(i) * spacing, in: frames, reference: .down, target: .direction(.down)
+                    ).transform
+                    if rotating {
+                        transform = Transform3D.rotation(x: -90°, y: -90°).concatenated(with: transform)
+                    } else {
+                        transform = .translation(transform.offset)
+                    }
+                    self.transformed(Transform2D(transform))
                 }
-                self.transformed(Transform2D(transform))
             }
         }
     }
