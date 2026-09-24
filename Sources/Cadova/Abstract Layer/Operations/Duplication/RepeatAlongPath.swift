@@ -9,9 +9,10 @@ internal extension Geometry3D {
     ) -> any Geometry3D {
         measuringBounds { _, bounds in
             @Environment var environment
+            let resolvedTarget = target ?? .direction(.down)
             let frames = path.frames(
                 environment: environment,
-                target: target ?? .direction(.down),
+                target: resolvedTarget,
                 targetReference: reference,
                 perpendicularBounds: bounds.bounds2D
             )
@@ -21,7 +22,10 @@ internal extension Geometry3D {
 
             for i in 0..<count {
                 let distance = Double(i) * spacing
-                var transform = frames.binarySearchInterpolate(target: distance, key: \.distance, result: \.transform)
+                // Instances past the end of the path continue straight along its end tangent
+                var transform = path.exactFrame(
+                    atDistance: distance, in: frames, reference: reference, target: resolvedTarget
+                ).transform
                 if target == nil {
                     transform = .translation(transform.offset)
                 }
@@ -49,7 +53,8 @@ public extension Geometry3D {
     ///   - reference: A local 2D direction in the XY-plane of the geometry used to resolve rotation when `target`
     ///                is specified. Defaults to `.down`.
     ///   - count: The number of instances to repeat.
-    ///   - spacing: The distance between the origin of each instance along the path.
+    ///   - spacing: The distance between the origin of each instance along the path. Instances that would land
+    ///              past the end of the path continue in a straight line along its end tangent.
     /// - Returns: A composite 3D geometry containing all repeated instances.
     ///
     func repeated<Path: ParametricCurve>(
@@ -143,7 +148,8 @@ public extension Geometry2D {
     ///   - path: The 2D ParametricCurve to follow.
     ///   - rotating: If `true`, each instance is rotated to align with the path direction (default is `true`).
     ///   - count: The number of instances to repeat.
-    ///   - spacing: The distance between each instance along the path.
+    ///   - spacing: The distance between each instance along the path. Instances that would land past the end
+    ///              of the path continue in a straight line along its end tangent.
     /// - Returns: A 2D composite geometry containing all repeated instances.
     ///
     func repeated<Path: ParametricCurve<Vector2D>>(
@@ -154,7 +160,8 @@ public extension Geometry2D {
     ) -> any Geometry2D {
         measuringBounds { _, bounds in
             @Environment var environment
-            let frames = path.curve3D.frames(
+            let curve = path.curve3D
+            let frames = curve.frames(
                 environment: environment,
                 target: .direction(.down),
                 targetReference: .down,
@@ -162,7 +169,10 @@ public extension Geometry2D {
             )
 
             for i in 0..<count {
-                var transform = frames.binarySearchInterpolate(target: Double(i) * spacing, key: \.distance, result: \.transform)
+                // Instances past the end of the path continue straight along its end tangent
+                var transform = curve.exactFrame(
+                    atDistance: Double(i) * spacing, in: frames, reference: .down, target: .direction(.down)
+                ).transform
                 if rotating {
                     transform = Transform3D.rotation(x: -90°, y: -90°).concatenated(with: transform)
                 } else {
