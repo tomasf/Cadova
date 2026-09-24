@@ -23,7 +23,7 @@ This writes a 2D or 3D model to disk. The string `pie` is used to name the model
 `Project` groups multiple models together so they share output settings and environment values:
 
 ```swift
-await Project(packageRelative: "Models") {
+await Project {
     await Model("pie") {
         Circle(diameter: 5)
             .subtracting {

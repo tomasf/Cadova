@@ -75,7 +75,7 @@ As your package grows to include more than one model, wrap them in a `Project` s
 ```swift
 import Cadova
 
-await Project(packageRelative: "Models") {
+await Project {
     await Model("gizmo") {
         Box([10, 10, 5])
             .subtracting {
