@@ -225,7 +225,7 @@ Move the modifier above the scale and it means 0.2 units of the scaled result in
 
 Everything on this page is *affine*: straight lines stay straight and parallel lines stay parallel. Operations that break that rule work differently, moving individual vertices rather than the frame as a whole, and only affect points that already exist in the mesh, so they usually want a `.refined(maxEdgeLength:)` beforehand.
 
-That family includes `.twisted(by:)`, `.wrappedAroundCylinder(diameter:)` and its circle and sphere counterparts, `.deformed(by:)` for following a curve or a ``BezierPatch``, `.skewingCorners(_:)` for dragging the corners of a bounding box, and the general-purpose `.warped(...)`, which `scaled(along:operationName:scale:)` is built on. See <doc:BendingAndDeforming>.
+That family includes `.twisted(by:)`, `.wrappedAroundCylinder(diameter:)` and its circle and sphere counterparts, `.deformed(by:)` for following a curve, `.draped(over:)` for laying geometry onto a surface, `.skewingCorners(_:)` for dragging the corners of a bounding box, and the general-purpose `.warped(...)`, which `scaled(along:operationName:scale:)` is built on. See <doc:BendingAndDeforming>.
 
 ## Related Reading
 

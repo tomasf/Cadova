@@ -165,3 +165,4 @@ Loft(along: path, pointing: .down, toward: .direction(.negativeZ)) {
 
 - <doc:Examples> for complete swept-text and loft models.
 - <doc:EnvironmentConcepts> for how segmentation and twist rate affect curve sampling.
+- <doc:Surfaces> for building curved surfaces from curves, such as ruled surfaces and Coons patches

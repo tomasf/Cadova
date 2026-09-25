@@ -78,16 +78,16 @@ This is not the same operation as `.swept(along:)` in <doc:CurvesAndPaths>, thou
 
 `.deformed(by:)` is a third idea again. It reads a ``ParametricCurve`` as an offset *function* rather than as a route to travel: in 2D the curve is `y(x)`, and in 3D it is `(dx(z), dy(z))`. Each point is displaced by the curve's value at its own position along the driving axis, which gives smooth bends and tapers without stretching anything to a new length. The curve has to be monotonic along that axis, or the operation traps.
 
-## Draping over a Bézier patch
+## Draping over a surface
 
-`.deformed(by: BezierPatch)` maps flat geometry onto a curved surface. The geometry's X/Y bounding box is normalized to the patch's UV space, the patch supplies the new position, and the original Z is stacked on top of the patch surface as thickness:
+`.draped(over:)` lays geometry onto a surface, such as a ``BezierPatch`` or a ``CoonsPatch``. The geometry's X and Y are used as the surface's `u` and `v`, and its Z is added on top as thickness:
 
 ```swift
-Box([40, 40, 2])
-    .deformed(by: patch)
+Box([40, 30, 2])
+    .draped(over: patch.withDomain(u: 0...40, v: 0...30))
 ```
 
-This is how you give a flat panel a compound curve, or lay a pattern over a sculpted surface.
+This is how you give a flat panel a compound curve, or lay a pattern over a sculpted surface. See <doc:Surfaces> for the kinds of surface you can use, and how a surface's domain sets the scale.
 
 ## Attracting and pulling
 
@@ -164,5 +164,6 @@ A deformation applied to a coarse mesh produces a coarse result, and no amount o
 ## Related Reading
 
 - <doc:Transformations> for the affine operations these complement, and for `.resized(...)` when you want a size rather than a shape change
-- <doc:CurvesAndPaths> for building the paths and patches that drive several of these operations, and for `.swept(along:)`
+- <doc:CurvesAndPaths> for building the paths that drive several of these operations, and for `.swept(along:)`
+- <doc:Surfaces> for the surfaces `.draped(over:)` can lay geometry onto
 - <doc:EnvironmentConcepts> for the segmentation settings that decide how smooth a deformation comes out
