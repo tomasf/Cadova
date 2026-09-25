@@ -3,10 +3,13 @@ import Foundation
 /// A curved surface in 3D space, described by a point for every pair of parameters `(u, v)` in the unit square.
 ///
 /// A surface is an open sheet, not a solid. Turn it into one with ``enclosed(against:)``, ``enclosed(to:)`` or
-/// ``enclosed(offset:)``, or use it to bend other geometry with ``Geometry3D/deformed(by:)``.
+/// ``enclosed(offset:)``, or use it to bend other geometry with `deformed(by:)`.
 ///
 /// Cadova provides these surfaces:
 /// - ``BezierPatch``, shaped by a grid of control points.
+/// - ``SplineSurface``, a NURBS surface shaped by a grid of weighted control points, which can describe exact
+///   sections of cylinders, spheres and other conic shapes.
+/// - ``InterpolatingSurface``, passing through every point of a grid.
 /// - ``RuledSurface``, made of straight lines between two curves.
 /// - ``CoonsPatch``, filling the area bounded by four curves.
 ///

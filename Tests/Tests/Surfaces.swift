@@ -109,6 +109,113 @@ struct SurfaceTests {
         #expect(abs(volume - disc) < 1)
     }
 
+    // MARK: - Spline surfaces
+
+    // Quarter circle of radius 10 as an exact rational quadratic arc.
+    private static let arcWeight = sqrt(2) / 2
+
+    @Test func `a spline surface with Bezier knots and unit weights is the Bezier patch of its control points`() {
+        let grid: [[Vector3D]] = [
+            [[0, 0, 0], [1, 0, 0.8], [2, 0, -0.2], [3, 0, 0]],
+            [[0, 1, 0.5], [1, 1, 1.5], [2, 1, 0.3], [3, 1, -0.4]],
+            [[0, 2, 0.4], [1, 2, 1.2], [2, 2, 1], [3, 2, 0.2]],
+            [[0, 3, 0], [1, 3, 0.4], [2, 3, 0.1], [3, 3, 1.2]],
+        ]
+        let spline = SplineSurface.uniformCubic(controlPoints: grid)
+        let patch = BezierPatch(controlPoints: grid)
+        for u in Self.fractions {
+            for v in Self.fractions {
+                #expect(spline.point(at: [u, v]) ≈ patch.point(at: [u, v]))
+            }
+        }
+    }
+
+    @Test func `a rational spline surface describes an exact quarter cylinder`() {
+        let w = Self.arcWeight
+        let cylinder = SplineSurface(
+            uDegree: 2, vDegree: 1,
+            uKnots: [0, 0, 0, 1, 1, 1], vKnots: [0, 0, 1, 1],
+            controlPoints: [
+                [([10, 0, 0], weight: 1), ([10, 0, 20], weight: 1)],
+                [([10, 10, 0], weight: w), ([10, 10, 20], weight: w)],
+                [([0, 10, 0], weight: 1), ([0, 10, 20], weight: 1)],
+            ]
+        )
+        for u in Self.fractions {
+            for v in Self.fractions {
+                let point = cylinder.point(at: [u, v])
+                #expect(Vector2D(point.x, point.y).magnitude ≈ 10)
+                let expectedHeight = 20 * v
+                #expect(point.z ≈ expectedHeight)
+            }
+        }
+    }
+
+    @Test func `a rational spline surface describes an exact sphere octant`() {
+        // The tensor product of two quarter-circle arcs: a meridian from the equator to the pole, swept a quarter
+        // turn around Z. Its weights are products of the arcs' weights, so any division before the end would pull
+        // the surface off the sphere wherever those differ.
+        let w = Self.arcWeight
+        let meridian: [(radius: Double, z: Double, weight: Double)] = [(10, 0, 1), (10, 10, w), (0, 10, 1)]
+        let sweep: [(x: Double, y: Double, weight: Double)] = [(1, 0, 1), (1, 1, w), (0, 1, 1)]
+        let octant = SplineSurface(
+            uDegree: 2, vDegree: 2,
+            uKnots: [0, 0, 0, 1, 1, 1], vKnots: [0, 0, 0, 1, 1, 1],
+            controlPoints: meridian.map { m in
+                sweep.map { s in (Vector3D(m.radius * s.x, m.radius * s.y, m.z), weight: m.weight * s.weight) }
+            }
+        )
+        for u in Self.fractions {
+            for v in Self.fractions {
+                #expect(octant.point(at: [u, v]).magnitude ≈ 10)
+            }
+        }
+    }
+
+    // MARK: - Interpolating surfaces
+
+    private static let heightGrid: [[Vector3D]] = [
+        [0, 2, 3, 1],
+        [1, 6, 8, 2],
+        [2, 7, 5, 3],
+        [0, 3, 2, 1],
+    ].enumerated().map { row, heights in
+        heights.enumerated().map { column, z in Vector3D(Double(column) * 10, Double(row) * 10, Double(z)) }
+    }
+
+    @Test func `an interpolating surface passes through every point of its grid`() {
+        let surface = InterpolatingSurface(through: Self.heightGrid)
+        for (row, points) in Self.heightGrid.enumerated() {
+            for (column, point) in points.enumerated() {
+                #expect(surface.point(at: [Double(row) / 3, Double(column) / 3]) ≈ point)
+            }
+        }
+    }
+
+    @Test func `an interpolating surface through a regular flat grid is that plane`() {
+        let grid = (0..<4).map { row in (0..<5).map { column in Vector3D(Double(column) * 10, Double(row) * 5, 0) } }
+        let surface = InterpolatingSurface(through: grid)
+        for u in Self.fractions {
+            for v in Self.fractions {
+                #expect(surface.point(at: [u, v]) ≈ Vector3D(40 * v, 15 * u, 0))
+            }
+        }
+    }
+
+    @Test func `an interpolating surface whose edge rows touch at one point stays open`() {
+        // The first and last rows meet at their middle point only. Deciding closure per evaluated point would
+        // turn the curve across the rows into a loop at exactly that column, leaving a seam in the surface.
+        let grid: [[Vector3D]] = [
+            [[0, 0, 0], [10, 10, 0], [20, 0, 0]],
+            [[0, 5, 5], [10, 12, 5], [20, 5, 5]],
+            [[0, 20, 0], [10, 10, 0], [20, 20, 0]],
+        ]
+        let surface = InterpolatingSurface(through: grid)
+        let atSharedColumn = surface.point(at: [0.25, 0.5])
+        let besideIt = surface.point(at: [0.25, 0.5 + 1e-4])
+        #expect(atSharedColumn.distance(to: besideIt) < 0.01)
+    }
+
     // MARK: - Shared surface operations
 
     @Test func `geometry draped over a surface that mirrors XY is not inside out`() async throws {

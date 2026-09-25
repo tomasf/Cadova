@@ -48,6 +48,16 @@ public struct SplineCurve<V: Vector>: Sendable, Hashable, Codable {
     
     /// Evaluates the curve point at parameter `u` using homogeneous De Boor.
     public func point(at u: Double) -> V {
+        let (weightedPoint, weight) = homogeneousPoint(at: u)
+        return weightedPoint / weight
+    }
+
+    /// Evaluates the curve at parameter `u` in homogeneous coordinates, before the division by weight.
+    ///
+    /// The result is the weighted point `Σ Nᵢ(u) wᵢ Pᵢ` together with the weight `Σ Nᵢ(u) wᵢ`. A NURBS surface
+    /// evaluated one direction at a time has to carry both into the second direction; dividing early
+    /// gives the wrong surface wherever the weights differ.
+    internal func homogeneousPoint(at u: Double) -> (point: V, weight: Double) {
         func findSpan(u: Double) -> Int {
             let p = degree
             let n = controlPoints.count - 1
@@ -81,8 +91,7 @@ public struct SplineCurve<V: Vector>: Sendable, Hashable, Codable {
                 d[j] = (a.0 * (1 - alpha) + b.0 * alpha, a.1 * (1 - alpha) + b.1 * alpha)
             }
         }
-        let (Pw, w) = d[p]
-        return Pw / w
+        return (d[p].0, d[p].1)
     }
     
     /// Tangent direction via finite difference. Suitable for framing and sampling.

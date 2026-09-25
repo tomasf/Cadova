@@ -10,19 +10,33 @@ import Foundation
 public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable, Codable {
     let points: [V]
 
+    // Overrides the automatic closure detection when set. An interpolating surface builds a curve across its
+    // rows for every point it evaluates, and detecting closure separately each time would let the surface
+    // switch between open and closed wherever its first and last rows happen to touch.
+    private let closure: Bool?
+
     /// Creates an interpolating (centripetal Catmull–Rom) curve through `points`.
     ///
     /// - Parameters:
     ///   - points: Control points the curve interpolates. Must contain at least two points.
     public init(through points: [V]) {
+        self.init(through: points, closed: nil)
+    }
+
+    /// Creates an interpolating curve with its closure decided up front instead of detected from its points.
+    ///
+    /// - Parameter closed: Whether the curve is closed, or `nil` to detect it. A closed curve's first and last
+    ///   points must coincide.
+    internal init(through points: [V], closed: Bool?) {
         precondition(points.count >= 2, "Interpolating curve requires at least two points")
         self.points = points
+        self.closure = closed
     }
 
     /// Compares the control points directly, which is both cheaper and more faithful than evaluating
     /// the curve, since an interpolating curve passes through its first and last points exactly.
     public var isClosed: Bool {
-        points.first!.distance(to: points.last!) < 1e-6
+        closure ?? (points.first!.distance(to: points.last!) < 1e-6)
     }
 
     /// Number of distinct support points used for wrapping at the seam.
