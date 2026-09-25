@@ -111,6 +111,29 @@ struct SurfaceTests {
 
     // MARK: - Shared surface operations
 
+    @Test func `geometry draped over a surface that mirrors XY is not inside out`() async throws {
+        // Rows running along X put u along Y and v along X, a left-handed pair in XY. Mapping onto it mirrors the
+        // geometry, which used to reverse every face and leave the solid inside out, with a negative volume.
+        let rowsAlongX = BezierPatch(controlPoints: [
+            [[0, 0, 0], [20, 0, 0], [40, 0, 0]],
+            [[0, 15, 0], [20, 15, 0], [40, 15, 0]],
+            [[0, 30, 0], [20, 30, 0], [40, 30, 0]],
+        ])
+        let rowsAlongY = BezierPatch(controlPoints: [
+            [[0, 0, 0], [0, 15, 0], [0, 30, 0]],
+            [[20, 0, 0], [20, 15, 0], [20, 30, 0]],
+            [[40, 0, 0], [40, 15, 0], [40, 30, 0]],
+        ])
+
+        for patch in [rowsAlongX, rowsAlongY] {
+            let draped = Box([10, 10, 2]).deformed(by: patch)
+            let volume = try await draped.measurements.volume
+            let bounds = try #require(try await draped.bounds)
+            #expect(volume ≈ 2400)
+            #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [40, 30, 2]))
+        }
+    }
+
     @Test func `geometry can be deformed by any surface`() async throws {
         let surface = RuledSurface(
             from: BezierPath3D(linesBetween: [[0, 0, 0], [20, 0, 0]]),
