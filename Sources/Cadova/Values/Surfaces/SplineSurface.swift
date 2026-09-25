@@ -29,7 +29,8 @@ import Foundation
 /// ``uniformClamped(degree:controlPoints:)``.
 ///
 /// The control points are given as rows. On the surface, `u` runs across the rows and `v` along each row, the same
-/// way as for ``BezierPatch``.
+/// way as for ``BezierPatch``. Their domains are the ranges covered by the knot vectors, the same as for
+/// ``SplineCurve``.
 ///
 /// This is an advanced type. If you want a surface that passes through a grid of points, ``InterpolatingSurface``
 /// is easier to use, and ``CoonsPatch`` fills a boundary of curves.
@@ -68,23 +69,30 @@ public struct SplineSurface: ParametricSurface {
         self.rows = controlPoints.map { SplineCurve(degree: vDegree, knots: vKnots, controlPoints: $0) }
     }
 
+    /// The range of `u` values the surface accepts: the domain of the knot vector across the rows.
+    public var uDomain: ClosedRange<Double> {
+        uKnots[uDegree]...uKnots[uKnots.count - uDegree - 1]
+    }
+
+    /// The range of `v` values the surface accepts: the domain of the knot vector along each row.
+    public var vDomain: ClosedRange<Double> {
+        rows[0].domain
+    }
+
     /// Returns the point on the surface at the given parameters.
     ///
-    /// - Parameter uv: The surface parameters, with both `u` (`x`) and `v` (`y`) in `0...1`. They're mapped
-    ///   linearly onto the domains of the knot vectors.
+    /// - Parameter uv: The surface parameters, with `u` (`x`) within ``uDomain`` and `v` (`y`) within
+    ///   ``vDomain``.
     /// - Returns: The point on the surface.
     public func point(at uv: Vector2D) -> Vector3D {
-        let row = rows[0]
-        let v = row.domain.lowerBound + row.domain.length * uv.y
-
         // Evaluate each row in homogeneous coordinates, then run a curve across the rows. A row's result stands
         // in as a control point of that curve: its weight is the row's summed weight, and the curve multiplies
         // it back in, so the weighted sum carries through unchanged.
         let across = SplineCurve(degree: uDegree, knots: uKnots, controlPoints: rows.map { row in
-            let (weightedPoint, weight) = row.homogeneousPoint(at: v)
+            let (weightedPoint, weight) = row.homogeneousPoint(at: uv.y)
             return (weightedPoint / weight, weight: weight)
         })
-        return across.point(at: across.domain.lowerBound + across.domain.length * uv.x)
+        return across.point(at: uv.x)
     }
 }
 

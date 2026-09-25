@@ -29,7 +29,8 @@ import Foundation
 /// repeats its first.
 ///
 /// On the surface, `u` runs across the rows and `v` along each row, the same way as for ``BezierPatch``. The grid
-/// points sit at evenly spaced parameters: the point in row `i` of `n` rows is at `u = i / (n − 1)`.
+/// points sit at whole-number parameters: the point in row `i`, column `j` is at `(u, v) = (i, j)`, the same way
+/// as for ``InterpolatingCurve``.
 ///
 public struct InterpolatingSurface: ParametricSurface {
     let rows: [InterpolatingCurve<Vector3D>]
@@ -51,14 +52,23 @@ public struct InterpolatingSurface: ParametricSurface {
         isClosedAcrossRows = zip(points.first!, points.last!).allSatisfy { $0.distance(to: $1) < 1e-6 }
     }
 
+    /// The range of `u` values the surface accepts: `0` at the first row to the number of rows minus one at the last.
+    public var uDomain: ClosedRange<Double> {
+        0...Double(rows.count - 1)
+    }
+
+    /// The range of `v` values the surface accepts: `0` at the first point of each row to the number of points minus
+    /// one at the last.
+    public var vDomain: ClosedRange<Double> {
+        rows[0].domain
+    }
+
     /// Returns the point on the surface at the given parameters.
     ///
-    /// - Parameter uv: The surface parameters, with both `u` (`x`) and `v` (`y`) in `0...1`.
+    /// - Parameter uv: The surface parameters, with `u` (`x`) within ``uDomain`` and `v` (`y`) within
+    ///   ``vDomain``.
     /// - Returns: The point on the surface.
     public func point(at uv: Vector2D) -> Vector3D {
-        let rowDomain = rows[0].domain
-        let v = rowDomain.lowerBound + rowDomain.length * uv.y
-        let across = InterpolatingCurve(through: rows.map { $0.point(at: v) }, closed: isClosedAcrossRows)
-        return across.point(at: across.domain.lowerBound + across.domain.length * uv.x)
+        InterpolatingCurve(through: rows.map { $0.point(at: uv.y) }, closed: isClosedAcrossRows).point(at: uv.x)
     }
 }

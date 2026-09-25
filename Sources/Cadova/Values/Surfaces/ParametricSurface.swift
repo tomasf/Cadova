@@ -1,9 +1,9 @@
 import Foundation
 
-/// A curved surface in 3D space, described by a point for every pair of parameters `(u, v)` in the unit square.
+/// A curved surface in 3D space, described by a point for every pair of parameters `(u, v)` within its domain.
 ///
 /// A surface is an open sheet, not a solid. Turn it into one with ``enclosed(against:)``, ``enclosed(to:)`` or
-/// ``enclosed(offset:)``, or use it to bend other geometry with `deformed(by:)`.
+/// ``enclosed(offset:)``, or lay other geometry onto it with `draped(over:)`.
 ///
 /// Cadova provides these surfaces:
 /// - ``BezierPatch``, shaped by a grid of control points.
@@ -13,15 +13,42 @@ import Foundation
 /// - ``RuledSurface``, made of straight lines between two curves.
 /// - ``CoonsPatch``, filling the area bounded by four curves.
 ///
+/// Like a curve's `domain`, ``uDomain`` and ``vDomain`` are the ranges of parameters a surface accepts. Each type uses
+/// its natural range, such as `0...1` for a ``BezierPatch``. Use ``withDomain(u:v:)`` to give a surface a different
+/// one, for example to match its size in millimeters.
+///
 /// You can conform your own types to describe other kinds of surfaces. The only requirement is
-/// ``point(at:)``; the surface is tessellated by sampling it according to the environment's segmentation.
+/// ``point(at:)``; the domain defaults to `0...1` in both directions, and the surface is tessellated by sampling it
+/// according to the environment's segmentation.
 ///
 public protocol ParametricSurface: Sendable, Hashable, Codable {
+    /// The range of `u` values the surface accepts.
+    var uDomain: ClosedRange<Double> { get }
+
+    /// The range of `v` values the surface accepts.
+    var vDomain: ClosedRange<Double> { get }
+
     /// Returns the point on the surface at the given parameters.
     ///
-    /// - Parameter uv: The surface parameters, with both `u` (`x`) and `v` (`y`) in `0...1`.
+    /// - Parameter uv: The surface parameters, with `u` (`x`) within ``uDomain`` and `v` (`y`) within
+    ///   ``vDomain``.
     /// - Returns: The point on the surface.
     func point(at uv: Vector2D) -> Vector3D
+}
+
+public extension ParametricSurface {
+    var uDomain: ClosedRange<Double> { 0...1 }
+    var vDomain: ClosedRange<Double> { 0...1 }
+}
+
+internal extension ParametricSurface {
+    /// The point at the given fractions of the way across the domain, each in `0...1`.
+    func point(atFraction fraction: Vector2D) -> Vector3D {
+        point(at: Vector2D(
+            uDomain.lowerBound + uDomain.length * fraction.x,
+            vDomain.lowerBound + vDomain.length * fraction.y
+        ))
+    }
 }
 
 public extension ParametricSurface {
@@ -47,7 +74,7 @@ private extension ParametricSurface {
         let vSteps = (0...vCount).map { Double($0) / Double(vCount) }
         return uSteps.map { u in
             vSteps.map { v in
-                point(at: Vector2D(u, v))
+                point(atFraction: Vector2D(u, v))
             }
         }
     }
@@ -61,7 +88,7 @@ private extension ParametricSurface {
             // Sample current grid
             let pointsGrid = uSteps.map { u in
                 vSteps.map { v in
-                    point(at: Vector2D(u, v))
+                    point(atFraction: Vector2D(u, v))
                 }
             }
 
@@ -107,7 +134,7 @@ private extension ParametricSurface {
 
         return uSteps.map { u in
             vSteps.map { v in
-                point(at: Vector2D(u, v))
+                point(atFraction: Vector2D(u, v))
             }
         }
     }

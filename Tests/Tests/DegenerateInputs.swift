@@ -218,6 +218,7 @@ struct DegenerateInputTests {
 
     // MARK: - Deformations driven by a measured extent
 
+    @available(*, deprecated)
     @Test func `deforming geometry with no footprint leaves it unchanged`() async throws {
         let patch = BezierPatch(controlPoints: [
             [[0, 0, 0], [10, 0, 0], [20, 0, 0]],

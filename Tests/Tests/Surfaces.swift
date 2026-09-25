@@ -183,11 +183,13 @@ struct SurfaceTests {
         heights.enumerated().map { column, z in Vector3D(Double(column) * 10, Double(row) * 10, Double(z)) }
     }
 
-    @Test func `an interpolating surface passes through every point of its grid`() {
+    @Test func `an interpolating surface passes through every point of its grid at whole-number parameters`() {
         let surface = InterpolatingSurface(through: Self.heightGrid)
+        #expect(surface.uDomain == 0...3)
+        #expect(surface.vDomain == 0...3)
         for (row, points) in Self.heightGrid.enumerated() {
             for (column, point) in points.enumerated() {
-                #expect(surface.point(at: [Double(row) / 3, Double(column) / 3]) ≈ point)
+                #expect(surface.point(at: [Double(row), Double(column)]) ≈ point)
             }
         }
     }
@@ -197,7 +199,7 @@ struct SurfaceTests {
         let surface = InterpolatingSurface(through: grid)
         for u in Self.fractions {
             for v in Self.fractions {
-                #expect(surface.point(at: [u, v]) ≈ Vector3D(40 * v, 15 * u, 0))
+                #expect(surface.point(atFraction: [u, v]) ≈ Vector3D(40 * v, 15 * u, 0))
             }
         }
     }
@@ -211,44 +213,75 @@ struct SurfaceTests {
             [[0, 20, 0], [10, 10, 0], [20, 20, 0]],
         ]
         let surface = InterpolatingSurface(through: grid)
-        let atSharedColumn = surface.point(at: [0.25, 0.5])
-        let besideIt = surface.point(at: [0.25, 0.5 + 1e-4])
+        let atSharedColumn = surface.point(at: [0.5, 1])
+        let besideIt = surface.point(at: [0.5, 1 + 2e-4])
         #expect(atSharedColumn.distance(to: besideIt) < 0.01)
     }
 
     // MARK: - Shared surface operations
 
+    // A flat 40 × 30 mm patch with its rows along Y, so u runs along X and v along Y, given a domain matching its size:
+    // draping over it leaves geometry exactly where it is.
+    private static let flatPatch = BezierPatch(controlPoints: [
+        [[0, 0, 0], [0, 30, 0]],
+        [[40, 0, 0], [40, 30, 0]],
+    ]).withDomain(u: 0...40, v: 0...30)
+
+    @Test func `draping uses the geometry's X and Y directly as the surface's u and v`() async throws {
+        // Unlike stretching a footprint over the whole surface, a small piece stays small and where it was placed.
+        let piece = Box([10, 5, 2]).translated(x: 12, y: 20)
+        let bounds = try #require(try await piece.draped(over: Self.flatPatch).withSegmentation(count: 8).bounds)
+        #expect(bounds ≈ BoundingBox3D(minimum: [12, 20, 0], maximum: [22, 25, 2]))
+    }
+
+    @Test func `draping clamps geometry outside the surface's domain to its edge`() async throws {
+        let overhanging = Box([60, 10, 2]).translated(x: -10)
+        let bounds = try #require(try await overhanging.draped(over: Self.flatPatch).withSegmentation(count: 8).bounds)
+        #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [40, 10, 2]))
+    }
+
+    @Test func `a surface with a new domain has the same shape`() {
+        let patch = BezierPatch(controlPoints: [
+            [[0, 0, 0], [0, 30, 4]],
+            [[40, 0, 2], [40, 30, 0]],
+        ])
+        let rescaled = patch.withDomain(u: 10...50, v: -5...25)
+        for u in Self.fractions {
+            for v in Self.fractions {
+                #expect(rescaled.point(at: [10 + 40 * u, -5 + 30 * v]) ≈ patch.point(at: [u, v]))
+            }
+        }
+    }
+
     @Test func `geometry draped over a surface that mirrors XY is not inside out`() async throws {
         // Rows running along X put u along Y and v along X, a left-handed pair in XY. Mapping onto it mirrors the
         // geometry, which used to reverse every face and leave the solid inside out, with a negative volume.
         let rowsAlongX = BezierPatch(controlPoints: [
-            [[0, 0, 0], [20, 0, 0], [40, 0, 0]],
-            [[0, 15, 0], [20, 15, 0], [40, 15, 0]],
-            [[0, 30, 0], [20, 30, 0], [40, 30, 0]],
-        ])
-        let rowsAlongY = BezierPatch(controlPoints: [
-            [[0, 0, 0], [0, 15, 0], [0, 30, 0]],
-            [[20, 0, 0], [20, 15, 0], [20, 30, 0]],
-            [[40, 0, 0], [40, 15, 0], [40, 30, 0]],
-        ])
+            [[0, 0, 0], [40, 0, 0]],
+            [[0, 30, 0], [40, 30, 0]],
+        ]).withDomain(u: 0...30, v: 0...40)
 
-        for patch in [rowsAlongX, rowsAlongY] {
-            let draped = Box([10, 10, 2]).deformed(by: patch)
-            let volume = try await draped.measurements.volume
-            let bounds = try #require(try await draped.bounds)
-            #expect(volume ≈ 2400)
-            #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [40, 30, 2]))
-        }
+        let draped = Box([30, 40, 2]).draped(over: rowsAlongX).withSegmentation(count: 8)
+        let volume = try await draped.measurements.volume
+        let bounds = try #require(try await draped.bounds)
+        #expect(volume ≈ 2400)
+        #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [40, 30, 2]))
     }
 
-    @Test func `geometry can be deformed by any surface`() async throws {
+    @Test func `geometry can be draped over any surface`() async throws {
         let surface = RuledSurface(
             from: BezierPath3D(linesBetween: [[0, 0, 0], [20, 0, 0]]),
             to: BezierPath3D(linesBetween: [[0, 20, 10], [20, 20, 10]])
         )
-        let bounds = try #require(try await Box([20, 20, 1]).deformed(by: surface).bounds)
+        let bounds = try #require(try await Box([20, 20, 1]).draped(over: surface.withDomain(u: 0...20, v: 0...20)).withSegmentation(count: 8).bounds)
 
         #expect(bounds.minimum.z ≈ 0)
         #expect(bounds.maximum.z ≈ 11)
+    }
+
+    @available(*, deprecated)
+    @Test func `the deprecated deformation still stretches the footprint over the whole surface`() async throws {
+        let bounds = try #require(try await Box([10, 5, 2]).translated(x: 12, y: 20).deformed(by: Self.flatPatch).withSegmentation(count: 8).bounds)
+        #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [40, 30, 2]))
     }
 }

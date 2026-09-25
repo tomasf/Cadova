@@ -53,6 +53,28 @@ public extension Geometry3D {
 @available(*, deprecated, renamed: "Loft.Transition")
 public typealias LayerTransition = Loft.Transition
 
+public extension Geometry3D {
+    @available(*, deprecated, message: "Use draped(over:), which uses the geometry's X and Y directly as the surface's u and v. To stretch the geometry over the whole surface as before, give the surface the geometry's bounds as its domain with withDomain(u:v:).")
+    func deformed<Surface: ParametricSurface>(by surface: Surface) -> any Geometry3D {
+        // Stretching the footprint over the whole surface is the same as draping over the surface with the
+        // footprint as its domain.
+        measuringBounds { geometry, bounds in
+            if bounds.size.x > .ulpOfOne && bounds.size.y > .ulpOfOne {
+                geometry.draped(over: surface.withDomain(
+                    u: bounds.minimum.x...bounds.maximum.x,
+                    v: bounds.minimum.y...bounds.maximum.y
+                ))
+            } else {
+                logger.warning("""
+                    Cannot deform geometry measuring \(bounds.size) by a surface; it has no extent in X or Y \
+                    to map onto the surface. Leaving it unchanged.
+                    """)
+                geometry
+            }
+        }
+    }
+}
+
 public extension SurfaceCrossing {
     @available(*, deprecated, message: "Use transition == .entering instead.")
     var entersSolid: Bool { transition == .entering }
