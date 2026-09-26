@@ -8,15 +8,14 @@ public extension Geometry3D {
     /// geometry in X and Y is where it ends up on the surface, so you position a design by moving it, and separate
     /// pieces draped over the same surface line up with each other.
     ///
-    /// A surface's domain sets the scale. A ``BezierPatch`` spans `0...1` in both directions, so give it a domain
-    /// that matches its size with ``ParametricSurface/withDomain(u:v:)`` before draping something measured in
-    /// millimeters:
+    /// A surface's domain sets the scale. A ``BezierPatch`` spans `0...1` in both directions, so remap it to its size
+    /// with ``ParametricSurface/remapped(u:v:)`` first:
     ///
     /// ```swift
     /// Text("Cadova")
     ///     .extruded(height: 1)
     ///     .translated(x: 10, y: 12)
-    ///     .draped(over: patch.withDomain(u: 0...60, v: 0...30))
+    ///     .draped(over: patch.remapped(u: 0...60, v: 0...30))
     /// ```
     ///
     /// Geometry outside the domain is clamped to the surface's edge, and a warning is logged.
@@ -40,7 +39,7 @@ public extension Geometry3D {
                 logger.warning("""
                     Draping geometry spanning X \(bounds.minimum.x)...\(bounds.maximum.x), Y \(bounds.minimum.y)...\
                     \(bounds.maximum.y) over a surface with domain u \(uDomain), v \(vDomain). The parts outside the \
-                    domain are clamped to the surface's edge. Use withDomain(u:v:) to give the surface a domain that \
+                    domain are clamped to the surface's edge. Use remapped(u:v:) to give the surface a domain that \
                     covers the geometry.
                     """)
             }

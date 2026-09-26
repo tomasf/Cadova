@@ -118,10 +118,10 @@ How finely a surface is divided into triangles follows the environment's segment
 
 `draped(over:)` lays 3D geometry onto a surface. The geometry's X and Y are used directly as the surface's `u` and `v`, and its height is added on top, so you place a design on the surface by moving it.
 
-The surface's domain sets the scale. A ``BezierPatch`` spans `0...1` in both directions, so give it a domain that matches its size in millimeters with `withDomain(u:v:)`:
+The surface's domain sets the scale. A ``BezierPatch`` spans `0...1` in both directions, so remap it to its size with `remapped(u:v:)`:
 
 ```swift
-let domed = patch.withDomain(u: 0...40, v: 0...30)
+let domed = patch.remapped(u: 0...40, v: 0...30)
 
 Text("Cadova")
     .withFontSize(8)

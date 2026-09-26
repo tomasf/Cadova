@@ -2,10 +2,10 @@ import Foundation
 
 /// A surface with a different domain than the surface it wraps.
 ///
-/// You get one from ``ParametricSurface/withDomain(u:v:)``. The shape is exactly the same as the wrapped surface; only
+/// You get one from ``ParametricSurface/remapped(u:v:)``. The shape is exactly the same as the wrapped surface; only
 /// the parameter values used to address points on it change.
 ///
-public struct ReparameterizedSurface<Base: ParametricSurface>: ParametricSurface {
+public struct RemappedSurface<Base: ParametricSurface>: ParametricSurface {
     let base: Base
     public let uDomain: ClosedRange<Double>
     public let vDomain: ClosedRange<Double>
@@ -33,20 +33,20 @@ public extension ParametricSurface {
     /// and the end is the end.
     ///
     /// This matters most for `draped(over:)`, which places geometry by using its X and Y as `u` and `v`.
-    /// A domain that matches the surface's size in millimeters lets a design keep its real size when draped:
+    /// Remapping a surface to its own size lets a design keep its real size when draped:
     ///
     /// ```swift
     /// // A 60 × 30 mm patch, whose own domain is 0...1
     /// Text("Cadova")
     ///     .extruded(height: 1)
-    ///     .draped(over: patch.withDomain(u: 0...60, v: 0...30))
+    ///     .draped(over: patch.remapped(u: 0...60, v: 0...30))
     /// ```
     ///
     /// - Parameters:
     ///   - u: The new range of `u` values. It must have a nonzero length.
     ///   - v: The new range of `v` values. It must have a nonzero length.
     /// - Returns: The surface, addressed by the new domain.
-    func withDomain(u: ClosedRange<Double>, v: ClosedRange<Double>) -> ReparameterizedSurface<Self> {
-        ReparameterizedSurface(base: self, uDomain: u, vDomain: v)
+    func remapped(u: ClosedRange<Double>, v: ClosedRange<Double>) -> RemappedSurface<Self> {
+        RemappedSurface(base: self, uDomain: u, vDomain: v)
     }
 }

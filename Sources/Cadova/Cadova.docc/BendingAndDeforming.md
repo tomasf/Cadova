@@ -84,7 +84,7 @@ This is not the same operation as `.swept(along:)` in <doc:CurvesAndPaths>, thou
 
 ```swift
 Box([40, 30, 2])
-    .draped(over: patch.withDomain(u: 0...40, v: 0...30))
+    .draped(over: patch.remapped(u: 0...40, v: 0...30))
 ```
 
 This is how you give a flat panel a compound curve, or lay a pattern over a sculpted surface. See <doc:Surfaces> for the kinds of surface you can use, and how a surface's domain sets the scale.

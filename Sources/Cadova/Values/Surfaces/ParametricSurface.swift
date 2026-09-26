@@ -14,8 +14,8 @@ import Foundation
 /// - ``CoonsPatch``, filling the area bounded by four curves.
 ///
 /// Like a curve's `domain`, ``uDomain`` and ``vDomain`` are the ranges of parameters a surface accepts. Each type uses
-/// its natural range, such as `0...1` for a ``BezierPatch``. Use ``withDomain(u:v:)`` to give a surface a different
-/// one, for example to match its size in millimeters.
+/// its natural range, such as `0...1` for a ``BezierPatch``. Use ``remapped(u:v:)`` to give a surface a different
+/// one, for example to match its size.
 ///
 /// You can conform your own types to describe other kinds of surfaces. The only requirement is
 /// ``point(at:)``; the domain defaults to `0...1` in both directions, and the surface is tessellated by sampling it

@@ -225,7 +225,7 @@ struct SurfaceTests {
     private static let flatPatch = BezierPatch(controlPoints: [
         [[0, 0, 0], [0, 30, 0]],
         [[40, 0, 0], [40, 30, 0]],
-    ]).withDomain(u: 0...40, v: 0...30)
+    ]).remapped(u: 0...40, v: 0...30)
 
     @Test func `draping uses the geometry's X and Y directly as the surface's u and v`() async throws {
         // Unlike stretching a footprint over the whole surface, a small piece stays small and where it was placed.
@@ -245,7 +245,7 @@ struct SurfaceTests {
             [[0, 0, 0], [0, 30, 4]],
             [[40, 0, 2], [40, 30, 0]],
         ])
-        let rescaled = patch.withDomain(u: 10...50, v: -5...25)
+        let rescaled = patch.remapped(u: 10...50, v: -5...25)
         for u in Self.fractions {
             for v in Self.fractions {
                 #expect(rescaled.point(at: [10 + 40 * u, -5 + 30 * v]) ≈ patch.point(at: [u, v]))
@@ -259,7 +259,7 @@ struct SurfaceTests {
         let rowsAlongX = BezierPatch(controlPoints: [
             [[0, 0, 0], [40, 0, 0]],
             [[0, 30, 0], [40, 30, 0]],
-        ]).withDomain(u: 0...30, v: 0...40)
+        ]).remapped(u: 0...30, v: 0...40)
 
         let draped = Box([30, 40, 2]).draped(over: rowsAlongX).withSegmentation(count: 8)
         let volume = try await draped.measurements.volume
@@ -273,7 +273,7 @@ struct SurfaceTests {
             from: BezierPath3D(linesBetween: [[0, 0, 0], [20, 0, 0]]),
             to: BezierPath3D(linesBetween: [[0, 20, 10], [20, 20, 10]])
         )
-        let bounds = try #require(try await Box([20, 20, 1]).draped(over: surface.withDomain(u: 0...20, v: 0...20)).withSegmentation(count: 8).bounds)
+        let bounds = try #require(try await Box([20, 20, 1]).draped(over: surface.remapped(u: 0...20, v: 0...20)).withSegmentation(count: 8).bounds)
 
         #expect(bounds.minimum.z ≈ 0)
         #expect(bounds.maximum.z ≈ 11)
