@@ -257,6 +257,17 @@ struct Offset3DTests {
         #expect(volume.equals(expected, within: 0.01))
     }
 
+    @Test func `beveling past a thin wall stays within the original`() async throws {
+        // Walls thinner than twice the amount disappear. Bevels at the pocket's inner edges used to reach through
+        // them to the far side, leaving material outside the original there.
+        let pocket = Box([20, 20, 10])
+            .subtracting { Box([20 - 2.7, 20 - 2.7, 10]).translated(x: 1.35, y: 1.35, z: 4) }
+            .withSegmentation(.adaptive(minAngle: 2°, minSize: 0.3))
+        let shrunk = pocket.offset(amount: -1, style: .bevel)
+        let outside = try await shrunk.subtracting { pocket }.measurements.volume
+        #expect(outside < 1e-6)
+    }
+
     @Test func `offsetting the result of earlier offsets stays manifold`() async throws {
         // Offsets of offsets can come with folded triangles, which made pseudonormals point the wrong way and left
         // holes in the next offset

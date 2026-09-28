@@ -265,7 +265,12 @@ internal final class OffsetCorners: @unchecked Sendable {
 
             if style == .bevel, let cut {
                 // The edge's region beyond the plane through the moved face edges
-                var beyond = Piece(planes: wedge + [Plane(-cut.normal, -(cut.normal ⋅ pa + cut.at))])
+                // Only as far as the round offset of the edge's own faces reaches, within the amount of both: beyond,
+                // as through a wall thinner than the amount, other faces decide
+                var beyond = Piece(planes: wedge + [
+                    Plane(-cut.normal, -(cut.normal ⋅ pa + cut.at)),
+                    Plane(na, through: pa, beyond: r + tolerance), Plane(nb, through: pa, beyond: r + tolerance),
+                ])
                 for end in [edge.a, edge.b] {
                     let into = end == edge.a ? along : -along
                     // Ends across the edge, or where a chain of sharp edges bends, halfway around the bend, so the next
@@ -362,7 +367,8 @@ internal final class OffsetCorners: @unchecked Sendable {
                 else { continue }
                 // The corner's region beyond its own plane, and beyond each cut of the edges meeting there
                 for cut in cutsAt[v] + [Cut(normal: corner.axis, at: at)] {
-                    var beyond = Piece(planes: cone + [Plane(-cut.normal, -(cut.normal ⋅ p + cut.at))])
+                    var beyond = Piece(planes: cone + [Plane(-cut.normal, -(cut.normal ⋅ p + cut.at))]
+                        + corner.ring.map { Plane(n[$0], through: p, beyond: r + tolerance) })
                     beyond.bound(around: [p], margin: 2 * r)
                     removed.append(beyond)
                 }
