@@ -53,6 +53,9 @@ internal final class MeshDistanceField: @unchecked Sendable {
     /// loops work on scalars, since every vector operation checks its elements are finite, which unoptimized builds
     /// don't inline
     private let coordinates: UnsafeBufferPointer<Double>
+    /// How far a vertex may lie from a plane and still count as on it: the precision of single-precision
+    /// coordinates at the mesh's scale, since meshes often come from single-precision storage
+    private let planeTolerance: Double
     private let boxes: UnsafeBufferPointer<Double>
 
     private static func buffer<T>(_ array: [T]) -> UnsafeBufferPointer<T> {
@@ -85,6 +88,8 @@ internal final class MeshDistanceField: @unchecked Sendable {
         let topology = Topology(vertexCount: vertices.count, faces: faces)
         let bounds = vertices.isEmpty ? (Vector3D.zero, Vector3D.zero) : vertices.reduce((vertices[0], vertices[0])) { (Vector3D.min($0.0, $1), Vector3D.max($0.1, $1)) }
         let minimumHeight = 1e-5 * (bounds.1 - bounds.0).magnitude
+        let largest = max(abs(bounds.0.x), abs(bounds.0.y), abs(bounds.0.z), abs(bounds.1.x), abs(bounds.1.y), abs(bounds.1.z))
+        planeTolerance = max(1e-6, 4e-7 * largest)
 
         // Angle-weighted vertex normals, and edge normals summed over the faces sharing each edge
         var vertexSums = [Vector3D](repeating: .zero, count: vertices.count)
@@ -491,7 +496,10 @@ internal final class MeshDistanceField: @unchecked Sendable {
             let t = (d4 - d3) / ((d4 - d3) + (d5 - d6))
             return result(bx + (cx - bx) * t, by + (cy - by) * t, bz + (cz - bz) * t, 4)
         }
-        let denominator = 1 / (va + vb + vc)
+        // A degenerate triangle (all corners on a line) has no interior: the edges above have already covered it
+        let sum = va + vb + vc
+        guard sum > 0 else { return result(ax, ay, az, 0) }
+        let denominator = 1 / sum
         let v = vb * denominator, w = vc * denominator
         return result(ax + abx * v + acx * w, ay + aby * v + acy * w, az + abz * v + acz * w, 6)
     }
@@ -624,10 +632,15 @@ internal final class MeshDistanceField: @unchecked Sendable {
     /// Whether every face within `radius` of p lies in one plane (or there are none). The offset surface near p is
     /// then provably that plane moved along its normal.
     func facesAreCoplanar(within radius: Double, of p: Vector3D) -> Bool {
-        guard !nodes.isEmpty else { return true }
+        coplanarNormal(within: radius, of: p).coplanar
+    }
+
+    /// The same, and the plane's normal, if there are faces within reach
+    func coplanarNormal(within radius: Double, of p: Vector3D) -> (coplanar: Bool, normal: Vector3D?) {
+        guard !nodes.isEmpty else { return (true, nil) }
         let radiusSquared = radius * radius
         var reference: (normal: Vector3D, offset: Double)? = nil
-        return withUnsafeTemporaryAllocation(of: Int.self, capacity: 128) { stack in
+        let coplanar = withUnsafeTemporaryAllocation(of: Int.self, capacity: 128) { stack in
             var top = 1
             stack[0] = 0
             while top > 0 {
@@ -636,17 +649,25 @@ internal final class MeshDistanceField: @unchecked Sendable {
                 let node = nodes[index]
                 if boxDistanceSquared(index, p.x, p.y, p.z) > radiusSquared { continue }
                 if node.left < 0 {
-                    for i in node.first..<(node.first + node.count) {
+                    var i = node.first
+                    while i < node.first + node.count {
                         let faceIndex = order[i]
-                        if closest(to: p, onFace: faceIndex).distanceSquared > radiusSquared { continue }
+                        i += 1
+                        if facePoint(faceIndex, p.x, p.y, p.z).distanceSquared > radiusSquared { continue }
                         let face = faces[faceIndex]
                         let normal = faceNormals[faceIndex]
+                        // A degenerate face has no plane of its own; its corners still have to lie on the others'
+                        if normal == .zero && reference == nil { continue }
                         guard let plane = reference else {
                             reference = (normal, normal ⋅ vertexBuffer[face.0])
                             continue
                         }
-                        if normal ⋅ plane.normal < 1 - 1e-10 { return false }
-                        for corner in [face.0, face.1, face.2] where abs(plane.normal ⋅ vertexBuffer[corner] - plane.offset) > 1e-6 {
+                        // Corners on the plane decide; the normal only has to face the same way, since meshes with
+                        // single-precision coordinates tilt small faces' normals slightly
+                        if normal != .zero && normal ⋅ plane.normal < 0.99 { return false }
+                        if abs(plane.normal ⋅ vertexBuffer[face.0] - plane.offset) > planeTolerance
+                            || abs(plane.normal ⋅ vertexBuffer[face.1] - plane.offset) > planeTolerance
+                            || abs(plane.normal ⋅ vertexBuffer[face.2] - plane.offset) > planeTolerance {
                             return false
                         }
                     }
@@ -656,6 +677,7 @@ internal final class MeshDistanceField: @unchecked Sendable {
             }
             return true
         }
+        return (coplanar, coplanar ? reference?.normal : nil)
     }
 }
 

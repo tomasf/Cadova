@@ -20,6 +20,8 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     private let amount: Double
     /// Corner pieces for sharp joins; nil for round
     private let corners: OffsetCorners?
+    /// For rounding both sides at once, the function to contour instead of the offset
+    private let rounding: RoundingField?
     /// How far beyond the amount the surface can reach (the miter limit for sharp joins)
     private let reachFactor: Double
     private let cellSize: Double
@@ -53,19 +55,31 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     private var fittedEdges: (edges: [Edge], crossing: [Int])? = nil
     private var merges: [Int: (node: Int, child: Int, fit: PlaneFit)] = [:]
 
-    init(field: MeshDistanceField, amount: Double, style: LineJoinStyle = .round, miterLimit: Double = 5, cellSize: Double, tolerance: Double) {
-        self.field = field
-        self.amount = amount
-        self.tolerance = tolerance
-        knownValues = gridValues.reader
-        knownCrossings = crossingIndex.reader
+    convenience init(field: MeshDistanceField, amount: Double, style: LineJoinStyle = .round, miterLimit: Double = 5, cellSize: Double, tolerance: Double) {
         // Miters reach up to the limit; square and bevel corners stay within about 1.5 times the amount
-        reachFactor = switch style {
+        let reachFactor: Double = switch style {
         case .round: 1
         case .miter: max(miterLimit, 1.5)
         case .square, .bevel: 1.5
         }
-        corners = style == .round ? nil : OffsetCorners(field: field, amount: amount, style: style, miterLimit: miterLimit, tolerance: tolerance)
+        let corners = style == .round ? nil : OffsetCorners(field: field, amount: amount, style: style, miterLimit: miterLimit, tolerance: tolerance)
+        self.init(field: field, amount: amount, reachFactor: reachFactor, corners: corners, rounding: nil, cellSize: cellSize, tolerance: tolerance)
+    }
+
+    /// Contours a shape rounded on both sides, which lies within the rounding's dilated mesh
+    convenience init(rounding: RoundingField, dilated: MeshDistanceField, cellSize: Double, tolerance: Double) {
+        self.init(field: dilated, amount: 0, reachFactor: 1, corners: nil, rounding: rounding, cellSize: cellSize, tolerance: tolerance)
+    }
+
+    private init(field: MeshDistanceField, amount: Double, reachFactor: Double, corners: OffsetCorners?, rounding: RoundingField?, cellSize: Double, tolerance: Double) {
+        self.field = field
+        self.amount = amount
+        self.tolerance = tolerance
+        self.reachFactor = reachFactor
+        self.corners = corners
+        self.rounding = rounding
+        knownValues = gridValues.reader
+        knownCrossings = crossingIndex.reader
 
         var lower = field.vertices.first ?? .zero, upper = lower
         for v in field.vertices { lower = .min(lower, v); upper = .max(upper, v) }
@@ -117,6 +131,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     /// The offset function: negative inside the offset solid. With a face near p as a hint, it also returns the face
     /// closest to p, as a hint for nearby queries.
     private func sample(at p: Vector3D, hint: Int? = nil, cap: Double = .infinity) -> (value: Double, face: Int) {
+        if let rounding { return rounding.value(at: p, hint: hint) }
         if let corners {
             let result = corners.evaluate(at: p, hint: hint, cap: cap)
             return (result.value, result.face)
@@ -127,6 +142,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
 
     /// The offset function and its gradient
     private func sampleWithGradient(at p: Vector3D, hint: Int?) -> (value: Double, gradient: Vector3D, face: Int) {
+        if let rounding { return rounding.valueAndGradient(at: p, hint: hint) }
         if let corners { return corners.evaluate(at: p, hint: hint) }
         let result = field.signedDistanceAndGradient(at: p, hint: hint)
         return (result.value - amount, result.gradient, result.face)
@@ -239,10 +255,13 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                         let half = Double(node.size) * self.unit / 2
                         let center = self.point(node.i, node.j, node.k) + Vector3D(half, half, half)
                         let halfDiagonal = half * 3.0.squareRoot() * (1 + 1e-9)
-                        if self.field.facesAreCoplanar(within: abs(self.amount) + halfDiagonal, of: center)
-                            && !(self.corners?.mayAffect(center, radius: halfDiagonal) ?? false) {
-                            return Decision(kind: 1, face: face)
+                        let planar = if let rounding = self.rounding {
+                            rounding.isPlanar(within: halfDiagonal, of: center)
+                        } else {
+                            self.field.facesAreCoplanar(within: abs(self.amount) + halfDiagonal, of: center)
+                                && !(self.corners?.mayAffect(center, radius: halfDiagonal) ?? false)
                         }
+                        if planar { return Decision(kind: 1, face: face) }
                     }
                     return Decision(kind: 2, face: face)
                 }
@@ -1024,6 +1043,34 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
 
     /// Contours, and where two sheets share an edge (used by more than two triangles), unmerges or splits the cells
     /// involved and contours again
+    /// Merged leaves with a vertex on a triangle facing against the surface: its normal points away from the offset
+    /// function's gradient at its center
+    private func foldingMerges(in contour: Contour) -> Set<Int> {
+        guard !merges.isEmpty else { return [] }
+        let found = contour.faces.withUnsafeBufferPointer { faceBuffer in
+            contour.vertices.withUnsafeBufferPointer { vertexBuffer in
+                contour.leafOfVertex.withUnsafeBufferPointer { leafBuffer in
+                    nonisolated(unsafe) let faces = faceBuffer, vertices = vertexBuffer, leafOfVertex = leafBuffer
+                    return ConcurrentLoop.collect(faces.count) { (index: Int, found: inout [Int]) in
+                        let face = faces[index]
+                        let leaves = (leafOfVertex[face.0], leafOfVertex[face.1], leafOfVertex[face.2])
+                        let merged0 = self.merges[leaves.0] != nil, merged1 = self.merges[leaves.1] != nil, merged2 = self.merges[leaves.2] != nil
+                        guard merged0 || merged1 || merged2 else { return }
+                        let a = vertices[face.0], b = vertices[face.1], c = vertices[face.2]
+                        let normal = ((b - a) × (c - a)).safelyNormalized
+                        guard normal != .zero else { return }
+                        let gradient = self.sampleWithGradient(at: (a + b + c) / 3, hint: nil).gradient
+                        guard normal ⋅ gradient < 0 else { return }
+                        if merged0 { found.append(leaves.0) }
+                        if merged1 { found.append(leaves.1) }
+                        if merged2 { found.append(leaves.2) }
+                    }
+                }
+            }
+        }
+        return Set(found)
+    }
+
     private func contourWithRepair() -> Contour {
         var result = contour()
         var previous = Int.max
@@ -1034,6 +1081,9 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                 culprits.insert(result.leafOfVertex[a])
                 culprits.insert(result.leafOfVertex[b])
             }
+            // Merged cells whose vertex folds a triangle over: one vertex can fit all of a cell's planes within the
+            // tolerance and still sit wrong relative to its neighbors
+            culprits.formUnion(foldingMerges(in: result))
             // Each round fits and contours everything again. Where the culprits don't at least halve, the rest are
             // sheets that genuinely touch, which clean-up separates just as well, so stop there.
             if culprits.isEmpty || culprits.count > previous / 2 { break }

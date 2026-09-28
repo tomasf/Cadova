@@ -97,6 +97,9 @@ public extension Geometry3D {
     /// - Returns: A new geometry with rounded edges and corners.
     ///
     func rounded(insideRadius: Double? = nil, outsideRadius: Double? = nil) -> any Geometry3D {
+        if let insideRadius, let outsideRadius, insideRadius > 0, outsideRadius > 0 {
+            return RoundedOnBothSides(source: self, outside: outsideRadius, inside: insideRadius)
+        }
         var body: any Geometry3D = self
         if let outsideRadius {
             body = body
@@ -158,5 +161,40 @@ public extension Geometry3D {
     ///
     func chamfered(depth: Double) -> any Geometry3D {
         chamfered(insideDepth: depth, outsideDepth: depth)
+    }
+}
+
+/// Rounds both sides in one contouring: rounding the outside and then the inside with two offsets each would
+/// contour the outside's fillets again, and contouring a surface at the resolution it was contoured at coarsens it
+private struct RoundedOnBothSides: Geometry3D {
+    let source: any Geometry3D
+    let outside: Double
+    let inside: Double
+
+    var body: any Geometry3D {
+        @Environment(\.segmentation) var segmentation
+        @Environment(\.miterLimit) var miterLimit
+        let cellSize = segmentation.offsetCellSize(radius: min(outside, inside))
+        let tolerance = cellSize / 10
+        CachedConcreteTransformer(body: source, name: "Cadova.RoundedOnBothSides", parameters: outside, inside, cellSize, miterLimit) { manifold in
+            guard let sourceField = MeshOffset.distanceField(for: manifold) else { return manifold }
+            // The source eroded with sharp joins, exact where the source is flat, straight from the contour
+            let erodedMesh = MeshOffset(field: sourceField, amount: -outside, style: .miter, miterLimit: miterLimit, cellSize: cellSize, tolerance: tolerance).run()
+            // Eroded away entirely: rounding the outside leaves nothing to round the inside of
+            guard !erodedMesh.faces.isEmpty else { return .empty }
+            let erodedField = MeshDistanceField(vertices: erodedMesh.vertices, faces: erodedMesh.faces)
+            // Grown by both radii: the outside rounding grown for the inside rounding, straight from the contour. Its
+            // curved parts are contoured at half the cell size, which leaves them off by about a quarter as much, so
+            // the margin keeping its term from winning there can be small
+            let dilatedCell = cellSize / 2
+            let dilated = MeshOffset(field: erodedField, amount: outside + inside, cellSize: dilatedCell, tolerance: dilatedCell / 10).run()
+            guard !dilated.faces.isEmpty else { return .empty }
+            let dilatedField = MeshDistanceField(vertices: dilated.vertices, faces: dilated.faces)
+            // Contouring a surface of radius R with cells of size h leaves it off by up to about h² / 8R, and measured,
+            // by up to about twice that: the margin is twice that again
+            let margin = dilatedCell * dilatedCell / (2 * (outside + inside))
+            let rounding = RoundingField(eroded: erodedField, dilated: dilatedField, outside: outside, inside: inside, margin: margin)
+            return try MeshOffset.manifold(from: MeshOffset(rounding: rounding, dilated: dilatedField, cellSize: cellSize, tolerance: tolerance).run())
+        }
     }
 }

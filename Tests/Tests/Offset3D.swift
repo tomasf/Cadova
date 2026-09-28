@@ -200,6 +200,53 @@ struct Offset3DTests {
         #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [30, 30, 10]))
     }
 
+    @Test func `rounding both sides rounds convex edges and fillets concave ones`() async throws {
+        // A box has no concave edges: rounding both sides is rounding the outside
+        let box = try await Box(20).rounded(radius: 2).withSegmentation(segmentation).measurements.volume
+        let faces = 16.0 * 16 * 16 + 6 * 16 * 16 * 2
+        let edges = 12 * 16 * Double.pi * 2 * 2 / 4
+        let corners = 4.0 / 3 * .pi * 2 * 2 * 2
+        let expectedBox = faces + edges + corners
+        #expect(box.equals(expectedBox, within: expectedBox * 0.002))
+
+        // The L-plate gains the concave fillet that inside rounding alone adds, minus what outside rounding alone
+        // removes: the two act on different edges
+        let plate = Rectangle(x: 30, y: 30)
+            .subtracting { Rectangle(x: 15, y: 15).translated(x: 15, y: 15) }
+            .extruded(height: 10)
+        let both = try await plate.rounded(radius: 2).withSegmentation(segmentation).measurements.volume
+        let outside = try await plate.rounded(outsideRadius: 2).withSegmentation(segmentation).measurements.volume
+        let inside = try await plate.rounded(insideRadius: 2).withSegmentation(segmentation).measurements.volume
+        let original = (30.0 * 30 - 15 * 15) * 10
+        let expected = original + (inside - original) - (original - outside)
+        #expect(both.equals(expected, within: expected * 0.002))
+    }
+
+    @Test func `rounding both sides keeps fillets smooth`() async throws {
+        // Rounding the inside after the outside used to contour the outside's fillets again, which merged their
+        // facets into coarse creases of up to 38° at this resolution; one contouring keeps them as a single offset
+        // makes them, under 30°
+        let rounded = Box(10).rounded(radius: 0.5).withSegmentation(.adaptive(minAngle: 2°, minSize: 0.15))
+        let mesh = try await _EvaluationContext().concrete(for: rounded, in: .defaultEnvironment).meshGL()
+        #expect(Self.largestCrease(vertices: mesh.vertices, triangles: mesh.triangles.map { ($0.a, $0.b, $0.c) }) < 30)
+    }
+
+    /// The largest angle in degrees between the normals of triangles sharing an edge
+    private static func largestCrease(vertices: [Vector3D], triangles: [(Int, Int, Int)]) -> Double {
+        var normals: [Vector3D] = []
+        var facesOfEdge: [UInt64: [Int]] = [:]
+        for (index, triangle) in triangles.enumerated() {
+            let a = vertices[triangle.0], b = vertices[triangle.1], c = vertices[triangle.2]
+            normals.append(((b - a) × (c - a)).normalized)
+            for (u, v) in [(triangle.0, triangle.1), (triangle.1, triangle.2), (triangle.2, triangle.0)] {
+                facesOfEdge[UInt64(min(u, v)) << 32 | UInt64(max(u, v)), default: []].append(index)
+            }
+        }
+        return facesOfEdge.values.filter { $0.count == 2 }.map { pair in
+            acos(min(max(normals[pair[0]] ⋅ normals[pair[1]], -1), 1)) * 180 / .pi
+        }.max() ?? 0
+    }
+
     @Test func `chamfering the outside of a box cuts its edges and corners flat`() async throws {
         let volume = try await Box(20).chamfered(outsideDepth: 2).withSegmentation(segmentation).measurements.volume
         // The box shrunk by 2 and offset back out by 2 with square joins, as in the squared offset test

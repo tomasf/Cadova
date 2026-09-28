@@ -67,17 +67,28 @@ private struct Offset3D: Geometry3D {
             let cellSize = segmentation.offsetCellSize(radius: abs(amount))
             let limit = style == .miter ? miterLimit : 0
             CachedConcreteTransformer(body: source, name: "Cadova.Offset3D", parameters: amount, cellSize, style, limit) { manifold in
-                let mesh = manifold.meshGL()
-                let faces = mesh.triangles.map { ($0.a, $0.b, $0.c) }
-                guard !faces.isEmpty else { return manifold }
-                let field = MeshDistanceField(vertices: mesh.vertices, faces: faces)
+                guard let field = MeshOffset.distanceField(for: manifold) else { return manifold }
                 let offset = MeshOffset(field: field, amount: amount, style: style, miterLimit: miterLimit, cellSize: cellSize, tolerance: cellSize / 10)
-                let result = offset.run()
-                guard !result.faces.isEmpty else { return .empty }
-                let triangles = result.faces.map { Manifold3D.Triangle($0.0, $0.1, $0.2) }
-                return try Manifold(MeshGL(vertices: result.vertices, triangles: triangles))
+                return try MeshOffset.manifold(from: offset.run())
             }
         }
+    }
+}
+
+internal extension MeshOffset {
+    /// The exact distance to a solid's surface, or nil for an empty solid
+    static func distanceField(for manifold: Manifold) -> MeshDistanceField? {
+        let mesh = manifold.meshGL()
+        let faces = mesh.triangles.map { ($0.a, $0.b, $0.c) }
+        guard !faces.isEmpty else { return nil }
+        return MeshDistanceField(vertices: mesh.vertices, faces: faces)
+    }
+
+    /// A solid from a contoured surface
+    static func manifold(from result: (vertices: [Vector3D], faces: [Face])) throws -> Manifold {
+        guard !result.faces.isEmpty else { return .empty }
+        let triangles = result.faces.map { Manifold3D.Triangle($0.0, $0.1, $0.2) }
+        return try Manifold(MeshGL(vertices: result.vertices, triangles: triangles))
     }
 }
 
