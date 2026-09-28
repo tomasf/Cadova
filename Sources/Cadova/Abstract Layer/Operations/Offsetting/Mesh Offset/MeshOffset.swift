@@ -1204,7 +1204,53 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             if round == 3 || VertexFans(faces: result.faces, vertexCount: result.vertices.count).irregularEdges(in: result.faces).isEmpty { break }
             result = cutLoopedFans(vertices: result.vertices, faces: result.faces)
         }
+        // Whatever contouring couldn't close is closed here, so the result is always a solid
+        if let closed = filledHoles(vertices: result.vertices, faces: result.faces) {
+            result = separated(vertices: closed.vertices, faces: closed.faces)
+        }
         return result
+    }
+
+    /// Closes holes: edges used more in one direction than the other, such as the rim of a hole, form loops, and a
+    /// fan of triangles over each loop, facing the other way, balances them. The holes are gaps between cells where
+    /// contouring couldn't connect the surface, a cell or two across, so the fans stay within the tolerance of it.
+    /// Returns nil when there's nothing to close.
+    static func filledHoles(vertices: [Vector3D], faces: [Face]) -> (vertices: [Vector3D], faces: [Face])? {
+        func key(_ a: Int, _ b: Int) -> UInt64 { UInt64(a) << 32 | UInt64(b) }
+        var uses: [UInt64: Int] = [:]
+        for face in faces {
+            for (a, b) in [(face.0, face.1), (face.1, face.2), (face.2, face.0)] { uses[key(a, b), default: 0] += 1 }
+        }
+        // The excess of each edge, as directed edges to follow around loops
+        var outgoing: [Int: [Int]] = [:]
+        var excess = 0
+        for (edge, count) in uses {
+            let a = Int(edge >> 32), b = Int(edge & 0xffffffff)
+            let surplus = count - (uses[key(b, a)] ?? 0)
+            guard surplus > 0 else { continue }
+            for _ in 0..<surplus { outgoing[a, default: []].append(b) }
+            excess += surplus
+        }
+        guard excess > 0 else { return nil }
+        var vertices = vertices, faces = faces
+        // Every vertex has as much excess leaving as arriving, so walking from one always leads back to it
+        for start in outgoing.keys.sorted() {
+            while let first = outgoing[start]?.popLast() {
+                var loop = [start], current = first
+                while current != start {
+                    loop.append(current)
+                    guard let next = outgoing[current]?.popLast() else { break }
+                    current = next
+                }
+                guard current == start, loop.count >= 3 else { continue }
+                let center = vertices.count
+                vertices.append(loop.reduce(Vector3D.zero) { $0 + vertices[$1] } / Double(loop.count))
+                for n in loop.indices {
+                    faces.append((center, loop[(n + 1) % loop.count], loop[n]))
+                }
+            }
+        }
+        return (vertices, faces)
     }
 
     /// An edge still shared by four triangles after separating has an end whose fan loops through the other end

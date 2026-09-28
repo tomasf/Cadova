@@ -286,4 +286,38 @@ struct Offset3DTests {
         let volume = try await shape.measurements.volume
         #expect(volume > 9000)
     }
+
+    @Test func `closest points on triangles with coinciding corners are finite`() {
+        // The first triangle has two corners in one place, so one of its edges has no length. Starting the search
+        // from it, as a hint does, used to give a distance of NaN that no other face could beat
+        let field = MeshDistanceField(
+            vertices: [[0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
+            faces: [(0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 2), (2, 4, 3)]
+        )
+        for point: Vector3D in [[0.5, -1, 0], [0.5, 1, 0], [-1, -1, -1], [0.3, 0.3, 0.3]] {
+            let closest = field.closest(to: point, hint: 0)
+            #expect(closest.distanceSquared.isFinite)
+        }
+    }
+
+    @Test func `holes in contoured meshes are closed`() {
+        // A cube with its top missing
+        let vertices: [Vector3D] = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]]
+        let faces: [MeshOffset.Face] = [
+            (0, 2, 1), (0, 3, 2), (0, 1, 5), (0, 5, 4), (1, 2, 6), (1, 6, 5),
+            (2, 3, 7), (2, 7, 6), (3, 0, 4), (3, 4, 7),
+        ]
+        let closed = try? #require(MeshOffset.filledHoles(vertices: vertices, faces: faces))
+        guard let closed else { return }
+        var uses: [Int: Int] = [:]
+        for face in closed.faces {
+            for (a, b) in [(face.0, face.1), (face.1, face.2), (face.2, face.0)] {
+                uses[a << 32 | b, default: 0] += 1
+                uses[b << 32 | a, default: 0] -= 1
+            }
+        }
+        #expect(uses.values.allSatisfy { $0 == 0 })
+        #expect(closed.faces.count == faces.count + 4)
+        #expect(MeshOffset.filledHoles(vertices: closed.vertices, faces: closed.faces) == nil)
+    }
 }

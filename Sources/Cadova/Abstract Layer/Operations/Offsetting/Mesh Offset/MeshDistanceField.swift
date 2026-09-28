@@ -518,7 +518,10 @@ internal final class MeshDistanceField: @unchecked Sendable {
         let d3 = abx * bpx + aby * bpy + abz * bpz, d4 = acx * bpx + acy * bpy + acz * bpz
         if d3 >= 0 && d4 <= d3 { return result(bx, by, bz, 1) }
         let vc = d1 * d4 - d3 * d2
+        // Each edge's squared length is the denominator of its parameter; one of zero length (two corners
+        // coinciding) is its corner, which is where the point projects anyway
         if vc <= 0 && d1 >= 0 && d3 <= 0 {
+            guard d1 - d3 > 0 else { return result(ax, ay, az, 0) }
             let t = d1 / (d1 - d3)
             return result(ax + abx * t, ay + aby * t, az + abz * t, 3)
         }
@@ -527,11 +530,13 @@ internal final class MeshDistanceField: @unchecked Sendable {
         if d6 >= 0 && d5 <= d6 { return result(cx, cy, cz, 2) }
         let vb = d5 * d2 - d1 * d6
         if vb <= 0 && d2 >= 0 && d6 <= 0 {
+            guard d2 - d6 > 0 else { return result(ax, ay, az, 0) }
             let t = d2 / (d2 - d6)
             return result(ax + acx * t, ay + acy * t, az + acz * t, 5)
         }
         let va = d3 * d6 - d5 * d4
         if va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0 {
+            guard (d4 - d3) + (d5 - d6) > 0 else { return result(bx, by, bz, 1) }
             let t = (d4 - d3) / ((d4 - d3) + (d5 - d6))
             return result(bx + (cx - bx) * t, by + (cy - by) * t, bz + (cz - bz) * t, 4)
         }
