@@ -172,4 +172,41 @@ struct Offset3DTests {
         let mitered = try #require(try await Sphere(radius: 10).offset(amount: 3, style: .miter).withSegmentation(segmentation).bounds)
         #expect(mitered.size.x.equals(round.size.x, within: 0.05))
     }
+
+    // Rounding and chamfering: two offsets each
+
+    @Test func `rounding the outside of a box rounds its edges and corners`() async throws {
+        let volume = try await Box(20).rounded(outsideRadius: 2).withSegmentation(segmentation).measurements.volume
+        // The box shrunk by 2, a slab on each face, a quarter cylinder along each edge and an eighth of a sphere at
+        // each corner
+        let faces = 16.0 * 16 * 16 + 6 * 16 * 16 * 2
+        let edges = 12 * 16 * Double.pi * 2 * 2 / 4
+        let corners = 4.0 / 3 * .pi * 2 * 2 * 2
+        let expected = faces + edges + corners
+        #expect(volume.equals(expected, within: expected * 0.002))
+    }
+
+    @Test func `rounding the inside fillets concave edges and leaves convex ones sharp`() async throws {
+        let plate = Rectangle(x: 30, y: 30)
+            .subtracting { Rectangle(x: 15, y: 15).translated(x: 15, y: 15) }
+            .extruded(height: 10)
+        let rounded = plate.rounded(insideRadius: 2).withSegmentation(segmentation)
+        let volume = try await rounded.measurements.volume
+        let bounds = try #require(try await rounded.bounds)
+        // The concave inner edge gains a 2 × 2 square less a quarter disc along its height; everything else stays
+        let area: Double = 30 * 30 - 15 * 15 + 4 - Double.pi
+        let expected = area * 10
+        #expect(volume.equals(expected, within: expected * 0.001))
+        #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [30, 30, 10]))
+    }
+
+    @Test func `chamfering the outside of a box cuts its edges and corners flat`() async throws {
+        let volume = try await Box(20).chamfered(outsideDepth: 2).withSegmentation(segmentation).measurements.volume
+        // The box shrunk by 2 and offset back out by 2 with square joins, as in the squared offset test
+        let edgeArea = 4 * (2 * 2.0.squareRoot() - 2)
+        let corner = 4.776610891
+        let faces = 16.0 * 16 * 16 + 6 * 16 * 16 * 2
+        let expected = faces + 12 * 16 * edgeArea + 8 * corner
+        #expect(volume.equals(expected, within: 0.01))
+    }
 }
