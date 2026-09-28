@@ -628,12 +628,14 @@ internal final class MeshDistanceField: @unchecked Sendable {
                         i += 1
                         guard other != index else { continue }
                         let o = faces[other]
+                        let p = vertexBuffer[o.0], q = vertexBuffer[o.1], r = vertexBuffer[o.2]
+                        // Coplanar faces can overlap even where they share a corner, as where a sheet folds flat
+                        // onto its neighbor's; a shared corner alone lies on both, which doesn't count as overlap
+                        if Self.coplanarTrianglesOverlap(a, b, c, normal: faceNormals[index], p, q, r, tolerance: planeTolerance) { return true }
                         // Faces sharing a corner meet there by construction
                         if o.0 == face.0 || o.0 == face.1 || o.0 == face.2 || o.1 == face.0 || o.1 == face.1 || o.1 == face.2
                             || o.2 == face.0 || o.2 == face.1 || o.2 == face.2 { continue }
-                        let p = vertexBuffer[o.0], q = vertexBuffer[o.1], r = vertexBuffer[o.2]
-                        if Self.coplanarTrianglesOverlap(a, b, c, normal: faceNormals[index], p, q, r, tolerance: planeTolerance)
-                            || Self.segmentCrossesTriangle(a, b, p, q, r) || Self.segmentCrossesTriangle(b, c, p, q, r)
+                        if Self.segmentCrossesTriangle(a, b, p, q, r) || Self.segmentCrossesTriangle(b, c, p, q, r)
                             || Self.segmentCrossesTriangle(c, a, p, q, r) || Self.segmentCrossesTriangle(p, q, a, b, c)
                             || Self.segmentCrossesTriangle(q, r, a, b, c) || Self.segmentCrossesTriangle(r, p, a, b, c) {
                             return true

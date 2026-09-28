@@ -347,15 +347,10 @@ internal final class OffsetCorners: @unchecked Sendable {
         for v in vertices.indices where cornersOf[v].usable {
             let corner = cornersOf[v]
             let p = vertices[v]
-            // The vertex's normal cone: between consecutive face normals
-            var cone: [Plane] = []
-            for k in corner.ring.indices {
-                var normal = n[corner.ring[k]] × n[corner.ring[(k + 1) % corner.ring.count]]
-                guard normal.magnitude > 1e-12 else { continue }
-                normal = normal.safelyNormalized
-                if normal ⋅ corner.axis < 0 { normal = -normal }
-                cone.append(Plane(-normal, through: p))
-            }
+            // The vertex's normal cone, which bounds its piece. Normals as far as a right angle from the axis make
+            // no cone, only a half-space or more, and no miter.
+            guard corner.widest < 1.5, let sides = Self.coneSides(of: corner.ring.map { n[$0] }, around: corner.axis) else { continue }
+            let cone = sides.map { Plane(-$0, through: p) }
 
             if style == .bevel {
                 // Skipped where the corner makes no visible difference, where its faces spread so widely around the
@@ -380,21 +375,57 @@ internal final class OffsetCorners: @unchecked Sendable {
             cap.planes.append(Plane(corner.axis, through: p, beyond: corner.cut ?? limit * r))
             for cut in cutsAt[v] { cap.planes.append(Plane(cut.normal, through: p, beyond: cut.at)) }
             // Every point x of the cap lies in the cone of the ring's normals, x = Σ λ n, below every moved plane
-            // (n·x <= r) and the axis cut (axis·x <= A), so |x|² = Σ λ n·x <= r Σ λ <= r A / cos(widest). That
-            // needs the normals to turn one way around the ring, making their cone convex, and the widest normal
-            // known exactly (it's clamped at 1.5); otherwise the cap gets the largest margin anything reaches.
-            let ring = corner.ring.map { n[$0] }
-            let convex = ring.indices.allSatisfy { k in
-                ((ring[k] × ring[(k + 1) % ring.count]) ⋅ ring[(k + 2) % ring.count]) * ((ring[0] × ring[1 % ring.count]) ⋅ ring[2 % ring.count]) >= 0
-            }
+            // (n·x <= r) and the axis cut (axis·x <= A), so |x|² = Σ λ n·x <= r Σ λ <= r A / cos(widest). A miter
+            // is cut at r when r / cos(widest) passes the limit, so that stays within the limit times the amount.
             let cutAt = corner.cut ?? limit * r
-            let margin = convex && corner.widest < 1.5
-                ? (r * cutAt / cos(corner.widest)).squareRoot() * (1 + 1e-9) + tolerance
-                : max(limit, 1.5) * r + r
+            let margin = (r * cutAt / cos(corner.widest)).squareRoot() * (1 + 1e-9) + tolerance
             cap.bound(around: [p], margin: margin)
             grown.append(cap)
         }
         return (grown, removed)
+    }
+
+    /// The inward normals of the planes (through the origin) bounding the cone the normals span: the sides between
+    /// neighbors on their convex hull, seen from the axis. Ring order would do for a vertex whose normals turn one
+    /// way around it, but where they fold back, as on crumpled slivers, its planes bound nothing. Nil where the
+    /// normals lie on or nearly on one great circle, which spans no cone.
+    static func coneSides(of normals: [Vector3D], around axis: Vector3D) -> [Vector3D]? {
+        // Projected onto the plane touching the unit sphere at the axis, cones are convex polygons
+        let helper = abs(axis.x) < 0.9 ? Vector3D(1, 0, 0) : Vector3D(0, 1, 0)
+        let u = (axis × helper).safelyNormalized, w = axis × u
+        typealias Projected = (x: Double, y: Double, normal: Vector3D)
+        var points: [Projected] = normals.compactMap { normal in
+            let height = normal ⋅ axis
+            guard height > 1e-9 else { return nil }
+            return ((normal ⋅ u) / height, (normal ⋅ w) / height, normal)
+        }
+        guard points.count == normals.count else { return nil }
+        points.sort { $0.x != $1.x ? $0.x < $1.x : $0.y < $1.y }
+        // Monotone chain, counterclockwise, dropping points on the hull's sides
+        func turn(_ o: Projected, _ a: Projected, _ b: Projected) -> Double {
+            (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+        }
+        var hull: [Projected] = []
+        for pass in 0..<2 {
+            let start = hull.count
+            for point in pass == 0 ? points : points.reversed() {
+                while hull.count >= start + 2 && turn(hull[hull.count - 2], hull[hull.count - 1], point) <= 1e-12 { hull.removeLast() }
+                hull.append(point)
+            }
+            hull.removeLast()
+        }
+        guard hull.count >= 3 else { return nil }
+        // Each side faces the rest of the hull. Where the rest lies nearly in its plane, the cone is too thin to
+        // tell which way that is, and too thin to add anything but a sliver: a crease point, like normals on one
+        // great circle.
+        var sides: [Vector3D] = []
+        for k in hull.indices {
+            let side = (hull[k].normal × hull[(k + 1) % hull.count].normal).safelyNormalized
+            let farthest = hull.map { side ⋅ $0.normal }.max { abs($0) < abs($1) } ?? 0
+            guard abs(farthest) >= 1e-3 else { return nil }
+            sides.append(farthest < 0 ? -side : side)
+        }
+        return sides
     }
 
     /// The offset function with sharp joins (negative inside the offset solid), its gradient, and the face closest

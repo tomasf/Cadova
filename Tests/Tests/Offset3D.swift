@@ -320,4 +320,22 @@ struct Offset3DTests {
         #expect(closed.faces.count == faces.count + 4)
         #expect(MeshOffset.filledHoles(vertices: closed.vertices, faces: closed.faces) == nil)
     }
+
+    @Test func `corner cones hold every normal, whatever order the faces come in`() throws {
+        // A vertex's normals in ring order can fold back on crumpled geometry; the cone is still their hull
+        let normals = ([[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [0.2, 0.1, 1]] as [Vector3D]).map(\.normalized)
+        let axis = normals.reduce(Vector3D.zero, +).normalized
+        let sides = try #require(OffsetCorners.coneSides(of: normals, around: axis))
+        #expect(sides.count == 4)
+        for side in sides {
+            #expect(normals.allSatisfy { $0 ⋅ side >= -1e-9 })
+        }
+        // Normals nearly on one great circle, from a real model, span too thin a cone to tell which way its sides
+        // face; getting that wrong let a corner reach far past the miter limit
+        let thin: [Vector3D] = [[0.452496, 0.23139, -0.861224], [0.64953, -0.320693, -0.689396], [-0.483882, 0.874923, -0.0191661]]
+        #expect(OffsetCorners.coneSides(of: thin, around: thin.reduce(Vector3D.zero, +).normalized) == nil)
+        // Normals on one great circle span no cone
+        let flat = ([[1, 0, 1], [-1, 0, 1], [0, 0, 1]] as [Vector3D]).map(\.normalized)
+        #expect(OffsetCorners.coneSides(of: flat, around: [0, 0, 1]) == nil)
+    }
 }
