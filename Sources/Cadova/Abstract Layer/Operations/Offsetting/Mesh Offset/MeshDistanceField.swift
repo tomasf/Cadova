@@ -294,8 +294,9 @@ internal final class MeshDistanceField: @unchecked Sendable {
             }
             let extent = (high.0 - low.0, high.1 - low.1, high.2 - low.2)
             let axis = extent.0 >= extent.1 && extent.0 >= extent.2 ? 0 : (extent.1 >= extent.2 ? 1 : 2)
-            let middle = first + count / 2
-            select(middle, from: first, to: first + count, axis: axis)
+            let middle = splitBySurfaceArea(first: first, count: count, axis: axis,
+                                            low: axis == 0 ? low.0 : axis == 1 ? low.1 : low.2,
+                                            high: axis == 0 ? high.0 : axis == 1 ? high.1 : high.2)
 
             let left = build(first: first, count: middle - first)
             let right = build(first: middle, count: first + count - middle)
@@ -321,7 +322,92 @@ internal final class MeshDistanceField: @unchecked Sendable {
             nodes[index] = Node(lower: lower, upper: upper, area: area, center: center, radius: radius, weight: totalArea)
         }
 
-        /// Reorders orderBuffer[first..<end] so the element at `nth` is the one sorting would put there, with no larger
+        /// Splits the faces in first..<first + count where the children's boxes have the least surface area for the faces
+        /// they hold (binned along the axis), so queries visit fewer nodes; or at the median where that's degenerate.
+        /// Returns where the second child starts.
+        private mutating func splitBySurfaceArea(first: Int, count: Int, axis: Int, low: Double, high: Double) -> Int {
+            let binCount = 16
+            guard high > low else {
+                select(first + count / 2, from: first, to: first + count, axis: axis)
+                return first + count / 2
+            }
+            let scale = Double(binCount) / (high - low)
+            func bin(_ face: Int) -> Int { min(binCount - 1, Int((centroids[3 * face + axis] - low) * scale)) }
+            // Each bin's face count and box, as lower then upper corner
+            var counts = [Int](repeating: 0, count: binCount)
+            var boxes = [Double](repeating: 0, count: 6 * binCount)
+            var b = 0
+            while b < binCount {
+                boxes[6 * b] = .infinity; boxes[6 * b + 1] = .infinity; boxes[6 * b + 2] = .infinity
+                boxes[6 * b + 3] = -.infinity; boxes[6 * b + 4] = -.infinity; boxes[6 * b + 5] = -.infinity
+                b += 1
+            }
+            var i = first
+            while i < first + count {
+                let f = orderBuffer[i]
+                let target = bin(f)
+                counts[target] += 1
+                let face = faces[f]
+                var corner = 0
+                while corner < 3 {
+                    let v = corner == 0 ? face.0 : corner == 1 ? face.1 : face.2
+                    var a = 0
+                    while a < 3 {
+                        boxes[6 * target + a] = min(boxes[6 * target + a], coordinates[3 * v + a])
+                        boxes[6 * target + 3 + a] = max(boxes[6 * target + 3 + a], coordinates[3 * v + a])
+                        a += 1
+                    }
+                    corner += 1
+                }
+                i += 1
+            }
+            func area(_ box: (Double, Double, Double, Double, Double, Double)) -> Double {
+                let dx = box.3 - box.0, dy = box.4 - box.1, dz = box.5 - box.2
+                return dx >= 0 ? dx * dy + dy * dz + dz * dx : 0
+            }
+            func merged(_ box: (Double, Double, Double, Double, Double, Double), _ b: Int) -> (Double, Double, Double, Double, Double, Double) {
+                (min(box.0, boxes[6 * b]), min(box.1, boxes[6 * b + 1]), min(box.2, boxes[6 * b + 2]),
+                 max(box.3, boxes[6 * b + 3]), max(box.4, boxes[6 * b + 4]), max(box.5, boxes[6 * b + 5]))
+            }
+            let empty = (Double.infinity, Double.infinity, Double.infinity, -Double.infinity, -Double.infinity, -Double.infinity)
+            // Cost of splitting after each bin: the left side's area and count from the left, the right's from the right
+            var leftCost = [Double](repeating: 0, count: binCount)
+            var box = empty, running = 0
+            b = 0
+            while b < binCount - 1 {
+                box = merged(box, b); running += counts[b]
+                leftCost[b] = area(box) * Double(running)
+                b += 1
+            }
+            var best = -1, bestCost = Double.infinity
+            box = empty; running = 0
+            b = binCount - 1
+            while b > 0 {
+                box = merged(box, b); running += counts[b]
+                let left = count - running
+                if left > 0 && running > 0 {
+                    let cost = leftCost[b - 1] + area(box) * Double(running)
+                    if cost < bestCost { bestCost = cost; best = b - 1 }
+                }
+                b -= 1
+            }
+            guard best >= 0 else {
+                select(first + count / 2, from: first, to: first + count, axis: axis)
+                return first + count / 2
+            }
+            // Partition: faces in bins up to the best one first
+            var lower = first, upper = first + count - 1
+            while lower <= upper {
+                if bin(orderBuffer[lower]) <= best { lower += 1 }
+                else {
+                    let swapped = orderBuffer[lower]; orderBuffer[lower] = orderBuffer[upper]; orderBuffer[upper] = swapped
+                    upper -= 1
+                }
+            }
+            return lower
+        }
+
+        /// Reorders the faces in first..<end so the one at `nth` is the one sorting would put there, with no larger
         /// one before it and no smaller one after (Hoare's selection)
         private mutating func select(_ nth: Int, from first: Int, to end: Int, axis: Int) {
             var low = first, high = end - 1

@@ -8,6 +8,7 @@ internal struct OffsetOctree {
         let size: Int
         var child = -1   // index of the first of eight children
         var leaf = -1
+        var parent = -1
     }
 
     struct Leaf {
@@ -42,7 +43,7 @@ internal struct OffsetOctree {
         let half = node.size / 2
         nodes[index].child = first
         for c in 0..<8 {
-            nodes.append(Node(i: node.i + (c & 1 != 0 ? half : 0), j: node.j + (c & 2 != 0 ? half : 0), k: node.k + (c & 4 != 0 ? half : 0), size: half))
+            nodes.append(Node(i: node.i + (c & 1 != 0 ? half : 0), j: node.j + (c & 2 != 0 ? half : 0), k: node.k + (c & 4 != 0 ? half : 0), size: half, parent: index))
         }
         return first
     }
@@ -75,14 +76,43 @@ internal struct OffsetOctree {
         }
     }
 
+    /// The same, starting from a node near the point: it climbs only as far as the first ancestor containing the
+    /// point, instead of descending from the root. Neighbor lookups stay close to home, so this is much shorter.
+    static func locate(_ x: Double, _ y: Double, _ z: Double, near start: Int, in nodes: UnsafeBufferPointer<Node>, extent: Int) -> Location {
+        let limit = Double(extent)
+        guard x >= 0, y >= 0, z >= 0, x < limit, y < limit, z < limit else { return Location(leaf: nil, size: extent) }
+        var index = start
+        while true {
+            let node = nodes[index]
+            let size = Double(node.size)
+            if x >= Double(node.i) && x < Double(node.i) + size && y >= Double(node.j) && y < Double(node.j) + size
+                && z >= Double(node.k) && z < Double(node.k) + size { break }
+            index = node.parent
+        }
+        while true {
+            let node = nodes[index]
+            if node.leaf >= 0 { return Location(leaf: node.leaf, size: node.size) }
+            if node.child < 0 { return Location(leaf: nil, size: node.size) }
+            let half = Double(node.size / 2)
+            let c = (x >= Double(node.i) + half ? 1 : 0) | (y >= Double(node.j) + half ? 2 : 0) | (z >= Double(node.k) + half ? 4 : 0)
+            index = node.child + c
+        }
+    }
+
     /// The node of the given size containing a grid point, or the larger leaf or empty node covering it
     func node(at i: Int, _ j: Int, _ k: Int, size: Int) -> Int? {
         nodes.withUnsafeBufferPointer { Self.node(at: i, j, k, size: size, in: $0, extent: extent) }
     }
 
-    private static func node(at i: Int, _ j: Int, _ k: Int, size: Int, in nodes: UnsafeBufferPointer<Node>, extent: Int) -> Int? {
+    /// Starting from a node near the point, it climbs only as far as the first ancestor containing it
+    private static func node(at i: Int, _ j: Int, _ k: Int, size: Int, near start: Int = 0, in nodes: UnsafeBufferPointer<Node>, extent: Int) -> Int? {
         guard i >= 0, j >= 0, k >= 0, i < extent, j < extent, k < extent else { return nil }
-        var index = 0
+        var index = start
+        while true {
+            let node = nodes[index]
+            if i >= node.i && i < node.i + node.size && j >= node.j && j < node.j + node.size && k >= node.k && k < node.k + node.size { break }
+            index = node.parent
+        }
         while nodes[index].size > size && nodes[index].child >= 0 {
             let node = nodes[index]
             let half = node.size / 2
@@ -97,7 +127,7 @@ internal struct OffsetOctree {
     }
 
     /// The same, over the nodes' storage
-    static func hasMuchSmallerNeighbor(_ i: Int, _ j: Int, _ k: Int, size: Int, in nodes: UnsafeBufferPointer<Node>, extent: Int) -> Bool {
+    static func hasMuchSmallerNeighbor(_ i: Int, _ j: Int, _ k: Int, size: Int, near start: Int = 0, in nodes: UnsafeBufferPointer<Node>, extent: Int) -> Bool {
         // Plain counted loops: range iteration is generic, and slow in unoptimized builds
         do {
             var neighbor = 0
@@ -105,7 +135,7 @@ internal struct OffsetOctree {
                 let dx = neighbor % 3 - 1, dy = neighbor / 3 % 3 - 1, dz = neighbor / 9 - 1
                 neighbor += 1
                 if dx == 0 && dy == 0 && dz == 0 { continue }
-                guard let index = node(at: i + dx * size, j + dy * size, k + dz * size, size: size, in: nodes, extent: extent) else { continue }
+                guard let index = node(at: i + dx * size, j + dy * size, k + dz * size, size: size, near: start, in: nodes, extent: extent) else { continue }
                 let other = nodes[index]
                 guard other.size == size, other.child >= 0 else { continue }
                 // The neighbor's children that face this cube, split once more, are too small

@@ -48,6 +48,9 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     private let crossingIndex = GridTable()
     private let knownCrossings: GridTable.Reader
     private var fits: [PlaneFit] = []
+    /// The minimal edges of the last fit, and which of them cross, for contouring the same tree without finding
+    /// them again
+    private var fittedEdges: (edges: [Edge], crossing: [Int])? = nil
     private var merges: [Int: (node: Int, child: Int, fit: PlaneFit)] = [:]
 
     init(field: MeshDistanceField, amount: Double, style: LineJoinStyle = .round, miterLimit: Double = 5, cellSize: Double, tolerance: Double) {
@@ -113,9 +116,9 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
 
     /// The offset function: negative inside the offset solid. With a face near p as a hint, it also returns the face
     /// closest to p, as a hint for nearby queries.
-    private func sample(at p: Vector3D, hint: Int? = nil) -> (value: Double, face: Int) {
+    private func sample(at p: Vector3D, hint: Int? = nil, cap: Double = .infinity) -> (value: Double, face: Int) {
         if let corners {
-            let result = corners.evaluate(at: p, hint: hint)
+            let result = corners.evaluate(at: p, hint: hint, cap: cap)
             return (result.value, result.face)
         }
         let result = field.signedDistanceAndFace(at: p, hint: hint)
@@ -136,8 +139,10 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     private func nodeMayContainSurface(_ node: OffsetOctree.Node, hint: Int? = nil) -> (Bool, Int) {
         let half = Double(node.size) * unit / 2
         let center = point(node.i, node.j, node.k) + Vector3D(half, half, half)
-        let result = sample(at: center, hint: hint)
-        return (abs(result.value) <= half * 3.0.squareRoot() * (1 + 1e-9), result.face)
+        let halfDiagonal = half * 3.0.squareRoot() * (1 + 1e-9)
+        // Only whether the value is within the half-diagonal matters
+        let result = sample(at: center, hint: hint, cap: 2 * halfDiagonal)
+        return (abs(result.value) <= halfDiagonal, result.face)
     }
 
     /// Samples the offset function at both ends of every edge that doesn't have its values yet. The table's shards
@@ -272,7 +277,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     /// Divides nodes twice the base cell size into base cells, keeping the cells the surface crosses: those with
     /// corners on both sides. The corners are grid points that contouring samples anyway, so this costs no samples of
     /// its own, unlike testing each cell's center. The cells this leaves out have no crossing edges; they only matter
-    /// next to finer cells, and splitting a cell brings back its neighbors (see ``split(leaf:)``).
+    /// next to finer cells, and splitting a cell brings back its neighbors (see ``split(leaves:)``).
     private func makeCells(in parents: [Int], hints: [Int]) {
         let size = unitsPerCell
         let nodes = octree.nodes
@@ -308,11 +313,18 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
         }
     }
 
-    private func split(leaf index: Int) {
-        let leaf = octree.leaves[index]
-        // Finer cells need their neighbors as leaves wherever the surface comes near, crossing or not: bring back
-        // the base cells around this one that making cells from corner signs left out
-        if leaf.size == unitsPerCell {
+    /// Splits leaves into their children that may contain the surface. Finer cells need their neighbors as leaves
+    /// wherever the surface comes near, crossing or not, so this also brings back the base cells around split base
+    /// cells that making cells from corner signs left out. The sampling for all of them runs on every core.
+    private func split(leaves indices: [Int]) {
+        guard !indices.isEmpty else { return }
+        // Nodes to test: empty base cells next to split base cells, then every split leaf's eight children to be
+        var tested: [OffsetOctree.Node] = []
+        var hints: [Int] = []
+        var restored: [Int] = []
+        var seen = Set<Int>()
+        for index in indices where octree.leaves[index].size == unitsPerCell {
+            let leaf = octree.leaves[index]
             var neighbor = 0
             while neighbor < 27 {
                 let dx = neighbor % 3 - 1, dy = neighbor / 3 % 3 - 1, dz = neighbor / 9 - 1
@@ -321,17 +333,44 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                       let found = octree.node(at: leaf.i + dx * leaf.size, leaf.j + dy * leaf.size, leaf.k + dz * leaf.size, size: leaf.size)
                 else { continue }
                 let node = octree.nodes[found]
-                guard node.size == leaf.size, node.leaf < 0, node.child < 0 else { continue }
-                let (contains, face) = nodeMayContainSurface(node, hint: leaf.hint >= 0 ? leaf.hint : nil)
-                if contains { octree.makeLeaf(node: found, hint: face) }
+                guard node.size == leaf.size, node.leaf < 0, node.child < 0, seen.insert(found).inserted else { continue }
+                restored.append(found)
+                tested.append(node)
+                hints.append(leaf.hint)
             }
         }
-        octree.leaves[index].size = 0
-        octree.nodes[leaf.node].leaf = -1
-        let first = octree.subdivide(node: leaf.node)
-        for c in 0..<8 {
-            let (contains, face) = nodeMayContainSurface(octree.nodes[first + c], hint: leaf.hint >= 0 ? leaf.hint : nil)
-            if contains { octree.makeLeaf(node: first + c, hint: face) }
+        for index in indices {
+            let leaf = octree.leaves[index]
+            let half = leaf.size / 2
+            var c = 0
+            while c < 8 {
+                tested.append(OffsetOctree.Node(i: leaf.i + (c & 1 != 0 ? half : 0), j: leaf.j + (c & 2 != 0 ? half : 0), k: leaf.k + (c & 4 != 0 ? half : 0), size: half))
+                hints.append(leaf.hint)
+                c += 1
+            }
+        }
+        let nodes = tested, nodeHints = hints
+        let results = ConcurrentLoop.map(nodes.count) { n -> Decision in
+            let (contains, face) = self.nodeMayContainSurface(nodes[n], hint: nodeHints[n] >= 0 ? nodeHints[n] : nil)
+            return Decision(kind: contains ? 1 : 0, face: face)
+        }
+        var n = 0
+        for node in restored {
+            if results[n].kind == 1 { octree.makeLeaf(node: node, hint: results[n].face) }
+            n += 1
+        }
+        for index in indices {
+            let leaf = octree.leaves[index]
+            octree.leaves[index].size = 0
+            octree.nodes[leaf.node].leaf = -1
+            // Children come in the same order as tested above
+            let first = octree.subdivide(node: leaf.node)
+            var c = 0
+            while c < 8 {
+                if results[n].kind == 1 { octree.makeLeaf(node: first + c, hint: results[n].face) }
+                n += 1
+                c += 1
+            }
         }
     }
 
@@ -348,7 +387,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                     let extent = octree.extent
                     return ConcurrentLoop.map(current.count) { n -> Bool in
                         let leaf = leaves[current[n]]
-                        return leaf.size >= 4 && OffsetOctree.hasMuchSmallerNeighbor(leaf.i, leaf.j, leaf.k, size: leaf.size, in: nodes, extent: extent)
+                        return leaf.size >= 4 && OffsetOctree.hasMuchSmallerNeighbor(leaf.i, leaf.j, leaf.k, size: leaf.size, near: leaf.node, in: nodes, extent: extent)
                     }
                 }
             }
@@ -358,9 +397,9 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             if split.isEmpty { break }
             // Splitting can only unbalance the split leaves' neighbors
             var next = Set<Int>()
-            for index in split {
-                let leaf = octree.leaves[index]
-                self.split(leaf: index)
+            let splitLeaves = split.map { octree.leaves[$0] }
+            self.split(leaves: split)
+            for leaf in splitLeaves {
                 var neighbor = 0
                 while neighbor < 27 {
                     let dx = neighbor % 3 - 1, dy = neighbor / 3 % 3 - 1, dz = neighbor / 9 - 1
@@ -410,7 +449,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             let center = (Double(leaf.i) + Double(size) / 2, Double(leaf.j) + Double(size) / 2, Double(leaf.k) + Double(size) / 2)
             func probe(_ dx: Int, _ dy: Int, _ dz: Int) -> OffsetOctree.Location {
                 let step = Double(size)
-                return OffsetOctree.locate(center.0 + Double(dx) * step, center.1 + Double(dy) * step, center.2 + Double(dz) * step, in: nodes, extent: extent)
+                return OffsetOctree.locate(center.0 + Double(dx) * step, center.1 + Double(dy) * step, center.2 + Double(dz) * step, near: leaf.node, in: nodes, extent: extent)
             }
             func offset(_ axis: Int, _ sign: Int) -> (Int, Int, Int) {
                 (axis == 0 ? sign : 0, axis == 1 ? sign : 0, axis == 2 ? sign : 0)
@@ -576,6 +615,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             accumulated[leaf] = merge.fit
         }
         fits = accumulated
+        fittedEdges = (all, crossingEdges)
     }
 
     // MARK: - Components
@@ -681,7 +721,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             var n = 0
             while n < flags.count { if flags[n] { poor.append(n) }; n += 1 }
             if poor.isEmpty { break }
-            for index in poor { split(leaf: index) }
+            split(leaves: poor)
             balance()
             computeFits()
         }
@@ -717,7 +757,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                     }
                     let candidates = level
                     let fitted = ConcurrentLoop.map(candidates.count) { n -> PlaneFit? in
-                        self.mergedFit(node: nodes[candidates[n]], nodes: nodes, extent: extent, fits: fits)
+                        self.mergedFit(node: nodes[candidates[n]], index: candidates[n], nodes: nodes, extent: extent, fits: fits)
                     }
                     return zip(candidates, fitted).compactMap { index, fit in fit.map { (index, $0) } }
                 }
@@ -740,7 +780,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
         }
     }
 
-    private func mergedFit(node: OffsetOctree.Node, nodes: UnsafeBufferPointer<OffsetOctree.Node>, extent: Int, fits: UnsafeBufferPointer<PlaneFit>) -> PlaneFit? {
+    private func mergedFit(node: OffsetOctree.Node, index: Int, nodes: UnsafeBufferPointer<OffsetOctree.Node>, extent: Int, fits: UnsafeBufferPointer<PlaneFit>) -> PlaneFit? {
         var fit = PlaneFit()
         var c = 0
         while c < 8 {
@@ -859,7 +899,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             || x.x > upper.x + 0.1 * unit || x.y > upper.y + 0.1 * unit || x.z > upper.z + 0.1 * unit { return nil }
         if fit.rootMeanSquareError(at: x) > tolerance { return nil }
         // Merging must keep the tree balanced
-        if OffsetOctree.hasMuchSmallerNeighbor(node.i, node.j, node.k, size: node.size, in: nodes, extent: extent) { return nil }
+        if OffsetOctree.hasMuchSmallerNeighbor(node.i, node.j, node.k, size: node.size, near: index, in: nodes, extent: extent) { return nil }
         if abs(value(at: x)) > tolerance { return nil }
         return fit
     }
@@ -872,7 +912,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
         var leafOfVertex: [Int] = []
     }
 
-    private func contour() -> Contour {
+    private func contour(reusingFitEdges: Bool = false) -> Contour {
         var result = Contour()
         let leaves = octree.leaves
         var vertexOfLeaf = [Int](repeating: -1, count: leaves.count)
@@ -939,27 +979,44 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             }
         }
 
-        let contourEdges = minimalEdges()
-        for edge in contourEdges {
-            let (crosses, rising) = crosses(edge)
-            guard crosses else { continue }
-            var order = [edge.around.0, edge.around.1, edge.around.2, edge.around.3]
-            if !rising { order.swapAt(1, 3) }
-            var ring: [Int] = []
-            var complete = true
-            for leaf in order {
-                guard leaf >= 0, vertexOfLeaf[leaf] >= 0 else { complete = false; break }
-                var vertex = vertexOfLeaf[leaf]
-                if let specific = componentVertex[leaf]?[edge.key] { vertex = specific }
-                if ring.last != vertex { ring.append(vertex) }
+        // The edges the last fit found crossing, when the tree hasn't changed since; otherwise found again
+        let edges: [Edge], crossing: [Int]
+        if reusingFitEdges, let fitted = fittedEdges {
+            (edges, crossing) = (fitted.edges, fitted.crossing)
+        } else {
+            edges = minimalEdges()
+            crossing = edges.indices.filter { crosses(edges[$0]).crosses }
+        }
+        // A quad around each crossing edge, from the vertices of the four leaves around it, in plain values rather
+        // than small arrays: there's one per crossing edge
+        for index in crossing {
+            let edge = edges[index]
+            let rising = crosses(edge).rising
+            let around = rising ? edge.around : (edge.around.0, edge.around.3, edge.around.2, edge.around.1)
+            func vertex(_ leaf: Int) -> Int {
+                guard leaf >= 0, vertexOfLeaf[leaf] >= 0 else { return -1 }
+                if !componentVertex.isEmpty, let specific = componentVertex[leaf]?[edge.key] { return specific }
+                return vertexOfLeaf[leaf]
             }
-            guard complete else { continue }
-            if ring.count > 1 && ring.last == ring.first { ring.removeLast() }
-            if ring.count == 3 {
-                result.faces.append((ring[0], ring[1], ring[2]))
-            } else if ring.count == 4 {
-                result.faces.append((ring[0], ring[1], ring[2]))
-                result.faces.append((ring[0], ring[2], ring[3]))
+            let v0 = vertex(around.0), v1 = vertex(around.1), v2 = vertex(around.2), v3 = vertex(around.3)
+            guard v0 >= 0, v1 >= 0, v2 >= 0, v3 >= 0 else { continue }
+            // Consecutive leaves can share a vertex (a larger leaf spans two quadrants): drop the repeats
+            var ring = (v0, -1, -1, -1), count = 1
+            var k = 1
+            while k < 4 {
+                let v = k == 1 ? v1 : k == 2 ? v2 : v3
+                k += 1
+                if v == (count == 1 ? ring.0 : count == 2 ? ring.1 : ring.2) { continue }
+                if count == 1 { ring.1 = v } else if count == 2 { ring.2 = v } else { ring.3 = v }
+                count += 1
+            }
+            let last = count == 2 ? ring.1 : count == 3 ? ring.2 : ring.3
+            if count > 1 && last == ring.0 { count -= 1 }
+            if count == 3 {
+                result.faces.append((ring.0, ring.1, ring.2))
+            } else if count == 4 {
+                result.faces.append((ring.0, ring.1, ring.2))
+                result.faces.append((ring.0, ring.2, ring.3))
             }
         }
         return result
@@ -969,6 +1026,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     /// involved and contours again
     private func contourWithRepair() -> Contour {
         var result = contour()
+        var previous = Int.max
         for _ in 0..<12 {
             let fans = VertexFans(faces: result.faces, vertexCount: result.vertices.count)
             var culprits = Set<Int>()
@@ -976,9 +1034,13 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                 culprits.insert(result.leafOfVertex[a])
                 culprits.insert(result.leafOfVertex[b])
             }
-            if culprits.isEmpty { break }
+            // Each round fits and contours everything again. Where the culprits don't at least halve, the rest are
+            // sheets that genuinely touch, which clean-up separates just as well, so stop there.
+            if culprits.isEmpty || culprits.count > previous / 2 { break }
+            previous = culprits.count
 
             var acted = false, refit = false
+            var toSplit = Set<Int>()
             for index in culprits.sorted() {
                 if let merge = merges.removeValue(forKey: index) {
                     octree.nodes[merge.node].child = merge.child
@@ -1005,17 +1067,19 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                             }
                         }
                     }
-                    split(leaf: index)
-                    for other in neighbors.sorted() where octree.leaves[other].size > 1 { split(leaf: other) }
+                    toSplit.insert(index)
+                    for other in neighbors where octree.leaves[other].size > 1 { toSplit.insert(other) }
                     acted = true
                     refit = true
                 }
             }
+            // All at once, so their sampling runs in parallel; leaves unmerged meanwhile have no size left
+            split(leaves: toSplit.sorted().filter { octree.leaves[$0].size > 1 })
             guard acted else { break }
             // Unmerged children were out of reach of the last fit, so fit again either way
             if refit { balance() }
             computeFits()
-            result = contour()
+            result = contour(reusingFitEdges: true)
         }
         return result
     }
@@ -1043,23 +1107,16 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     private static func cutLoopedFans(vertices: [Vector3D], faces: [Face]) -> (vertices: [Vector3D], faces: [Face]) {
         var vertices = vertices
         var faces = faces
-        var facesOfEdge: [UInt64: [Int]] = [:]
-        var incident = [[Int]](repeating: [], count: vertices.count)
-        for (index, face) in faces.enumerated() {
-            for (a, b) in [(face.0, face.1), (face.1, face.2), (face.2, face.0)] {
-                facesOfEdge[MeshDistanceField.edgeKey(a, b), default: []].append(index)
-            }
-            incident[face.0].append(index); incident[face.1].append(index); incident[face.2].append(index)
-        }
-        func corners(_ index: Int) -> [Int] { [faces[index].0, faces[index].1, faces[index].2] }
+        // Everything is decided on the faces as they are; renaming as we go would hide edges from later ones
+        let original = faces
+        let fans = VertexFans(faces: original, vertexCount: vertices.count)
+        func corners(_ index: Int) -> [Int] { [original[index].0, original[index].1, original[index].2] }
         var touched = Set<Int>()
-        // In key order: a dictionary's order changes from run to run, and the result shouldn't
-        for key in facesOfEdge.keys.sorted() where facesOfEdge[key]!.count == 4 {
-            let ends = [Int(key >> 32), Int(key & 0xffffffff)]
-            for (v, w) in [(ends[0], ends[1]), (ends[1], ends[0])] {
+        for (a, b) in fans.irregularEdges(in: original) where fans.faces(around: a, with: b, in: original).count == 4 {
+            for (v, w) in [(a, b), (b, a)] {
                 guard !touched.contains(v), !touched.contains(w) else { break }
                 // Group v's triangles through shared edges other than v-w
-                let fan = incident[v]
+                let fan = Array(fans.members[fans.offsets[v]..<fans.offsets[v + 1]])
                 var parent = Array(fan.indices)
                 func root(_ x: Int) -> Int {
                     var x = x
@@ -1070,7 +1127,8 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                 for (n, face) in fan.enumerated() { slot[face] = n }
                 for (n, face) in fan.enumerated() {
                     for u in corners(face) where u != v && u != w {
-                        guard let shared = facesOfEdge[MeshDistanceField.edgeKey(v, u)], shared.count == 2 else { continue }
+                        let shared = fans.faces(around: v, with: u, in: original)
+                        guard shared.count == 2 else { continue }
                         let other = shared[0] == face ? shared[1] : shared[0]
                         if let m = slot[other] { parent[root(n)] = root(m) }
                     }

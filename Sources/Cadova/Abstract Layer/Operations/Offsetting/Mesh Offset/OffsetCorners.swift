@@ -373,7 +373,19 @@ internal final class OffsetCorners: @unchecked Sendable {
             var cap = Piece(planes: cone + corner.ring.map { Plane(n[$0], through: p, beyond: r) })
             cap.planes.append(Plane(corner.axis, through: p, beyond: corner.cut ?? limit * r))
             for cut in cutsAt[v] { cap.planes.append(Plane(cut.normal, through: p, beyond: cut.at)) }
-            cap.bound(around: [p], margin: max(limit, 1.5) * r + r)
+            // Every point x of the cap lies in the cone of the ring's normals, x = Σ λ n, below every moved plane
+            // (n·x <= r) and the axis cut (axis·x <= A), so |x|² = Σ λ n·x <= r Σ λ <= r A / cos(widest). That
+            // needs the normals to turn one way around the ring, making their cone convex, and the widest normal
+            // known exactly (it's clamped at 1.5); otherwise the cap gets the largest margin anything reaches.
+            let ring = corner.ring.map { n[$0] }
+            let convex = ring.indices.allSatisfy { k in
+                ((ring[k] × ring[(k + 1) % ring.count]) ⋅ ring[(k + 2) % ring.count]) * ((ring[0] × ring[1 % ring.count]) ⋅ ring[2 % ring.count]) >= 0
+            }
+            let cutAt = corner.cut ?? limit * r
+            let margin = convex && corner.widest < 1.5
+                ? (r * cutAt / cos(corner.widest)).squareRoot() * (1 + 1e-9) + tolerance
+                : max(limit, 1.5) * r + r
+            cap.bound(around: [p], margin: margin)
             grown.append(cap)
         }
         return (grown, removed)
@@ -383,7 +395,10 @@ internal final class OffsetCorners: @unchecked Sendable {
     /// to p (a hint for nearby queries). Outward: min(max(round, -removed), grown), removing first so grown pieces
     /// restore what removing takes from neighbors, and never removing the solid itself. Inward: the same on the
     /// complement, negated.
-    func evaluate(at p: Vector3D, hint: Int?) -> (value: Double, gradient: Vector3D, face: Int) {
+    ///
+    /// With a cap, the value is only exact where its magnitude is within the cap; beyond it, it's only known to lie
+    /// beyond on the same side, which lets the piece searches stop much sooner.
+    func evaluate(at p: Vector3D, hint: Int?, cap: Double = .infinity) -> (value: Double, gradient: Vector3D, face: Int) {
         let closest = field.closest(to: p, hint: hint)
         let distance = closest.distanceSquared.squareRoot()
         let inside = field.isInside(p, closest: closest)
@@ -393,9 +408,11 @@ internal final class OffsetCorners: @unchecked Sendable {
         let solid = (inside ? -distance : distance) * sign
         var value = solid - amount
         var gradient = solidGradient
-        let removal = removed.value(at: p, reach: reach)
+        // Each search only looks for pieces that would change the value: removed ones below minus it, grown ones
+        // below it. That bounds the searches far more tightly than the pieces' reach.
+        let removal = removed.value(at: p, reach: min(reach, -value, cap))
         if -removal.value > value { value = -removal.value; gradient = -removal.gradient }
-        let growth = grown.value(at: p, reach: reach)
+        let growth = grown.value(at: p, reach: min(reach, value, cap))
         if growth.value < value { value = growth.value; gradient = growth.gradient }
         if solid < value { value = solid; gradient = solidGradient }
         return (value * sign, gradient * sign, closest.face)
@@ -528,18 +545,21 @@ internal final class OffsetCorners: @unchecked Sendable {
                         var i = node.first
                         while i < node.first + node.count {
                             let piece = bounds[order[i]]
+                            i += 1
+                            // The piece's value is its largest plane distance, so once one plane reaches the best
+                            // so far, the piece can't improve on it
                             var largest = -Double.infinity, largestPlane = -1
                             var k = piece.firstPlane
-                            while k < piece.firstPlane + piece.planeCount {
+                            while k < piece.firstPlane + piece.planeCount && largest < best {
                                 let plane = planes[k]
                                 let d = plane.normal.x * x + plane.normal.y * y + plane.normal.z * z - plane.offset
                                 if d > largest { largest = d; largestPlane = k }
                                 k += 1
                             }
+                            guard largest < best else { continue }
                             let box = Self.boxDistance(piece.lower, piece.upper, x, y, z)
                             if box > 0 && box > largest { largest = box; largestPlane = -1 }
-                            if largest < best { best = largest; bestPiece = order[i]; bestPlane = largestPlane }
-                            i += 1
+                            if largest < best { best = largest; bestPiece = order[i - 1]; bestPlane = largestPlane }
                         }
                         continue
                     }
