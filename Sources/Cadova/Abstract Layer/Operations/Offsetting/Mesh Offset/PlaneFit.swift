@@ -59,11 +59,14 @@ internal struct PlaneFit: Sendable {
     func solve() -> Vector3D {
         let mean = meanPoint
         let residual = vector - multiply(mean)
-        let (values, vectors) = Self.eigenDecomposition(matrix)
-        let largest = values.map(abs).max() ?? 0
+        let eigen = Self.eigenDecomposition(matrix)
+        let largest = max(abs(eigen.values.0), max(abs(eigen.values.1), abs(eigen.values.2)))
         var x = mean
-        for k in 0..<3 where abs(values[k]) > Self.eigenvalueCutoff * largest {
-            x = x + vectors[k] * ((vectors[k] ⋅ residual) / values[k])
+        var k = 0
+        while k < 3 {
+            let value = eigen.value(k), vector = eigen.vector(k)
+            if abs(value) > Self.eigenvalueCutoff * largest { x = x + vector * ((vector ⋅ residual) / value) }
+            k += 1
         }
         return x
     }
@@ -89,36 +92,66 @@ internal struct PlaneFit: Sendable {
         return x
     }
 
-    /// Eigenvalues and unit eigenvectors of a symmetric 3x3 matrix, by Jacobi rotations
-    private static func eigenDecomposition(_ m: (Double, Double, Double, Double, Double, Double)) -> ([Double], [Vector3D]) {
-        var a = [[m.0, m.1, m.2], [m.1, m.3, m.4], [m.2, m.4, m.5]]
-        var v = [[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]]
-        for _ in 0..<32 {
-            let off = a[0][1] * a[0][1] + a[0][2] * a[0][2] + a[1][2] * a[1][2]
-            if off < 1e-30 { break }
-            for (p, q) in [(0, 1), (0, 2), (1, 2)] where abs(a[p][q]) > 1e-300 {
-                let theta = (a[q][q] - a[p][p]) / (2 * a[p][q])
-                let t = (theta >= 0 ? 1.0 : -1.0) / (abs(theta) + (theta * theta + 1).squareRoot())
-                let c = 1 / (t * t + 1).squareRoot(), s = t * c
-                for k in 0..<3 {
-                    let akp = a[k][p], akq = a[k][q]
-                    a[k][p] = c * akp - s * akq
-                    a[k][q] = s * akp + c * akq
-                }
-                for k in 0..<3 {
-                    let apk = a[p][k], aqk = a[q][k]
-                    a[p][k] = c * apk - s * aqk
-                    a[q][k] = s * apk + c * aqk
-                }
-                for k in 0..<3 {
-                    let vkp = v[k][p], vkq = v[k][q]
-                    v[k][p] = c * vkp - s * vkq
-                    v[k][q] = s * vkp + c * vkq
+    struct EigenDecomposition {
+        let values: (Double, Double, Double)
+        let vectors: (Vector3D, Vector3D, Vector3D)
+
+        func value(_ k: Int) -> Double { k == 0 ? values.0 : k == 1 ? values.1 : values.2 }
+        func vector(_ k: Int) -> Vector3D { k == 0 ? vectors.0 : k == 1 ? vectors.1 : vectors.2 }
+    }
+
+    /// Eigenvalues and unit eigenvectors of a symmetric 3x3 matrix, by Jacobi rotations. Over one temporary buffer
+    /// with counted loops: nested arrays and range iteration are slow in unoptimized builds, which run this millions
+    /// of times.
+    static func eigenDecomposition(_ m: (Double, Double, Double, Double, Double, Double)) -> EigenDecomposition {
+        withUnsafeTemporaryAllocation(of: Double.self, capacity: 18) { buffer in
+            let a = buffer.baseAddress!, v = a + 9   // row-major: a[row * 3 + column]
+            a[0] = m.0; a[1] = m.1; a[2] = m.2
+            a[3] = m.1; a[4] = m.3; a[5] = m.4
+            a[6] = m.2; a[7] = m.4; a[8] = m.5
+            var n = 0
+            while n < 9 { v[n] = n % 4 == 0 ? 1 : 0; n += 1 }
+            var sweep = 0
+            while sweep < 32 {
+                sweep += 1
+                let off = a[1] * a[1] + a[2] * a[2] + a[5] * a[5]
+                if off < 1e-30 { break }
+                var pair = 0
+                while pair < 3 {
+                    let p = pair == 2 ? 1 : 0, q = pair == 0 ? 1 : 2
+                    pair += 1
+                    let apq = a[p * 3 + q]
+                    if abs(apq) <= 1e-300 { continue }
+                    let theta = (a[q * 3 + q] - a[p * 3 + p]) / (2 * apq)
+                    let t = (theta >= 0 ? 1.0 : -1.0) / (abs(theta) + (theta * theta + 1).squareRoot())
+                    let c = 1 / (t * t + 1).squareRoot(), s = t * c
+                    var k = 0
+                    while k < 3 {
+                        let akp = a[k * 3 + p], akq = a[k * 3 + q]
+                        a[k * 3 + p] = c * akp - s * akq
+                        a[k * 3 + q] = s * akp + c * akq
+                        k += 1
+                    }
+                    k = 0
+                    while k < 3 {
+                        let apk = a[p * 3 + k], aqk = a[q * 3 + k]
+                        a[p * 3 + k] = c * apk - s * aqk
+                        a[q * 3 + k] = s * apk + c * aqk
+                        k += 1
+                    }
+                    k = 0
+                    while k < 3 {
+                        let vkp = v[k * 3 + p], vkq = v[k * 3 + q]
+                        v[k * 3 + p] = c * vkp - s * vkq
+                        v[k * 3 + q] = s * vkp + c * vkq
+                        k += 1
+                    }
                 }
             }
+            return EigenDecomposition(
+                values: (a[0], a[4], a[8]),
+                vectors: (Vector3D(v[0], v[3], v[6]), Vector3D(v[1], v[4], v[7]), Vector3D(v[2], v[5], v[8]))
+            )
         }
-        let values = [a[0][0], a[1][1], a[2][2]]
-        let vectors = (0..<3).map { k in Vector3D(v[0][k], v[1][k], v[2][k]) }
-        return (values, vectors)
     }
 }

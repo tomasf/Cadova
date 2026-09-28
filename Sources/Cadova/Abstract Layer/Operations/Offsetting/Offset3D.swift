@@ -4,19 +4,29 @@ import Manifold3D
 public extension Geometry3D {
     /// Offsets the geometry's surface by a distance.
     ///
-    /// Every point of the result's surface lies at `amount` from the original surface. A positive amount grows the
-    /// geometry outward: flat faces move out in parallel, and convex edges and corners become rounded with the
-    /// amount as radius. A negative amount shrinks it inward: concave edges and corners become rounded instead, and
-    /// parts thinner than twice the amount disappear.
+    /// A positive amount grows the geometry outward, and a negative amount shrinks it inward. Flat faces move in
+    /// parallel by the amount, and parts thinner than twice an inward amount disappear. The style decides what
+    /// happens where faces move apart, at convex edges and corners when growing and at concave ones when shrinking:
     ///
-    /// The result is computed from the exact distance to the surface, so flat faces and sharp creases stay exact.
-    /// Rounded parts follow the environment's segmentation, like circles do.
+    /// - `.round` rounds them with the amount as radius. Every point of the surface then lies exactly at the amount
+    ///   from the original surface, which is what uniform walls need.
+    /// - `.miter` extends the faces until they meet, keeping edges and corners sharp. Where that would reach farther
+    ///   than the environment's miter limit times the amount, it squares off instead.
+    /// - `.square` cuts them flat at the amount from the original edge or corner.
+    /// - `.bevel` cuts them flat between the moved faces.
     ///
-    /// - Parameter amount: The distance to offset by. Positive values grow the geometry, negative values shrink it.
+    /// Only edges and corners sharp enough for the style to make a visible difference are treated this way; curved
+    /// surfaces, made of many nearly flat faces, stay smooth. The result is computed from the exact distance to the
+    /// surface, so flat faces and sharp creases stay exact. Rounded parts follow the environment's segmentation, like
+    /// circles do.
+    ///
+    /// - Parameters:
+    ///   - amount: The distance to offset by. Positive values grow the geometry, negative values shrink it.
+    ///   - style: How edges and corners are joined where faces move apart. Defaults to `.round`.
     /// - Returns: The offset geometry.
     ///
-    func offset(amount: Double) -> any Geometry3D {
-        Offset3D(source: self, amount: amount)
+    func offset(amount: Double, style: LineJoinStyle = .round) -> any Geometry3D {
+        Offset3D(source: self, amount: amount, style: style)
     }
 
     /// Offsets the geometry's surface by a distance, providing both the original and offset geometries to a builder
@@ -27,36 +37,42 @@ public extension Geometry3D {
     ///
     /// - Parameters:
     ///   - amount: The distance to offset by. Positive values grow the geometry, negative values shrink it.
+    ///   - style: How edges and corners are joined where faces move apart. Defaults to `.round`.
     ///   - reader: A closure that receives both the original geometry and the offset geometry, and returns a new
     ///     composed geometry.
     /// - Returns: The result of the builder closure.
     ///
-    /// - SeeAlso: ``offset(amount:)``
+    /// - SeeAlso: ``offset(amount:style:)``
     ///
     func offset<Output: Dimensionality>(
         amount: Double,
+        style: LineJoinStyle = .round,
         @GeometryBuilder<Output> reader: @escaping @Sendable (_ original: any Geometry3D, _ offset: any Geometry3D) -> Output.Geometry
     ) -> Output.Geometry {
-        reader(self, offset(amount: amount))
+        reader(self, offset(amount: amount, style: style))
     }
 }
 
 private struct Offset3D: Geometry3D {
     let source: any Geometry3D
     let amount: Double
+    let style: LineJoinStyle
 
     var body: any Geometry3D {
         @Environment(\.segmentation) var segmentation
+        @Environment(\.miterLimit) var miterLimit
         if amount == 0 {
             source
         } else {
             let cellSize = segmentation.offsetCellSize(radius: abs(amount))
-            CachedConcreteTransformer(body: source, name: "Cadova.Offset3D", parameters: amount, cellSize) { manifold in
+            let limit = style == .miter ? miterLimit : 0
+            CachedConcreteTransformer(body: source, name: "Cadova.Offset3D", parameters: amount, cellSize, style, limit) { manifold in
                 let mesh = manifold.meshGL()
                 let faces = mesh.triangles.map { ($0.a, $0.b, $0.c) }
                 guard !faces.isEmpty else { return manifold }
                 let field = MeshDistanceField(vertices: mesh.vertices, faces: faces)
-                let result = MeshOffset(field: field, amount: amount, cellSize: cellSize, tolerance: cellSize / 10).run()
+                let offset = MeshOffset(field: field, amount: amount, style: style, miterLimit: miterLimit, cellSize: cellSize, tolerance: cellSize / 10)
+                let result = offset.run()
                 guard !result.faces.isEmpty else { return .empty }
                 let triangles = result.faces.map { Manifold3D.Triangle($0.0, $0.1, $0.2) }
                 return try Manifold(MeshGL(vertices: result.vertices, triangles: triangles))

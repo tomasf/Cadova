@@ -99,4 +99,77 @@ struct Offset3DTests {
         let volume = try await Box([20, 20, 3]).hollowed(wallThickness: 2).measurements.volume
         #expect(volume.equals(1200, within: 1e-6))
     }
+
+    // Join styles: flat faces and sharp edges are exact at any resolution, so these expectations are exact
+
+    @Test func `mitered offsets keep edges and corners sharp`() async throws {
+        let cube = try await Box(20).offset(amount: 2, style: .miter).withSegmentation(segmentation).measurements.volume
+        let shrunk = try await Box(20).offset(amount: -2, style: .miter).withSegmentation(segmentation).measurements.volume
+        #expect(cube.equals(24 * 24 * 24, within: 0.01))
+        #expect(shrunk.equals(16 * 16 * 16, within: 0.01))
+
+        // The L's concave inner corner stays sharp when shrinking, unlike with round
+        let plate = Rectangle(x: 30, y: 30)
+            .subtracting { Rectangle(x: 15, y: 15).translated(x: 15, y: 15) }
+            .extruded(height: 10)
+        let grownPlate = try await plate.offset(amount: 2, style: .miter).withSegmentation(segmentation).measurements.volume
+        let shrunkPlate = try await plate.offset(amount: -2, style: .miter).withSegmentation(segmentation).measurements.volume
+        let grownArea = 34.0 * 34 - 15 * 15
+        let shrunkArea = 26.0 * 26 - 15 * 15
+        #expect(grownPlate.equals(grownArea * 14, within: 0.01))
+        #expect(shrunkPlate.equals(shrunkArea * 6, within: 0.01))
+    }
+
+    @Test func `beveled offsets cut edges and corners flat between the moved faces`() async throws {
+        // The box, a slab on each face, a triangular prism along each edge and a corner tetrahedron at each corner
+        let volume = try await Box(20).offset(amount: 2, style: .bevel).withSegmentation(segmentation).measurements.volume
+        let faces = 6 * 20.0 * 20 * 2
+        let edges = 12 * 20 * 2.0 * 2 / 2
+        let corners = 8 * 2.0 * 2 * 2 / 6
+        let expected = 8000 + faces + edges + corners
+        #expect(volume.equals(expected, within: 0.01))
+
+        // Shrinking the L keeps a 2 × 2 triangle at its concave inner corner
+        let plate = Rectangle(x: 30, y: 30)
+            .subtracting { Rectangle(x: 15, y: 15).translated(x: 15, y: 15) }
+            .extruded(height: 10)
+        let shrunkPlate = try await plate.offset(amount: -2, style: .bevel).withSegmentation(segmentation).measurements.volume
+        let shrunkArea = 26.0 * 26 - 15 * 15 + 2
+        #expect(shrunkPlate.equals(shrunkArea * 6, within: 0.01))
+    }
+
+    @Test func `squared offsets cut edges and corners flat at the amount`() async throws {
+        // Each edge is cut 2 from the edge along its bisector, and each corner 2 from the corner along its diagonal and
+        // by the cuts of its edges. The corner volume is the region of the 2 × 2 × 2 corner cube within all four cuts.
+        let volume = try await Box(20).offset(amount: 2, style: .square).withSegmentation(segmentation).measurements.volume
+        let edgeArea = 4 * (2 * 2.0.squareRoot() - 2)
+        let corner = 4.776610891
+        let expected = 8000 + 6 * 20.0 * 20 * 2 + 12 * 20 * edgeArea + 8 * corner
+        #expect(volume.equals(expected, within: 0.01))
+
+        // Shrinking the L keeps the 2 × 2 corner square minus the square join's share of it
+        let plate = Rectangle(x: 30, y: 30)
+            .subtracting { Rectangle(x: 15, y: 15).translated(x: 15, y: 15) }
+            .extruded(height: 10)
+        let shrunkPlate = try await plate.offset(amount: -2, style: .square).withSegmentation(segmentation).measurements.volume
+        let shrunkArea = 26.0 * 26 - 15 * 15 + 4 - edgeArea
+        #expect(shrunkPlate.equals(shrunkArea * 6, within: 0.01))
+    }
+
+    @Test func `a miter reaching past the miter limit is squared off`() async throws {
+        // A prism with a 30° edge pointing along -x: a miter reaches 2 / sin(15°) ≈ 7.73 past it
+        let halfWidth = 40 * tan(15° as Angle)
+        let wedge = Polygon([[0, 0], [40, halfWidth], [40, -halfWidth]])
+            .extruded(height: 10)
+        let mitered = try #require(try await wedge.offset(amount: 2, style: .miter).withSegmentation(segmentation).bounds)
+        let squared = try #require(try await wedge.offset(amount: 2, style: .miter).withMiterLimit(2).withSegmentation(segmentation).bounds)
+        #expect(mitered.minimum.x.equals(-2 / sin(15° as Angle), within: 0.01))
+        #expect(squared.minimum.x.equals(-2, within: 0.01))
+    }
+
+    @Test func `curved surfaces stay smooth with sharp join styles`() async throws {
+        let round = try #require(try await Sphere(radius: 10).offset(amount: 3).withSegmentation(segmentation).bounds)
+        let mitered = try #require(try await Sphere(radius: 10).offset(amount: 3, style: .miter).withSegmentation(segmentation).bounds)
+        #expect(mitered.size.x.equals(round.size.x, within: 0.05))
+    }
 }

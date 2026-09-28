@@ -15,6 +15,8 @@ internal struct OffsetOctree {
         /// Zero once the leaf has been split or merged away
         var size: Int
         let node: Int
+        /// A face near the leaf, as a hint for distance queries in it (or -1)
+        let hint: Int
     }
 
     /// The grid is `extent` units along each axis
@@ -27,10 +29,10 @@ internal struct OffsetOctree {
         nodes = [Node(i: 0, j: 0, k: 0, size: extent)]
     }
 
-    mutating func makeLeaf(node index: Int) {
+    mutating func makeLeaf(node index: Int, hint: Int) {
         let node = nodes[index]
         nodes[index].leaf = leaves.count
-        leaves.append(Leaf(i: node.i, j: node.j, k: node.k, size: node.size, node: index))
+        leaves.append(Leaf(i: node.i, j: node.j, k: node.k, size: node.size, node: index, hint: hint))
     }
 
     /// Adds eight children to a node and returns the index of the first
@@ -91,14 +93,19 @@ internal struct OffsetOctree {
 
     /// Whether any leaf touching the cube (i, j, k, size) from outside is smaller than half its size
     func hasMuchSmallerNeighbor(_ i: Int, _ j: Int, _ k: Int, size: Int) -> Bool {
+        nodes.withUnsafeBufferPointer { Self.hasMuchSmallerNeighbor(i, j, k, size: size, in: $0, extent: extent) }
+    }
+
+    /// The same, over the nodes' storage
+    static func hasMuchSmallerNeighbor(_ i: Int, _ j: Int, _ k: Int, size: Int, in nodes: UnsafeBufferPointer<Node>, extent: Int) -> Bool {
         // Plain counted loops: range iteration is generic, and slow in unoptimized builds
-        nodes.withUnsafeBufferPointer { nodes in
+        do {
             var neighbor = 0
             while neighbor < 27 {
                 let dx = neighbor % 3 - 1, dy = neighbor / 3 % 3 - 1, dz = neighbor / 9 - 1
                 neighbor += 1
                 if dx == 0 && dy == 0 && dz == 0 { continue }
-                guard let index = Self.node(at: i + dx * size, j + dy * size, k + dz * size, size: size, in: nodes, extent: extent) else { continue }
+                guard let index = node(at: i + dx * size, j + dy * size, k + dz * size, size: size, in: nodes, extent: extent) else { continue }
                 let other = nodes[index]
                 guard other.size == size, other.child >= 0 else { continue }
                 // The neighbor's children that face this cube, split once more, are too small
