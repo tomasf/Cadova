@@ -90,9 +90,13 @@ internal final class MeshDistanceField: @unchecked Sendable {
         var vertexSums = [Vector3D](repeating: .zero, count: vertices.count)
         var edgeSums: [(Vector3D, Vector3D, Vector3D)] = []
         edgeSums.reserveCapacity(faces.count)
-        // Defective faces: slivers, faces along folded edges (neighbors facing opposite ways) and along edges not
-        // shared by exactly two faces. Vertices touching one have contaminated pseudonormals.
+        // Defective faces: slivers, faces along edges not shared by exactly two faces, and faces along folded edges
+        // (neighbors facing opposite ways). Their normals can't be trusted, nor the pseudonormals of vertices
+        // touching them. For the sign, faces along any edge turning more than a right angle count too: such edges
+        // are rare in designed shapes, but they're where a mesh can fold over itself (as meshes from earlier
+        // offsets occasionally do), and near a fold, pseudonormals point the wrong way.
         var defective = [Bool](repeating: false, count: faces.count)
+        var unsigned = [Bool](repeating: false, count: faces.count)
         var index = 0
         while index < faces.count {
             let face = faces[index]
@@ -103,7 +107,7 @@ internal final class MeshDistanceField: @unchecked Sendable {
             vertexSums[face.2] = vertexSums[face.2] + normal * Self.angle(a - c, b - c)
             let longest = max((b - a).magnitude, max((c - b).magnitude, (a - c).magnitude))
             let area = ((b - a) × (c - a)).magnitude / 2
-            if longest <= 0 || 2 * area / longest < minimumHeight { defective[index] = true }
+            if longest <= 0 || 2 * area / longest < minimumHeight { defective[index] = true; unsigned[index] = true }
             var sums = (normal, normal, normal)
             var k = 0
             while k < 3 {
@@ -114,6 +118,7 @@ internal final class MeshDistanceField: @unchecked Sendable {
                     other = neighbor
                 }
                 if sharing != 2 || normal ⋅ normals[other] < -0.95 { defective[index] = true }
+                if sharing != 2 || normal ⋅ normals[other] < 0 { unsigned[index] = true }
                 if k == 0 { sums.0 = sum } else if k == 1 { sums.1 = sum } else { sums.2 = sum }
                 k += 1
             }
@@ -128,14 +133,18 @@ internal final class MeshDistanceField: @unchecked Sendable {
             badVertex[face.0] = true; badVertex[face.1] = true; badVertex[face.2] = true
         }
         suspect = Self.buffer(faces.map { badVertex[$0.0] || badVertex[$0.1] || badVertex[$0.2] })
-        reliableVertices = Self.buffer(badVertex.map { !$0 })
+        var unsignedVertex = [Bool](repeating: false, count: vertices.count)
+        for (index, face) in faces.enumerated() where unsigned[index] {
+            unsignedVertex[face.0] = true; unsignedVertex[face.1] = true; unsignedVertex[face.2] = true
+        }
+        reliableVertices = Self.buffer(unsignedVertex.map { !$0 })
         reliableFeatures = Self.buffer(faces.indices.map { index -> UInt8 in
-            guard !defective[index] else { return 0 }
+            guard !unsigned[index] else { return 0 }
             var bits: UInt8 = 1
             var k = 0
             while k < 3 {
                 var sound = true
-                topology.forEachSharing(face: index, edge: k) { if defective[$0] { sound = false } }
+                topology.forEachSharing(face: index, edge: k) { if unsigned[$0] { sound = false } }
                 if sound { bits |= 2 << UInt8(k) }
                 k += 1
             }
@@ -167,7 +176,7 @@ internal final class MeshDistanceField: @unchecked Sendable {
     var faceCount: Int { faces.count }
     func face(_ index: Int) -> Face { faces[index] }
     func faceNormal(_ index: Int) -> Vector3D { faceNormals[index] }
-    /// Whether a face is a sliver, lies along a folded edge, or touches one: its normal can't be trusted
+    /// Whether a face is a sliver, lies along a possibly folded edge, or touches one: its normal can't be trusted
     func isSuspect(_ index: Int) -> Bool { suspect[index] }
 
     static func edgeKey(_ a: Int, _ b: Int) -> UInt64 {

@@ -209,4 +209,23 @@ struct Offset3DTests {
         let expected = faces + 12 * 16 * edgeArea + 8 * corner
         #expect(volume.equals(expected, within: 0.01))
     }
+
+    @Test func `offsetting the result of earlier offsets stays manifold`() async throws {
+        // Offsets of offsets can come with folded triangles, which made pseudonormals point the wrong way and left
+        // holes in the next offset
+        let shape = Box(x: 20, y: 30, z: 15)
+            .aligned(at: .centerXY)
+            .adding {
+                Text("Te")
+                    .withTextAlignment(horizontal: .center, vertical: .center)
+                    .extruded(height: 2)
+                    .translated(z: 15)
+                    .rotated(z: 90°)
+                    .offset(amount: 0.7, style: .miter)
+            }
+            .rounded(radius: 0.5)
+            .withSegmentation(.adaptive(minAngle: 2°, minSize: 0.25))
+        let volume = try await shape.measurements.volume
+        #expect(volume > 9000)
+    }
 }
