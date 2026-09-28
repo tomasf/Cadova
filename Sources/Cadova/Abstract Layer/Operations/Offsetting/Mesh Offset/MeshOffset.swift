@@ -342,17 +342,20 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
         var hints: [Int] = []
         var restored: [Int] = []
         var seen = Set<Int>()
-        for index in indices where octree.leaves[index].size == unitsPerCell {
+        for index in indices where octree.leaves[index].size <= unitsPerCell {
+            // Around the base cell the leaf is in, however far it's been split already
             let leaf = octree.leaves[index]
+            let size = unitsPerCell
+            let (bi, bj, bk) = (leaf.i / size * size, leaf.j / size * size, leaf.k / size * size)
             var neighbor = 0
             while neighbor < 27 {
                 let dx = neighbor % 3 - 1, dy = neighbor / 3 % 3 - 1, dz = neighbor / 9 - 1
                 neighbor += 1
                 guard dx != 0 || dy != 0 || dz != 0,
-                      let found = octree.node(at: leaf.i + dx * leaf.size, leaf.j + dy * leaf.size, leaf.k + dz * leaf.size, size: leaf.size)
+                      let found = octree.node(at: bi + dx * size, bj + dy * size, bk + dz * size, size: size)
                 else { continue }
                 let node = octree.nodes[found]
-                guard node.size == leaf.size, node.leaf < 0, node.child < 0, seen.insert(found).inserted else { continue }
+                guard node.size == size, node.leaf < 0, node.child < 0, seen.insert(found).inserted else { continue }
                 restored.append(found)
                 tested.append(node)
                 hints.append(leaf.hint)
@@ -929,6 +932,9 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
         var vertices: [Vector3D] = []
         var faces: [Face] = []
         var leafOfVertex: [Int] = []
+        /// Empty regions next to crossing edges, whose quads couldn't be made: grid points in them, the size of the
+        /// edge, and a face near them
+        var missing: [(i: Int, j: Int, k: Int, size: Int, hint: Int)] = []
     }
 
     private func contour(reusingFitEdges: Bool = false) -> Contour {
@@ -1018,7 +1024,19 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                 return vertexOfLeaf[leaf]
             }
             let v0 = vertex(around.0), v1 = vertex(around.1), v2 = vertex(around.2), v3 = vertex(around.3)
-            guard v0 >= 0, v1 >= 0, v2 >= 0, v3 >= 0 else { continue }
+            guard v0 >= 0, v1 >= 0, v2 >= 0, v3 >= 0 else {
+                // Quadrants in the order (+u, +v), (−u, +v), (−u, −v), (+u, −v), as the edge lists its leaves
+                let u = (edge.axis + 1) % 3, v = (edge.axis + 2) % 3
+                let quadrants = [edge.around.0, edge.around.1, edge.around.2, edge.around.3]
+                for (q, leaf) in quadrants.enumerated() where leaf < 0 {
+                    // The quadrant's cell's lowest corner: the edge's start, stepped back a cell on the negative sides
+                    var point = [edge.i, edge.j, edge.k]
+                    if q == 1 || q == 2 { point[u] -= edge.length }
+                    if q == 2 || q == 3 { point[v] -= edge.length }
+                    result.missing.append((point[0], point[1], point[2], edge.length, edge.hint))
+                }
+                continue
+            }
             // Consecutive leaves can share a vertex (a larger leaf spans two quadrants): drop the repeats
             var ring = (v0, -1, -1, -1), count = 1
             var k = 1
@@ -1071,10 +1089,48 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
         return Set(found)
     }
 
+    /// Makes leaves where contouring found empty regions next to crossing edges. The tree leaves a region empty
+    /// when the offset function at its center says the surface can't reach it, which holds unless the function is
+    /// wrong there, as the sign of a mesh that intersects itself can be. Every crossing then has its cells, so the
+    /// surface closes, whatever the function says.
+    private func fillMissing(_ missing: [(i: Int, j: Int, k: Int, size: Int, hint: Int)]) -> Bool {
+        var filled = false
+        for cell in missing {
+            guard var index = octree.node(at: cell.i, cell.j, cell.k, size: cell.size) else { continue }
+            var node = octree.nodes[index]
+            guard node.leaf < 0, node.child < 0, node.size >= cell.size else { continue }
+            while node.size > cell.size {
+                let first = octree.subdivide(node: index)
+                let half = node.size / 2
+                index = first + ((cell.i >= node.i + half ? 1 : 0) | (cell.j >= node.j + half ? 2 : 0) | (cell.k >= node.k + half ? 4 : 0))
+                // The other children split their larger neighbors' edges, which those then leave to them: any the
+                // surface may reach must be leaves too, or crossings on those edges go unreported
+                var c = 0
+                while c < 8 {
+                    if first + c != index {
+                        let (contains, face) = nodeMayContainSurface(octree.nodes[first + c], hint: cell.hint >= 0 ? cell.hint : nil)
+                        if contains { octree.makeLeaf(node: first + c, hint: face) }
+                    }
+                    c += 1
+                }
+                node = octree.nodes[index]
+            }
+            octree.makeLeaf(node: index, hint: cell.hint)
+            filled = true
+        }
+        return filled
+    }
+
     private func contourWithRepair() -> Contour {
         var result = contour()
         var previous = Int.max
         for _ in 0..<12 {
+            if !result.missing.isEmpty && fillMissing(result.missing) {
+                balance()
+                computeFits()
+                result = contour(reusingFitEdges: true)
+                continue
+            }
             let fans = VertexFans(faces: result.faces, vertexCount: result.vertices.count)
             var culprits = Set<Int>()
             for (a, b) in fans.irregularEdges(in: result.faces) where fans.faces(around: a, with: b, in: result.faces).count > 2 {

@@ -45,8 +45,8 @@ internal final class MeshDistanceField: @unchecked Sendable {
     private let edgeNormals: UnsafeBufferPointer<(Vector3D, Vector3D, Vector3D)>   // per face, edge k runs from corner k to k + 1
     private let suspect: UnsafeBufferPointer<Bool>
     /// Per face, whether the pseudonormals of its interior (bit 0) and of its edges (bits 1 to 3) can be trusted
-    private let reliableFeatures: UnsafeBufferPointer<UInt8>
-    private let reliableVertices: UnsafeBufferPointer<Bool>
+    private let reliableFeatures: UnsafeMutableBufferPointer<UInt8>
+    private let reliableVertices: UnsafeMutableBufferPointer<Bool>
     private let nodes: UnsafeBufferPointer<Node>
     private let order: UnsafeBufferPointer<Int>
     /// Vertex coordinates and node boxes as plain doubles (x, y, z per vertex; lower then upper per node): the hot
@@ -57,6 +57,12 @@ internal final class MeshDistanceField: @unchecked Sendable {
     /// coordinates at the mesh's scale, since meshes often come from single-precision storage
     private let planeTolerance: Double
     private let boxes: UnsafeBufferPointer<Double>
+
+    private static func mutableBuffer<T>(_ array: [T]) -> UnsafeMutableBufferPointer<T> {
+        let buffer = UnsafeMutableBufferPointer<T>.allocate(capacity: max(array.count, 1))
+        _ = buffer.initialize(from: array)
+        return buffer
+    }
 
     private static func buffer<T>(_ array: [T]) -> UnsafeBufferPointer<T> {
         let buffer = UnsafeMutableBufferPointer<T>.allocate(capacity: array.count)
@@ -142,8 +148,8 @@ internal final class MeshDistanceField: @unchecked Sendable {
         for (index, face) in faces.enumerated() where unsigned[index] {
             unsignedVertex[face.0] = true; unsignedVertex[face.1] = true; unsignedVertex[face.2] = true
         }
-        reliableVertices = Self.buffer(unsignedVertex.map { !$0 })
-        reliableFeatures = Self.buffer(faces.indices.map { index -> UInt8 in
+        reliableVertices = Self.mutableBuffer(unsignedVertex.map { !$0 })
+        reliableFeatures = Self.mutableBuffer(faces.indices.map { index -> UInt8 in
             guard !unsigned[index] else { return 0 }
             var bits: UInt8 = 1
             var k = 0
@@ -163,12 +169,45 @@ internal final class MeshDistanceField: @unchecked Sendable {
         nodes = Self.buffer(hierarchy.nodes)
         order = Self.buffer(hierarchy.order)
         hierarchy.deallocate()
+
         var flatBoxes = [Double](repeating: 0, count: 6 * hierarchy.nodes.count)
         for (n, node) in hierarchy.nodes.enumerated() {
             flatBoxes[6 * n] = node.lower.x; flatBoxes[6 * n + 1] = node.lower.y; flatBoxes[6 * n + 2] = node.lower.z
             flatBoxes[6 * n + 3] = node.upper.x; flatBoxes[6 * n + 4] = node.upper.y; flatBoxes[6 * n + 5] = node.upper.z
         }
         boxes = Self.buffer(flatBoxes)
+
+        // Faces inside the solid, as meshes that intersect themselves have: material in front of them, or none
+        // behind. Their pseudonormals say nothing about the solid, so near them the winding number decides.
+        let diagonal = (bounds.1 - bounds.0).magnitude
+        let inner = ConcurrentLoop.map(faces.count) { index -> Bool in
+            let face = faces[index], normal = normals[index]
+            guard normal != .zero else { return false }
+            let a = vertices[face.0], b = vertices[face.1], c = vertices[face.2]
+            let longest = max((b - a).magnitude, max((c - b).magnitude, (a - c).magnitude))
+            let step = max(1e-3 * longest, 1e-7 * diagonal)
+            let center = (a + b + c) / 3
+            return self.windingNumber(at: center + normal * step) > 0.5 || self.windingNumber(at: center - normal * step) < 0.5
+                || self.intersectsOtherFaces(index)
+        }
+        let features = reliableFeatures
+        for (index, face) in faces.enumerated() where inner[index] {
+            reliableFeatures[index] = 0
+            reliableVertices[face.0] = false; reliableVertices[face.1] = false; reliableVertices[face.2] = false
+            var k = 0
+            while k < 3 {
+                topology.forEachSharing(face: index, edge: k) { neighbor in
+                    // The neighbor's edge shared with this face
+                    let other = faces[neighbor]
+                    let corners = [face.0, face.1, face.2]
+                    for (m, (u, w)) in [(other.0, other.1), (other.1, other.2), (other.2, other.0)].enumerated()
+                        where corners.contains(u) && corners.contains(w) {
+                        features[neighbor] &= ~(2 << UInt8(m))
+                    }
+                }
+                k += 1
+            }
+        }
     }
 
     /// The angle between two vectors
@@ -560,6 +599,83 @@ internal final class MeshDistanceField: @unchecked Sendable {
             }
         }
         return closest(best, onFace: bestFace)
+    }
+
+    /// Whether a face crosses another face it doesn't share a corner with, as where a mesh intersects itself: there,
+    /// a face lies partly inside the solid, so its pseudonormals can't be trusted anywhere along it
+    private func intersectsOtherFaces(_ index: Int) -> Bool {
+        let face = faces[index]
+        let a = vertexBuffer[face.0], b = vertexBuffer[face.1], c = vertexBuffer[face.2]
+        let lower = Vector3D.min(a, .min(b, c)), upper = Vector3D.max(a, .max(b, c))
+        return withUnsafeTemporaryAllocation(of: Int.self, capacity: 128) { stack in
+            var top = 1
+            stack[0] = 0
+            while top > 0 {
+                top -= 1
+                let nodeIndex = stack[top]
+                let box = boxes.baseAddress! + 6 * nodeIndex
+                if box[0] > upper.x || box[3] < lower.x || box[1] > upper.y || box[4] < lower.y || box[2] > upper.z || box[5] < lower.z { continue }
+                let node = nodes[nodeIndex]
+                if node.left < 0 {
+                    var i = node.first
+                    while i < node.first + node.count {
+                        let other = order[i]
+                        i += 1
+                        guard other != index else { continue }
+                        let o = faces[other]
+                        // Faces sharing a corner meet there by construction
+                        if o.0 == face.0 || o.0 == face.1 || o.0 == face.2 || o.1 == face.0 || o.1 == face.1 || o.1 == face.2
+                            || o.2 == face.0 || o.2 == face.1 || o.2 == face.2 { continue }
+                        let p = vertexBuffer[o.0], q = vertexBuffer[o.1], r = vertexBuffer[o.2]
+                        if Self.coplanarTrianglesOverlap(a, b, c, normal: faceNormals[index], p, q, r, tolerance: planeTolerance)
+                            || Self.segmentCrossesTriangle(a, b, p, q, r) || Self.segmentCrossesTriangle(b, c, p, q, r)
+                            || Self.segmentCrossesTriangle(c, a, p, q, r) || Self.segmentCrossesTriangle(p, q, a, b, c)
+                            || Self.segmentCrossesTriangle(q, r, a, b, c) || Self.segmentCrossesTriangle(r, p, a, b, c) {
+                            return true
+                        }
+                    }
+                    continue
+                }
+                stack[top] = node.left; stack[top + 1] = node.right; top += 2
+            }
+            return false
+        }
+    }
+
+    /// Whether two triangles lie in one plane and overlap there, as where two sheets touch face to face: between
+    /// them is no solid, whichever way their normals point
+    private static func coplanarTrianglesOverlap(_ a: Vector3D, _ b: Vector3D, _ c: Vector3D, normal: Vector3D, _ p: Vector3D, _ q: Vector3D, _ r: Vector3D, tolerance: Double) -> Bool {
+        guard normal != .zero else { return false }
+        let offset = normal ⋅ a
+        guard abs(normal ⋅ p - offset) <= tolerance, abs(normal ⋅ q - offset) <= tolerance, abs(normal ⋅ r - offset) <= tolerance else { return false }
+        // In the plane of the axes the normal is least aligned with
+        let n = Vector3D(abs(normal.x), abs(normal.y), abs(normal.z))
+        let drop = n.x >= n.y && n.x >= n.z ? 0 : (n.y >= n.z ? 1 : 2)
+        func flat(_ v: Vector3D) -> (Double, Double) { drop == 0 ? (v.y, v.z) : drop == 1 ? (v.z, v.x) : (v.x, v.y) }
+        let first = [flat(a), flat(b), flat(c)], second = [flat(p), flat(q), flat(r)]
+        func cross(_ o: (Double, Double), _ u: (Double, Double), _ v: (Double, Double)) -> Double {
+            (u.0 - o.0) * (v.1 - o.1) - (u.1 - o.1) * (v.0 - o.0)
+        }
+        // Separated if an edge of either has the whole other triangle strictly on its outer side
+        for (triangle, other) in [(first, second), (second, first)] {
+            let orientation = cross(triangle[0], triangle[1], triangle[2])
+            guard orientation != 0 else { return false }
+            for k in 0..<3 {
+                let u = triangle[k], v = triangle[(k + 1) % 3]
+                if other.allSatisfy({ cross(u, v, $0) * orientation <= 0 }) { return false }
+            }
+        }
+        return true
+    }
+
+    /// Whether the segment from s to e passes through the triangle (a, b, c), strictly: two non-coplanar triangles
+    /// intersect exactly when an edge of one passes through the other
+    private static func segmentCrossesTriangle(_ s: Vector3D, _ e: Vector3D, _ a: Vector3D, _ b: Vector3D, _ c: Vector3D) -> Bool {
+        func volume(_ p: Vector3D, _ q: Vector3D, _ r: Vector3D, _ t: Vector3D) -> Double { (q - p) ⋅ ((r - p) × (t - p)) }
+        let side1 = volume(a, b, c, s), side2 = volume(a, b, c, e)
+        guard (side1 > 0 && side2 < 0) || (side1 < 0 && side2 > 0) else { return false }
+        let v1 = volume(s, e, a, b), v2 = volume(s, e, b, c), v3 = volume(s, e, c, a)
+        return (v1 > 0 && v2 > 0 && v3 > 0) || (v1 < 0 && v2 < 0 && v3 < 0)
     }
 
     /// Generalized winding number: about 1 inside, 0 outside
