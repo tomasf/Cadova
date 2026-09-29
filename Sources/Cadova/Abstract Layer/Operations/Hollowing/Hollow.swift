@@ -12,6 +12,8 @@ public extension Geometry3D {
     /// shell feature; `.square` and `.bevel` cut it flat in between. Everywhere else, the cavity's edges are sharp
     /// whatever the style. The sharp styles take somewhat longer.
     ///
+    /// For 2D shapes, `stroked(width:alignment:style:)` with `.inside` alignment does the same.
+    ///
     /// - Parameters:
     ///   - wallThickness: The thickness of the walls.
     ///   - style: How the cavity is shaped across from inside corners. Defaults to `.round`.
