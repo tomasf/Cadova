@@ -57,6 +57,14 @@ internal final class MeshDistanceField: @unchecked Sendable {
     /// coordinates at the mesh's scale, since meshes often come from single-precision storage
     private let planeTolerance: Double
     private let boxes: UnsafeBufferPointer<Double>
+    /// For the closest point search, the tree in a compact form. Per node, its children, or for a leaf, minus one
+    /// minus the position of its first face in `order` and its face count.
+    private let links: UnsafeBufferPointer<Int32>
+    /// Per node, its children's boxes (lower then upper, first child then second) in single precision, rounded
+    /// outward, so the search rules a child out without loading it
+    private let childBoxes: UnsafeBufferPointer<Float>
+    /// Face corner coordinates in the tree's order, nine per face, so a leaf's faces are read in one sweep
+    private let orderedCorners: UnsafeBufferPointer<Double>
 
     private static func mutableBuffer<T>(_ array: [T]) -> UnsafeMutableBufferPointer<T> {
         let buffer = UnsafeMutableBufferPointer<T>.allocate(capacity: max(array.count, 1))
@@ -74,6 +82,7 @@ internal final class MeshDistanceField: @unchecked Sendable {
         vertexBuffer.deallocate(); faces.deallocate(); faceNormals.deallocate(); vertexNormals.deallocate()
         edgeNormals.deallocate(); suspect.deallocate(); nodes.deallocate(); order.deallocate()
         reliableFeatures.deallocate(); reliableVertices.deallocate(); coordinates.deallocate(); boxes.deallocate()
+        links.deallocate(); childBoxes.deallocate(); orderedCorners.deallocate()
     }
 
     init(vertices: [Vector3D], faces: [Face]) {
@@ -97,74 +106,108 @@ internal final class MeshDistanceField: @unchecked Sendable {
         let largest = max(abs(bounds.0.x), abs(bounds.0.y), abs(bounds.0.z), abs(bounds.1.x), abs(bounds.1.y), abs(bounds.1.z))
         planeTolerance = max(1e-6, 4e-7 * largest)
 
-        // Angle-weighted vertex normals, and edge normals summed over the faces sharing each edge
-        var vertexSums = [Vector3D](repeating: .zero, count: vertices.count)
-        var edgeSums: [(Vector3D, Vector3D, Vector3D)] = []
-        edgeSums.reserveCapacity(faces.count)
         // Defective faces: slivers, faces along edges not shared by exactly two faces, and faces along folded edges
         // (neighbors facing opposite ways). Their normals can't be trusted, nor the pseudonormals of vertices
         // touching them. For the sign, faces along any edge turning more than a right angle count too: such edges
         // are rare in designed shapes, but they're where a mesh can fold over itself (as meshes from earlier
         // offsets occasionally do), and near a fold, pseudonormals point the wrong way.
-        var defective = [Bool](repeating: false, count: faces.count)
-        var unsigned = [Bool](repeating: false, count: faces.count)
-        var index = 0
-        while index < faces.count {
-            let face = faces[index]
-            let a = vertices[face.0], b = vertices[face.1], c = vertices[face.2]
-            let normal = normals[index]
-            vertexSums[face.0] = vertexSums[face.0] + normal * Self.angle(b - a, c - a)
-            vertexSums[face.1] = vertexSums[face.1] + normal * Self.angle(c - b, a - b)
-            vertexSums[face.2] = vertexSums[face.2] + normal * Self.angle(a - c, b - c)
-            let longest = max((b - a).magnitude, max((c - b).magnitude, (a - c).magnitude))
-            let area = ((b - a) × (c - a)).magnitude / 2
-            if longest <= 0 || 2 * area / longest < minimumHeight { defective[index] = true; unsigned[index] = true }
-            var sums = (normal, normal, normal)
-            var k = 0
-            while k < 3 {
-                var sum = normal, sharing = 1, other = -1
-                topology.forEachSharing(face: index, edge: k) { neighbor in
-                    sum = sum + normals[neighbor]
-                    sharing += 1
-                    other = neighbor
+        // Gathered per face and per vertex from the topology, in parallel, over raw buffers: in unoptimized builds,
+        // every array access would retain and release the array's storage, all cores contending for its count.
+        struct FaceInfo {
+            let sums: (Vector3D, Vector3D, Vector3D)
+            let defective: Bool
+            let unsigned: Bool
+        }
+        struct VertexInfo {
+            let sum: Vector3D
+            let bad: Bool
+            let unsigned: Bool
+        }
+        let (info, vertexInfo) = faces.withUnsafeBufferPointer { faceBuffer in
+            vertices.withUnsafeBufferPointer { vertexBuffer in
+            normals.withUnsafeBufferPointer { normalBuffer in
+                nonisolated(unsafe) let faces = faceBuffer, vertices = vertexBuffer, normals = normalBuffer
+                let info = ConcurrentLoop.map(faces.count) { index -> FaceInfo in
+                    let face = faces[index]
+                    let a = vertices[face.0], b = vertices[face.1], c = vertices[face.2]
+                    let normal = normals[index]
+                    let longest = max((b - a).magnitude, max((c - b).magnitude, (a - c).magnitude))
+                    let area = ((b - a) × (c - a)).magnitude / 2
+                    var defective = longest <= 0 || 2 * area / longest < minimumHeight, unsigned = defective
+                    // Edge normals summed over the faces sharing each edge
+                    var sums = (normal, normal, normal)
+                    var k = 0
+                    while k < 3 {
+                        var sum = normal, sharing = 1, other = -1
+                        topology.forEachSharing(face: index, edge: k) { neighbor in
+                            sum = sum + normals[neighbor]
+                            sharing += 1
+                            other = neighbor
+                        }
+                        if sharing != 2 || normal ⋅ normals[other] < -0.95 { defective = true }
+                        if sharing != 2 || normal ⋅ normals[other] < 0 { unsigned = true }
+                        if k == 0 { sums.0 = sum } else if k == 1 { sums.1 = sum } else { sums.2 = sum }
+                        k += 1
+                    }
+                    return FaceInfo(sums: sums, defective: defective, unsigned: unsigned)
                 }
-                if sharing != 2 || normal ⋅ normals[other] < -0.95 { defective[index] = true }
-                if sharing != 2 || normal ⋅ normals[other] < 0 { unsigned[index] = true }
-                if k == 0 { sums.0 = sum } else if k == 1 { sums.1 = sum } else { sums.2 = sum }
-                k += 1
+                // Angle-weighted vertex normals, and whether any face around each vertex is defective
+                let vertexInfo = info.withUnsafeBufferPointer { infoBuffer in
+                    nonisolated(unsafe) let info = infoBuffer
+                    return ConcurrentLoop.map(vertices.count) { v -> VertexInfo in
+                        var sum = Vector3D.zero, bad = false, unsigned = false
+                        var n = topology.offsets[v]
+                        let end = topology.offsets[v + 1]
+                        while n < end {
+                            let index = topology.members[n]
+                            n += 1
+                            let face = faces[index]
+                            let a = vertices[face.0], b = vertices[face.1], c = vertices[face.2]
+                            let angle = face.0 == v ? Self.angle(b - a, c - a) : face.1 == v ? Self.angle(c - b, a - b) : Self.angle(a - c, b - c)
+                            sum = sum + normals[index] * angle
+                            if info[index].defective { bad = true }
+                            if info[index].unsigned { unsigned = true }
+                        }
+                        return VertexInfo(sum: sum, bad: bad, unsigned: unsigned)
+                    }
+                }
+                return (info, vertexInfo)
             }
-            edgeSums.append(sums)
-            index += 1
-        }
-        vertexNormals = Self.buffer(vertexSums)
-        edgeNormals = Self.buffer(edgeSums)
-
-        var badVertex = [Bool](repeating: false, count: vertices.count)
-        for (index, face) in faces.enumerated() where defective[index] {
-            badVertex[face.0] = true; badVertex[face.1] = true; badVertex[face.2] = true
-        }
-        suspect = Self.buffer(faces.map { badVertex[$0.0] || badVertex[$0.1] || badVertex[$0.2] })
-        var unsignedVertex = [Bool](repeating: false, count: vertices.count)
-        for (index, face) in faces.enumerated() where unsigned[index] {
-            unsignedVertex[face.0] = true; unsignedVertex[face.1] = true; unsignedVertex[face.2] = true
-        }
-        reliableVertices = Self.mutableBuffer(unsignedVertex.map { !$0 })
-        reliableFeatures = Self.mutableBuffer(faces.indices.map { index -> UInt8 in
-            guard !unsigned[index] else { return 0 }
-            var bits: UInt8 = 1
-            var k = 0
-            while k < 3 {
-                var sound = true
-                topology.forEachSharing(face: index, edge: k) { if unsigned[$0] { sound = false } }
-                if sound { bits |= 2 << UInt8(k) }
-                k += 1
             }
-            return bits
-        })
+        }
+        vertexNormals = Self.buffer(vertexInfo.map(\.sum))
+        edgeNormals = Self.buffer(info.map(\.sums))
+        let (suspectFlags, featureBits) = faces.withUnsafeBufferPointer { faceBuffer in
+            info.withUnsafeBufferPointer { infoBuffer in
+            vertexInfo.withUnsafeBufferPointer { vertexInfoBuffer in
+                nonisolated(unsafe) let faces = faceBuffer, info = infoBuffer, vertexInfo = vertexInfoBuffer
+                let suspect = ConcurrentLoop.map(faces.count) { index -> Bool in
+                    let face = faces[index]
+                    return vertexInfo[face.0].bad || vertexInfo[face.1].bad || vertexInfo[face.2].bad
+                }
+                let bits = ConcurrentLoop.map(faces.count) { index -> UInt8 in
+                    guard !info[index].unsigned else { return 0 }
+                    var bits: UInt8 = 1
+                    var k = 0
+                    while k < 3 {
+                        var sound = true
+                        topology.forEachSharing(face: index, edge: k) { if info[$0].unsigned { sound = false } }
+                        if sound { bits |= 2 << UInt8(k) }
+                        k += 1
+                    }
+                    return bits
+                }
+                return (suspect, bits)
+            }
+            }
+        }
+        suspect = Self.buffer(suspectFlags)
+        reliableVertices = Self.mutableBuffer(vertexInfo.map { !$0.unsigned })
+        reliableFeatures = Self.mutableBuffer(featureBits)
 
         var hierarchy = Hierarchy(coordinates: flat, faces: faces)
         if !faces.isEmpty {
-            _ = hierarchy.build(first: 0, count: faces.count)
+            hierarchy.build()
         }
         nodes = Self.buffer(hierarchy.nodes)
         order = Self.buffer(hierarchy.order)
@@ -177,10 +220,48 @@ internal final class MeshDistanceField: @unchecked Sendable {
         }
         boxes = Self.buffer(flatBoxes)
 
+        let nodeCount = hierarchy.nodes.count
+        var linkArray = [Int32](repeating: 0, count: 2 * nodeCount)
+        var childBoxArray = [Float](repeating: 0, count: 12 * nodeCount)
+        func lowered(_ value: Double) -> Float { let f = Float(value); return Double(f) > value ? f.nextDown : f }
+        func raised(_ value: Double) -> Float { let f = Float(value); return Double(f) < value ? f.nextUp : f }
+        var n = 0
+        while n < nodeCount {
+            let node = hierarchy.nodes[n]
+            if node.left < 0 {
+                linkArray[2 * n] = Int32(-1 - node.first); linkArray[2 * n + 1] = Int32(node.count)
+            } else {
+                linkArray[2 * n] = Int32(node.left); linkArray[2 * n + 1] = Int32(node.right)
+                var slot = 0
+                while slot < 2 {
+                    let child = hierarchy.nodes[slot == 0 ? node.left : node.right]
+                    let base = 12 * n + 6 * slot
+                    childBoxArray[base] = lowered(child.lower.x); childBoxArray[base + 1] = lowered(child.lower.y)
+                    childBoxArray[base + 2] = lowered(child.lower.z); childBoxArray[base + 3] = raised(child.upper.x)
+                    childBoxArray[base + 4] = raised(child.upper.y); childBoxArray[base + 5] = raised(child.upper.z)
+                    slot += 1
+                }
+            }
+            n += 1
+        }
+        links = Self.buffer(linkArray)
+        childBoxes = Self.buffer(childBoxArray)
+        var cornerArray = [Double](repeating: 0, count: 9 * faces.count)
+        n = 0
+        while n < faces.count {
+            let face = faces[order[n]]
+            let a = vertices[face.0], b = vertices[face.1], c = vertices[face.2]
+            cornerArray[9 * n] = a.x; cornerArray[9 * n + 1] = a.y; cornerArray[9 * n + 2] = a.z
+            cornerArray[9 * n + 3] = b.x; cornerArray[9 * n + 4] = b.y; cornerArray[9 * n + 5] = b.z
+            cornerArray[9 * n + 6] = c.x; cornerArray[9 * n + 7] = c.y; cornerArray[9 * n + 8] = c.z
+            n += 1
+        }
+        orderedCorners = Self.buffer(cornerArray)
+
         // Faces inside the solid, as meshes that intersect themselves have: material in front of them, or none
         // behind. Their pseudonormals say nothing about the solid, so near them the winding number decides.
         let diagonal = (bounds.1 - bounds.0).magnitude
-        let inner = ConcurrentLoop.map(faces.count) { index -> Bool in
+        let isInner: @Sendable (Int) -> Bool = { index in
             let face = faces[index], normal = normals[index]
             guard normal != .zero else { return false }
             let a = vertices[face.0], b = vertices[face.1], c = vertices[face.2]
@@ -188,7 +269,51 @@ internal final class MeshDistanceField: @unchecked Sendable {
             let step = max(1e-3 * longest, 1e-7 * diagonal)
             let center = (a + b + c) / 3
             return self.windingNumber(at: center + normal * step) > 0.5 || self.windingNumber(at: center - normal * step) < 0.5
-                || self.intersectsOtherFaces(index)
+        }
+        // A connected piece of the surface that crosses no other face lies wholly on one side of the rest, inside or
+        // out, so one face answers for all of it; only pieces that cross or overlap something need every face tested
+        let crossing = ConcurrentLoop.map(faces.count) { self.intersectsOtherFaces($0) }
+        var piece = [Int](repeating: 0, count: faces.count)
+        var index = 0
+        while index < faces.count { piece[index] = index; index += 1 }
+        func root(_ start: Int) -> Int {
+            var x = start
+            while piece[x] != x { piece[x] = piece[piece[x]]; x = piece[x] }
+            return x
+        }
+        index = 0
+        while index < faces.count {
+            var k = 0
+            while k < 3 {
+                topology.forEachSharing(face: index, edge: k) { other in
+                    let a = root(index), b = root(other)
+                    if a != b { piece[max(a, b)] = min(a, b) }
+                }
+                k += 1
+            }
+            index += 1
+        }
+        var pieceCrosses = [Bool](repeating: false, count: faces.count)
+        var representative = [Int](repeating: -1, count: faces.count)
+        var representativeArea = [Double](repeating: -1, count: faces.count)
+        index = 0
+        while index < faces.count {
+            let r = root(index)
+            piece[index] = r
+            if crossing[index] { pieceCrosses[r] = true }
+            let face = faces[index]
+            let area = ((vertices[face.1] - vertices[face.0]) × (vertices[face.2] - vertices[face.0])).magnitude
+            if area > representativeArea[r] { representativeArea[r] = area; representative[r] = index }
+            index += 1
+        }
+        let chosen = representative.indices.filter { representative[$0] >= 0 && !pieceCrosses[$0] }.map { representative[$0] }
+        let chosenInner = ConcurrentLoop.map(chosen.count) { isInner(chosen[$0]) }
+        var pieceInner = [Bool](repeating: false, count: faces.count)
+        for (n, face) in chosen.enumerated() { pieceInner[piece[face]] = chosenInner[n] }
+        let pieces = piece, crosses = pieceCrosses, piecesInner = pieceInner
+        let inner = ConcurrentLoop.map(faces.count) { index -> Bool in
+            let r = pieces[index]
+            return crossing[index] || (crosses[r] ? isInner(index) : piecesInner[r])
         }
         let features = reliableFeatures
         for (index, face) in faces.enumerated() where inner[index] {
@@ -208,6 +333,7 @@ internal final class MeshDistanceField: @unchecked Sendable {
                 k += 1
             }
         }
+        topology.deallocate()
     }
 
     /// The angle between two vectors
@@ -228,13 +354,20 @@ internal final class MeshDistanceField: @unchecked Sendable {
     }
 
     /// The faces around each vertex, in one flat array, to find the faces sharing each edge without a table of edges
-    private struct Topology {
-        let faces: [Face]
-        let offsets: [Int]
-        let members: [Int]
+    /// Raw buffers, not arrays: it's read from every core at once, and in unoptimized builds every array access
+    /// would retain and release the storage, all cores contending for its reference count. The one who creates it
+    /// deallocates it.
+    private struct Topology: @unchecked Sendable {
+        let faces: UnsafeBufferPointer<Face>
+        let offsets: UnsafeBufferPointer<Int>
+        let members: UnsafeBufferPointer<Int>
+
+        func deallocate() {
+            faces.deallocate(); offsets.deallocate(); members.deallocate()
+        }
 
         init(vertexCount: Int, faces: [Face]) {
-            self.faces = faces
+            self.faces = MeshDistanceField.buffer(faces)
             var counts = [Int](repeating: 0, count: vertexCount + 1)
             for face in faces { counts[face.0 + 1] += 1; counts[face.1 + 1] += 1; counts[face.2 + 1] += 1 }
             var v = 0
@@ -249,8 +382,8 @@ internal final class MeshDistanceField: @unchecked Sendable {
                 members[next[face.2]] = index; next[face.2] += 1
                 index += 1
             }
-            offsets = counts
-            self.members = members
+            offsets = MeshDistanceField.buffer(counts)
+            self.members = MeshDistanceField.buffer(members)
         }
 
         /// Calls body with every other face sharing edge k of a face (from corner k to k + 1)
@@ -277,10 +410,12 @@ internal final class MeshDistanceField: @unchecked Sendable {
         private let orderBuffer: UnsafeMutableBufferPointer<Int>
         /// Three times each face's centroid, per axis
         private let centroids: UnsafeMutableBufferPointer<Double>
+        private let faceCount: Int
         var nodes: [Node] = []
         var order: [Int] { Array(orderBuffer) }
 
         init(coordinates: [Double], faces: [Face]) {
+            faceCount = faces.count
             self.coordinates = .allocate(capacity: max(coordinates.count, 1))
             _ = self.coordinates.initialize(from: coordinates)
             self.faces = .allocate(capacity: max(faces.count, 1))
@@ -309,7 +444,87 @@ internal final class MeshDistanceField: @unchecked Sendable {
             Vector3D(coordinates[3 * v], coordinates[3 * v + 1], coordinates[3 * v + 2])
         }
 
-        mutating func build(first: Int, count: Int) -> Int {
+        /// Builds the tree over all faces, with its root first. The top levels split serially into subtrees of
+        /// disjoint face ranges, which build in parallel into their own node lists and are then joined.
+        mutating func build() {
+            guard faceCount > 0 else { return }
+            let serialLimit = max(1024, faceCount / 64)
+            // Nodes above the subtrees, in creation order (parents before children), with where their faces start
+            struct Pending { let index: Int; var left = -1, right = -1 }
+            var pending: [Pending] = []
+            var tasks: [(first: Int, count: Int, parent: Int, isLeft: Bool)] = []
+            func split(_ first: Int, _ count: Int, parent: Int, isLeft: Bool) {
+                if count <= serialLimit {
+                    tasks.append((first, count, parent, isLeft))
+                    return
+                }
+                let index = nodes.count
+                nodes.append(Node(lower: .zero, upper: .zero))
+                if parent >= 0 {
+                    if isLeft { pending[parent].left = index } else { pending[parent].right = index }
+                }
+                let slot = pending.count
+                pending.append(Pending(index: index))
+                let middle = splitPoint(first: first, count: count)
+                split(first, middle - first, parent: slot, isLeft: true)
+                split(middle, first + count - middle, parent: slot, isLeft: false)
+            }
+            split(0, faceCount, parent: -1, isLeft: true)
+            // The subtrees, each into its own list with its root first. Their face ranges are disjoint, so they
+            // reorder their own parts of the shared order concurrently.
+            nonisolated(unsafe) let builder = self
+            let ranges = tasks.map { (first: $0.first, count: $0.count) }
+            // Dispatched one per subtree: they're few and large, too few for a concurrent loop to split up
+            var built = [[Node]](repeating: [], count: ranges.count)
+            built.withUnsafeMutableBufferPointer { buffer in
+                nonisolated(unsafe) let built = buffer
+                DispatchQueue.concurrentPerform(iterations: ranges.count) { n in
+                    var local: [Node] = []
+                    local.reserveCapacity(2 * ranges[n].count / 3 + 1)
+                    _ = builder.build(first: ranges[n].first, count: ranges[n].count, into: &local)
+                    built[n] = local
+                }
+            }
+            for (n, task) in tasks.enumerated() {
+                let offset = nodes.count
+                for var node in built[n] {
+                    if node.left >= 0 { node.left += offset; node.right += offset }
+                    nodes.append(node)
+                }
+                if task.parent >= 0 {
+                    if task.isLeft { pending[task.parent].left = offset } else { pending[task.parent].right = offset }
+                }
+            }
+            // The nodes above them, children first
+            for entry in pending.reversed() {
+                let l = nodes[entry.left], r = nodes[entry.right]
+                let leftArea = l.weight, rightArea = r.weight
+                nodes[entry.index] = Self.finished(lower: .min(l.lower, r.lower), upper: .max(l.upper, r.upper), area: l.area + r.area,
+                                                   weightedCenter: l.center * leftArea + r.center * rightArea, totalArea: leftArea + rightArea)
+                nodes[entry.index].left = entry.left
+                nodes[entry.index].right = entry.right
+            }
+        }
+
+        /// Where to split the faces in first..<first + count: along the centroids' longest extent
+        private func splitPoint(first: Int, count: Int) -> Int {
+            var low = (Double.infinity, Double.infinity, Double.infinity), high = (-Double.infinity, -Double.infinity, -Double.infinity)
+            var i = first
+            while i < first + count {
+                let f = orderBuffer[i]
+                low = (min(low.0, centroids[3 * f]), min(low.1, centroids[3 * f + 1]), min(low.2, centroids[3 * f + 2]))
+                high = (max(high.0, centroids[3 * f]), max(high.1, centroids[3 * f + 1]), max(high.2, centroids[3 * f + 2]))
+                i += 1
+            }
+            let extent = (high.0 - low.0, high.1 - low.1, high.2 - low.2)
+            let axis = extent.0 >= extent.1 && extent.0 >= extent.2 ? 0 : (extent.1 >= extent.2 ? 1 : 2)
+            return splitBySurfaceArea(first: first, count: count, axis: axis,
+                                      low: axis == 0 ? low.0 : axis == 1 ? low.1 : low.2,
+                                      high: axis == 0 ? high.0 : axis == 1 ? high.1 : high.2)
+        }
+
+        /// Builds the subtree over first..<first + count into a node list, and returns its root's index there
+        private func build(first: Int, count: Int, into nodes: inout [Node]) -> Int {
             let index = nodes.count
             nodes.append(Node(lower: .zero, upper: .zero))
 
@@ -330,40 +545,26 @@ internal final class MeshDistanceField: @unchecked Sendable {
                     totalArea += weight
                     i += 1
                 }
-                finish(index, lower: lower, upper: upper, area: area, weightedCenter: weightedCenter, totalArea: totalArea)
+                nodes[index] = Self.finished(lower: lower, upper: upper, area: area, weightedCenter: weightedCenter, totalArea: totalArea)
                 nodes[index].first = first
                 nodes[index].count = count
                 return index
             }
 
-            // Split along the centroids' longest extent
-            var low = (Double.infinity, Double.infinity, Double.infinity), high = (-Double.infinity, -Double.infinity, -Double.infinity)
-            var i = first
-            while i < first + count {
-                let f = orderBuffer[i]
-                low = (min(low.0, centroids[3 * f]), min(low.1, centroids[3 * f + 1]), min(low.2, centroids[3 * f + 2]))
-                high = (max(high.0, centroids[3 * f]), max(high.1, centroids[3 * f + 1]), max(high.2, centroids[3 * f + 2]))
-                i += 1
-            }
-            let extent = (high.0 - low.0, high.1 - low.1, high.2 - low.2)
-            let axis = extent.0 >= extent.1 && extent.0 >= extent.2 ? 0 : (extent.1 >= extent.2 ? 1 : 2)
-            let middle = splitBySurfaceArea(first: first, count: count, axis: axis,
-                                            low: axis == 0 ? low.0 : axis == 1 ? low.1 : low.2,
-                                            high: axis == 0 ? high.0 : axis == 1 ? high.1 : high.2)
-
-            let left = build(first: first, count: middle - first)
-            let right = build(first: middle, count: first + count - middle)
+            let middle = splitPoint(first: first, count: count)
+            let left = build(first: first, count: middle - first, into: &nodes)
+            let right = build(first: middle, count: first + count - middle, into: &nodes)
             let l = nodes[left], r = nodes[right]
             // Dipoles combine as sums; their weighted centers are recovered from center times area
             let leftArea = l.weight, rightArea = r.weight
-            finish(index, lower: .min(l.lower, r.lower), upper: .max(l.upper, r.upper), area: l.area + r.area,
-                   weightedCenter: l.center * leftArea + r.center * rightArea, totalArea: leftArea + rightArea)
+            nodes[index] = Self.finished(lower: .min(l.lower, r.lower), upper: .max(l.upper, r.upper), area: l.area + r.area,
+                                         weightedCenter: l.center * leftArea + r.center * rightArea, totalArea: leftArea + rightArea)
             nodes[index].left = left
             nodes[index].right = right
             return index
         }
 
-        private mutating func finish(_ index: Int, lower: Vector3D, upper: Vector3D, area: Vector3D, weightedCenter: Vector3D, totalArea: Double) {
+        private static func finished(lower: Vector3D, upper: Vector3D, area: Vector3D, weightedCenter: Vector3D, totalArea: Double) -> Node {
             let center = totalArea > 0 ? weightedCenter / totalArea : (lower + upper) / 2
             var radius = 0.0
             var corner = 0
@@ -372,13 +573,13 @@ internal final class MeshDistanceField: @unchecked Sendable {
                 radius = max(radius, (point - center).magnitude)
                 corner += 1
             }
-            nodes[index] = Node(lower: lower, upper: upper, area: area, center: center, radius: radius, weight: totalArea)
+            return Node(lower: lower, upper: upper, area: area, center: center, radius: radius, weight: totalArea)
         }
 
         /// Splits the faces in first..<first + count where the children's boxes have the least surface area for the faces
         /// they hold (binned along the axis), so queries visit fewer nodes; or at the median where that's degenerate.
         /// Returns where the second child starts.
-        private mutating func splitBySurfaceArea(first: Int, count: Int, axis: Int, low: Double, high: Double) -> Int {
+        private func splitBySurfaceArea(first: Int, count: Int, axis: Int, low: Double, high: Double) -> Int {
             let binCount = 16
             guard high > low else {
                 select(first + count / 2, from: first, to: first + count, axis: axis)
@@ -386,10 +587,36 @@ internal final class MeshDistanceField: @unchecked Sendable {
             }
             let scale = Double(binCount) / (high - low)
             func bin(_ face: Int) -> Int { min(binCount - 1, Int((centroids[3 * face + axis] - low) * scale)) }
-            // Each bin's face count and box, as lower then upper corner
-            var counts = [Int](repeating: 0, count: binCount)
-            var boxes = [Double](repeating: 0, count: 6 * binCount)
+            // Each bin's face count and box, as lower then upper corner, and the cost of splitting after it, on the
+            // stack: this runs for every node, and arrays allocate
+            let best = withUnsafeTemporaryAllocation(of: Int.self, capacity: binCount) { counts in
+            withUnsafeTemporaryAllocation(of: Double.self, capacity: 7 * binCount) { storage in
+                let boxes = storage.baseAddress!, leftCost = storage.baseAddress! + 6 * binCount
+                return bestSplit(first: first, count: count, binCount: binCount, bin: bin, counts: counts.baseAddress!, boxes: boxes, leftCost: leftCost)
+            }
+            }
+            guard best >= 0 else {
+                select(first + count / 2, from: first, to: first + count, axis: axis)
+                return first + count / 2
+            }
+            // Partition: faces in bins up to the best one first
+            var lower = first, upper = first + count - 1
+            while lower <= upper {
+                if bin(orderBuffer[lower]) <= best { lower += 1 }
+                else {
+                    let swapped = orderBuffer[lower]; orderBuffer[lower] = orderBuffer[upper]; orderBuffer[upper] = swapped
+                    upper -= 1
+                }
+            }
+            return lower
+        }
+
+        /// The bin after which splitting costs least, or -1 where no split separates anything
+        private func bestSplit(first: Int, count: Int, binCount: Int, bin: (Int) -> Int, counts: UnsafeMutablePointer<Int>,
+                               boxes: UnsafeMutablePointer<Double>, leftCost: UnsafeMutablePointer<Double>) -> Int {
             var b = 0
+            while b < binCount { counts[b] = 0; leftCost[b] = 0; b += 1 }
+            b = 0
             while b < binCount {
                 boxes[6 * b] = .infinity; boxes[6 * b + 1] = .infinity; boxes[6 * b + 2] = .infinity
                 boxes[6 * b + 3] = -.infinity; boxes[6 * b + 4] = -.infinity; boxes[6 * b + 5] = -.infinity
@@ -424,7 +651,6 @@ internal final class MeshDistanceField: @unchecked Sendable {
             }
             let empty = (Double.infinity, Double.infinity, Double.infinity, -Double.infinity, -Double.infinity, -Double.infinity)
             // Cost of splitting after each bin: the left side's area and count from the left, the right's from the right
-            var leftCost = [Double](repeating: 0, count: binCount)
             var box = empty, running = 0
             b = 0
             while b < binCount - 1 {
@@ -444,25 +670,12 @@ internal final class MeshDistanceField: @unchecked Sendable {
                 }
                 b -= 1
             }
-            guard best >= 0 else {
-                select(first + count / 2, from: first, to: first + count, axis: axis)
-                return first + count / 2
-            }
-            // Partition: faces in bins up to the best one first
-            var lower = first, upper = first + count - 1
-            while lower <= upper {
-                if bin(orderBuffer[lower]) <= best { lower += 1 }
-                else {
-                    let swapped = orderBuffer[lower]; orderBuffer[lower] = orderBuffer[upper]; orderBuffer[upper] = swapped
-                    upper -= 1
-                }
-            }
-            return lower
+            return best
         }
 
         /// Reorders the faces in first..<end so the one at `nth` is the one sorting would put there, with no larger
         /// one before it and no smaller one after (Hoare's selection)
-        private mutating func select(_ nth: Int, from first: Int, to end: Int, axis: Int) {
+        private func select(_ nth: Int, from first: Int, to end: Int, axis: Int) {
             var low = first, high = end - 1
             while low < high {
                 let pivot = centroids[3 * orderBuffer[(low + high) / 2] + axis]
@@ -502,9 +715,20 @@ internal final class MeshDistanceField: @unchecked Sendable {
     private func facePoint(_ index: Int, _ px: Double, _ py: Double, _ pz: Double) -> FacePoint {
         let face = faces[index]
         let c = coordinates.baseAddress!
-        let ax = c[3 * face.0], ay = c[3 * face.0 + 1], az = c[3 * face.0 + 2]
-        let bx = c[3 * face.1], by = c[3 * face.1 + 1], bz = c[3 * face.1 + 2]
-        let cx = c[3 * face.2], cy = c[3 * face.2 + 1], cz = c[3 * face.2 + 2]
+        return Self.facePoint(
+            c[3 * face.0], c[3 * face.0 + 1], c[3 * face.0 + 2],
+            c[3 * face.1], c[3 * face.1 + 1], c[3 * face.1 + 2],
+            c[3 * face.2], c[3 * face.2 + 1], c[3 * face.2 + 2],
+            px, py, pz
+        )
+    }
+
+    /// The same for a face given by the coordinates of its corners
+    @inline(__always)
+    private static func facePoint(
+        _ ax: Double, _ ay: Double, _ az: Double, _ bx: Double, _ by: Double, _ bz: Double,
+        _ cx: Double, _ cy: Double, _ cz: Double, _ px: Double, _ py: Double, _ pz: Double
+    ) -> FacePoint {
         func result(_ x: Double, _ y: Double, _ z: Double, _ feature: Int) -> FacePoint {
             let dx = px - x, dy = py - y, dz = pz - z
             return FacePoint(distanceSquared: dx * dx + dy * dy + dz * dz, x: x, y: y, z: z, feature: feature)
@@ -571,38 +795,70 @@ internal final class MeshDistanceField: @unchecked Sendable {
     }
 
     /// The closest point on the mesh. A hint, a face likely to be near (such as the answer for a nearby point),
-    /// gives the search an early bound; the result is exact either way.
-    func closest(to p: Vector3D, hint: Int? = nil) -> Closest {
-        guard !nodes.isEmpty else {
-            return Closest(distanceSquared: .infinity, point: .zero, pseudonormal: .zero, face: -1, isReliable: false)
-        }
+    /// gives the search an early bound; the result is exact either way. With a limit, only points closer than it
+    /// are looked for, which ends searches from far away much sooner; where there are none, the face is -1.
+    func closest(to p: Vector3D, hint: Int? = nil, within limit: Double = .infinity) -> Closest {
+        let none = Closest(distanceSquared: .infinity, point: .zero, pseudonormal: .zero, face: -1, isReliable: false)
+        guard !nodes.isEmpty else { return none }
         let px = p.x, py = p.y, pz = p.z
-        var best = FacePoint(distanceSquared: .infinity, x: 0, y: 0, z: 0, feature: 0)
+        var best = FacePoint(distanceSquared: limit * limit, x: 0, y: 0, z: 0, feature: 0)
         var bestFace = -1
-        if let hint, hint >= 0 { best = facePoint(hint, px, py, pz); bestFace = hint }
-        withUnsafeTemporaryAllocation(of: Int.self, capacity: 128) { stack in
-            var top = 1
-            stack[0] = 0
-            while top > 0 {
-                top -= 1
-                let index = stack[top]
-                if boxDistanceSquared(index, px, py, pz) >= best.distanceSquared { continue }
-                let node = nodes[index]
-                if node.left < 0 {
-                    // Counted loops: range iteration is generic, and slow in unoptimized builds
-                    var i = node.first
-                    while i < node.first + node.count {
-                        let candidate = facePoint(order[i], px, py, pz)
-                        if candidate.distanceSquared < best.distanceSquared { best = candidate; bestFace = order[i] }
-                        i += 1
+        if let hint, hint >= 0 {
+            let candidate = facePoint(hint, px, py, pz)
+            if candidate.distanceSquared < best.distanceSquared { best = candidate; bestFace = hint }
+        }
+        // Nodes to visit, with the squared distance to their boxes when they were queued: the bound may have
+        // tightened since, ruling them out without a look
+        let rootDistance = boxDistanceSquared(0, px, py, pz)
+        if rootDistance < best.distanceSquared {
+            let links = self.links.baseAddress!, childBoxes = self.childBoxes.baseAddress!
+            let corners = orderedCorners.baseAddress!, order = self.order.baseAddress!
+            withUnsafeTemporaryAllocation(of: Int32.self, capacity: 128) { stack in
+            withUnsafeTemporaryAllocation(of: Double.self, capacity: 128) { bounds in
+                var top = 1
+                stack[0] = 0
+                bounds[0] = rootDistance
+                while top > 0 {
+                    top -= 1
+                    if bounds[top] >= best.distanceSquared { continue }
+                    let index = Int(stack[top])
+                    let first = Int(links[2 * index]), second = Int(links[2 * index + 1])
+                    if first < 0 {
+                        // Counted loops: range iteration is generic, and slow in unoptimized builds
+                        var position = -1 - first
+                        let end = position + second
+                        while position < end {
+                            let c = corners + 9 * position
+                            let candidate = Self.facePoint(c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], px, py, pz)
+                            if candidate.distanceSquared < best.distanceSquared { best = candidate; bestFace = order[position] }
+                            position += 1
+                        }
+                        continue
                     }
-                    continue
+                    // Written out rather than called: unoptimized builds don't inline, and this is the innermost loop
+                    let box = childBoxes + 12 * index
+                    var dl = 0.0, dr = 0.0
+                    var lo = Double(box[0]), hi = Double(box[3])
+                    if px < lo { dl += (lo - px) * (lo - px) } else if px > hi { dl += (px - hi) * (px - hi) }
+                    lo = Double(box[1]); hi = Double(box[4])
+                    if py < lo { dl += (lo - py) * (lo - py) } else if py > hi { dl += (py - hi) * (py - hi) }
+                    lo = Double(box[2]); hi = Double(box[5])
+                    if pz < lo { dl += (lo - pz) * (lo - pz) } else if pz > hi { dl += (pz - hi) * (pz - hi) }
+                    lo = Double(box[6]); hi = Double(box[9])
+                    if px < lo { dr += (lo - px) * (lo - px) } else if px > hi { dr += (px - hi) * (px - hi) }
+                    lo = Double(box[7]); hi = Double(box[10])
+                    if py < lo { dr += (lo - py) * (lo - py) } else if py > hi { dr += (py - hi) * (py - hi) }
+                    lo = Double(box[8]); hi = Double(box[11])
+                    if pz < lo { dr += (lo - pz) * (lo - pz) } else if pz > hi { dr += (pz - hi) * (pz - hi) }
+                    // The nearer child on top, to be searched first
+                    let (near, nearDistance, far, farDistance) = dl < dr ? (first, dl, second, dr) : (second, dr, first, dl)
+                    if farDistance < best.distanceSquared { stack[top] = Int32(far); bounds[top] = farDistance; top += 1 }
+                    if nearDistance < best.distanceSquared { stack[top] = Int32(near); bounds[top] = nearDistance; top += 1 }
                 }
-                let dl = boxDistanceSquared(node.left, px, py, pz), dr = boxDistanceSquared(node.right, px, py, pz)
-                if dl < dr { stack[top] = node.right; stack[top + 1] = node.left; top += 2 }
-                else { stack[top] = node.left; stack[top + 1] = node.right; top += 2 }
+            }
             }
         }
+        guard bestFace >= 0 else { return none }
         return closest(best, onFace: bestFace)
     }
 
@@ -611,7 +867,10 @@ internal final class MeshDistanceField: @unchecked Sendable {
     private func intersectsOtherFaces(_ index: Int) -> Bool {
         let face = faces[index]
         let a = vertexBuffer[face.0], b = vertexBuffer[face.1], c = vertexBuffer[face.2]
-        let lower = Vector3D.min(a, .min(b, c)), upper = Vector3D.max(a, .max(b, c))
+        // Grown by the tolerance coplanar faces are allowed: flat faces off each other's plane by less than it
+        // still overlap, though their boxes miss each other
+        let margin = Vector3D(planeTolerance, planeTolerance, planeTolerance)
+        let lower = Vector3D.min(a, .min(b, c)) - margin, upper = Vector3D.max(a, .max(b, c)) + margin
         return withUnsafeTemporaryAllocation(of: Int.self, capacity: 128) { stack in
             var top = 1
             stack[0] = 0
@@ -629,6 +888,10 @@ internal final class MeshDistanceField: @unchecked Sendable {
                         guard other != index else { continue }
                         let o = faces[other]
                         let p = vertexBuffer[o.0], q = vertexBuffer[o.1], r = vertexBuffer[o.2]
+                        // Faces whose boxes don't touch can neither overlap nor cross
+                        if min(p.x, min(q.x, r.x)) > upper.x || max(p.x, max(q.x, r.x)) < lower.x
+                            || min(p.y, min(q.y, r.y)) > upper.y || max(p.y, max(q.y, r.y)) < lower.y
+                            || min(p.z, min(q.z, r.z)) > upper.z || max(p.z, max(q.z, r.z)) < lower.z { continue }
                         // Coplanar faces can overlap even where they share a corner, as where a sheet folds flat
                         // onto its neighbor's; a shared corner alone lies on both, which doesn't count as overlap
                         if Self.coplanarTrianglesOverlap(a, b, c, normal: faceNormals[index], p, q, r, tolerance: planeTolerance) { return true }
@@ -655,30 +918,40 @@ internal final class MeshDistanceField: @unchecked Sendable {
         guard normal != .zero else { return false }
         let offset = normal ⋅ a
         guard abs(normal ⋅ p - offset) <= tolerance, abs(normal ⋅ q - offset) <= tolerance, abs(normal ⋅ r - offset) <= tolerance else { return false }
-        // In the plane of the axes the normal is least aligned with
-        let n = Vector3D(abs(normal.x), abs(normal.y), abs(normal.z))
-        let drop = n.x >= n.y && n.x >= n.z ? 0 : (n.y >= n.z ? 1 : 2)
+        // In the plane of the axes the normal is least aligned with. Plain values throughout: this runs for every
+        // pair of nearby faces, and small arrays and closures are slow in unoptimized builds.
+        let nx = abs(normal.x), ny = abs(normal.y), nz = abs(normal.z)
+        let drop = nx >= ny && nx >= nz ? 0 : (ny >= nz ? 1 : 2)
         func flat(_ v: Vector3D) -> (Double, Double) { drop == 0 ? (v.y, v.z) : drop == 1 ? (v.z, v.x) : (v.x, v.y) }
-        let first = [flat(a), flat(b), flat(c)], second = [flat(p), flat(q), flat(r)]
+        let a2 = flat(a), b2 = flat(b), c2 = flat(c), p2 = flat(p), q2 = flat(q), r2 = flat(r)
         func cross(_ o: (Double, Double), _ u: (Double, Double), _ v: (Double, Double)) -> Double {
             (u.0 - o.0) * (v.1 - o.1) - (u.1 - o.1) * (v.0 - o.0)
         }
         // Separated if an edge of either has the whole other triangle strictly on its outer side
-        for (triangle, other) in [(first, second), (second, first)] {
-            let orientation = cross(triangle[0], triangle[1], triangle[2])
-            guard orientation != 0 else { return false }
-            for k in 0..<3 {
-                let u = triangle[k], v = triangle[(k + 1) % 3]
-                if other.allSatisfy({ cross(u, v, $0) * orientation <= 0 }) { return false }
-            }
+        func separates(_ u: (Double, Double), _ v: (Double, Double), _ orientation: Double,
+                       _ x: (Double, Double), _ y: (Double, Double), _ z: (Double, Double)) -> Bool {
+            cross(u, v, x) * orientation <= 0 && cross(u, v, y) * orientation <= 0 && cross(u, v, z) * orientation <= 0
         }
+        let firstOrientation = cross(a2, b2, c2), secondOrientation = cross(p2, q2, r2)
+        guard firstOrientation != 0, secondOrientation != 0 else { return false }
+        if separates(a2, b2, firstOrientation, p2, q2, r2) || separates(b2, c2, firstOrientation, p2, q2, r2)
+            || separates(c2, a2, firstOrientation, p2, q2, r2) { return false }
+        if separates(p2, q2, secondOrientation, a2, b2, c2) || separates(q2, r2, secondOrientation, a2, b2, c2)
+            || separates(r2, p2, secondOrientation, a2, b2, c2) { return false }
         return true
     }
 
     /// Whether the segment from s to e passes through the triangle (a, b, c), strictly: two non-coplanar triangles
     /// intersect exactly when an edge of one passes through the other
     private static func segmentCrossesTriangle(_ s: Vector3D, _ e: Vector3D, _ a: Vector3D, _ b: Vector3D, _ c: Vector3D) -> Bool {
-        func volume(_ p: Vector3D, _ q: Vector3D, _ r: Vector3D, _ t: Vector3D) -> Double { (q - p) ⋅ ((r - p) × (t - p)) }
+        // (q − p) ⋅ ((r − p) × (t − p)) in scalars, in the same order: vector operations check their elements are
+        // finite, which unoptimized builds don't inline, and this runs for every pair of nearby faces
+        func volume(_ p: Vector3D, _ q: Vector3D, _ r: Vector3D, _ t: Vector3D) -> Double {
+            let ux = q.x - p.x, uy = q.y - p.y, uz = q.z - p.z
+            let vx = r.x - p.x, vy = r.y - p.y, vz = r.z - p.z
+            let wx = t.x - p.x, wy = t.y - p.y, wz = t.z - p.z
+            return ux * (vy * wz - vz * wy) + uy * (vz * wx - vx * wz) + uz * (vx * wy - vy * wx)
+        }
         let side1 = volume(a, b, c, s), side2 = volume(a, b, c, e)
         guard (side1 > 0 && side2 < 0) || (side1 < 0 && side2 > 0) else { return false }
         let v1 = volume(s, e, a, b), v2 = volume(s, e, b, c), v3 = volume(s, e, c, a)

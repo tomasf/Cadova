@@ -42,8 +42,11 @@ internal struct OffsetOctree {
         let first = nodes.count
         let half = node.size / 2
         nodes[index].child = first
-        for c in 0..<8 {
+        // A counted loop: range iteration is generic, and slow in unoptimized builds
+        var c = 0
+        while c < 8 {
             nodes.append(Node(i: node.i + (c & 1 != 0 ? half : 0), j: node.j + (c & 2 != 0 ? half : 0), k: node.k + (c & 4 != 0 ? half : 0), size: half, parent: index))
+            c += 1
         }
         return first
     }

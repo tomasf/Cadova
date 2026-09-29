@@ -47,7 +47,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     /// Crossings found so far, indexed by edge and length: an edge's crossing never changes, so refitting after splits
     /// only has to find the new ones
     private var crossingStore: [Crossing] = []
-    private let crossingIndex = GridTable()
+    private let crossingIndex = GridTable(capacity: 1 << 14, shards: 64)
     private let knownCrossings: GridTable.Reader
     private var fits: [PlaneFit] = []
     /// The minimal edges of the last fit, and which of them cross, for contouring the same tree without finding
@@ -136,6 +136,14 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             let result = corners.evaluate(at: p, hint: hint, cap: cap)
             return (result.value, result.face)
         }
+        if cap.isFinite {
+            // Only whether the value is within the cap matters: the surface can only be that close if the mesh is
+            // within the amount plus the cap
+            let closest = field.closest(to: p, hint: hint, within: abs(amount) + cap)
+            guard closest.face >= 0 else { return (cap, hint ?? -1) }
+            let distance = closest.distanceSquared.squareRoot()
+            return ((field.isInside(p, closest: closest) ? -distance : distance) - amount, closest.face)
+        }
         let result = field.signedDistanceAndFace(at: p, hint: hint)
         return (result.value - amount, result.face)
     }
@@ -193,11 +201,13 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             var byShard = [[Request]](repeating: [], count: shardCount)
             var n = c * chunk
             let end = min(count, n + chunk)
+            let reader = table.reader
             while n < end {
                 var point = 0
                 while point < pointsEach {
                     let wanted = request(n, point)
-                    byShard[table.shard(of: wanted.key)].append(wanted)
+                    // Most points are known on later calls: skipping them here spares sorting them
+                    if reader.value(for: wanted.key) == nil { byShard[table.shard(of: wanted.key)].append(wanted) }
                     point += 1
                 }
                 n += 1
@@ -311,23 +321,48 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                 }
             }
         }
+        // Which of each parent's eight cells the surface crosses, from the signs at their corners, found in parallel;
+        // only adding the nodes is serial
+        let crossed = nodes.withUnsafeBufferPointer { nodeBuffer in
+            parents.withUnsafeBufferPointer { parentBuffer in
+                nonisolated(unsafe) let nodes = nodeBuffer, parents = parentBuffer
+                return ConcurrentLoop.map(parents.count) { n -> UInt8 in
+                    let node = nodes[parents[n]]
+                    // The signs at the parent's 27 grid points, as bits
+                    var inside: UInt32 = 0
+                    var point = 0
+                    while point < 27 {
+                        let key = Self.key(node.i + point % 3 * size, node.j + point / 3 % 3 * size, node.k + point / 9 * size)
+                        if self.knownValues.value(for: key)! < 0 { inside |= 1 << UInt32(point) }
+                        point += 1
+                    }
+                    var mask: UInt8 = 0
+                    var c = 0
+                    while c < 8 {
+                        let base = (c & 1) + (c >> 1 & 1) * 3 + (c >> 2 & 1) * 9
+                        var count = 0
+                        var q = 0
+                        while q < 8 {
+                            if inside & (1 << UInt32(base + (q & 1) + (q >> 1 & 1) * 3 + (q >> 2 & 1) * 9)) != 0 { count += 1 }
+                            q += 1
+                        }
+                        if count > 0 && count < 8 { mask |= 1 << UInt8(c) }
+                        c += 1
+                    }
+                    return mask
+                }
+            }
+        }
+        octree.nodes.reserveCapacity(octree.nodes.count + 8 * parents.count)
         var n = 0
         while n < parents.count {
-            let parent = parents[n], hint = hints[n]
+            let parent = parents[n], hint = hints[n], mask = crossed[n]
             n += 1
             let first = octree.subdivide(node: parent)
             var c = 0
             while c < 8 {
-                let cell = octree.nodes[first + c]
+                if mask & (1 << UInt8(c)) != 0 { octree.makeLeaf(node: first + c, hint: hint) }
                 c += 1
-                var inside = 0
-                var q = 0
-                while q < 8 {
-                    let value = knownValues.value(for: Self.key(cell.i + (q & 1) * size, cell.j + (q >> 1 & 1) * size, cell.k + (q >> 2 & 1) * size))!
-                    if value < 0 { inside += 1 }
-                    q += 1
-                }
-                if inside > 0 && inside < 8 { octree.makeLeaf(node: first + c - 1, hint: hint) }
             }
         }
     }
@@ -460,6 +495,16 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     /// Minimal edges: edges of leaves that no smaller node, leaf or empty, subdivides
     private func minimalEdges() -> [Edge] {
         let tree = octree
+        // Every leaf's corner values first: only edges the surface crosses matter, and a leaf's edges run between its
+        // corners, so where those all agree in sign, there's nothing to look up around the leaf
+        tree.leaves.withUnsafeBufferPointer { leafBuffer in
+            nonisolated(unsafe) let leaves = leafBuffer
+            ensureValues(leaves.count, pointsEach: 8) { n, corner in
+                let leaf = leaves[n]
+                let size = leaf.size
+                return Request(key: Self.key(leaf.i + (corner & 1) * size, leaf.j + (corner >> 1 & 1) * size, leaf.k + (corner >> 2 & 1) * size), hint: leaf.hint)
+            }
+        }
         let edges = tree.nodes.withUnsafeBufferPointer { nodeBuffer in
         tree.leaves.withUnsafeBufferPointer { leafBuffer in
         nonisolated(unsafe) let nodes = nodeBuffer, leaves = leafBuffer
@@ -468,6 +513,15 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             let leaf = leaves[index]
             guard leaf.size > 0 else { return }
             let size = leaf.size
+            // The corners inside, as bits indexed by x + 2y + 4z
+            var inside = 0
+            var corner = 0
+            while corner < 8 {
+                let key = Self.key(leaf.i + (corner & 1) * size, leaf.j + (corner >> 1 & 1) * size, leaf.k + (corner >> 2 & 1) * size)
+                if self.knownValues.value(for: key)! < 0 { inside |= 1 << corner }
+                corner += 1
+            }
+            guard inside != 0 && inside != 255 else { return }
             let center = (Double(leaf.i) + Double(size) / 2, Double(leaf.j) + Double(size) / 2, Double(leaf.k) + Double(size) / 2)
             func probe(_ dx: Int, _ dy: Int, _ dz: Int) -> OffsetOctree.Location {
                 let step = Double(size)
@@ -479,16 +533,18 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             // Cells align, so the region across a face (or diagonally across an edge) the size of this leaf is either
             // covered by one node at least as large, or subdivided: one probe at its center answers for every edge
             // bordering it. Faces are indexed by axis * 2 + (positive ? 1 : 0).
-            // Six plain values rather than an array: this runs for every leaf, in unoptimized builds too
-            let n0 = probe(-1, 0, 0), n1 = probe(1, 0, 0), n2 = probe(0, -1, 0), n3 = probe(0, 1, 0), n4 = probe(0, 0, -1), n5 = probe(0, 0, 1)
+            // Looked up once each, when an edge first needs them. Six plain values rather than an array: this runs
+            // for every leaf, in unoptimized builds too.
+            let unknown = OffsetOctree.Location(leaf: nil, size: -1)
+            var n0 = unknown, n1 = unknown, n2 = unknown, n3 = unknown, n4 = unknown, n5 = unknown
             func faceNeighbor(_ face: Int) -> OffsetOctree.Location {
                 switch face {
-                case 0: return n0
-                case 1: return n1
-                case 2: return n2
-                case 3: return n3
-                case 4: return n4
-                default: return n5
+                case 0: if n0.size < 0 { n0 = probe(-1, 0, 0) }; return n0
+                case 1: if n1.size < 0 { n1 = probe(1, 0, 0) }; return n1
+                case 2: if n2.size < 0 { n2 = probe(0, -1, 0) }; return n2
+                case 3: if n3.size < 0 { n3 = probe(0, 1, 0) }; return n3
+                case 4: if n4.size < 0 { n4 = probe(0, 0, -1) }; return n4
+                default: if n5.size < 0 { n5 = probe(0, 0, 1) }; return n5
                 }
             }
             var axis = -1
@@ -499,6 +555,9 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                 while e < 3 {
                     e += 1
                     let du = e & 1, dv = e >> 1 & 1   // which side of the leaf the edge lies on, along u and v
+                    // Its ends' corners: offset by du along u and dv along v, and at either end along the axis
+                    let start = du << u | dv << v
+                    guard (inside >> start & 1) != (inside >> (start | 1 << axis) & 1) else { continue }
                     let acrossU = faceNeighbor(u * 2 + du), acrossV = faceNeighbor(v * 2 + dv)
                     if acrossU.size < size || acrossV.size < size { continue }
                     let uOffset = offset(u, du == 1 ? 1 : -1), vOffset = offset(v, dv == 1 ? 1 : -1)
@@ -564,9 +623,9 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             hint = sample.face
             gradient = sample.gradient
             let v = sample.value
-            if abs(v) < 1e-10 * unit { break }
+            if abs(v) < 1e-7 * unit { break }
             if (v < 0) == (lowerValue < 0) { lower = t; lowerValue = v } else { upper = t; upperValue = v }
-            if upper - lower < 1e-12 * length { break }
+            if upper - lower < 1e-9 * length { break }
             let slope = gradient[edge.axis]
             var next = slope != 0 ? t - v / slope : -1
             if !(next > lower && next < upper) { next = lower - lowerValue * (upper - lower) / (upperValue - lowerValue) }
@@ -596,42 +655,81 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
         }
         let missing = missingEdges
         let found = ConcurrentLoop.map(missing.count) { self.crossing(on: missing[$0]) }
-        for (edge, result) in zip(missing, found) {
-            crossingIndex.set(Double(crossingStore.count), for: Self.spanKey(edge.key, length: edge.length))
-            crossingStore.append(result)
-        }
-
-        // Each leaf's planes. Leaves are dealt out to workers by index, and every worker reads all edges but only
-        // adds to its own leaves, so no two write the same fit.
-        var accumulated = [PlaneFit](repeating: PlaneFit(), count: octree.leaves.count)
-        let workers = ProcessInfo.processInfo.activeProcessorCount * 2
-        all.withUnsafeBufferPointer { allBuffer in
-        crossingEdges.withUnsafeBufferPointer { crossingBuffer in
-        crossingStore.withUnsafeBufferPointer { storeBuffer in
-        accumulated.withUnsafeMutableBufferPointer { fitBuffer in
-            nonisolated(unsafe) let all = allBuffer, crossing = crossingBuffer, store = storeBuffer, fits = fitBuffer
-            DispatchQueue.concurrentPerform(iterations: workers) { worker in
-                var n = 0
-                while n < crossing.count {
-                    let edge = all[crossing[n]]
-                    n += 1
-                    let a = edge.around
-                    // Each distinct leaf around the edge once
-                    let mine0 = a.0 >= 0 && a.0 % workers == worker
-                    let mine1 = a.1 >= 0 && a.1 % workers == worker && a.1 != a.0
-                    let mine2 = a.2 >= 0 && a.2 % workers == worker && a.2 != a.0 && a.2 != a.1
-                    let mine3 = a.3 >= 0 && a.3 % workers == worker && a.3 != a.0 && a.3 != a.1 && a.3 != a.2
-                    guard mine0 || mine1 || mine2 || mine3 else { continue }
-                    let result = store[Int(self.knownCrossings.value(for: Self.spanKey(edge.key, length: edge.length))!)]
-                    if mine0 { fits[a.0].add(point: result.point, normal: result.normal) }
-                    if mine1 { fits[a.1].add(point: result.point, normal: result.normal) }
-                    if mine2 { fits[a.2].add(point: result.point, normal: result.normal) }
-                    if mine3 { fits[a.3].add(point: result.point, normal: result.normal) }
+        // Stored in order, and indexed shard by shard in parallel
+        let base = crossingStore.count
+        crossingStore.append(contentsOf: found)
+        let index = crossingIndex
+        let keys = ConcurrentLoop.map(missing.count) { Self.spanKey(missing[$0].key, length: missing[$0].length) }
+        let shards = ConcurrentLoop.map(keys.count) { UInt8(truncatingIfNeeded: index.shard(of: keys[$0])) }
+        keys.withUnsafeBufferPointer { keyBuffer in
+            shards.withUnsafeBufferPointer { shardBuffer in
+                nonisolated(unsafe) let keys = keyBuffer, shards = shardBuffer
+                DispatchQueue.concurrentPerform(iterations: index.shardCount) { shard in
+                    var n = 0
+                    while n < keys.count {
+                        if Int(shards[n]) == shard { index.set(Double(base + n), for: keys[n]) }
+                        n += 1
+                    }
                 }
             }
         }
+
+        // Each crossing's place in the store, looked up once rather than by every leaf around it
+        let stored = crossingEdges.withUnsafeBufferPointer { crossingBuffer in
+            all.withUnsafeBufferPointer { allBuffer in
+                nonisolated(unsafe) let crossing = crossingBuffer, all = allBuffer
+                return ConcurrentLoop.map(crossing.count) { n -> Int in
+                    let edge = all[crossing[n]]
+                    return Int(self.knownCrossings.value(for: Self.spanKey(edge.key, length: edge.length))!)
+                }
+            }
         }
+
+        // Each leaf's planes, from the crossings on edges around it: the crossings grouped by leaf (each distinct
+        // leaf around an edge once, in edge order), then every leaf's summed on its own
+        let leafCount = octree.leaves.count
+        var offsets = [Int](repeating: 0, count: leafCount + 1)
+        var members: [Int32] = []
+        crossingEdges.withUnsafeBufferPointer { crossing in
+            all.withUnsafeBufferPointer { all in
+                func forEachLeaf(_ n: Int, _ body: (Int) -> Void) {
+                    let a = all[crossing[n]].around
+                    if a.0 >= 0 { body(a.0) }
+                    if a.1 >= 0 && a.1 != a.0 { body(a.1) }
+                    if a.2 >= 0 && a.2 != a.0 && a.2 != a.1 { body(a.2) }
+                    if a.3 >= 0 && a.3 != a.0 && a.3 != a.1 && a.3 != a.2 { body(a.3) }
+                }
+                var n = 0
+                while n < crossing.count { forEachLeaf(n) { offsets[$0 + 1] += 1 }; n += 1 }
+                var leaf = 0
+                while leaf < leafCount { offsets[leaf + 1] += offsets[leaf]; leaf += 1 }
+                var next = offsets
+                members = [Int32](repeating: 0, count: offsets[leafCount])
+                n = 0
+                while n < crossing.count {
+                    forEachLeaf(n) { members[next[$0]] = Int32(n); next[$0] += 1 }
+                    n += 1
+                }
+            }
         }
+        var accumulated = offsets.withUnsafeBufferPointer { offsetBuffer in
+            members.withUnsafeBufferPointer { memberBuffer in
+            stored.withUnsafeBufferPointer { storedBuffer in
+            crossingStore.withUnsafeBufferPointer { storeBuffer in
+                nonisolated(unsafe) let offsets = offsetBuffer, members = memberBuffer, stored = storedBuffer, store = storeBuffer
+                return ConcurrentLoop.map(leafCount) { leaf -> PlaneFit in
+                    var fit = PlaneFit()
+                    var m = offsets[leaf]
+                    while m < offsets[leaf + 1] {
+                        let result = store[stored[Int(members[m])]]
+                        fit.add(point: result.point, normal: result.normal)
+                        m += 1
+                    }
+                    return fit
+                }
+            }
+            }
+            }
         }
         for (leaf, merge) in merges where leaf < accumulated.count {
             accumulated[leaf] = merge.fit
@@ -971,13 +1069,22 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             index += 1
         }
 
-        // Grid-unit cells that a thin plate passes twice get one vertex per surface component
+        // Grid-unit cells that a thin plate passes twice get one vertex per surface component. Found in parallel:
+        // nearly every leaf is a grid-unit cell, and few are passed twice.
         var componentVertex: [Int: [UInt64: Int]] = [:]
-        for index in leaves.indices where leaves[index].size == 1 && vertexOfLeaf[index] >= 0 {
+        let plates = leaves.withUnsafeBufferPointer { leafBuffer in
+            vertexOfLeaf.withUnsafeBufferPointer { vertexBuffer in
+                nonisolated(unsafe) let leaves = leafBuffer, vertexOfLeaf = vertexBuffer
+                return ConcurrentLoop.collect(leaves.count) { (index: Int, found: inout [(index: Int, groups: [[Int]])]) in
+                    let leaf = leaves[index]
+                    guard leaf.size == 1, vertexOfLeaf[index] >= 0, self.mayHaveSeveralComponents(leaf.i, leaf.j, leaf.k, size: 1) else { return }
+                    let groups = self.components(leaf.i, leaf.j, leaf.k, size: 1)
+                    if groups.count > 1 { found.append((index, groups)) }
+                }
+            }
+        }
+        for (index, groups) in plates {
             let leaf = leaves[index]
-            guard mayHaveSeveralComponents(leaf.i, leaf.j, leaf.k, size: 1) else { continue }
-            let groups = components(leaf.i, leaf.j, leaf.k, size: 1)
-            guard groups.count > 1 else { continue }
             for group in groups {
                 var fit = PlaneFit()
                 var keys: [UInt64] = []
@@ -1065,24 +1172,34 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     /// function's gradient at its center
     private func foldingMerges(in contour: Contour) -> Set<Int> {
         guard !merges.isEmpty else { return [] }
+        // Flags rather than the dictionary: looking it up from every core for every face costs more than sampling
+        var merged = [Bool](repeating: false, count: octree.leaves.count)
+        for leaf in merges.keys where leaf < merged.count { merged[leaf] = true }
         let found = contour.faces.withUnsafeBufferPointer { faceBuffer in
             contour.vertices.withUnsafeBufferPointer { vertexBuffer in
                 contour.leafOfVertex.withUnsafeBufferPointer { leafBuffer in
+                merged.withUnsafeBufferPointer { mergedBuffer in
+                octree.leaves.withUnsafeBufferPointer { leavesBuffer in
                     nonisolated(unsafe) let faces = faceBuffer, vertices = vertexBuffer, leafOfVertex = leafBuffer
+                    nonisolated(unsafe) let merged = mergedBuffer, octreeLeaves = leavesBuffer
                     return ConcurrentLoop.collect(faces.count) { (index: Int, found: inout [Int]) in
                         let face = faces[index]
                         let leaves = (leafOfVertex[face.0], leafOfVertex[face.1], leafOfVertex[face.2])
-                        let merged0 = self.merges[leaves.0] != nil, merged1 = self.merges[leaves.1] != nil, merged2 = self.merges[leaves.2] != nil
+                        let merged0 = merged[leaves.0], merged1 = merged[leaves.1], merged2 = merged[leaves.2]
                         guard merged0 || merged1 || merged2 else { return }
                         let a = vertices[face.0], b = vertices[face.1], c = vertices[face.2]
                         let normal = ((b - a) × (c - a)).safelyNormalized
                         guard normal != .zero else { return }
-                        let gradient = self.sampleWithGradient(at: (a + b + c) / 3, hint: nil).gradient
+                        // The leaf's face near it gives the distance search an early bound
+                        let hint = octreeLeaves[leaves.0].hint
+                        let gradient = self.sampleWithGradient(at: (a + b + c) / 3, hint: hint >= 0 ? hint : nil).gradient
                         guard normal ⋅ gradient < 0 else { return }
                         if merged0 { found.append(leaves.0) }
                         if merged1 { found.append(leaves.1) }
                         if merged2 { found.append(leaves.2) }
                     }
+                }
+                }
                 }
             }
         }
@@ -1216,20 +1333,14 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     /// contouring couldn't connect the surface, a cell or two across, so the fans stay within the tolerance of it.
     /// Returns nil when there's nothing to close.
     static func filledHoles(vertices: [Vector3D], faces: [Face]) -> (vertices: [Vector3D], faces: [Face])? {
-        func key(_ a: Int, _ b: Int) -> UInt64 { UInt64(a) << 32 | UInt64(b) }
-        var uses: [UInt64: Int] = [:]
-        for face in faces {
-            for (a, b) in [(face.0, face.1), (face.1, face.2), (face.2, face.0)] { uses[key(a, b), default: 0] += 1 }
-        }
-        // The excess of each edge, as directed edges to follow around loops
+        // The excess of each edge, as directed edges to follow around loops. Found fan by fan rather than by hashing
+        // every edge: nearly always there are none.
+        let unbalanced = VertexFans(faces: faces, vertexCount: vertices.count).unbalancedEdges(in: faces)
         var outgoing: [Int: [Int]] = [:]
         var excess = 0
-        for (edge, count) in uses {
-            let a = Int(edge >> 32), b = Int(edge & 0xffffffff)
-            let surplus = count - (uses[key(b, a)] ?? 0)
-            guard surplus > 0 else { continue }
-            for _ in 0..<surplus { outgoing[a, default: []].append(b) }
-            excess += surplus
+        for edge in unbalanced {
+            for _ in 0..<edge.surplus { outgoing[edge.from, default: []].append(edge.to) }
+            excess += edge.surplus
         }
         guard excess > 0 else { return nil }
         var vertices = vertices, faces = faces
@@ -1345,6 +1456,50 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
                 if face.0 == w || face.1 == w || face.2 == w { found.append(members[n]) }
             }
             return found
+        }
+
+        /// Edges used more one way than the other, such as a hole's rim: each as the way it's used more, and by how
+        /// many uses
+        func unbalancedEdges(in faces: [Face]) -> [(from: Int, to: Int, surplus: Int)] {
+            let vertexCount = offsets.count - 1
+            return offsets.withUnsafeBufferPointer { offsetBuffer in
+            members.withUnsafeBufferPointer { memberBuffer in
+            faces.withUnsafeBufferPointer { faceBuffer in
+                nonisolated(unsafe) let offsets = offsetBuffer, members = memberBuffer, faces = faceBuffer
+                return ConcurrentLoop.collect(vertexCount) { (v: Int, found: inout [(from: Int, to: Int, surplus: Int)]) in
+                    let first = offsets[v], end = offsets[v + 1]
+                    var n = first
+                    while n < end {
+                        let face = faces[members[n]]
+                        var k = 0
+                        while k < 3 {
+                            let w = k == 0 ? face.0 : k == 1 ? face.1 : face.2
+                            k += 1
+                            guard w > v else { continue }
+                            // Counted once, at its first triangle around v
+                            var forward = 0, backward = 0, earlier = false
+                            var m = first
+                            while m < end {
+                                let other = faces[members[m]]
+                                if other.0 == w || other.1 == w || other.2 == w {
+                                    if m < n { earlier = true }
+                                    if (other.0 == v && other.1 == w) || (other.1 == v && other.2 == w) || (other.2 == v && other.0 == w) {
+                                        forward += 1
+                                    } else {
+                                        backward += 1
+                                    }
+                                }
+                                m += 1
+                            }
+                            if earlier || forward == backward { continue }
+                            found.append(forward > backward ? (v, w, forward - backward) : (w, v, backward - forward))
+                        }
+                        n += 1
+                    }
+                }
+            }
+            }
+            }
         }
 
         /// Edges used by other than two triangles, as (lower, higher) vertex pairs

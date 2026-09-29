@@ -436,7 +436,10 @@ internal final class OffsetCorners: @unchecked Sendable {
     /// With a cap, the value is only exact where its magnitude is within the cap; beyond it, it's only known to lie
     /// beyond on the same side, which lets the piece searches stop much sooner.
     func evaluate(at p: Vector3D, hint: Int?, cap: Double = .infinity) -> (value: Double, gradient: Vector3D, face: Int) {
-        let closest = field.closest(to: p, hint: hint)
+        // Pieces reach no farther than their reach from the surface, so beyond the amount, the reach and the cap from
+        // the mesh, the value is beyond the cap: only look for the mesh that near
+        let closest = field.closest(to: p, hint: hint, within: cap.isFinite ? amount + reach + cap : .infinity)
+        guard closest.face >= 0 else { return (cap, .zero, hint ?? -1) }
         let distance = closest.distanceSquared.squareRoot()
         let inside = field.isInside(p, closest: closest)
         let toward = p - closest.point
