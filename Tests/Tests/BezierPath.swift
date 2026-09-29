@@ -61,4 +61,73 @@ struct BezierPathTests {
         #expect(area ≈ 44.211)
         #expect(m.boundingBox ≈ .init(minimum: [-0.601, 0], maximum: [10.220, 11.220]))
     }
+
+    /// A cubic arc approximation deviates from the true radius by at most about 0.03%.
+    private static func expectOnCircle(_ path: BezierPath2D, center: Vector2D, radius: Double) {
+        for point in path.points(segmentation: .fixed(16)) {
+            #expect(point.distance(to: center).equals(radius, within: radius * 3e-4))
+        }
+    }
+
+    @Test func `clockwise arc sweeps the short way to its end angle`() {
+        let path = BezierPath2D(startPoint: [10, 0])
+            .addingArc(center: .zero, to: -90°, clockwise: true)
+
+        #expect(path.curves.count == 1)
+        #expect(path.point(at: 1) ≈ [0, -10])
+        #expect(path.point(at: 0.5) ≈ [7.0711, -7.0711])
+        Self.expectOnCircle(path, center: .zero, radius: 10)
+    }
+
+    @Test func `clockwise arc sweeps the long way when the end angle is behind it`() {
+        let path = BezierPath2D(startPoint: [10, 0])
+            .addingArc(center: .zero, to: 90°, clockwise: true)
+
+        // 270° clockwise, split into segments of at most 90°.
+        #expect(path.curves.count == 3)
+        #expect(path.point(at: 1) ≈ [0, -10])
+        #expect(path.point(at: 2) ≈ [-10, 0])
+        #expect(path.point(at: 3) ≈ [0, 10])
+        Self.expectOnCircle(path, center: .zero, radius: 10)
+    }
+
+    @Test func `arc splits its sweep into equal segments of at most 90 degrees`() {
+        let path = BezierPath2D(startPoint: [5, 0])
+            .addingArc(center: .zero, to: 200°)
+
+        #expect(path.curves.count == 3)
+        for (index, angle) in [0°, 200° / 3, 400° / 3, 200°].enumerated() {
+            #expect(path.point(at: Double(index)) ≈ Vector2D(5 * cos(angle), 5 * sin(angle)))
+        }
+    }
+
+    @Test func `arc takes its radius and start angle from the current point`() {
+        let path = BezierPath2D(startPoint: [4, 7])
+            .addingArc(center: [1, 3], to: 180°)
+
+        #expect(path.point(at: path.domain.upperBound) ≈ [-4, 3])
+        Self.expectOnCircle(path, center: [1, 3], radius: 5)
+    }
+
+    @Test func `arc leaves a tangent line smoothly`() {
+        let path = BezierPath2D(startPoint: [0, 0])
+            .addingLine(to: [10, 0])
+            .addingArc(center: [10, 5], to: 90°)
+
+        #expect(path.curves[1].tangent(at: 0).unitVector ≈ [1, 0])
+        #expect(path.point(at: path.domain.upperBound) ≈ [10, 10])
+        #expect(path.tangent(at: path.domain.upperBound).unitVector ≈ [-1, 0])
+    }
+
+    @Test func `arc from the center point is ignored`() {
+        let path = BezierPath2D(startPoint: [3, 3])
+            .addingArc(center: [3, 3], to: 90°)
+        #expect(path.isEmpty)
+    }
+
+    @Test func `arc approximation length matches the circle`() {
+        let path = BezierPath2D(startPoint: [10, 0])
+            .addingArc(center: .zero, to: 360°)
+        #expect(path.length(segmentation: .fixed(200)).equals(20 * .pi, within: 0.01))
+    }
 }

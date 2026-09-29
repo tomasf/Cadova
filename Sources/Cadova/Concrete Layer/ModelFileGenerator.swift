@@ -15,8 +15,11 @@ import Foundation
 /// let fileData = try await modelFile.data()
 /// ```
 ///
-/// For command-line apps, see ``Model`` for a pre-built convenient workflow that writes directly
-/// to disk.
+/// Use `ModelFileGenerator` when Cadova is called from other code that needs to know whether the
+/// build succeeded, such as a build tool, an app, or a CI script. For a dedicated model
+/// executable, see ``Model`` and ``Project(sourceFile:options:content:)`` instead. They write
+/// directly to disk and log failures rather than reporting them back to you, and `Project` ends
+/// the process with a non-zero exit status if anything failed.
 public struct ModelFileGenerator {
     
     /// Render a one-shot model to a model file.

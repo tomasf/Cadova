@@ -1,6 +1,6 @@
 # Designing for 3D Printing
 
-Practical techniques for making models that print cleanly: overhang-safe holes, self-supporting edges, print-fit tolerances, and per-part print settings.
+Practical techniques for making models that print cleanly: overhang-safe holes, self-supporting edges, print-fit tolerances, shells, and per-part print settings.
 
 ## Overview
 
@@ -78,7 +78,42 @@ Box(x: 20, y: 20, z: 4)
     .withTolerance(0.2)
 ```
 
+Growing a diameter only works for round parts. For a part of any shape, `offset(amount:)` grows it by the clearance on every side, and the grown part cuts a socket it fits into:
+
+```swift
+let peg = RegularPolygon(sideCount: 6, circumradius: 5)
+    .extruded(height: 10)
+
+Box(x: 20, y: 20, z: 8)
+    .aligned(at: .centerXY)
+    .subtracting {
+        @Environment(\.tolerance) var tolerance
+        peg.offset(amount: tolerance)
+    }
+    .withTolerance(0.2)
+```
+
 Because a clearance is a length, it's measured in the coordinate system you set it in: scaling a part scales its tolerance along with it, so the fit you asked for survives. See <doc:EnvironmentConcepts> for more on reading and setting environment values like this one, and <doc:Transformations> for how they travel through transforms.
+
+## Shells and enclosures
+
+`hollowed(wallThickness:)` turns a solid into a closed shell with walls of the same thickness everywhere, following the outside's shape. Split it to open it up, here into a base and a lid:
+
+```swift
+let enclosure = Rectangle(x: 60, y: 40)
+    .aligned(at: .center)
+    .rounded(radius: 6)
+    .extruded(height: 30, topEdge: .fillet(radius: 4))
+
+enclosure
+    .hollowed(wallThickness: 2)
+    .split(along: .z(24)) { lid, base in
+        base
+        lid.translated(z: 10)
+    }
+```
+
+Slicers fill solid parts with infill on their own, so there's no need to hollow a part just to save material on an FDM printer. Hollow it when the empty space is the point. For resin printing, where a solid part wastes resin, also cut a drain hole so uncured resin can run out of the cavity.
 
 ## Segmentation and print quality
 

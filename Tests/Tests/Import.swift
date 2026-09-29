@@ -160,6 +160,44 @@ struct ImportTests {
         #expect(partNames.allSatisfy { $0.hasSuffix("|-") == false })
     }
 
+    @Test func `part closure sees semantics written by Cadova`() async throws {
+        let geometry: any Geometry3D = Box(10)
+            .inPart(Part("Guide", semantic: .visual))
+            .adding {
+                Box(20).inPart(Part("Surroundings", semantic: .context))
+                Box(30)
+            }
+
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cadova-test-\(UUID().uuidString).3mf")
+        defer { try? FileManager.default.removeItem(at: tempURL) }
+
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
+        let provider = ThreeMFDataProvider(result: result, options: [], environment: .defaultEnvironment)
+        try await provider.writeOutput(to: tempURL, context: context)
+
+        let reimported = Import(model: tempURL) { geometry, part in
+            geometry.inPart(Part("\(part.name ?? "-")|\(part.semantic.rawValue)"))
+        }
+
+        let partNames = try await reimported.partNames
+        #expect(partNames.contains("Guide|visual"))
+        #expect(partNames.contains("Surroundings|context"))
+        #expect(partNames.contains { $0.hasSuffix("|solid") })
+    }
+
+    @Test func `part closure treats parts without a recorded semantic as solid`() async throws {
+        let modelURL = Bundle.module.url(forResource: "cube_gears", withExtension: "3mf", subdirectory: "resources")!
+
+        let geometry = Import(model: modelURL) { geometry, part in
+            geometry.inPart(Part(part.semantic.rawValue))
+        }
+
+        let partNames = try await geometry.partNames
+        #expect(partNames == ["solid"])
+    }
+
     @Test func `an error thrown by the part closure propagates`() async throws {
         let modelURL = Bundle.module.url(forResource: "cube_gears", withExtension: "3mf", subdirectory: "resources")!
 

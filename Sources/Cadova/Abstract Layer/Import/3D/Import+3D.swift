@@ -168,14 +168,19 @@ extension Import where D == D3 {
         /// The `partnumber` attribute of this part, or `nil` if it has none.
         public let partNumber: String?
 
+        /// The semantic role of this part, or ``PartSemantic/solid`` if the file doesn't specify one.
+        /// Pass it on to a ``Part`` to keep a re-imported part in its original role.
+        public let semantic: PartSemantic
+
         /// A name suitable for a ``Part``, derived from the part's ``name``, its ``partNumber`` or,
         /// failing both, its position in the file.
         public let defaultName: String
 
-        internal init(index: Int, name: String?, partNumber: String?) {
+        internal init(index: Int, name: String?, partNumber: String?, semantic: PartSemantic) {
             self.index = index
             self.name = name
             self.partNumber = partNumber
+            self.semantic = semantic
             self.defaultName = name ?? partNumber ?? "Part \(index + 1)"
         }
     }

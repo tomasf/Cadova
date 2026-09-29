@@ -499,7 +499,7 @@ and one `Model` per output file. Geometry belongs in its own type, in its own fi
 nest related outputs such as print plates.
 
 ```swift
-await Project(packageRelative: "Models") {
+await Project {
     Metadata(title: "Trash Can Dice Game", author: "...", license: "MIT")
 
     Environment {

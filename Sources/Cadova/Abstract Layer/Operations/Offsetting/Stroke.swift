@@ -35,6 +35,8 @@ public extension Geometry2D {
     /// // Creates a rectangular frame inside the original bounds
     /// ```
     ///
+    /// For 3D geometry, `hollowed(wallThickness:style:)` does what `.inside` alignment does here.
+    ///
     /// - Parameters:
     ///   - width: The thickness of the stroke. Must be positive.
     ///   - alignment: How the stroke is positioned relative to the original boundary.

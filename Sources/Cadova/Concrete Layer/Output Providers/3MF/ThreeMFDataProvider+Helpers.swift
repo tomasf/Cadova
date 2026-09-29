@@ -4,7 +4,7 @@ internal import ThreeMF
 internal import Zip
 internal import Nodal
 #if canImport(CadovaLiveLinkClient)
-import CadovaLiveLinkCore
+internal import CadovaLiveLinkCore
 #endif
 
 struct TriangleOIDMapping {

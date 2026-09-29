@@ -36,7 +36,7 @@
         "cacheKey" : {
           "type" : "6Cadova15LabeledCacheKeyV",
           "value" : {
-            "operationName" : "Cadova.EncloseBezierPatch",
+            "operationName" : "Cadova.EncloseSurface",
             "parameters" : [
               {
                 "type" : "6Cadova11BezierPatchV",
@@ -134,7 +134,7 @@
                 }
               },
               {
-                "type" : "6Cadova11BezierPatchV13EnclosureModeO",
+                "type" : "6Cadova20SurfaceEnclosureModeO",
                 "value" : {
                   "plane" : {
                     "_0" : {

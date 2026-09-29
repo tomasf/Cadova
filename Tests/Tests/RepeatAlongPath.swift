@@ -82,6 +82,35 @@ struct RepeatAlongPathTests {
         #expect(bounds?.maximum.z ≈ 65)
     }
 
+    @Test func `3D geometry repeated past the end of a path continues along its end tangent`() async throws {
+        let path = BezierPath3D {
+            line(x: 50)
+            line(y: 50)
+        }
+
+        let bounds = try await Sphere(diameter: 5)
+            .repeated(along: path, count: 2, spacing: 130)
+            .bounds
+
+        // Path length 100, so the second sphere lands 30 past the end, continuing in +Y from (50, 50)
+        #expect(bounds?.minimum.x ≈ -2.5)
+        #expect(bounds?.maximum.x ≈ 52.5)
+        #expect(bounds?.maximum.y ≈ 82.5)
+    }
+
+    @Test func `3D geometry repeated past the end of a path doesn't stack copies at the end`() async throws {
+        let path = BezierPath3D {
+            line(x: 100)
+        }
+
+        let bounds = try await Sphere(diameter: 5)
+            .repeated(along: path, count: 4, spacing: 50)
+            .bounds
+
+        // Spheres at x=0, 50, 100 and 150
+        #expect(bounds?.maximum.x ≈ 152.5)
+    }
+
     // MARK: - 2D Repeat Along Path Tests
 
     @Test func `2D geometry repeated along straight path`() async throws {
@@ -113,5 +142,60 @@ struct RepeatAlongPathTests {
         #expect(bounds?.size.x ≈ 20)
         #expect(bounds?.minimum.y ≈ -2.5)
         #expect(bounds?.maximum.y ≈ 52.5)
+    }
+
+    @Test func `2D geometry repeated past the end of a path continues along its end tangent`() async throws {
+        let path = BezierPath2D {
+            line(x: 100)
+        }
+
+        let bounds = try await Circle(diameter: 10)
+            .repeated(along: path, count: 3, spacing: 80)
+            .bounds
+
+        // Circles at x=0, x=80, x=160
+        #expect(bounds?.maximum.x ≈ 165)
+    }
+
+    // MARK: - Degenerate Paths
+
+    static let degenerate3DPaths = [
+        BezierPath3D(startPoint: [10, 20, 30]),
+        BezierPath3D(linesBetween: [[10, 20, 30], [10, 20, 30], [10, 20, 30]]),
+    ]
+
+    static let degenerate2DPaths = [
+        BezierPath2D(startPoint: [10, 20]),
+        BezierPath2D(linesBetween: [[10, 20], [10, 20], [10, 20]]),
+    ]
+
+    @Test(arguments: degenerate3DPaths)
+    func `3D geometry repeated along a degenerate path with count and spacing is empty`(path: BezierPath3D) async throws {
+        let bounds = try await Sphere(diameter: 5).repeated(along: path, count: 3, spacing: 10).bounds
+        #expect(bounds == nil)
+    }
+
+    @Test(arguments: degenerate3DPaths)
+    func `3D geometry repeated along a degenerate path with count only is empty`(path: BezierPath3D) async throws {
+        let bounds = try await Sphere(diameter: 5).repeated(along: path, count: 3).bounds
+        #expect(bounds == nil)
+    }
+
+    @Test(arguments: degenerate3DPaths)
+    func `3D geometry repeated along a degenerate path with spacing only is empty`(path: BezierPath3D) async throws {
+        let bounds = try await Sphere(diameter: 5).repeated(along: path, spacing: 10).bounds
+        #expect(bounds == nil)
+    }
+
+    @Test(arguments: degenerate3DPaths)
+    func `3D geometry repeated along a degenerate path with a target is empty`(path: BezierPath3D) async throws {
+        let bounds = try await Sphere(diameter: 5).repeated(along: path, target: .direction(.up), count: 3, spacing: 10).bounds
+        #expect(bounds == nil)
+    }
+
+    @Test(arguments: degenerate2DPaths)
+    func `2D geometry repeated along a degenerate path is empty`(path: BezierPath2D) async throws {
+        let bounds = try await Circle(diameter: 5).repeated(along: path, count: 3, spacing: 10).bounds
+        #expect(bounds == nil)
     }
 }

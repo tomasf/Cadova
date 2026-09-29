@@ -35,7 +35,7 @@ import Foundation
 ///
 /// - SeeAlso: `BezierPatch.extruded(to:)`
 ///
-public struct BezierPatch: Sendable, Hashable, Codable {
+public struct BezierPatch: ParametricSurface {
     let controlPoints: [[Vector3D]] // rows × columns
 
     public init(controlPoints: [[Vector3D]]) {
@@ -46,8 +46,13 @@ public struct BezierPatch: Sendable, Hashable, Codable {
         self.controlPoints = controlPoints
     }
 
-    /// Evaluate the point on the surface at parameters (u, v), both in 0...1 range
-    internal func point(at uv: Vector2D) -> Vector3D {
+    /// Returns the point on the patch at the given parameters.
+    ///
+    /// `u` runs across the rows of control points and `v` along each row.
+    ///
+    /// - Parameter uv: The surface parameters, with both `u` (`x`) and `v` (`y`) in `0...1`.
+    /// - Returns: The point on the patch.
+    public func point(at uv: Vector2D) -> Vector3D {
         // V direction (columns)
         let intermediatePoints: [Vector3D] = controlPoints.map { row in
             BezierCurve(controlPoints: row).point(at: uv.y)
@@ -73,99 +78,5 @@ extension BezierPatch: CustomDebugStringConvertible {
         controlPoints
             .map { row in row.map { $0.debugDescription }.joined(separator: ", ") }
             .joined(separator: "\n")
-    }
-}
-
-public extension BezierPatch {
-    func points(segmentation: Segmentation) -> [[Vector3D]] {
-        switch segmentation {
-        case .fixed(let count):
-            return uniformGrid(uCount: count, vCount: count)
-        case .adaptive(_, let minSize):
-            return adaptiveGrid(minSize: minSize)
-        }
-    }
-
-    private func uniformGrid(uCount: Int, vCount: Int) -> [[Vector3D]] {
-        let uSteps = (0...uCount).map { Double($0) / Double(uCount) }
-        let vSteps = (0...vCount).map { Double($0) / Double(vCount) }
-        return uSteps.map { u in
-            vSteps.map { v in
-                point(at: Vector2D(u, v))
-            }
-        }
-    }
-
-    private func adaptiveGrid(minSize: Double) -> [[Vector3D]] {
-        var uSteps: [Double] = [0.0, 1.0]
-        var vSteps: [Double] = [0.0, 1.0]
-        var needsSubdivision = true
-
-        while needsSubdivision {
-            // Sample current grid
-            let pointsGrid = uSteps.map { u in
-                vSteps.map { v in
-                    point(at: Vector2D(u, v))
-                }
-            }
-
-            needsSubdivision = false
-            var uSubdivide = Set<Int>()
-            var vSubdivide = Set<Int>()
-
-            // Check all quads
-            for u in 0..<(uSteps.count - 1) {
-                for v in 0..<(vSteps.count - 1) {
-                    let p00 = pointsGrid[u][v]
-                    let p10 = pointsGrid[u + 1][v]
-                    let p01 = pointsGrid[u][v + 1]
-                    let p11 = pointsGrid[u + 1][v + 1]
-
-                    let dU0 = p00.distance(to: p10)
-                    let dU1 = p01.distance(to: p11)
-                    let dV0 = p00.distance(to: p01)
-                    let dV1 = p10.distance(to: p11)
-                    let diag1 = p00.distance(to: p11)
-                    let diag2 = p10.distance(to: p01)
-
-                    let maxU = max(dU0, dU1)
-                    let maxV = max(dV0, dV1)
-
-                    if [dU0, dU1, dV0, dV1, diag1, diag2].contains(where: { $0 > minSize }) {
-                        needsSubdivision = true
-                        if maxU >= maxV {
-                            uSubdivide.insert(u)
-                        } else {
-                            vSubdivide.insert(v)
-                        }
-                    }
-                }
-            }
-
-            // Insert midpoints where needed
-            if needsSubdivision {
-                uSteps = insertMidpoints(steps: uSteps, at: uSubdivide)
-                vSteps = insertMidpoints(steps: vSteps, at: vSubdivide)
-            }
-        }
-
-        return uSteps.map { u in
-            vSteps.map { v in
-                point(at: Vector2D(u, v))
-            }
-        }
-    }
-
-    private func insertMidpoints(steps: [Double], at indices: Set<Int>) -> [Double] {
-        var newSteps: [Double] = []
-        for i in 0..<(steps.count - 1) {
-            newSteps.append(steps[i])
-            if indices.contains(i) {
-                let mid = (steps[i] + steps[i + 1]) / 2
-                newSteps.append(mid)
-            }
-        }
-        newSteps.append(steps.last!)
-        return newSteps.sorted()
     }
 }

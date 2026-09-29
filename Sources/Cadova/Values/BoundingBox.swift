@@ -166,6 +166,30 @@ public extension BoundingBox3D {
     }
 }
 
+extension BoundingBox2D: Area, Perimeter {
+    /// The enclosed area of the bounding box.
+    public var area: Double {
+        size.x * size.y
+    }
+
+    /// The perimeter of the bounding box.
+    public var perimeter: Double {
+        2 * (size.x + size.y)
+    }
+}
+
+extension BoundingBox3D: Volume, SurfaceArea {
+    /// The enclosed volume of the bounding box.
+    public var volume: Double {
+        size.x * size.y * size.z
+    }
+
+    /// The surface area of the bounding box.
+    public var surfaceArea: Double {
+        2 * (size.x * size.y + size.x * size.z + size.y * size.z)
+    }
+}
+
 extension BoundingBox {
     func translation(for alignment: GeometryAlignment<D>) -> D.Vector {
         alignment.values.map { axis, axisAlignment in
