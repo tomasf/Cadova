@@ -240,6 +240,21 @@ struct SurfaceTests {
         #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [40, 10, 2]))
     }
 
+    @Test(.timeLimit(.minutes(1)))
+    func `draping geometry far larger than the surface's domain stays quick`() async throws {
+        // A surface that wasn't remapped spans 0...1, so with 32 grid cells its tessellation step is 1/32. Refining a
+        // 40 × 30 box to that made well over a million edges, only for all of it to be clamped to the surface's edge.
+        // The refinement is now capped at the grid's own cell count across the box, which takes milliseconds.
+        let unremapped = RuledSurface(
+            from: BezierPath3D(linesBetween: [[0, 0, 0], [40, 0, 0]]),
+            to: BezierPath3D(linesBetween: [[0, 30, 5], [40, 30, -5]])
+        )
+        let clock = ContinuousClock()
+        let start = clock.now
+        _ = try await Box([40, 30, 2]).draped(over: unremapped).withSegmentation(count: 32).bounds
+        #expect(clock.now - start < .seconds(5))
+    }
+
     @Test func `a surface with a new domain has the same shape`() {
         let patch = BezierPatch(controlPoints: [
             [[0, 0, 0], [0, 30, 4]],

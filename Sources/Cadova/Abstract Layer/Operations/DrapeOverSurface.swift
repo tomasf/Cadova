@@ -44,12 +44,18 @@ public extension Geometry3D {
                     """)
             }
 
+            // Refined as finely as the surface is tessellated, but never into more edges across the geometry than the
+            // surface's grid has across its domain. Geometry much larger than the domain (usually a surface that
+            // wasn't remapped to it) would otherwise be refined into millions of edges, only to be clamped anyway.
+            let spread = max(1, uDomain.length > 0 ? bounds.size.x / uDomain.length : 1, vDomain.length > 0 ? bounds.size.y / vDomain.length : 1)
+            let step = surface.tessellationStep(segmentation: segmentation) * spread
+
             // A surface whose u and v run as a left-handed pair in XY mirrors whatever is mapped onto it, and a
             // warp can't reverse the faces that a mirroring leaves inside out. So for such a surface, mirror the
             // geometry in Y first, which transforms handle correctly, and undo it in the mapping: every point lands
             // where it would anyway, but the two mirrorings cancel out and the solid stays valid.
             geometry
-                .refined(maxEdgeLength: surface.tessellationStep(segmentation: segmentation))
+                .refined(maxEdgeLength: step)
                 .flipped(along: isMirrored ? .y : [])
                 .warped(operationName: "Cadova.DrapeOverSurface", cacheParameters: surface, isMirrored) { point in
                     let y = isMirrored ? -point.y : point.y

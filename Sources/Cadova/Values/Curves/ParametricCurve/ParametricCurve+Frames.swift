@@ -33,7 +33,7 @@ internal extension ParametricCurve<Vector3D> {
             return last.continued(toDistance: distance, along: self)
         }
 
-        let (lowerIndex, fraction) = frames.binarySearch(target: distance, key: \.distance)
+        let (lowerIndex, fraction) = frames.binarySearch(target: distance) { $0.distance }
         let lower = frames[lowerIndex]
         guard fraction > 1e-12, lowerIndex + 1 < frames.count else { return lower }
         let upper = frames[lowerIndex + 1]

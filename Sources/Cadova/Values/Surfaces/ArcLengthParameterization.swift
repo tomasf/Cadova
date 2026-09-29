@@ -53,7 +53,7 @@ internal struct ArcLengthParameterization<Curve: ParametricCurve<Vector3D>>: Sen
             return curve.point(at: domain.lowerBound + (domain.upperBound - domain.lowerBound) * fraction)
         }
 
-        let (index, localFraction) = table.binarySearch(target: fraction * length, key: \.distance)
+        let (index, localFraction) = table.binarySearch(target: fraction * length) { $0.distance }
         guard index + 1 < table.count else { return curve.point(at: table[index].parameter) }
         let lower = table[index].parameter, upper = table[index + 1].parameter
         return curve.point(at: lower + (upper - lower) * localFraction)
