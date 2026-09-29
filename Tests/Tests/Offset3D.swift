@@ -86,13 +86,19 @@ struct Offset3DTests {
         #expect(volume.equals(1000 - 6 * 6 * 6, within: 0.01))
     }
 
-    @Test func `hollowing with a reader provides the original and the hollowed geometry`() async throws {
-        // The original minus its shell leaves the cavity
-        let cavity = Box(10).hollowed(wallThickness: 2) { original, hollowed in
-            original.subtracting { hollowed }
+    @Test func `hollowing shapes the cavity across from inside corners by the style`() async throws {
+        // An L-shaped block has one inside corner, a vertical concave edge. Along it, the cavity is shrunk by the
+        // walls around the corner: by a 2 × 2 square with the miter style, a quarter disc of radius 2 with round,
+        // and a triangle with legs of 2 with bevel, along its 16 of height. The more it's shrunk, the more wall.
+        let block = Rectangle(x: 30, y: 30)
+            .subtracting { Rectangle(x: 15, y: 15).translated(x: 15, y: 15) }
+            .extruded(height: 20)
+        func volume(_ style: LineJoinStyle) async throws -> Double {
+            try await block.hollowed(wallThickness: 2, style: style).withSegmentation(segmentation).measurements.volume
         }
-        let volume = try await cavity.withSegmentation(segmentation).measurements.volume
-        #expect(volume.equals(6 * 6 * 6, within: 0.01))
+        let round = try await volume(.round), miter = try await volume(.miter), bevel = try await volume(.bevel)
+        #expect((miter - round).equals(16 * (4 - Double.pi), within: 0.5))
+        #expect((miter - bevel).equals(16 * 2, within: 0.5))
     }
 
     @Test func `hollowing keeps parts thinner than two walls solid`() async throws {
