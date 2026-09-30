@@ -22,10 +22,10 @@ public extension Geometry3D {
     ///
     /// - Parameters:
     ///   - amount: The distance to offset by. Positive values grow the geometry, negative values shrink it.
-    ///   - style: How edges and corners are joined where faces move apart. Defaults to `.round`.
+    ///   - style: How edges and corners are joined where faces move apart. Defaults to `.miter`.
     /// - Returns: The offset geometry.
     ///
-    func offset(amount: Double, style: LineJoinStyle = .round) -> any Geometry3D {
+    func offset(amount: Double, style: LineJoinStyle = .miter) -> any Geometry3D {
         Offset3D(source: self, amount: amount, style: style)
     }
 
@@ -37,7 +37,7 @@ public extension Geometry3D {
     ///
     /// - Parameters:
     ///   - amount: The distance to offset by. Positive values grow the geometry, negative values shrink it.
-    ///   - style: How edges and corners are joined where faces move apart. Defaults to `.round`.
+    ///   - style: How edges and corners are joined where faces move apart. Defaults to `.miter`.
     ///   - reader: A closure that receives both the original geometry and the offset geometry, and returns a new
     ///     composed geometry.
     /// - Returns: The result of the builder closure.
@@ -46,7 +46,7 @@ public extension Geometry3D {
     ///
     func offset<Output: Dimensionality>(
         amount: Double,
-        style: LineJoinStyle = .round,
+        style: LineJoinStyle = .miter,
         @GeometryBuilder<Output> reader: @escaping @Sendable (_ original: any Geometry3D, _ offset: any Geometry3D) -> Output.Geometry
     ) -> Output.Geometry {
         reader(self, offset(amount: amount, style: style))

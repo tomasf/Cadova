@@ -17,7 +17,7 @@ struct Offset3DTests {
     }
 
     @Test func `offsetting a box outward rounds its edges and corners with the amount as radius`() async throws {
-        let offset = Box(20).offset(amount: 2).withSegmentation(segmentation)
+        let offset = Box(20).offset(amount: 2, style: .round).withSegmentation(segmentation)
         let bounds = try #require(try await offset.bounds)
         let volume = try await offset.measurements.volume
 
@@ -36,7 +36,7 @@ struct Offset3DTests {
         let plate = Rectangle(x: 30, y: 30)
             .subtracting { Rectangle(x: 15, y: 15).translated(x: 15, y: 15) }
             .extruded(height: 10)
-        let volume = try await plate.offset(amount: -2).withSegmentation(segmentation).measurements.volume
+        let volume = try await plate.offset(amount: -2, style: .round).withSegmentation(segmentation).measurements.volume
 
         // Offsetting by 2 shrinks the L to 26 × 26 minus a 15 × 15 notch, and its height from 10 to 6. A sharp
         // concave corner would give exactly that; rounding keeps the 2 × 2 corner square minus a quarter disc
@@ -60,10 +60,25 @@ struct Offset3DTests {
         // corners at the fin's foot are the closest surface: √(0.5² + h²) = 2 at its center line
         let finned = Box([20, 20, 10])
             .adding { Box([1, 20, 10]).translated(x: 10, z: 10) }
-            .offset(amount: -2)
+            .offset(amount: -2, style: .round)
             .withSegmentation(segmentation)
         let bounds = try #require(try await finned.bounds)
         #expect(bounds.maximum.z.equals(10 - (4 - 0.25).squareRoot(), within: 0.04))
+    }
+
+    @Test func `offsetting keeps edges and corners sharp by default`() async throws {
+        let offset = try await Box(20).offset(amount: 2).withSegmentation(segmentation).measurements.volume
+        #expect(offset.equals(24 * 24 * 24, within: 0.01))
+
+        // An L-shaped block's cavity stays sharp across from its inside corner: an L of 26 × 26 minus 15 × 15, 16 high
+        let block = Rectangle(x: 30, y: 30)
+            .subtracting { Rectangle(x: 15, y: 15).translated(x: 15, y: 15) }
+            .extruded(height: 20)
+        let hollowed = try await block.hollowed(wallThickness: 2).withSegmentation(segmentation).measurements.volume
+        let outside: Double = (30 * 30 - 15 * 15) * 20
+        let cavity: Double = (26 * 26 - 15 * 15) * 16
+        let expectedVolume = outside - cavity
+        #expect(hollowed.equals(expectedVolume, within: 0.01))
     }
 
     @Test func `a zero offset leaves the geometry unchanged`() async throws {
@@ -174,7 +189,7 @@ struct Offset3DTests {
     }
 
     @Test func `curved surfaces stay smooth with sharp join styles`() async throws {
-        let round = try #require(try await Sphere(radius: 10).offset(amount: 3).withSegmentation(segmentation).bounds)
+        let round = try #require(try await Sphere(radius: 10).offset(amount: 3, style: .round).withSegmentation(segmentation).bounds)
         let mitered = try #require(try await Sphere(radius: 10).offset(amount: 3, style: .miter).withSegmentation(segmentation).bounds)
         #expect(mitered.size.x.equals(round.size.x, within: 0.05))
     }
