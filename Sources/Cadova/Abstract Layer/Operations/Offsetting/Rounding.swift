@@ -196,5 +196,6 @@ private struct RoundedOnBothSides: Geometry3D {
             let rounding = RoundingField(eroded: erodedField, dilated: dilatedField, outside: outside, inside: inside, margin: margin)
             return try MeshOffset.manifold(from: MeshOffset(rounding: rounding, dilated: dilatedField, cellSize: cellSize, tolerance: tolerance).run())
         }
+        .simplified(maximumThreshold: MeshOffset.simplificationThreshold(forTolerance: tolerance))
     }
 }

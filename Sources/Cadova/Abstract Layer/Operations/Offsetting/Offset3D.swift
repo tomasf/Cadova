@@ -66,11 +66,13 @@ private struct Offset3D: Geometry3D {
         } else {
             let cellSize = segmentation.offsetCellSize(radius: abs(amount))
             let limit = style == .miter ? miterLimit : 0
+            let tolerance = cellSize / 10
             CachedConcreteTransformer(body: source, name: "Cadova.Offset3D", parameters: amount, cellSize, style, limit) { manifold in
                 guard let field = MeshOffset.distanceField(for: manifold) else { return manifold }
-                let offset = MeshOffset(field: field, amount: amount, style: style, miterLimit: miterLimit, cellSize: cellSize, tolerance: cellSize / 10)
+                let offset = MeshOffset(field: field, amount: amount, style: style, miterLimit: miterLimit, cellSize: cellSize, tolerance: tolerance)
                 return try MeshOffset.manifold(from: offset.run())
             }
+            .simplified(maximumThreshold: MeshOffset.simplificationThreshold(forTolerance: tolerance))
         }
     }
 }
@@ -82,6 +84,13 @@ internal extension MeshOffset {
         let faces = mesh.triangles.map { ($0.a, $0.b, $0.c) }
         guard !faces.isEmpty else { return nil }
         return MeshDistanceField(vertices: mesh.vertices, faces: faces)
+    }
+
+    /// The most a contoured result may be simplified by: flat faces come out as many small triangles that simplifying
+    /// merges, but on curved parts it can move the surface several times its threshold, so it's kept well below the
+    /// contouring tolerance
+    static func simplificationThreshold(forTolerance tolerance: Double) -> Double {
+        tolerance / 20
     }
 
     /// A solid from a contoured surface
