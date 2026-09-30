@@ -37,6 +37,15 @@ internal struct PlaneFit: Sendable {
 
     var meanPoint: Vector3D { count > 0 ? pointSum / Double(count) : .zero }
 
+    /// The angle the planes' normals span, in radians, estimated from how far they scatter around their main
+    /// direction: normals spread evenly over an angle φ have a mean squared sine of about φ² / 12 from its middle
+    var normalSpread: Double {
+        guard count > 0 else { return 0 }
+        let eigen = Self.eigenDecomposition(matrix)
+        let largest = max(eigen.values.0, eigen.values.1, eigen.values.2)
+        return (12 * max(0, 1 - largest / Double(count))).squareRoot()
+    }
+
     private func multiply(_ x: Vector3D) -> Vector3D {
         Vector3D(
             matrix.0 * x.x + matrix.1 * x.y + matrix.2 * x.z,

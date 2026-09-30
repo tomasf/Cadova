@@ -67,9 +67,9 @@ private struct Offset3D: Geometry3D {
             let cellSize = segmentation.offsetCellSize(radius: abs(amount))
             let limit = style == .miter ? miterLimit : 0
             let tolerance = cellSize / 10
-            CachedConcreteTransformer(body: source, name: "Cadova.Offset3D", parameters: amount, cellSize, style, limit) { manifold in
+            CachedConcreteTransformer(body: source, name: "Cadova.Offset3D", parameters: amount, segmentation, style, limit) { manifold in
                 guard let field = MeshOffset.distanceField(for: manifold) else { return manifold }
-                let offset = MeshOffset(field: field, amount: amount, style: style, miterLimit: miterLimit, cellSize: cellSize, tolerance: tolerance)
+                let offset = MeshOffset(field: field, amount: amount, style: style, miterLimit: miterLimit, cellSize: cellSize, tolerance: tolerance, segmentation: segmentation)
                 return try MeshOffset.manifold(from: offset.run())
             }
             .simplified(maximumThreshold: MeshOffset.simplificationThreshold(forTolerance: tolerance))
@@ -86,11 +86,12 @@ internal extension MeshOffset {
         return MeshDistanceField(vertices: mesh.vertices, faces: faces)
     }
 
-    /// The most a contoured result may be simplified by: flat faces come out as many small triangles that simplifying
-    /// merges, but on curved parts it can move the surface several times its threshold, so it's kept well below the
-    /// contouring tolerance
+    /// The most a contoured result may be simplified by: enough to merge the many small triangles flat faces and
+    /// straight runs come out as, which lie in one plane to rounding error. Simplifying further only coarsens curved
+    /// parts, and by far more than the threshold, since each collapse is only checked against the mesh the previous
+    /// ones left: on a fillet along a long edge, even a fraction of the tolerance opened gaps many times it.
     static func simplificationThreshold(forTolerance tolerance: Double) -> Double {
-        tolerance / 20
+        tolerance / 10_000
     }
 
     /// A solid from a contoured surface
@@ -111,5 +112,11 @@ internal extension Segmentation {
         case .adaptive(_, let minSize):
             return minSize
         }
+    }
+
+    /// How far a circle of the given radius, segmented this way, strays from its arc: the distance from the middle of
+    /// a segment to it
+    func sagitta(radius: Double) -> Double {
+        radius * (1 - cos(.pi / Double(segmentCount(circleRadius: radius))))
     }
 }

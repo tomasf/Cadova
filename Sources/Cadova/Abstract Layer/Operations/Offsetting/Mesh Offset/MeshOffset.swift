@@ -26,6 +26,8 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     private let reachFactor: Double
     private let cellSize: Double
     private let tolerance: Double
+    /// For merging curved parts no coarser than circles of the same curvature; nil to merge within the tolerance
+    private let segmentation: Segmentation?
 
     /// Grid units per base cell: cells with poor fits can be split this far below the base size
     private static let refinementLevels = 2
@@ -55,7 +57,7 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
     private var fittedEdges: (edges: [Edge], crossing: [Int])? = nil
     private var merges: [Int: (node: Int, child: Int, fit: PlaneFit)] = [:]
 
-    convenience init(field: MeshDistanceField, amount: Double, style: LineJoinStyle = .round, miterLimit: Double = 5, cellSize: Double, tolerance: Double) {
+    convenience init(field: MeshDistanceField, amount: Double, style: LineJoinStyle = .round, miterLimit: Double = 5, cellSize: Double, tolerance: Double, segmentation: Segmentation? = nil) {
         // Miters reach up to the limit; square and bevel corners stay within about 1.5 times the amount
         let reachFactor: Double = switch style {
         case .round: 1
@@ -63,18 +65,19 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
         case .square, .bevel: 1.5
         }
         let corners = style == .round ? nil : OffsetCorners(field: field, amount: amount, style: style, miterLimit: miterLimit, tolerance: tolerance)
-        self.init(field: field, amount: amount, reachFactor: reachFactor, corners: corners, rounding: nil, cellSize: cellSize, tolerance: tolerance)
+        self.init(field: field, amount: amount, reachFactor: reachFactor, corners: corners, rounding: nil, cellSize: cellSize, tolerance: tolerance, segmentation: segmentation)
     }
 
     /// Contours a shape rounded on both sides, which lies within the rounding's dilated mesh
-    convenience init(rounding: RoundingField, dilated: MeshDistanceField, cellSize: Double, tolerance: Double) {
-        self.init(field: dilated, amount: 0, reachFactor: 1, corners: nil, rounding: rounding, cellSize: cellSize, tolerance: tolerance)
+    convenience init(rounding: RoundingField, dilated: MeshDistanceField, cellSize: Double, tolerance: Double, segmentation: Segmentation? = nil) {
+        self.init(field: dilated, amount: 0, reachFactor: 1, corners: nil, rounding: rounding, cellSize: cellSize, tolerance: tolerance, segmentation: segmentation)
     }
 
-    private init(field: MeshDistanceField, amount: Double, reachFactor: Double, corners: OffsetCorners?, rounding: RoundingField?, cellSize: Double, tolerance: Double) {
+    private init(field: MeshDistanceField, amount: Double, reachFactor: Double, corners: OffsetCorners?, rounding: RoundingField?, cellSize: Double, tolerance: Double, segmentation: Segmentation?) {
         self.field = field
         self.amount = amount
         self.tolerance = tolerance
+        self.segmentation = segmentation
         self.reachFactor = reachFactor
         self.corners = corners
         self.rounding = rounding
@@ -1011,9 +1014,17 @@ internal final class MeshOffset: @unchecked Sendable {   // shared read-only by 
             }
         }
         if !topologyKept { return nil }
+        let lower = point(node.i, node.j, node.k), span = Double(node.size) * unit
+        // Curved parts fit within as much as a circle of their curvature strays from its arc, their radius estimated
+        // from the node's width and how far its normals turn across it. Flat parts and creases, which one vertex fits
+        // exactly, keep the tolerance.
+        var tolerance = self.tolerance
+        if let segmentation {
+            let spread = fit.normalSpread
+            if spread > 1e-9 { tolerance = min(tolerance, segmentation.sagitta(radius: span / spread)) }
+        }
         // One vertex must fit within the tolerance, inside the node
         let x = fit.solve()
-        let lower = point(node.i, node.j, node.k), span = Double(node.size) * unit
         let upper = lower + Vector3D(span, span, span)
         if x.x < lower.x - 0.1 * unit || x.y < lower.y - 0.1 * unit || x.z < lower.z - 0.1 * unit
             || x.x > upper.x + 0.1 * unit || x.y > upper.y + 0.1 * unit || x.z > upper.z + 0.1 * unit { return nil }
