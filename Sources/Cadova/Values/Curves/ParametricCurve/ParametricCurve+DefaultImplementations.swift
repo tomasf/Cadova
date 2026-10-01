@@ -131,14 +131,15 @@ internal extension ParametricCurve {
 /// points an interpolating curve passes through. Adaptive sampling always samples these parameters, since the curve
 /// can turn sharply there, and probes each piece on its own, so nothing within one goes unseen.
 internal protocol ParametricCurveBreakpoints {
-    /// The parameters where the curve's pieces meet, in increasing order.
+    /// The parameters where the curve's pieces meet, in increasing order, or none if the curve doesn't know, such
+    /// as a slice of a curve that doesn't.
     var breakpoints: [Double] { get }
 }
 
 internal extension ParametricCurve {
     /// Parameters sampling the curve adaptively, following the segmentation's minimum angle and size.
     func adaptiveParameterSamples(in interval: ClosedRange<Double>, minAngle: Angle, minSize: Double) -> [Double] {
-        guard let breakpoints = (self as? any ParametricCurveBreakpoints)?.breakpoints else {
+        guard let breakpoints = (self as? any ParametricCurveBreakpoints)?.breakpoints, !breakpoints.isEmpty else {
             // A curve that doesn't say where its pieces meet is probed as finely as it would be measured.
             return Segmentation.adaptiveSamples(
                 in: interval, minAngle: minAngle, minSize: minSize,

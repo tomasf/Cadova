@@ -90,6 +90,20 @@ struct CurveSamplesTests {
         #expect(resampled.last?.distance ≈ totalLength)
     }
 
+    // An L of two straight lines meeting at a right angle at (0, 0, 20), where the path's parameter is 1.
+    private static let corner = BezierPath3D(linesBetween: [[0, 0, 0], [0, 0, 20], [20, 0, 20]])
+
+    @Test func `a slice of a path is sampled exactly at the joints inside it`() {
+        // A range that doesn't divide evenly around the joint, so splitting it evenly can't land there by chance.
+        let slice = Self.corner[0.37...1.81]
+        let samples = slice.samples(segmentation: .defaults)
+        #expect(samples.contains { $0.u == 1 })
+        #expect(samples.first!.position ≈ [0, 0, 7.4])
+        #expect(samples.last!.position ≈ [16.2, 0, 20])
+        // And only there: each leg is straight.
+        #expect(samples.count == 3)
+    }
+
     @Test func `2D sample transform places origin at position with local +X along tangent`() {
         // Quarter-circle around the origin from (10,0) to (0,10), sampled at the midpoint.
         let arc = BezierPath2D(startPoint: [10, 0]).addingArc(center: .zero, to: 90°, clockwise: false)
