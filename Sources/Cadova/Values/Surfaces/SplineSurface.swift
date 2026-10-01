@@ -137,3 +137,10 @@ private extension SplineSurface {
         return Array(repeating: 0.0, count: degree + 1) + interior + Array(repeating: 1.0, count: degree + 1)
     }
 }
+
+extension SplineSurface: ParametricSurfacePieces {
+    // One piece per knot span in each direction.
+    var pieceCounts: (u: Int, v: Int) {
+        (max(rows.count - uDegree, 1), max(rows[0].controlPoints.count - rows[0].degree, 1))
+    }
+}

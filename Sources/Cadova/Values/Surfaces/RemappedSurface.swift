@@ -54,3 +54,9 @@ public extension ParametricSurface {
         RemappedSurface(base: self, uDomain: u, vDomain: v)
     }
 }
+
+extension RemappedSurface: ParametricSurfacePieces {
+    var pieceCounts: (u: Int, v: Int) {
+        base.adaptivePieceCounts
+    }
+}

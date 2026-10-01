@@ -84,7 +84,7 @@ internal extension ParametricCurve<Vector3D> {
         perpendicularBounds: BoundingBox2D?,
         miteringCorners: Bool = false
     ) -> [ParametricCurveFrame] {
-        let samples = samples(segmentation: environment.segmentation)
+        let samples = frameSamples(segmentation: environment.segmentation)
         var frames: [ParametricCurveFrame] = []
 
         for sample in samples {
@@ -101,5 +101,22 @@ internal extension ParametricCurve<Vector3D> {
             frames.pruneStraightRuns(bounds: perpendicularBounds, segmentation: environment.segmentation)
         }
         return frames
+    }
+
+    /// Samples to build frames from. A frame turns with its target as well as with the curve, as along a straight
+    /// path toward a skew line, and the curve's own adaptive samples only follow the curve. So between those,
+    /// which land on every corner and bend, the curve is filled in down to the minimum size, and
+    /// `pruneStraightRuns` then thins the frames again by how much they actually turn and twist.
+    func frameSamples(segmentation: Segmentation) -> [CurveSample<Vector3D>] {
+        guard case .adaptive(_, let minSize) = segmentation, minSize > 0 else {
+            return samples(segmentation: segmentation)
+        }
+        let parameters = _parameterSamples(in: domain, segmentation: segmentation)
+        var filled = [parameters[0]]
+        for (a, b) in parameters.paired() {
+            let pieces = max(Int((point(at: a).distance(to: point(at: b)) / minSize).rounded(.up)), 1)
+            filled += (1..<pieces).map { a + (b - a) * Double($0) / Double(pieces) } + [b]
+        }
+        return samples(atParameters: filled)
     }
 }

@@ -128,7 +128,7 @@ extension SplineCurve: ParametricCurve {
     /// - Parameters:
     ///   - range: The parameter range to sample within.
     ///   - segmentation: The sampling strategy. For `.fixed`, samples uniformly in parameter space.
-    ///     For `.adaptive`, recursively subdivides based on chord length.
+    ///     For `.adaptive`, places points where the curve turns, following the segmentation's minimum angle and size.
     /// - Returns: An array of points covering the specified range.
     ///
     public func points(in range: ClosedRange<Double>, segmentation: Segmentation) -> [V] {
@@ -141,28 +141,8 @@ extension SplineCurve: ParametricCurve {
                 point(at: span.lowerBound + span.length * Double(i) / Double(n))
             }
 
-        case .adaptive(_, let minSize):
-            var out: [V] = []
-
-            func subdivide(_ a: Double, _ b: Double, _ pa: V, _ pb: V) {
-                let mid = 0.5 * (a + b)
-                let pm = point(at: mid)
-
-                let chord = (pb - pa).magnitude
-                let approx = (pm - pa).magnitude + (pb - pm).magnitude
-
-                if max(chord, approx - chord) < minSize {
-                    out.append(pa)
-                } else {
-                    subdivide(a, mid, pa, pm)
-                    subdivide(mid, b, pm, pb)
-                }
-            }
-
-            let pa = point(at: span.lowerBound), pb = point(at: span.upperBound)
-            subdivide(span.lowerBound, span.upperBound, pa, pb)
-            out.append(pb)
-            return out
+        case .adaptive(let minAngle, let minSize):
+            return adaptiveParameterSamples(in: span, minAngle: minAngle, minSize: minSize).map { point(at: $0) }
         }
     }
 
@@ -236,5 +216,12 @@ extension SplineCurve: Transformable {
     /// - Returns: A new `SplineCurve` instance with the transformed points.
     public func transformed(_ transform: V.D.Transform) -> SplineCurve {
         map(transform.apply(to:))
+    }
+}
+
+extension SplineCurve: ParametricCurveBreakpoints {
+    // The distinct knots, where one polynomial span hands over to the next. A repeated knot can leave a corner.
+    var breakpoints: [Double] {
+        Array(Set(knots)).sorted()
     }
 }

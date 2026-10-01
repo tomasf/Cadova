@@ -34,10 +34,12 @@ struct ClosedPathRepetitionTests {
     }
 
     @Test func `an open path still places an instance at its end`() async throws {
-        // An open path's end is a real position, distinct from its start, so it keeps its final instance.
+        // An open path's end is a real position, distinct from its start, so it keeps its final instance: a length
+        // of 90 at spacing 45 places instances at 0, 45 and 90. (This used to expect 2, which only held because
+        // adaptive sampling measured the path a little short of 90.)
         let open = try await Sphere(diameter: 2)
             .repeated(along: Self.square(side: 30, closed: false), spacing: 45)
             .emittedCopyCount(in: _EvaluationContext())
-        #expect(open == 2)
+        #expect(open == 3)
     }
 }

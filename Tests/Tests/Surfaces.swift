@@ -220,16 +220,48 @@ struct SurfaceTests {
     }
 
     @Test func `enclosing a surface with a long edge against a plane`() async throws {
-        // The face on the plane runs along every edge of the surface's grid, about 4000 points here. It used to be
-        // flattened for triangulation from its first three points, which lie on a straight edge, collapsing it onto
-        // a line, and triangulating that ran out of stack long before it got through all of them.
-        let strip = BezierPatch(controlPoints: [
-            [[0, 0, 5], [0, 1, 5]],
-            [[200, 0, 5], [200, 1, 5]],
-        ])
-        let enclosed = strip.enclosed(against: .z(0)).withSegmentation(.adaptive(minAngle: 2°, minSize: 0.1))
-        let volume = try await enclosed.measurements.volume
-        #expect(volume ≈ 1000)
+        // A ribbon rippling 48 times along its length, so its edges need about 2500 points each, all of them on the
+        // face where it meets the plane. That face starts along a straight edge, and used to be flattened for
+        // triangulation from its first three points, which collapsed it onto a line, and triangulating that ran
+        // out of stack long before it got through all of them.
+        let row = { (y: Double) in (0...192).map { Vector3D(Double($0) * 1.5, y, 5 + sin(Double($0) * 90°)) } }
+        let ribbon = InterpolatingSurface(through: [row(0), row(4)])
+        let volume = try await ribbon.enclosed(against: .z(0)).measurements.volume
+        // The ripples rise as far above 5 as they dip below it.
+        #expect(volume.equals(288 * 4 * 5, within: 1))
+    }
+
+    @Test func `adaptive segmentation leaves a flat surface as a single cell`() {
+        let flat = BezierPatch(controlPoints: [[[0, 0, 0], [0, 30, 0]], [[40, 0, 0], [40, 30, 0]]])
+        let grid = flat.points(segmentation: .adaptive(minAngle: 2°, minSize: 0.15))
+        #expect(grid.count == 2 && grid[0].count == 2)
+    }
+
+    @Test func `adaptive segmentation splits a surface only in the direction it curves`() {
+        // A quarter cylinder: curved along u, straight along v.
+        let w = sqrt(2) / 2
+        let cylinder = SplineSurface(
+            uDegree: 2, vDegree: 1,
+            uKnots: [0, 0, 0, 1, 1, 1], vKnots: [0, 0, 1, 1],
+            controlPoints: [
+                [([10, 0, 0], weight: 1), ([10, 0, 20], weight: 1)],
+                [([10, 10, 0], weight: w), ([10, 10, 20], weight: w)],
+                [([0, 10, 0], weight: 1), ([0, 10, 20], weight: 1)],
+            ]
+        )
+        let grid = cylinder.points(segmentation: .adaptive(minAngle: 2°, minSize: 0.15))
+        // 90° at 2° per segment, like a circle of the same radius, would be 45. Pieces are split evenly by parameter,
+        // which doesn't run evenly around a rational arc, so it comes out a little finer, but never coarser. And
+        // nothing along the straight direction.
+        #expect((45...90).contains(grid.count - 1))
+        #expect(grid[0].count == 2)
+    }
+
+    @Test func `adaptive segmentation splits a twisted surface that is straight along u and v`() {
+        // A hyperbolic paraboloid: every line along u and along v is straight, but it curves between them.
+        let twisted = BezierPatch(controlPoints: [[[0, 0, 0], [0, 20, 10]], [[20, 0, 10], [20, 20, 0]]])
+        let grid = twisted.points(segmentation: .adaptive(minAngle: 2°, minSize: 0.15))
+        #expect(grid.count > 10 && grid[0].count > 10)
     }
 
     // MARK: - Shared surface operations

@@ -79,3 +79,10 @@ public struct InterpolatingSurface: ParametricSurface {
         }
     }
 }
+
+extension InterpolatingSurface: ParametricSurfacePieces {
+    // One piece between each pair of rows, and between each pair of points along a row.
+    var pieceCounts: (u: Int, v: Int) {
+        (max(Int(uDomain.length.rounded()), 1), max(Int(vDomain.length.rounded()), 1))
+    }
+}

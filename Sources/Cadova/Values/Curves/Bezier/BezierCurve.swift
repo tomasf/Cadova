@@ -104,10 +104,16 @@ internal struct BezierCurve<V: Vector>: Sendable, Hashable, Codable {
         return switch segmentation {
         case .fixed (let count):
             points(in: range, segmentCount: count)
-        case .adaptive(_, let minSize):
+        case .adaptive(_, let minSize) where subdividingStraightLines:
+            // Asked for points along straight lines too, so split by length alone.
             [(range.lowerBound, point(at: range.lowerBound))]
             + points(in: range, segmentLength: minSize)
             + [(range.upperBound, point(at: range.upperBound))]
+        case .adaptive(let minAngle, let minSize):
+            Segmentation.adaptiveSamples(
+                in: range.lowerBound...range.upperBound, minAngle: minAngle, minSize: minSize,
+                probeCount: max(4, 2 * (controlPoints.count - 1))
+            ) { point(at: $0) }.map { ($0.parameter, $0.point) }
         }
     }
 

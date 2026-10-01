@@ -83,3 +83,10 @@ extension BezierPatch: CustomDebugStringConvertible {
             .joined(separator: "\n")
     }
 }
+
+extension BezierPatch: ParametricSurfacePieces {
+    // A patch bends at most once per degree in each direction.
+    var pieceCounts: (u: Int, v: Int) {
+        (max(controlPoints.count - 1, 1), max(controlPoints[0].count - 1, 1))
+    }
+}
