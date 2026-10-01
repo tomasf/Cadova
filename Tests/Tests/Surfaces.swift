@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import Manifold3D
 @testable import Cadova
 
 struct SurfaceTests {
@@ -321,16 +322,18 @@ struct SurfaceTests {
     @Test(.timeLimit(.minutes(1)))
     func `draping geometry far larger than the surface's domain stays quick`() async throws {
         // A surface that wasn't remapped spans 0...1, so with 32 grid cells its tessellation step is 1/32. Refining a
-        // 40 × 30 box to that made well over a million edges, only for all of it to be clamped to the surface's edge.
-        // The refinement is now capped at the grid's own cell count across the box, which takes milliseconds.
+        // 40 × 30 box to that made well over a million edges, and seemed to hang. The refinement is now capped at the
+        // grid's own cell count across the box. This counts the triangles that come out rather than timing the
+        // draping, since a timing taken while the rest of the suite runs in parallel measures the contention.
         let unremapped = RuledSurface(
             from: BezierPath3D(linesBetween: [[0, 0, 0], [40, 0, 0]]),
             to: BezierPath3D(linesBetween: [[0, 30, 5], [40, 30, -5]])
         )
-        let clock = ContinuousClock()
-        let start = clock.now
-        _ = try await Box([40, 30, 2]).draped(over: unremapped).withSegmentation(count: 32).bounds
-        #expect(clock.now - start < .seconds(5))
+        let draped = Box([40, 30, 2]).draped(over: unremapped).withSegmentation(count: 32)
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: draped, in: .defaultEnvironment)
+        let triangleCount = try await context.result(for: result.node).concrete.meshGL().triangles.count
+        #expect(triangleCount < 2_000)
     }
 
     @Test func `a surface with a new domain has the same shape`() {
