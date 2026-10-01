@@ -133,7 +133,7 @@ Text("Cadova")
 
 ![Orange lettering reading Cadova at its normal size, centered on a gently domed gray surface and following its curve](surfaces-draped)
 
-Geometry outside the domain is clamped to the surface's edge, with a warning. See <doc:BendingAndDeforming> for other ways to bend geometry.
+Geometry reaching past the domain carries on past the surface's edges along its tangent planes, so a design can overhang an edge a little and keep its shape. See <doc:BendingAndDeforming> for other ways to bend geometry.
 
 ## Related Reading
 

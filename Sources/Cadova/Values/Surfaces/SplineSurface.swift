@@ -81,18 +81,20 @@ public struct SplineSurface: ParametricSurface {
 
     /// Returns the point on the surface at the given parameters.
     ///
-    /// - Parameter uv: The surface parameters, with `u` (`x`) within ``uDomain`` and `v` (`y`) within
-    ///   ``vDomain``.
+    /// - Parameter uv: The surface parameters, `u` (`x`) and `v` (`y`). Outside ``uDomain`` and ``vDomain``,
+    ///   the surface continues past its edges along its tangent planes.
     /// - Returns: The point on the surface.
     public func point(at uv: Vector2D) -> Vector3D {
-        // Evaluate each row in homogeneous coordinates, then run a curve across the rows. A row's result stands
-        // in as a control point of that curve: its weight is the row's summed weight, and the curve multiplies
-        // it back in, so the weighted sum carries through unchanged.
-        let across = SplineCurve(degree: uDegree, knots: uKnots, controlPoints: rows.map { row in
-            let (weightedPoint, weight) = row.homogeneousPoint(at: uv.y)
-            return (weightedPoint / weight, weight: weight)
-        })
-        return across.point(at: uv.x)
+        point(at: uv) { uv in
+            // Evaluate each row in homogeneous coordinates, then run a curve across the rows. A row's result stands
+            // in as a control point of that curve: its weight is the row's summed weight, and the curve multiplies
+            // it back in, so the weighted sum carries through unchanged.
+            let across = SplineCurve(degree: uDegree, knots: uKnots, controlPoints: rows.map { row in
+                let (weightedPoint, weight) = row.homogeneousPoint(at: uv.y)
+                return (weightedPoint / weight, weight: weight)
+            })
+            return across.point(at: uv.x)
+        }
     }
 }
 

@@ -21,6 +21,13 @@ extension Double {
     var unitClamped: Double {
         clamped(to: 0...1)
     }
+
+    /// The value wrapped around into the range, as if its ends were joined. A range without length clamps instead.
+    func wrapped(into range: ClosedRange<Double>) -> Double {
+        guard range.length > 0, !range.contains(self) else { return clamped(to: range) }
+        let offset = (self - range.lowerBound).truncatingRemainder(dividingBy: range.length)
+        return range.lowerBound + (offset < 0 ? offset + range.length : offset)
+    }
 }
 
 extension Set {

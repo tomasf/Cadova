@@ -234,10 +234,88 @@ struct SurfaceTests {
         #expect(bounds ≈ BoundingBox3D(minimum: [12, 20, 0], maximum: [22, 25, 2]))
     }
 
-    @Test func `draping clamps geometry outside the surface's domain to its edge`() async throws {
-        let overhanging = Box([60, 10, 2]).translated(x: -10)
+    @Test func `draping carries geometry past the surface's edges`() async throws {
+        // Past the edges of a flat surface, its tangent planes are the same plane, so an overhanging box keeps its size.
+        let overhanging = Box([60, 50, 2]).translated(x: -10, y: -10)
         let bounds = try #require(try await overhanging.draped(over: Self.flatPatch).withSegmentation(count: 8).bounds)
-        #expect(bounds ≈ BoundingBox3D(minimum: [0, 0, 0], maximum: [40, 10, 2]))
+        #expect(bounds ≈ BoundingBox3D(minimum: [-10, -10, 0], maximum: [50, 40, 2]))
+    }
+
+    // A surface of your own that, like many would, has no answer outside its domain.
+    private struct DomainOnlySurface: ParametricSurface {
+        var uDomain: ClosedRange<Double> { 0...40 }
+        var vDomain: ClosedRange<Double> { 0...30 }
+
+        func point(at uv: Vector2D) -> Vector3D {
+            guard uDomain.contains(uv.x), vDomain.contains(uv.y) else { return Vector3D(.nan) }
+            return Vector3D(uv.x, uv.y, uv.x * 0.25)
+        }
+    }
+
+    @Test func `draping extends a surface of your own past its domain`() async throws {
+        let overhanging = Box([60, 10, 2]).translated(x: -10)
+        let bounds = try #require(try await overhanging.draped(over: DomainOnlySurface()).withSegmentation(count: 8).bounds)
+        #expect(bounds ≈ BoundingBox3D(minimum: [-10, 0, -2.5], maximum: [50, 10, 14.5]))
+
+        let remapped = try #require(try await Box([60, 10, 2]).translated(x: -30)
+            .draped(over: DomainOnlySurface().remapped(u: -20...20, v: 0...30)).withSegmentation(count: 8).bounds)
+        #expect(remapped ≈ BoundingBox3D(minimum: [-10, 0, -2.5], maximum: [50, 10, 14.5]))
+    }
+
+    // A quadratic patch curving up along u, with rows along Y.
+    private static let curvedPatch = BezierPatch(controlPoints: [
+        [[0, 0, 0], [0, 10, 0]],
+        [[5, 0, 0], [5, 10, 4]],
+        [[10, 0, 6], [10, 10, 6]],
+    ])
+
+    @Test func `a surface continues past an edge along its slope across that edge`() {
+        // The slope across the u = 1 edge of a quadratic is twice the step from the middle row to the last.
+        for v in [0.0, 0.3, 1.0] {
+            let edge = Self.curvedPatch.point(at: [1, v])
+            let middle = Vector3D(5, 10 * v, 4 * v)
+            let slope = (Vector3D(10, 10 * v, 6) - middle) * 2
+            let expected = edge + slope * 0.5
+            #expect(Self.curvedPatch.point(at: [1.5, v]) ≈ expected)
+        }
+        // At u = 0, the slope across the edge points the other way, toward negative u.
+        let start = Self.curvedPatch.point(at: [0, 0.5])
+        let slope = (Vector3D(5, 5, 2) - Vector3D(0, 5, 0)) * 2
+        let expected = start - slope * 0.25
+        #expect(Self.curvedPatch.point(at: [-0.25, 0.5]) ≈ expected)
+    }
+
+    @Test func `a surface continues past a corner as the tangent plane there`() {
+        let corner = Self.curvedPatch.point(at: [1, 1])
+        let uSlope = (Vector3D(10, 10, 6) - Vector3D(5, 10, 4)) * 2
+        let vSlope = Vector3D(10, 10, 6) - Vector3D(10, 0, 6)
+        let expected = corner + uSlope * 0.2 + vSlope * 0.3
+        #expect(Self.curvedPatch.point(at: [1.2, 1.3]) ≈ expected)
+    }
+
+    @Test func `a surface meets its extension without a gap or a crease`() {
+        let surface = CoonsPatch(
+            boundary: BezierPath3D(from: [0, 0, 0]) { curve(controlX: 20, controlY: -10, controlZ: 10, endX: 40, endY: 0, endZ: 0) },
+            BezierPath3D(from: [40, 0, 0]) { curve(controlX: 45, controlY: 20, controlZ: 5, endX: 40, endY: 40, endZ: 0) },
+            BezierPath3D(from: [40, 40, 0]) { curve(controlX: 20, controlY: 50, controlZ: 15, endX: 0, endY: 40, endZ: 0) },
+            BezierPath3D(linesBetween: [[0, 40, 0], [0, 0, 0]])
+        )
+        let epsilon = 1e-3
+        let inside = surface.point(at: [1 - epsilon, 0.4]), edge = surface.point(at: [1, 0.4])
+        let outside = surface.point(at: [1 + epsilon, 0.4])
+        // No gap: the extension starts at the edge. No crease: the steps on either side of it match.
+        #expect(edge.distance(to: surface.point(at: [1 + 1e-12, 0.4])) < 1e-6)
+        #expect((outside - edge).distance(to: edge - inside) < 1e-4)
+    }
+
+    @Test func `a closed interpolating surface wraps around instead of continuing`() {
+        let ring = (0...8).map { index in
+            let angle = Double(index % 8) * 45°
+            return [Vector3D(cos(angle) * 10, sin(angle) * 10, 0), Vector3D(cos(angle) * 10, sin(angle) * 10, 10)]
+        }
+        let surface = InterpolatingSurface(through: ring)
+        #expect(surface.point(at: [8 + 2.5, 0.5]) ≈ surface.point(at: [2.5, 0.5]))
+        #expect(surface.point(at: [-1.5, 0.5]) ≈ surface.point(at: [6.5, 0.5]))
     }
 
     @Test(.timeLimit(.minutes(1)))

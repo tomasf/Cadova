@@ -30,8 +30,11 @@ public protocol ParametricSurface: Sendable, Hashable, Codable {
 
     /// Returns the point on the surface at the given parameters.
     ///
-    /// - Parameter uv: The surface parameters, with `u` (`x`) within ``uDomain`` and `v` (`y`) within
-    ///   ``vDomain``.
+    /// The surfaces Cadova provides accept parameters outside their domain too, and continue past their edges
+    /// along their tangent planes. Your own conformance only needs to handle parameters within the domain: Cadova
+    /// calls it with no others, and extends the surface past its edges the same way.
+    ///
+    /// - Parameter uv: The surface parameters, `u` (`x`) and `v` (`y`).
     /// - Returns: The point on the surface.
     func point(at uv: Vector2D) -> Vector3D
 }
@@ -48,6 +51,38 @@ internal extension ParametricSurface {
             uDomain.lowerBound + uDomain.length * fraction.x,
             vDomain.lowerBound + vDomain.length * fraction.y
         ))
+    }
+
+    /// The point at the given parameters, with the surface continuing past its domain along its tangent planes.
+    ///
+    /// Within the domain, this is `evaluate(uv)`. Past an edge, every line across that edge carries on straight,
+    /// along the surface's slope across the edge, the way a sweep carries on past the end of its curve. Past a
+    /// corner, both slopes apply, so the surface carries on as the flat tangent plane at that corner. Either way it
+    /// meets the surface without a gap or a crease. `evaluate` is only ever called within the domain.
+    func point(at uv: Vector2D, extendingPast evaluate: (Vector2D) -> Vector3D) -> Vector3D {
+        let edge = Vector2D(uv.x.clamped(to: uDomain), uv.y.clamped(to: vDomain))
+        let edgePoint = evaluate(edge)
+        let uBeyond = uv.x - edge.x, vBeyond = uv.y - edge.y
+        guard uBeyond != 0 || vBeyond != 0 else { return edgePoint }
+
+        // The slope across an edge, by a second-order difference stepping back into the domain. The step is small
+        // enough to measure the slope at the edge itself, and large enough to stay well clear of rounding.
+        func slope(across direction: Vector2D, domainLength: Double) -> Vector3D {
+            guard domainLength > 0 else { return .zero }
+            let step = domainLength * 1e-4
+            let inside1 = evaluate(edge - direction * step)
+            let inside2 = evaluate(edge - direction * (2 * step))
+            return (edgePoint * 3 - inside1 * 4 + inside2) / (2 * step)
+        }
+
+        var point = edgePoint
+        if uBeyond != 0 {
+            point += slope(across: Vector2D(uBeyond > 0 ? 1 : -1, 0), domainLength: uDomain.length) * abs(uBeyond)
+        }
+        if vBeyond != 0 {
+            point += slope(across: Vector2D(0, vBeyond > 0 ? 1 : -1), domainLength: vDomain.length) * abs(vBeyond)
+        }
+        return point
     }
 }
 

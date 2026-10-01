@@ -18,7 +18,9 @@ public extension Geometry3D {
     ///     .draped(over: patch.remapped(u: 0...60, v: 0...30))
     /// ```
     ///
-    /// Geometry outside the domain is clamped to the surface's edge, and a warning is logged.
+    /// Geometry reaching past the domain carries on past the surface's edges, continuing along its tangent planes the
+    /// way a sweep continues straight past the end of its path. A design can overhang a surface's edge a little this
+    /// way, and keeps its shape there.
     ///
     /// For a design to keep its orientation, build the surface so that `u` runs along X: for a grid of points such as
     /// a ``BezierPatch``, where `u` runs across the rows, that means each row runs along Y. Otherwise the design comes
@@ -33,20 +35,9 @@ public extension Geometry3D {
             let uDomain = surface.uDomain, vDomain = surface.vDomain
             let isMirrored = surface.isMirroredInXY
 
-            let tolerance = 1e-9 * max(1, uDomain.length, vDomain.length)
-            if bounds.minimum.x < uDomain.lowerBound - tolerance || bounds.maximum.x > uDomain.upperBound + tolerance
-                || bounds.minimum.y < vDomain.lowerBound - tolerance || bounds.maximum.y > vDomain.upperBound + tolerance {
-                logger.warning("""
-                    Draping geometry spanning X \(bounds.minimum.x)...\(bounds.maximum.x), Y \(bounds.minimum.y)...\
-                    \(bounds.maximum.y) over a surface with domain u \(uDomain), v \(vDomain). The parts outside the \
-                    domain are clamped to the surface's edge. Use remapped(u:v:) to give the surface a domain that \
-                    covers the geometry.
-                    """)
-            }
-
             // Refined as finely as the surface is tessellated, but never into more edges across the geometry than the
             // surface's grid has across its domain. Geometry much larger than the domain (usually a surface that
-            // wasn't remapped to it) would otherwise be refined into millions of edges, only to be clamped anyway.
+            // wasn't remapped to it) would otherwise be refined into millions of edges.
             let spread = max(1, uDomain.length > 0 ? bounds.size.x / uDomain.length : 1, vDomain.length > 0 ? bounds.size.y / vDomain.length : 1)
             let step = surface.tessellationStep(segmentation: segmentation) * spread
 
@@ -59,8 +50,9 @@ public extension Geometry3D {
                 .flipped(along: isMirrored ? .y : [])
                 .warped(operationName: "Cadova.DrapeOverSurface", cacheParameters: surface, isMirrored) { point in
                     let y = isMirrored ? -point.y : point.y
-                    let uv = Vector2D(point.x.clamped(to: uDomain), y.clamped(to: vDomain))
-                    return surface.point(at: uv) + .z(point.z)
+                    // Extended here, not left to the surface, which might be one of your own that only handles its
+                    // domain.
+                    return surface.point(at: Vector2D(point.x, y), extendingPast: surface.point(at:)) + .z(point.z)
                 }
                 .simplified()
         }
