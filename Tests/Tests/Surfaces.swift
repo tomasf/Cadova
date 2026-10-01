@@ -219,6 +219,19 @@ struct SurfaceTests {
         #expect(atSharedColumn.distance(to: besideIt) < 0.01)
     }
 
+    @Test func `enclosing a surface with a long edge against a plane`() async throws {
+        // The face on the plane runs along every edge of the surface's grid, about 4000 points here. It used to be
+        // flattened for triangulation from its first three points, which lie on a straight edge, collapsing it onto
+        // a line, and triangulating that ran out of stack long before it got through all of them.
+        let strip = BezierPatch(controlPoints: [
+            [[0, 0, 5], [0, 1, 5]],
+            [[200, 0, 5], [200, 1, 5]],
+        ])
+        let enclosed = strip.enclosed(against: .z(0)).withSegmentation(.adaptive(minAngle: 2°, minSize: 0.1))
+        let volume = try await enclosed.measurements.volume
+        #expect(volume ≈ 1000)
+    }
+
     // MARK: - Shared surface operations
 
     // A flat 40 × 30 mm patch with its rows along Y, so u runs along X and v along Y, given a domain matching its size:

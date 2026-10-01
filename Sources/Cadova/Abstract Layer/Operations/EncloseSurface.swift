@@ -63,11 +63,12 @@ internal extension ParametricSurface {
                 [.plane(lastRow, c1, plane), .plane(lastRow, c2, plane), .surface(lastRow, c2), .surface(lastRow, c1)]
             ]}
 
-            // The face on the plane connecting the sides
+            // The face on the plane connecting the sides. Each side starts where the previous one ended, so it
+            // leaves out its first corner, and the face lists every corner once.
             let bottomFace = (0...lastColumn).map { SurfaceEnclosureVertex.plane(0, $0, plane) }
-            + (0...lastRow).map { SurfaceEnclosureVertex.plane($0, lastColumn, plane) }
-            + (0...lastColumn).reversed().map { SurfaceEnclosureVertex.plane(lastRow, $0, plane) }
-            + (0...lastRow).reversed().map { SurfaceEnclosureVertex.plane($0, 0, plane) }
+            + (0...lastRow).dropFirst().map { SurfaceEnclosureVertex.plane($0, lastColumn, plane) }
+            + (0...lastColumn).reversed().dropFirst().map { SurfaceEnclosureVertex.plane(lastRow, $0, plane) }
+            + (0...lastRow).reversed().dropFirst().dropLast().map { SurfaceEnclosureVertex.plane($0, 0, plane) }
 
             allFaces = surfaceFaces + rowSideFaces + columnSideFaces + [bottomFace]
 
