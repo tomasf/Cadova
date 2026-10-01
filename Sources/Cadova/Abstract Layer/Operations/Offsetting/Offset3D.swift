@@ -83,7 +83,91 @@ internal extension MeshOffset {
         let mesh = manifold.meshGL()
         let faces = mesh.triangles.map { ($0.a, $0.b, $0.c) }
         guard !faces.isEmpty else { return nil }
-        return MeshDistanceField(vertices: mesh.vertices, faces: faces)
+        let canonical = canonicalized(vertices: mesh.vertices, faces: faces)
+        return MeshDistanceField(vertices: canonical.vertices, faces: canonical.faces)
+    }
+
+    /// The mesh with its vertices and triangles in an order that depends only on its geometry. Manifold orders a
+    /// boolean's triangles by the IDs of the meshes they came from, which are handed out as meshes are created, in
+    /// no fixed order when geometry is evaluated concurrently. Offsetting breaks ties between equally near faces by
+    /// their order, so without this, the same solid could offset differently from one run to the next.
+    ///
+    /// Plain loops over raw buffers, comparing field by field, and faces sorted as packed integers where they fit:
+    /// in unoptimized builds, closures over arrays and tuple comparisons made this cost half as much again as
+    /// building the distance field itself.
+    static func canonicalized(vertices: [Vector3D], faces: [Face]) -> (vertices: [Vector3D], faces: [Face]) {
+        let vertexCount = vertices.count, faceCount = faces.count
+        var order = Array(0..<vertexCount)
+        vertices.withUnsafeBufferPointer { v in
+            order.sort { a, b in
+                let p = v[a], q = v[b]
+                if p.x != q.x { return p.x < q.x }
+                if p.y != q.y { return p.y < q.y }
+                if p.z != q.z { return p.z < q.z }
+                return a < b
+            }
+        }
+        var sortedVertices = vertices
+        var newIndex = [Int](repeating: 0, count: vertexCount)
+        order.withUnsafeBufferPointer { order in
+            vertices.withUnsafeBufferPointer { v in
+                sortedVertices.withUnsafeMutableBufferPointer { sorted in
+                    newIndex.withUnsafeMutableBufferPointer { newIndex in
+                        var new = 0
+                        while new < vertexCount {
+                            newIndex[order[new]] = new
+                            sorted[new] = v[order[new]]
+                            new += 1
+                        }
+                    }
+                }
+            }
+        }
+
+        // Each face starting at its lowest corner, keeping the winding
+        var renumbered = faces
+        newIndex.withUnsafeBufferPointer { newIndex in
+            renumbered.withUnsafeMutableBufferPointer { faces in
+                var f = 0
+                while f < faceCount {
+                    let a = newIndex[faces[f].0], b = newIndex[faces[f].1], c = newIndex[faces[f].2]
+                    faces[f] = a <= b && a <= c ? (a, b, c) : b <= c ? (b, c, a) : (c, a, b)
+                    f += 1
+                }
+            }
+        }
+
+        guard vertexCount <= 1 << 21 else {
+            renumbered.sort { a, b in
+                if a.0 != b.0 { return a.0 < b.0 }
+                if a.1 != b.1 { return a.1 < b.1 }
+                return a.2 < b.2
+            }
+            return (sortedVertices, renumbered)
+        }
+        // Three corners of 21 bits each, so the integers sort the way the faces do
+        var keys = [UInt64](repeating: 0, count: faceCount)
+        renumbered.withUnsafeBufferPointer { faces in
+            keys.withUnsafeMutableBufferPointer { keys in
+                var f = 0
+                while f < faceCount {
+                    keys[f] = UInt64(faces[f].0) << 42 | UInt64(faces[f].1) << 21 | UInt64(faces[f].2)
+                    f += 1
+                }
+            }
+        }
+        keys.sort()
+        let mask: UInt64 = (1 << 21) - 1
+        keys.withUnsafeBufferPointer { keys in
+            renumbered.withUnsafeMutableBufferPointer { faces in
+                var f = 0
+                while f < faceCount {
+                    faces[f] = (Int(keys[f] >> 42), Int(keys[f] >> 21 & mask), Int(keys[f] & mask))
+                    f += 1
+                }
+            }
+        }
+        return (sortedVertices, renumbered)
     }
 
     /// The most a contoured result may be simplified by: enough to merge the many small triangles flat faces and
