@@ -11,18 +11,41 @@ import Foundation
 /// earlier contouring, and there D's term must not win, so it's biased by a margin larger than that contouring's
 /// error.
 ///
+/// Chamfering works the same way, with square joins in place of round ones: E grown by the outside depth with
+/// square joins is the outside chamfer, and growing that with miter joins only moves all its planes outward,
+/// cuts included, so it's E grown with square joins by both depths (D). The inside chamfer is D shrunk with square
+/// joins. Each term then comes from its pieces (see ``OffsetCorners``) rather than plain distance.
+///
 /// Both terms change no faster than position, so neither does their minimum, as contouring needs.
 internal final class RoundingField: @unchecked Sendable {
     private let eroded: MeshDistanceField
     private let dilated: MeshDistanceField
     private let outside: Double
     private let inside: Double
+    /// For chamfering, E grown by the outside depth and D shrunk by the inside depth plus the margin, with square
+    /// joins; nil to round
+    private let outsideCorners: OffsetCorners?
+    private let insideCorners: OffsetCorners?
 
+    /// Rounding: both terms are plain distances
     init(eroded: MeshDistanceField, dilated: MeshDistanceField, outside: Double, inside: Double, margin: Double) {
         self.eroded = eroded
         self.dilated = dilated
         self.outside = outside
         self.inside = inside + margin
+        outsideCorners = nil
+        insideCorners = nil
+    }
+
+    /// Chamfering: both terms are offsets with square joins
+    init(chamferingEroded eroded: MeshDistanceField, dilated: MeshDistanceField, outside: Double, inside: Double, margin: Double,
+         tolerance: Double) {
+        self.eroded = eroded
+        self.dilated = dilated
+        self.outside = outside
+        self.inside = inside + margin
+        outsideCorners = OffsetCorners(field: eroded, amount: outside, style: .square, miterLimit: 1, tolerance: tolerance)
+        insideCorners = OffsetCorners(field: dilated, amount: -(inside + margin), style: .square, miterLimit: 1, tolerance: tolerance)
     }
 
     /// The vertices the result lies within: the result is inside D
@@ -42,6 +65,10 @@ internal final class RoundingField: @unchecked Sendable {
     /// The function (negative inside the result), and a hint for nearby queries
     func value(at p: Vector3D, hint: Int?) -> (value: Double, face: Int) {
         let (e, d) = Self.unpack(hint)
+        if let outsideCorners, let insideCorners {
+            let outer = outsideCorners.evaluate(at: p, hint: e), inner = insideCorners.evaluate(at: p, hint: d)
+            return (min(outer.value, inner.value), Self.pack(outer.face, inner.face))
+        }
         let rounded = eroded.signedDistanceAndFace(at: p, hint: e)
         let filleted = dilated.signedDistanceAndFace(at: p, hint: d)
         return (min(rounded.value - outside, filleted.value + inside), Self.pack(rounded.face, filleted.face))
@@ -50,6 +77,11 @@ internal final class RoundingField: @unchecked Sendable {
     /// The function, its gradient, and a hint for nearby queries
     func valueAndGradient(at p: Vector3D, hint: Int?) -> (value: Double, gradient: Vector3D, face: Int) {
         let (e, d) = Self.unpack(hint)
+        if let outsideCorners, let insideCorners {
+            let outer = outsideCorners.evaluate(at: p, hint: e), inner = insideCorners.evaluate(at: p, hint: d)
+            let face = Self.pack(outer.face, inner.face)
+            return outer.value <= inner.value ? (outer.value, outer.gradient, face) : (inner.value, inner.gradient, face)
+        }
         let rounded = eroded.signedDistanceAndGradient(at: p, hint: e)
         let filleted = dilated.signedDistanceAndGradient(at: p, hint: d)
         let face = Self.pack(rounded.face, filleted.face)
@@ -60,8 +92,12 @@ internal final class RoundingField: @unchecked Sendable {
     }
 
     /// Whether the surface within radius of p is provably one plane: each term's surface there is one plane, and
-    /// where both have one, they're parallel, so their minimum is the outer of the two
+    /// where both have one, they're parallel, so their minimum is the outer of the two. For chamfering, no piece may
+    /// reach in either.
     func isPlanar(within radius: Double, of p: Vector3D) -> Bool {
+        if outsideCorners?.mayAffect(p, radius: radius) == true || insideCorners?.mayAffect(p, radius: radius) == true {
+            return false
+        }
         let first = eroded.coplanarNormal(within: outside + radius, of: p)
         guard first.coplanar else { return false }
         let second = dilated.coplanarNormal(within: inside + radius, of: p)

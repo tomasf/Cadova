@@ -368,12 +368,11 @@ struct Offset3DTests {
         #expect(results[0].faces.map { [$0.0, $0.1, $0.2] } == results[1].faces.map { [$0.0, $0.1, $0.2] })
     }
 
-    @Test(.disabled("Corners still come out slightly rounded: chaining offsets splits a sharp corner into facets too shallow for a miter each"))
-    func `chamfering a box on both sides leaves only its chamfered surface`() async throws {
+    @Test func `chamfering a box on both sides leaves only its chamfered surface`() async throws {
         // The outside chamfer of a box is exactly the square offset of the box shrunk by the depth: inside the moved
         // faces, the edge cuts and the corner cuts. Chamfering inside then changes nothing on a convex shape. Where
-        // a corner facet meets the faces, the outside chamfer once left slivers whose normals folded back, and the
-        // inside chamfer's miter offset grew spikes from them.
+        // a corner facet meets the faces, chaining the four offsets once left slivers whose normals folded back, which
+        // grew spikes, and split corners into facets too shallow for a miter each, which left notches.
         // A cell size where it happened; within the tolerance of a tenth of that
         let chamfered = Box(x: 20, y: 30, z: 15).chamfered(depth: 5).withSegmentation(minAngle: 2°, minSize: 0.3)
         let context = _EvaluationContext()
