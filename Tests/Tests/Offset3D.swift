@@ -391,4 +391,18 @@ struct Offset3DTests {
         let farthest = vertices.map { p in abs(planes.map { $0.normal ⋅ p - $0.offset }.max()!) }.max()!
         #expect(farthest < 0.03)
     }
+
+    @Test func `sharp joins keep the edges of a shape with defects elsewhere sharp`() async throws {
+        // Simplifying an eroded union fans long, thin triangles across its flat faces, some reaching from slivers at
+        // the seam where the cylinder joins. Distrusting every face near a defect, or every face narrower than the
+        // tolerance, used to leave the box's long edges without square joins, so they came out rounded.
+        let shape = Box(x: 30, y: 30, z: 15).subtracting { Box(x: 20, y: 20, z: 20).translated(x: 12, y: 12, z: -1) }
+            .adding { Cylinder(diameter: 14, height: 25).translated(x: 6, y: 6) }
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: shape.chamfered(outsideDepth: 2), in: .defaultEnvironment)
+        let field = try #require(MeshOffset.distanceField(for: try await context.result(for: result.node).concrete))
+        // Beside the long top front edge: inside the square chamfer by 0.05, but 0.07 outside a rounded edge
+        let beside = Vector3D(20, 0.05, 13.7)
+        #expect(field.signedDistance(at: beside) < -0.02)
+    }
 }

@@ -14,11 +14,17 @@ extension OffsetCorners {
         let faceCount: Int
         /// Normals toward the side the offset grows into
         let n: [Vector3D]
-        /// Faces whose normals sharp joins can rely on. Besides the faces the distance field distrusts, that leaves
-        /// out faces narrower than the tolerance: their corners may each lie the tolerance off, as where an earlier
-        /// offset's contouring lays a sliver along a crease, and their normals can then point anywhere. A miter built
-        /// on such a normal juts out as a spike.
-        let trusted: [Bool]
+        /// Faces whose own normals sharp joins can rely on. That leaves out slivers narrower than the tolerance that
+        /// lie in the plane of none of their neighbors: where an earlier offset's contouring lays a sliver along a
+        /// crease, its corners may each lie the tolerance off, and its normal can then point nearly anywhere, and a
+        /// miter built on it juts out as a spike. Narrow faces in line with a neighbor are kept, such as the fans of
+        /// long, thin triangles flat faces are simplified into.
+        ///
+        /// Faces near a defect elsewhere are trusted here, since an edge's wedge only depends on its own two faces'
+        /// normals: a long triangle of such a fan can reach from a defect far away, and distrusting it would round
+        /// off the whole length of a sharp edge. Corners, which do depend on their vertex, also leave out any face
+        /// the distance field distrusts.
+        var trusted: [Bool]
 
         var faceOfDirected: [UInt64: Int] = [:]
         var fan: [[Int]]
@@ -43,13 +49,7 @@ extension OffsetCorners {
             vertices = field.vertices
             faceCount = field.faceCount
             n = (0..<faceCount).map { field.faceNormal($0) * sign }
-            trusted = (0..<faceCount).map { index in
-                guard !field.isSuspect(index) else { return false }
-                let f = field.face(index)
-                let a = field.vertices[f.0], b = field.vertices[f.1], c = field.vertices[f.2]
-                let longest = max((b - a).magnitude, (c - b).magnitude, (a - c).magnitude)
-                return longest > 0 && ((b - a) × (c - a)).magnitude / longest >= tolerance
-            }
+            trusted = []
             fan = [[Int]](repeating: [], count: vertices.count)
             cornersOf = [Corner](repeating: Corner(), count: vertices.count)
             cutsAt = [[Cut]](repeating: [], count: vertices.count)
@@ -60,6 +60,7 @@ extension OffsetCorners {
 
         mutating func build() -> (grown: [Piece], removed: [Piece]) {
             mapEdges()
+            findTrustedFaces()
             classifyEdges()
             findCorners()
             gatherEdgeEnds()
@@ -85,6 +86,20 @@ extension OffsetCorners {
             }
         }
 
+        mutating func findTrustedFaces() {
+            trusted = (0..<faceCount).map { index in
+                let c = corners(index)
+                let a = vertices[c[0]], b = vertices[c[1]], d = vertices[c[2]]
+                let longest = max((b - a).magnitude, (d - b).magnitude, (a - d).magnitude)
+                guard longest > 0, ((b - a) × (d - a)).magnitude / longest < tolerance else { return true }
+                // A sliver: trusted only when a neighbor lies nearly in its plane
+                return (0..<3).contains { k in
+                    guard let neighbor = faceOfDirected[directedKey(c[(k + 1) % 3], c[k])] else { return false }
+                    return n[index] ⋅ n[neighbor] > 0.9
+                }
+            }
+        }
+
         /// Edge convexity toward the offset
         mutating func classifyEdges() {
             for face in 0..<faceCount {
@@ -95,7 +110,10 @@ extension OffsetCorners {
                     let side = n[face] ⋅ (vertices[opposite(other, a, b)] - vertices[a])
                     let scale = 1e-9 * (vertices[b] - vertices[a]).magnitude
                     if side > scale { concave.insert(MeshDistanceField.edgeKey(a, b)) }
-                    if side < -scale && trusted[face] && trusted[other] { convexEdges.append((a, b, face, other)) }
+                    // A fold, where the faces turn back on each other, is a defect rather than an edge to join around
+                    if side < -scale && trusted[face] && trusted[other] && n[face] ⋅ n[other] >= -0.95 {
+                        convexEdges.append((a, b, face, other))
+                    }
                 }
             }
         }
@@ -159,7 +177,7 @@ extension OffsetCorners {
                 guard closed, corner.ring.count == fan[v].count else { continue }
                 var anyConcave = false, defective = false
                 for f in corner.ring {
-                    if !trusted[f] { defective = true }
+                    if !trusted[f] || field.isSuspect(f) { defective = true }
                     let c = corners(f)
                     for k in 0..<3 where c[k] == v || c[(k + 1) % 3] == v {
                         if concave.contains(MeshDistanceField.edgeKey(c[k], c[(k + 1) % 3])) { anyConcave = true }
