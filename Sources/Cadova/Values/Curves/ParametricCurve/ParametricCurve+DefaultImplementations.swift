@@ -13,24 +13,7 @@ public extension ParametricCurve {
     /// - Returns: An array of `CurveSample`s with accumulated distances.
     ///
     func samples(segmentation: Segmentation) -> [CurveSample<V>] {
-        let params = _parameterSamples(in: domain, segmentation: segmentation)
-        var samples: [CurveSample<V>] = []
-        samples.reserveCapacity(params.count)
-
-        var previousPosition: V? = nil
-        var accumulatedDistance = 0.0
-        let derivative = derivativeView
-
-        for u in params {
-            let position = point(at: u)
-            let tangent = derivative.tangent(at: u)
-            if let previousPosition {
-                accumulatedDistance += (position - previousPosition).magnitude
-            }
-            samples.append(CurveSample(u: u, position: position, tangent: tangent, distance: accumulatedDistance))
-            previousPosition = position
-        }
-        return samples
+        samples(atParameters: _parameterSamples(in: domain, segmentation: segmentation))
     }
 
     func length(segmentation: Segmentation) -> Double {
@@ -95,7 +78,28 @@ public extension ParametricCurve {
     }
 }
 
-fileprivate extension ParametricCurve {
+internal extension ParametricCurve {
+    /// Samples at the given parameters, with distances accumulated from the first.
+    func samples(atParameters params: [Double]) -> [CurveSample<V>] {
+        var samples: [CurveSample<V>] = []
+        samples.reserveCapacity(params.count)
+
+        var previousPosition: V? = nil
+        var accumulatedDistance = 0.0
+        let derivative = derivativeView
+
+        for u in params {
+            let position = point(at: u)
+            let tangent = derivative.tangent(at: u)
+            if let previousPosition {
+                accumulatedDistance += (position - previousPosition).magnitude
+            }
+            samples.append(CurveSample(u: u, position: position, tangent: tangent, distance: accumulatedDistance))
+            previousPosition = position
+        }
+        return samples
+    }
+
     func _centralDifference(at u: Double, h: Double, axis: Axis) -> Double {
         let up = u + h
         let um = u - h
@@ -107,8 +111,7 @@ fileprivate extension ParametricCurve {
     /// Returns a sorted array of parameter values for sampling over `interval`.
     ///
     /// For `.fixed(count)`, returns `count+1` uniformly spaced values including both endpoints.
-    /// For `.adaptive(_, minSize)`, recursively subdivides based on a chord-length criterion
-    /// identical to the Bezier implementation: stop if `(pa→pm + pm→pb) < minSize` or `< 0.001`.
+    /// For `.adaptive`, places samples where the curve turns, following the segmentation's minimum angle and size.
     func _parameterSamples(in interval: ClosedRange<Double>, segmentation: Segmentation) -> [Double] {
         switch segmentation {
         case .fixed(let count):
@@ -118,29 +121,41 @@ fileprivate extension ParametricCurve {
             return (0...steps).map { i in
                 interval.lowerBound + Double(i) * (span / Double(steps))
             }
-        case .adaptive(_, let minSize):
-            var params = Set<Double>()
-            func subdivide(_ a: Double, _ b: Double) {
-                let mid = 0.5 * (a + b)
-                let pa = point(at: a)
-                let pm = point(at: mid)
-                let pb = point(at: b)
-                let d = (pa - pm).magnitude + (pm - pb).magnitude
-                if d < minSize || d < 0.001 {
-                    params.insert(a)
-                    params.insert(b)
-                } else {
-                    subdivide(a, mid)
-                    subdivide(mid, b)
-                }
-            }
-            subdivide(interval.lowerBound, interval.upperBound)
-            let sorted = params.sorted()
-            // Ensure both endpoints are included exactly once
-            var result = sorted
-            if result.first != interval.lowerBound { result.insert(interval.lowerBound, at: 0) }
-            if result.last != interval.upperBound { result.append(interval.upperBound) }
-            return result
+        case .adaptive(let minAngle, let minSize):
+            return adaptiveParameterSamples(in: interval, minAngle: minAngle, minSize: minSize)
         }
+    }
+}
+
+/// A curve made of pieces that meet at known parameters, such as the curves of a path, the knots of a spline or the
+/// points an interpolating curve passes through. Adaptive sampling always samples these parameters, since the curve
+/// can turn sharply there, and probes each piece on its own, so nothing within one goes unseen.
+internal protocol ParametricCurveBreakpoints {
+    /// The parameters where the curve's pieces meet, in increasing order, or none if the curve doesn't know, such
+    /// as a slice of a curve that doesn't.
+    var breakpoints: [Double] { get }
+}
+
+internal extension ParametricCurve {
+    /// Parameters sampling the curve adaptively, following the segmentation's minimum angle and size.
+    func adaptiveParameterSamples(in interval: ClosedRange<Double>, minAngle: Angle, minSize: Double) -> [Double] {
+        guard let breakpoints = (self as? any ParametricCurveBreakpoints)?.breakpoints, !breakpoints.isEmpty else {
+            // A curve that doesn't say where its pieces meet is probed as finely as it would be measured.
+            return Segmentation.adaptiveSamples(
+                in: interval, minAngle: minAngle, minSize: minSize,
+                probeCount: max(4, sampleCountForLengthApproximation)
+            ) { point(at: $0) }.map(\.parameter)
+        }
+
+        let bounds = [interval.lowerBound]
+            + breakpoints.filter { $0 > interval.lowerBound && $0 < interval.upperBound }
+            + [interval.upperBound]
+        var parameters = [interval.lowerBound]
+        for (a, b) in bounds.paired() where b > a {
+            parameters += Segmentation.adaptiveSamples(in: a...b, minAngle: minAngle, minSize: minSize) {
+                point(at: $0)
+            }.dropFirst().map(\.parameter)
+        }
+        return parameters
     }
 }

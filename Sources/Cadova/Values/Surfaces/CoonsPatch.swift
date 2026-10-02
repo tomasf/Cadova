@@ -75,7 +75,16 @@ public struct CoonsPatch<
         }
     }
 
+    /// Returns the point on the surface at the given parameters.
+    ///
+    /// - Parameter uv: The surface parameters, `u` (`x`) and `v` (`y`), each spanning `0...1` across the patch.
+    ///   Outside that range, the patch continues past its edges along its tangent planes.
+    /// - Returns: The point on the patch.
     public func point(at uv: Vector2D) -> Vector3D {
+        point(at: uv, extendingPast: pointWithinBoundary)
+    }
+
+    private func pointWithinBoundary(at uv: Vector2D) -> Vector3D {
         let u = uv.x, v = uv.y
 
         // The loop runs edge1 → edge2 → edge3 → edge4, so in (u, v) terms edge1 is v = 0 and edge2 is u = 1,

@@ -71,13 +71,31 @@ struct InterpolatingCurveTests {
         #expect(points.last! ≈ Self.openCurve.point(at: 2.75))
     }
 
-    @Test func `adaptive sampling keeps every segment below the requested size`() {
+    @Test func `adaptive sampling only splits where the curve turns`() {
+        // Like a circle, a stretch is split only while it's both longer than the minimum size and turns by more
+        // than the minimum angle. So where two neighbouring segments are both long, the curve turns between them
+        // by about the minimum angle at most.
         let points = Self.openCurve.points(segmentation: .adaptive(minAngle: 5°, minSize: 0.5))
         #expect(points.first! ≈ Self.openPoints.first!)
         #expect(points.last! ≈ Self.openPoints.last!)
-        for (a, b) in points.paired() {
-            #expect(a.distance(to: b) < 0.5)
+        for index in points.indices.dropFirst().dropLast() {
+            let a = points[index - 1], b = points[index], c = points[index + 1]
+            guard a.distance(to: b) > 0.5, b.distance(to: c) > 0.5 else { continue }
+            let turn: Angle = acos(((b - a).normalized ⋅ (c - b).normalized).clamped(to: -1...1))
+            #expect(turn <= 5° * 1.25)
         }
+    }
+
+    @Test func `adaptive sampling doesn't split a straight curve between its points`() {
+        // The points the curve passes through are always sampled, but nothing between them on a straight curve.
+        let straight = InterpolatingCurve<Vector2D>(through: [[0, 0], [10, 0], [20, 0], [30, 0]])
+        #expect(straight.points(segmentation: .adaptive(minAngle: 2°, minSize: 0.1)).count == 4)
+    }
+
+    @Test func `adaptive sampling follows the minimum angle`() {
+        let coarse = Self.openCurve.points(segmentation: .adaptive(minAngle: 10°, minSize: 0.01)).count
+        let fine = Self.openCurve.points(segmentation: .adaptive(minAngle: 2°, minSize: 0.01)).count
+        #expect(fine > coarse * 3)
     }
 
     @Test func `transforming a curve transforms its points`() {

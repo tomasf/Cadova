@@ -35,3 +35,11 @@ public struct Subcurve<Base: ParametricCurve>: ParametricCurve {
         .init(base: base.mapPoints(transformer), domain: domain)
     }
 }
+
+extension Subcurve: ParametricCurveBreakpoints {
+    // The base curve's own, within this part of it, so a slice of a path is still sampled at its joints.
+    var breakpoints: [Double] {
+        guard let base = base as? any ParametricCurveBreakpoints else { return [] }
+        return base.breakpoints.filter { domain.contains($0) }
+    }
+}

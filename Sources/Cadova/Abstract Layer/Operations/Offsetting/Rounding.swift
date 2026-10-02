@@ -176,7 +176,7 @@ private struct RoundedOnBothSides: Geometry3D {
         @Environment(\.miterLimit) var miterLimit
         let cellSize = segmentation.offsetCellSize(radius: min(outside, inside))
         let tolerance = cellSize / 10
-        CachedConcreteTransformer(body: source, name: "Cadova.RoundedOnBothSides", parameters: outside, inside, cellSize, miterLimit) { manifold in
+        CachedConcreteTransformer(body: source, name: "Cadova.RoundedOnBothSides", parameters: outside, inside, segmentation, miterLimit) { manifold in
             guard let sourceField = MeshOffset.distanceField(for: manifold) else { return manifold }
             // The source eroded with sharp joins, exact where the source is flat, straight from the contour
             let erodedMesh = MeshOffset(field: sourceField, amount: -outside, style: .miter, miterLimit: miterLimit, cellSize: cellSize, tolerance: tolerance).run()
@@ -187,14 +187,15 @@ private struct RoundedOnBothSides: Geometry3D {
             // curved parts are contoured at half the cell size, which leaves them off by about a quarter as much, so
             // the margin keeping its term from winning there can be small
             let dilatedCell = cellSize / 2
-            let dilated = MeshOffset(field: erodedField, amount: outside + inside, cellSize: dilatedCell, tolerance: dilatedCell / 10).run()
+            let dilated = MeshOffset(field: erodedField, amount: outside + inside, cellSize: dilatedCell, tolerance: dilatedCell / 10, segmentation: segmentation).run()
             guard !dilated.faces.isEmpty else { return .empty }
             let dilatedField = MeshDistanceField(vertices: dilated.vertices, faces: dilated.faces)
             // Contouring a surface of radius R with cells of size h leaves it off by up to about h² / 8R, and measured,
             // by up to about twice that: the margin is twice that again
             let margin = dilatedCell * dilatedCell / (2 * (outside + inside))
             let rounding = RoundingField(eroded: erodedField, dilated: dilatedField, outside: outside, inside: inside, margin: margin)
-            return try MeshOffset.manifold(from: MeshOffset(rounding: rounding, dilated: dilatedField, cellSize: cellSize, tolerance: tolerance).run())
+            return try MeshOffset.manifold(from: MeshOffset(rounding: rounding, dilated: dilatedField, cellSize: cellSize, tolerance: tolerance, segmentation: segmentation).run())
         }
+        .simplified(maximumThreshold: MeshOffset.simplificationThreshold(forTolerance: tolerance))
     }
 }

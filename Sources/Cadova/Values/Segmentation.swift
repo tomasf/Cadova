@@ -85,6 +85,99 @@ public enum Segmentation: Sendable, Hashable, Codable {
 }
 
 internal extension Segmentation {
+    /// How many pieces a stretch of curve needs, judged from points sampled evenly across it by parameter.
+    ///
+    /// Adaptive segmentation splits a stretch only while it's both longer than `minSize` and turns by more than
+    /// `minAngle`, the same rule `segmentCount(circleRadius:)` follows for circles, so a straight stretch is never
+    /// split however long it is.
+    static func adaptivePieceCount<V: Vector>(across samples: [V], minAngle: Angle, minSize: Double) -> Int {
+        let (length, turn) = lengthAndTurn(across: samples)
+        return adaptivePieceCount(length: length, turn: turn, minAngle: minAngle, minSize: minSize)
+    }
+
+    /// How many pieces a stretch of the given length, turning through the given angle in radians, needs.
+    static func adaptivePieceCount(length: Double, turn: Double, minAngle: Angle, minSize: Double) -> Int {
+        guard length > 1e-9 else { return 1 }
+        let byLength = minSize > 0 ? (length / minSize).rounded(.up) : .infinity
+        let byAngle = minAngle.radians > 0 ? (turn / minAngle.radians).rounded(.up) : (turn > 1e-9 ? .infinity : 1)
+        let pieces = min(byLength, byAngle)
+        guard pieces.isFinite else { return maximumPiecesPerStep }
+        return Int(pieces.clamped(to: 1...Double(maximumPiecesPerStep)))
+    }
+
+    /// The length of a polyline through the samples, and the angle in radians it turns through, scaled up to the
+    /// arc it stands in for: a polyline of `n` chords across an arc only turns at its `n − 1` inner points, through
+    /// `(n − 1) / n` of the arc's angle.
+    static func lengthAndTurn<V: Vector>(across samples: [V]) -> (length: Double, turn: Double) {
+        var length = 0.0
+        var turn = 0.0
+        var previousChord: V? = nil
+        for index in samples.indices.dropLast() {
+            let chord = samples[index + 1] - samples[index]
+            let chordLength = chord.magnitude
+            length += chordLength
+            // A chord of no length, at a cusp or where a surface collapses to a point, has no direction to turn from.
+            guard chordLength > 1e-12 else { continue }
+            if let previousChord {
+                turn += Self.angle(between: previousChord, and: chord)
+            }
+            previousChord = chord
+        }
+        let chordCount = Double(samples.count - 1)
+        return (length, chordCount > 1 ? turn * chordCount / (chordCount - 1) : 0)
+    }
+
+    /// The angle between two vectors, in radians.
+    static func angle<V: Vector>(between a: V, and b: V) -> Double {
+        Foundation.acos(((a ⋅ b) / (a.magnitude * b.magnitude)).clamped(to: -1...1))
+    }
+
+    /// Splits a stretch into at most this many pieces at a time, before looking at each piece again.
+    static var maximumPiecesPerStep: Int { 64 }
+
+    /// Samples a curve adaptively: as few points as the rule in `adaptivePieceCount(across:minAngle:minSize:)` allows,
+    /// placed where the curve turns.
+    ///
+    /// - Parameters:
+    ///   - range: The parameter range to sample.
+    ///   - probeCount: How many chords to probe the whole range with before deciding how to split it. A curve made of
+    ///     several spans, such as a spline, should probe each of them, or a feature between two probes goes unseen.
+    ///     Probing doesn't add points to the result.
+    ///   - point: The curve's point at a parameter.
+    /// - Returns: The parameters and points, starting at the range's start and ending at its end.
+    static func adaptiveSamples<V: Vector>(
+        in range: ClosedRange<Double>,
+        minAngle: Angle,
+        minSize: Double,
+        probeCount: Int = 4,
+        point: (Double) -> V
+    ) -> [(parameter: Double, point: V)] {
+        let start = point(range.lowerBound)
+        var samples: [(parameter: Double, point: V)] = [(range.lowerBound, start)]
+
+        func sample(from a: Double, _ pa: V, to b: Double, _ pb: V, probeCount: Int, depth: Int) {
+            let probes = [pa] + (1..<probeCount).map { point(a + (b - a) * Double($0) / Double(probeCount)) } + [pb]
+            // Past this depth the parameter range has been split far finer than anything worth drawing, which only
+            // happens at a cusp with no minimum size to stop at.
+            let pieces = depth < 24 ? adaptivePieceCount(across: probes, minAngle: minAngle, minSize: minSize) : 1
+            guard pieces > 1 else {
+                samples.append((b, pb))
+                return
+            }
+
+            var previous = (a, pa)
+            for index in 1...pieces {
+                let t = index == pieces ? b : a + (b - a) * Double(index) / Double(pieces)
+                let pt = index == pieces ? pb : point(t)
+                sample(from: previous.0, previous.1, to: t, pt, probeCount: max(4, probeCount / pieces), depth: depth + 1)
+                previous = (t, pt)
+            }
+        }
+
+        sample(from: range.lowerBound, start, to: range.upperBound, point(range.upperBound), probeCount: max(probeCount, 2), depth: 0)
+        return samples
+    }
+
     /// The surface deviation this segmentation already accepts everywhere else, used as the budget
     /// for deciding whether a loft needs another ring.
     ///

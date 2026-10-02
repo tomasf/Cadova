@@ -65,10 +65,24 @@ public struct InterpolatingSurface: ParametricSurface {
 
     /// Returns the point on the surface at the given parameters.
     ///
-    /// - Parameter uv: The surface parameters, with `u` (`x`) within ``uDomain`` and `v` (`y`) within
-    ///   ``vDomain``.
+    /// - Parameter uv: The surface parameters, `u` (`x`) and `v` (`y`). Outside ``uDomain`` and ``vDomain``,
+    ///   the surface continues past its edges along its tangent planes, except in a direction where it's closed,
+    ///   where it wraps around instead.
     /// - Returns: The point on the surface.
     public func point(at uv: Vector2D) -> Vector3D {
-        InterpolatingCurve(through: rows.map { $0.point(at: uv.y) }, closed: isClosedAcrossRows).point(at: uv.x)
+        // A closed direction has no edge to continue past, so it wraps around to the matching point instead.
+        let u = isClosedAcrossRows ? uv.x.wrapped(into: uDomain) : uv.x
+        let v = rows.allSatisfy(\.isClosed) ? uv.y.wrapped(into: vDomain) : uv.y
+
+        return point(at: Vector2D(u, v)) { uv in
+            InterpolatingCurve(through: rows.map { $0.point(at: uv.y) }, closed: isClosedAcrossRows).point(at: uv.x)
+        }
+    }
+}
+
+extension InterpolatingSurface: ParametricSurfacePieces {
+    // One piece between each pair of rows, and between each pair of points along a row.
+    var pieceCounts: (u: Int, v: Int) {
+        (max(Int(uDomain.length.rounded()), 1), max(Int(vDomain.length.rounded()), 1))
     }
 }

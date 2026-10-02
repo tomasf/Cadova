@@ -168,3 +168,10 @@ extension BezierPath: Transformable {
         )
     }
 }
+
+extension BezierPath: ParametricCurveBreakpoints {
+    // Where one curve of the path meets the next, at whole-number parameters.
+    var breakpoints: [Double] {
+        (0...curves.count).map(Double.init)
+    }
+}

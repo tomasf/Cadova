@@ -219,12 +219,23 @@ internal extension MeshData {
 }
 
 internal extension [Vector3D] {
-    // Flatten an array of coplanar 3D points into 2D. The output has the same ordering as the input.
+    // Flatten an array of coplanar 3D points into 2D. The output has the same ordering as the input, and a polygon
+    // that runs counterclockwise around its normal (by the right-hand rule) stays counterclockwise.
     func flattenCoplanar() -> [Vector2D] {
         precondition(count >= 3)
 
-        let v1 = (self[1] - self[0]).normalized
-        let v2 = ((self[1] - self[0]) × (self[2] - self[0])).normalized × v1
+        // The plane comes from the whole polygon (Newell's method), not from its first three points, which can be
+        // collinear, such as along a straight edge, or turn the wrong way at a concave corner.
+        let normal = indices.reduce(Vector3D.zero) { sum, index in
+            sum + self[index] × self[(index + 1) % count]
+        }.normalized
+
+        // Any direction in the plane works as the first axis. Start from the coordinate axis least aligned with the
+        // normal, so the cross product is well away from zero.
+        let axis: Vector3D = abs(normal.x) <= abs(normal.y) && abs(normal.x) <= abs(normal.z) ? [1, 0, 0]
+            : abs(normal.y) <= abs(normal.z) ? [0, 1, 0] : [0, 0, 1]
+        let v1 = (axis × normal).normalized
+        let v2 = normal × v1
 
         return map { Vector2D(
             ($0 - self[0]) ⋅ v1,

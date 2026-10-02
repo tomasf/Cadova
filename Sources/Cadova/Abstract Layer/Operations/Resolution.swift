@@ -59,13 +59,24 @@ public extension Geometry {
     }
 }
 
+internal extension Geometry {
+    /// Simplified by the environment's simplification threshold, but never by more than the given maximum. For
+    /// operations whose own accuracy is finer than the threshold: simplifying can move the surface several times the
+    /// threshold, since each collapse is only checked against the mesh the previous ones left.
+    func simplified(maximumThreshold: Double) -> D.Geometry {
+        ThresholdSimplified(source: self, maximumThreshold: maximumThreshold)
+    }
+}
+
 private struct ThresholdSimplified<D: Dimensionality>: Geometry {
     let source: D.Geometry
+    var maximumThreshold: Double = .infinity
 
     var body: any Geometry<D> {
         @Environment(\.simplificationThreshold) var threshold
-        if threshold > .ulpOfOne {
-            source.simplified(threshold: threshold)
+        let effectiveThreshold = min(threshold, maximumThreshold)
+        if effectiveThreshold > .ulpOfOne {
+            source.simplified(threshold: effectiveThreshold)
         } else {
             source
         }

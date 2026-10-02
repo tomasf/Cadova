@@ -344,4 +344,27 @@ struct Offset3DTests {
         let flat = ([[1, 0, 1], [-1, 0, 1], [0, 0, 1]] as [Vector3D]).map(\.normalized)
         #expect(OffsetCorners.coneSides(of: flat, around: [0, 0, 1]) == nil)
     }
+
+    @Test func `the same solid offsets the same, whatever order its triangles come in`() throws {
+        // Manifold orders a boolean's triangles by the IDs of the meshes they came from, which are handed out as
+        // meshes are created. Evaluated concurrently, the same wedge comes out either way round.
+        let big = { Manifold.cube(size: Vector3D(30, 30, 30)).transform(Transform3D.rotation(z: 30°).translated(x: 10)) }
+        let small = { Manifold.cube(size: Vector3D(20, 20, 20)) }
+        let smallFirst = small(), bigSecond = big()
+        let one: Manifold = .boolean(.difference, with: [smallFirst, bigSecond])
+        let bigFirst = big(), smallSecond = small()
+        let other: Manifold = .boolean(.difference, with: [smallSecond, bigFirst])
+        // The meshes are the same apart from the order of their triangles
+        #expect(one.meshGL().triangles.map(\.a) != other.meshGL().triangles.map(\.a))
+
+        let segmentation = Segmentation.adaptive(minAngle: 6°, minSize: 0.5)
+        let cellSize = segmentation.offsetCellSize(radius: 2)
+        let results = try [one, other].map { wedge in
+            let field = try #require(MeshOffset.distanceField(for: wedge))
+            return MeshOffset(field: field, amount: 2, style: .square, cellSize: cellSize, tolerance: cellSize / 10,
+                              segmentation: segmentation).run()
+        }
+        #expect(results[0].vertices == results[1].vertices)
+        #expect(results[0].faces.map { [$0.0, $0.1, $0.2] } == results[1].faces.map { [$0.0, $0.1, $0.2] })
+    }
 }

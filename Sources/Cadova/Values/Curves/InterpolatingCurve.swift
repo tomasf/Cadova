@@ -127,26 +127,8 @@ public struct InterpolatingCurve<V: Vector>: ParametricCurve, Sendable, Hashable
                 point(at: span.lowerBound + span.length * Double(i) / Double(n))
             }
 
-        case .adaptive(_, let minSize):
-            var out: [V] = []
-            func subdivide(_ a: Double, _ b: Double, _ pa: V, _ pb: V) {
-                let mid = 0.5 * (a + b)
-                let pm = point(at: mid)
-
-                let chord = (pb - pa).magnitude
-                let approx = (pm - pa).magnitude + (pb - pm).magnitude
-                if max(chord, approx - chord) < minSize {
-                    out.append(pa)
-                } else {
-                    subdivide(a, mid, pa, pm)
-                    subdivide(mid, b, pm, pb)
-                }
-            }
-
-            let pa = point(at: span.lowerBound), pb = point(at: span.upperBound)
-            subdivide(span.lowerBound, span.upperBound, pa, pb)
-            out.append(pb)
-            return out
+        case .adaptive(let minAngle, let minSize):
+            return adaptiveParameterSamples(in: span, minAngle: minAngle, minSize: minSize).map { point(at: $0) }
         }
     }
 
@@ -214,5 +196,12 @@ internal struct InterpolatingCurveDerivativeView<V: Vector>: CurveDerivativeView
     /// of normalizing that zero.
     func tangent(at u: Double) -> Direction<V.D> {
         curve.finiteDifferenceTangent(at: u, baseStep: 1e-6)
+    }
+}
+
+extension InterpolatingCurve: ParametricCurveBreakpoints {
+    // The points the curve passes through, at whole-number parameters.
+    var breakpoints: [Double] {
+        (0..<points.count).map(Double.init)
     }
 }

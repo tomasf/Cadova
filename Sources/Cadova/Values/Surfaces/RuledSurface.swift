@@ -38,7 +38,14 @@ public struct RuledSurface<First: ParametricCurve<Vector3D>, Second: ParametricC
         self.second = ArcLengthParameterization(second.curve3D)
     }
 
+    /// Returns the point on the surface at the given parameters.
+    ///
+    /// - Parameter uv: The surface parameters, `u` (`x`) and `v` (`y`), each spanning `0...1` across the surface.
+    ///   Outside that range, the surface continues past its edges along its tangent planes.
+    /// - Returns: The point on the surface.
     public func point(at uv: Vector2D) -> Vector3D {
-        first.point(atFraction: uv.x).point(alongLineTo: second.point(atFraction: uv.x), at: uv.y)
+        point(at: uv) { uv in
+            first.point(atFraction: uv.x).point(alongLineTo: second.point(atFraction: uv.x), at: uv.y)
+        }
     }
 }

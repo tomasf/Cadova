@@ -50,16 +50,19 @@ public struct BezierPatch: ParametricSurface {
     ///
     /// `u` runs across the rows of control points and `v` along each row.
     ///
-    /// - Parameter uv: The surface parameters, with both `u` (`x`) and `v` (`y`) in `0...1`.
+    /// - Parameter uv: The surface parameters, `u` (`x`) and `v` (`y`), each spanning `0...1` across the patch.
+    ///   Outside that range, the patch continues past its edges along its tangent planes.
     /// - Returns: The point on the patch.
     public func point(at uv: Vector2D) -> Vector3D {
-        // V direction (columns)
-        let intermediatePoints: [Vector3D] = controlPoints.map { row in
-            BezierCurve(controlPoints: row).point(at: uv.y)
-        }
+        point(at: uv) { uv in
+            // V direction (columns)
+            let intermediatePoints: [Vector3D] = controlPoints.map { row in
+                BezierCurve(controlPoints: row).point(at: uv.y)
+            }
 
-        // U direction (rows)
-        return BezierCurve(controlPoints: intermediatePoints).point(at: uv.x)
+            // U direction (rows)
+            return BezierCurve(controlPoints: intermediatePoints).point(at: uv.x)
+        }
     }
 
 }
@@ -78,5 +81,12 @@ extension BezierPatch: CustomDebugStringConvertible {
         controlPoints
             .map { row in row.map { $0.debugDescription }.joined(separator: ", ") }
             .joined(separator: "\n")
+    }
+}
+
+extension BezierPatch: ParametricSurfacePieces {
+    // A patch bends at most once per degree in each direction.
+    var pieceCounts: (u: Int, v: Int) {
+        (max(controlPoints.count - 1, 1), max(controlPoints[0].count - 1, 1))
     }
 }

@@ -18,10 +18,14 @@ public struct RemappedSurface<Base: ParametricSurface>: ParametricSurface {
     }
 
     public func point(at uv: Vector2D) -> Vector3D {
-        base.point(atFraction: Vector2D(
-            (uv.x - uDomain.lowerBound) / uDomain.length,
-            (uv.y - vDomain.lowerBound) / vDomain.length
-        ))
+        // Extended here rather than left to the base, which might be a surface of your own that only handles its
+        // domain.
+        point(at: uv) { uv in
+            base.point(atFraction: Vector2D(
+                (uv.x - uDomain.lowerBound) / uDomain.length,
+                (uv.y - vDomain.lowerBound) / vDomain.length
+            ))
+        }
     }
 }
 
@@ -48,5 +52,11 @@ public extension ParametricSurface {
     /// - Returns: The surface, addressed by the new domain.
     func remapped(u: ClosedRange<Double>, v: ClosedRange<Double>) -> RemappedSurface<Self> {
         RemappedSurface(base: self, uDomain: u, vDomain: v)
+    }
+}
+
+extension RemappedSurface: ParametricSurfacePieces {
+    var pieceCounts: (u: Int, v: Int) {
+        base.adaptivePieceCounts
     }
 }
