@@ -14,6 +14,11 @@ extension OffsetCorners {
         let faceCount: Int
         /// Normals toward the side the offset grows into
         let n: [Vector3D]
+        /// Faces whose normals sharp joins can rely on. Besides the faces the distance field distrusts, that leaves
+        /// out faces narrower than the tolerance: their corners may each lie the tolerance off, as where an earlier
+        /// offset's contouring lays a sliver along a crease, and their normals can then point anywhere. A miter built
+        /// on such a normal juts out as a spike.
+        let trusted: [Bool]
 
         var faceOfDirected: [UInt64: Int] = [:]
         var fan: [[Int]]
@@ -38,6 +43,13 @@ extension OffsetCorners {
             vertices = field.vertices
             faceCount = field.faceCount
             n = (0..<faceCount).map { field.faceNormal($0) * sign }
+            trusted = (0..<faceCount).map { index in
+                guard !field.isSuspect(index) else { return false }
+                let f = field.face(index)
+                let a = field.vertices[f.0], b = field.vertices[f.1], c = field.vertices[f.2]
+                let longest = max((b - a).magnitude, (c - b).magnitude, (a - c).magnitude)
+                return longest > 0 && ((b - a) × (c - a)).magnitude / longest >= tolerance
+            }
             fan = [[Int]](repeating: [], count: vertices.count)
             cornersOf = [Corner](repeating: Corner(), count: vertices.count)
             cutsAt = [[Cut]](repeating: [], count: vertices.count)
@@ -83,7 +95,7 @@ extension OffsetCorners {
                     let side = n[face] ⋅ (vertices[opposite(other, a, b)] - vertices[a])
                     let scale = 1e-9 * (vertices[b] - vertices[a]).magnitude
                     if side > scale { concave.insert(MeshDistanceField.edgeKey(a, b)) }
-                    if side < -scale && !field.isSuspect(face) && !field.isSuspect(other) { convexEdges.append((a, b, face, other)) }
+                    if side < -scale && trusted[face] && trusted[other] { convexEdges.append((a, b, face, other)) }
                 }
             }
         }
@@ -147,7 +159,7 @@ extension OffsetCorners {
                 guard closed, corner.ring.count == fan[v].count else { continue }
                 var anyConcave = false, defective = false
                 for f in corner.ring {
-                    if field.isSuspect(f) { defective = true }
+                    if !trusted[f] { defective = true }
                     let c = corners(f)
                     for k in 0..<3 where c[k] == v || c[(k + 1) % 3] == v {
                         if concave.contains(MeshDistanceField.edgeKey(c[k], c[(k + 1) % 3])) { anyConcave = true }
