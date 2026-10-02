@@ -6,9 +6,17 @@ struct SVGDataProvider: OutputDataProvider {
     let options: ModelOptions
     let fileExtension = "svg"
 
+    /// The model flipped into SVG's coordinates, where Y points down
+    private var outputNode: GeometryNode<D2> {
+        GeometryNode.transform(result.node, transform: .scaling(x: 1, y: -1))
+    }
+
+    func evaluate(context: EvaluationContext) async throws {
+        _ = try await context.result(for: outputNode)
+    }
+
     func generateOutput(context: EvaluationContext) async throws -> Data {
-        let node = GeometryNode.transform(result.node, transform: .scaling(x: 1, y: -1))
-        let nodeResult = try await context.result(for: node)
+        let nodeResult = try await context.result(for: outputNode)
 
         let bounds = BoundingBox2D(nodeResult.concrete.bounds)
         let shapePoints = nodeResult.concrete.polygons()

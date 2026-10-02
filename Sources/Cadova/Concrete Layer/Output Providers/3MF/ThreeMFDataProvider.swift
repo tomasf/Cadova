@@ -61,6 +61,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
         }
     }
 
+    func evaluate(context: EvaluationContext) async throws {
+        _ = try await resolvedParts(context: context)
+    }
+
     /// Each part's file-facing identifier, matching exactly what `write(to:context:)` puts in each
     /// 3MF `<item partnumber="...">` — shared so a LiveLink push's part IDs agree with what ends up
     /// on disk moments later, letting a receiver key persistent per-part state (visibility,

@@ -1,6 +1,11 @@
 import Foundation
 
 protocol OutputDataProvider: Sendable {
+    /// Evaluates the geometry the output is made from, so a build can time evaluation, usually its
+    /// longest step, on its own. The results stay in the context's cache, where generating the output
+    /// and pushing it to LiveLink find them afterwards.
+    func evaluate(context: EvaluationContext) async throws
+
     func generateOutput(context: EvaluationContext) async throws -> Data
     func writeOutput(to url: URL, context: EvaluationContext) async throws
 
@@ -29,6 +34,8 @@ extension OutputDataProvider {
         try await generateOutput(context: context).write(to: url, options: .atomic)
     }
 
+    /// Nothing to evaluate up front: the output does its own work when it's generated
+    func evaluate(context: EvaluationContext) async throws {}
     func pushToLiveLink(destination url: URL, context: EvaluationContext) async -> Bool { false }
     func isLikelyToReachLiveLinkListener(destination url: URL) -> Bool { false }
 }

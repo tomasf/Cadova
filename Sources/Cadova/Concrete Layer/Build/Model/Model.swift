@@ -142,16 +142,19 @@ public struct Model: Sendable, ModelBuildable {
 
         let provider: OutputDataProvider
         do {
+            // Building and evaluating are timed together: geometry the model reads while it's built, such as
+            // bounds for alignment, is evaluated during building, so how the time splits between the two depends
+            // on the model and says little on its own
+            let start = ContinuousClock.now
             let warnings: [BuildWarning]
-            (provider, warnings) = try await ContinuousClock().measure {
-                try await directives.build(with: options, in: environment, context: context)
-            } results: { duration, _ in
-                logger.debug("Built geometry node tree in \(duration)")
-            }
+            (provider, warnings) = try await directives.build(with: options, in: environment, context: context)
 
             for warning in warnings {
                 logger.warning("\(warning)")
             }
+
+            try await provider.evaluate(context: context)
+            logger.debug("Built and evaluated geometry in \(ContinuousClock.now - start)")
 
         } catch BuildError.noGeometry {
             // Deliberately not counted as a failure. A model that builds to nothing under some

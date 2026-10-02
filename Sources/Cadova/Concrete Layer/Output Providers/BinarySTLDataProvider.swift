@@ -12,15 +12,20 @@ struct BinarySTLDataProvider: OutputDataProvider {
     private static let headerLength = 80
     private static let triangleRecordLength = MemoryLayout<Float32>.size * 3 * 4 + MemoryLayout<UInt16>.size
 
-    func generateOutput(context: EvaluationContext) async throws -> Data {
+    /// The model and every part included in STL output, as one solid
+    private var outputNode: GeometryNode<D3> {
         let acceptedSemantics = options.includedPartSemantics(for: .stl)
         let solidParts = result.elements[PartCatalog.self].mergedOutputs
             .filter { acceptedSemantics.contains($0.key.semantic) }.map(\.value)
+        return GeometryNode.boolean(([result] + solidParts).map(\.node), type: .union)
+    }
 
-        let allParts = [result] + solidParts
-        let union = GeometryNode.boolean(allParts.map(\.node), type: .union)
+    func evaluate(context: EvaluationContext) async throws {
+        _ = try await context.result(for: outputNode)
+    }
 
-        let concrete = try await context.result(for: union).concrete
+    func generateOutput(context: EvaluationContext) async throws -> Data {
+        let concrete = try await context.result(for: outputNode).concrete
         let meshGL = concrete.meshGL()
 
         let metadata = options[Metadata.self]
