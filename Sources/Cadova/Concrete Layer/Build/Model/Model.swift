@@ -114,7 +114,19 @@ public struct Model: Sendable, ModelBuildable {
         URL directory: URL? = nil,
         filterPath: [String] = []
     ) async -> Int {
-        logger.info("Generating \"\(name)\"...")
+        await ModelLogger.$current.withValue(ModelLogger(modelName: name)) {
+            await generate(environment: inheritedEnvironment, context: context, options: inheritedOptions, URL: directory)
+        }
+    }
+
+    private func generate(
+        environment inheritedEnvironment: EnvironmentValues,
+        context: EvaluationContext,
+        options inheritedOptions: ModelOptions?,
+        URL directory: URL?
+    ) async -> Int {
+        let logger = ModelLogger.current
+        logger.generating()
 
         var directives = inheritedEnvironment.whileCurrent {
             self.directives()
@@ -150,21 +162,21 @@ public struct Model: Sendable, ModelBuildable {
             (provider, warnings) = try await directives.build(with: options, in: environment, context: context)
 
             for warning in warnings {
-                logger.warning("\(warning)")
+                logger.buildWarning(warning)
             }
 
             try await provider.evaluate(context: context)
-            logger.debug("Built and evaluated geometry in \(ContinuousClock.now - start)")
+            logger.builtAndEvaluated(in: ContinuousClock.now - start)
 
         } catch BuildError.noGeometry {
             // Deliberately not counted as a failure. A model that builds to nothing under some
             // condition is a reasonable thing to write, and deciding otherwise is a separate
             // argument from this one.
-            logger.error("No geometry for model \"\(name)\"")
+            logger.noGeometry()
             return 0
 
         } catch {
-            logger.error("Cadova caught an error while evaluating model \"\(name)\":\n\(error)\n")
+            logger.evaluationFailed(error)
             return 1
         }
 
@@ -175,10 +187,10 @@ public struct Model: Sendable, ModelBuildable {
         func write() async -> Int {
             do {
                 try await provider.writeOutput(to: url, context: context)
-                logger.info("Wrote model to \(url.path)")
+                logger.wrote(to: url)
                 return 0
             } catch {
-                logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+                logger.failedToSave(to: url, error)
                 return 1
             }
         }

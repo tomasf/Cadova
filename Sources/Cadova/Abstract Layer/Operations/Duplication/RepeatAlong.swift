@@ -107,7 +107,7 @@ extension Geometry {
         // used to drop the single instance that fits into a range too short for two.
         @Sendable func automaticSpacingPlacement(rangeLength: Double, instanceLength: Double) -> (count: Int, step: Double)? {
             guard rangeLength >= instanceLength else {
-                logger.warning("Repeating with a minimum spacing: geometry measuring \(instanceLength) doesn't fit in a range of \(rangeLength). No geometry produced.")
+                ModelLogger.current.warning("Repeating with a minimum spacing: geometry measuring \(instanceLength) doesn't fit in a range of \(rangeLength). No geometry produced.")
                 return nil
             }
 
@@ -116,7 +116,7 @@ extension Geometry {
                 // full slot of its own length plus the spacing.
                 let count = Int(floor(rangeLength / (instanceLength + minimumSpacing)))
                 guard count > 0 else {
-                    logger.warning("Repeating cyclically with a minimum spacing: a range of \(rangeLength) has no room for an instance and its trailing gap. No geometry produced.")
+                    ModelLogger.current.warning("Repeating cyclically with a minimum spacing: a range of \(rangeLength) has no room for an instance and its trailing gap. No geometry produced.")
                     return nil
                 }
                 return (count, rangeLength / Double(count))

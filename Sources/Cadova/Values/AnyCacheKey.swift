@@ -46,7 +46,7 @@ extension AnyCacheKey {
         try container.encode(content, forKey: .value)
 
         guard let mangledType, _typeByName(mangledType) != nil else {
-            logger.error("Encoding a mangled type name that can't be interpreted: \(mangledType ?? "nil")")
+            ModelLogger.current.error("Encoding a mangled type name that can't be interpreted: \(mangledType ?? "nil")")
             return
         }
     }

@@ -29,12 +29,12 @@ public extension Geometry2D {
         // both resolve to empty geometry with a warning, the way the primitives handle degenerate sizes.
         guard pitch > 0 else {
             if pitch == 0 {
-                logger.warning("""
+                ModelLogger.current.warning("""
                     A helix pitch of zero describes no turns at all. \
                     Sweeping along it results in empty geometry.
                     """)
             } else {
-                logger.warning("""
+                ModelLogger.current.warning("""
                     Helix pitch must be greater than zero, but was \(pitch); this sweep only builds \
                     right-handed helices. Flip the resulting geometry along X or Y to make a left-handed one. \
                     Sweeping along a negative pitch results in empty geometry.
@@ -44,7 +44,7 @@ public extension Geometry2D {
         }
 
         guard height > 0 else {
-            logger.warning("""
+            ModelLogger.current.warning("""
                 A helix height must be greater than zero, but was \(height). \
                 Sweeping along it results in empty geometry.
                 """)
@@ -58,7 +58,7 @@ public extension Geometry2D {
         // profile that caused it.
         @Sendable func hasSweepableRadius(_ outerRadius: Double) -> Bool {
             guard outerRadius > 0 else {
-                logger.warning("""
+                ModelLogger.current.warning("""
                     A helix profile must lie to the right of the Z axis, but this one reaches only \
                     x = \(outerRadius). Sweeping it along a helix results in empty geometry.
                     """)
