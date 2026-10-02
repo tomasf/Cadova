@@ -374,4 +374,39 @@ struct ExtendTests {
         #expect(bounds?.maximum.x ≈ 35)
         #expect(bounds?.size.x ≈ 40)
     }
+
+    // MARK: - Amounts and lengths at or below zero
+
+    // A 10 mm wide block with a 4 mm column on top, 20 mm tall in all, so which slab is removed shows in the volume
+    private static let stepped = Box(10).adding { Box(x: 4, y: 4, z: 10).translated(x: 3, y: 3, z: 10) }
+
+    @Test func `extending by zero leaves geometry unchanged`() async throws {
+        let volume = try await Self.stepped.extended(.z, by: 0, at: 8).measurements.volume
+        #expect(volume ≈ 1160)
+    }
+
+    @Test func `extending by a negative amount shortens the geometry there`() async throws {
+        // The slab from z 8 to 12 goes: the block keeps 0...8, and the column above 12 moves down to meet it
+        let shortened = Self.stepped.extended(.z, by: -4, at: 8)
+        let volume = try await shortened.measurements.volume
+        #expect(volume ≈ 928)
+        let bounds = try #require(try await shortened.bounds)
+        #expect(bounds.minimum.z ≈ 0)
+        #expect(bounds.maximum.z ≈ 16)
+
+        // With the top fixed, the slab lies below the plane instead: z 4 to 8
+        let topFixed = Self.stepped.extended(.z, by: -4, at: 8, alignment: .max)
+        let topFixedVolume = try await topFixed.measurements.volume
+        #expect(topFixedVolume ≈ 760)
+        let topFixedBounds = try #require(try await topFixed.bounds)
+        #expect(topFixedBounds.minimum.z ≈ 4)
+        #expect(topFixedBounds.maximum.z ≈ 20)
+    }
+
+    @Test func `resizing to a negative length removes the range like resizing to zero`() async throws {
+        let negative = try await Box(x: 30, y: 10, z: 10).resized(.x, in: 10...20, to: -5).measurements.volume
+        let zero = try await Box(x: 30, y: 10, z: 10).resized(.x, in: 10...20, to: 0).measurements.volume
+        #expect(negative ≈ 2000)
+        #expect(zero ≈ negative)
+    }
 }
