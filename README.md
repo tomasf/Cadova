@@ -1,8 +1,6 @@
 <h1>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/cadova-lockup-dark.svg">
-    <img alt="Cadova" src=".github/assets/cadova-lockup-light.svg" width="300">
-  </picture>
+  <img alt="Cadova" src=".github/assets/cadova-lockup-light.svg#gh-light-mode-only" width="260">
+  <img alt="Cadova" src=".github/assets/cadova-lockup-dark.svg#gh-dark-mode-only" width="260">
 </h1>
 <img src="https://github.com/user-attachments/assets/99d15163-d168-419c-9fc3-406e4f657074" width="40%" align="right">
 
