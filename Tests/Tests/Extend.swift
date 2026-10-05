@@ -377,7 +377,7 @@ struct ExtendTests {
 
     // MARK: - Amounts and lengths at or below zero
 
-    // A 10 mm wide block with a 4 mm column on top, 20 mm tall in all, so which slab is removed shows in the volume
+    // A 10 mm wide block with a 4 mm column on top, 20 mm tall in all
     private static let stepped = Box(10).adding { Box(x: 4, y: 4, z: 10).translated(x: 3, y: 3, z: 10) }
 
     @Test func `extending by zero leaves geometry unchanged`() async throws {
@@ -385,22 +385,20 @@ struct ExtendTests {
         #expect(volume ≈ 1160)
     }
 
-    @Test func `extending by a negative amount shortens the geometry there`() async throws {
-        // The slab from z 8 to 12 goes: the block keeps 0...8, and the column above 12 moves down to meet it
-        let shortened = Self.stepped.extended(.z, by: -4, at: 8)
-        let volume = try await shortened.measurements.volume
-        #expect(volume ≈ 928)
-        let bounds = try #require(try await shortened.bounds)
-        #expect(bounds.minimum.z ≈ 0)
-        #expect(bounds.maximum.z ≈ 16)
+    @Test func `extending by a negative amount leaves geometry unchanged`() async throws {
+        for alignment in [AxisAlignment.min, .mid, .max] {
+            let unchanged = Self.stepped.extended(.z, by: -4, at: 8, alignment: alignment)
+            #expect(try await unchanged.measurements.volume ≈ 1160)
+            let bounds = try #require(try await unchanged.bounds)
+            #expect(bounds.minimum ≈ [0, 0, 0])
+            #expect(bounds.maximum ≈ [10, 10, 20])
 
-        // With the top fixed, the slab lies below the plane instead: z 4 to 8
-        let topFixed = Self.stepped.extended(.z, by: -4, at: 8, alignment: .max)
-        let topFixedVolume = try await topFixed.measurements.volume
-        #expect(topFixedVolume ≈ 760)
-        let topFixedBounds = try #require(try await topFixed.bounds)
-        #expect(topFixedBounds.minimum.z ≈ 4)
-        #expect(topFixedBounds.maximum.z ≈ 20)
+            let atPlane = Self.stepped.extended(at: Plane.z(8), by: -4, alignment: alignment)
+            #expect(try await atPlane.measurements.volume ≈ 1160)
+            let planeBounds = try #require(try await atPlane.bounds)
+            #expect(planeBounds.minimum ≈ [0, 0, 0])
+            #expect(planeBounds.maximum ≈ [10, 10, 20])
+        }
     }
 
     @Test func `resizing to a negative length removes the range like resizing to zero`() async throws {

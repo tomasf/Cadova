@@ -84,8 +84,7 @@ public extension Geometry3D {
     ///
     /// - Parameters:
     ///   - plane: The plane at which the extension occurs.
-    ///   - amount: The distance to extend. A negative amount shortens the geometry instead, removing that much of
-    ///     it at the plane and closing the gap, and zero leaves it unchanged.
+    ///   - amount: The distance to extend. Zero or negative amounts leave the geometry unchanged.
     ///   - alignment: Which side stays fixed: `.min` (default), `.max`, or `.mid`.
     ///
     /// ## Example
@@ -95,8 +94,7 @@ public extension Geometry3D {
     /// ```
     ///
     func extended(at plane: Plane, by amount: Double, alignment: AxisAlignment = .min) -> any Geometry3D {
-        guard amount != 0 else { return self }
-        guard amount > 0 else { return shortened(at: plane, by: -amount, alignment: alignment) }
+        guard amount > 0 else { return self }
 
         let normalVector = plane.normal.unitVector
 
@@ -125,8 +123,7 @@ public extension Geometry3D {
     ///
     /// - Parameters:
     ///   - axis: The axis along which to extend.
-    ///   - amount: The distance to extend. A negative amount shortens the geometry instead, removing that much of
-    ///     it at the position and closing the gap, and zero leaves it unchanged.
+    ///   - amount: The distance to extend. Zero or negative amounts leave the geometry unchanged.
     ///   - position: The position along the axis where the extension occurs.
     ///   - alignment: Which side stays fixed: `.min` (default), `.max`, or `.mid`.
     ///
@@ -139,23 +136,5 @@ public extension Geometry3D {
     ///
     func extended(_ axis: Axis3D, by amount: Double, at position: Double, alignment: AxisAlignment = .min) -> any Geometry3D {
         extended(at: Plane(perpendicularTo: axis, at: position), by: amount, alignment: alignment)
-    }
-}
-
-private extension Geometry3D {
-    /// Removes a slab of the given thickness at the plane and closes the gap. The alignment decides where the slab
-    /// lies around the plane, and which side stays fixed, the same way it does for extending.
-    func shortened(at plane: Plane, by amount: Double, alignment: AxisAlignment) -> any Geometry3D {
-        let normalVector = plane.normal.unitVector
-        let below = amount * alignment.fraction, above = amount * (1 - alignment.fraction)
-
-        return Union {
-            // Geometry below the slab, moving up to close it
-            self.trimmed(along: plane.offset(-below).flipped)
-                .translated(normalVector * below)
-            // Geometry above the slab, moving down to close it
-            self.trimmed(along: plane.offset(above))
-                .translated(normalVector * -above)
-        }
     }
 }
