@@ -42,4 +42,21 @@ struct ClosedPathRepetitionTests {
             .emittedCopyCount(in: _EvaluationContext())
         #expect(open == 3)
     }
+
+    @Test func `a single instance along a path is placed at its start`() async throws {
+        let one = Sphere(diameter: 2).repeated(along: Self.square(side: 30, closed: false), count: 1)
+        #expect(try await one.emittedCopyCount(in: _EvaluationContext()) == 1)
+        let bounds = try #require(try await one.bounds)
+        #expect(bounds.center ≈ [0, 0, 0])
+    }
+
+    @Test func `no instances along a path for a count of zero or less`() async throws {
+        let path = Self.square(side: 30, closed: false)
+        for count in [0, -3] {
+            #expect(try await Sphere(diameter: 2).repeated(along: path, count: count).emittedCopyCount(in: _EvaluationContext()) == 0)
+            #expect(try await Sphere(diameter: 2).repeated(along: path, count: count, spacing: 5).emittedCopyCount(in: _EvaluationContext()) == 0)
+            let flat = BezierPath2D(linesBetween: [[0, 0], [30, 0], [30, 30]])
+            #expect(try await Circle(diameter: 2).repeated(along: flat, count: count, spacing: 5).bounds == nil)
+        }
+    }
 }

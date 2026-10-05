@@ -114,7 +114,19 @@ public struct Model: Sendable, ModelBuildable {
         URL directory: URL? = nil,
         filterPath: [String] = []
     ) async -> Int {
-        logger.info("Generating \"\(name)\"...")
+        await ModelLogger.$current.withValue(ModelLogger(modelName: name)) {
+            await generate(environment: inheritedEnvironment, context: context, options: inheritedOptions, URL: directory)
+        }
+    }
+
+    private func generate(
+        environment inheritedEnvironment: EnvironmentValues,
+        context: EvaluationContext,
+        options inheritedOptions: ModelOptions?,
+        URL directory: URL?
+    ) async -> Int {
+        let logger = ModelLogger.current
+        logger.generating()
 
         var directives = inheritedEnvironment.whileCurrent {
             self.directives()
@@ -142,26 +154,29 @@ public struct Model: Sendable, ModelBuildable {
 
         let provider: OutputDataProvider
         do {
+            // Building and evaluating are timed together: geometry the model reads while it's built, such as
+            // bounds for alignment, is evaluated during building, so how the time splits between the two depends
+            // on the model and says little on its own
+            let start = ContinuousClock.now
             let warnings: [BuildWarning]
-            (provider, warnings) = try await ContinuousClock().measure {
-                try await directives.build(with: options, in: environment, context: context)
-            } results: { duration, _ in
-                logger.debug("Built geometry node tree in \(duration)")
-            }
+            (provider, warnings) = try await directives.build(with: options, in: environment, context: context)
 
             for warning in warnings {
-                logger.warning("\(warning)")
+                logger.buildWarning(warning)
             }
+
+            try await provider.evaluate(context: context)
+            logger.builtAndEvaluated(in: ContinuousClock.now - start)
 
         } catch BuildError.noGeometry {
             // Deliberately not counted as a failure. A model that builds to nothing under some
             // condition is a reasonable thing to write, and deciding otherwise is a separate
             // argument from this one.
-            logger.error("No geometry for model \"\(name)\"")
+            logger.noGeometry()
             return 0
 
         } catch {
-            logger.error("Cadova caught an error while evaluating model \"\(name)\":\n\(error)\n")
+            logger.evaluationFailed(error)
             return 1
         }
 
@@ -172,10 +187,10 @@ public struct Model: Sendable, ModelBuildable {
         func write() async -> Int {
             do {
                 try await provider.writeOutput(to: url, context: context)
-                logger.info("Wrote model to \(url.path)")
+                logger.wrote(to: url)
                 return 0
             } catch {
-                logger.error("Failed to save model file to \(url.path): \(error.descriptiveString)")
+                logger.failedToSave(to: url, error)
                 return 1
             }
         }

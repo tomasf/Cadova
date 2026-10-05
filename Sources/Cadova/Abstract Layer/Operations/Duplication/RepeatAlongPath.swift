@@ -23,7 +23,8 @@ internal extension Geometry3D {
             if pathLength > 0 {
                 let (count, spacing) = calculator(pathLength)
 
-                for i in 0..<count {
+                // Zero or fewer instances place nothing
+                for i in 0..<max(count, 0) {
                     let distance = Double(i) * spacing
                     // Instances past the end of the path continue straight along its end tangent
                     var transform = path.exactFrame(
@@ -85,7 +86,8 @@ public extension Geometry3D {
     ///             instances are not rotated.
     ///   - reference: A local 2D direction used with `target` to resolve roll about the tangent. Defaults to
     ///                `.down`.
-    ///   - count: The number of instances to place. Must be ≥ 2 so the first and last land on the path ends.
+    ///   - count: The number of instances to place, the first at the start of the path and the last at its end. A
+    ///            single instance is placed at the start, and zero or fewer place nothing.
     /// - Returns: A composite 3D geometry containing all instances.
     ///
     func repeated<Path: ParametricCurve>(
@@ -94,10 +96,8 @@ public extension Geometry3D {
         reference: Direction2D = .down,
         count: Int
     ) -> any Geometry3D {
-        precondition(count >= 2, "Repeating along a path without an explicit spacing requires at least two instances.")
-
-        return repeatedInternal(along: path.curve3D, target: target, reference: reference) {
-            (count, $0 / Double(count - 1))
+        repeatedInternal(along: path.curve3D, target: target, reference: reference) {
+            (count, count > 1 ? $0 / Double(count - 1) : 0)
         }
     }
 
@@ -174,7 +174,8 @@ public extension Geometry2D {
 
             // A path without length has no direction to orient or continue along, so there's nothing to place
             if frames.last!.distance > 0 {
-                for i in 0..<count {
+                // Zero or fewer instances place nothing
+                for i in 0..<max(count, 0) {
                     // Instances past the end of the path continue straight along its end tangent
                     var transform = curve.exactFrame(
                         atDistance: Double(i) * spacing, in: frames, reference: .down, target: .direction(.down)

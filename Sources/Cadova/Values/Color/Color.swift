@@ -21,15 +21,13 @@ public struct Color: Hashable, Sendable, Codable {
     ///   - alpha: The alpha (transparency) component of the color, ranging from 0.0 (fully transparent) to 1.0 (fully
     ///     opaque). Default value is 1.0.
     ///
+    /// Components outside 0.0 to 1.0, as computed colors can easily end up, are clamped to that range.
+    ///
     public init(red: Double, green: Double, blue: Double, alpha: Double = 1.0) {
-        precondition((0.0...1.0).contains(red), "Color component red (\(red)) is out of range 0.0–1.0")
-        precondition((0.0...1.0).contains(green), "Color component green (\(green)) is out of range 0.0–1.0")
-        precondition((0.0...1.0).contains(blue), "Color component blue (\(blue)) is out of range 0.0–1.0")
-        precondition((0.0...1.0).contains(alpha), "Color component alpha (\(alpha)) is out of range 0.0–1.0")
-        self.red = red
-        self.green = green
-        self.blue = blue
-        self.alpha = alpha
+        self.red = red.clamped(to: 0...1)
+        self.green = green.clamped(to: 0...1)
+        self.blue = blue.clamped(to: 0...1)
+        self.alpha = alpha.clamped(to: 0...1)
     }
 
     /// Creates a new color with specified red, green, blue, and alpha components.

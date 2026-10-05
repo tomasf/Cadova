@@ -145,6 +145,11 @@ public struct ModelFile {
     
     /// Any warnings generated during the build process.
     public let buildWarnings: [BuildWarning]
+
+    /// Logs as this model while generating it, as a model's build does
+    private func logging<T>(_ body: () async throws -> T) async rethrows -> T {
+        try await ModelLogger.$current.withValue(ModelLogger(modelName: modelName ?? "Model"), operation: body)
+    }
     
     /// The file's file extension, such as `3mf`, `stl`, etc.
     public var fileExtension: String { dataProvider.fileExtension }
@@ -175,7 +180,7 @@ public struct ModelFile {
     
     /// Generates the file's contents as in-memory data.
     public func data() async throws -> Data {
-        try await dataProvider.generateOutput(context: evaluationContext)
+        try await logging { try await dataProvider.generateOutput(context: evaluationContext) }
     }
     
     /// Writes the file's contents to the given location on disk.
@@ -183,6 +188,6 @@ public struct ModelFile {
     /// The file is written beside its destination and moved into place once complete, so a write
     /// that fails partway through leaves any file already at `fileURL` exactly as it was.
     public func write(to fileURL: URL) async throws {
-        try await dataProvider.writeOutput(to: fileURL, context: evaluationContext)
+        try await logging { try await dataProvider.writeOutput(to: fileURL, context: evaluationContext) }
     }
 }

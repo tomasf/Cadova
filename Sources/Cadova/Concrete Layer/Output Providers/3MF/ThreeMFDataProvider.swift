@@ -61,6 +61,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
         }
     }
 
+    func evaluate(context: EvaluationContext) async throws {
+        _ = try await resolvedParts(context: context)
+    }
+
     /// Each part's file-facing identifier, matching exactly what `write(to:context:)` puts in each
     /// 3MF `<item partnumber="...">` — shared so a LiveLink push's part IDs agree with what ends up
     /// on disk moments later, letting a receiver key persistent per-part state (visibility,
@@ -111,7 +115,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
     func pushToLiveLink(destination url: URL, context: EvaluationContext) async -> Bool {
         #if canImport(CadovaLiveLinkClient)
         guard Self.isInterestedListenerPresent(for: url) else {
-            logger.debug("Skipped live link push for \(url.lastPathComponent): host isn't watching this path")
+            ModelLogger.current.skippedLiveLinkPush(for: url, because: "host isn't watching this path")
             return false
         }
         let path = url.path(percentEncoded: false)
@@ -128,10 +132,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 metadata: options[Metadata.self].liveLinkMetadata
             )
             try await LiveLinkClient.push(message)
-            logger.info("Pushed model \"\(url.lastPathComponent)\" to Cadova Viewer")
+            ModelLogger.current.pushedToViewer()
             return true
         } catch {
-            logger.debug("Skipped live link push for \(url.lastPathComponent): \(error)")
+            ModelLogger.current.skippedLiveLinkPush(for: url, because: "\(error)")
         }
         return false
         #else
@@ -216,19 +220,16 @@ struct ThreeMFDataProvider: OutputDataProvider {
         return (model, item)
     }
 
-    private func write<T>(to archive: PackageWriter<T>, context: EvaluationContext) async throws {
+    /// Writes the model into the archive, and returns how many triangles it holds
+    private func write<T>(to archive: PackageWriter<T>, context: EvaluationContext) async throws -> Int {
         let resolved = try await resolvedParts(context: context)
         let identifiers = Self.fileIdentifiers(for: resolved)
 
-        let modelsAndItems: [(part: Part, model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] = await ContinuousClock().measure {
+        let modelsAndItems: [(part: Part, model: ThreeMF.Model, item: ThreeMF.Item, triangleCount: Int)] =
             await resolved.enumerated().asyncMap { modelIndex, resolvedPart -> (Part, ThreeMF.Model, ThreeMF.Item, Int) in
                 let (model, item) = await makeModel(for: resolvedPart, modelIndex: modelIndex)
                 return (resolvedPart.part, model, item, resolvedPart.manifold.triangleCount)
             }
-        } results: { duration, results in
-            let triangleCount = results.map { $0.3 }.reduce(0, +)
-            logger.debug("Built 3MF structures and meshes with \(triangleCount) triangles in \(duration)")
-        }
 
         let metadata = options[Metadata.self].threeMFMetadata
 
@@ -262,11 +263,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 build: ThreeMF.Build(items: [item], uuid: buildUUID)
             )
         } else {
-            logger.warning("Model contains no objects. Exporting an empty 3MF file.")
+            ModelLogger.current.exportingEmpty3MF()
             archive.model = ThreeMF.Model(metadata: metadata)
         }
 
         try await runArchiveFinalizers(archive: archive, modelsAndItems: modelsAndItems, context: context)
+        return modelsAndItems.map(\.triangleCount).reduce(0, +)
     }
 
     /// Tracks which archive paths have been written during one export. Finalizers run sequentially
@@ -339,16 +341,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
     }
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
+        let start = ContinuousClock.now
         let archive = PackageWriter()
         archive.compressionLevel = options[ModelOptions.Compression.self].zipCompression
-        try await write(to: archive, context: context)
-
-        let data = try await ContinuousClock().measure {
-            try await archive.finalize()
-        } results: { duration, _ in
-            logger.debug("Generated 3MF archive in \(duration)")
-        }
-
+        let triangleCount = try await write(to: archive, context: context)
+        let data = try await archive.finalize()
+        ModelLogger.current.generated3MF(triangleCount: triangleCount, in: ContinuousClock.now - start)
         return data
     }
 }

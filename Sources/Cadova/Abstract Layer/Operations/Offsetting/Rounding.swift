@@ -138,6 +138,9 @@ public extension Geometry3D {
     /// - Returns: A new geometry with chamfered edges and corners.
     ///
     func chamfered(insideDepth: Double? = nil, outsideDepth: Double? = nil) -> any Geometry3D {
+        if let insideDepth, let outsideDepth, insideDepth > 0, outsideDepth > 0 {
+            return ChamferedOnBothSides(source: self, outside: outsideDepth, inside: insideDepth)
+        }
         var body: any Geometry3D = self
         if let outsideDepth {
             body = body
@@ -195,6 +198,47 @@ private struct RoundedOnBothSides: Geometry3D {
             let margin = dilatedCell * dilatedCell / (2 * (outside + inside))
             let rounding = RoundingField(eroded: erodedField, dilated: dilatedField, outside: outside, inside: inside, margin: margin)
             return try MeshOffset.manifold(from: MeshOffset(rounding: rounding, dilated: dilatedField, cellSize: cellSize, tolerance: tolerance, segmentation: segmentation).run())
+        }
+        .simplified(maximumThreshold: MeshOffset.simplificationThreshold(forTolerance: tolerance))
+    }
+}
+
+/// Chamfers both sides in one contouring, like ``RoundedOnBothSides``: chamfering the outside and then the inside
+/// with two offsets each would contour the outside's chamfers again, and a sharp corner contoured twice comes out as
+/// facets too shallow for a miter each, so slightly rounded
+private struct ChamferedOnBothSides: Geometry3D {
+    let source: any Geometry3D
+    let outside: Double
+    let inside: Double
+
+    var body: any Geometry3D {
+        @Environment(\.segmentation) var segmentation
+        @Environment(\.miterLimit) var miterLimit
+        let cellSize = segmentation.offsetCellSize(radius: min(outside, inside))
+        let tolerance = cellSize / 10
+        CachedConcreteTransformer(body: source, name: "Cadova.ChamferedOnBothSides", parameters: outside, inside, segmentation, miterLimit) { manifold in
+            guard let sourceField = MeshOffset.distanceField(for: manifold) else { return manifold }
+            // The source eroded with sharp joins, exact where the source is flat, straight from the contour
+            let erodedMesh = MeshOffset(field: sourceField, amount: -outside, style: .miter, miterLimit: miterLimit, cellSize: cellSize, tolerance: tolerance).run()
+            guard !erodedMesh.faces.isEmpty else { return .empty }
+            let erodedField = MeshDistanceField(vertices: erodedMesh.vertices, faces: erodedMesh.faces)
+            // Grown by both depths with square joins: the outside chamfer grown for the inside chamfer, straight from
+            // the contour. Unlike rounding's, its surface is planes and straight creases, which contouring places
+            // exactly at any cell size, so it takes the full cell; only its vertices' fit to the planes is held to a
+            // tighter tolerance, which the margin below follows. Simplified before measuring distances to it: its
+            // flat faces come out as a hundred thousand triangles or so, which every query would search.
+            let dilatedTolerance = tolerance / 4
+            let dilated = MeshOffset(field: erodedField, amount: outside + inside, style: .square, cellSize: cellSize, tolerance: dilatedTolerance, segmentation: segmentation).run()
+            guard !dilated.faces.isEmpty else { return .empty }
+            let simplifiedDilated = try MeshOffset.manifold(from: dilated)
+                .simplify(epsilon: MeshOffset.simplificationThreshold(forTolerance: dilatedTolerance))
+            guard let dilatedField = MeshOffset.distanceField(for: simplifiedDilated) else { return .empty }
+            // Where the outside chamfer's own surface is the result, the dilated mesh's term must not win, so it's
+            // kept inside by more than that mesh's contouring can be off. Inside chamfers move in by as much: half the
+            // tolerance.
+            let margin = 2 * dilatedTolerance
+            let chamfering = RoundingField(chamferingEroded: erodedField, dilated: dilatedField, outside: outside, inside: inside, margin: margin, tolerance: tolerance)
+            return try MeshOffset.manifold(from: MeshOffset(rounding: chamfering, dilated: dilatedField, cellSize: cellSize, tolerance: tolerance, segmentation: segmentation).run())
         }
         .simplified(maximumThreshold: MeshOffset.simplificationThreshold(forTolerance: tolerance))
     }

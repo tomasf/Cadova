@@ -15,7 +15,7 @@ public enum ResizeBehavior: Sendable {
             // Geometry with no extent along the driving axis has no ratio to scale by. Leaving this
             // dimension as it is keeps the geometry valid; dividing would make it infinite.
             guard from > .ulpOfOne else {
-                logger.warning("""
+                ModelLogger.current.warning("""
                     Resizing proportionally to an axis with no extent (\(from)). \
                     That dimension is left unchanged.
                     """)
@@ -34,7 +34,7 @@ public enum ResizeBehavior: Sendable {
     internal static func targetsAreValid(_ targets: (name: String, value: Double)...) -> Bool {
         var valid = true
         for target in targets where !(target.value > 0) {
-            logger.warning("""
+            ModelLogger.current.warning("""
                 Resize target \(target.name) must be greater than zero, but was \(target.value). \
                 The resized geometry is empty.
                 """)
@@ -52,7 +52,7 @@ internal extension BoundingBox {
     func scaleFactors(to newSize: D.Vector) -> D.Vector {
         D.Vector { axis in
             guard size[axis] > .ulpOfOne else {
-                logger.warning("Resizing geometry with no extent along \(axis). That axis is left unchanged.")
+                ModelLogger.current.warning("Resizing geometry with no extent along \(axis). That axis is left unchanged.")
                 return 1
             }
             return newSize[axis] / size[axis]

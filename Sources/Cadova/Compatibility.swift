@@ -65,7 +65,7 @@ public extension Geometry3D {
                     v: bounds.minimum.y...bounds.maximum.y
                 ))
             } else {
-                logger.warning("""
+                ModelLogger.current.warning("""
                     Cannot deform geometry measuring \(bounds.size) by a surface; it has no extent in X or Y \
                     to map onto the surface. Leaving it unchanged.
                     """)

@@ -36,7 +36,7 @@ public struct EvaluationResult<D: Dimensionality>: Sendable {
     internal init(_ concrete: D.Concrete, material: Material) throws where D == D3 {
         let geometry = concrete.asOriginal()
         guard let originalID = geometry.originalID else {
-            logger.error("Failed to assign an original ID to geometry")
+            ModelLogger.current.error("Failed to assign an original ID to geometry")
             self = try .init(concrete)
             return
         }

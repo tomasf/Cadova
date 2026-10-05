@@ -367,4 +367,41 @@ struct Offset3DTests {
         #expect(results[0].vertices == results[1].vertices)
         #expect(results[0].faces.map { [$0.0, $0.1, $0.2] } == results[1].faces.map { [$0.0, $0.1, $0.2] })
     }
+
+    @Test func `chamfering a box on both sides leaves only its chamfered surface`() async throws {
+        // The outside chamfer of a box is exactly the square offset of the box shrunk by the depth: inside the moved
+        // faces, the edge cuts and the corner cuts. Chamfering inside then changes nothing on a convex shape. Where
+        // a corner facet meets the faces, chaining the four offsets once left slivers whose normals folded back, which
+        // grew spikes, and split corners into facets too shallow for a miter each, which left notches.
+        // A cell size where it happened; within the tolerance of a tenth of that
+        let chamfered = Box(x: 20, y: 30, z: 15).chamfered(depth: 5).withSegmentation(minAngle: 2°, minSize: 0.3)
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: chamfered, in: .defaultEnvironment)
+        let vertices = try await context.result(for: result.node).concrete.meshGL().vertices
+
+        let lower = Vector3D(5, 5, 5), upper = Vector3D(15, 25, 10)
+        var planes: [(normal: Vector3D, offset: Double)] = []
+        for x in -1...1 { for y in -1...1 { for z in -1...1 where (x, y, z) != (0, 0, 0) {
+            let signs = Vector3D(Double(x), Double(y), Double(z))
+            let corner = Vector3D(x > 0 ? upper.x : lower.x, y > 0 ? upper.y : lower.y, z > 0 ? upper.z : lower.z)
+            let normal = signs.normalized
+            planes.append((normal, normal ⋅ corner + 5))
+        }}}
+        let farthest = vertices.map { p in abs(planes.map { $0.normal ⋅ p - $0.offset }.max()!) }.max()!
+        #expect(farthest < 0.03)
+    }
+
+    @Test func `sharp joins keep the edges of a shape with defects elsewhere sharp`() async throws {
+        // Simplifying an eroded union fans long, thin triangles across its flat faces, some reaching from slivers at
+        // the seam where the cylinder joins. Distrusting every face near a defect, or every face narrower than the
+        // tolerance, used to leave the box's long edges without square joins, so they came out rounded.
+        let shape = Box(x: 30, y: 30, z: 15).subtracting { Box(x: 20, y: 20, z: 20).translated(x: 12, y: 12, z: -1) }
+            .adding { Cylinder(diameter: 14, height: 25).translated(x: 6, y: 6) }
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: shape.chamfered(outsideDepth: 2), in: .defaultEnvironment)
+        let field = try #require(MeshOffset.distanceField(for: try await context.result(for: result.node).concrete))
+        // Beside the long top front edge: inside the square chamfer by 0.05, but 0.07 outside a rounded edge
+        let beside = Vector3D(20, 0.05, 13.7)
+        #expect(field.signedDistance(at: beside) < -0.02)
+    }
 }
