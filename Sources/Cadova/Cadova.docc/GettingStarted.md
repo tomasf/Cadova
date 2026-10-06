@@ -38,7 +38,7 @@ let package = Package(
     name: "gizmo",
     platforms: [.macOS(.v15)],
     dependencies: [
-        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.10.0")),
+        .package(url: "https://github.com/tomasf/Cadova.git", from: "1.0.0"),
     ],
     targets: [
         .executableTarget(
