@@ -46,7 +46,7 @@ Cadova uses [Manifold-Swift](https://github.com/tomasf/manifold-swift), [Apus](h
 
 ## Versioning and Stability
 
-Cadova is currently in pre-release, with a version number below 1.0. The API is still evolving, but stability is maintained within each minor version — so `upToNextMinor(from:)` is recommended for your dependency. You're very welcome to start using Cadova today, and feedback is appreciated!
+Cadova follows [semantic versioning](https://semver.org). From 1.0 on, the public API stays source compatible within a major version, so `from: "1.0.0"` is the recommended dependency requirement. Breaking changes only arrive in a new major version, and anything due to be removed is deprecated first.
 
 ## Contributions
 Contributions are welcome! If you have ideas, suggestions, or improvements, feel free to open an issue or submit a pull request. You’re also welcome to browse the [open GitHub issues](https://github.com/tomasf/Cadova/issues) and pick one to work on — especially those marked as good first issues or help wanted.
@@ -61,9 +61,9 @@ import PackageDescription
 
 let package = Package(
     name: "<#name#>",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v15)],
     dependencies: [
-        .package(url: "https://github.com/tomasf/Cadova.git", .upToNextMinor(from: "0.10.0")),
+        .package(url: "https://github.com/tomasf/Cadova.git", from: "1.0.0"),
     ],
     targets: [
         .executableTarget(

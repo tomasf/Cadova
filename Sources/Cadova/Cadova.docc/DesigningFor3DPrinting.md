@@ -97,7 +97,7 @@ Because a clearance is a length, it's measured in the coordinate system you set 
 
 ## Shells and enclosures
 
-`hollowed(wallThickness:)` turns a solid into a closed shell with walls of the same thickness everywhere, following the outside's shape. Split it to open it up, here into a base and a lid:
+`hollowed(wallThickness:)` turns a solid into a closed shell with walls of the given thickness, following the outside's shape. The walls are thicker where they meet at an inside corner; pass `style: .round` to round the cavity there and keep them the same thickness everywhere. Split it to open it up, here into a base and a lid:
 
 ```swift
 let enclosure = Rectangle(x: 60, y: 40)
