@@ -110,3 +110,7 @@ solid.readingFirstSurface(from: [0, 0, 100], in: .down) { solid, crossing in
     }
 }
 ```
+
+## Related Reading
+
+- [Tutorial 7: Measuring and arranging](https://cadova.org/tutorials/#07), a short video that sizes a stand from a bracket's bounding box and marks its center of mass

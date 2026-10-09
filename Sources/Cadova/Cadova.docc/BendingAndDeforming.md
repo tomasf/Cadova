@@ -163,6 +163,7 @@ A deformation applied to a coarse mesh produces a coarse result, and no amount o
 
 ## Related Reading
 
+- [Tutorial 9: Beyond the basics](https://cadova.org/tutorials/#09), a short video that wraps lettering around a cup
 - <doc:Transformations> for the affine operations these complement, and for `.resized(...)` when you want a size rather than a shape change
 - <doc:CurvesAndPaths> for building the paths that drive several of these operations, and for `.swept(along:)`
 - <doc:Surfaces> for the surfaces `.draped(over:)` can lay geometry onto

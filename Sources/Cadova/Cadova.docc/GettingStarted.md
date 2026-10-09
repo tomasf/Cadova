@@ -4,6 +4,8 @@ Set up a new Swift package and create your first 3D model with Cadova.
 
 > tl;dr: Create a new executable Swift package with Cadova as a dependency, import it, define your geometry inside `Model(...) { ... }` and run the program to generate a 3MF file. Use [the model template repo](https://github.com/tomasf/cadova-model-template) to get going quickly: `gh repo create gizmo --template tomasf/cadova-model-template --private --clone`
 
+> Tip: Prefer video? [Tutorial 1: Getting started](https://cadova.org/tutorials/#01) walks through this page in about two minutes, and [the tutorial series](https://cadova.org/tutorials/) continues from there.
+
 ## 1. Install Swift
 
 If you're on macOS, the easiest path is to [install the latest version of Xcode](https://developer.apple.com/xcode/).

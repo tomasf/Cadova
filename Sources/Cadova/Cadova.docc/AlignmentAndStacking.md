@@ -83,3 +83,7 @@ This stacks a cylinder and a box vertically. Each item is spaced 2 mm apart, cen
 - `axis` determines the direction of stacking.
 - `spacing` is `0` by default, meaning items touch edge-to-edge. Positive values add space between them.
 - `alignment` applies only to *non-stacking axes you explicitly specify*. Unspecified axes are left unchanged and the stacking axis is ignored. You can use `.center`, `.left`, `.bottom`, etc., just like with `.aligned(at:)`.
+
+## Related Reading
+
+- [Tutorial 7: Measuring and arranging](https://cadova.org/tutorials/#07), a short video that lays three parts out on a print plate with `Stack`

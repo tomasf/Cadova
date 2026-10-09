@@ -185,6 +185,7 @@ This is how you take a shape that fell into several shells and lay the shells ou
 
 ## Related Reading
 
+- [Tutorial 9: Beyond the basics](https://cadova.org/tutorials/#09), a short video that splits a hollowed enclosure into a base and a lid
 - <doc:MeasuringGeometry> for reading a shape's bounds first, so a cut can be placed relative to what is actually there
 - <doc:ExtrusionAndRevolution> for `.projected()` and `.sliced(...)`, which flatten 3D into 2D rather than cutting within a dimension
 - <doc:WorkingWithParts> for what happens to geometry once `.separating(...)` hands it to a part

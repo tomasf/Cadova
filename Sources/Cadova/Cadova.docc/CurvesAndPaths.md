@@ -163,6 +163,7 @@ Loft(along: path, pointing: .down, toward: .direction(.negativeZ)) {
 
 ## Related Reading
 
+- [Tutorial 9: Beyond the basics](https://cadova.org/tutorials/#09), a short video that revolves a path into a knob, lofts a duct and sweeps a hook
 - <doc:Examples> for complete swept-text and loft models.
 - <doc:EnvironmentConcepts> for how segmentation and twist rate affect curve sampling.
 - <doc:Surfaces> for building curved surfaces from curves, such as ruled surfaces and Coons patches

@@ -105,3 +105,7 @@ solid.sliced(atZ: 0) { body, section in
 ```
 
 The same pattern is available as `.projected { body, silhouette in … }`, `.projected(onto:) { … }`, and `.sliced(along:) { … }`. It's useful whenever the geometry you're building depends on both the solid and the flat shape derived from it, such as annotating a part with its own footprint, or building a lid that matches a cross-section.
+
+## Related Reading
+
+- [Tutorial 4: From 2D to 3D](https://cadova.org/tutorials/#04), a short video that extrudes a mounting plate and revolves a cup from its profile
