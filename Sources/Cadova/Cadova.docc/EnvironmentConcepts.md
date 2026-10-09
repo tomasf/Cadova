@@ -82,3 +82,7 @@ extension Geometry {
 ```
 
 A custom value isn't limited to a simple scalar like the `Double` above — it can just as well be a struct bundling several related settings, letting you thread a whole shared configuration through a subtree as a single environment value instead of one entry per field.
+
+## Related Reading
+
+- [Tutorial 6: Your own shapes](https://cadova.org/tutorials/#06), a short video that fits a lid to its box with the tolerance from the environment

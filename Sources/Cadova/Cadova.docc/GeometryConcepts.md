@@ -88,3 +88,7 @@ Cadova supports both 2D and 3D workflows. You can either start in 2D (e.g. ``Rec
 Cadova models always represent physical geometry with volume (in 3D) or area (in 2D). There are no zero-thickness surfaces, edges, or points in the final output. Even if you define something like a plane or a curve, once it becomes part of a shape, it gains measurable size.
 
 Many operations are available for both 2D and 3D geometries, but some are specific to one or the other. Since ``Geometry2D`` and ``Geometry3D`` are distinct types, they cannot be used interchangeably. To convert 2D shapes into 3D, use an extrusion method like `.extruded(height:)`, `.revolved(in:)`, or `.swept(along:)`. Converting 3D into 2D is less common, but possible with operations like `.projected()` or `.sliced(...)`.
+
+## Related Reading
+
+- [Tutorial 3: Combining shapes](https://cadova.org/tutorials/#03), a short video that gives that bracket holes and ribs by adding, subtracting and intersecting

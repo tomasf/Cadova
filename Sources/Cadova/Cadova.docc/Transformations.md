@@ -229,6 +229,7 @@ That family includes `.twisted(by:)`, `.wrappedAroundCylinder(diameter:)` and it
 
 ## Related Reading
 
+- [Tutorial 2: Shapes and transformations](https://cadova.org/tutorials/#02), a short video that builds a bracket by moving, turning and aligning boxes
 - <doc:VectorsAndAngles> for the vector and angle types the transformations take
 - <doc:AlignmentAndStacking> for positioning by bounding box rather than by distance
 - <doc:RepetitionAndPatterns> for producing many placed copies at once

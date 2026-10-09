@@ -75,3 +75,7 @@ In this example:
 - The part will be placed at `x = 10` in the final model
 
 Transforms are preserved. Further modeling operations are not applied.
+
+## Related Reading
+
+- [Tutorial 8: Text, color and output](https://cadova.org/tutorials/#08), a short video that puts a name tag's lettering in its own part, for a second filament

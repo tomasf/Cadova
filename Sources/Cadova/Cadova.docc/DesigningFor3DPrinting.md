@@ -127,6 +127,8 @@ For multi-material or multi-setting prints, splitting a model into named parts l
 
 ## Related Reading
 
+- [Tutorial 5: Edges and finishing](https://cadova.org/tutorials/#05), a short video that rounds and chamfers a box's edges and hollows a shell
+- [Tutorial 6: Your own shapes](https://cadova.org/tutorials/#06), a short video that fits a lid to its box with the tolerance from the environment
 - <doc:Examples> for a complete circular-overhang model.
 - <doc:EnvironmentConcepts> for how environment values like tolerance and overhang angle propagate.
 - <doc:WorkingWithParts> for splitting a model for per-part print settings.

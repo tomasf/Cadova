@@ -15,6 +15,8 @@ Cadova is a Swift library for constructing 3D models programmatically — with a
 
 ![A 3D model created with Cadova](home-hero)
 
+New to Cadova? Start with <doc:GettingStarted>, or watch [the tutorial series](https://cadova.org/tutorials/): nine short videos, from your first model to paths, lofts and sweeps.
+
 ## Topics
 
 ### Essentials
