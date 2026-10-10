@@ -1,7 +1,7 @@
 // Runs the model, compiled to WebAssembly, as a WASI program: a fresh run of the model's
-// executable for each build, with the parameters as command line arguments and an in-memory
-// directory for it to write the model file into. Used both by the worker and, as a fallback, by
-// the page itself.
+// executable for each request, in an in-memory directory that holds the request and receives what
+// the model writes. Cadova finds the request through CADOVA_CUSTOMIZER_REQUEST. Used both by the
+// worker and, as a fallback, by the page itself.
 
 import {
     WASI, File, OpenFile, ConsoleStdout, PreopenDirectory,
@@ -27,28 +27,29 @@ export async function fetchModel(url, onProgress = () => {}) {
     return bytes;
 }
 
-// Runs the model with --list-parameters, which builds nothing and writes every model's parameters,
-// title and description to a file as JSON
+// Asks for every model's parameters, title and description as JSON, which builds nothing
 export async function listParameters(compiledModule) {
-    const result = await run(compiledModule, ["model", "--list-parameters=/out/parameters.json"], "parameters.json");
+    const result = await run(compiledModule, { listParameters: "/io/parameters.json" }, "parameters.json");
     const catalog = result.data ? JSON.parse(new TextDecoder().decode(result.data)) : null;
     return { catalog, log: result.log, stackOverflow: result.stackOverflow };
 }
 
-export async function runModel(compiledModule, model, parameters) {
-    const args = ["model", "--model", model, "--output", "/out"];
-    for (const [name, value] of Object.entries(parameters)) args.push("--param", `${name}=${value}`);
-    return run(compiledModule, args, ".3mf");
+// Builds one model with the given parameter values, by label. Values are passed as strings, which
+// each parameter parses as its own type.
+export async function runModel(compiledModule, model, values) {
+    const strings = Object.fromEntries(Object.entries(values).map(([label, value]) => [label, String(value)]));
+    return run(compiledModule, { model, values: strings, output: "/io" }, ".3mf");
 }
 
-async function run(compiledModule, args, outputSuffix) {
-    const files = new Map();
+async function run(compiledModule, request, outputSuffix) {
+    const files = new Map([["request.json", new File(new TextEncoder().encode(JSON.stringify(request)))]]);
     const log = [];
-    const wasi = new WASI(args, ["CADOVA_LOG_LEVEL=info"], [
+    const environment = ["CADOVA_LOG_LEVEL=info", "CADOVA_CUSTOMIZER_REQUEST=/io/request.json"];
+    const wasi = new WASI(["model"], environment, [
         new OpenFile(new File([])),
         ConsoleStdout.lineBuffered((line) => log.push(line)),
         ConsoleStdout.lineBuffered((line) => log.push(line)),
-        new PreopenDirectory("/out", files),
+        new PreopenDirectory("/io", files),
     ], { debug: false });
 
     const start = performance.now();

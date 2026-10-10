@@ -2,9 +2,8 @@ import Foundation
 
 /// A type that can be used as a customizer parameter value.
 ///
-/// Parameter values can be provided programmatically (via ``Geometry/withParameter(_:_:)`` or
-/// ``EnvironmentValues/settingParameter(_:to:)``) or as strings from the command line
-/// (`--param name=value`), in which case they are parsed using `init(parameterString:)`.
+/// A customizer passes the values its visitor chooses as strings, which are parsed with
+/// ``init(parameterString:)``.
 ///
 /// Cadova provides conformances for `Int`, `Double`, `Bool`, `String` and `Angle`. String-backed
 /// enums get a conformance for free by declaring it. Make the enum `CaseIterable` too, and a
@@ -17,7 +16,7 @@ import Foundation
 /// ```
 ///
 public protocol ParameterValue: Sendable {
-    /// Creates a value by parsing a string representation, as provided on the command line.
+    /// Creates a value by parsing a string representation, as a customizer provides it.
     ///
     /// - Parameter parameterString: The string to parse.
     /// - Returns: The parsed value, or `nil` if the string is not a valid representation.

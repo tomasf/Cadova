@@ -17,7 +17,7 @@ private final class CapturedValue<T>: @unchecked Sendable {
 }
 
 private struct ParametricBox: Geometry3D {
-    @Parameter("size") var size = 1.0
+    @Parameter("Size") var size = 1.0
 
     var body: any Geometry3D {
         Box(size)
@@ -43,77 +43,41 @@ struct ParameterTests {
         #expect(Finish(parameterString: "sparkly") == nil)
     }
 
-    @Test func `Command line param arguments are parsed`() {
-        let args = CommandLineArguments(arguments: [
-            "exe", "--param", "count=5", "--param=wall=1.6", "--param", "malformed", "--param", "text=a=b"
-        ])
-        #expect(args.parameters == ["count": "5", "wall": "1.6", "text": "a=b"])
-    }
-
-    @Test func `Parameter returns its default when unset`() {
+    @Test func `Parameter has its default value unless a customizer chooses one`() {
         EnvironmentValues.defaultEnvironment.whileCurrent {
-            @Parameter("count") var count = 3
+            @Parameter("Count") var count = 3
             #expect(count == 3)
-            #expect($count.isOverridden == false)
         }
     }
 
-    @Test func `Parameter reads typed values from the environment`() {
-        let environment = EnvironmentValues.defaultEnvironment
-            .settingParameter("count", to: 7)
-            .settingParameter("finish", to: Finish.glossy)
+    @Test func `Chosen values are parsed as each parameter's type`() {
+        var environment = EnvironmentValues.defaultEnvironment
+        environment.parameterValues = ["Count": "7", "Finish": "glossy", "Invalid": "xyz"]
 
         environment.whileCurrent {
-            @Parameter("count") var count = 3
-            @Parameter("finish") var finish = Finish.matte
+            @Parameter("Count") var count = 3
+            @Parameter("Finish") var finish = Finish.matte
+            @Parameter("Invalid") var invalid = 4
             #expect(count == 7)
             #expect(finish == .glossy)
-            #expect($count.isOverridden == true)
+            #expect(invalid == 4) // A value that doesn't parse leaves the default
         }
     }
 
-    @Test func `Raw parameters are parsed as the reader's type`() {
-        let environment = EnvironmentValues.defaultEnvironment
-            .settingRawParameters(["count": "7", "invalid": "xyz"])
+    @Test func `Customizer requests are read from JSON`() throws {
+        let json = #"{"model": "plate", "values": {"Width": "80"}, "output": "/out"}"#
+        let request = try JSONDecoder().decode(CustomizerRequest.self, from: Data(json.utf8))
+        #expect(request.model == "plate")
+        #expect(request.values == ["Width": "80"])
+        #expect(request.outputDirectory == "/out")
+        #expect(request.parameterListPath == nil)
 
-        environment.whileCurrent {
-            @Parameter("count") var count = 3
-            @Parameter("invalid") var invalid = 4
-            #expect(count == 7)
-            #expect(invalid == 4) // Unparsable value falls back to the default
-            #expect($invalid.isOverridden == false)
-        }
+        let listing = try JSONDecoder().decode(CustomizerRequest.self, from: Data(#"{"listParameters": "/out/p.json"}"#.utf8))
+        #expect(listing.parameterListPath == "/out/p.json")
+        #expect(listing.values.isEmpty)
     }
 
-    @Test func `Type mismatches for typed values fall back to the default`() {
-        let environment = EnvironmentValues.defaultEnvironment.settingParameter("count", to: "seven")
-
-        environment.whileCurrent {
-            @Parameter("count") var count = 3
-            #expect(count == 3)
-        }
-    }
-
-    @Test func `Removing a parameter restores the default`() {
-        let environment = EnvironmentValues.defaultEnvironment
-            .settingParameter("count", to: 7)
-            .settingParameter("count", to: Int?.none)
-
-        environment.whileCurrent {
-            @Parameter("count") var count = 3
-            #expect(count == 3)
-        }
-    }
-
-    @Test func `withParameter overrides a parameter for a subtree`() async throws {
-        let defaultVolume = try await ParametricBox().measurements.volume
-        #expect(defaultVolume.equals(1, within: 1e-6))
-
-        let overriddenVolume = try await ParametricBox().withParameter("size", 5.0).measurements.volume
-        #expect(overriddenVolume.equals(125, within: 1e-6))
-    }
-
-    @Test func `Command line parameters reach standalone models`() async throws {
+    @Test func `Chosen values reach standalone models`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
@@ -121,9 +85,9 @@ struct ParameterTests {
         let builderValue = CapturedValue<Double>()
         let bodyVolume = CapturedValue<Double>()
 
-        await CommandLineArguments.$overriddenArguments.withValue(["exe", "--param", "size=5"]) {
+        await CustomizerRequest.$overridden.withValue(CustomizerRequest(values: ["Size": "5"])) {
             await Model(tempDir.appending(path: "model").path) {
-                @Parameter("size") var size = 1.0
+                @Parameter("Size") var size = 1.0
                 let _ = builderValue.value = size
 
                 ParametricBox().measuring { geometry, measurements in
@@ -137,94 +101,51 @@ struct ParameterTests {
         #expect(bodyVolume.value?.equals(125, within: 1e-6) == true)
     }
 
-    @Test func `Command line parameters reach models in a project`() async throws {
+    @Test func `A request builds only its model, with its values, where it says`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let projectDir = tempDir.appending(path: "project")
+        let outputDir = tempDir.appending(path: "output")
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let capturedSize = CapturedValue<Double>()
+        let jarDiameter = CapturedValue<Double>()
+        let lidDiameter = CapturedValue<Double>()
+        let request = CustomizerRequest(model: "lid", values: ["Diameter": "75"], outputDirectory: outputDir.path)
 
-        await CommandLineArguments.$overriddenArguments.withValue(["exe", "--param", "size=2.5"]) {
-            await Project(root: tempDir) {
-                await Model("model") {
-                    @Parameter("size") var size = 1.0
-                    let _ = capturedSize.value = size
-                    Box(size)
+        await CustomizerRequest.$overridden.withValue(request) {
+            await Project(root: projectDir) {
+                await Model("jar", options: .format3D(.stl)) {
+                    @Parameter("Diameter") var diameter = 60.0
+                    let _ = jarDiameter.value = diameter
+                    Cylinder(diameter: diameter, height: 80)
+                }
+                await Model("lid", options: .format3D(.stl)) {
+                    @Parameter("Diameter") var diameter = 60.0
+                    let _ = lidDiameter.value = diameter
+                    Cylinder(diameter: diameter, height: 5)
                 }
             }
         }
 
-        #expect(capturedSize.value == 2.5)
-    }
-
-    @Test func `Environment directives take precedence over command line parameters`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        let volume = CapturedValue<Double>()
-
-        await CommandLineArguments.$overriddenArguments.withValue(["exe", "--param", "size=5"]) {
-            await Model(tempDir.appending(path: "model").path) {
-                Environment { $0.setParameter("size", to: 2.0) }
-
-                ParametricBox().measuring { geometry, measurements in
-                    let _ = volume.value = await measurements.volume
-                    geometry
-                }
-            }
-        }
-
-        #expect(volume.value?.equals(8, within: 1e-6) == true)
-    }
-
-    @Test func `Subtree overrides take precedence over command line parameters`() async throws {
-        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        let volume = CapturedValue<Double>()
-
-        await CommandLineArguments.$overriddenArguments.withValue(["exe", "--param", "size=5"]) {
-            await Model(tempDir.appending(path: "model").path) {
-                ParametricBox()
-                    .withParameter("size", 2.0)
-                    .measuring { geometry, measurements in
-                        let _ = volume.value = await measurements.volume
-                        geometry
-                    }
-            }
-        }
-
-        #expect(volume.value?.equals(8, within: 1e-6) == true)
-    }
-
-    @Test func `Listing and output arguments are parsed`() {
-        let args = CommandLineArguments(arguments: ["exe", "--list-parameters", "--output", "/tmp/out"])
-        #expect(args.listsParameters == true)
-        #expect(args.outputDirectory == "/tmp/out")
-        #expect(CommandLineArguments(arguments: ["exe", "--output=/x"]).outputDirectory == "/x")
-        #expect(CommandLineArguments(arguments: ["exe"]).listsParameters == false)
-
-        let toFile = CommandLineArguments(arguments: ["exe", "--list-parameters=/tmp/parameters.json"])
-        #expect(toFile.listsParameters == true)
-        #expect(toFile.parameterListPath == "/tmp/parameters.json")
-        #expect(args.parameterListPath == nil)
+        #expect(lidDiameter.value == 75)
+        #expect(jarDiameter.value == nil) // The other model wasn't built
+        #expect(try FileManager.default.contentsOfDirectory(atPath: outputDir.path) == ["lid.stl"])
+        #expect(FileManager.default.fileExists(atPath: projectDir.path) == false)
     }
 
     @Test func `Parameters describe their kind and metadata`() {
-        @Parameter("height", in: 10...50, step: 0.5, description: "Plate height") var height = 20.0
-        @Parameter("finish") var finish = Finish.matte
-        @Parameter("tilt") var tilt = 15°
+        @Parameter("Height", in: 10...50, step: 0.5, description: "Plate height") var height = 20.0
+        @Parameter("Finish") var finish = Finish.matte
+        @Parameter("Tilt") var tilt = 15°
 
-        #expect($height.descriptor == ParameterDescriptor(
-            name: "height", kind: .number, defaultValue: "20.0",
+        #expect(_height.descriptor == ParameterDescriptor(
+            label: "Height", kind: .number, defaultValue: "20.0",
             minimum: "10.0", maximum: "50.0", step: "0.5", description: "Plate height"
         ))
-        #expect($finish.descriptor.kind == .choice(["matte", "glossy"]))
-        #expect($finish.descriptor.defaultValue == "matte")
-        #expect($tilt.descriptor.kind == .angle)
-        #expect(Angle(parameterString: $tilt.descriptor.defaultValue) == 15°)
+        #expect(_finish.descriptor.kind == .choice(["matte", "glossy"]))
+        #expect(_finish.descriptor.defaultValue == "matte")
+        #expect(_tilt.descriptor.kind == .angle)
+        #expect(Angle(parameterString: _tilt.descriptor.defaultValue) == 15°)
     }
 
     @Test func `Catalog collects parameters from every model without writing files`() async throws {
@@ -233,9 +154,9 @@ struct ParameterTests {
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         struct Plate: Geometry3D {
-            @Parameter("width", in: 10...100) var width = 40.0
-            @Parameter("rounded") var rounded = false
-            @Parameter("radius") var radius = 3.0 // Only read when rounded is true
+            @Parameter("Width", in: 10...100) var width = 40.0
+            @Parameter("Rounded") var rounded = false
+            @Parameter("Radius") var radius = 3.0 // Only read when rounded is true
 
             var body: any Geometry3D {
                 if rounded {
@@ -249,12 +170,15 @@ struct ParameterTests {
         let catalog = await ParameterCatalog.collect(options: []) {
             await Model(tempDir.appending(path: "plate").path) {
                 Plate()
+                // The same label in the same model is the same parameter
+                @Parameter("Width") var width = 40.0
+                Box(width)
             }
             await Group("parts") {
                 await Model("peg") {
                     Metadata(title: "Peg", description: "A peg with a configurable size")
-                    @Parameter("count", in: 1...8) var count = 3
-                    @Parameter("finish") var finish = Finish.glossy
+                    @Parameter("Count", in: 1...8) var count = 3
+                    @Parameter("Finish") var finish = Finish.glossy
                     Box(Double(count))
                 }
             }
@@ -263,10 +187,10 @@ struct ParameterTests {
         let json = try JSONSerialization.jsonObject(with: catalog.jsonData()) as? [String: Any]
         let models = try #require(json?["models"] as? [[String: Any]])
         let parameters = Dictionary(uniqueKeysWithValues: models.map {
-            ($0["name"] as? String ?? "", ($0["parameters"] as? [[String: Any]] ?? []).compactMap { $0["name"] as? String })
+            ($0["name"] as? String ?? "", ($0["parameters"] as? [[String: Any]] ?? []).compactMap { $0["label"] as? String })
         })
-        #expect(parameters["parts/peg"] == ["count", "finish"])
-        #expect(parameters[tempDir.appending(path: "plate").path] == ["width", "rounded", "radius"])
+        #expect(parameters["parts/peg"] == ["Count", "Finish"])
+        #expect(parameters[tempDir.appending(path: "plate").path] == ["Width", "Rounded", "Radius"])
 
         let peg = try #require(models.first { $0["name"] as? String == "parts/peg" })
         #expect(peg["title"] as? String == "Peg")
@@ -283,32 +207,43 @@ struct ParameterTests {
         #expect(FileManager.default.fileExists(atPath: "parts") == false)
     }
 
-    @Test func `Output argument replaces the project's output directory`() async throws {
+    @Test func `Catalog reports the project's own title and description`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        let projectDir = tempDir.appending(path: "project")
-        let outputDir = tempDir.appending(path: "output")
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        await CommandLineArguments.$overriddenArguments.withValue(["exe", "--output", outputDir.path]) {
-            await Project(root: projectDir) {
-                await Model("cube", options: .format3D(.stl)) {
-                    Box(2)
-                }
+        let catalog = await ParameterCatalog.collect(options: []) {
+            Metadata(title: "Kitchen Set", description: "Containers that fit together")
+            await Model(tempDir.appending(path: "jar").path) {
+                Metadata(title: "Jar")
+                @Parameter("Diameter") var diameter = 60.0
+                Cylinder(diameter: diameter, height: 80)
+            }
+            await Model(tempDir.appending(path: "lid").path) {
+                @Parameter("Diameter") var diameter = 60.0
+                Cylinder(diameter: diameter, height: 5)
             }
         }
 
-        #expect(FileManager.default.fileExists(atPath: outputDir.appending(path: "cube.stl").path))
-        #expect(FileManager.default.fileExists(atPath: projectDir.path) == false)
+        let json = try #require(try JSONSerialization.jsonObject(with: catalog.jsonData()) as? [String: Any])
+        #expect(json["title"] as? String == "Kitchen Set")
+        #expect(json["description"] as? String == "Containers that fit together")
+
+        // The project's metadata still applies to models that don't override it
+        let models = try #require(json["models"] as? [[String: Any]])
+        let titles = Dictionary(uniqueKeysWithValues: models.map {
+            (URL(fileURLWithPath: $0["name"] as? String ?? "").lastPathComponent, $0["title"] as? String)
+        })
+        #expect(titles["jar"] == "Jar")
+        #expect(titles["lid"] == "Kitchen Set")
     }
 
-    @Test func `Listing parameters to a file writes JSON and builds nothing`() async throws {
+    @Test func `Listing parameters writes JSON and builds nothing`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
         let listURL = tempDir.appending(path: "parameters.json")
 
-        await CommandLineArguments.$overriddenArguments.withValue(["exe", "--list-parameters=\(listURL.path)"]) {
+        await CustomizerRequest.$overridden.withValue(CustomizerRequest(parameterListPath: listURL.path)) {
             await Project(root: tempDir) {
                 await Model("box", options: .format3D(.stl)) {
                     Metadata(title: "Box")
@@ -321,7 +256,7 @@ struct ParameterTests {
         let model = try #require((json?["models"] as? [[String: Any]])?.first)
         #expect(model["name"] as? String == "box")
         #expect(model["title"] as? String == "Box")
-        #expect((model["parameters"] as? [[String: Any]])?.first?["name"] as? String == "size")
+        #expect((model["parameters"] as? [[String: Any]])?.first?["label"] as? String == "Size")
         #expect(try FileManager.default.contentsOfDirectory(atPath: tempDir.path) == ["parameters.json"])
     }
 }

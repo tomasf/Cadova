@@ -45,6 +45,7 @@ New to Cadova? Start with <doc:GettingStarted>, or watch [the tutorial series](h
 - <doc:CuttingAndSplitting>
 - <doc:DesigningFor3DPrinting>
 - <doc:WorkingWithParts>
+- <doc:WebCustomizer>
 - <doc:Examples>
 
 ### Under the Hood

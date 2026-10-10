@@ -6,40 +6,128 @@ import { fetchModel, listParameters, runModel } from "./runner.js";
 
 const $ = (id) => document.getElementById(id);
 
-// The model and its parameters come from the model itself, listed once it has loaded
-let model, defaults, values;
+// The models and their parameters come from the model itself, listed once it has loaded. A
+// parameter is identified by its label within its model, and each model keeps its own values. Only
+// changed values are kept, by model; everything else has its default.
+let catalog, models, model;
+const changed = new Map();
+
+function changedValues(m) {
+    if (!changed.has(m.name)) changed.set(m.name, {});
+    return changed.get(m.name);
+}
 
 // MARK: Form
 
 const form = $("parameters");
 const controls = new Map();
+const tabs = new Map();
 
-// Sets the page up for the model chosen by the page's cadova-model meta tag, or else the first model
-// that has parameters
-function setUp(catalog) {
+// Sets the page up for the model chosen by the page's cadova-model meta tag, or else every model that
+// has parameters, with a tab for each
+function setUp(listing) {
+    catalog = listing;
     const chosen = document.querySelector('meta[name="cadova-model"]')?.content;
-    model = catalog.models.find((m) => chosen ? m.name === chosen : m.parameters.length > 0);
-    if (!model) throw new Error(chosen ? `The model "${chosen}" wasn't found.` : "No model has parameters to customize.");
+    models = catalog.models.filter((m) => chosen ? m.name === chosen : m.parameters.length > 0);
+    if (!models.length) throw new Error(chosen ? `The model "${chosen}" wasn't found.` : "No model has parameters to customize.");
 
-    const title = model.title ?? humanize(model.name.split("/").pop());
+    const hash = new URLSearchParams(location.hash.slice(1));
+    model = models.find((m) => m.name === hash.get("model")) ?? models[0];
+    Object.assign(changedValues(model), valuesFromHash(hash, model));
+
+    const single = models.length === 1;
+    const title = single ? models[0].title ?? humanize(models[0].name.split("/").pop()) : catalog.title ?? "Customizer";
     document.title = `${title} customizer`;
     $("title").textContent = title;
-    if (model.description) $("subtitle").textContent = model.description;
+    const description = single ? models[0].description : catalog.description;
+    if (description) $("subtitle").textContent = description;
 
-    defaults = Object.fromEntries(model.parameters.map((p) => [p.name, p.default]));
-    values = { ...defaults, ...valuesFromHash() };
-    for (const parameter of model.parameters) form.append(field(parameter));
+    if (!single) {
+        for (const m of models) {
+            const tab = Object.assign(document.createElement("button"), { type: "button", textContent: tabTitle(m) });
+            tab.setAttribute("role", "tab");
+            tab.addEventListener("click", () => select(m));
+            $("models").append(tab);
+            tabs.set(m, tab);
+        }
+        $("models").hidden = false;
+    }
+    showForm();
 }
 
-function field(parameter) {
+// A project's metadata applies to every model that doesn't override it, so a model whose title is the
+// project's is named after itself instead
+function tabTitle(m) {
+    return m.title && m.title !== catalog.title ? m.title : humanize(m.name.split("/").pop());
+}
+
+function showForm() {
+    form.replaceChildren();
+    controls.clear();
+    for (const [m, tab] of tabs) tab.setAttribute("aria-selected", m === model);
+    if (tabs.size && model.description && model.description !== catalog.description) {
+        form.append(Object.assign(document.createElement("p"), { className: "model-description", textContent: model.description }));
+    }
+    model.parameters.forEach((parameter, index) => form.append(field(parameter, index)));
+}
+
+function select(next) {
+    if (next === model) return;
+    model = next;
+    showForm();
+    writeHash();
+    const build = builds.get(model.name);
+    if (build?.key === buildKey(model)) {
+        display(build);
+    } else {
+        lastFile = null;
+        $("download").disabled = true;
+        requestBuild();
+    }
+}
+
+// The value a parameter of a model gets: a changed value made to fit it (clamped to its range, or its
+// default if it's not a value this parameter can take, as can happen with a hand-edited address), or
+// else its default
+function valueFor(parameter, m = model) {
+    const value = changed.get(m.name)?.[parameter.label];
+    if (value === undefined) return parameter.default;
+    switch (parameter.type) {
+        case "boolean":
+            return typeof value === "boolean" ? value : parameter.default;
+        case "choice":
+            return parameter.options.includes(value) ? value : parameter.default;
+        case "integer":
+        case "number":
+        case "angle": {
+            if (typeof value !== "number" || Number.isNaN(value)) return parameter.default;
+            let result = parameter.type === "integer" ? Math.round(value) : value;
+            if (parameter.minimum !== undefined) result = Math.max(result, parameter.minimum);
+            if (parameter.maximum !== undefined) result = Math.min(result, parameter.maximum);
+            return result;
+        }
+        default:
+            return String(value);
+    }
+}
+
+function valuesFor(m) {
+    return Object.fromEntries(m.parameters.map((parameter) => [parameter.label, valueFor(parameter, m)]));
+}
+
+function buildKey(m) {
+    return JSON.stringify(valuesFor(m));
+}
+
+function field(parameter, index) {
     const element = document.createElement("div");
     element.className = "field";
-    const id = `parameter-${parameter.name}`;
+    const id = `parameter-${index}`;
     const head = document.createElement("div");
     head.className = "field-head";
     const label = document.createElement("label");
     label.htmlFor = id;
-    label.textContent = humanize(parameter.name);
+    label.textContent = parameter.label;
     head.append(label);
     element.append(head);
     if (parameter.description) {
@@ -58,7 +146,7 @@ function field(parameter) {
             const toggle = document.createElement("span");
             toggle.className = "toggle";
             const input = Object.assign(document.createElement("input"), { type: "checkbox", id });
-            input.addEventListener("change", () => update(parameter.name, input.checked));
+            input.addEventListener("change", () => update(parameter.label, input.checked));
             toggle.append(input, document.createElement("span"));
             head.append(toggle);
             element.removeChild(control);
@@ -77,7 +165,7 @@ function field(parameter) {
                     const button = Object.assign(document.createElement("button"), {
                         type: "button", textContent: humanize(option),
                     });
-                    button.addEventListener("click", () => { setValue(option); update(parameter.name, option); });
+                    button.addEventListener("click", () => { setValue(option); update(parameter.label, option); });
                     group.append(button);
                     return [option, button];
                 });
@@ -88,7 +176,7 @@ function field(parameter) {
             } else {
                 const select = Object.assign(document.createElement("select"), { id });
                 for (const option of parameter.options) select.append(new Option(humanize(option), option));
-                select.addEventListener("change", () => update(parameter.name, select.value));
+                select.addEventListener("change", () => update(parameter.label, select.value));
                 control.append(select);
                 setValue = (value) => { select.value = value; };
             }
@@ -106,20 +194,20 @@ function field(parameter) {
                 range = Object.assign(document.createElement("input"), {
                     type: "range", min: parameter.minimum, max: parameter.maximum, step,
                 });
-                range.setAttribute("aria-label", humanize(parameter.name));
+                range.setAttribute("aria-label", parameter.label);
                 range.addEventListener("input", () => {
                     number.value = range.value;
-                    update(parameter.name, Number(range.value));
+                    update(parameter.label, Number(range.value));
                 });
                 control.append(range);
             }
             number.addEventListener("change", () => {
                 if (number.value === "" || !number.checkValidity()) {
-                    number.value = values[parameter.name];
+                    number.value = valueFor(parameter);
                     return;
                 }
                 if (range) range.value = number.value;
-                update(parameter.name, Number(number.value));
+                update(parameter.label, Number(number.value));
             });
             control.append(number);
             if (parameter.type === "angle") {
@@ -130,44 +218,47 @@ function field(parameter) {
         }
         default: {
             const input = Object.assign(document.createElement("input"), { type: "text", id });
-            input.addEventListener("change", () => update(parameter.name, input.value));
+            input.addEventListener("change", () => update(parameter.label, input.value));
             control.append(input);
             setValue = (value) => { input.value = value; };
         }
     }
-    setValue(values[parameter.name]);
-    controls.set(parameter.name, setValue);
+    setValue(valueFor(parameter));
+    controls.set(parameter.label, setValue);
     return element;
 }
 
-function update(name, value) {
-    values[name] = value;
+function update(label, value) {
+    changedValues(model)[label] = value;
     writeHash();
     requestBuild();
 }
 
 $("reset").addEventListener("click", () => {
-    Object.assign(values, defaults);
-    for (const [name, setValue] of controls) setValue(values[name]);
+    changed.delete(model.name);
+    for (const parameter of model.parameters) controls.get(parameter.label)(parameter.default);
     writeHash();
     requestBuild();
 });
 
-// Values that differ from the defaults are kept in the address, so a configured model can be shared
-function valuesFromHash() {
+// The model on screen and its changed values are kept in the address, so a configured model can be
+// shared
+function valuesFromHash(hash, m) {
     const result = {};
-    for (const [name, raw] of new URLSearchParams(location.hash.slice(1))) {
-        const parameter = model.parameters.find((p) => p.name === name);
+    for (const [label, raw] of hash) {
+        if (label === "model" && models.length > 1) continue;
+        const parameter = m.parameters.find((p) => p.label === label);
         if (!parameter) continue;
-        result[name] = parameter.type === "boolean" ? raw === "true"
+        result[label] = parameter.type === "boolean" ? raw === "true"
             : ["integer", "number", "angle"].includes(parameter.type) ? Number(raw) : raw;
     }
     return result;
 }
 
 function writeHash() {
-    const changed = Object.entries(values).filter(([name, value]) => value !== defaults[name]);
-    history.replaceState(null, "", changed.length ? `#${new URLSearchParams(changed)}` : location.pathname);
+    const entries = Object.entries(changed.get(model.name) ?? {});
+    if (model !== models[0]) entries.unshift(["model", model.name]);
+    history.replaceState(null, "", entries.length ? `#${new URLSearchParams(entries)}` : location.pathname);
 }
 
 function humanize(name) {
@@ -178,8 +269,10 @@ function humanize(name) {
 // MARK: Building
 
 const worker = new Worker(new URL("worker.js", import.meta.url), { type: "module" });
-let isReady = false, building = false, pending = false, nextID = 0;
-let lastFile = null;
+let isReady = false, nextID = 0;
+let building = null; // the model and values of the build in progress
+const builds = new Map(); // the last build of each model, with the values it was built with
+let lastFile = null, shownModel = null;
 
 worker.onmessage = ({ data }) => {
     switch (data.type) {
@@ -202,7 +295,7 @@ worker.onmessage = ({ data }) => {
             finishBuild(data);
             break;
         case "error":
-            building = false;
+            building = null;
             setStatus(data.message, true);
             $("overlay-text").textContent = data.message;
             break;
@@ -242,15 +335,14 @@ function requestBuild() {
 let mainThreadModule = null;
 
 function startBuild() {
-    if (!isReady) return;
-    if (building) { pending = true; return; }
-    building = true;
-    pending = false;
+    if (!isReady || building) return;
+    const parameters = valuesFor(model);
+    building = { model, parameters, key: JSON.stringify(parameters) };
     $("building").classList.add("visible");
     if (mainThreadModule) {
         buildOnMainThread();
     } else {
-        worker.postMessage({ type: "build", id: ++nextID, model: model.name, parameters: { ...values } });
+        worker.postMessage({ type: "build", id: ++nextID, model: model.name, parameters });
     }
 }
 
@@ -261,9 +353,9 @@ async function buildOnMainThread() {
         }
         // Lets the "Building…" indicator paint before the build blocks the page
         await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
-        finishBuild(await runModel(await mainThreadModule, model.name, { ...values }));
+        finishBuild(await runModel(await mainThreadModule, building.model.name, building.parameters));
     } catch (error) {
-        building = false;
+        building = null;
         setStatus(String(error?.message ?? error), true);
     }
 }
@@ -274,19 +366,30 @@ function finishBuild(result) {
         buildOnMainThread();
         return;
     }
-    const { fileName, data, log, exitCode, milliseconds } = result;
-    building = false;
+    const finished = building;
+    building = null;
     $("building").classList.remove("visible");
+    const build = { ...result, key: finished.key };
+    builds.set(finished.model.name, build);
+    // A build for the model on screen is shown even if its values have changed since, while the
+    // next build catches up
+    if (finished.model === model) display(build);
+    if (builds.get(model.name)?.key !== buildKey(model)) startBuild();
+}
+
+function display({ fileName, data, log, exitCode, milliseconds }) {
     $("log").textContent = log.map((line) => line.replace(/^\S+ /, "")).join("\n");
     if (data) {
         lastFile = { name: fileName, data };
         $("download").disabled = false;
         setStatus(`Built in ${Math.round(milliseconds)} ms`);
-        show(data);
+        show(data, shownModel !== model);
+        shownModel = model;
     } else {
+        lastFile = null;
+        $("download").disabled = true;
         setStatus(exitCode === 0 ? "The model built to nothing." : "The model failed to build. See the build log.", true);
     }
-    if (pending) startBuild();
 }
 
 function setStatus(text, isError = false) {
@@ -370,7 +473,8 @@ function createViewer() {
         renderer.render(scene, camera);
     });
 
-    return (data) => {
+    // Frames the model the first time, and again when a different model is shown
+    return (data, isNewModel) => {
         const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
         const object = loader.parse(buffer);
         const color = getComputedStyle(document.documentElement).getPropertyValue("--model").trim();
@@ -386,6 +490,6 @@ function createViewer() {
         current = object;
         scene.add(object);
         $("overlay").hidden = true;
-        if (!framed) { frame(); framed = true; }
+        if (!framed || isNewModel) { frame(); framed = true; }
     };
 }

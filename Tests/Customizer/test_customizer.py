@@ -6,9 +6,9 @@ Generate the fixture's customizer first, then run this with the browser engines 
     swift package --allow-network-connections all:443 --allow-writing-to-package-directory generate-customizer
     python3 ../test_customizer.py chromium webkit
 
-It serves the customizer locally, loads the page, and checks that the form matches the model's
-parameters, that changing them through the URL and through the form rebuilds the model, and that the
-downloaded 3MF reflects each change.
+It serves the customizer locally, loads the page, and checks that the form matches the models'
+parameters, that changing them through the URL and through the form rebuilds the model, that each model's
+tab keeps its own values, and that the downloaded 3MF reflects each change.
 """
 
 import functools
@@ -71,6 +71,14 @@ class CustomizerPage:
         action()
         self.wait_for_build()
 
+    def number_field(self, label):
+        return self.page.get_by_role("spinbutton", name=label)
+
+    def set_number(self, label, value):
+        field = self.number_field(label)
+        field.fill(value)
+        field.blur()  # number fields report a change when they lose focus
+
     def download(self):
         with self.page.expect_download(timeout=TIMEOUT) as download:
             self.page.locator("#download").click()
@@ -93,40 +101,95 @@ def test(browser, base_url):
     # The form comes from the model's own parameter list
     page.open()
     expect(page.page.locator("#overlay")).to_be_hidden()  # the preview shows the model
-    expect(page.page.locator("#title")).to_have_text("Test Plate")
-    expect(page.page.locator("#subtitle")).to_have_text("A plate for testing the web customizer.")
-    for name in ["width", "holes", "thick"]:
-        expect(page.page.locator(f"#parameter-{name}")).to_be_attached()
+    expect(page.page.locator("#title")).to_have_text("Test Parts")
+    expect(page.page.locator("#subtitle")).to_have_text("Parts for testing the web customizer.")
+    expect(page.page.get_by_role("tab", name="Test Plate")).to_have_attribute("aria-selected", "true")
+    expect(page.page.locator(".model-description")).to_have_text("A plate with holes.")
+    for name in ["Width", "Holes"]:
+        expect(page.number_field(name)).to_be_attached()
+    expect(page.page.get_by_role("checkbox", name="Thick")).to_be_attached()
     expect(page.page.get_by_role("button", name="Rounded")).to_have_attribute("aria-pressed", "true")
     default = page.download()
     check(abs(default.extent(0) - 40) < 0.01, f"Default width is {default.extent(0)}, expected 40")
     check(abs(default.extent(2) - 3) < 0.01, f"Default thickness is {default.extent(2)}, expected 3")
 
     # Values in the URL hash override the defaults
-    page.open("#width=80&thick=true")
-    expect(page.page.locator("#parameter-width")).to_have_value("80")
+    page.open("#Width=80&Thick=true")
+    expect(page.number_field("Width")).to_have_value("80")
     changed = page.download()
     check(abs(changed.extent(0) - 80) < 0.01, f"Width from the URL is {changed.extent(0)}, expected 80")
     check(abs(changed.extent(2) - 6) < 0.01, f"Thickness from the URL is {changed.extent(2)}, expected 6")
 
     # Changing a value in the form rebuilds the model and updates the URL
     page.rebuild(lambda: page.page.get_by_role("button", name="Square").click())
-    check("corners=square" in page.page.url, f"The URL doesn't have the new value: {page.page.url}")
+    check("Corners=square" in page.page.url, f"The URL doesn't have the new value: {page.page.url}")
     square = page.download()
     check(square.triangles < changed.triangles,
           f"Square corners should need fewer triangles than rounded ones ({square.triangles} vs {changed.triangles})")
     check(abs(square.extent(0) - 80) < 0.01, "Changing the corners lost the width")
 
-    def remove_holes():
-        holes = page.page.locator("#parameter-holes")
-        holes.fill("0")
-        holes.blur()  # number fields report a change when they lose focus
-
-    page.rebuild(remove_holes)
+    page.rebuild(lambda: page.set_number("Holes", "0"))
     no_holes = page.download()
     check(no_holes.triangles < square.triangles,
           f"Removing the holes should remove triangles ({no_holes.triangles} vs {square.triangles})")
 
+    check(not page.errors, f"The page had errors: {page.errors}")
+
+
+def test_tabs(browser, base_url):
+    """Each model with parameters gets a tab, and each keeps its own values, even for parameters with
+    the same label."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.open("#Width=80")
+    plate = page.download()
+    check(abs(plate.extent(0) - 80) < 0.01, f"Plate width is {plate.extent(0)}, expected 80")
+
+    # The spacer's Width is its own parameter, so it keeps its default
+    page.rebuild(lambda: page.page.get_by_role("tab", name="Spacer").click())
+    expect(page.page.get_by_role("tab", name="Spacer")).to_have_attribute("aria-selected", "true")
+    expect(page.number_field("Width")).to_have_value("20")
+    expect(page.number_field("Height")).to_be_attached()
+    expect(page.page.locator(".model-description")).to_have_count(0)  # it has no description of its own
+    check("model=spacer" in page.page.url and "Width" not in page.page.url, f"The URL is {page.page.url}")
+    spacer = page.download()
+    check(spacer.vertices != plate.vertices, "Switching tabs didn't build the other model")
+    check(abs(spacer.extent(0) - 20) < 0.01, f"Spacer diameter is {spacer.extent(0)}, expected 20")
+    check(abs(spacer.extent(2) - 5) < 0.01, f"Spacer height is {spacer.extent(2)}, expected 5")
+
+    # Changing the spacer's width leaves the plate's alone
+    page.rebuild(lambda: page.set_number("Width", "30"))
+    spacer = page.download()
+    check(abs(spacer.extent(0) - 30) < 0.01, f"Spacer diameter is {spacer.extent(0)}, expected 30")
+    page.rebuild(lambda: page.page.get_by_role("tab", name="Test Plate").click())
+    expect(page.number_field("Width")).to_have_value("80")
+    check("model=" not in page.page.url and "Width=80" in page.page.url, f"The URL is {page.page.url}")
+    plate = page.download()
+    check(abs(plate.extent(0) - 80) < 0.01, f"Plate width after changing the spacer's is {plate.extent(0)}, expected 80")
+
+    # A link opens the same tab with the same values
+    page.open("#model=spacer&Width=25")
+    expect(page.page.get_by_role("tab", name="Spacer")).to_have_attribute("aria-selected", "true")
+    spacer = page.download()
+    check(abs(spacer.extent(0) - 25) < 0.01, f"Spacer diameter from the URL is {spacer.extent(0)}, expected 25")
+    check(not page.errors, f"The page had errors: {page.errors}")
+
+
+def test_single_model(browser, base_url):
+    """A page made for one model (generate-customizer --model) has no tabs."""
+    page = CustomizerPage(browser.new_page(), base_url)
+
+    def add_meta_tag(route):
+        response = route.fetch()
+        tag = '<meta name="cadova-model" content="spacer">\n<meta name="viewport"'
+        route.fulfill(response=response, body=response.text().replace('<meta name="viewport"', tag, 1))
+
+    page.page.route("**/index.html*", add_meta_tag)
+    page.open()
+    expect(page.page.locator("#models")).to_be_hidden()
+    expect(page.page.locator("#title")).to_have_text("Test Parts")  # the spacer's title comes from the project
+    expect(page.number_field("Height")).to_be_attached()
+    spacer = page.download()
+    check(abs(spacer.extent(0) - 20) < 0.01, f"Spacer diameter is {spacer.extent(0)}, expected 20")
     check(not page.errors, f"The page had errors: {page.errors}")
 
 
@@ -152,7 +215,7 @@ def main(engines):
 
     failed = False
     with sync_playwright() as playwright:
-        runs = [(engine, test, []) for engine in engines]
+        runs = [(engine, run, []) for engine in engines for run in (test, test_tabs, test_single_model)]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))
         for engine, run, arguments in runs:
