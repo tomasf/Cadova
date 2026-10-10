@@ -160,24 +160,19 @@ public func Project(
         exit(EXIT_FAILURE)
     }
 
-    let cliArgs = CommandLineArguments.current
-    if cliArgs.listsParameters {
+    // A customizer either asks for every model's parameters, or for one model, written where it says
+    let request = CustomizerRequest.current
+    if let path = request?.parameterListPath {
         let catalog = await ParameterCatalog.collect(options: options, content: content)
         do {
-            let json = try catalog.jsonData()
-            if let path = cliArgs.parameterListPath {
-                try json.write(to: URL(expandingFilePath: path))
-            } else {
-                FileHandle.standardOutput.write(json)
-                FileHandle.standardOutput.write(Data("\n".utf8))
-            }
+            try catalog.jsonData().write(to: URL(expandingFilePath: path))
         } catch {
             logger.error("Failed to write parameters: \(error.descriptiveString)")
             exit(EXIT_FAILURE)
         }
         return
     }
-    let url = cliArgs.outputDirectory.map { URL(expandingFilePath: $0) } ?? url
+    let url = request?.outputDirectory.map { URL(expandingFilePath: $0) } ?? url
 
     // Collect directives
     let directives = await ModelContext(isCollectingModels: true).whileCurrent {
@@ -202,9 +197,11 @@ public func Project(
 
     let models = directives.compactMap(\.model)
 
-    if !cliArgs.modelFilter.isEmpty {
-        combinedOptions = [combinedOptions, ModelOptions(ModelFilter(names: cliArgs.modelFilter))]
-        logger.info("Model filter: \(cliArgs.modelFilter.sorted().joined(separator: ", "))")
+    let cliArgs = CommandLineArguments.current
+    let modelFilter = cliArgs.modelFilter.union(request?.model.map { [$0] } ?? [])
+    if !modelFilter.isEmpty {
+        combinedOptions = [combinedOptions, ModelOptions(ModelFilter(names: modelFilter))]
+        logger.info("Model filter: \(modelFilter.sorted().joined(separator: ", "))")
     }
 
     // Build models and groups

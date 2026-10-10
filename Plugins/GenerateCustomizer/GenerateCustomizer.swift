@@ -7,7 +7,8 @@ import PackagePlugin
 ///
 ///     swift package generate-customizer [--product NAME] [--model NAME] [--output DIR]
 ///
-/// `--model` picks which model the page customizes; by default it's the first one with parameters.
+/// The page offers every model that has parameters, with a tab for each, unless `--model` limits it
+/// to one.
 /// The output goes to `Customizer` in the package unless `--output` says otherwise.
 @main
 struct GenerateCustomizer: CommandPlugin {
@@ -73,8 +74,8 @@ struct GenerateCustomizer: CommandPlugin {
         return product
     }
 
-    /// Copies the page into the output directory. A chosen model is named in a `cadova-model` meta
-    /// tag, which the page reads.
+    /// Copies the page into the output directory. A model the page is limited to is named in a
+    /// `cadova-model` meta tag, which the page reads.
     static func writePage(to output: URL, model: String?) throws {
         let fileManager = FileManager.default
         try fileManager.createDirectory(at: output, withIntermediateDirectories: true)

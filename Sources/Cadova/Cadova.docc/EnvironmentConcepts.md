@@ -60,37 +60,6 @@ Box(10)
     }
 ```
 
-## Customizer Parameters
-
-Parameters make a model configurable from the outside without editing its source code. Declare them with the ``Parameter`` property wrapper, giving each one a name and a default value:
-
-```swift
-struct GridPlate: Geometry3D {
-    @Parameter("columns") var columns = 4
-    @Parameter("height") var height = 20.0
-
-    var body: any Geometry3D {
-        // ...
-    }
-}
-```
-
-When building the model, override values from the command line:
-
-```
-$ my-model --param columns=8 --param height=25.5
-```
-
-Parameter values flow through the environment, so everything that applies to environment values applies to parameters too. Command-line values apply at the root of the model, and more local settings win — a parameter set in code, whether through an `Environment` directive or ``Geometry/withParameter(_:_:)``, takes precedence over a command-line value:
-
-```swift
-GridPlate()
-GridPlate().withParameter("columns", 8)
-    .translated(y: 60)
-```
-
-Supported parameter types include `Int`, `Double`, `Bool`, `String`, `Angle`, and string-backed enums that declare conformance to ``ParameterValue``. Because parameters are resolved from the active environment, read them inside a model context — within a `Model { }` builder, a geometry's `body`, or another geometry callback. Outside of a model, a parameter returns its default value.
-
 ## Custom Values
 
 You can define your own environment values. This is useful for advanced users and custom geometry behavior.

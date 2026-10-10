@@ -69,6 +69,17 @@
   h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
   .subtitle { color: var(--muted); font-size: 13px; margin-top: 2px; }
 
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .tabs[hidden] { display: none; }
+  .tabs button {
+    font: inherit; font-size: 13.5px; padding: 5px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: transparent; color: var(--text);
+  }
+  .tabs button[aria-selected="true"] {
+    background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600;
+  }
+  .model-description { color: var(--muted); font-size: 13px; margin: 8px 0 4px; }
+
   form { flex: 1; overflow-y: auto; padding: 4px 20px 16px; }
   .field { padding: 12px 0; border-bottom: 1px solid var(--line); }
   .field:last-child { border-bottom: none; }
@@ -159,6 +170,7 @@
     <header>
       <h1 id="title">Customizer</h1>
       <div class="subtitle" id="subtitle">Adjust the parameters, then download the model.</div>
+      <div class="tabs" id="models" role="tablist" aria-label="Models" hidden></div>
     </header>
     <form id="parameters" autocomplete="off"></form>
     <footer>
