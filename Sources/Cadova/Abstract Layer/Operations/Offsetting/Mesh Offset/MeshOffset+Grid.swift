@@ -114,7 +114,7 @@ extension MeshOffset {
         }
         sorted.withUnsafeBufferPointer { buffer in
             nonisolated(unsafe) let sorted = buffer
-            DispatchQueue.concurrentPerform(iterations: shardCount) { shard in
+            ConcurrentLoop.perform(shardCount) { shard in
                 var missing: [Request] = []
                 for part in sorted {
                     for request in part[shard] where table.value(for: request.key) == nil {

@@ -160,6 +160,25 @@ public func Project(
         exit(EXIT_FAILURE)
     }
 
+    let cliArgs = CommandLineArguments.current
+    if cliArgs.listsParameters {
+        let catalog = await ParameterCatalog.collect(options: options, content: content)
+        do {
+            let json = try catalog.jsonData()
+            if let path = cliArgs.parameterListPath {
+                try json.write(to: URL(expandingFilePath: path))
+            } else {
+                FileHandle.standardOutput.write(json)
+                FileHandle.standardOutput.write(Data("\n".utf8))
+            }
+        } catch {
+            logger.error("Failed to write parameters: \(error.descriptiveString)")
+            exit(EXIT_FAILURE)
+        }
+        return
+    }
+    let url = cliArgs.outputDirectory.map { URL(expandingFilePath: $0) } ?? url
+
     // Collect directives
     let directives = await ModelContext(isCollectingModels: true).whileCurrent {
         await content()
@@ -179,11 +198,10 @@ public func Project(
     }
 
     var combinedOptions = ModelOptions(options + directives.compactMap(\.options))
-    let environment = EnvironmentValues.defaultEnvironment.adding(directives: directives)
+    let environment = EnvironmentValues.rootEnvironment.adding(directives: directives)
 
     let models = directives.compactMap(\.model)
 
-    let cliArgs = CommandLineArguments.current
     if !cliArgs.modelFilter.isEmpty {
         combinedOptions = [combinedOptions, ModelOptions(ModelFilter(names: cliArgs.modelFilter))]
         logger.info("Model filter: \(cliArgs.modelFilter.sorted().joined(separator: ", "))")

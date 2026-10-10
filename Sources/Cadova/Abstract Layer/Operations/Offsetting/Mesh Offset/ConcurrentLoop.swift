@@ -27,12 +27,22 @@ internal enum ConcurrentLoop {
         let chunks = (count + chunk - 1) / chunk
         return [T](unsafeUninitializedCapacity: count) { buffer, initialized in
             nonisolated(unsafe) let base = buffer.baseAddress!
-            DispatchQueue.concurrentPerform(iterations: chunks) { c in
+            perform(chunks) { c in
                 for i in (c * chunk)..<min(count, (c + 1) * chunk) {
                     (base + i).initialize(to: transform(i))
                 }
             }
             initialized = count
         }
+    }
+
+    /// Runs the body once for each index in 0..<count, concurrently where the platform has threads.
+    /// WASI has no Dispatch, and runs on a single thread, so there the indices run in order.
+    static func perform(_ count: Int, _ body: (Int) -> Void) {
+        #if canImport(Dispatch)
+        DispatchQueue.concurrentPerform(iterations: count, execute: body)
+        #else
+        for index in 0..<count { body(index) }
+        #endif
     }
 }

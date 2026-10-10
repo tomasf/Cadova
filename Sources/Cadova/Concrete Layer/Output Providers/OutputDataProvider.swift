@@ -31,7 +31,12 @@ extension OutputDataProvider {
         // Written beside the destination and moved into place once complete, so a write that fails
         // partway through, on a full disk say, leaves the previous file untouched rather than
         // truncated.
+        // WASI has no temporary files to write through, so there the file is written in place.
+        #if os(WASI)
+        try await generateOutput(context: context).write(to: url)
+        #else
         try await generateOutput(context: context).write(to: url, options: .atomic)
+        #endif
     }
 
     /// Nothing to evaluate up front: the output does its own work when it's generated

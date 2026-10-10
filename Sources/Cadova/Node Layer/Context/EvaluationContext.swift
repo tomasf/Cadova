@@ -48,7 +48,14 @@ internal extension EvaluationContext {
     @_specialize(exported: false, where D == D2)
     @_specialize(exported: false, where D == D3)
     func buildResult<D: Dimensionality>(for geometry: D.Geometry, in environment: EnvironmentValues) async throws -> BuildResult<D> {
-        try await environment.whileCurrent {
+        #if os(WASI)
+        // WebAssembly without tail calls resumes async functions with ordinary calls, so the stack
+        // grows with every level of the geometry tree until the task suspends, and browsers can
+        // give that stack little room (Safari overflowed on a modest model). Yielding suspends the
+        // task, which unwinds the stack back to the executor's run loop.
+        await Task.yield()
+        #endif
+        return try await environment.whileCurrent {
             try await geometry._build(in: environment, context: self)
         }
     }

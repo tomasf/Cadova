@@ -30,7 +30,7 @@ extension MeshOffset {
         keys.withUnsafeBufferPointer { keyBuffer in
             shards.withUnsafeBufferPointer { shardBuffer in
                 nonisolated(unsafe) let keys = keyBuffer, shards = shardBuffer
-                DispatchQueue.concurrentPerform(iterations: index.shardCount) { shard in
+                ConcurrentLoop.perform(index.shardCount) { shard in
                     var n = 0
                     while n < keys.count {
                         if Int(shards[n]) == shard { index.set(Double(base + n), for: keys[n]) }

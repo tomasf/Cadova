@@ -108,8 +108,11 @@ public struct Group: Sendable, ModelBuildable {
             // Without this directory there is nowhere for the models below it to go, so the
             // failure belongs to the directory and is reported once, rather than once per model
             // that then cannot be saved into it.
+            // Listing parameters writes nothing, so it needs no directory either.
             do {
-                try FileManager().createDirectory(at: groupDirectory, withIntermediateDirectories: true)
+                if ParameterCatalog.current == nil {
+                    try FileManager().createDirectory(at: groupDirectory, withIntermediateDirectories: true)
+                }
             } catch {
                 logger.error(
                     "Failed to create output directory \(groupDirectory.path): \(error.descriptiveString)"

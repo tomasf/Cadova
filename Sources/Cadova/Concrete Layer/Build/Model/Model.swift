@@ -108,26 +108,27 @@ public struct Model: Sendable, ModelBuildable {
     }
 
     internal func build(
-        environment inheritedEnvironment: EnvironmentValues = .defaultEnvironment,
+        environment inheritedEnvironment: EnvironmentValues = .rootEnvironment,
         context: EvaluationContext = .init(),
         options inheritedOptions: ModelOptions? = nil,
         URL directory: URL? = nil,
         filterPath: [String] = []
     ) async -> Int {
         await ModelLogger.$current.withValue(ModelLogger(modelName: name)) {
-            await generate(environment: inheritedEnvironment, context: context, options: inheritedOptions, URL: directory)
+            if let catalog = ParameterCatalog.current {
+                await recordParameters(into: catalog, environment: inheritedEnvironment, context: context,
+                                       options: inheritedOptions, name: filterName(in: filterPath))
+                return 0
+            }
+            return await generate(environment: inheritedEnvironment, context: context, options: inheritedOptions, URL: directory)
         }
     }
 
-    private func generate(
+    /// Runs the model's content and resolves the options and environment it builds with.
+    private func resolveContent(
         environment inheritedEnvironment: EnvironmentValues,
-        context: EvaluationContext,
-        options inheritedOptions: ModelOptions?,
-        URL directory: URL?
-    ) async -> Int {
-        let logger = ModelLogger.current
-        logger.generating()
-
+        options inheritedOptions: ModelOptions?
+    ) -> (directives: [BuildDirective], options: ModelOptions, environment: EnvironmentValues) {
         var directives = inheritedEnvironment.whileCurrent {
             self.directives()
         }
@@ -144,6 +145,36 @@ public struct Model: Sendable, ModelBuildable {
                 self.directives()
             }
         }
+        return (directives, options, environment)
+    }
+
+    /// Builds the model's geometry to find its parameters, without evaluating or writing it.
+    private func recordParameters(
+        into catalog: ParameterCatalog,
+        environment inheritedEnvironment: EnvironmentValues,
+        context: EvaluationContext,
+        options inheritedOptions: ModelOptions?,
+        name: String
+    ) async {
+        let recorder = ParameterRecorder()
+        let metadata = await ParameterRecorder.$current.withValue(recorder) {
+            let (directives, options, environment) = resolveContent(environment: inheritedEnvironment, options: inheritedOptions)
+            _ = try? await directives.build(with: options, in: environment, context: context)
+            return options[Metadata.self]
+        }
+        catalog.add(.init(name: name, title: metadata.title, description: metadata.description, parameters: recorder.parameters))
+    }
+
+    private func generate(
+        environment inheritedEnvironment: EnvironmentValues,
+        context: EvaluationContext,
+        options inheritedOptions: ModelOptions?,
+        URL directory: URL?
+    ) async -> Int {
+        let logger = ModelLogger.current
+        logger.generating()
+
+        let (directives, options, environment) = resolveContent(environment: inheritedEnvironment, options: inheritedOptions)
 
         let baseURL: URL
         if let parent = directory, !(name as NSString).isAbsolutePath {
