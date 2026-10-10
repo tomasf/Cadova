@@ -92,6 +92,7 @@ def test(browser, base_url):
 
     # The form comes from the model's own parameter list
     page.open()
+    expect(page.page.locator("#overlay")).to_be_hidden()  # the preview shows the model
     expect(page.page.locator("#title")).to_have_text("Test Plate")
     expect(page.page.locator("#subtitle")).to_have_text("A plate for testing the web customizer.")
     for name in ["width", "holes", "thick"]:
@@ -129,6 +130,20 @@ def test(browser, base_url):
     check(not page.errors, f"The page had errors: {page.errors}")
 
 
+def test_without_webgl(browser, base_url):
+    """Without WebGL there's no preview, but building and downloading still work."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.open()
+    expect(page.page.locator("#overlay-text")).to_contain_text("can't show a 3D preview")
+    mesh = page.download()
+    check(abs(mesh.extent(0) - 40) < 0.01, f"Width without WebGL is {mesh.extent(0)}, expected 40")
+    check(not page.errors, f"The page had errors without WebGL: {page.errors}")
+
+
+# Chromium renders WebGL in software where there's no GPU, such as on CI machines
+CHROMIUM_ARGUMENTS = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
+
+
 def main(engines):
     check(CUSTOMIZER.joinpath("model.wasm").exists(), f"No customizer in {CUSTOMIZER}; generate it first")
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(QuietHandler, directory=CUSTOMIZER))
@@ -137,13 +152,18 @@ def main(engines):
 
     failed = False
     with sync_playwright() as playwright:
-        for engine in engines:
-            browser = getattr(playwright, engine).launch()
+        runs = [(engine, test, []) for engine in engines]
+        if "chromium" in engines:
+            runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))
+        for engine, run, arguments in runs:
+            name = f"{engine} ({run.__name__})"
+            launcher = getattr(playwright, engine)
+            browser = launcher.launch(args=(CHROMIUM_ARGUMENTS if engine == "chromium" else []) + arguments)
             try:
-                test(browser, base_url)
-                print(f"{engine}: passed")
+                run(browser, base_url)
+                print(f"{name}: passed")
             except (AssertionError, PlaywrightError) as error:
-                print(f"{engine}: FAILED: {error}")
+                print(f"{name}: FAILED: {error}")
                 failed = True
             finally:
                 browser.close()
