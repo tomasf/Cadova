@@ -1,0 +1,52 @@
+name: customizer
+
+# Builds the test fixture's web customizer with the generate-customizer plugin, then tests the page
+# in Chromium and WebKit. See Tests/Customizer/test_customizer.py.
+
+on:
+  push:
+    branches: [ "dev", "main", "web-customizer" ]
+  pull_request:
+    branches: [ "dev", "main" ]
+
+jobs:
+  customizer:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # The plugin needs this exact swift.org release, because Swift's WebAssembly SDK only works with
+    # the compiler it was built for
+    - uses: SwiftyLab/setup-swift@latest
+      with:
+        swift-version: '6.3.2'
+
+    # On macOS the plugin finds the toolchain where swift.org installs it. On Linux it only knows
+    # swiftly's location, and setup-swift installs elsewhere.
+    - name: Point the plugin at the toolchain
+      if: runner.os == 'Linux'
+      run: |
+        swift --version
+        echo "CADOVA_WASM_TOOLCHAIN=$(cd "$(dirname "$(realpath "$(which swift)")")/../.." && pwd)" >> "$GITHUB_ENV"
+
+    - name: Generate the customizer
+      working-directory: Tests/Customizer/Fixture
+      run: swift package --allow-network-connections all:443 --allow-writing-to-package-directory generate-customizer
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install Playwright
+      run: |
+        pip install playwright==1.48.0
+        playwright install --with-deps chromium webkit
+
+    - name: Test the page
+      run: python Tests/Customizer/test_customizer.py chromium webkit
