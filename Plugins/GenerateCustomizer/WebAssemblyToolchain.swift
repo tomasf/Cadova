@@ -5,10 +5,10 @@ import Foundation
 /// The plugin keeps its own copy of the SDK in its work directory and patches it, so the patches
 /// never touch an SDK installed for other projects.
 struct WebAssemblyToolchain {
-    static let swiftVersion = "6.3.2"
+    static let swiftVersion = "6.4.0"
     static let sdkName = "swift-\(swiftVersion)-RELEASE_wasm"
     static let sdkURL = URL(string: "https://download.swift.org/swift-\(swiftVersion)-release/wasm-sdk/swift-\(swiftVersion)-RELEASE/\(sdkName).artifactbundle.tar.gz")!
-    static let sdkChecksum = "a61f0584c93283589f8b2f42db05c1f9a182b506c2957271402992655591dd7c"
+    static let sdkChecksum = "f07b7be3c586d92d7a07051fc6d303b87ebea67eadc40640ba59d5a8b79aa86d"
 
     static let binaryenVersion = "133"
     static let binaryenChecksums = [
@@ -16,22 +16,6 @@ struct WebAssemblyToolchain {
         "x86_64-macos": "13a9b90be775c6389ce3d1f879cb8627bea56708ba8c122983941d53a8199b95",
         "x86_64-linux": "2dc9c7813f5375db93d96ead4b78222fcc3e2677bbb832297af4797782a37489",
         "aarch64-linux": "89c07ea56faf38d0fbecf36ca8ec0721756716185f265b568e133d427f299bf8",
-    ]
-
-    /// The sources of Swift's Cxx module, from the same Swift release as the toolchain
-    static let cxxSourcesURL = URL(string: "https://raw.githubusercontent.com/swiftlang/swift/swift-\(swiftVersion)-RELEASE/stdlib/public/Cxx/")!
-    static let cxxSources = [
-        "CxxConvertibleToBool.swift": "b675ead5369d62a67728b6f59040f312a3b8a84ab897eee06c6202252420aaaf",
-        "CxxConvertibleToCollection.swift": "4e20b077c6d545c8b1ee5389d62e922a37a16dbfbf1518e37aae264f9d0d6dac",
-        "CxxDictionary.swift": "108a8a101072314450bfcb492e023a5fbdff142643c019a39b63ec649f3b4216",
-        "CxxOptional.swift": "8ab992e1e93223beb2abb6a9c65fafdfc274375e414a49e48a4999dc058c95a4",
-        "CxxPair.swift": "5c13934250c3bea9ea223f10c1b36af1ac6d1da9b84747a7c5fde5185aff02ab",
-        "CxxRandomAccessCollection.swift": "406e02b0fc3f3700bcad4602807bac323cabe465fb38889ea30bb99790ac53b1",
-        "CxxSequence.swift": "4e95d1a7b71d61289da67a230cb761d68a343fc5e5eb2b0f0a719056f20b2e6a",
-        "CxxSet.swift": "2d69bc8ff07b3f536317c06785e8d80d15aa7daa0abeaa5621da8dfda01b92c6",
-        "CxxSpan.swift": "3cbfe9cf3247ccbb165edba7785970392cc7a1e598879ccd3ca571e43b42e8b1",
-        "CxxVector.swift": "123069c226c9d55892e8163ce453d0aef735491c3611eeb04de0654457d24702",
-        "UnsafeCxxIterators.swift": "a62db5dccec886d8afdbec9dde4cfc2312af952f050c6c8b5865e058d1d36fff",
     ]
 
     /// The toolchain's `usr/bin`
@@ -43,19 +27,7 @@ struct WebAssemblyToolchain {
     var sysroot: URL { sdkRoot.appending(path: "WASI.sdk") }
     var swiftResources: URL { sdkRoot.appending(path: "swift.xctoolchain/usr/lib/swift_static") }
     var sdkLibraries: URL { swiftResources.appending(path: "wasi") }
-
-    /// swift.org toolchains can't compile manifests against the macOS SDK in Xcode 27, so on macOS
-    /// the host side uses the Command Line Tools when they're installed. SwiftPM gives plugins an
-    /// SDKROOT for Xcode's SDK, which would win over DEVELOPER_DIR, so that goes.
-    var hostEnvironment: [String: String?] {
-        #if os(macOS)
-        let commandLineTools = "/Library/Developer/CommandLineTools"
-        if FileManager.default.fileExists(atPath: commandLineTools) {
-            return ["DEVELOPER_DIR": commandLineTools, "SDKROOT": nil]
-        }
-        #endif
-        return [:]
-    }
+    var sharedSDKLibraries: URL { sdkRoot.appending(path: "swift.xctoolchain/usr/lib/swift/wasi") }
 
     /// Finds the toolchain, and downloads and patches the SDK and Binaryen if they're not in the
     /// work directory yet.
@@ -68,7 +40,7 @@ struct WebAssemblyToolchain {
         try toolchain.installSDK()
         try toolchain.installBinaryen(in: workDirectory)
         try toolchain.patchModuleMap()
-        try toolchain.buildCxxRuntime(support: support)
+        try toolchain.installCxxRuntime(support: support)
         try toolchain.leaveOutICUData(support: support)
         return toolchain
     }
@@ -107,6 +79,12 @@ struct WebAssemblyToolchain {
 
     private func installSDK() throws {
         guard !FileManager.default.fileExists(atPath: sdkRoot.path) else { return }
+        // SDKs for other Swift versions, left by earlier versions of the plugin, are a few hundred
+        // megabytes each
+        let fileManager = FileManager.default
+        for name in (try? fileManager.contentsOfDirectory(atPath: sdksDirectory.path)) ?? [] where name.hasSuffix(".artifactbundle") {
+            try? fileManager.removeItem(at: sdksDirectory.appending(path: name))
+        }
         print("Downloading Swift's WebAssembly SDK")
         try Command.downloadArchive(Self.sdkURL, sha256: Self.sdkChecksum, into: sdksDirectory)
     }
@@ -148,40 +126,23 @@ struct WebAssemblyToolchain {
         }
     }
 
-    /// The SDK has the Cxx module's interface but not its library, so build it from the same
-    /// sources. It goes into the SDK, where the linker looks for it.
-    private func buildCxxRuntime(support: URL) throws {
+    /// The SDK ships the Cxx module's library only with its shared libraries, where static linking
+    /// doesn't look, so it's copied next to the static ones. This target has no C++ exceptions, so
+    /// stubs that turn a C++ throw into a trap go into the same archive.
+    private func installCxxRuntime(support: URL) throws {
         let library = sdkLibraries.appending(path: "libswiftCxx.a")
         guard !FileManager.default.fileExists(atPath: library.path) else { return }
-        print("Building the Cxx runtime for WebAssembly")
 
         let build = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: build, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: build) }
 
-        var sources: [URL] = []
-        for (name, checksum) in Self.cxxSources.sorted(by: { $0.key < $1.key }) {
-            let source = build.appending(path: name)
-            try Command.download(Self.cxxSourcesURL.appending(path: name), to: source, sha256: checksum)
-            sources.append(source)
-        }
-
-        let object = build.appending(path: "Cxx.o")
-        try Command(binaries.appending(path: "swiftc"), [
-            "-target", "wasm32-unknown-wasip1", "-sdk", sysroot.path, "-resource-dir", swiftResources.path,
-            "-static-stdlib", "-module-name", "Cxx", "-parse-as-library", "-O", "-wmo", "-enable-library-evolution",
-            "-cxx-interoperability-mode=default", "-strict-memory-safety",
-            "-enable-experimental-feature", "BuiltinModule", "-enable-experimental-feature", "AllowUnsafeAttribute",
-            "-enable-experimental-feature", "Lifetimes", "-enable-experimental-feature", "LifetimeDependence",
-            "-Xcc", "-nostdinc++", "-Xfrontend", "-disable-implicit-cxx-module-import",
-            // The sources are the standard library's own, and warn about things only its build defines
-            "-suppress-warnings",
-            "-c", "-o", object.path,
-        ] + sources.map(\.path), environment: hostEnvironment).run()
-
+        let archive = build.appending(path: "libswiftCxx.a")
+        try FileManager.default.copyItem(at: sharedSDKLibraries.appending(path: "libswiftCxx.a"), to: archive)
         let stubs = build.appending(path: "cxa_stubs.o")
         try compileC(support.appending(path: "cxa_stubs.c"), to: stubs)
-        try Command(binaries.appending(path: "llvm-ar"), ["rcs", library.path, object.path, stubs.path]).run()
+        try Command(binaries.appending(path: "llvm-ar"), ["r", archive.path, stubs.path]).run()
+        try FileManager.default.moveItem(at: archive, to: library)
     }
 
     /// Foundation links ICU, whose data alone is 34 MB. Cadova formats nothing for a locale, so the
@@ -214,14 +175,10 @@ struct WebAssemblyToolchain {
 
     /// Builds an executable product of a package for WebAssembly and returns the linked module.
     func build(product: String, packageDirectory: URL, scratchDirectory: URL) throws -> URL {
-        let module = scratchDirectory.appending(path: "wasm32-unknown-wasip1/release/\(product).wasm")
-        // SwiftPM doesn't see changes to the SDK's libraries, such as the ones made above, so always relink
-        try? FileManager.default.removeItem(at: module)
-
-        try Command(binaries.appending(path: "swift"), [
-            "build", "--package-path", packageDirectory.path, "--scratch-path", scratchDirectory.path,
-            "--swift-sdks-path", sdksDirectory.path, "--swift-sdk", Self.sdkName,
-            "--product", product, "-c", "release",
+        let swift = binaries.appending(path: "swift")
+        let options = [
+            "--package-path", packageDirectory.path, "--scratch-path", scratchDirectory.path,
+            "--swift-sdks-path", sdksDirectory.path, "--swift-sdk", Self.sdkName, "-c", "release",
             // The plugin already runs in a sandbox, and macOS can't start one inside another
             "--disable-sandbox",
             // The sandbox keeps SwiftPM out of its shared caches and configuration, so this build
@@ -230,7 +187,15 @@ struct WebAssemblyToolchain {
             "--config-path", scratchDirectory.appending(path: "../swiftpm/configuration").standardizedFileURL.path,
             "--security-path", scratchDirectory.appending(path: "../swiftpm/security").standardizedFileURL.path,
             "-Xcc", "-D_WASI_EMULATED_SIGNAL", "-Xcc", "-D_WASI_EMULATED_MMAN", "-Xcc", "-D_WASI_EMULATED_PROCESS_CLOCKS",
-        ], environment: hostEnvironment).run()
+        ]
+
+        let binPath = try Command(swift, ["build", "--show-bin-path"] + options).output()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let module = URL(fileURLWithPath: binPath).appending(path: "\(product).wasm")
+        // SwiftPM doesn't see changes to the SDK's libraries, such as the ones made above, so always relink
+        try? FileManager.default.removeItem(at: module)
+
+        try Command(swift, ["build", "--product", product] + options).run()
         return module
     }
 
