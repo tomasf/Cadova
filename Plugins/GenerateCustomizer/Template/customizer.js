@@ -304,73 +304,88 @@ $("download").addEventListener("click", () => {
 
 // MARK: Viewer
 
-THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
-const container = $("viewer");
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-container.append(renderer.domElement);
+// Without WebGL (turned off, or no usable GPU) there's no preview, but the form, builds and download
+// still work
+let show;
+try {
+    show = createViewer();
+} catch (error) {
+    console.warn("The 3D preview isn't available:", error);
+    show = () => {
+        $("overlay-text").textContent = "This browser can't show a 3D preview, but the model can still be downloaded.";
+        $("progress-bar").parentElement.hidden = true;
+    };
+}
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 10000);
-const controlsView = new OrbitControls(camera, renderer.domElement);
-controlsView.enableDamping = true;
+function createViewer() {
+    THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
+    const container = $("viewer");
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.append(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8577, 2.2));
-const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
-keyLight.position.set(1, -1.5, 2);
-camera.add(keyLight);
-scene.add(camera);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 10000);
+    const controlsView = new OrbitControls(camera, renderer.domElement);
+    controlsView.enableDamping = true;
 
-const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--text").trim();
-const grid = new THREE.GridHelper(400, 40, gridColor, gridColor);
-grid.rotation.x = Math.PI / 2;
-grid.material.transparent = true;
-grid.material.opacity = 0.08;
-scene.add(grid);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8577, 2.2));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    keyLight.position.set(1, -1.5, 2);
+    camera.add(keyLight);
+    scene.add(camera);
 
-const loader = new ThreeMFLoader();
-let current = null, framed = false;
+    const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--text").trim();
+    const grid = new THREE.GridHelper(400, 40, gridColor, gridColor);
+    grid.rotation.x = Math.PI / 2;
+    grid.material.transparent = true;
+    grid.material.opacity = 0.08;
+    scene.add(grid);
 
-function show(data) {
-    const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-    const object = loader.parse(buffer);
-    const color = getComputedStyle(document.documentElement).getPropertyValue("--model").trim();
-    object.traverse((child) => {
-        if (!child.isMesh) return;
-        child.geometry = toCreasedNormals(child.geometry, THREE.MathUtils.degToRad(30));
-        child.material = new THREE.MeshStandardMaterial({ color, roughness: 0.65, metalness: 0 });
-    });
-    if (current) {
-        scene.remove(current);
-        current.traverse((child) => child.geometry?.dispose());
+    const loader = new ThreeMFLoader();
+    let current = null, framed = false;
+
+    function frame() {
+        const box = new THREE.Box3().setFromObject(current);
+        const size = box.getSize(new THREE.Vector3()).length();
+        const center = box.getCenter(new THREE.Vector3());
+        controlsView.target.copy(center);
+        camera.position.copy(center).add(new THREE.Vector3(0.6, -1.0, 0.75).normalize().multiplyScalar(size * 1.5));
+        camera.near = size / 100;
+        camera.far = size * 100;
+        camera.updateProjectionMatrix();
     }
-    current = object;
-    scene.add(object);
-    $("overlay").hidden = true;
-    if (!framed) { frame(); framed = true; }
-}
 
-function frame() {
-    const box = new THREE.Box3().setFromObject(current);
-    const size = box.getSize(new THREE.Vector3()).length();
-    const center = box.getCenter(new THREE.Vector3());
-    controlsView.target.copy(center);
-    camera.position.copy(center).add(new THREE.Vector3(0.6, -1.0, 0.75).normalize().multiplyScalar(size * 1.5));
-    camera.near = size / 100;
-    camera.far = size * 100;
-    camera.updateProjectionMatrix();
-}
+    function resize() {
+        const { clientWidth: width, clientHeight: height } = container;
+        renderer.setSize(width, height, false);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+    }
+    new ResizeObserver(resize).observe(container);
+    resize();
 
-function resize() {
-    const { clientWidth: width, clientHeight: height } = container;
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-}
-new ResizeObserver(resize).observe(container);
-resize();
+    renderer.setAnimationLoop(() => {
+        controlsView.update();
+        renderer.render(scene, camera);
+    });
 
-renderer.setAnimationLoop(() => {
-    controlsView.update();
-    renderer.render(scene, camera);
-});
+    return (data) => {
+        const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+        const object = loader.parse(buffer);
+        const color = getComputedStyle(document.documentElement).getPropertyValue("--model").trim();
+        object.traverse((child) => {
+            if (!child.isMesh) return;
+            child.geometry = toCreasedNormals(child.geometry, THREE.MathUtils.degToRad(30));
+            child.material = new THREE.MeshStandardMaterial({ color, roughness: 0.65, metalness: 0 });
+        });
+        if (current) {
+            scene.remove(current);
+            current.traverse((child) => child.geometry?.dispose());
+        }
+        current = object;
+        scene.add(object);
+        $("overlay").hidden = true;
+        if (!framed) { frame(); framed = true; }
+    };
+}
