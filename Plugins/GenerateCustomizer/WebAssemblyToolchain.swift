@@ -47,34 +47,65 @@ struct WebAssemblyToolchain {
 
     private static func locateToolchain() throws -> URL {
         let fileManager = FileManager.default
-        let home = fileManager.homeDirectoryForCurrentUser
-        var candidates: [URL] = []
-        if let path = ProcessInfo.processInfo.environment["CADOVA_WASM_TOOLCHAIN"] {
-            candidates.append(URL(fileURLWithPath: path))
+        let isToolchain = { (directory: URL) in
+            fileManager.isExecutableFile(atPath: directory.appending(path: "usr/bin/swift").path)
         }
+
+        // A location given explicitly has to be right, rather than quietly falling back to others
+        if let path = ProcessInfo.processInfo.environment["CADOVA_WASM_TOOLCHAIN"] {
+            let directory = URL(fileURLWithPath: path)
+            guard isToolchain(directory) else {
+                throw CustomizerError("""
+                    CADOVA_WASM_TOOLCHAIN is set to \(path), but there's no usr/bin/swift there. Set it \
+                    to the directory of the Swift \(swiftVersion) toolchain from swift.org, the one that \
+                    contains usr/bin.
+                    """)
+            }
+            return directory.appending(path: "usr/bin")
+        }
+
+        let candidates = standardToolchainLocations
+        if let directory = candidates.first(where: isToolchain) {
+            return directory.appending(path: "usr/bin")
+        }
+
+        let home = fileManager.homeDirectoryForCurrentUser.path
+        let lookedIn = candidates.map { "  " + $0.path.replacingOccurrences(of: home, with: "~") }.joined(separator: "\n")
+        #if os(macOS)
+        let package = "  https://download.swift.org/swift-\(swiftVersion)-release/xcode/swift-\(swiftVersion)-RELEASE/swift-\(swiftVersion)-RELEASE-osx.pkg"
+        #else
+        let package = "  the toolchain for your distribution from https://www.swift.org/install"
+        #endif
+        throw CustomizerError("""
+            Building for WebAssembly needs the Swift \(swiftVersion) toolchain from swift.org. Xcode's \
+            Swift can't be used, even when it's the same version.
+
+            Install it with one of:
+              swiftly install \(swiftVersion)    (swiftly: https://www.swift.org/install; run \
+            `swiftly self-update` first if it can't find \(swiftVersion))
+            \(package)
+
+            Looked in:
+            \(lookedIn)
+
+            If it's installed somewhere else, set CADOVA_WASM_TOOLCHAIN to its directory.
+            """)
+    }
+
+    /// Where swift.org's installer and swiftly put the toolchain
+    private static var standardToolchainLocations: [URL] {
+        let home = FileManager.default.homeDirectoryForCurrentUser
         #if os(macOS)
         let bundle = "swift-\(swiftVersion)-RELEASE.xctoolchain"
-        candidates += [
+        return [
             home.appending(path: "Library/Developer/Toolchains/\(bundle)"),
             URL(fileURLWithPath: "/Library/Developer/Toolchains/\(bundle)"),
         ]
         #else
         let swiftlyHome = ProcessInfo.processInfo.environment["SWIFTLY_HOME_DIR"].map { URL(fileURLWithPath: $0) }
             ?? home.appending(path: ".local/share/swiftly")
-        candidates.append(swiftlyHome.appending(path: "toolchains/\(swiftVersion)"))
+        return [swiftlyHome.appending(path: "toolchains/\(swiftVersion)")]
         #endif
-
-        for candidate in candidates {
-            let binaries = candidate.appending(path: "usr/bin")
-            if fileManager.isExecutableFile(atPath: binaries.appending(path: "swift").path) {
-                return binaries
-            }
-        }
-        throw CustomizerError("""
-            Building for WebAssembly needs Swift \(swiftVersion) from swift.org, which wasn't found. \
-            Install it with `swiftly install \(swiftVersion)`, or set CADOVA_WASM_TOOLCHAIN to the \
-            toolchain's directory.
-            """)
     }
 
     private func installSDK() throws {
