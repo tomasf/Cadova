@@ -27,8 +27,16 @@ jobs:
       with:
         swift-version: '6.3.2'
 
-    # On macOS the plugin finds the toolchain where swift.org installs it. On Linux it only knows
-    # swiftly's location, and setup-swift installs elsewhere.
+    # On macOS, setup-swift uses Xcode's own Swift when its version matches, so the plugin gets the
+    # swift.org release installed where it looks for it
+    - name: Install the swift.org toolchain
+      if: runner.os == 'macOS'
+      run: |
+        curl -fsSL -o "$RUNNER_TEMP/swift.pkg" https://download.swift.org/swift-6.3.2-release/xcode/swift-6.3.2-RELEASE/swift-6.3.2-RELEASE-osx.pkg
+        installer -pkg "$RUNNER_TEMP/swift.pkg" -target CurrentUserHomeDirectory
+        ~/Library/Developer/Toolchains/swift-6.3.2-RELEASE.xctoolchain/usr/bin/swift --version
+
+    # On Linux the plugin only knows swiftly's location, and setup-swift installs elsewhere
     - name: Point the plugin at the toolchain
       if: runner.os == 'Linux'
       run: |
