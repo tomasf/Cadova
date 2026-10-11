@@ -61,12 +61,12 @@ public struct Metadata: Sendable {
 
 extension Metadata: ModelOptionItem {
     static var defaultValue: Metadata {
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.timeZone = .current
-        dateFormatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
+        // The format style, unlike ISO8601DateFormatter, needs no ICU, which keeps its data out of
+        // WebAssembly builds
+        let date = Date.now.formatted(Date.ISO8601FormatStyle(timeZone: .current).year().month().day())
 
         return .init(title: nil, description: nil, author: nil, license: nil,
-                     date: dateFormatter.string(from: .now),
+                     date: date,
                      application: "Cadova, https://cadova.org/"
         )
     }
