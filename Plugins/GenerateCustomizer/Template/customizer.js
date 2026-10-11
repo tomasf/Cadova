@@ -310,7 +310,7 @@ async function ready({ catalog, log, stackOverflow }) {
             mainThreadModule = WebAssembly.compile(await fetchModel(new URL("model.wasm", location.href).href));
             ({ catalog, log } = await listParameters(await mainThreadModule));
         }
-        if (!catalog) throw new Error("The model couldn't list its parameters. See the build log.");
+        if (!catalog) throw new Error("The model couldn't list its parameters. See the build details.");
         setUp(catalog);
     } catch (error) {
         $("log").textContent = (log ?? []).join("\n");
@@ -388,13 +388,15 @@ function display({ fileName, data, log, exitCode, milliseconds }) {
     } else {
         lastFile = null;
         $("download").disabled = true;
-        setStatus(exitCode === 0 ? "The model built to nothing." : "The model failed to build. See the build log.", true);
+        setStatus(exitCode === 0 ? "The model built to nothing." : "The model failed to build. See the build details.", true);
     }
 }
 
+// Errors show in the sidebar. How long a successful build took goes in the build details.
 function setStatus(text, isError = false) {
-    $("status").textContent = text;
-    $("status").classList.toggle("error", isError);
+    $("status").textContent = isError ? text : "";
+    $("status").hidden = !isError;
+    if (!isError) $("build-time").textContent = text;
 }
 
 $("download").addEventListener("click", () => {

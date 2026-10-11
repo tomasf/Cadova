@@ -120,7 +120,7 @@ The page doesn't work when opened directly from disk, because browsers block the
 $ python3 -m http.server --directory Customizer 8000
 ```
 
-Then open `http://localhost:8000`. If a build fails, the page's build log shows the model's output.
+Then open `http://localhost:8000`. If a build fails, the page's build details show the model's output.
 
 ## Publishing
 

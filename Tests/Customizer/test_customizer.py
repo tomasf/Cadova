@@ -59,15 +59,19 @@ class CustomizerPage:
         self.wait_for_build()
 
     def wait_for_build(self):
-        status = self.page.locator("#status")
-        expect(status).to_have_text(re.compile(r"^Built in \d+ ms$|failed|wasn't|couldn't|nothing"), timeout=TIMEOUT)
-        if not status.text_content().startswith("Built in"):
+        # A finished build puts its time in the build details; a failure shows an error in the sidebar
+        self.page.wait_for_function("""() =>
+            document.getElementById("build-time").textContent.startsWith("Built in")
+                || document.getElementById("status").textContent !== ""
+        """, timeout=TIMEOUT)
+        error = self.page.locator("#status").text_content()
+        if error:
             log = self.page.locator("#log").text_content()
-            raise AssertionError(f"The build failed: {status.text_content()}\n{log}")
+            raise AssertionError(f"The build failed: {error}\n{log}")
 
     def rebuild(self, action):
         """Runs an action that should rebuild the model, and waits for the new build."""
-        self.page.evaluate("document.getElementById('status').textContent = ''")
+        self.page.evaluate("document.getElementById('build-time').textContent = ''")
         action()
         self.wait_for_build()
 
@@ -122,7 +126,7 @@ def test(browser, base_url):
 
     # Changing a value in the form rebuilds the model and updates the URL
     page.rebuild(lambda: page.page.get_by_role("button", name="Square").click())
-    check("Corners=square" in page.page.url, f"The URL doesn't have the new value: {page.page.url}")
+    expect(page.page).to_have_url(re.compile(r"Corners=square"))
     square = page.download()
     check(square.triangles < changed.triangles,
           f"Square corners should need fewer triangles than rounded ones ({square.triangles} vs {changed.triangles})")
@@ -150,7 +154,7 @@ def test_tabs(browser, base_url):
     expect(page.number_field("Width")).to_have_value("20")
     expect(page.number_field("Height")).to_be_attached()
     expect(page.page.locator(".model-description")).to_have_count(0)  # it has no description of its own
-    check("model=spacer" in page.page.url and "Width" not in page.page.url, f"The URL is {page.page.url}")
+    expect(page.page).to_have_url(re.compile(r"#model=spacer$"))
     spacer = page.download()
     check(spacer.vertices != plate.vertices, "Switching tabs didn't build the other model")
     check(abs(spacer.extent(0) - 20) < 0.01, f"Spacer diameter is {spacer.extent(0)}, expected 20")
@@ -162,7 +166,7 @@ def test_tabs(browser, base_url):
     check(abs(spacer.extent(0) - 30) < 0.01, f"Spacer diameter is {spacer.extent(0)}, expected 30")
     page.rebuild(lambda: page.page.get_by_role("tab", name="Test Plate").click())
     expect(page.number_field("Width")).to_have_value("80")
-    check("model=" not in page.page.url and "Width=80" in page.page.url, f"The URL is {page.page.url}")
+    expect(page.page).to_have_url(re.compile(r"#Width=80$"))
     plate = page.download()
     check(abs(plate.extent(0) - 80) < 0.01, f"Plate width after changing the spacer's is {plate.extent(0)}, expected 80")
 
