@@ -119,4 +119,15 @@ struct StrokeCurveTests {
         let expectedArea = 37 + 2 * Double(2).squareRoot()
         #expect(squareArea.equals(expectedArea, within: 0.01))
     }
+
+    @Test func `curve stroke folding back on itself stays within the path`() async throws {
+        // The inner offsets of a hairpin turn are nearly parallel and meet far beyond the path
+        let hairpin = BezierPath2D(linesBetween: [[10, 0.5], [0, 0], [10, -0.5]])
+        let geometry = hairpin.stroked(width: 2, alignment: .centered, style: .round)
+        let bounds = try await geometry.bounds
+
+        #expect(bounds != nil)
+        #expect(bounds!.minimum.x.equals(-1, within: 0.01))
+        #expect(bounds!.maximum.x < 10.1)
+    }
 }

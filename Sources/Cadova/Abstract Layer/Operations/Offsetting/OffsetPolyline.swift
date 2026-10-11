@@ -90,7 +90,11 @@ internal func offsetPolyline(
             appendInnerJoin(
                 result: &result,
                 intersection: intersection,
-                fallback: prevOffsetPoint,
+                prevOffsetPoint: prevOffsetPoint,
+                nextOffsetPoint: nextOffsetPoint,
+                prevSegment: filteredPoints[i] - filteredPoints[i - 1],
+                nextSegment: filteredPoints[i + 1] - filteredPoints[i],
+                center: filteredPoints[i],
                 tolerance: epsilon
             )
             continue
@@ -140,14 +144,28 @@ internal func polylineVectors(
 private func appendInnerJoin(
     result: inout [Vector2D],
     intersection: Vector2D?,
-    fallback: Vector2D,
+    prevOffsetPoint: Vector2D,
+    nextOffsetPoint: Vector2D,
+    prevSegment: Vector2D,
+    nextSegment: Vector2D,
+    center: Vector2D,
     tolerance: Double
 ) {
+    // The intersection of the offset lines is only a valid join if it lies alongside both segments.
+    // Near a reversal the lines are almost parallel and meet far away, so pivot through the vertex
+    // instead; the resulting overlap is resolved when the outline is filled.
     if let intersection {
-        appendIfDistinct(&result, intersection, tolerance: tolerance)
-    } else {
-        appendIfDistinct(&result, fallback, tolerance: tolerance)
+        let fromCenter = intersection - center
+        let alongPrev = -(fromCenter ⋅ prevSegment)
+        let alongNext = fromCenter ⋅ nextSegment
+        if alongPrev <= prevSegment.squaredEuclideanNorm && alongNext <= nextSegment.squaredEuclideanNorm {
+            appendIfDistinct(&result, intersection, tolerance: tolerance)
+            return
+        }
     }
+    appendIfDistinct(&result, prevOffsetPoint, tolerance: tolerance)
+    appendIfDistinct(&result, center, tolerance: tolerance)
+    appendIfDistinct(&result, nextOffsetPoint, tolerance: tolerance)
 }
 
 private func appendOuterJoin(
