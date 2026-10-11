@@ -143,7 +143,8 @@ function field(parameter, index) {
     let setValue;
     switch (parameter.type) {
         case "boolean": {
-            const toggle = document.createElement("span");
+            // A label around the checkbox, so a click anywhere on the switch toggles it
+            const toggle = document.createElement("label");
             toggle.className = "toggle";
             const input = Object.assign(document.createElement("input"), { type: "checkbox", id });
             input.addEventListener("change", () => update(parameter.label, input.checked));
@@ -230,8 +231,8 @@ function field(parameter, index) {
 
 function update(label, value) {
     changedValues(model)[label] = value;
-    writeHash();
     requestBuild();
+    writeHash();
 }
 
 $("reset").addEventListener("click", () => {
@@ -255,10 +256,26 @@ function valuesFromHash(hash, m) {
     return result;
 }
 
+// Safari allows only 100 address changes per 10 seconds and throws past that, and a dragged slider
+// changes values far faster. So the address changes at most every 250 ms, ending with the latest
+// values, and a failure to change it is never allowed to stop anything else.
+const hashInterval = 250;
+let lastHashWrite = 0, hashTimer = null;
+
 function writeHash() {
-    const entries = Object.entries(changed.get(model.name) ?? {});
-    if (model !== models[0]) entries.unshift(["model", model.name]);
-    history.replaceState(null, "", entries.length ? `#${new URLSearchParams(entries)}` : location.pathname);
+    if (hashTimer) return;
+    const wait = Math.max(0, lastHashWrite + hashInterval - performance.now());
+    hashTimer = setTimeout(() => {
+        hashTimer = null;
+        lastHashWrite = performance.now();
+        const entries = Object.entries(changed.get(model.name) ?? {});
+        if (model !== models[0]) entries.unshift(["model", model.name]);
+        try {
+            history.replaceState(null, "", entries.length ? `#${new URLSearchParams(entries)}` : location.pathname);
+        } catch (error) {
+            console.warn("Couldn't update the address:", error);
+        }
+    }, wait);
 }
 
 function humanize(name) {

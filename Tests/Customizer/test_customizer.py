@@ -117,6 +117,15 @@ def test(browser, base_url):
     check(abs(default.extent(0) - 40) < 0.01, f"Default width is {default.extent(0)}, expected 40")
     check(abs(default.extent(2) - 3) < 0.01, f"Default thickness is {default.extent(2)}, expected 3")
 
+    # The whole switch is clickable, not just a checkbox-sized spot in its corner as WebKit once had it
+    switch = page.page.locator(".toggle").bounding_box()
+    page.page.evaluate("document.getElementById('build-time').textContent = ''")
+    page.page.mouse.click(switch["x"] + switch["width"] * 0.85, switch["y"] + switch["height"] * 0.8)
+    expect(page.page.get_by_role("checkbox", name="Thick")).to_be_checked()
+    page.wait_for_build()
+    thick = page.download()
+    check(abs(thick.extent(2) - 6) < 0.01, f"Thickness after turning on the switch is {thick.extent(2)}, expected 6")
+
     # Values in the URL hash override the defaults
     page.open("#Width=80&Thick=true")
     expect(page.number_field("Width")).to_have_value("80")
@@ -136,6 +145,23 @@ def test(browser, base_url):
     no_holes = page.download()
     check(no_holes.triangles < square.triangles,
           f"Removing the holes should remove triangles ({no_holes.triangles} vs {square.triangles})")
+
+    # Dragging a slider makes many changes in a row. Safari throws if the address changes more than
+    # 100 times in 10 seconds, which once stopped the model from updating.
+    page.page.evaluate("document.getElementById('build-time').textContent = ''")
+    page.page.evaluate("""() => {
+        const range = document.querySelector('input[type="range"][aria-label="Width"]');
+        for (let i = 0; i <= 150; i++) {
+            range.value = i < 150 ? 10 + (i % 90) : 55;
+            range.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+    }""")
+    check(not page.errors, f"Dragging a slider caused errors: {page.errors}")
+    page.wait_for_build()
+    expect(page.number_field("Width")).to_have_value("55")
+    expect(page.page).to_have_url(re.compile(r"Width=55"))
+    dragged = page.download()
+    check(abs(dragged.extent(0) - 55) < 0.01, f"Width after dragging is {dragged.extent(0)}, expected 55")
 
     check(not page.errors, f"The page had errors: {page.errors}")
 
