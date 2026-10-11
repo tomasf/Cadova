@@ -51,15 +51,22 @@ internal final class RoundingField: @unchecked Sendable {
     /// The vertices the result lies within: the result is inside D
     var vertices: [Vector3D] { dilated.vertices }
 
-    // Hints pack a face of each mesh (plus one, so zero means none) into one number
+    // Hints pack a face of each mesh (plus one, so zero means none) into one positive number, half its
+    // bits each. A face too large for its half, which only happens where Int has 32 bits, is left out:
+    // hints only give searches a head start, so that costs time but never changes a result.
+    private static let hintFieldWidth = (Int.bitWidth - 1) / 2
+    private static let hintFieldMask = (1 << hintFieldWidth) - 1
+
     private static func unpack(_ hint: Int?) -> (Int?, Int?) {
         guard let hint, hint > 0 else { return (nil, nil) }
-        let e = hint & 0xffff_ffff, d = hint >> 32
+        let e = hint & hintFieldMask, d = hint >> hintFieldWidth
         return (e > 0 ? e - 1 : nil, d > 0 ? d - 1 : nil)
     }
 
     private static func pack(_ e: Int, _ d: Int) -> Int {
-        (e + 1) | (d + 1) << 32
+        let e = e + 1 <= hintFieldMask ? e + 1 : 0
+        let d = d + 1 <= hintFieldMask ? d + 1 : 0
+        return e | d << hintFieldWidth
     }
 
     /// The function (negative inside the result), and a hint for nearby queries
