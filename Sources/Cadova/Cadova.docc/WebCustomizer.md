@@ -78,6 +78,29 @@ Each model keeps its own values. If the jar and the lid both have a "Diameter" p
 
 To find a model's parameters, Cadova builds it with the default values and records every parameter that's created or read along the way. A parameter that only exists in a branch the defaults don't take won't be found, so declare parameters as stored properties of your geometry types, where they're always created.
 
+### Resources
+
+Files your package includes as resources, with `.copy` or `.process` in its manifest, come along to the customizer, from your package and from its dependencies. Your code finds them through `Bundle.module` as it does natively, so nothing changes in how you read them:
+
+```swift
+.executableTarget(
+    name: "Labels",
+    dependencies: ["Cadova"],
+    resources: [.copy("Inter-Bold.ttf")]
+)
+```
+
+The page downloads every resource when it loads, so keep large files out of resources the model doesn't need. Look resources up without a subdirectory: in WebAssembly, Foundation currently gets the path wrong for a resource in a subdirectory, so copy files individually rather than as a folder.
+
+Resources are also how to use text: ``Text`` normally finds fonts installed on the system, and the browser has none it can use. Include a font file as a resource and name it explicitly:
+
+```swift
+let font = Bundle.module.url(forResource: "Inter-Bold", withExtension: "ttf")
+Text("Hello").withFont("Inter", style: "Bold", from: font)
+```
+
+Publishing a customizer distributes its resources, so only include fonts whose license allows that, such as fonts under the SIL Open Font License.
+
 ## Installing the Toolchain
 
 Building for WebAssembly needs the Swift 6.4.0 toolchain from swift.org. The Swift that comes with Xcode can't be used for this, even when it's the same version. Install it with [swiftly](https://www.swift.org/install):
@@ -134,7 +157,7 @@ When a visitor changes a parameter or switches tabs, the page's address changes 
 
 A model runs differently in a browser than on your computer, so a few things don't work yet:
 
-- ``Text`` can't be rendered, because it looks for fonts installed on the system, and there are none in the browser.
+- ``Text`` can only use fonts included as resources. Text that relies on system fonts fails to build.
 - ICU's data, which formats dates and numbers for different locales, is left out to save 34 MB. Code that needs it, such as `DateFormatter` and `NumberFormatter`, stops the build.
 - Models build on a single thread, so complex models take longer than they do natively.
 - The preview shows the model's shape in a single color. The downloaded 3MF file keeps the model's parts and materials.

@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { ThreeMFLoader } from "three/addons/loaders/3MFLoader.js";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
-import { fetchModel, listParameters, runModel } from "./runner.js";
+import { fetchModel, fetchResources, listParameters, runModel } from "./runner.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -324,8 +324,8 @@ async function ready({ catalog, log, stackOverflow }) {
     try {
         if (!catalog && stackOverflow) {
             // Listing ran out of stack in the worker, so list (and build) on the main thread instead
-            mainThreadModule = WebAssembly.compile(await fetchModel(new URL("model.wasm", location.href).href));
-            ({ catalog, log } = await listParameters(await mainThreadModule));
+            loadOnMainThread();
+            ({ catalog, log } = await listParameters(await mainThreadModule, await mainThreadResources));
         }
         if (!catalog) throw new Error("The model couldn't list its parameters. See the build details.");
         setUp(catalog);
@@ -349,7 +349,12 @@ function requestBuild() {
 
 // Workers get much less native stack than the page itself (probably 512 KB in Safari), and a deep
 // model can need more. If a build runs out in the worker, it and every later build run here instead.
-let mainThreadModule = null;
+let mainThreadModule = null, mainThreadResources = null;
+
+function loadOnMainThread() {
+    mainThreadModule = fetchModel(new URL("model.wasm", location.href).href).then((bytes) => WebAssembly.compile(bytes));
+    mainThreadResources = fetchResources(location.href);
+}
 
 function startBuild() {
     if (!isReady || building) return;
@@ -366,11 +371,11 @@ function startBuild() {
 async function buildOnMainThread() {
     try {
         if (!mainThreadModule) {
-            mainThreadModule = WebAssembly.compile(await fetchModel(new URL("model.wasm", location.href).href));
+            loadOnMainThread();
         }
         // Lets the "Building…" indicator paint before the build blocks the page
         await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
-        finishBuild(await runModel(await mainThreadModule, building.model.name, building.parameters));
+        finishBuild(await runModel(await mainThreadModule, await mainThreadResources, building.model.name, building.parameters));
     } catch (error) {
         building = null;
         setStatus(String(error?.message ?? error), true);

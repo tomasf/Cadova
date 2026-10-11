@@ -13,6 +13,7 @@ let package = Package(
             name: "CustomizerFixture",
             dependencies: [.product(name: "Cadova", package: "Cadova")],
             path: "Sources",
+            resources: [.copy("plate-depth.txt")],
             swiftSettings: [.interoperabilityMode(.Cxx)]
         ),
     ]

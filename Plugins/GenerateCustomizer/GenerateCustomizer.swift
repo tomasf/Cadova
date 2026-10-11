@@ -40,6 +40,7 @@ struct GenerateCustomizer: CommandPlugin {
 
         print("Assembling the customizer in \(output.path)")
         try Self.writePage(to: output, model: model)
+        try Self.copyResources(from: module.deletingLastPathComponent(), to: output)
 
         print("Optimizing for size")
         let optimized = output.appending(path: "model.wasm")
@@ -72,6 +73,42 @@ struct GenerateCustomizer: CommandPlugin {
                 : "\(package.displayName) has several executable products (\(names)); pick one with --product.")
         }
         return product
+    }
+
+    /// Copies the resource bundles SwiftPM built next to the module (for `.copy` and `.process`
+    /// resources, from the package and its dependencies) into `resources` in the output directory,
+    /// with a list of their files in `resources.json`. The page puts them where `Bundle.module` looks
+    /// for them, next to the main bundle, which is the root directory on WASI.
+    static func copyResources(from buildDirectory: URL, to output: URL) throws {
+        let fileManager = FileManager.default
+        let destination = output.appending(path: "resources")
+        try? fileManager.removeItem(at: destination)
+
+        // SwiftPM names resource bundles differently depending on its build system
+        let bundles = try fileManager.contentsOfDirectory(atPath: buildDirectory.path)
+            .filter { $0.hasSuffix(".bundle") || $0.hasSuffix(".resources") }
+            .sorted()
+
+        var files: [String] = []
+        for bundle in bundles {
+            let source = buildDirectory.appending(path: bundle)
+            try fileManager.createDirectory(at: destination, withIntermediateDirectories: true)
+            try fileManager.copyItem(at: source, to: destination.appending(path: bundle))
+            guard let enumerator = fileManager.enumerator(atPath: source.path) else { continue }
+            for case let relative as String in enumerator {
+                var isDirectory: ObjCBool = false
+                fileManager.fileExists(atPath: source.appending(path: relative).path, isDirectory: &isDirectory)
+                if !isDirectory.boolValue {
+                    files.append("\(bundle)/\(relative)")
+                }
+            }
+        }
+
+        let list = try JSONSerialization.data(withJSONObject: files.sorted(), options: [.prettyPrinted, .withoutEscapingSlashes])
+        try list.write(to: output.appending(path: "resources.json"))
+        if !files.isEmpty {
+            print("Included \(files.count) resource file\(files.count == 1 ? "" : "s") from \(bundles.joined(separator: ", "))")
+        }
     }
 
     /// Copies the page into the output directory. A model the page is limited to is named in a

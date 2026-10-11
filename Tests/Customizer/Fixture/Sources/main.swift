@@ -1,4 +1,5 @@
 import Cadova
+import Foundation
 
 await Project {
     Metadata(title: "Test Parts", description: "Parts for testing the web customizer.")
@@ -38,8 +39,14 @@ struct Plate: Geometry3D {
     @Parameter("Corners", description: "Corner style")
     var corners = Corners.rounded
 
+    // Read from a resource, to test that a customizer has the package's resources
+    static let depth: Double = {
+        let url = Bundle.module.url(forResource: "plate-depth", withExtension: "txt")!
+        return Double(try! String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines))!
+    }()
+
     var body: any Geometry3D {
-        let plate = Rectangle(x: width, y: 30).aligned(at: .center)
+        let plate = Rectangle(x: width, y: Self.depth).aligned(at: .center)
         let outline: any Geometry2D = corners == .rounded ? plate.rounded(radius: 3) : plate
 
         outline

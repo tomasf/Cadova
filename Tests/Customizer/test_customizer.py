@@ -116,6 +116,8 @@ def test(browser, base_url):
     default = page.download()
     check(abs(default.extent(0) - 40) < 0.01, f"Default width is {default.extent(0)}, expected 40")
     check(abs(default.extent(2) - 3) < 0.01, f"Default thickness is {default.extent(2)}, expected 3")
+    # The depth comes from a resource file in the package, which the customizer has to provide
+    check(abs(default.extent(1) - 32) < 0.01, f"Depth is {default.extent(1)}, expected 32 from the package's resource")
 
     # The whole switch is clickable, not just a checkbox-sized spot in its corner as WebKit once had it
     switch = page.page.locator(".toggle").bounding_box()
