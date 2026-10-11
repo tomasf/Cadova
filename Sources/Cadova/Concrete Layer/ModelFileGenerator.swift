@@ -147,7 +147,7 @@ public struct ModelFile {
     public let buildWarnings: [BuildWarning]
 
     /// Logs as this model while generating it, as a model's build does
-    private func logging<T>(_ body: () async throws -> T) async rethrows -> T {
+    nonisolated(nonsending) private func logging<T>(_ body: nonisolated(nonsending) () async throws -> T) async rethrows -> T {
         try await ModelLogger.$current.withValue(ModelLogger(modelName: modelName ?? "Model"), operation: body)
     }
     

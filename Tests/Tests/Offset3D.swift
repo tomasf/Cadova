@@ -321,15 +321,14 @@ struct Offset3DTests {
         }
     }
 
-    @Test func `holes in contoured meshes are closed`() {
+    @Test func `holes in contoured meshes are closed`() throws {
         // A cube with its top missing
         let vertices: [Vector3D] = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]]
         let faces: [MeshOffset.Face] = [
             (0, 2, 1), (0, 3, 2), (0, 1, 5), (0, 5, 4), (1, 2, 6), (1, 6, 5),
             (2, 3, 7), (2, 7, 6), (3, 0, 4), (3, 4, 7),
         ]
-        let closed = try? #require(MeshOffset.filledHoles(vertices: vertices, faces: faces))
-        guard let closed else { return }
+        let closed = try #require(MeshOffset.filledHoles(vertices: vertices, faces: faces))
         var uses: [Int: Int] = [:]
         for face in closed.faces {
             for (a, b) in [(face.0, face.1), (face.1, face.2), (face.2, face.0)] {
