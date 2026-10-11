@@ -29,7 +29,7 @@ private func resolveFont(family: String, style: String?, variations: [Apus.FontV
             return font
         }
     }
-    throw Font.FontError.fontNotFound(family: family, style: style)
+    throw Font.Error.fontNotFound(family: family, style: style)
 }
 
 private extension String {
@@ -66,7 +66,7 @@ extension TextAttributes {
         } else {
             do {
                 font = try resolveFont(family: family, style: fontFace?.style, variations: apusVariations)
-            } catch Font.FontError.fontNotFound {
+            } catch Font.Error.fontNotFound {
                 throw TextError.fontNotFound(family: family, style: fontFace?.style)
             }
         }
