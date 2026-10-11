@@ -43,27 +43,32 @@ export async function runModel(compiledModule, model, values) {
 
 async function run(compiledModule, request, outputSuffix) {
     const files = new Map([["request.json", new File(new TextEncoder().encode(JSON.stringify(request)))]]);
-    const log = [];
+    // Everything the model writes is kept, and split into lines at the end, so that a last line
+    // without a line break, such as a message written just before a crash, isn't lost
+    const output = [];
     const environment = ["CADOVA_LOG_LEVEL=info", "CADOVA_CUSTOMIZER_REQUEST=/io/request.json"];
     const wasi = new WASI(["model"], environment, [
         new OpenFile(new File([])),
-        ConsoleStdout.lineBuffered((line) => log.push(line)),
-        ConsoleStdout.lineBuffered((line) => log.push(line)),
+        new ConsoleStdout((bytes) => output.push(bytes.slice())),
+        new ConsoleStdout((bytes) => output.push(bytes.slice())),
         new PreopenDirectory("/io", files),
     ], { debug: false });
 
     const start = performance.now();
     const instance = await WebAssembly.instantiate(compiledModule, { wasi_snapshot_preview1: wasi.wasiImport });
-    let exitCode, stackOverflow = false;
+    let exitCode, stackOverflow = false, crash = null;
     try {
         exitCode = wasi.start(instance);
     } catch (error) {
         // A trap: Swift runtime failures and C++ exceptions end up here, as does running out of
         // native stack (RangeError in Chrome and Safari, InternalError in Firefox)
         stackOverflow = error instanceof RangeError || error?.name === "InternalError";
-        log.push(`Crashed: ${error?.message ?? error}`);
+        crash = `Crashed: ${error?.message ?? error}`;
         exitCode = -1;
     }
+    const text = new TextDecoder().decode(new Uint8Array(output.flatMap((bytes) => [...bytes])));
+    const log = text.split("\n").filter((line, index, lines) => line !== "" || index < lines.length - 1);
+    if (crash) log.push(crash);
     const milliseconds = performance.now() - start;
 
     const [fileName, file] = [...files].find(([name]) => name.endsWith(outputSuffix)) ?? [];
