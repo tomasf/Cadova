@@ -6,7 +6,7 @@ Turn a parametric model into a web page where anyone can adjust its parameters, 
 
 The `generate-customizer` command builds a web customizer for one of your models. The result is a folder of static files that you can put on any web server. When a visitor opens the page, a form lets them change the model's parameters, a 3D preview updates as they do, and a button downloads the finished model as a 3MF file, ready for a slicer.
 
-The model runs entirely in the visitor's browser, compiled to WebAssembly. There's no server doing the work, so any static hosting will do: GitHub Pages, Netlify, an S3 bucket or a folder on your own web server.
+The preview shows the model's colors and materials, including transparency and metallic surfaces, and shows parts marked as context see-through. The model runs entirely in the visitor's browser, compiled to WebAssembly. There's no server doing the work, so any static hosting will do: GitHub Pages, Netlify, an S3 bucket or a folder on your own web server.
 
 ## Preparing Your Model
 
@@ -160,7 +160,6 @@ A model runs differently in a browser than on your computer, so a few things don
 - ``Text`` can only use fonts included as resources. Text that relies on system fonts fails to build.
 - ICU's data, which formats dates and numbers for different locales, is left out to save 34 MB. Code that needs it, such as `DateFormatter` and `NumberFormatter`, stops the build.
 - Models build on a single thread, so complex models take longer than they do natively.
-- The preview shows the model's shape in a single color. The downloaded 3MF file keeps the model's parts and materials.
 
 ## See Also
 

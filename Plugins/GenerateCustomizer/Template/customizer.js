@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { ThreeMFLoader } from "three/addons/loaders/3MFLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { fetchModel, fetchResources, listParameters, runModel } from "./runner.js";
+import { read3MF } from "./threemf.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -456,8 +457,14 @@ function createViewer() {
     const controlsView = new OrbitControls(camera, renderer.domElement);
     controlsView.enableDamping = true;
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8577, 2.2));
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    // A soft studio environment for metallic materials to reflect, which also fills in the lighting
+    const environment = new THREE.PMREMGenerator(renderer);
+    scene.environment = environment.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environmentIntensity = 0.45;
+    environment.dispose();
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8577, 1.0));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.1);
     keyLight.position.set(1, -1.5, 2);
     camera.add(keyLight);
     scene.add(camera);
@@ -469,7 +476,6 @@ function createViewer() {
     grid.material.opacity = 0.08;
     scene.add(grid);
 
-    const loader = new ThreeMFLoader();
     let current = null, framed = false;
 
     function frame() {
@@ -500,16 +506,18 @@ function createViewer() {
     // Frames the model the first time, and again when a different model is shown
     return (data, isNewModel) => {
         const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-        const object = loader.parse(buffer);
+        // Parts without a color of their own get the page's model color
         const color = getComputedStyle(document.documentElement).getPropertyValue("--model").trim();
+        const object = read3MF(buffer, color);
         object.traverse((child) => {
-            if (!child.isMesh) return;
-            child.geometry = toCreasedNormals(child.geometry, THREE.MathUtils.degToRad(30));
-            child.material = new THREE.MeshStandardMaterial({ color, roughness: 0.65, metalness: 0 });
+            if (child.isMesh) child.geometry = toCreasedNormals(child.geometry, THREE.MathUtils.degToRad(30));
         });
         if (current) {
             scene.remove(current);
-            current.traverse((child) => child.geometry?.dispose());
+            current.traverse((child) => {
+                child.geometry?.dispose();
+                child.material?.dispose();
+            });
         }
         current = object;
         scene.add(object);

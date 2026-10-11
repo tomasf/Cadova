@@ -18,7 +18,9 @@ await Project {
         @Parameter("Height", in: 1...20, step: 1, description: "Height in millimeters")
         var height = 5.0
 
+        // A material, to test that the viewer shows it
         Cylinder(diameter: width, height: height)
+            .withMaterial(color: .init(red: 0.2, green: 0.4, blue: 0.8), metallicness: 0.5, roughness: 0.3)
     }
 }
 

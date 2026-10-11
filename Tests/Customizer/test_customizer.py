@@ -11,6 +11,7 @@ parameters, that changing them through the URL and through the form rebuilds the
 tab keeps its own values, and that the downloaded 3MF reflects each change.
 """
 
+import base64
 import functools
 import http.server
 import re
@@ -30,6 +31,7 @@ class Mesh:
     """The vertices and triangle count of the first mesh in a 3MF file."""
 
     def __init__(self, data):
+        self.data = data
         with zipfile.ZipFile(BytesIO(data)) as archive:
             model = archive.read("3D/3dmodel.model").decode()
         self.vertices = [
@@ -82,6 +84,17 @@ class CustomizerPage:
         field = self.number_field(label)
         field.fill(value)
         field.blur()  # number fields report a change when they lose focus
+
+    def viewer_materials(self, mesh):
+        """The materials the page's viewer reads from a 3MF file, one for each mesh it makes."""
+        return self.page.evaluate("""async (encoded) => {
+            const { read3MF } = await import("./threemf.js");
+            const bytes = Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0));
+            return read3MF(bytes.buffer, "#d9d4c7").children.map(({ material }) => ({
+                color: material.color.getHexString("srgb"), metalness: material.metalness,
+                roughness: material.roughness, opacity: material.opacity,
+            }));
+        }""", base64.b64encode(mesh.data).decode())
 
     def download(self):
         with self.page.expect_download(timeout=TIMEOUT) as download:
@@ -187,6 +200,9 @@ def test_tabs(browser, base_url):
     check(spacer.vertices != plate.vertices, "Switching tabs didn't build the other model")
     check(abs(spacer.extent(0) - 20) < 0.01, f"Spacer diameter is {spacer.extent(0)}, expected 20")
     check(abs(spacer.extent(2) - 5) < 0.01, f"Spacer height is {spacer.extent(2)}, expected 5")
+    expected = [{"color": "3366cc", "metalness": 0.5, "roughness": 0.3, "opacity": 1}]
+    check(page.viewer_materials(spacer) == expected,
+          f"The viewer reads the spacer's materials as {page.viewer_materials(spacer)}, expected {expected}")
 
     # Changing the spacer's width leaves the plate's alone
     page.rebuild(lambda: page.set_number("Width", "30"))
