@@ -14,6 +14,7 @@ tab keeps its own values, and that the downloaded 3MF reflects each change.
 import base64
 import functools
 import http.server
+import json
 import re
 import sys
 import threading
@@ -105,6 +106,12 @@ class CustomizerPage:
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
+
+    def copyfile(self, source, output):
+        try:
+            super().copyfile(source, output)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # cancelling a worker can stop a download midway
 
 
 def check(condition, message):
@@ -251,6 +258,159 @@ def test_without_webgl(browser, base_url):
     check(not page.errors, f"The page had errors without WebGL: {page.errors}")
 
 
+def faulty_worker(page, code):
+    """Injects a fault into the first real worker. A restart gets the original worker script."""
+    requests = []
+
+    def serve(route):
+        requests.append(route.request.url)
+        response = route.fetch()
+        script = response.text()
+        if len(requests) == 1:
+            script = script.replace("    try {", f"    try {{\n{code}", 1)
+        route.fulfill(response=response, body=script)
+
+    page.context.route("**/worker.js", serve)
+    return requests
+
+
+def expect_recovery(page, message):
+    expect(page.page.locator("#status")).to_contain_text(message, timeout=TIMEOUT)
+    expect(page.page.locator("#cancel")).to_be_hidden()
+    expect(page.page.locator("#building")).to_be_hidden()
+    expect(page.page.locator("#retry")).to_be_visible()
+    expect(page.page.locator("#download")).to_be_disabled()
+
+
+def test_worker_recovery(browser, base_url):
+    """Real worker hangs/crashes can be stopped and retried; traps never fall back to the page."""
+    faults = {
+        "cancel": 'while (true) {}',
+        "exception": 'throw new Error("Injected build failure");',
+        "crash": 'setTimeout(() => { throw new Error("Injected worker crash"); }, 0); return;',
+        "stack": '''self.postMessage({type: "built", id: data.id, exitCode: -1, data: null,
+            stackOverflow: true, log: ["Crashed: stack limit"], milliseconds: 0}); return;''',
+        "trap": '''self.postMessage({type: "built", id: data.id, exitCode: -1, data: null,
+            log: ["Crashed: unreachable", "A continuation keeps its first word"], milliseconds: 0}); return;''',
+        "preview": '''self.postMessage({type: "built", id: data.id, exitCode: 0,
+            data: new Uint8Array([1, 2, 3]), fileName: "broken.3mf", log: [], milliseconds: 0}); return;''',
+    }
+    for name, fault in faults.items():
+        page = CustomizerPage(browser.new_page(), base_url)
+        workers = faulty_worker(page.page, f'if (data.type === "build" && data.parameters.Width === 65) {{ {fault} }}')
+        downloads = []
+        page.page.on("request", lambda request: downloads.append(request.url) if "model.wasm" in request.url else None)
+        # Track the actual worker so a delayed message from a terminated generation can be replayed.
+        page.page.add_init_script('''
+            const NativeWorker = Worker;
+            window.workers = [];
+            window.Worker = class extends NativeWorker {
+                constructor(...args) { super(...args); window.workers.push(this); }
+                postMessage(data, ...args) { this.lastRequest = data; super.postMessage(data, ...args); }
+            };
+        ''')
+        page.open()
+        page.set_number("Width", "65")
+        if name == "cancel":
+            expect(page.page.locator("#cancel")).to_be_visible()
+            page.page.wait_for_function('window.workers[0].lastRequest.parameters?.Width === 65')
+            # A worker stuck in a synchronous loop must leave the page and controls responsive.
+            check(page.page.evaluate('() => new Promise(resolve => setTimeout(() => resolve(true), 20))'), "The page froze")
+            page.page.evaluate('window.oldReply = window.workers[0].onmessage; window.oldID = window.workers[0].lastRequest.id')
+            page.set_number("Width", "75")  # queued values survive cancellation
+            page.page.locator("#cancel").click()
+            expect_recovery(page, "Build cancelled")
+        elif name == "exception":
+            expect_recovery(page, "Injected build failure")
+        elif name == "crash":
+            expect_recovery(page, "worker stopped unexpectedly")
+        elif name == "stack":
+            expect_recovery(page, "worker stack limit")
+        elif name == "trap":
+            expect_recovery(page, "failed to build")
+            expect(page.page.locator("#log")).to_contain_text("A continuation keeps its first word")
+        else:
+            expect(page.page.locator("#retry")).to_be_visible(timeout=TIMEOUT)
+            expect(page.page.locator("#download")).to_be_disabled()
+        expect(page.page.locator("#overlay")).to_be_hidden()  # last successful preview is retained
+        page.rebuild(lambda: page.page.locator("#retry").click())
+        mesh = page.download()
+        width = 75 if name == "cancel" else 65
+        check(abs(mesh.extent(0) - width) < 0.01, f"{name}: retry lost the chosen width")
+        check(len(workers) == 2, f"{name}: retry didn't start a fresh worker: {workers}")
+        check(len(downloads) == 1, f"{name}: retry downloaded the WASM again: {downloads}")
+        if name == "cancel":
+            page.page.evaluate('''window.oldReply({data: {type: "built", id: window.oldID,
+                exitCode: -1, data: null, log: ["obsolete failure"]}})''')
+            expect(page.page.locator("#status")).to_be_hidden()
+            expect(page.page.locator("#download")).to_be_enabled()
+        check(not page.errors, f"{name}: recovery had page errors: {page.errors}")
+        page.page.context.close()
+
+
+def test_loading_recovery(browser, base_url):
+    """Network and worker startup failures offer a retry before the form exists."""
+    bundled_file = next(path for path in json.loads((CUSTOMIZER / "resources.json").read_text()) if path.endswith("plate-depth.txt"))
+    for resource in ["model.wasm", "resources.json", f"resources/{bundled_file}", "worker.js"]:
+        page = CustomizerPage(browser.new_page(), base_url)
+        requests = []
+
+        def fail_first(route):
+            requests.append(route.request.url)
+            if len(requests) == 1:
+                route.fulfill(status=503, body="Temporary failure")
+            else:
+                route.continue_()
+
+        page.page.context.route(f"**/{resource}", fail_first)
+        page.page.goto(f"{base_url}/index.html#Width=75")
+        expect_recovery(page, "worker stopped unexpectedly" if resource == "worker.js" else "Couldn't load")
+        expect(page.page.locator("#reset")).to_be_disabled()
+        page.rebuild(lambda: page.page.locator("#retry").click())
+        expect(page.number_field("Width")).to_have_value("75")
+        check(abs(page.download().extent(0) - 75) < 0.01, f"Retry after loading {resource} lost URL settings")
+        check(not page.errors, f"Loading recovery had page errors: {page.errors}")
+        page.page.context.close()
+
+    page = CustomizerPage(browser.new_page(), base_url)
+    workers = faulty_worker(page.page, 'if (data.type === "load") { while (true) {} }')
+    page.page.goto(f"{base_url}/index.html#Width=75")
+    expect(page.page.locator("#cancel")).to_be_visible()
+    page.page.locator("#cancel").click()
+    expect_recovery(page, "Loading cancelled")
+    page.rebuild(lambda: page.page.locator("#retry").click())
+    check(len(workers) == 2, "Cancelling loading didn't restart the worker")
+    check(abs(page.download().extent(0) - 75) < 0.01, "Cancelling loading lost URL settings")
+    check(not page.errors, f"Cancelling loading had page errors: {page.errors}")
+    page.page.context.close()
+
+
+def test_worker_timeouts(browser, base_url):
+    """The watchdog stops real hangs during both loading and building."""
+    for operation in ["load", "build"]:
+        page = CustomizerPage(browser.new_page(), base_url)
+        # Speed up only the watchdog, after it has been armed, without changing production limits.
+        page.page.add_init_script('''
+            const nativeTimeout = setTimeout;
+            window.setTimeout = (callback, delay, ...args) => nativeTimeout(callback,
+                delay === 120000 ? (window.shortenWatchdog ? 2000 : 10000) : delay, ...args);
+        ''')
+        faulty_worker(page.page, f'if (data.type === "{operation}") {{ while (true) {{}} }}')
+        if operation == "load":
+            page.page.add_init_script('window.shortenWatchdog = true')
+            page.page.goto(f"{base_url}/index.html")
+            expect_recovery(page, "Loading the model took longer")
+        else:
+            # The first build hangs too, so wait for loading and the automatic build watchdog.
+            page.page.goto(f"{base_url}/index.html")
+            expect_recovery(page, "Build stopped after 2 minutes")
+        page.page.evaluate('window.shortenWatchdog = false')
+        page.rebuild(lambda: page.page.locator("#retry").click())
+        check(abs(page.download().extent(0) - 40) < 0.01, "Retry after a timeout didn't build the model")
+        check(not page.errors, f"Timeout recovery had page errors: {page.errors}")
+        page.page.context.close()
+
+
 # Chromium renders WebGL in software where there's no GPU, such as on CI machines
 CHROMIUM_ARGUMENTS = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
 
@@ -263,7 +423,9 @@ def main(engines):
 
     failed = False
     with sync_playwright() as playwright:
-        runs = [(engine, run, []) for engine in engines for run in (test, test_tabs, test_single_model)]
+        runs = [(engine, run, []) for engine in engines for run in (
+            test, test_tabs, test_single_model, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
+        )]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))
         for engine, run, arguments in runs:

@@ -7,14 +7,22 @@ let compiledModule, resources;
 self.onmessage = async ({ data }) => {
     try {
         if (data.type === "load") {
-            const resourcesLoaded = fetchResources(data.url);
-            const bytes = await fetchModel(data.url, (received, total) => {
-                self.postMessage({ type: "progress", received, total });
-            });
-            self.postMessage({ type: "compiling" });
+            const [bytes, loadedResources] = await Promise.all([
+                fetchModel(data.url, (received, total) => {
+                    self.postMessage({ type: "progress", id: data.id, received, total });
+                }),
+                fetchResources(data.url),
+            ]);
+            self.postMessage({ type: "compiling", id: data.id });
             compiledModule = await WebAssembly.compile(bytes);
-            resources = await resourcesLoaded;
-            self.postMessage({ type: "ready", ...(await listParameters(compiledModule, resources)) });
+            resources = loadedResources;
+            self.postMessage({ type: "prepared", id: data.id, compiledModule, resources });
+            self.postMessage({ type: "ready", id: data.id, ...(await listParameters(compiledModule, resources)) });
+        } else if (data.type === "initialize") {
+            compiledModule = data.compiledModule;
+            resources = data.resources;
+            self.postMessage({ type: "ready", id: data.id,
+                ...(data.catalog ?? await listParameters(compiledModule, resources)) });
         } else if (data.type === "build") {
             self.postMessage({ type: "built", id: data.id, ...(await runModel(compiledModule, resources, data.model, data.parameters)) });
         }

@@ -1,8 +1,7 @@
 // Runs the model, compiled to WebAssembly, as a WASI program: a fresh run of the model's
 // executable for each request, in an in-memory directory that holds the request and receives what
 // the model writes. Cadova finds the request through CADOVA_CUSTOMIZER_REQUEST. The model's
-// resources are in the root directory. Used both by the worker and, as a fallback, by the page
-// itself.
+// resources are in the root directory. Model execution stays in the worker so it can be cancelled.
 
 import {
     WASI, File, Directory, OpenFile, ConsoleStdout, PreopenDirectory,

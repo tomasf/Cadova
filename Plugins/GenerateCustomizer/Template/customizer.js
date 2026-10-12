@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
-import { fetchModel, fetchResources, listParameters, runModel } from "./runner.js";
+import { ModelBuilder, CancelledError } from "./builder.js";
 import { read3MF } from "./threemf.js";
 
 const $ = (id) => document.getElementById(id);
@@ -78,8 +78,13 @@ function select(next) {
     showForm();
     writeHash();
     const build = builds.get(model.name);
-    if (build?.key === buildKey(model)) {
-        display(build);
+    if (build?.data && build.key === buildKey(model)) {
+        try {
+            display(build);
+        } catch (error) {
+            builds.delete(model.name);
+            failed(error);
+        }
     } else {
         lastFile = null;
         $("download").disabled = true;
@@ -286,123 +291,158 @@ function humanize(name) {
 
 // MARK: Building
 
-const worker = new Worker(new URL("worker.js", import.meta.url), { type: "module" });
-let isReady = false, nextID = 0;
+let isReady = false, loading = false, loadAttempt = 0;
 let building = null; // the model and values of the build in progress
 const builds = new Map(); // the last build of each model, with the values it was built with
 let lastFile = null, shownModel = null;
+let buildTimer;
 
-worker.onmessage = ({ data }) => {
-    switch (data.type) {
-        case "progress": {
-            const megabytes = (bytes) => (bytes / 1e6).toFixed(0);
-            $("overlay-text").textContent = data.total
-                ? `Loading model… ${megabytes(data.received)} of ${megabytes(data.total)} MB`
-                : `Loading model… ${megabytes(data.received)} MB`;
-            if (data.total) $("progress-bar").style.width = `${(100 * data.received) / data.total}%`;
-            break;
-        }
-        case "compiling":
-            $("overlay-text").textContent = "Preparing model…";
-            $("progress-bar").style.width = "100%";
-            break;
-        case "ready":
-            ready(data);
-            break;
-        case "built":
-            finishBuild(data);
-            break;
-        case "error":
-            building = null;
-            setStatus(data.message, true);
-            $("overlay-text").textContent = data.message;
-            break;
+const builder = new ModelBuilder(import.meta.url, (data) => {
+    if (data.type === "progress") {
+        const megabytes = (bytes) => (bytes / 1e6).toFixed(0);
+        $("overlay-text").textContent = data.total
+            ? `Loading model… ${megabytes(data.received)} of ${megabytes(data.total)} MB`
+            : `Loading model… ${megabytes(data.received)} MB`;
+        if (data.total) $("progress-bar").style.width = `${(100 * data.received) / data.total}%`;
+    } else if (data.type === "compiling") {
+        $("overlay-text").textContent = "Preparing model…";
+        $("progress-bar").style.width = "100%";
     }
-};
-worker.postMessage({ type: "load", url: new URL("model.wasm", location.href).href });
+});
 
-async function ready({ catalog, log, stackOverflow }) {
-    try {
-        if (!catalog && stackOverflow) {
-            // Listing ran out of stack in the worker, so list (and build) on the main thread instead
-            loadOnMainThread();
-            ({ catalog, log } = await listParameters(await mainThreadModule, await mainThreadResources));
+let cancelTimer;
+
+function busy(active, text = "Building…") {
+    clearTimeout(cancelTimer);
+    $("build-progress").hidden = !active;
+    $("building").hidden = !active;
+    $("building").textContent = text;
+    $("cancel").hidden = true;
+    $("retry").hidden = true;
+    $("reset").disabled = !isReady;
+    form.setAttribute("aria-busy", active);
+    if (active) {
+        cancelTimer = setTimeout(() => { $("cancel").hidden = false; }, 3000);
+        lastFile = null;
+        $("download").disabled = true;
+        setStatus("");
+        $("build-time").textContent = text;
+        if (!shownModel) {
+            $("overlay").hidden = false;
+            $("overlay-text").textContent = text;
+            $("progress-bar").parentElement.hidden = text !== "Loading model…";
+            $("progress-bar").style.width = "0%";
         }
-        if (!catalog) throw new Error("The model couldn't list its parameters. See the build details.");
-        setUp(catalog);
-    } catch (error) {
-        $("log").textContent = (log ?? []).join("\n");
-        setStatus(error.message, true);
-        $("overlay-text").textContent = error.message;
-        $("progress-bar").parentElement.hidden = true;
-        return;
     }
-    isReady = true;
-    $("overlay-text").textContent = "Building…";
-    requestBuild();
 }
 
-let buildTimer;
+function failed(error) {
+    builder.cancel();
+    clearTimeout(buildTimer);
+    busy(false);
+    lastFile = null;
+    $("download").disabled = true;
+    $("retry").textContent = isReady ? "Retry build" : "Retry loading";
+    $("retry").hidden = false;
+    $("build-time").textContent = error instanceof CancelledError ? "Cancelled" : "Failed";
+    $("log").textContent = (error.log ?? [error.message]).join("\n");
+    setStatus(error.message, true);
+    if (!shownModel) {
+        $("overlay-text").textContent = error.message;
+        $("progress-bar").parentElement.hidden = true;
+    }
+}
+
+async function initialize() {
+    const attempt = ++loadAttempt;
+    loading = true;
+    busy(true, "Loading model…");
+    try {
+        const result = await builder.load();
+        if (attempt !== loadAttempt) return;
+        setUp(result.catalog);
+        isReady = true;
+        loading = false;
+        startBuild();
+    } catch (error) {
+        if (attempt !== loadAttempt) return;
+        loading = false;
+        failed(error);
+    }
+}
+
 function requestBuild() {
     clearTimeout(buildTimer);
+    // A download must match the current controls, including while a rebuild is debounced or queued.
+    lastFile = null;
+    $("download").disabled = true;
     buildTimer = setTimeout(startBuild, 120);
 }
 
-// Workers get much less native stack than the page itself (probably 512 KB in Safari), and a deep
-// model can need more. If a build runs out in the worker, it and every later build run here instead.
-let mainThreadModule = null, mainThreadResources = null;
-
-function loadOnMainThread() {
-    mainThreadModule = fetchModel(new URL("model.wasm", location.href).href).then((bytes) => WebAssembly.compile(bytes));
-    mainThreadResources = fetchResources(location.href);
-}
-
-function startBuild() {
-    if (!isReady || building) return;
+async function startBuild() {
+    if (!isReady || loading || building) return;
+    clearTimeout(buildTimer);
     const parameters = valuesFor(model);
-    building = { model, parameters, key: JSON.stringify(parameters) };
-    $("building").classList.add("visible");
-    if (mainThreadModule) {
-        buildOnMainThread();
-    } else {
-        worker.postMessage({ type: "build", id: ++nextID, model: model.name, parameters });
-    }
-}
-
-async function buildOnMainThread() {
+    const attempt = { model, parameters, key: JSON.stringify(parameters) };
+    building = attempt;
+    busy(true);
     try {
-        if (!mainThreadModule) {
-            loadOnMainThread();
-        }
-        // Lets the "Building…" indicator paint before the build blocks the page
-        await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
-        finishBuild(await runModel(await mainThreadModule, await mainThreadResources, building.model.name, building.parameters));
+        const result = await builder.build(attempt.model.name, parameters);
+        if (building !== attempt) return;
+        finishBuild(result, attempt);
     } catch (error) {
+        if (building !== attempt) return;
         building = null;
-        setStatus(String(error?.message ?? error), true);
+        failed(error);
     }
 }
 
-function finishBuild(result) {
-    if (result.stackOverflow && !mainThreadModule) {
-        console.info("The build ran out of stack in the worker; building on the main thread instead.");
-        buildOnMainThread();
-        return;
-    }
-    const finished = building;
+function finishBuild(result, finished) {
     building = null;
-    $("building").classList.remove("visible");
+    busy(false);
     const build = { ...result, key: finished.key };
     builds.set(finished.model.name, build);
-    // A build for the model on screen is shown even if its values have changed since, while the
-    // next build catches up
-    if (finished.model === model) display(build);
+    // Keep the last preview while the latest parameters build. Never enable a download for stale
+    // parameters, or report an obsolete build's error against the newly selected model.
+    if (finished.model === model && finished.key === buildKey(model)) {
+        if (!result.data) {
+            const error = new Error(result.stackOverflow
+                ? "The model exceeds this browser's worker stack limit. Try simpler settings or reduce its resolution."
+                : result.exitCode === 0 ? "The model built to nothing. Try different settings."
+                : "The model failed to build. See the build details.");
+            error.log = result.log;
+            failed(error);
+            return;
+        }
+        try {
+            display(build);
+        } catch (error) {
+            failed(error);
+            return;
+        }
+    }
     if (builds.get(model.name)?.key !== buildKey(model)) startBuild();
 }
 
+$("cancel").addEventListener("click", () => {
+    ++loadAttempt;
+    loading = false;
+    building = null;
+    failed(new CancelledError(isReady ? "Build cancelled." : "Loading cancelled."));
+});
+
+$("retry").addEventListener("click", () => {
+    if (isReady) startBuild();
+    else initialize();
+});
+
+// Starts after the viewer has been initialized, so even an immediately answered request can display.
+queueMicrotask(initialize);
+
 function display({ fileName, data, log, exitCode, milliseconds }) {
-    $("log").textContent = log.map((line) => line.replace(/^\S+ /, "")).join("\n");
+    $("log").textContent = log.map((line) => line.replace(/^\d{4}-\d{2}-\d{2}T\S+ /, "")).join("\n");
     if (data) {
+        $("retry").hidden = true;
         lastFile = { name: fileName, data };
         $("download").disabled = false;
         setStatus(`Built in ${Math.round(milliseconds)} ms`);

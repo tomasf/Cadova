@@ -147,11 +147,13 @@ Then open `http://localhost:8000`. If a build fails, the page's build details sh
 
 ## Publishing
 
-Upload the contents of the folder to any static web host. It holds five files: the page, three scripts and `model.wasm`, which is the model itself.
+Upload the whole generated folder to any static web host, including its scripts, `model.wasm`, `resources.json` and any resource files.
 
 `model.wasm` is about 18 MB, but it compresses well: about 6.6 MB with gzip and 4.8 MB with Brotli. Most hosts compress files on the fly, but check that yours does so for `.wasm` files, or visitors download the full size. The page also loads three.js, which draws the preview, and a small WASI library from the jsDelivr CDN, so visitors need to be able to reach it.
 
 When a visitor changes a parameter or switches tabs, the page's address changes to match, after the `#`. A link copied from the address bar opens the customizer on the same tab with the same settings, which makes it easy to share a particular configuration.
+
+Loading and model builds run in a worker. Visitors can cancel either operation, or retry after a failure, without reloading the page or losing their settings. Each loading or building request stops after two minutes. Retrying reuses the compiled model and downloaded resources when they are available. The last successful preview stays visible, but downloading is disabled until a build matches the current settings.
 
 ## Limitations
 
@@ -160,6 +162,7 @@ A model runs differently in a browser than on your computer, so a few things don
 - ``Text`` can only use fonts included as resources. Text that relies on system fonts fails to build.
 - ICU's data, which formats dates and numbers for different locales, is left out to save 34 MB. Code that needs it, such as `DateFormatter` and `NumberFormatter`, stops the build.
 - Models build on a single thread, so complex models take longer than they do natively.
+- A model that exceeds the browser worker's stack limit fails with an error. It does not fall back to running on the page's main thread, because that would block cancellation and the rest of the page.
 
 ## See Also
 
