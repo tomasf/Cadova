@@ -5,6 +5,7 @@
 // extension), components, color groups, base materials and physically based metallic properties.
 
 import * as THREE from "three";
+import { createSharpEdges } from "./edges.js";
 import { unzipSync, strFromU8 } from "three/addons/libs/fflate.module.js";
 
 const CORE = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02";
@@ -91,22 +92,36 @@ export function read3MF(buffer, defaultColor) {
         const objectProperty = object.getAttribute("pid");
         const objectIndex = object.getAttribute("pindex") ?? "0";
         const trianglesByMaterial = new Map();
-        for (const triangle of mesh.getElementsByTagNameNS(CORE, "triangle")) {
+        const triangles = mesh.getElementsByTagNameNS(CORE, "triangle");
+        const showEdges = semantic !== "context" && semantic !== "visual";
+        const allIndices = showEdges ? new Uint32Array(triangles.length * 3) : null;
+        const faceMaterials = [];
+        for (let face = 0; face < triangles.length; face++) {
+            const triangle = triangles[face];
             const property = triangle.getAttribute("pid") ?? objectProperty;
             const index = triangle.getAttribute("p1") ?? (triangle.getAttribute("pid") ? "0" : objectIndex);
             const key = property ? `${property}:${index}` : "";
-            if (!trianglesByMaterial.has(key)) trianglesByMaterial.set(key, []);
-            trianglesByMaterial.get(key).push(
-                Number(triangle.getAttribute("v1")), Number(triangle.getAttribute("v2")), Number(triangle.getAttribute("v3")),
-            );
+            if (!trianglesByMaterial.has(key)) trianglesByMaterial.set(key, { indices: [], material: material(path, resources, key, semantic) });
+            const part = trianglesByMaterial.get(key);
+            const a = Number(triangle.getAttribute("v1")), b = Number(triangle.getAttribute("v2")), c = Number(triangle.getAttribute("v3"));
+            part.indices.push(a, b, c);
+            if (showEdges) {
+                allIndices.set([a, b, c], face * 3);
+                faceMaterials.push(part.material);
+            }
         }
 
-        return [...trianglesByMaterial].map(([key, indices]) => {
+        const parts = [...trianglesByMaterial.values()].map(({ indices, material }) => {
             const geometry = new THREE.BufferGeometry();
             geometry.setAttribute("position", position);
             geometry.setIndex(indices);
-            return new THREE.Mesh(geometry, material(path, resources, key, semantic));
+            return new THREE.Mesh(geometry, material);
         });
+        if (showEdges && parts.length) {
+            const edges = createSharpEdges(positions, allIndices, faceMaterials);
+            if (edges) parts[0].add(edges);
+        }
+        return parts;
     }
 
     function material(path, resources, key, semantic) {

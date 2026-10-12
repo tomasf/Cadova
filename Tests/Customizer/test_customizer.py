@@ -547,6 +547,103 @@ def test_line_rendering(browser, base_url):
     page.page.context.close()
 
 
+def test_sharp_edges(browser, base_url):
+    """Outline geometric creases across material splits, while hiding rear and smooth edges."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    shader_errors = []
+    page.page.on("console", lambda message: shader_errors.append(message.text) if message.type == "error" else None)
+    page.open()
+    result = page.page.evaluate('''async () => {
+        const THREE = await import("three");
+        const { read3MF } = await import("./threemf.js");
+        const { createSharpEdges } = await import("./edges.js");
+        const { zipSync, strToU8 } = await import("three/addons/libs/fflate.module.js");
+        const { ViewportRenderer } = await import("./rendering.js");
+        const vertices = [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+        const triangles = [[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]];
+        function cube(semantic = "solid", dark = false) {
+            // Alternating face materials also split every coplanar triangle diagonal.
+            const xml = `<model xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
+                xmlns:m="http://schemas.microsoft.com/3dmanufacturing/material/2015/02" xmlns:c="https://cadova.org/3mf">
+                <resources><m:colorgroup id="1"><m:color color="${dark ? '#101010' : '#ffffff'}"/><m:color color="#ffffff"/></m:colorgroup>
+                <object id="2"><mesh><vertices>${vertices.map(([x,y,z]) => `<vertex x="${x}" y="${y}" z="${z}"/>`).join('')}</vertices>
+                <triangles>${triangles.map(([a,b,c], i) => `<triangle v1="${a}" v2="${b}" v3="${c}" pid="1" p1="${i % 2}"/>`).join('')}</triangles></mesh></object>
+                <object id="3"><components><component objectid="2" transform="1 0 0 0 1 0 0 0 1 10 20 30"/></components></object></resources>
+                <build><item objectid="3" c:semantic="${semantic}"/></build></model>`;
+            return read3MF(zipSync({"3D/3dmodel.model": strToU8(xml)}).buffer, "white");
+        }
+        function lines(group) {
+            const result = [];
+            group.traverse(child => { if (child.isLineSegments) result.push(child); });
+            return result;
+        }
+        const model = cube();
+        const outline = lines(model)[0];
+        model.updateMatrixWorld(true);
+        const bounds = new THREE.Box3().setFromObject(outline);
+        const darkColors = lines(cube("solid", true))[0].geometry.attributes.color.array;
+        const white = new THREE.MeshBasicMaterial({color: "white"});
+        function crease(degrees, third = false) {
+            const angle = THREE.MathUtils.degToRad(degrees);
+            const positions = new Float32Array([0,0,0, 1,0,0, 0,1,0, 0,-Math.cos(angle),Math.sin(angle), 0,0,1]);
+            const indices = new Uint32Array(third ? [0,1,2,1,0,3,0,1,4] : [0,1,2,1,0,3]);
+            return createSharpEdges(positions, indices, [white,white,white]);
+        }
+        const open = createSharpEdges(new Float32Array([0,0,0,1,0,0,0,1,0]), new Uint32Array([0,1,2]), [white]);
+        const degenerate = createSharpEdges(new Float32Array([0,0,0,1,0,0,0,1,0]), new Uint32Array([0,1,2,1,0,0]), [white,white]);
+
+        const renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
+        const viewport = new ViewportRenderer(renderer);
+        viewport.setSize(128,128);
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color("white");
+        const camera = new THREE.OrthographicCamera(-2,2,2,-2,0.1,100);
+        camera.up.set(0,1,0);
+        camera.position.set(0,0,10);
+        camera.lookAt(0,0,0);
+        camera.updateMatrixWorld();
+        const surface = new THREE.Mesh(new THREE.PlaneGeometry(3,3), white);
+        surface.position.z = 1;
+        scene.add(surface);
+        const edge = crease(90);
+        scene.add(edge);
+        function darkPixels(z) {
+            edge.position.set(-0.5,0,z);
+            viewport.render(scene,camera);
+            const gl = renderer.getContext();
+            const rgba = new Uint8Array(128*128*4);
+            gl.readPixels(0,0,128,128,gl.RGBA,gl.UNSIGNED_BYTE,rgba);
+            let dark = 0;
+            for (let i=0; i<rgba.length; i+=4) if (rgba[i] < 240) dark++;
+            return dark;
+        }
+        const hidden = darkPixels(0), visible = darkPixels(1);
+        viewport.dispose(); renderer.dispose();
+        for (const object of [model, surface, edge]) object.traverse(child => {
+            child.geometry?.dispose(); child.material?.dispose();
+        });
+        return {parts: model.children.length, outlines: lines(model).length,
+            segments: outline.geometry.attributes.position.count/2, bounds: [bounds.min.toArray(),bounds.max.toArray()],
+            black: [...outline.geometry.attributes.color.array].every(value => value === 0),
+            gray: Math.max(...darkColors), expectedGray: new THREE.Color("#8c8c8c").r,
+            context: lines(cube("context")).length, visual: lines(cube("visual")).length,
+            smooth: crease(20) === null, sharp: crease(40)?.geometry.attributes.position.count/2,
+            nonManifold: crease(90,true) === null, open: open === null, degenerate: degenerate === null, hidden, visible};
+    }''')
+    check(result["parts"] == 2 and result["outlines"] == 1 and result["segments"] == 12,
+          f"Material splits changed the cube's twelve sharp edges: {result}")
+    check(result["bounds"] == [[9,19,29],[11,21,31]], f"Component transform lost on sharp edges: {result}")
+    check(result["black"] and abs(result["gray"] - result["expectedGray"]) < 1e-6,
+          f"Edge colors no longer match native face contrast: {result}")
+    check(result["context"] == 0 and result["visual"] == 0, f"Non-solid geometry gained outlines: {result}")
+    check(result["smooth"] and result["sharp"] == 1 and result["nonManifold"] and result["open"] and result["degenerate"],
+          f"Sharp-edge classification regression: {result}")
+    check(result["hidden"] == 0 and result["visible"] >= 32,
+          f"Edges must appear on the surface and stay hidden behind it: {result}")
+    check(not page.errors and not shader_errors, f"Sharp-edge rendering errors: {page.errors + shader_errors}")
+    page.page.context.close()
+
+
 def test_axes(browser, base_url):
     """Origin lines have a stable width and depth; the corner axes follow rotation only."""
     page = CustomizerPage(browser.new_page(viewport={"width": 1280, "height": 900}), base_url)
@@ -885,7 +982,7 @@ def main(engines):
     failed = False
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
+            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
         )]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))
