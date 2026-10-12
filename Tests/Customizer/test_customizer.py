@@ -258,6 +258,57 @@ def test_without_webgl(browser, base_url):
     check(not page.errors, f"The page had errors without WebGL: {page.errors}")
 
 
+def test_grid(browser, base_url):
+    """Render the grid itself to check its circular fade and bounds away from the origin."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    shader_errors = []
+    page.page.on("console", lambda message: shader_errors.append(message.text)
+                 if message.type == "error" and "WebGLProgram" in message.text else None)
+    page.open()
+    result = page.page.evaluate('''async () => {
+        const THREE = await import("three");
+        const { ViewportGrid } = await import("./grid.js");
+        const renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
+        renderer.setSize(800, 800);
+        renderer.setClearColor("#ecebe6");
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-180, 180, 180, -180, 0.1, 1000);
+        camera.up.set(0, 1, 0);
+        camera.position.set(0, 0, 400);
+        camera.lookAt(0, 0, 0);
+        camera.updateMatrixWorld();
+        const grid = new ViewportGrid("#1d1d1b");
+        grid.updateBounds(new THREE.Box3(new THREE.Vector3(-50, -50, 0), new THREE.Vector3(50, 50, 20)));
+        grid.updateScale(camera, 800, 800);
+        scene.add(grid);
+        renderer.render(scene, camera);
+        const gl = renderer.getContext();
+        function sample(x, y) {
+            const pixel = new Uint8Array(4);
+            const point = new THREE.Vector3(x, y, 0).project(camera);
+            gl.readPixels(Math.floor((point.x + 1) * 400), Math.floor((point.y + 1) * 400),
+                1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+            return [...pixel];
+        }
+        const result = { inner: sample(0, 50), rim: sample(0, 110),
+            corner: sample(100, 100), outside: sample(150, 150) };
+        grid.updateBounds(new THREE.Box3(new THREE.Vector3(200, -80, 0), new THREE.Vector3(500, 20, 30)));
+        result.center = grid.position.toArray();
+        result.coversBounds = [new THREE.Vector3(200, -80, 0), new THREE.Vector3(500, 20, 0)]
+            .every(point => point.distanceTo(grid.position) < grid.material.uniforms.radius.value);
+        renderer.dispose();
+        grid.geometry.dispose();
+        grid.material.dispose();
+        return result;
+    }''')
+    contrast = lambda pixel: sum(abs(a - b) for a, b in zip(pixel[:3], result["outside"][:3]))
+    check(contrast(result["inner"]) > contrast(result["rim"]) > 0, f"The grid doesn't fade at its rim: {result}")
+    check(contrast(result["corner"]) == 0, f"The grid's square corners should be invisible: {result}")
+    check(result["center"] == [350, -30, 0] and result["coversBounds"], f"The grid doesn't follow translated bounds: {result}")
+    check(not shader_errors and not page.errors, f"Grid rendering errors: {shader_errors + page.errors}")
+    page.page.context.close()
+
+
 def faulty_worker(page, code):
     """Injects a fault into the first real worker. A restart gets the original worker script."""
     requests = []
@@ -424,7 +475,7 @@ def main(engines):
     failed = False
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_single_model, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
+            test, test_tabs, test_single_model, test_grid, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
         )]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

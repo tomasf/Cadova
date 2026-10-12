@@ -4,6 +4,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { ModelBuilder, CancelledError } from "./builder.js";
 import { read3MF } from "./threemf.js";
+import { ViewportGrid } from "./grid.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -510,16 +511,12 @@ function createViewer() {
     scene.add(camera);
 
     const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--text").trim();
-    const grid = new THREE.GridHelper(400, 40, gridColor, gridColor);
-    grid.rotation.x = Math.PI / 2;
-    grid.material.transparent = true;
-    grid.material.opacity = 0.08;
+    const grid = new ViewportGrid(gridColor);
     scene.add(grid);
 
     let current = null, framed = false;
 
-    function frame() {
-        const box = new THREE.Box3().setFromObject(current);
+    function frame(box) {
         const size = box.getSize(new THREE.Vector3()).length();
         const center = box.getCenter(new THREE.Vector3());
         controlsView.target.copy(center);
@@ -540,6 +537,8 @@ function createViewer() {
 
     renderer.setAnimationLoop(() => {
         controlsView.update();
+        camera.updateMatrixWorld();
+        grid.updateScale(camera, container.clientWidth, container.clientHeight);
         renderer.render(scene, camera);
     });
 
@@ -561,7 +560,9 @@ function createViewer() {
         }
         current = object;
         scene.add(object);
+        const box = new THREE.Box3().setFromObject(object);
+        grid.updateBounds(box);
         $("overlay").hidden = true;
-        if (!framed || isNewModel) { frame(); framed = true; }
+        if (!framed || isNewModel) { frame(box); framed = true; }
     };
 }
