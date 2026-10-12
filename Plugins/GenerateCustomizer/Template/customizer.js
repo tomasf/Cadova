@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { ModelBuilder, CancelledError } from "./builder.js";
 import { read3MF } from "./threemf.js";
@@ -8,6 +7,7 @@ import { ViewportGrid } from "./grid.js";
 import { OriginAxes, AxisIndicator } from "./axes.js";
 import { frameIsometric } from "./camera.js";
 import { ViewportRenderer } from "./rendering.js";
+import { setupLighting } from "./lighting.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -503,17 +503,7 @@ function createViewer() {
     const controlsView = new OrbitControls(camera, renderer.domElement);
     controlsView.enableDamping = true;
 
-    // A soft studio environment for metallic materials to reflect, which also fills in the lighting
-    const environment = new THREE.PMREMGenerator(renderer);
-    scene.environment = environment.fromScene(new RoomEnvironment(), 0.04).texture;
-    scene.environmentIntensity = 0.45;
-    environment.dispose();
-
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8577, 1.0));
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.1);
-    keyLight.position.set(1, -1.5, 2);
-    camera.add(keyLight);
-    scene.add(camera);
+    setupLighting(scene, camera, renderer);
 
     const root = document.documentElement;
     const gridColor = getComputedStyle(root).getPropertyValue("--grid").trim();

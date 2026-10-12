@@ -644,6 +644,102 @@ def test_sharp_edges(browser, base_url):
     page.page.context.close()
 
 
+def test_lighting(browser, base_url):
+    """Match native headlight/fill brightness and keep the light aimed along the moving camera."""
+    page = CustomizerPage(browser.new_page(viewport={"width":1280,"height":900}), base_url)
+    shader_errors = []
+    page.page.on("console", lambda message: shader_errors.append(message.text)
+                 if message.type == "error" and "WebGLProgram" in message.text else None)
+    page.open()
+    page.page.evaluate('''async () => {
+        const THREE = await import("three");
+        const original = THREE.Camera.prototype.updateMatrixWorld;
+        THREE.Camera.prototype.updateMatrixWorld = function (...args) {
+            const result = original.apply(this, args);
+            if (this.isPerspectiveCamera && this.parent?.isScene) {
+                const light = this.parent.getObjectByName("Headlight");
+                if (light) {
+                    const direction = light.getWorldPosition(new THREE.Vector3())
+                        .sub(light.target.getWorldPosition(new THREE.Vector3())).normalize();
+                    const cameraDirection = new THREE.Vector3().setFromMatrixColumn(this.matrixWorld, 2).normalize();
+                    window.lightingState = { dot: direction.dot(cameraDirection),
+                        position: this.position.toArray(), direction: cameraDirection.toArray() };
+                }
+            }
+            return result;
+        };
+    }''')
+    page.page.wait_for_function("window.lightingState")
+    initial = page.page.evaluate("window.lightingState")
+    canvas = page.page.locator("#viewer canvas").bounding_box()
+    x, y = canvas["x"] + canvas["width"] / 2, canvas["y"] + canvas["height"] / 2
+    for button in ["left", "right"]:
+        before = page.page.evaluate("window.lightingState")
+        page.page.mouse.move(x, y)
+        page.page.mouse.down(button=button)
+        page.page.mouse.move(x + 100, y + 60, steps=10)
+        page.page.mouse.up(button=button)
+        page.page.wait_for_function("before => window.lightingState.position.some((v,i) => Math.abs(v-before[i]) > 0.1)", arg=before["position"])
+        state = page.page.evaluate("window.lightingState")
+        check(abs(state["dot"] - 1) < 1e-6, f"The headlight lost camera alignment after {button} drag: {state}")
+    check(abs(initial["dot"] - 1) < 1e-6, f"The default headlight is offset from the camera: {initial}")
+
+    pixels = page.page.evaluate('''async () => {
+        const THREE = await import("three");
+        const { setupLighting } = await import("./lighting.js");
+        const { ViewportRenderer } = await import("./rendering.js");
+        const renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
+        const viewport = new ViewportRenderer(renderer);
+        viewport.setSize(128,128);
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color("black");
+        const camera = new THREE.OrthographicCamera(-1.5,1.5,1.5,-1.5,0.1,1000);
+        const lighting = setupLighting(scene,camera,renderer);
+        const material = new THREE.MeshStandardMaterial({ roughness:0.9, metalness:0 });
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(2,2),material);
+        scene.add(plane);
+        const samples = [];
+        for (const [name, normal] of [["x",[1,0,0]],["y",[0,1,0]],["z",[0,0,1]],["-y",[0,-1,0]]]) {
+            const direction = new THREE.Vector3(...normal);
+            const rotation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),direction);
+            plane.quaternion.copy(rotation);
+            camera.quaternion.copy(rotation);
+            // Include a large pan and changing zoom, without moving the lighting relative to the camera.
+            plane.position.set(30,-20,10);
+            camera.position.copy(plane.position).addScaledVector(direction,name === "x" ? 50 : 5);
+            for (const mode of ["direct","ambient","full"]) {
+                lighting.headlight.visible = mode !== "ambient";
+                lighting.ambient.visible = mode !== "direct";
+                scene.environment = mode === "full" ? lighting.environment.texture : null;
+                for (const color of ["white","gray","black"]) {
+                    material.color.set(color === "gray" ? new THREE.Color().setRGB(0.5,0.5,0.5,THREE.SRGBColorSpace) : color);
+                    camera.updateMatrixWorld();
+                    viewport.render(scene,camera);
+                    const gl = renderer.getContext(), rgba = new Uint8Array(4);
+                    gl.readPixels(64,64,1,1,gl.RGBA,gl.UNSIGNED_BYTE,rgba);
+                    samples.push({ normal:name, mode, color, rgb:[...rgba].slice(0,3) });
+                }
+            }
+        }
+        plane.geometry.dispose(); material.dispose(); lighting.environment.dispose();
+        viewport.dispose(); renderer.dispose();
+        return samples;
+    }''')
+    # SceneKit renders made with Cadova Viewer's headlight=800, ambient=30, gradient environment,
+    # and roughness=0.9. Direct/fill match exactly; allow small differences between IBL renderers.
+    direct = {"white":233,"gray":119,"black":29}
+    ambient = {"white":48,"gray":19,"black":0}
+    combined = {"x":[255,137,33],"y":[255,148,36],"z":[255,137,33],"-y":[252,127,30]}
+    for sample in pixels:
+        mode, color = sample["mode"], sample["color"]
+        expected = (direct if mode == "direct" else ambient)[color] if mode != "full" else combined[sample["normal"]][["white","gray","black"].index(color)]
+        tolerance = 1 if mode != "full" else 8
+        check(all(abs(value-expected) <= tolerance for value in sample["rgb"]),
+              f"Lighting no longer matches native brightness ({expected}): {sample}")
+    check(not page.errors and not shader_errors, f"Lighting errors: {page.errors + shader_errors}")
+    page.page.context.close()
+
+
 def test_axes(browser, base_url):
     """Origin lines have a stable width and depth; the corner axes follow rotation only."""
     page = CustomizerPage(browser.new_page(viewport={"width": 1280, "height": 900}), base_url)
@@ -982,7 +1078,7 @@ def main(engines):
     failed = False
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
+            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
         )]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))
