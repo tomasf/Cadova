@@ -572,6 +572,22 @@ def test_axes(browser, base_url):
     def directions():
         return indicator.locator("line").evaluate_all("lines => lines.map(line => [line.getAttribute('x2'), line.getAttribute('y2')])")
 
+    def settled_directions():
+        # Orbit damping advances per frame. Software-rendered CI can need much longer than a
+        # fixed delay to settle; wait for consecutive stable frames before testing pan/zoom.
+        page.page.evaluate("window.axisStability = { previous: null, frames: 0 }")
+        page.page.wait_for_function('''() => {
+            const current = [...document.querySelectorAll("#axis-indicator line")]
+                .flatMap(line => [Number(line.getAttribute("x2")), Number(line.getAttribute("y2"))]);
+            const state = window.axisStability;
+            const stable = state.previous && current.every((value, index) =>
+                Math.abs(value - state.previous[index]) < 0.0005);
+            state.frames = stable ? state.frames + 1 : 0;
+            state.previous = current;
+            return state.frames >= 5;
+        }''', timeout=60000)
+        return directions()
+
     initial = directions()
     canvas = page.page.locator("#viewer canvas").bounding_box()
     x, y = canvas["x"] + canvas["width"] / 2, canvas["y"] + canvas["height"] / 2
@@ -579,16 +595,14 @@ def test_axes(browser, base_url):
     page.page.mouse.down()
     page.page.mouse.move(x + 120, y + 65, steps=12)
     page.page.mouse.up()
-    page.page.wait_for_timeout(5000)  # allow the damped orbit to settle
-    rotated = directions()
+    rotated = settled_directions()
     check(rotated != initial, "Orbiting didn't rotate the corner indicator")
     page.page.mouse.wheel(0, -350)
     page.page.mouse.move(x, y)
     page.page.mouse.down(button="right")
     page.page.mouse.move(x + 40, y + 20, steps=5)
     page.page.mouse.up(button="right")
-    page.page.wait_for_timeout(5000)
-    moved = directions()
+    moved = settled_directions()
     check(all(abs(float(a) - float(b)) < 0.1 for first, second in zip(rotated, moved)
               for a, b in zip(first, second)), f"Panning or zooming changed the corner directions: {rotated} -> {moved}")
     page.page.set_viewport_size({"width": 390, "height": 844})
