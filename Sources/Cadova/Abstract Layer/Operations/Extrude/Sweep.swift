@@ -52,14 +52,17 @@ internal struct Sweep<Path: ParametricCurve>: Geometry3D {
         // (notably naturalUpDirection, which drives overhangSafe) reflect how the sweep actually starts
         // out in space, mirroring how Loft builds each of its sections. The same built shape is still
         // reused for every step of the sweep; only its build-time orientation context changes.
-        let unprunedFrames = path.curve3D.frames(
-            environment: environment,
-            target: target,
-            targetReference: reference,
-            perpendicularBounds: nil,
-            miteringCorners: true
-        )
-        let shapeEnvironment = unprunedFrames.first.map { environment.applyingTransform($0.rigidTransform) } ?? environment
+        // Only the starting orientation is needed for the shape's build. Defer sampling the
+        // entire path until a mesh-cache miss. If the initial alignment is degenerate, its angle
+        // comes from later samples; keep that exact behavior and reuse those frames on a miss.
+        let curve = path.curve3D
+        let initialFrame = curve.initialFrame(reference: reference, target: target)
+        let fallbackFrames = initialFrame == nil ? curve.frames(
+            environment: environment, target: target, targetReference: reference,
+            perpendicularBounds: nil, miteringCorners: true
+        ) : nil
+        let shapeFrame = initialFrame ?? fallbackFrames?.first
+        let shapeEnvironment = shapeFrame.map { environment.applyingTransform($0.rigidTransform) } ?? environment
         let shapeNode = try await context.buildResult(for: shape, in: shapeEnvironment).node
 
         let cachedConcrete = CachedConcrete<D3, _>(
@@ -68,7 +71,10 @@ internal struct Sweep<Path: ParametricCurve>: Geometry3D {
             environment.segmentation, environment.maxTwistRate
         ) {
             let crossSection = try await context.result(for: shapeNode).concrete
-            var frames = unprunedFrames
+            var frames = fallbackFrames ?? curve.frames(
+                environment: environment, target: target, targetReference: reference,
+                perpendicularBounds: nil, miteringCorners: true
+            )
             frames.pruneStraightRuns(bounds: .init(crossSection.bounds), segmentation: environment.segmentation)
             let mesh = Mesh(
                 extruding: crossSection.polygonList(),

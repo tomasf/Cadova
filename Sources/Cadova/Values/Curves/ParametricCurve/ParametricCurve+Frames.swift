@@ -1,6 +1,19 @@
 import Foundation
 
 internal extension ParametricCurve<Vector3D> {
+    /// A resolved first frame doesn't depend on sampling density, twist damping or corner mitering.
+    /// When its target alignment is already resolved, evaluate it directly so a sweep can build
+    /// its cross-section and check the mesh cache without sampling the whole path. An unresolved
+    /// initial angle needs the following samples (interpolateMissingAngles), so return nil then.
+    func initialFrame(reference: Direction2D, target: ReferenceTarget) -> ParametricCurveFrame? {
+        let sample = CurveSample(
+            u: domain.lowerBound, position: point(at: domain.lowerBound),
+            tangent: derivativeView.tangent(at: domain.lowerBound), distance: 0
+        )
+        let frame = ParametricCurveFrame(sample: sample, reference: reference, target: target, previousSample: nil)
+        return frame.angle == nil ? nil : frame
+    }
+
     /// Builds an exact frame at an arbitrary distance along the curve, rather than approximating it by
     /// interpolating between two nearby pre-sampled frames' transforms. `Loft` needs frames at ring
     /// positions that generally don't line up with `frames`' own sample points (its adaptive subdivision
