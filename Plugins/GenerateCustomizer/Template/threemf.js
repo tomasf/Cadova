@@ -14,7 +14,7 @@ const CADOVA = "https://cadova.org/3mf";
 const MODEL_RELATIONSHIP = "http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel";
 
 // A display color for each triangle that doesn't have one, and how parts that aren't printed show
-const defaults = { roughness: 0.65, metalness: 0, contextOpacity: 0.3 };
+const defaults = { roughness: 0.9, metalness: 0, contextOpacity: 0.3 };
 
 // Reads a 3MF file. Triangles without a color of their own get the default color. Returns a group
 // holding a mesh for each object and material.

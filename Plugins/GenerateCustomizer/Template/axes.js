@@ -4,7 +4,7 @@ import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js
 import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 
 // Like the native viewer, mark all three world axes in neutral gray, independently of the
-// circular grid. Screen-space lines keep their thickness when orbiting, zooming, or resizing.
+// circular grid. Like SceneKit's line primitives, these stay one physical pixel wide.
 export class OriginAxes extends LineSegments2 {
     constructor() {
         const extent = 10000;
@@ -15,11 +15,16 @@ export class OriginAxes extends LineSegments2 {
             0, 0, -extent, 0, 0, 0, 0, 0, 0, 0, 0, extent,
         ]);
         super(geometry, new LineMaterial({
-            color: 0x666666, linewidth: 2, toneMapped: false,
+            color: 0x666666, linewidth: 1, toneMapped: false,
             transparent: true, depthWrite: false,
         }));
         this.name = "Origin";
         this.visible = false;
+    }
+
+    onBeforeRender(renderer) {
+        super.onBeforeRender(renderer);
+        this.material.linewidth = 1 / renderer.getPixelRatio();
     }
 }
 

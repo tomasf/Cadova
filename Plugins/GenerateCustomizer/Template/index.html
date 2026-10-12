@@ -21,13 +21,14 @@
     --line: #e3e1db;
     --accent: #c2410c;
     --accent-soft: #fbe9df;
-    --viewer: #ecebe6;
-    --model: #d9d4c7;
+    --viewer: #0d0d0d;
+    --grid: #ffffff;
+    --model: #ffffff;
     --danger: #b42318;
     --wordmark-braces: #12141a;
     --wordmark-letters: #12141a;
     --on-accent: #fff;
-    --axis-x: #ff3b30; --axis-y: #34c759; --axis-z: #007aff;
+    --axis-x: #ff453a; --axis-y: #30d158; --axis-z: #0a84ff;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
@@ -39,21 +40,17 @@
       --line: #33322f;
       --accent: #f08a4b;
       --accent-soft: #3a2519;
-      --viewer: #1a1a18;
-      --model: #bdb6a6;
       --danger: #f97066;
       --wordmark-braces: #ff6347;
       --wordmark-letters: #f6f3ec;
       --on-accent: #000;
-      --axis-x: #ff453a; --axis-y: #30d158; --axis-z: #0a84ff;
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --bg: #161614; --panel: #1f1f1d; --text: #ecebe7; --muted: #9c9a94; --line: #33322f;
-    --accent: #f08a4b; --accent-soft: #3a2519; --viewer: #1a1a18; --model: #bdb6a6; --danger: #f97066;
+    --accent: #f08a4b; --accent-soft: #3a2519; --danger: #f97066;
     --wordmark-braces: #ff6347; --wordmark-letters: #f6f3ec; --on-accent: #000;
-    --axis-x: #ff453a; --axis-y: #30d158; --axis-z: #0a84ff;
     color-scheme: dark;
   }
 
@@ -167,7 +164,7 @@
   .cadova-braces { stroke: var(--wordmark-braces); }
   .cadova-letters { fill: var(--wordmark-letters); }
 
-  main { position: relative; background: var(--viewer); min-width: 0; min-height: 0; }
+  main { position: relative; background: var(--viewer); color: #ffffff; min-width: 0; min-height: 0; }
   #viewer { position: absolute; inset: 0; }
   #viewer canvas { display: block; width: 100%; height: 100%; touch-action: none; }
   #axis-indicator {
@@ -181,7 +178,7 @@
   #axis-indicator text { fill: currentColor; font-size: 10px; text-anchor: middle; dominant-baseline: central; }
   #overlay {
     position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 10px;
-    color: var(--muted); pointer-events: none;
+    color: #9c9a94; pointer-events: none;
   }
   #overlay[hidden] { display: none; }
   .progress { width: 220px; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }

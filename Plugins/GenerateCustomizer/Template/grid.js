@@ -50,8 +50,8 @@ export class ViewportGrid extends THREE.Mesh {
                     float radialDistance = length((gridPosition - center) / radius);
                     if (radialDistance >= 1.0) discard;
                     float fade = 1.0 - smoothstep(0.6, 1.0, radialDistance);
-                    float coarse = gridAlpha(spacing, 0.08);
-                    float fine = gridAlpha(spacing / 10.0, 0.08 * fineOpacity);
+                    float coarse = gridAlpha(spacing, 0.05);
+                    float fine = gridAlpha(spacing / 10.0, 0.05 * fineOpacity);
                     gl_FragColor = vec4(color, (1.0 - (1.0 - coarse) * (1.0 - fine)) * fade);
                     #include <colorspace_fragment>
                 }
@@ -60,6 +60,15 @@ export class ViewportGrid extends THREE.Mesh {
         this.name = "Grid";
         this.renderOrder = -1;
         this.visible = false;
+        this.modelCenter = new THREE.Vector3();
+        this.modelBaseRadius = 0;
+        this.gridRadius = 0;
+        this.raycaster = new THREE.Raycaster();
+        this.screenCenter = new THREE.Vector2();
+        this.focus = new THREE.Vector3();
+        this.nextCenter = new THREE.Vector3();
+        this.cameraPosition = new THREE.Vector3();
+        this.cameraDirection = new THREE.Vector3();
         this.projectedCenter = new THREE.Vector3();
         this.projectedNeighbor = new THREE.Vector3();
     }
@@ -67,22 +76,54 @@ export class ViewportGrid extends THREE.Mesh {
     updateBounds(box) {
         if (box.isEmpty()) {
             this.visible = false;
+            this.modelBaseRadius = 0;
             return;
         }
         const modelRadius = Math.hypot(box.max.x - box.min.x, box.max.y - box.min.y) / 2;
         const radius = Math.max(Math.ceil(modelRadius * 1.5 / 20) * 20, 20);
-        this.position.set((box.min.x + box.max.x) / 2, (box.min.y + box.max.y) / 2, 0);
-        this.scale.set(radius, radius, 1);
-        this.material.uniforms.center.value.set(this.position.x, this.position.y);
-        this.material.uniforms.radius.value = radius;
+        this.modelCenter.set((box.min.x + box.max.x) / 2, (box.min.y + box.max.y) / 2, 0);
+        this.modelBaseRadius = radius;
+        this.setFootprint(this.modelCenter, radius);
+        this.gridRadius = 0; // Recompute the view-following footprint on the next frame.
         this.visible = true;
     }
 
+    setFootprint(center, radius) {
+        this.position.copy(center);
+        this.scale.set(radius, radius, 1);
+        this.material.uniforms.center.value.set(center.x, center.y);
+        this.material.uniforms.radius.value = radius;
+        this.gridRadius = radius;
+    }
+
     updateScale(camera, width, height) {
-        if (!this.visible || width <= 0 || height <= 0) return;
-        // Sample pixels per millimeter along the world diagonal, as the native viewer does.
-        this.projectedCenter.copy(this.position).project(camera);
-        this.projectedNeighbor.copy(this.position);
+        if (this.modelBaseRadius <= 0 || width <= 0 || height <= 0) return;
+        camera.getWorldDirection(this.cameraDirection);
+        // Native orthographic views looking up from below hide the plane, but keep origin axes.
+        this.visible = !camera.isOrthographicCamera || this.cameraDirection.z <= 0;
+        if (!this.visible) return;
+
+        this.raycaster.setFromCamera(this.screenCenter, camera);
+        const { origin, direction } = this.raycaster.ray;
+        const distanceAlongRay = Math.abs(direction.z) > 1e-9 ? -origin.z / direction.z : -1;
+        this.focus.copy(this.modelCenter);
+        if (distanceAlongRay > 0) this.focus.copy(origin).addScaledVector(direction, distanceAlongRay);
+        this.focus.z = 0;
+        this.cameraPosition.setFromMatrixPosition(camera.matrixWorld);
+        const distance = this.cameraPosition.distanceTo(this.focus);
+        const base = this.modelBaseRadius;
+        const radius = THREE.MathUtils.clamp(distance, base * 0.1, base * 25) * 2;
+        const farBlend = THREE.MathUtils.smoothstep(distance, base * 12, base * 25);
+        this.nextCenter.copy(this.focus).lerp(this.modelCenter, farBlend);
+        const centerShift = this.nextCenter.distanceTo(this.position);
+        const radiusRatio = this.gridRadius > 0 ? radius / this.gridRadius : Infinity;
+        if (this.gridRadius === 0 || centerShift > this.gridRadius * 0.1 || radiusRatio > 1.1 || radiusRatio < 0.9) {
+            this.setFootprint(this.nextCenter, radius);
+        }
+
+        // Sample pixels per millimeter at the screen center's hit on z = 0, along the world diagonal.
+        this.projectedCenter.copy(this.focus).project(camera);
+        this.projectedNeighbor.copy(this.focus);
         this.projectedNeighbor.x += 1;
         this.projectedNeighbor.y += 1;
         this.projectedNeighbor.project(camera);
@@ -95,6 +136,6 @@ export class ViewportGrid extends THREE.Mesh {
         const exponent = Math.log10(scale);
         this.material.uniforms.spacing.value = 10 ** (2 - Math.floor(exponent));
         // Fine lines fade in over a decade, then become the coarse lines of the next one.
-        this.material.uniforms.fineOpacity.value = exponent - Math.floor(exponent);
+        this.material.uniforms.fineOpacity.value = THREE.MathUtils.clamp(1 - (Math.ceil(exponent) - exponent), 0, 1);
     }
 }
