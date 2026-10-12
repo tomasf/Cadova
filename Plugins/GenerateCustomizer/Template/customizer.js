@@ -510,9 +510,19 @@ function createViewer() {
     camera.add(keyLight);
     scene.add(camera);
 
-    const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--text").trim();
+    const root = document.documentElement;
+    const gridColor = getComputedStyle(root).getPropertyValue("--text").trim();
     const grid = new ViewportGrid(gridColor);
     scene.add(grid);
+
+    function updateGridColor() {
+        grid.material.uniforms.color.value.set(getComputedStyle(root).getPropertyValue("--text").trim());
+    }
+    // CSS updates the page automatically; the shader's color needs the same changes explicitly.
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", updateGridColor);
+    new MutationObserver(updateGridColor).observe(root, {
+        attributes: true, attributeFilter: ["data-theme", "style", "class"],
+    });
 
     let current = null, framed = false;
 

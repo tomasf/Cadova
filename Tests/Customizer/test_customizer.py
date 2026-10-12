@@ -309,6 +309,48 @@ def test_grid(browser, base_url):
     page.page.context.close()
 
 
+def test_grid_theme(browser, base_url):
+    """The existing viewer follows system theme changes and explicit overrides without a reload."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.page.emulate_media(color_scheme="light")
+    page.open()
+    build_time = page.page.locator("#build-time").text_content()
+    # Observe the actual grid rendered by the page, without exposing viewer state in product code.
+    page.page.evaluate('''async () => {
+        const THREE = await import("three");
+        const updateMatrixWorld = THREE.Camera.prototype.updateMatrixWorld;
+        THREE.Camera.prototype.updateMatrixWorld = function(...args) {
+            updateMatrixWorld.apply(this, args);
+            const grid = this.parent?.getObjectByName("Grid");
+            if (grid) window.gridThemeColor = grid.material.uniforms.color.value.getHexString();
+        };
+    }''')
+
+    def expect_color(hex):
+        page.page.wait_for_function("hex => window.gridThemeColor === hex", arg=hex, timeout=5000)
+
+    expect_color("1d1d1b")
+    page.page.emulate_media(color_scheme="dark")
+    expect_color("ecebe7")
+    page.page.emulate_media(color_scheme="light")
+    expect_color("1d1d1b")
+    page.page.evaluate('document.documentElement.dataset.theme = "dark"')
+    expect_color("ecebe7")
+    page.page.emulate_media(color_scheme="dark")
+    page.page.evaluate('document.documentElement.dataset.theme = "light"')
+    expect_color("1d1d1b")
+    page.page.evaluate('delete document.documentElement.dataset.theme')
+    expect_color("ecebe7")
+    page.page.evaluate('document.documentElement.style.setProperty("--text", "#123456")')
+    expect_color("123456")
+    page.page.evaluate('document.documentElement.style.removeProperty("--text")')
+    expect_color("ecebe7")
+    check(page.page.locator("#build-time").text_content() == build_time, "Changing the theme rebuilt the model")
+    expect(page.page.locator("#download")).to_be_enabled()
+    check(not page.errors, f"Theme changes caused page errors: {page.errors}")
+    page.page.context.close()
+
+
 def faulty_worker(page, code):
     """Injects a fault into the first real worker. A restart gets the original worker script."""
     requests = []
@@ -475,7 +517,7 @@ def main(engines):
     failed = False
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_single_model, test_grid, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
+            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
         )]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))
