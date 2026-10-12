@@ -255,6 +255,7 @@ def test_without_webgl(browser, base_url):
     expect(page.page.locator("#overlay-text")).to_contain_text("can't show a 3D preview")
     mesh = page.download()
     check(abs(mesh.extent(0) - 40) < 0.01, f"Width without WebGL is {mesh.extent(0)}, expected 40")
+    expect(page.page.locator("#axis-indicator")).to_have_count(0)
     check(not page.errors, f"The page had errors without WebGL: {page.errors}")
 
 
@@ -348,6 +349,153 @@ def test_grid_theme(browser, base_url):
     check(page.page.locator("#build-time").text_content() == build_time, "Changing the theme rebuilt the model")
     expect(page.page.locator("#download")).to_be_enabled()
     check(not page.errors, f"Theme changes caused page errors: {page.errors}")
+    page.page.context.close()
+
+
+def test_axes(browser, base_url):
+    """Origin lines have a stable width and depth; the corner axes follow rotation only."""
+    page = CustomizerPage(browser.new_page(viewport={"width": 1280, "height": 900}), base_url)
+    shader_errors = []
+    page.page.on("console", lambda message: shader_errors.append(message.text)
+                 if message.type == "error" and "WebGLProgram" in message.text else None)
+    page.open()
+    indicator = page.page.locator("#axis-indicator")
+    expect(indicator).to_be_visible()
+    check(indicator.locator("text").all_text_contents() == ["X", "Y", "Z"], "Missing corner axis labels")
+    page.page.evaluate('''async () => {
+        const THREE = await import("three");
+        const update = THREE.Camera.prototype.updateMatrixWorld;
+        THREE.Camera.prototype.updateMatrixWorld = function(...args) {
+            update.apply(this, args);
+            const origin = this.parent?.getObjectByName("Origin");
+            if (origin) window.originState = { visible: origin.visible, position: origin.position.toArray() };
+        };
+    }''')
+    page.page.wait_for_function("window.originState?.visible")
+    check(page.page.evaluate("window.originState.position") == [0, 0, 0], "The origin moved to the model center")
+
+    def directions():
+        return indicator.locator("line").evaluate_all("lines => lines.map(line => [line.getAttribute('x2'), line.getAttribute('y2')])")
+
+    initial = directions()
+    canvas = page.page.locator("#viewer canvas").bounding_box()
+    x, y = canvas["x"] + canvas["width"] / 2, canvas["y"] + canvas["height"] / 2
+    page.page.mouse.move(x, y)
+    page.page.mouse.down()
+    page.page.mouse.move(x + 120, y + 65, steps=12)
+    page.page.mouse.up()
+    page.page.wait_for_timeout(5000)  # allow the damped orbit to settle
+    rotated = directions()
+    check(rotated != initial, "Orbiting didn't rotate the corner indicator")
+    page.page.mouse.wheel(0, -350)
+    page.page.mouse.move(x, y)
+    page.page.mouse.down(button="right")
+    page.page.mouse.move(x + 40, y + 20, steps=5)
+    page.page.mouse.up(button="right")
+    page.page.wait_for_timeout(5000)
+    moved = directions()
+    check(all(abs(float(a) - float(b)) < 0.1 for first, second in zip(rotated, moved)
+              for a, b in zip(first, second)), f"Panning or zooming changed the corner directions: {rotated} -> {moved}")
+    page.page.set_viewport_size({"width": 390, "height": 844})
+    viewer = page.page.locator("#viewer").bounding_box()
+    corner = indicator.bounding_box()
+    check(abs(corner["x"] - viewer["x"] - 16) < 1 and
+          abs(viewer["y"] + viewer["height"] - corner["y"] - corner["height"] - 16) < 1,
+          "The indicator isn't anchored at the mobile viewer's bottom-left")
+    download = page.page.locator("#download").bounding_box()
+    check(corner["x"] + corner["width"] <= download["x"], "The mobile indicator overlaps Download")
+    page.page.emulate_media(color_scheme="dark")
+    expect(indicator).to_be_visible()
+
+    result = page.page.evaluate('''async () => {
+        const THREE = await import("three");
+        const { OriginAxes, AxisIndicator } = await import("./axes.js");
+        const host = document.createElement("div");
+        const indicator = new AxisIndicator(host);
+        const camera = new THREE.OrthographicCamera(-100, 100, 100, -100, 0.1, 1000);
+        function orientation(position, up) {
+            camera.position.set(...position);
+            camera.up.set(...up);
+            camera.lookAt(0, 0, 0);
+            camera.updateMatrixWorld();
+            indicator.update(camera);
+            return [...host.querySelectorAll("line")].map(line =>
+                [Number(line.getAttribute("x2")), Number(line.getAttribute("y2"))]);
+        }
+        const cardinal = [orientation([200, 0, 0], [0, 0, 1]),
+            orientation([0, 200, 0], [0, 0, 1]), orientation([0, 0, 200], [0, 1, 0])];
+        const renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
+        renderer.setSize(400, 400);
+        renderer.setClearColor("#ecebe6");
+        const scene = new THREE.Scene();
+        const origin = new OriginAxes();
+        origin.visible = true;
+        scene.add(origin);
+        const gl = renderer.getContext();
+        function pixel(x, y) {
+            const color = new Uint8Array(4);
+            gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, color);
+            return [...color];
+        }
+        function width(ratio, zoom, position, up, sample) {
+            orientation(position, up);
+            camera.zoom = zoom;
+            camera.updateProjectionMatrix();
+            renderer.setPixelRatio(ratio);
+            renderer.render(scene, camera);
+            const point = new THREE.Vector3(...sample).project(camera);
+            const size = 400 * ratio;
+            const y = Math.floor((point.y + 1) * size / 2);
+            const center = Math.floor((point.x + 1) * size / 2);
+            const colors = Array.from({length: 13}, (_, index) => pixel(center + index - 6, y));
+            return colors.filter(color => color[0] < 180).length;
+        }
+        const widths = [width(1, 1, [0, 0, 200], [0, 1, 0], [0, 20, 0]),
+            width(1, 3, [0, 0, 200], [0, 1, 0], [0, 20, 0]),
+            width(2, 1, [0, 0, 200], [0, 1, 0], [0, 20, 0]),
+            width(1, 1, [0, -200, 0], [0, 0, 1], [0, 0, 20])];
+        // A model face above the XY plane must occlude the origin, rather than draw through it.
+        orientation([0, 0, 200], [0, 1, 0]);
+        const face = new THREE.Mesh(new THREE.PlaneGeometry(20, 20),
+            new THREE.MeshBasicMaterial({ color: "#ecebe6", toneMapped: false }));
+        face.position.set(0, 30, 10);
+        scene.add(face);
+        renderer.render(scene, camera);
+        const occluded = pixel(200, 260);
+        // An off-center perspective view also hides axes underneath a thin floor. A single
+        // enormous segment crossing the camera plane used to leak through this surface.
+        const perspective = new THREE.PerspectiveCamera(35, 920 / 900, Math.hypot(83.5, 83.5, 25.4) / 100, Math.hypot(83.5, 83.5, 25.4) * 100);
+        perspective.up.set(0, 0, 1);
+        perspective.position.set(120.15286274431348, -88.92143790718882, 110.70357823965675);
+        perspective.lookAt(41.75, 41.75, 12.7);
+        perspective.updateMatrixWorld();
+        face.geometry.dispose();
+        face.geometry = new THREE.PlaneGeometry(83.5, 83.5);
+        face.position.set(41.75, 41.75, 5.35);
+        renderer.render(scene, perspective);
+        const perspectiveOccluded = [30, 40, 50, 60, 70].map(y => {
+            const point = new THREE.Vector3(0, y, 0).project(perspective);
+            const x = Math.floor((point.x + 1) * 200), row = Math.floor((point.y + 1) * 200);
+            return Math.min(...[-1, 0, 1].flatMap(dx =>
+                [-1, 0, 1].map(dy => pixel(x + dx, row + dy)[0])));
+        });
+        face.geometry.dispose();
+        face.material.dispose();
+        origin.geometry.dispose();
+        origin.material.dispose();
+        renderer.dispose();
+        return { cardinal, widths, occluded, perspectiveOccluded };
+    }''')
+    expected = [[[55, 55], [95, 55], [55, 15]], [[15, 55], [55, 55], [55, 15]],
+                [[95, 55], [55, 15], [55, 55]]]
+    check(all(abs(a - b) < 0.001 for actual, target in zip(result["cardinal"], expected)
+              for axis, desired in zip(actual, target) for a, b in zip(axis, desired)),
+          f"Incorrect cardinal axis directions: {result['cardinal']}")
+    check(result["widths"] == [2, 2, 4, 2], f"Origin line widths change with zoom, pixel density, or axis: {result}")
+    check(result["occluded"][:3] == [236, 235, 230], f"The origin draws through a model face: {result}")
+    check(all(pixel == 236 for pixel in result["perspectiveOccluded"]),
+          f"The origin leaks through a floor in perspective: {result}")
+    check(not shader_errors and not page.errors, f"Axis rendering errors: {shader_errors + page.errors}")
     page.page.context.close()
 
 
@@ -517,7 +665,7 @@ def main(engines):
     failed = False
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
+            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
         )]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

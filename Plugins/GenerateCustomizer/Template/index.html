@@ -27,6 +27,7 @@
     --wordmark-braces: #12141a;
     --wordmark-letters: #12141a;
     --on-accent: #fff;
+    --axis-x: #ff3b30; --axis-y: #34c759; --axis-z: #007aff;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
@@ -44,6 +45,7 @@
       --wordmark-braces: #ff6347;
       --wordmark-letters: #f6f3ec;
       --on-accent: #000;
+      --axis-x: #ff453a; --axis-y: #30d158; --axis-z: #0a84ff;
       color-scheme: dark;
     }
   }
@@ -51,6 +53,7 @@
     --bg: #161614; --panel: #1f1f1d; --text: #ecebe7; --muted: #9c9a94; --line: #33322f;
     --accent: #f08a4b; --accent-soft: #3a2519; --viewer: #1a1a18; --model: #bdb6a6; --danger: #f97066;
     --wordmark-braces: #ff6347; --wordmark-letters: #f6f3ec; --on-accent: #000;
+    --axis-x: #ff453a; --axis-y: #30d158; --axis-z: #0a84ff;
     color-scheme: dark;
   }
 
@@ -167,6 +170,15 @@
   main { position: relative; background: var(--viewer); min-width: 0; min-height: 0; }
   #viewer { position: absolute; inset: 0; }
   #viewer canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  #axis-indicator {
+    position: absolute; left: 16px; bottom: 16px; width: 110px; height: 110px;
+    pointer-events: none; filter: drop-shadow(0 0 2px black);
+  }
+  #axis-indicator line { stroke-width: 1; }
+  #axis-indicator line[data-axis="x"] { stroke: var(--axis-x); }
+  #axis-indicator line[data-axis="y"] { stroke: var(--axis-y); }
+  #axis-indicator line[data-axis="z"] { stroke: var(--axis-z); }
+  #axis-indicator text { fill: currentColor; font-size: 10px; text-anchor: middle; dominant-baseline: central; }
   #overlay {
     position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 10px;
     color: var(--muted); pointer-events: none;

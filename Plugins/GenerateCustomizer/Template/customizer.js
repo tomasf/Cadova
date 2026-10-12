@@ -5,6 +5,7 @@ import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { ModelBuilder, CancelledError } from "./builder.js";
 import { read3MF } from "./threemf.js";
 import { ViewportGrid } from "./grid.js";
+import { OriginAxes, AxisIndicator } from "./axes.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -514,6 +515,9 @@ function createViewer() {
     const gridColor = getComputedStyle(root).getPropertyValue("--text").trim();
     const grid = new ViewportGrid(gridColor);
     scene.add(grid);
+    const origin = new OriginAxes();
+    scene.add(origin);
+    const axisIndicator = new AxisIndicator(container);
 
     function updateGridColor() {
         grid.material.uniforms.color.value.set(getComputedStyle(root).getPropertyValue("--text").trim());
@@ -549,6 +553,7 @@ function createViewer() {
         controlsView.update();
         camera.updateMatrixWorld();
         grid.updateScale(camera, container.clientWidth, container.clientHeight);
+        axisIndicator.update(camera);
         renderer.render(scene, camera);
     });
 
@@ -572,6 +577,8 @@ function createViewer() {
         scene.add(object);
         const box = new THREE.Box3().setFromObject(object);
         grid.updateBounds(box);
+        origin.visible = !box.isEmpty();
+        axisIndicator.show();
         $("overlay").hidden = true;
         if (!framed || isNewModel) { frame(box); framed = true; }
     };
