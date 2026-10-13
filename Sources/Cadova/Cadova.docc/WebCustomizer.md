@@ -1,10 +1,10 @@
 # Publishing a Web Customizer
 
-Turn a parametric model into a web page where anyone can adjust its parameters, see a live 3D preview and download a 3MF file.
+Turn a parametric model into a web page where anyone can adjust its parameters, see a live 3D preview and download the result.
 
 ## Overview
 
-The `generate-customizer` command builds a web customizer for one of your models. The result is a folder of static files that you can put on any web server. When a visitor opens the page, a form lets them change the model's parameters, a 3D preview updates as they do, and a button downloads the finished model as a 3MF file, ready for a slicer.
+The `generate-customizer` command builds a web customizer for one of your models. The result is a folder of static files that you can put on any web server. When a visitor opens the page, a form lets them change the model's parameters, a 3D preview updates as they do, and a button downloads the finished model in the format you set with ``ModelOptions/format3D(_:)`` or ``ModelOptions/format2D(_:)``. A 2D model downloads as SVG unless you choose a format.
 
 The model runs entirely in the visitor's browser, compiled to WebAssembly. There's no server doing the work, so any static hosting will do: GitHub Pages, Netlify, an S3 bucket or a folder on your own web server.
 

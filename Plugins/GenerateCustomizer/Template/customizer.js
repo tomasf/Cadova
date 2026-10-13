@@ -466,6 +466,12 @@ function setStatus(text, isError = false) {
     if (!isError) $("build-time").textContent = text;
 }
 
+// The media type of a downloaded model file, from its extension
+function mediaType(fileName) {
+    const types = { "3mf": "model/3mf", "stl": "model/stl", "svg": "image/svg+xml" };
+    return types[fileName.split(".").pop().toLowerCase()] ?? "application/octet-stream";
+}
+
 // Builds show a preview, so the file itself is made when it's downloaded. The model is still running
 // from building that preview, so its geometry is cached, and making the file is mostly encoding it.
 // Builds wait until it's done.
@@ -482,7 +488,7 @@ $("download").addEventListener("click", async () => {
             error.log = result.log;
             throw error;
         }
-        const url = URL.createObjectURL(new Blob([result.data], { type: result.fileName.endsWith(".3mf") ? "model/3mf" : "application/octet-stream" }));
+        const url = URL.createObjectURL(new Blob([result.data], { type: mediaType(result.fileName) }));
         const link = Object.assign(document.createElement("a"), { href: url, download: result.fileName });
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);

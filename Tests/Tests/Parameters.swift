@@ -155,6 +155,34 @@ struct ParameterTests {
         #expect(FileManager.default.fileExists(atPath: projectDir.path) == false)
     }
 
+    @Test func `Previews use the preview format, and model files the model's format`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        func outputFiles(preview: Bool) async throws -> [String] {
+            let outputDir = tempDir.appending(path: preview ? "preview" : "files")
+            await CustomizerRequest.$overridden.withValue(CustomizerRequest(outputDirectory: outputDir.path, preview: preview)) {
+                await Project(root: tempDir.appending(path: "project")) {
+                    await Model("block", options: .format3D(.stl)) {
+                        Box(10)
+                    }
+                    await Model("outline") {
+                        Rectangle(10)
+                    }
+                    await Model("flat", options: .format2D(.threeMF)) {
+                        Rectangle(10)
+                    }
+                }
+            }
+            return try FileManager.default.contentsOfDirectory(atPath: outputDir.path).sorted()
+        }
+
+        #expect(try await outputFiles(preview: true) == ["block.cadovapreview", "flat.cadovapreview", "outline.cadovapreview"])
+        // A 2D model is SVG unless it asks for another format
+        #expect(try await outputFiles(preview: false) == ["block.stl", "flat.3mf", "outline.svg"])
+    }
+
     @Test func `Parameters describe their kind and metadata`() {
         @Parameter("Height", in: 10...50, step: 0.5, description: "Plate height") var height = 20.0
         @Parameter("Finish") var finish = Finish.matte
