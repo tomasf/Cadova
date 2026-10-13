@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { ViewportControls } from "./navigation.js";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { ModelBuilder, CancelledError } from "./builder.js";
 import { read3MF } from "./threemf.js";
@@ -500,8 +500,7 @@ function createViewer() {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--viewer").trim());
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 10000);
-    const controlsView = new OrbitControls(camera, renderer.domElement);
-    controlsView.enableDamping = true;
+    const controlsView = new ViewportControls(camera, renderer.domElement);
 
     setupLighting(scene, camera, renderer);
 
@@ -526,7 +525,8 @@ function createViewer() {
     let current = null, framed = false;
 
     function frame(box) {
-        frameIsometric(camera, box, controlsView.target);
+        controlsView.reset();
+        frameIsometric(camera, box, new THREE.Vector3());
     }
 
     function resize() {
@@ -538,8 +538,8 @@ function createViewer() {
     new ResizeObserver(resize).observe(container);
     resize();
 
-    renderer.setAnimationLoop(() => {
-        controlsView.update();
+    renderer.setAnimationLoop((time) => {
+        controlsView.update(time);
         camera.updateMatrixWorld();
         grid.updateScale(camera, container.clientWidth, container.clientHeight);
         axisIndicator.update(camera);
@@ -565,6 +565,7 @@ function createViewer() {
         current = object;
         scene.add(object);
         const box = new THREE.Box3().setFromObject(object);
+        controlsView.setModel(object, box);
         grid.updateBounds(box);
         origin.visible = !box.isEmpty();
         axisIndicator.show();

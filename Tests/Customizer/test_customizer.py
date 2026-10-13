@@ -740,6 +740,334 @@ def test_lighting(browser, base_url):
     page.page.context.close()
 
 
+def test_navigation(browser, base_url):
+    """Native turntable/pivots/inertia, plus browser mouse, trackpad and touch gesture routing."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.open()
+    result = page.page.evaluate('''async () => {
+        const THREE = await import("three");
+        const { ViewportControls } = await import("./navigation.js");
+        const canvas = document.createElement("canvas");
+        canvas.style.cssText = "position:fixed;left:10px;top:10px;width:400px;height:300px";
+        document.body.append(canvas);
+        const camera = new THREE.PerspectiveCamera(30,4/3,0.01,10000);
+        camera.up.set(0,0,1);
+        camera.position.set(0,-100,40); camera.lookAt(0,0,0); camera.updateMatrixWorld();
+        const position = camera.position.clone(), quaternion = camera.quaternion.clone();
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(20,20,20),new THREE.MeshBasicMaterial());
+        const object = new THREE.Group(); object.add(mesh);
+        const box = new THREE.Box3().setFromObject(object);
+        const controls = new ViewportControls(camera,canvas);
+        controls.setModel(object,box);
+        const center = new THREE.Vector2(210,160), offCenter = new THREE.Vector2(280,180);
+        const pixel = point => {
+            camera.updateMatrixWorld();
+            const p = point.clone().project(camera);
+            return new THREE.Vector2(210+p.x*200,160-p.y*150);
+        };
+        function reset() { controls.reset(); camera.position.copy(position); camera.quaternion.copy(quaternion); camera.updateMatrixWorld(); }
+        const state = controls.begin(center), pivot = state.pivot.clone();
+        controls.apply(state,new THREE.Vector4(100,0,0,0),"orbit");
+        const orbitPosition = camera.position.toArray(), orbitAnchor = pixel(pivot).distanceTo(center);
+        const once = camera.position.clone();
+        controls.apply(state,new THREE.Vector4(100,0,0,0),"orbit");
+        const drift = camera.position.distanceTo(once);
+        controls.apply(state,new THREE.Vector4(0,120,0,0),"orbit");
+        const overPole = new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion).z < 0;
+        reset();
+        const panState = controls.begin(center);
+        controls.apply(panState,new THREE.Vector4(30,-20,0,0),"pan");
+        const panPixel = pixel(panState.pivot).sub(center).toArray();
+        const panOrientation = Math.abs(camera.quaternion.dot(quaternion));
+        reset();
+        const zoomPivot = controls.pivot(offCenter), distance = camera.position.distanceTo(zoomPivot);
+        controls.zoom(0.5,offCenter);
+        const zoomRatio = camera.position.distanceTo(zoomPivot)/distance, zoomAnchor = pixel(zoomPivot).distanceTo(offCenter);
+        controls.zoom(40,offCenter);
+        const minimum = camera.position.distanceTo(zoomPivot)/controls.sphere.radius;
+        controls.zoom(-40,offCenter);
+        const maximum = camera.position.distanceTo(zoomPivot)/controls.sphere.radius;
+        reset();
+        camera.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,-1).applyQuaternion(quaternion),0.7));
+        const rolled = camera.quaternion.clone(), rollState = controls.begin(center);
+        controls.apply(rollState,new THREE.Vector4(0,0,0,0),"orbit");
+        const keepsRoll = Math.abs(camera.quaternion.dot(rolled));
+        reset();
+        const glideState = controls.begin(center);
+        function glide(fps) {
+            controls.startInertia(glideState,new THREE.Vector4(40,0,0,0),new THREE.Vector4(120,0,0,0),"orbit");
+            controls.update(0);
+            for (let i=1;i<=fps;i++) controls.update(i*1000/fps);
+            const speed = controls.inertia.velocity.x;
+            for (let i=fps+1;i<=fps*4;i++) controls.update(i*1000/fps);
+            return {speed,stopped:controls.inertia === null};
+        }
+        const sixty = glide(60), oneTwenty = glide(120);
+        controls.startInertia(glideState,new THREE.Vector4(0,0,0,0),new THREE.Vector4(5,0,0,0),"orbit");
+        const noSlowGlide = controls.inertia === null;
+
+        // DOM PointerEvents let both engines exercise multi-contact input. Only capture is stubbed:
+        // constructed events don't register hardware pointer IDs with the browser.
+        canvas.setPointerCapture = () => {};
+        canvas.hasPointerCapture = () => false;
+        const pointer = (type,id,x,y,extra={}) => canvas.dispatchEvent(new PointerEvent(type,{
+            bubbles:true,cancelable:true,pointerId:id,pointerType:"mouse",button:0,buttons:type === "pointerup" ? 0 : 1,
+            clientX:x,clientY:y,...extra}));
+        const wheel = extra => {
+            const event = new WheelEvent("wheel",{bubbles:true,cancelable:true,clientX:280,clientY:180,...extra});
+            if (extra.legacyDelta) Object.defineProperty(event,"wheelDeltaY",{value:extra.legacyDelta});
+            canvas.dispatchEvent(event); return event.defaultPrevented;
+        };
+        reset();
+        pointer("pointerdown",1,210,160,{shiftKey:true}); pointer("pointermove",1,240,170);
+        const axisLock = controls.drag.axis === "x" && controls.drag.delta.y === 0;
+        controls.pivotVisual.shownAt -= 100;
+        controls.updatePivot();
+        const marker = Number(controls.marker.style.opacity) === 1 && controls.marker.querySelector("circle").getAttribute("r") === "4"
+            && Math.abs(parseFloat(controls.marker.style.left)-210) < 1e-6 && Math.abs(parseFloat(controls.marker.style.top)-160) < 1e-6;
+        pointer("pointerup",1,240,170);
+        controls.pivotVisual.hiddenAt -= 700; controls.updatePivot();
+        const markerHidden = controls.pivotVisual === null && controls.marker.style.opacity === "0";
+        const quickGlide = controls.inertia !== null;
+        const releasePosition = camera.position.clone(); controls.update(0); controls.update(1000/60);
+        const coastMoved = camera.position.distanceTo(releasePosition) > 0.1;
+        pointer("pointerdown",1,210,160);
+        const grabStopsGlide = controls.inertia === null;
+        pointer("pointerup",1,210,160);
+        reset();
+        pointer("pointerdown",1,210,160,{altKey:true}); pointer("pointermove",1,230,175);
+        const altPan = controls.drag.motion === "pan" && Math.abs(camera.quaternion.dot(quaternion)) > 1-1e-10;
+        await new Promise(resolve => setTimeout(resolve,80));
+        pointer("pointerup",1,230,175);
+        const pausedRelease = controls.inertia === null;
+        reset();
+        pointer("pointerdown",1,210,160); pointer("pointermove",1,230,175);
+        pointer("pointercancel",1,230,175);
+        const cancelStops = controls.pointers.size === 0 && controls.inertia === null;
+        reset();
+        let before = camera.position.distanceTo(controls.pivot(offCenter));
+        const wheelPrevented = wheel({deltaY:-3,deltaMode:1});
+        const mouseZoom = camera.position.distanceTo(controls.zoomPivot.world)/before;
+        reset(); before = camera.position.distanceTo(controls.pivot(offCenter));
+        wheel({deltaY:-100});
+        const pixelMouseZoom = camera.position.distanceTo(controls.zoomPivot.world)/before;
+        reset(); before = camera.position.distanceTo(controls.pivot(offCenter));
+        wheel({deltaY:-40,legacyDelta:120});
+        const nativeMouseZoom = camera.position.distanceTo(controls.zoomPivot.world)/before;
+        reset(); const beforePan = pixel(controls.sphere.center);
+        wheel({deltaX:9,deltaY:-6});
+        const trackpadPan = pixel(controls.sphere.center).sub(beforePan).toArray();
+        reset(); before = camera.position.distanceTo(controls.pivot(offCenter));
+        wheel({deltaY:-10,shiftKey:true}); wheel({deltaY:-10});
+        const modifierMomentum = camera.position.distanceTo(controls.zoomPivot.world)/before;
+        reset(); before = camera.position.distanceTo(controls.pivot(offCenter));
+        wheel({deltaY:-10,ctrlKey:true});
+        const pinchZoom = camera.position.distanceTo(controls.pinch.state.pivot)/before;
+        const pinchAnchor = pixel(controls.pinch.state.pivot).distanceTo(offCenter);
+        controls.finishPinch(false);
+
+        const touch = {pointerType:"touch"};
+        function two() { reset(); pointer("pointerdown",11,190,160,touch); pointer("pointerdown",12,230,160,touch); }
+        two();
+        const touchPivot = controls.drag.state.pivot.clone();
+        pointer("pointermove",11,200,175,touch); pointer("pointermove",12,240,175,touch);
+        const touchPan = pixel(touchPivot).sub(center).toArray();
+        two(); const touchDistance = camera.position.distanceTo(controls.drag.state.pivot);
+        pointer("pointermove",11,170,160,touch); pointer("pointermove",12,250,160,touch);
+        const touchPinch = camera.position.distanceTo(controls.drag.state.pivot)/touchDistance;
+        const touchAnchor = pixel(controls.drag.state.pivot).distanceTo(center);
+        pointer("pointerup",11,170,160,touch); pointer("pointerup",12,250,160,touch);
+        const pinchRelease = controls.inertia?.motion === "touch" && controls.inertia.velocity.z !== 0;
+        const coastPivot = controls.inertia.state.pivot.clone();
+        controls.update(0); controls.update(1000/60);
+        const pinchCoastAnchor = pixel(coastPivot).distanceTo(center);
+        two(); const twistDistance = camera.position.distanceTo(controls.drag.state.pivot);
+        for (let i=1;i<=9;i++) {
+            const a=i*Math.PI/18;
+            pointer("pointermove",11,210-20*Math.cos(a),160-20*Math.sin(a),touch);
+            pointer("pointermove",12,210+20*Math.cos(a),160+20*Math.sin(a),touch);
+        }
+        const twist = controls.drag.gestureMode === "roll" && Math.abs(camera.quaternion.dot(quaternion)) < 0.8;
+        const twistDistanceRatio = camera.position.distanceTo(controls.drag.state.pivot)/twistDistance;
+        reset();
+        const gesture = (type,scale,rotation,documentTarget=false) => {
+            const event = new Event(type,{bubbles:true,cancelable:true});
+            Object.assign(event,{scale,rotation}); (documentTarget ? document : canvas).dispatchEvent(event);
+        };
+        pointer("pointermove",1,210,160);
+        gesture("gesturestart",1,0); gesture("gesturechange",1.01,15);
+        const safariRoll = controls.gesture.gestureMode === "roll";
+        const safariPose = camera.position.clone(); wheel({deltaY:-10,ctrlKey:true});
+        const noDuplicatePinch = camera.position.distanceTo(safariPose) === 0;
+        gesture("gestureend",1.01,15);
+        const safariCoast = controls.inertia?.motion === "roll";
+        reset(); gesture("gesturestart",1,0,true);
+        before = camera.position.distanceTo(controls.gesture.state.pivot);
+        gesture("gesturechange",2,1,true);
+        const safariPinch = camera.position.distanceTo(controls.gesture.state.pivot)/before;
+        gesture("gestureend",2,1,true);
+        controls.dispose();
+        const event = new WheelEvent("wheel",{bubbles:true,cancelable:true,deltaY:10});
+        canvas.dispatchEvent(event);
+        const disposed = !event.defaultPrevented && controls.inertia === null;
+        canvas.remove(); mesh.geometry.dispose(); mesh.material.dispose();
+        return {pivot:pivot.toArray(),orbitPosition,orbitAnchor,drift,overPole,panPixel,panOrientation,zoomRatio,zoomAnchor,
+            minimum,maximum,keepsRoll,sixty,oneTwenty,noSlowGlide,axisLock,marker,markerHidden,quickGlide,coastMoved,grabStopsGlide,
+            altPan,pausedRelease,cancelStops,wheelPrevented,mouseZoom,pixelMouseZoom,nativeMouseZoom,trackpadPan,modifierMomentum,
+            pinchZoom,pinchAnchor,touchPan,touchPinch,touchAnchor,pinchRelease,pinchCoastAnchor,twist,twistDistanceRatio,
+            safariRoll,noDuplicatePinch,safariCoast,safariPinch,disposed};
+    }''')
+    def close(actual, expected, tolerance=1e-6):
+        return all(abs(a-b) < tolerance for a,b in zip(actual,expected))
+    check(close(result["pivot"],[0,-10,4]) and close(result["orbitPosition"],[-90,-10,40]),
+          f"Orbit differs from native picking/sensitivity: {result}")
+    check(result["orbitAnchor"] < 1e-6 and result["drift"] < 1e-6 and result["overPole"] and abs(result["keepsRoll"]-1) < 1e-6,
+          f"Orbit drifts, loses roll, or clamps at a pole: {result}")
+    check(close(result["panPixel"],[30,-20]) and abs(result["panOrientation"]-1) < 1e-6,
+          f"Panning doesn't track the grabbed point: {result}")
+    check(abs(result["zoomRatio"]-0.6065306597) < 1e-6 and result["zoomAnchor"] < 1e-6
+          and abs(result["minimum"]-0.05) < 1e-6 and abs(result["maximum"]-40) < 1e-6,
+          f"Cursor zoom/limits differ from native: {result}")
+    check(abs(result["sixty"]["speed"]-120*0.95**60) < 1e-6
+          and abs(result["sixty"]["speed"]-result["oneTwenty"]["speed"]) < 1e-6
+          and result["sixty"]["stopped"] and result["oneTwenty"]["stopped"] and result["noSlowGlide"],
+          f"Inertia decay/thresholds differ from native or frame rate: {result}")
+    for name in ["axisLock","marker","markerHidden","quickGlide","coastMoved","grabStopsGlide","altPan","pausedRelease","cancelStops","wheelPrevented",
+                 "pinchRelease","twist","safariRoll","noDuplicatePinch","safariCoast","disposed"]:
+        check(result[name], f"Navigation input regression ({name}): {result}")
+    check(abs(result["mouseZoom"]-0.904837418) < 1e-6 and abs(result["pixelMouseZoom"]-0.904837418) < 1e-6 and abs(result["nativeMouseZoom"]-0.904837418) < 1e-6
+          and close(result["trackpadPan"],[-9,6]) and abs(result["modifierMomentum"]-0.818730753) < 1e-6,
+          f"Mouse wheel or precise trackpad input is incorrect: {result}")
+    check(abs(result["pinchZoom"]-0.904837418) < 1e-6 and result["pinchAnchor"] < 1e-6
+          and close(result["touchPan"],[10,15]) and abs(result["touchPinch"]-0.5) < 1e-6 and result["touchAnchor"] < 1e-6 and result["pinchCoastAnchor"] < 1e-6
+          and abs(result["twistDistanceRatio"]-1) < 1e-6 and abs(result["safariPinch"]-0.5) < 1e-6,
+          f"Multitouch pan, pinch or twist is incorrect: {result}")
+    check(not page.errors, f"Navigation errors: {page.errors}")
+    page.page.context.close()
+
+
+def test_touch_navigation(browser, base_url):
+    """Navigate the actual mobile viewer without scrolling the page or breaking its controls."""
+    page = CustomizerPage(browser.new_page(viewport={"width":390,"height":844}, has_touch=True, is_mobile=True),base_url)
+    page.open()
+    page.page.evaluate('''async () => {
+        const THREE = await import("three");
+        const original = THREE.Camera.prototype.updateMatrixWorld;
+        THREE.Camera.prototype.updateMatrixWorld = function (...args) {
+            const result = original.apply(this,args);
+            if (this.isPerspectiveCamera && this.parent?.isScene) window.touchCamera = this;
+            return result;
+        };
+        window.touchPose = () => ({position:window.touchCamera.position.toArray(),quaternion:window.touchCamera.quaternion.toArray()});
+        window.touchPick = (x,y) => {
+            const canvas = document.querySelector("#viewer canvas"), rect = canvas.getBoundingClientRect();
+            const ray = new THREE.Raycaster();
+            ray.setFromCamera(new THREE.Vector2((x-rect.left)/rect.width*2-1,1-(y-rect.top)/rect.height*2),window.touchCamera);
+            const root = window.touchCamera.parent.children.find(c => c.isGroup && c.children.some(child => child.isMesh));
+            const meshes = []; root.traverse(c => { if(c.isMesh && !c.isLineSegments2) meshes.push(c); });
+            window.touchPivot = ray.intersectObjects(meshes,false)[0].point.clone();
+        };
+        window.touchProjection = () => {
+            const rect = document.querySelector("#viewer canvas").getBoundingClientRect();
+            const p = window.touchPivot.clone().project(window.touchCamera);
+            return [rect.left+(p.x+1)*rect.width/2,rect.top+(1-p.y)*rect.height/2];
+        };
+    }''')
+    page.page.wait_for_function("window.touchCamera")
+    start = page.page.evaluate("window.touchPose()")
+    canvas = page.page.locator("#viewer canvas").bounding_box()
+    x,y = round(canvas["x"]+canvas["width"]/2),round(canvas["y"]+canvas["height"]/2)
+    chromium = browser.browser_type.name == "chromium"
+    if chromium:
+        session = page.page.context.new_cdp_session(page.page)
+
+        def contacts(kind, points):
+            session.send("Input.dispatchTouchEvent", {"type":kind,"touchPoints":[
+                {"id":i+1,"x":px,"y":py,"radiusX":4,"radiusY":4,"force":1} for i,(px,py) in enumerate(points)
+            ]})
+    else:
+        # WebKit's automation protocol has no multi-touch injector. Dispatch the equivalent Pointer
+        # Events through the real viewer; hardware capture is separately covered by Chromium above.
+        page.page.evaluate('''() => {
+            const canvas=document.querySelector("#viewer canvas");
+            canvas.setPointerCapture=()=>{}; canvas.hasPointerCapture=()=>false;
+            window.touchContacts=[];
+        }''')
+
+        def contacts(kind, points):
+            page.page.evaluate('''({kind,points}) => {
+                const canvas=document.querySelector("#viewer canvas"), previous=window.touchContacts;
+                const type={touchStart:"pointerdown",touchMove:"pointermove",touchEnd:"pointerup",touchCancel:"pointercancel"}[kind];
+                const current=points.length ? points : previous;
+                current.forEach(([x,y],i) => canvas.dispatchEvent(new PointerEvent(type,{
+                    bubbles:true,cancelable:true,pointerType:"touch",pointerId:100+i,button:0,buttons:kind==="touchEnd" ? 0 : 1,
+                    clientX:x,clientY:y
+                })));
+                window.touchContacts=points;
+            }''', {"kind":kind,"points":points})
+
+    def reset_pose():
+        # A new stationary grab cancels inertia, then restore the fixture's default view.
+        contacts("touchStart",[(x,y)])
+        contacts("touchEnd",[])
+        page.page.evaluate('''pose => {
+            window.touchCamera.position.fromArray(pose.position);
+            window.touchCamera.quaternion.fromArray(pose.quaternion);
+            window.touchCamera.updateMatrixWorld();
+        }''',start)
+
+    contacts("touchStart",[(x,y)])
+    for i in range(1,9):
+        contacts("touchMove",[(x+i*6,y+i*3)])
+    contacts("touchEnd",[])
+    orbit = page.page.evaluate("window.touchPose()")
+    check(sum(a*b for a,b in zip(start["quaternion"],orbit["quaternion"])) < 0.99, "A one-finger drag didn't orbit")
+    reset_pose()
+    page.page.evaluate("([x,y]) => window.touchPick(x,y)",[x,y])
+    contacts("touchStart",[(x-30,y),(x+30,y)])
+    for i in range(1,9):
+        contacts("touchMove",[(x-30+i,y+i*1.5),(x+30+i,y+i*1.5)])
+    # Holding still before release must suppress a fling.
+    page.page.wait_for_timeout(100)
+    contacts("touchEnd",[])
+    pan = page.page.evaluate("window.touchPose()")
+    projected = page.page.evaluate("window.touchProjection()")
+    check(abs(projected[0]-(x+8)) < 0.1 and abs(projected[1]-(y+12)) < 0.1, f"Two-finger pan lost its anchor: {projected}")
+    check(abs(sum(a*b for a,b in zip(start["quaternion"],pan["quaternion"]))-1) < 1e-6, "Two-finger pan changed orientation")
+    page.page.wait_for_timeout(100)
+    resting = page.page.evaluate("window.touchPose()")
+    check(max(abs(a-b) for a,b in zip(pan["position"],resting["position"])) < 1e-6, "A paused touch release still flung the view")
+    reset_pose()
+    page.page.evaluate("([x,y]) => window.touchPick(x,y)",[x,y])
+    pivot = page.page.evaluate("window.touchPivot.toArray()")
+    before = sum((a-b)**2 for a,b in zip(start["position"],pivot))**0.5
+    contacts("touchStart",[(x-30,y),(x+30,y)])
+    for i in range(1,9):
+        contacts("touchMove",[(x-30-i*3,y),(x+30+i*3,y)])
+    pinch = page.page.evaluate("window.touchPose()")
+    after = sum((a-b)**2 for a,b in zip(pinch["position"],pivot))**0.5
+    check(abs(after/before-30/54) < 1e-5, f"Two-finger pinch used the wrong scale: {after/before}")
+    contacts("touchEnd",[])
+    page.page.wait_for_timeout(100)
+    projected = page.page.evaluate("window.touchProjection()")
+    check(abs(projected[0]-x) < 0.1 and abs(projected[1]-y) < 0.1, f"Pinch inertia introduced sideways drift: {projected}")
+    check(page.page.evaluate("window.scrollY") == 0, "Navigating the model scrolled the page")
+    reset_pose()
+    contacts("touchStart",[(x,y)])
+    contacts("touchMove",[(x+10,y+10)])
+    contacts("touchCancel",[])
+    cancelled = page.page.evaluate("window.touchPose()")
+    page.page.wait_for_timeout(100)
+    resting = page.page.evaluate("window.touchPose()")
+    check(max(abs(a-b) for a,b in zip(cancelled["position"],resting["position"])) < 1e-6, "Cancelled touch input kept moving")
+    expect(page.page.locator("#download")).to_be_enabled()
+    expect(page.page.locator("#axis-indicator")).to_be_visible()
+    check(not page.errors, f"Touch navigation errors: {page.errors}")
+    if chromium:
+        session.detach()
+    page.page.context.close()
+
+
 def test_axes(browser, base_url):
     """Origin lines have a stable width and depth; the corner axes follow rotation only."""
     page = CustomizerPage(browser.new_page(viewport={"width": 1280, "height": 900}), base_url)
@@ -1078,7 +1406,7 @@ def main(engines):
     failed = False
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
+            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
         )]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))
