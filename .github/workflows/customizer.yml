@@ -62,6 +62,10 @@ jobs:
         Get-ChildItem "$root\Toolchains"
         "$root\Toolchains\6.4.0+Asserts\usr\bin" >> $env:GITHUB_PATH
         "$root\Runtimes\6.4.0\usr\bin" >> $env:GITHUB_PATH
+        # The installer sets SDKROOT for later sessions, which this job's steps aren't
+        $sdk = "$root\Platforms\6.4.0\Windows.platform\Developer\SDKs\Windows.sdk"
+        if (-not (Test-Path $sdk)) { throw "The Windows SDK isn't at $sdk" }
+        "SDKROOT=$sdk\" >> $env:GITHUB_ENV
         & "$root\Toolchains\6.4.0+Asserts\usr\bin\swift.exe" --version
 
     - name: Generate the customizer
