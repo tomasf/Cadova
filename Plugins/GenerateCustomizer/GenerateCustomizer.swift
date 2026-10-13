@@ -38,7 +38,7 @@ struct GenerateCustomizer: CommandPlugin {
             scratchDirectory: workDirectory.appending(path: "build")
         )
 
-        print("Assembling the customizer in \(output.path)")
+        print("Assembling the customizer in \(output.fileSystemPath)")
         try Self.writePage(to: output, model: model)
         try Self.copyResources(from: module.deletingLastPathComponent(), to: output)
 
@@ -49,8 +49,8 @@ struct GenerateCustomizer: CommandPlugin {
         let size = (try? optimized.resourceValues(forKeys: [.fileSizeKey]).fileSize).map {
             ByteCountFormatter.string(fromByteCount: Int64($0), countStyle: .file)
         } ?? "?"
-        print("Done: \(output.path) (model.wasm is \(size))")
-        print("Preview with: python3 -m http.server --directory \"\(output.path)\" 8000")
+        print("Done: \(output.fileSystemPath) (model.wasm is \(size))")
+        print("Preview with: python3 -m http.server --directory \"\(output.fileSystemPath)\" 8000")
     }
 
     /// Where the plugin's own files are: the page template and the C sources it builds into the SDK

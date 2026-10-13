@@ -16,9 +16,15 @@ struct Command {
     }
 
     /// Looks a program up in the standard system locations, which is where the plugin's helpers
-    /// (curl, tar and a SHA-256 tool) live on macOS and Linux.
+    /// (curl, tar and a SHA-256 tool) live: System32 on Windows, which has had curl and tar since
+    /// Windows 10.
     init(system name: String, _ arguments: [String] = []) throws {
+        #if os(Windows)
+        let systemRoot = ProcessInfo.processInfo.environment["SystemRoot"] ?? #"C:\Windows"#
+        let candidates = [URL(fileURLWithPath: systemRoot).appending(path: "System32/\(name).exe")]
+        #else
         let candidates = ["/usr/bin", "/bin", "/usr/local/bin"].map { URL(fileURLWithPath: $0).appending(path: name) }
+        #endif
         guard let executable = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0.path) }) else {
             throw CustomizerError("Couldn't find \(name), which generating a customizer needs.")
         }
@@ -68,7 +74,7 @@ struct Command {
 extension Command {
     /// Downloads a file and checks it against a SHA-256 checksum.
     static func download(_ url: URL, to file: URL, sha256 checksum: String) throws {
-        try Command(system: "curl", ["-fL", "--progress-bar", "-o", file.path, url.absoluteString]).run()
+        try Command(system: "curl", ["-fL", "--progress-bar", "-o", file.fileSystemPath, url.absoluteString]).run()
         let actual = try sha256(of: file)
         guard actual == checksum else {
             try? FileManager.default.removeItem(at: file)
@@ -85,16 +91,31 @@ extension Command {
         let archive = temporary.appending(path: "download.tar.gz")
         try download(url, to: archive, sha256: checksum)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        try Command(system: "tar", ["xzf", archive.path, "-C", directory.path]).run()
+        try Command(system: "tar", ["xzf", archive.fileSystemPath, "-C", directory.fileSystemPath]).run()
     }
 
     static func sha256(of file: URL) throws -> String {
-        #if os(macOS)
-        let command = try Command(system: "shasum", ["-a", "256", file.path])
-        #else
-        let command = try Command(system: "sha256sum", [file.path])
-        #endif
+        #if os(Windows)
+        // certutil prints a heading, the hash on a line of its own, and a completion message
+        let output = try Command(system: "certutil", ["-hashfile", file.fileSystemPath, "SHA256"]).output()
+        let lines = output.split(whereSeparator: \.isNewline)
+        guard lines.count >= 2 else { throw CustomizerError("certutil didn't print a checksum for \(file.lastPathComponent).") }
+        return lines[1].filter { !$0.isWhitespace }.lowercased()
+        #elseif os(macOS)
+        let command = try Command(system: "shasum", ["-a", "256", file.fileSystemPath])
         return String(try command.output().prefix { !$0.isWhitespace })
+        #else
+        let command = try Command(system: "sha256sum", [file.fileSystemPath])
+        return String(try command.output().prefix { !$0.isWhitespace })
+        #endif
+    }
+}
+
+extension URL {
+    /// The path in the platform's own form, for passing to other programs. On Windows, that has
+    /// backslashes, where `path` has forward slashes and `path(percentEncoded:)` a leading one.
+    var fileSystemPath: String {
+        withUnsafeFileSystemRepresentation { String(cString: $0!) }
     }
 }
 
