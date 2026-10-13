@@ -188,17 +188,27 @@ export class ViewportControls extends CameraNavigator {
         listen(element, "pointerenter", event => { this.cursor = this.point(event); this.resetZoomPivot(); });
         listen(element, "pointerleave", event => { if (!this.pointers.has(event.pointerId)) { this.cursor = null; this.resetZoomPivot(); } });
         listen(element, "pointercancel", () => this.reset());
-        listen(element, "lostpointercapture", event => { if (this.pointers.has(event.pointerId)) this.reset(); });
+        listen(element, "lostpointercapture", event => {
+            // Chrome releases pointer capture when pointer lock engages. A locked pointer still
+            // delivers its events here, so only a capture lost for another reason ends the drag.
+            if (!this.pointers.has(event.pointerId) || this.drag?.lockPending || document.pointerLockElement === element) return;
+            this.reset();
+        });
         listen(element, "wheel", event => this.wheel(event), { passive: false });
         listen(element, "contextmenu", event => event.preventDefault());
         for (const type of ["gesturestart", "gesturechange", "gestureend"]) {
             listen(document, type, event => this.safariGesture(event), { passive: false });
         }
         listen(document, "pointerlockchange", () => {
-            if (this.locked && document.pointerLockElement !== element) this.reset();
-            this.locked = document.pointerLockElement === element;
-            if (this.locked && !this.drag) document.exitPointerLock();
+            const locked = document.pointerLockElement === element;
+            if (this.drag) this.drag.lockPending = false;
+            // Losing the lock mid-drag (Escape, or the browser revoking it) ends the drag. Exiting it
+            // after the button is released must not, or that drag's inertia would stop at once.
+            if (this.locked && !locked && this.drag) this.reset();
+            this.locked = locked;
+            if (locked && !this.drag) document.exitPointerLock();
         });
+        listen(document, "pointerlockerror", () => this.pointerLockFailed());
         listen(window, "blur", () => this.reset());
         listen(window, "keydown", event => { if (event.key === "Escape") this.reset(); });
         listen(document, "visibilitychange", () => { if (document.hidden) this.reset(); });
@@ -216,6 +226,16 @@ export class ViewportControls extends CameraNavigator {
         if (document.pointerLockElement === this.element) document.exitPointerLock();
         this.element.style.cursor = "";
         this.hidePivot(true);
+    }
+    pointerLockFailed() {
+        if (!this.drag?.lockPending) return;
+        this.drag.lockPending = false;
+        // A refused lock normally leaves capture in place. If it was released anyway, take it back
+        // so the drag still ends with its pointerup, or end the drag if the pointer is already up.
+        for (const id of this.pointers.keys()) {
+            if (this.element.hasPointerCapture(id)) continue;
+            try { this.element.setPointerCapture(id); } catch { this.reset(); return; }
+        }
     }
     dispose() { this.reset(); this.listeners.forEach(remove => remove()); this.marker.remove(); }
     update(time = performance.now()) {
@@ -312,10 +332,11 @@ export class ViewportControls extends CameraNavigator {
             // Trusted mouse input can use native-style unlimited drags. Capture remains the fallback
             // when pointer lock isn't available or the browser declines it.
             if (event.isTrusted && this.element.requestPointerLock) {
+                drag.lockPending = true;
                 try {
                     const request = this.element.requestPointerLock();
-                    request?.catch(() => {});
-                } catch { /* Pointer capture still permits dragging outside the canvas. */ }
+                    request?.catch(() => this.pointerLockFailed());
+                } catch { this.pointerLockFailed(); }
             }
         }
         this.element.style.cursor = drag.touch ? "" : "grabbing";
