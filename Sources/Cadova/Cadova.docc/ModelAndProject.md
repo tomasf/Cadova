@@ -86,6 +86,8 @@ await Model("spade") {
 }
 ```
 
+A web customizer uses the title and description as the page's heading and introduction, and names tabs after model titles. See <doc:WebCustomizer>.
+
 ### Compression
 
 Control compression level for 3MF files. Higher compression reduces file size but increases export time.

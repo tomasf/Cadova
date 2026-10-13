@@ -29,6 +29,8 @@ import Foundation
 /// Supported types include `Int`, `Double`, `Bool`, `String`, `Angle`, and string-backed enums;
 /// see ``ParameterValue`` for details.
 ///
+/// To make and publish a customizer, see <doc:WebCustomizer>.
+///
 @propertyWrapper public struct Parameter<Value: ParameterValue>: Sendable {
     /// What a customizer calls the parameter.
     public let label: String
