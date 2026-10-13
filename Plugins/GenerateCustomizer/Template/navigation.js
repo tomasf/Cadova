@@ -392,11 +392,17 @@ export class ViewportControls extends CameraNavigator {
         }
         this.finishPinch(false);
         if (!this.scroll || now - this.scroll.time > 200) {
-            // The DOM doesn't expose AppKit's precise-scroll flag. Pixel deltas with a horizontal,
-            // fractional, or small component identify a trackpad; familiar detent sizes identify a mouse.
+            // The DOM doesn't expose AppKit's precise-scroll flag, so the device is inferred. Firefox
+            // reports a wheel in lines or pages. In Chrome and Safari, a trackpad's legacy wheelDelta
+            // is exactly -3 times its delta and a wheel's isn't, as measured on macOS with both; a
+            // wheel's accelerated pixel deltas can't be told from a trackpad's by their size. Without
+            // wheelDelta, familiar detent sizes identify a wheel.
+            const hasLegacy = Number.isFinite(event.wheelDeltaX) && Number.isFinite(event.wheelDeltaY);
             const dominant = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
-            const detent = event.deltaMode !== 0 || ((!event.deltaX || (event.shiftKey && !event.deltaY)) && Number.isInteger(dominant)
-                && [40, 50, 100, 120].some(step => dominant !== 0 && Math.abs(dominant) % step === 0));
+            const detent = event.deltaMode !== 0 || (hasLegacy
+                ? !(event.wheelDeltaX === -3 * event.deltaX && event.wheelDeltaY === -3 * event.deltaY)
+                : (!event.deltaX || (event.shiftKey && !event.deltaY)) && Number.isInteger(dominant)
+                    && [40, 50, 100, 120].some(step => dominant !== 0 && Math.abs(dominant) % step === 0));
             this.scroll = { zoom: detent || event.shiftKey || event.altKey, detent, time: now };
         }
         this.scroll.time = now;
@@ -404,10 +410,11 @@ export class ViewportControls extends CameraNavigator {
             const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
             const sensitivity = this.scroll.detent ? (event.deltaMode === 1 ? 0.1 / 3 : event.deltaMode === 2 ? 0.1 : 0.001) : 0.01;
             const legacy = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.wheelDeltaY : event.wheelDeltaX;
-            // Safari maps a detent to 40 pixels; Chromium commonly uses 100. Legacy wheel ticks,
-            // when available, preserve the native 10%-per-detent step across those pixel scales.
-            const logZoom = this.scroll.detent && event.deltaMode === 0 && Number.isFinite(legacy)
-                && Math.abs(legacy) >= 120 && Math.abs(legacy) % 120 === 0 ? legacy / 120 * 0.1 : -delta * sensitivity;
+            // A wheel's pixel deltas differ between browsers and grow with the system's scroll
+            // acceleration. Its legacy wheelDelta counts 120 per detent, which gives the native
+            // 10%-per-detent step, and grows with acceleration as the native viewer's zoom does.
+            const logZoom = this.scroll.detent && event.deltaMode === 0 && Number.isFinite(legacy) && legacy !== 0
+                ? legacy / 120 * 0.1 : -delta * sensitivity;
             this.zoom(logZoom, point);
         } else this.scrollPan(event.deltaX, event.deltaY);
     }

@@ -815,7 +815,10 @@ def test_navigation(browser, base_url):
             clientX:x,clientY:y,...extra}));
         const wheel = extra => {
             const event = new WheelEvent("wheel",{bubbles:true,cancelable:true,clientX:280,clientY:180,...extra});
-            if (extra.legacyDelta) Object.defineProperty(event,"wheelDeltaY",{value:extra.legacyDelta});
+            // Real wheel events carry the legacy wheelDelta browsers report: 120 per detent for a
+            // wheel, and -3 times the delta for a trackpad. A constructed event's doesn't.
+            if (extra.legacyDelta !== undefined) Object.defineProperty(event,"wheelDeltaY",{value:extra.legacyDelta});
+            if (extra.legacyDeltaX !== undefined) Object.defineProperty(event,"wheelDeltaX",{value:extra.legacyDeltaX});
             canvas.dispatchEvent(event); return event.defaultPrevented;
         };
         reset();
@@ -849,16 +852,18 @@ def test_navigation(browser, base_url):
         const wheelPrevented = wheel({deltaY:-3,deltaMode:1});
         const mouseZoom = camera.position.distanceTo(controls.zoomPivot.world)/before;
         reset(); before = camera.position.distanceTo(controls.pivot(offCenter));
-        wheel({deltaY:-100});
+        wheel({deltaY:-100,legacyDelta:120,legacyDeltaX:0});
         const pixelMouseZoom = camera.position.distanceTo(controls.zoomPivot.world)/before;
         reset(); before = camera.position.distanceTo(controls.pivot(offCenter));
-        wheel({deltaY:-40,legacyDelta:120});
-        const nativeMouseZoom = camera.position.distanceTo(controls.zoomPivot.world)/before;
+        // An accelerated wheel's pixel delta is any size, which once made it pan like a trackpad
+        wheel({deltaY:-13.5,legacyDelta:120,legacyDeltaX:0});
+        // Without a zoom, there's no zoom pivot, and the ratio reads as "didn't zoom"
+        const nativeMouseZoom = controls.zoomPivot ? camera.position.distanceTo(controls.zoomPivot.world)/before : null;
         reset(); const beforePan = pixel(controls.sphere.center);
-        wheel({deltaX:9,deltaY:-6});
+        wheel({deltaX:9,deltaY:-6,legacyDelta:18,legacyDeltaX:-27});
         const trackpadPan = pixel(controls.sphere.center).sub(beforePan).toArray();
         reset(); before = camera.position.distanceTo(controls.pivot(offCenter));
-        wheel({deltaY:-10,shiftKey:true}); wheel({deltaY:-10});
+        wheel({deltaY:-10,shiftKey:true,legacyDelta:30,legacyDeltaX:0}); wheel({deltaY:-10,legacyDelta:30,legacyDeltaX:0});
         const modifierMomentum = camera.position.distanceTo(controls.zoomPivot.world)/before;
         reset(); before = camera.position.distanceTo(controls.pivot(offCenter));
         wheel({deltaY:-10,ctrlKey:true});
@@ -935,6 +940,7 @@ def test_navigation(browser, base_url):
     for name in ["axisLock","marker","markerHidden","quickGlide","coastMoved","grabStopsGlide","altPan","pausedRelease","cancelStops","wheelPrevented",
                  "pinchRelease","twist","safariRoll","noDuplicatePinch","safariCoast","disposed"]:
         check(result[name], f"Navigation input regression ({name}): {result}")
+    check(result["nativeMouseZoom"] is not None, f"An accelerated mouse wheel panned instead of zooming: {result}")
     check(abs(result["mouseZoom"]-0.904837418) < 1e-6 and abs(result["pixelMouseZoom"]-0.904837418) < 1e-6 and abs(result["nativeMouseZoom"]-0.904837418) < 1e-6
           and close(result["trackpadPan"],[-9,6]) and abs(result["modifierMomentum"]-0.818730753) < 1e-6,
           f"Mouse wheel or precise trackpad input is incorrect: {result}")
