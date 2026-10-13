@@ -1393,6 +1393,46 @@ def test_worker_timeouts(browser, base_url):
         page.page.context.close()
 
 
+def test_model_session(browser, base_url):
+    """The model's instance is kept between requests, so that later builds reuse its geometry cache,
+    and what it builds matches what a new instance builds."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.page.goto(f"{base_url}/index.html")
+    result = page.page.evaluate('''async () => {
+        const { ModelSession, fetchModel, fetchResources } = await import("./runner.js");
+        const module = await WebAssembly.compile(await fetchModel(new URL("model.wasm", location.href).href));
+        const resources = await fetchResources(location.href);
+        const session = new ModelSession(module, resources);
+        const listed = await session.listParameters();
+        const instance = session.instance;
+        const encode = (data) => data && btoa(Array.from(data, (byte) => String.fromCharCode(byte)).join(""));
+        const builds = [];
+        for (const [model, values] of [
+            ["plate", { Width: 55 }], ["spacer", { Height: 9 }], ["plate", { Width: 70, Holes: 4 }],
+            ["nonexistent", {}], ["plate", { Width: 55 }],
+        ]) {
+            const kept = await session.build(model, values);
+            const fresh = await new ModelSession(module, resources).build(model, values);
+            builds.push({ model, exitCode: kept.exitCode, sameInstance: session.instance === instance,
+                kept: encode(kept.data), fresh: encode(fresh.data) });
+        }
+        return { listed: listed.catalog !== null, suspended: instance !== null, builds };
+    }''')
+    check(result["listed"] and result["suspended"], "Listing the parameters didn't leave the model's instance running")
+    for build in result["builds"]:
+        name = build["model"]
+        check(build["sameInstance"], f"Building {name} replaced the model's instance")
+        check(build["exitCode"] == 0, f"Building {name} in the kept instance failed")
+        if build["fresh"] is None:
+            check(build["kept"] is None, f"The kept instance built {name}, but a new one didn't")
+            continue
+        kept, fresh = Mesh(base64.b64decode(build["kept"])), Mesh(base64.b64decode(build["fresh"]))
+        check((kept.vertices, kept.triangles) == (fresh.vertices, fresh.triangles),
+              f"The kept instance built {name} differently from a new instance")
+    check(not page.errors, f"The model session had page errors: {page.errors}")
+    page.page.context.close()
+
+
 # Chromium renders WebGL in software where there's no GPU, such as on CI machines
 CHROMIUM_ARGUMENTS = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
 
@@ -1406,7 +1446,7 @@ def main(engines):
     failed = False
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts,
+            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session,
         )]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

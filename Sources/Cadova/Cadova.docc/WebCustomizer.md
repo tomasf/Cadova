@@ -155,6 +155,8 @@ When a visitor changes a parameter or switches tabs, the page's address changes 
 
 Loading and model builds run in a worker. Visitors can cancel either operation, or retry after a failure, without reloading the page or losing their settings. Each loading or building request stops after two minutes. Retrying reuses the compiled model and downloaded resources when they are available. The last successful preview stays visible, but downloading is disabled until a build matches the current settings.
 
+The model keeps running between builds, so like a reused ``ModelFileGenerator``, it remembers the geometry it has already built. When a visitor changes a parameter, any part of the model that the change doesn't affect is reused instead of built again, which can make a rebuild many times faster. Cancelling a build, or a model that crashes, starts the model over, without what it had built.
+
 ## Limitations
 
 A model runs differently in a browser than on your computer, so a few things don't work yet:

@@ -35,9 +35,9 @@ export class ModelBuilder {
 
     async build(model, parameters) {
         await this.load();
-        const result = await this.request({ type: "build", model, parameters });
-        if (result.exitCode !== 0) this.cancel();
-        return result;
+        // A failed build keeps the worker: its model session replaces an instance that crashed or
+        // exited by itself, and one that only reported a failure keeps its cache for the next build.
+        return this.request({ type: "build", model, parameters });
     }
 
     cancel() {

@@ -48,12 +48,24 @@ internal struct CustomizerRequest: Decodable, Sendable {
     }
 
     private static let fromEnvironment: CustomizerRequest? = {
+        do {
+            return try readFromEnvironment()
+        } catch {
+            exit(EXIT_FAILURE)
+        }
+    }()
+
+    /// Reads the request file that `CADOVA_CUSTOMIZER_REQUEST` names, as it is now. A customizer
+    /// session writes a new request to the same file for each build.
+    ///
+    /// - Returns: The request, or nil if no customizer started the executable.
+    static func readFromEnvironment() throws -> CustomizerRequest? {
         guard let path = ProcessInfo.processInfo.environment["CADOVA_CUSTOMIZER_REQUEST"] else { return nil }
         do {
             return try JSONDecoder().decode(CustomizerRequest.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
         } catch {
             logger.error("Failed to read the customizer request \(path): \(error.descriptiveString)")
-            exit(EXIT_FAILURE)
+            throw error
         }
-    }()
+    }
 }
