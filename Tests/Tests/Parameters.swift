@@ -285,4 +285,24 @@ struct ParameterTests {
         #expect((model["parameters"] as? [[String: Any]])?.first?["label"] as? String == "Size")
         #expect(try FileManager.default.contentsOfDirectory(atPath: tempDir.path) == ["parameters.json"])
     }
+
+    @Test func `A standalone model lists its parameters like a project`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let listURL = tempDir.appending(path: "parameters.json")
+
+        await CustomizerRequest.$overridden.withValue(CustomizerRequest(parameterListPath: listURL.path)) {
+            await Model(tempDir.appending(path: "box").path, options: .format3D(.stl)) {
+                Metadata(title: "Box")
+                ParametricBox()
+            }
+        }
+
+        let json = try JSONSerialization.jsonObject(with: Data(contentsOf: listURL)) as? [String: Any]
+        let model = try #require((json?["models"] as? [[String: Any]])?.first)
+        #expect(model["title"] as? String == "Box")
+        #expect((model["parameters"] as? [[String: Any]])?.first?["label"] as? String == "Size")
+        #expect(try FileManager.default.contentsOfDirectory(atPath: tempDir.path) == ["parameters.json"])
+    }
 }

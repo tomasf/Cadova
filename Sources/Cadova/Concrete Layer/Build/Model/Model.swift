@@ -101,6 +101,22 @@ public struct Model: Sendable, ModelBuildable {
             let directory = packageRoot.appending(path: "Models", directoryHint: .isDirectory)
             try? FileManager().createDirectory(at: directory, withIntermediateDirectories: true)
 
+            // A customizer talks to a project, so a standalone model answers it as a project of
+            // its own
+            if let request = CustomizerRequest.current {
+                let model = self
+                let project = ProjectBuild(root: directory, options: [], content: {
+                    [BuildDirective(payload: .model(model))]
+                })
+                #if os(WASI)
+                if CustomizerSession.isRequested {
+                    await CustomizerSession.start(project)
+                }
+                #endif
+                _ = await project.run(request: request, context: EvaluationContext())
+                return
+            }
+
             // A standalone model has no `Project` above it to end the process, so its failures
             // are still only logged.
             _ = await build(URL: directory)
