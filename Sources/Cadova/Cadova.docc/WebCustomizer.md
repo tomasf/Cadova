@@ -111,7 +111,9 @@ $ swiftly install 6.4.0
 
 If swiftly can't find 6.4.0, update it first with `swiftly self-update`. On macOS, you can also install [swift.org's package](https://download.swift.org/swift-6.4.0-release/xcode/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-osx.pkg) directly. You don't need to switch to this toolchain for your everyday work; the command finds it by itself. If you've installed it somewhere unusual, set `CADOVA_WASM_TOOLCHAIN` to the toolchain's directory, the one that contains `usr/bin`.
 
-Building customizers works on macOS and Linux.
+On Windows, use [swift.org's installer](https://download.swift.org/swift-6.4.0-release/windows10/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-windows10.exe). SwiftPM can't build on Windows when several versions of Swift are installed side by side, so uninstall any others first.
+
+Building customizers works on macOS, Linux and Windows.
 
 ## Generating the Customizer
 
