@@ -43,7 +43,11 @@ function setUp(listing) {
     writeHash(); // anything else in the address, such as values from an older link, doesn't apply
 
     const single = models.length === 1;
-    const title = single ? models[0].title ?? humanize(models[0].name.split("/").pop()) : catalog.title ?? "Customizer";
+    // Without a title from metadata, the page is named after the model, or for several, the product
+    const product = document.querySelector('meta[name="cadova-product"]')?.content;
+    const title = single
+        ? models[0].title ?? humanize(models[0].name.split("/").pop())
+        : catalog.title ?? (product ? humanize(product) : "Customizer");
     document.title = `${title} customizer`;
     $("title").textContent = title;
     const description = single ? models[0].description : catalog.description;

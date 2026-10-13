@@ -39,7 +39,7 @@ struct GenerateCustomizer: CommandPlugin {
         )
 
         print("Assembling the customizer in \(output.fileSystemPath)")
-        try Self.writePage(to: output, model: model)
+        try Self.writePage(to: output, product: product.name, model: model)
         try Self.copyResources(from: module.deletingLastPathComponent(), to: output)
 
         print("Optimizing for size")
@@ -111,9 +111,10 @@ struct GenerateCustomizer: CommandPlugin {
         }
     }
 
-    /// Copies the page into the output directory. A model the page is limited to is named in a
-    /// `cadova-model` meta tag, which the page reads.
-    static func writePage(to output: URL, model: String?) throws {
+    /// Copies the page into the output directory. The page reads the product's name, which it's
+    /// titled after when the project has no title, from a `cadova-product` meta tag, and a model it's
+    /// limited to from a `cadova-model` meta tag.
+    static func writePage(to output: URL, product: String, model: String?) throws {
         let fileManager = FileManager.default
         try fileManager.createDirectory(at: output, withIntermediateDirectories: true)
 
@@ -124,20 +125,23 @@ struct GenerateCustomizer: CommandPlugin {
             try fileManager.copyItem(at: template.appending(path: name), to: destination)
         }
 
-        if let model {
-            let page = output.appending(path: "index.html")
-            let html = try String(contentsOf: page, encoding: .utf8)
-            let escaped = model
-                .replacingOccurrences(of: "&", with: "&amp;")
-                .replacingOccurrences(of: "\"", with: "&quot;")
-                .replacingOccurrences(of: "<", with: "&lt;")
-            let tagged = html.replacingOccurrences(
-                of: "<meta name=\"viewport\"",
-                with: "<meta name=\"cadova-model\" content=\"\(escaped)\">\n<meta name=\"viewport\"",
-                options: [],
-                range: html.range(of: "<meta name=\"viewport\"")
-            )
-            try tagged.write(to: page, atomically: true, encoding: .utf8)
+        let tags = [("cadova-product", product), ("cadova-model", model)].compactMap { name, content in
+            content.map { content in
+                let escaped = content
+                    .replacingOccurrences(of: "&", with: "&amp;")
+                    .replacingOccurrences(of: "\"", with: "&quot;")
+                    .replacingOccurrences(of: "<", with: "&lt;")
+                return "<meta name=\"\(name)\" content=\"\(escaped)\">\n"
+            }
         }
+        let page = output.appending(path: "index.html")
+        let html = try String(contentsOf: page, encoding: .utf8)
+        let tagged = html.replacingOccurrences(
+            of: "<meta name=\"viewport\"",
+            with: tags.joined() + "<meta name=\"viewport\"",
+            options: [],
+            range: html.range(of: "<meta name=\"viewport\"")
+        )
+        try tagged.write(to: page, atomically: true, encoding: .utf8)
     }
 }
