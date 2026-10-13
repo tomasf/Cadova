@@ -1,7 +1,7 @@
 name: customizer
 
 # Builds the test fixture's web customizer with the generate-customizer plugin, then tests the page
-# in Chromium and WebKit. See Tests/Customizer/test_customizer.py.
+# in Chromium and WebKit, on macOS, Linux and Windows. See Tests/Customizer/test_customizer.py.
 
 on:
   push:
@@ -14,16 +14,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-26, ubuntu-latest]
+        os: [macos-26, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
 
     steps:
+    # Keep the fixture's files byte for byte as committed on Windows too
+    - run: git config --global core.autocrlf false
+
     - uses: actions/checkout@v4
 
     # The plugin needs this exact swift.org release, because Swift's WebAssembly SDK only works with
     # the compiler it was built for
     - uses: SwiftyLab/setup-swift@latest
+      if: runner.os != 'Windows'
       with:
         swift-version: '6.4.0'
 
@@ -42,6 +46,23 @@ jobs:
       run: |
         swift --version
         echo "CADOVA_WASM_TOOLCHAIN=$(cd "$(dirname "$(realpath "$(which swift)")")/../.." && pwd)" >> "$GITHUB_ENV"
+
+    # On Windows, swift.org's installer, which puts the toolchain where the plugin looks for it
+    - name: Install the swift.org toolchain
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $installer = "$env:RUNNER_TEMP\swift.exe"
+        curl.exe -fsSL -o $installer https://download.swift.org/swift-6.4.0-release/windows10/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-windows10.exe
+        $process = Start-Process -Wait -PassThru -FilePath $installer -ArgumentList '/quiet', '/norestart'
+        if ($process.ExitCode -ne 0) { throw "The installer failed with exit code $($process.ExitCode)" }
+        $root = @("$env:LOCALAPPDATA\Programs\Swift", "$env:ProgramFiles\Swift") |
+          Where-Object { Test-Path "$_\Toolchains\6.4.0+Asserts\usr\bin\swift.exe" } | Select-Object -First 1
+        if (-not $root) { throw "Swift 6.4.0 isn't where the installer usually puts it" }
+        Get-ChildItem "$root\Toolchains"
+        "$root\Toolchains\6.4.0+Asserts\usr\bin" >> $env:GITHUB_PATH
+        "$root\Runtimes\6.4.0\usr\bin" >> $env:GITHUB_PATH
+        & "$root\Toolchains\6.4.0+Asserts\usr\bin\swift.exe" --version
 
     - name: Generate the customizer
       working-directory: Tests/Customizer/Fixture
