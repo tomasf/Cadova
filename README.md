@@ -13,7 +13,7 @@ Cadova runs on macOS, Windows, and Linux. To get started, read the [Getting Star
 Full documentation, including [What is Cadova?](https://tomasf.github.io/Cadova/documentation/cadova/whatiscadova), is available at [cadova.org/docs](https://cadova.org/docs). See the [wiki](https://github.com/tomasf/Cadova/wiki) for related projects: the viewer app, libraries, and example models built with Cadova.
 
 [![Swift](https://github.com/tomasf/Cadova/actions/workflows/main.yml/badge.svg)](https://github.com/tomasf/Cadova/actions/workflows/main.yml)
-![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
+![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows_|_Web-2a7de1?logo=swift&logoColor=white)
 
 ## Example
 <img src="https://github.com/user-attachments/assets/c8ae2128-621a-4d26-8f9a-1c277e525633" width="23%" align="right">
