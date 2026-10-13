@@ -3,12 +3,12 @@
 import * as THREE from "three";
 import { createSharpEdges } from "./edges.js";
 
-// How a triangle without a material of its own looks, and how parts that aren't printed show
-export const appearanceDefaults = { roughness: 0.9, metalness: 0, contextOpacity: 0.3 };
+// How a triangle without a material of its own looks
+export const appearanceDefaults = { roughness: 0.9, metalness: 0 };
 
-// A material for an appearance, { color, opacity, roughness, metalness }, on a part of the given semantic
-export function createMaterial({ color, opacity, roughness, metalness }, semantic) {
-    if (semantic === "context") opacity *= appearanceDefaults.contextOpacity;
+// A material for an appearance, { color, opacity, roughness, metalness }. Every part looks as its
+// materials say, whatever its semantic, as in Cadova Viewer.
+export function createMaterial({ color, opacity, roughness, metalness }) {
     return new THREE.MeshStandardMaterial({
         color, roughness, metalness, opacity,
         transparent: opacity < 1,

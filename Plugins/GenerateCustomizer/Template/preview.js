@@ -50,11 +50,11 @@ export function readPreview(buffer, defaultColor) {
                 opacity: alpha / 255,
                 metalness: Number.isNaN(metalness) ? appearanceDefaults.metalness : metalness,
                 roughness: Number.isNaN(roughness) ? appearanceDefaults.roughness : roughness,
-            }, semantic);
+            });
         });
         const fallback = materials[defaultMaterialIndex] ?? createMaterial({
             color: new THREE.Color(defaultColor), opacity: 1, ...appearanceDefaults,
-        }, semantic);
+        });
         const faceMaterials = Array.from(materialIndices, (index) => materials[index] ?? fallback);
 
         for (const mesh of createPartMeshes(positions, indices, faceMaterials, semantic)) group.add(mesh);

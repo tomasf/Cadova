@@ -6,7 +6,7 @@ Turn a parametric model into a web page where anyone can adjust its parameters, 
 
 The `generate-customizer` command builds a web customizer for one of your models. The result is a folder of static files that you can put on any web server. When a visitor opens the page, a form lets them change the model's parameters, a 3D preview updates as they do, and a button downloads the finished model as a 3MF file, ready for a slicer.
 
-The preview shows the model's colors and materials, including transparency and metallic surfaces, and shows parts marked as context see-through. The model runs entirely in the visitor's browser, compiled to WebAssembly. There's no server doing the work, so any static hosting will do: GitHub Pages, Netlify, an S3 bucket or a folder on your own web server.
+The model runs entirely in the visitor's browser, compiled to WebAssembly. There's no server doing the work, so any static hosting will do: GitHub Pages, Netlify, an S3 bucket or a folder on your own web server.
 
 ## Preparing Your Model
 

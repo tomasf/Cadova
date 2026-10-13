@@ -98,13 +98,13 @@ export function read3MF(buffer, defaultColor) {
             indices[face * 3] = Number(triangle.getAttribute("v1"));
             indices[face * 3 + 1] = Number(triangle.getAttribute("v2"));
             indices[face * 3 + 2] = Number(triangle.getAttribute("v3"));
-            faceMaterials.push(material(path, resources, key, semantic));
+            faceMaterials.push(material(path, resources, key));
         }
         return createPartMeshes(positions, indices, faceMaterials, semantic);
     }
 
-    function material(path, resources, key, semantic) {
-        const cacheKey = `${path}|${key}|${semantic}`;
+    function material(path, resources, key) {
+        const cacheKey = `${path}|${key}`;
         if (materials.has(cacheKey)) return materials.get(cacheKey);
 
         let appearance = { color: new THREE.Color(defaultColor), opacity: 1, ...defaults };
@@ -112,7 +112,7 @@ export function read3MF(buffer, defaultColor) {
             const [property, index] = key.split(":");
             appearance = { ...appearance, ...resources.properties.get(property)?.[Number(index)] };
         }
-        const result = createMaterial(appearance, semantic);
+        const result = createMaterial(appearance);
         materials.set(cacheKey, result);
         return result;
     }

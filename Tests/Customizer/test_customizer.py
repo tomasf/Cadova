@@ -629,6 +629,8 @@ def test_sharp_edges(browser, base_url):
             black: [...outline.geometry.attributes.color.array].every(value => value === 0),
             gray: Math.max(...darkColors), expectedGray: new THREE.Color("#8c8c8c").r,
             context: lines(cube("context")).length, visual: lines(cube("visual")).length,
+            // A part looks as its materials say, whatever its semantic, as in Cadova Viewer
+            opaqueContext: cube("context").children.every(mesh => mesh.material.opacity === 1 && !mesh.material.transparent),
             smooth: crease(20) === null, sharp: crease(40)?.geometry.attributes.position.count/2,
             nonManifold: crease(90,true) === null, open: open === null, degenerate: degenerate === null, hidden, visible};
     }''')
@@ -638,6 +640,7 @@ def test_sharp_edges(browser, base_url):
     check(result["black"] and abs(result["gray"] - result["expectedGray"]) < 1e-6,
           f"Edge colors no longer match native face contrast: {result}")
     check(result["context"] == 0 and result["visual"] == 0, f"Non-solid geometry gained outlines: {result}")
+    check(result["opaqueContext"], f"An opaque context part was drawn see-through: {result}")
     check(result["smooth"] and result["sharp"] == 1 and result["nonManifold"] and result["open"] and result["degenerate"],
           f"Sharp-edge classification regression: {result}")
     check(result["hidden"] == 0 and result["visible"] >= 32,
