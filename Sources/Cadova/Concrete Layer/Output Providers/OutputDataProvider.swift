@@ -9,6 +9,10 @@ protocol OutputDataProvider: Sendable {
     func generateOutput(context: EvaluationContext) async throws -> Data
     func writeOutput(to url: URL, context: EvaluationContext) async throws
 
+    /// The model's meshes in the web customizer's preview format, which the page reads without the
+    /// format-specific encoding `generateOutput` performs, or nil if this output can't be previewed.
+    func customizerPreview(context: EvaluationContext) async throws -> Data?
+
     /// Pushes this model's data to any locally-listening LiveLink consumer (e.g. Cadova
     /// Viewer), bypassing the format-specific encoding `generateOutput` performs. Best-effort:
     /// implementations must never throw out of this method. The default does nothing, which is
@@ -41,6 +45,7 @@ extension OutputDataProvider {
 
     /// Nothing to evaluate up front: the output does its own work when it's generated
     func evaluate(context: EvaluationContext) async throws {}
+    func customizerPreview(context: EvaluationContext) async throws -> Data? { nil }
     func pushToLiveLink(destination url: URL, context: EvaluationContext) async -> Bool { false }
     func isLikelyToReachLiveLinkListener(destination url: URL) -> Bool { false }
 }

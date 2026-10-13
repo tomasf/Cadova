@@ -1426,10 +1426,49 @@ def test_model_session(browser, base_url):
         if build["fresh"] is None:
             check(build["kept"] is None, f"The kept instance built {name}, but a new one didn't")
             continue
-        kept, fresh = Mesh(base64.b64decode(build["kept"])), Mesh(base64.b64decode(build["fresh"]))
-        check((kept.vertices, kept.triangles) == (fresh.vertices, fresh.triangles),
-              f"The kept instance built {name} differently from a new instance")
+        check(build["kept"] == build["fresh"], f"The kept instance built {name} differently from a new instance")
     check(not page.errors, f"The model session had page errors: {page.errors}")
+    page.page.context.close()
+
+
+def test_preview_matches_3mf(browser, base_url):
+    """A build's preview shows exactly what the model's 3MF file holds: the same meshes, triangles,
+    materials and outlines."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.page.goto(f"{base_url}/index.html")
+    mismatches = page.page.evaluate('''async () => {
+        const { read3MF } = await import("./threemf.js");
+        const { readPreview } = await import("./preview.js");
+        const { ModelSession, fetchModel, fetchResources } = await import("./runner.js");
+        const module = await WebAssembly.compile(await fetchModel(new URL("model.wasm", location.href).href));
+        const session = new ModelSession(module, await fetchResources(location.href));
+        await session.listParameters();
+        const buffer = (data) => data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+        const describe = (group) => group.children.map((mesh) => ({
+            indices: Array.from(mesh.geometry.index.array),
+            color: mesh.material.color.getHexString(), opacity: mesh.material.opacity,
+            metalness: mesh.material.metalness, roughness: mesh.material.roughness,
+            edges: mesh.children.map((edges) => edges.geometry.attributes.position.count),
+        }));
+        const positions = (group) => group.children.flatMap((mesh) => Array.from(mesh.geometry.attributes.position.array));
+
+        const mismatches = [];
+        for (const [model, values] of [["plate", {}], ["spacer", { Width: 30 }], ["plate", { Holes: 0, Corners: "square" }]]) {
+            const label = `${model} ${JSON.stringify(values)}`;
+            const built = await session.build(model, values);
+            const exported = await session.export(model, values);
+            if (!built.fileName?.endsWith(".cadovapreview")) mismatches.push(`${label}: built ${built.fileName}, not a preview`);
+            if (!exported.fileName?.endsWith(".3mf")) mismatches.push(`${label}: exported ${exported.fileName}, not a 3MF file`);
+            if (mismatches.length) continue;
+            const preview = readPreview(buffer(built.data), "#ffffff"), file = read3MF(buffer(exported.data), "#ffffff");
+            if (JSON.stringify(describe(preview)) !== JSON.stringify(describe(file))) mismatches.push(`${label}: meshes or materials`);
+            const [a, b] = [positions(preview), positions(file)];
+            if (a.length !== b.length || a.some((value, index) => Math.abs(value - b[index]) > 1e-4)) mismatches.push(`${label}: vertices`);
+        }
+        return mismatches;
+    }''')
+    check(not mismatches, f"Previews differ from the 3MF files: {mismatches}")
+    check(not page.errors, f"Comparing previews had page errors: {page.errors}")
     page.page.context.close()
 
 
@@ -1446,7 +1485,7 @@ def main(engines):
     failed = False
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session,
+            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
         )]
         if "chromium" in engines:
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

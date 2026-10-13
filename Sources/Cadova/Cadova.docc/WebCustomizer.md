@@ -157,6 +157,8 @@ Loading and model builds run in a worker. Visitors can cancel either operation, 
 
 The model keeps running between builds, so like a reused ``ModelFileGenerator``, it remembers the geometry it has already built. When a visitor changes a parameter, any part of the model that the change doesn't affect is reused instead of built again, which can make a rebuild many times faster. Cancelling a build, or a model that crashes, starts the model over, without what it had built.
 
+Builds send the preview the model's meshes directly, without making a 3MF file. The file is made when a visitor downloads it, from the geometry the model has already built for the preview.
+
 ## Limitations
 
 A model runs differently in a browser than on your computer, so a few things don't work yet:

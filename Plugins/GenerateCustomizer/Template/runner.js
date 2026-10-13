@@ -80,14 +80,26 @@ export class ModelSession {
         return { catalog, log: result.log, stackOverflow: result.stackOverflow };
     }
 
-    // Builds one model with the given parameter values, by label. Values are passed as strings, which
-    // each parameter parses as its own type.
+    // Builds one model with the given parameter values, by label, for the preview. Cadova writes its
+    // meshes in a form the page reads directly, skipping the work of making a model file, unless the
+    // model's output isn't one it can preview.
     async build(model, values) {
-        const strings = Object.fromEntries(Object.entries(values).map(([label, value]) => [label, String(value)]));
-        return this.run({ model, values: strings, output: "/io" }, ".3mf");
+        return this.run({ model, values: ModelSession.stringValues(values), output: "/io", preview: true });
     }
 
-    async run(request, outputSuffix) {
+    // Builds one model's file, such as a 3MF file, to download. With the model still running from
+    // building its preview, its geometry is already cached.
+    async export(model, values) {
+        return this.run({ model, values: ModelSession.stringValues(values), output: "/io" });
+    }
+
+    // Parameter values as strings, which each parameter parses as its own type
+    static stringValues(values) {
+        return Object.fromEntries(Object.entries(values).map(([label, value]) => [label, String(value)]));
+    }
+
+    // Returns the file the request produced: the parameter list, a preview or a model file
+    async run(request, outputSuffix = null) {
         const start = performance.now();
         // Everything the model writes is kept, and split into lines at the end, so that a last line
         // without a line break, such as a message written just before a crash, isn't lost
@@ -124,7 +136,8 @@ export class ModelSession {
         if (crash) log.push(crash);
         const milliseconds = performance.now() - start;
 
-        const [fileName, file] = [...this.files].find(([name]) => name.endsWith(outputSuffix)) ?? [];
+        const [fileName, file] = [...this.files]
+            .find(([name]) => outputSuffix ? name.endsWith(outputSuffix) : name !== "request.json") ?? [];
         const data = exitCode === 0 && file ? file.data : null;
         return { fileName, data, log, exitCode, stackOverflow, milliseconds };
     }

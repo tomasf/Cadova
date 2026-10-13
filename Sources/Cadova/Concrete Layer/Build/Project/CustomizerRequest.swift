@@ -20,15 +20,26 @@ internal struct CustomizerRequest: Decodable, Sendable {
     /// The directory to write models to, in place of the project's own.
     let outputDirectory: String?
 
+    /// Whether to write each model's meshes in the customizer's preview format, rather than as a
+    /// model file. The customizer asks for the file itself only when its visitor downloads it.
+    let preview: Bool
+
+    /// The file extension of a model's preview.
+    static let previewFileExtension = "cadovapreview"
+
     private enum CodingKeys: String, CodingKey {
-        case parameterListPath = "listParameters", model, values, outputDirectory = "output"
+        case parameterListPath = "listParameters", model, values, outputDirectory = "output", preview
     }
 
-    init(parameterListPath: String? = nil, model: String? = nil, values: [String: String] = [:], outputDirectory: String? = nil) {
+    init(
+        parameterListPath: String? = nil, model: String? = nil, values: [String: String] = [:],
+        outputDirectory: String? = nil, preview: Bool = false
+    ) {
         self.parameterListPath = parameterListPath
         self.model = model
         self.values = values
         self.outputDirectory = outputDirectory
+        self.preview = preview
     }
 
     init(from decoder: any Decoder) throws {
@@ -37,6 +48,7 @@ internal struct CustomizerRequest: Decodable, Sendable {
         model = try container.decodeIfPresent(String.self, forKey: .model)
         values = try container.decodeIfPresent([String: String].self, forKey: .values) ?? [:]
         outputDirectory = try container.decodeIfPresent(String.self, forKey: .outputDirectory)
+        preview = try container.decodeIfPresent(Bool.self, forKey: .preview) ?? false
     }
 
     /// Replaces the request from the environment variable, for tests.

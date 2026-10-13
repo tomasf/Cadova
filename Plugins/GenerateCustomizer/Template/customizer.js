@@ -3,6 +3,7 @@ import { ViewportControls } from "./navigation.js";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { ModelBuilder, CancelledError } from "./builder.js";
 import { read3MF } from "./threemf.js";
+import { readPreview } from "./preview.js";
 import { ViewportGrid } from "./grid.js";
 import { OriginAxes, AxisIndicator } from "./axes.js";
 import { frameIsometric } from "./camera.js";
@@ -90,7 +91,7 @@ function select(next) {
             failed(error);
         }
     } else {
-        lastFile = null;
+        downloadable = null;
         $("download").disabled = true;
         requestBuild();
     }
@@ -298,7 +299,9 @@ function humanize(name) {
 let isReady = false, loading = false, loadAttempt = 0;
 let building = null; // the model and values of the build in progress
 const builds = new Map(); // the last build of each model, with the values it was built with
-let lastFile = null, shownModel = null;
+// The model and values of the build on screen, while they match the controls, to download a file of
+let downloadable = null, shownModel = null;
+let exporting = false; // whether the file to download is being made
 let buildTimer;
 
 const builder = new ModelBuilder(import.meta.url, (data) => {
@@ -327,7 +330,7 @@ function busy(active, text = "Building…") {
     form.setAttribute("aria-busy", active);
     if (active) {
         cancelTimer = setTimeout(() => { $("cancel").hidden = false; }, 3000);
-        lastFile = null;
+        downloadable = null;
         $("download").disabled = true;
         setStatus("");
         $("build-time").textContent = text;
@@ -344,7 +347,7 @@ function failed(error) {
     builder.cancel();
     clearTimeout(buildTimer);
     busy(false);
-    lastFile = null;
+    downloadable = null;
     $("download").disabled = true;
     $("retry").textContent = isReady ? "Retry build" : "Retry loading";
     $("retry").hidden = false;
@@ -378,13 +381,13 @@ async function initialize() {
 function requestBuild() {
     clearTimeout(buildTimer);
     // A download must match the current controls, including while a rebuild is debounced or queued.
-    lastFile = null;
+    downloadable = null;
     $("download").disabled = true;
     buildTimer = setTimeout(startBuild, 120);
 }
 
 async function startBuild() {
-    if (!isReady || loading || building) return;
+    if (!isReady || loading || building || exporting) return;
     clearTimeout(buildTimer);
     const parameters = valuesFor(model);
     const attempt = { model, parameters, key: JSON.stringify(parameters) };
@@ -404,7 +407,7 @@ async function startBuild() {
 function finishBuild(result, finished) {
     building = null;
     busy(false);
-    const build = { ...result, key: finished.key };
+    const build = { ...result, key: finished.key, parameters: finished.parameters };
     builds.set(finished.model.name, build);
     // Keep the last preview while the latest parameters build. Never enable a download for stale
     // parameters, or report an obsolete build's error against the newly selected model.
@@ -443,17 +446,17 @@ $("retry").addEventListener("click", () => {
 // Starts after the viewer has been initialized, so even an immediately answered request can display.
 queueMicrotask(initialize);
 
-function display({ fileName, data, log, exitCode, milliseconds }) {
+function display({ fileName, data, log, exitCode, milliseconds, parameters }) {
     $("log").textContent = log.map((line) => line.replace(/^\d{4}-\d{2}-\d{2}T\S+ /, "")).join("\n");
     if (data) {
         $("retry").hidden = true;
-        lastFile = { name: fileName, data };
+        downloadable = { model, parameters };
         $("download").disabled = false;
         setStatus(`Built in ${Math.round(milliseconds)} ms`);
-        show(data, shownModel !== model);
+        show(data, fileName, shownModel !== model);
         shownModel = model;
     } else {
-        lastFile = null;
+        downloadable = null;
         $("download").disabled = true;
         setStatus(exitCode === 0 ? "The model built to nothing." : "The model failed to build. See the build details.", true);
     }
@@ -466,12 +469,35 @@ function setStatus(text, isError = false) {
     if (!isError) $("build-time").textContent = text;
 }
 
-$("download").addEventListener("click", () => {
-    if (!lastFile) return;
-    const url = URL.createObjectURL(new Blob([lastFile.data], { type: "model/3mf" }));
-    const link = Object.assign(document.createElement("a"), { href: url, download: lastFile.name });
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+// Builds show a preview, so the file itself is made when it's downloaded. The model is still running
+// from building that preview, so its geometry is cached, and making the file is mostly encoding it.
+// Builds wait until it's done.
+$("download").addEventListener("click", async () => {
+    if (!downloadable || exporting || building) return;
+    const { model: target, parameters } = downloadable;
+    exporting = true;
+    $("download").disabled = true;
+    $("download").textContent = "Preparing…";
+    try {
+        const result = await builder.export(target.name, parameters);
+        if (!result.data) {
+            const error = new Error("The model file couldn't be made. See the build details.");
+            error.log = result.log;
+            throw error;
+        }
+        const url = URL.createObjectURL(new Blob([result.data], { type: result.fileName.endsWith(".3mf") ? "model/3mf" : "application/octet-stream" }));
+        const link = Object.assign(document.createElement("a"), { href: url, download: result.fileName });
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+        $("log").textContent = (error.log ?? [error.message]).join("\n");
+        setStatus(error.message, true);
+    } finally {
+        exporting = false;
+        $("download").textContent = "Download Model";
+        $("download").disabled = !downloadable;
+        if (isReady && builds.get(model.name)?.key !== buildKey(model)) startBuild();
+    }
 });
 
 // MARK: Viewer
@@ -547,11 +573,11 @@ function createViewer() {
     });
 
     // Frames the model the first time, and again when a different model is shown
-    return (data, isNewModel) => {
+    return (data, fileName, isNewModel) => {
         const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
         // Parts without a color of their own get the page's model color
         const color = getComputedStyle(document.documentElement).getPropertyValue("--model").trim();
-        const object = read3MF(buffer, color);
+        const object = fileName.endsWith(".cadovapreview") ? readPreview(buffer, color) : read3MF(buffer, color);
         object.traverse((child) => {
             if (child.isMesh) child.geometry = toCreasedNormals(child.geometry, THREE.MathUtils.degToRad(30));
         });

@@ -21,8 +21,9 @@ self.onmessage = async ({ data }) => {
         } else if (data.type === "initialize") {
             session = new ModelSession(data.compiledModule, data.resources);
             self.postMessage({ type: "ready", id: data.id, ...(data.catalog ?? await session.listParameters()) });
-        } else if (data.type === "build") {
-            self.postMessage({ type: "built", id: data.id, ...(await session.build(data.model, data.parameters)) });
+        } else if (data.type === "build" || data.type === "export") {
+            const result = await session[data.type](data.model, data.parameters);
+            self.postMessage({ type: "built", id: data.id, ...result }, result.data ? [result.data.buffer] : []);
         }
     } catch (error) {
         self.postMessage({ type: "error", id: data.id, message: String(error?.message ?? error) });

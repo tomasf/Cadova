@@ -40,6 +40,12 @@ export class ModelBuilder {
         return this.request({ type: "build", model, parameters });
     }
 
+    // Builds the model file to download, for parameters the model has just built its preview with
+    async export(model, parameters) {
+        await this.load();
+        return this.request({ type: "export", model, parameters });
+    }
+
     cancel() {
         this.fail(new CancelledError("Cancelled."));
     }
@@ -65,9 +71,10 @@ export class ModelBuilder {
             // leave the page busy indefinitely; the visitor can cancel sooner or retry afterward.
             const timer = setTimeout(() => {
                 if (this.pending?.id !== id) return;
-                this.fail(new Error(message.type === "build"
-                    ? "Build stopped after 2 minutes. Try simpler settings or retry."
-                    : "Loading the model took longer than 2 minutes. Please retry."));
+                this.fail(new Error({
+                    build: "Build stopped after 2 minutes. Try simpler settings or retry.",
+                    export: "Preparing the download stopped after 2 minutes. Please retry.",
+                }[message.type] ?? "Loading the model took longer than 2 minutes. Please retry."));
             }, 120_000);
             this.pending = { id, timer, resolve, reject };
             try {

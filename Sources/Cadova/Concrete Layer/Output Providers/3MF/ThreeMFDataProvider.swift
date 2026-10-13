@@ -121,14 +121,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
         let path = url.path(percentEncoded: false)
 
         do {
-            let parts = try await resolvedParts(context: context)
+            let parts = try await meshParts(context: context)
             guard !parts.isEmpty else { return false }
-            let identifiers = Self.fileIdentifiers(for: parts)
-            let orderedParts = zip(identifiers, parts).sorted { Self.fileOrder($0.0, $1.0) }
             let message = LiveLinkMessage(
                 buildUUID: buildUUID,
                 path: path,
-                parts: orderedParts.map { Self.liveLinkPart(id: $0, $1) },
+                parts: parts.map(Self.liveLinkPart),
                 metadata: options[Metadata.self].liveLinkMetadata
             )
             try await LiveLinkClient.push(message)

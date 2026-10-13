@@ -217,6 +217,14 @@ public struct Model: Sendable, ModelBuildable {
         // Returns the number of failures, so every caller can hand it straight up.
         func write() async -> Int {
             do {
+                // A customizer's preview reads the meshes directly. It asks for the model file itself
+                // only when its visitor downloads it.
+                if CustomizerRequest.current?.preview == true, let preview = try await provider.customizerPreview(context: context) {
+                    let previewURL = baseURL.appendingPathExtension(CustomizerRequest.previewFileExtension)
+                    try preview.write(to: previewURL)
+                    logger.wrote(to: previewURL)
+                    return 0
+                }
                 try await provider.writeOutput(to: url, context: context)
                 logger.wrote(to: url)
                 return 0
