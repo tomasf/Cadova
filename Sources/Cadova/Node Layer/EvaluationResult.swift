@@ -75,3 +75,26 @@ public struct EvaluationResult<D: Dimensionality>: Sendable {
 
     internal static var empty: Self { try! .init(concrete: .empty, materialMapping: [:]) }
 }
+
+internal extension EvaluationResult {
+    /// Roughly how much memory the result takes up, in bytes, for limiting the size of the cache.
+    ///
+    /// A Manifold mesh (see Manifold's impl.h) keeps, per triangle, three 16-byte halfedges, a face
+    /// normal (24 bytes) and a 16-byte reference to its original mesh, and a collision tree that
+    /// adds about another 100 bytes. Per vertex, it keeps a position and a normal (24 bytes each),
+    /// and 8 bytes for each extra property (`propertyCount` doesn't include the position). A
+    /// cross-section keeps each of its points, with some overhead. Results that share a mesh are
+    /// each counted in full. Measured against what the allocator holds, this comes within about
+    /// 20% for small meshes and closer for large ones.
+    var estimatedByteCount: Int {
+        let materials = materialMapping.count * 64
+        if let manifolds = parts as? [Manifold] {
+            return manifolds.reduce(materials) { total, manifold in
+                total + manifold.triangleCount * 190 + manifold.vertexCount * (48 + 8 * manifold.propertyCount)
+            }
+        } else if let crossSections = parts as? [CrossSection] {
+            return crossSections.reduce(materials) { $0 + $1.vertexCount * 24 }
+        }
+        return materials
+    }
+}

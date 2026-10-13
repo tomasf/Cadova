@@ -11,11 +11,15 @@ public struct _EvaluationContext: Sendable {
     /// generator lives in this context's cache) isn't replayed in another.
     internal let id = UUID()
 
-    internal let cache2D = GeometryCache<D2>()
-    internal let cache3D = GeometryCache<D3>()
+    internal let cache2D: GeometryCache<D2>
+    internal let cache3D: GeometryCache<D3>
     internal let threeMFModelCache = ThreeMFModelCache()
 
-    internal init() {}
+    internal init() {
+        let clock = CacheClock()
+        cache2D = GeometryCache(clock: clock)
+        cache3D = GeometryCache(clock: clock)
+    }
 }
 
 /// Internal-facing name for ``_EvaluationContext``, used everywhere except public API signatures,
@@ -116,5 +120,38 @@ internal extension EvaluationContext {
         body: @escaping @Sendable () async throws -> BuildResult<D>
     ) async throws -> BuildResult<D> {
         try await cache().bodyResult(for: AnyCacheKey(key), generator: body)
+    }
+}
+
+internal extension EvaluationContext {
+    // MARK: - Pruning
+
+    /// An estimate of how much memory the cached geometry takes up, in bytes. Results still being
+    /// evaluated aren't included.
+    var approximateCacheByteCount: Int {
+        get async {
+            let usage = await cache2D.finishedEntryUsage() + cache3D.finishedEntryUsage()
+            return usage.reduce(0) { $0 + $1.byteCount }
+        }
+    }
+
+    /// Removes the least recently used results from the cache until what's left is estimated to take
+    /// up at most the given number of bytes. Anything removed is evaluated again if it's needed.
+    ///
+    /// Results still being evaluated are kept, as are the generators of materialized nodes, since
+    /// results that refer to those nodes can outlive the build that made them.
+    func pruneCache(toApproximateByteCount limit: Int) async {
+        // Keep the most recently used results that fit, and remove everything used before them, so
+        // that one cutoff applies to both caches, and to body results, which have no size of their own
+        var usage = await cache2D.finishedEntryUsage() + cache3D.finishedEntryUsage()
+        usage.sort { $0.lastUse > $1.lastUse }
+        var kept = 0
+        guard let firstRemoved = usage.first(where: { entry in
+            kept += entry.byteCount
+            return kept > limit
+        }) else { return }
+
+        await cache2D.removeEntries(lastUsedAtOrBefore: firstRemoved.lastUse)
+        await cache3D.removeEntries(lastUsedAtOrBefore: firstRemoved.lastUse)
     }
 }

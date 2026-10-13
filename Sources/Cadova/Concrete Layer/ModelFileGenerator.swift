@@ -20,7 +20,7 @@ import Foundation
 /// executable, see ``Model`` and ``Project(sourceFile:options:content:)`` instead. They write
 /// directly to disk and log failures rather than reporting them back to you, and `Project` ends
 /// the process with a non-zero exit status if anything failed.
-public struct ModelFileGenerator {
+public struct ModelFileGenerator: Sendable {
     
     /// Render a one-shot model to a model file.
     ///
@@ -43,6 +43,25 @@ public struct ModelFileGenerator {
     /// Creates a ``ModelFileGenerator`` instance. Instances maintain a cache, allowing improved
     /// performance when performing multiple, subsequent builds.
     public init() {}
+
+    /// An estimate of how much memory the generator's cache takes up, in bytes.
+    ///
+    /// Geometry that's still being built isn't included.
+    public var approximateCacheByteCount: Int {
+        get async { await evaluationContext.approximateCacheByteCount }
+    }
+
+    /// Removes the least recently used geometry from the generator's cache, until what's left is
+    /// estimated to take up at most the given number of bytes.
+    ///
+    /// The cache keeps the geometry of every build, so a generator that keeps building different
+    /// models uses more and more memory. Pruning between builds keeps that in check. Anything
+    /// removed is built again if a later build, or a ``ModelFile`` from an earlier one, needs it,
+    /// so pruning only costs time. Pass `0` to empty the cache. Geometry that's still being built
+    /// is kept.
+    public func pruneCache(toApproximateByteCount byteCount: Int) async {
+        await evaluationContext.pruneCache(toApproximateByteCount: byteCount)
+    }
 
     /// Renders a model to a standard file format based on the provided geometry.
     ///
