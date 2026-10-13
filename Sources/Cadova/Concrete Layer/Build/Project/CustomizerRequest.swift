@@ -13,8 +13,8 @@ internal struct CustomizerRequest: Decodable, Sendable {
     /// The model to build.
     let model: String?
 
-    /// Parameter values for the model, by label, written as ``ParameterValue/init(parameterString:)``
-    /// reads them.
+    /// Parameter values for the model, by the parameter keys the catalog lists, written as
+    /// ``ParameterValue/init(parameterString:)`` reads them.
     let values: [String: String]
 
     /// The directory to write models to, in place of the project's own.

@@ -148,16 +148,14 @@ def test(browser, base_url):
     thick = page.download()
     check(abs(thick.extent(2) - 6) < 0.01, f"Thickness after turning on the switch is {thick.extent(2)}, expected 6")
 
-    # Values in the URL hash override the defaults
-    page.open("#Width=80&Thick=true")
-    expect(page.number_field("Width")).to_have_value("80")
+    # Changing a value in the form rebuilds the model, and values never go in the address
+    page.rebuild(lambda: page.set_number("Width", "80"))
     changed = page.download()
-    check(abs(changed.extent(0) - 80) < 0.01, f"Width from the URL is {changed.extent(0)}, expected 80")
-    check(abs(changed.extent(2) - 6) < 0.01, f"Thickness from the URL is {changed.extent(2)}, expected 6")
+    check(abs(changed.extent(0) - 80) < 0.01, f"Width from the form is {changed.extent(0)}, expected 80")
+    check(abs(changed.extent(2) - 6) < 0.01, f"Thickness after changing the width is {changed.extent(2)}, expected 6")
+    expect(page.page).to_have_url(re.compile(r"/index\.html$"))
 
-    # Changing a value in the form rebuilds the model and updates the URL
     page.rebuild(lambda: page.page.get_by_role("button", name="Square").click())
-    expect(page.page).to_have_url(re.compile(r"Corners=square"))
     square = page.download()
     check(square.triangles < changed.triangles,
           f"Square corners should need fewer triangles than rounded ones ({square.triangles} vs {changed.triangles})")
@@ -168,8 +166,7 @@ def test(browser, base_url):
     check(no_holes.triangles < square.triangles,
           f"Removing the holes should remove triangles ({no_holes.triangles} vs {square.triangles})")
 
-    # Dragging a slider makes many changes in a row. Safari throws if the address changes more than
-    # 100 times in 10 seconds, which once stopped the model from updating.
+    # Dragging a slider makes many changes in a row, which end in one build with the last value
     page.page.evaluate("document.getElementById('build-time').textContent = ''")
     page.page.evaluate("""() => {
         const range = document.querySelector('input[type="range"][aria-label="Width"]');
@@ -181,9 +178,13 @@ def test(browser, base_url):
     check(not page.errors, f"Dragging a slider caused errors: {page.errors}")
     page.wait_for_build()
     expect(page.number_field("Width")).to_have_value("55")
-    expect(page.page).to_have_url(re.compile(r"Width=55"))
     dragged = page.download()
     check(abs(dragged.extent(0) - 55) < 0.01, f"Width after dragging is {dragged.extent(0)}, expected 55")
+
+    # An older link with values in its address opens with the defaults, and loses the values
+    page.open("#Width=80&Thick=true")
+    expect(page.number_field("Width")).to_have_value("40")
+    expect(page.page).to_have_url(re.compile(r"/index\.html$"))
 
     check(not page.errors, f"The page had errors: {page.errors}")
 
@@ -192,7 +193,8 @@ def test_tabs(browser, base_url):
     """Each model with parameters gets a tab, and each keeps its own values, even for parameters with
     the same label."""
     page = CustomizerPage(browser.new_page(), base_url)
-    page.open("#Width=80")
+    page.open()
+    page.rebuild(lambda: page.set_number("Width", "80"))
     plate = page.download()
     check(abs(plate.extent(0) - 80) < 0.01, f"Plate width is {plate.extent(0)}, expected 80")
 
@@ -217,15 +219,15 @@ def test_tabs(browser, base_url):
     check(abs(spacer.extent(0) - 30) < 0.01, f"Spacer diameter is {spacer.extent(0)}, expected 30")
     page.rebuild(lambda: page.page.get_by_role("tab", name="Test Plate").click())
     expect(page.number_field("Width")).to_have_value("80")
-    expect(page.page).to_have_url(re.compile(r"#Width=80$"))
+    expect(page.page).to_have_url(re.compile(r"/index\.html$"))
     plate = page.download()
     check(abs(plate.extent(0) - 80) < 0.01, f"Plate width after changing the spacer's is {plate.extent(0)}, expected 80")
 
-    # A link opens the same tab with the same values
-    page.open("#model=spacer&Width=25")
+    # A link opens the same tab, with the default values
+    page.open("#model=spacer")
     expect(page.page.get_by_role("tab", name="Spacer")).to_have_attribute("aria-selected", "true")
     spacer = page.download()
-    check(abs(spacer.extent(0) - 25) < 0.01, f"Spacer diameter from the URL is {spacer.extent(0)}, expected 25")
+    check(abs(spacer.extent(0) - 20) < 0.01, f"Spacer diameter from a link is {spacer.extent(0)}, expected 20")
     check(not page.errors, f"The page had errors: {page.errors}")
 
 
@@ -1285,7 +1287,8 @@ def test_worker_recovery(browser, base_url):
     }
     for name, fault in faults.items():
         page = CustomizerPage(browser.new_page(), base_url)
-        workers = faulty_worker(page.page, f'if (data.type === "build" && data.parameters.Width === 65) {{ {fault} }}')
+        # Parameters are sent by opaque key, so the build with Width 65 is found by that value
+        workers = faulty_worker(page.page, f'if (data.type === "build" && Object.values(data.parameters).includes(65)) {{ {fault} }}')
         downloads = []
         page.page.on("request", lambda request: downloads.append(request.url) if "model.wasm" in request.url else None)
         # Track the actual worker so a delayed message from a terminated generation can be replayed.
@@ -1301,7 +1304,7 @@ def test_worker_recovery(browser, base_url):
         page.set_number("Width", "65")
         if name == "cancel":
             expect(page.page.locator("#cancel")).to_be_visible()
-            page.page.wait_for_function('window.workers[0].lastRequest.parameters?.Width === 65')
+            page.page.wait_for_function('Object.values(window.workers[0].lastRequest.parameters ?? {}).includes(65)')
             # A worker stuck in a synchronous loop must leave the page and controls responsive.
             check(page.page.evaluate('() => new Promise(resolve => setTimeout(() => resolve(true), 20))'), "The page froze")
             page.page.evaluate('window.oldReply = window.workers[0].onmessage; window.oldID = window.workers[0].lastRequest.id')
@@ -1351,24 +1354,24 @@ def test_loading_recovery(browser, base_url):
                 route.continue_()
 
         page.page.context.route(f"**/{resource}", fail_first)
-        page.page.goto(f"{base_url}/index.html#Width=75")
+        page.page.goto(f"{base_url}/index.html#model=plate")
         expect_recovery(page, "worker stopped unexpectedly" if resource == "worker.js" else "Couldn't load")
         expect(page.page.locator("#reset")).to_be_disabled()
         page.rebuild(lambda: page.page.locator("#retry").click())
-        expect(page.number_field("Width")).to_have_value("75")
-        check(abs(page.download().extent(0) - 75) < 0.01, f"Retry after loading {resource} lost URL settings")
+        expect(page.number_field("Width")).to_have_value("40")
+        check(abs(page.download().extent(0) - 40) < 0.01, f"Retry after loading {resource} didn't build the model")
         check(not page.errors, f"Loading recovery had page errors: {page.errors}")
         page.page.context.close()
 
     page = CustomizerPage(browser.new_page(), base_url)
     workers = faulty_worker(page.page, 'if (data.type === "load") { while (true) {} }')
-    page.page.goto(f"{base_url}/index.html#Width=75")
+    page.page.goto(f"{base_url}/index.html")
     expect(page.page.locator("#cancel")).to_be_visible()
     page.page.locator("#cancel").click()
     expect_recovery(page, "Loading cancelled")
     page.rebuild(lambda: page.page.locator("#retry").click())
     check(len(workers) == 2, "Cancelling loading didn't restart the worker")
-    check(abs(page.download().extent(0) - 75) < 0.01, "Cancelling loading lost URL settings")
+    check(abs(page.download().extent(0) - 40) < 0.01, "Retrying after cancelling loading didn't build the model")
     check(not page.errors, f"Cancelling loading had page errors: {page.errors}")
     page.page.context.close()
 
@@ -1411,14 +1414,18 @@ def test_model_session(browser, base_url):
         const session = new ModelSession(module, resources);
         const listed = await session.listParameters();
         const instance = session.instance;
+        // Values by label, as the catalog's keys, which parameters are identified by
+        const keyed = (catalog, model, values) => Object.fromEntries(Object.entries(values).map(([label, value]) =>
+            [catalog.models.find((m) => m.name === model)?.parameters.find((p) => p.label === label)?.key ?? label, value]));
+
         const encode = (data) => data && btoa(Array.from(data, (byte) => String.fromCharCode(byte)).join(""));
         const builds = [];
         for (const [model, values] of [
             ["plate", { Width: 55 }], ["spacer", { Height: 9 }], ["plate", { Width: 70, Holes: 4 }],
             ["nonexistent", {}], ["plate", { Width: 55 }],
         ]) {
-            const kept = await session.build(model, values);
-            const fresh = await new ModelSession(module, resources).build(model, values);
+            const kept = await session.build(model, keyed(listed.catalog, model, values));
+            const fresh = await new ModelSession(module, resources).build(model, keyed(listed.catalog, model, values));
             builds.push({ model, exitCode: kept.exitCode, sameInstance: session.instance === instance,
                 kept: encode(kept.data), fresh: encode(fresh.data) });
         }
@@ -1426,8 +1433,8 @@ def test_model_session(browser, base_url):
         const cachedBytes = session.cacheByteCount();
         session.pruneCache(0);
         const prunedBytes = session.cacheByteCount();
-        const rebuilt = await session.build("plate", { Width: 55 });
-        const fresh = await new ModelSession(module, resources).build("plate", { Width: 55 });
+        const rebuilt = await session.build("plate", keyed(listed.catalog, "plate", { Width: 55 }));
+        const fresh = await new ModelSession(module, resources).build("plate", keyed(listed.catalog, "plate", { Width: 55 }));
         const pruning = { cachedBytes, prunedBytes, rebuiltBytes: session.cacheByteCount(),
             sameInstance: session.instance === instance, matches: encode(rebuilt.data) === encode(fresh.data) };
         return { listed: listed.catalog !== null, suspended: instance !== null, builds, pruning };
@@ -1461,7 +1468,10 @@ def test_preview_matches_3mf(browser, base_url):
         const { ModelSession, fetchModel, fetchResources } = await import("./runner.js");
         const module = await WebAssembly.compile(await fetchModel(new URL("model.wasm", location.href).href));
         const session = new ModelSession(module, await fetchResources(location.href));
-        await session.listParameters();
+        const { catalog } = await session.listParameters();
+        // Values by label, as the catalog's keys, which parameters are identified by
+        const keyed = (catalog, model, values) => Object.fromEntries(Object.entries(values).map(([label, value]) =>
+            [catalog.models.find((m) => m.name === model)?.parameters.find((p) => p.label === label)?.key ?? label, value]));
         const buffer = (data) => data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
         const describe = (group) => group.children.map((mesh) => ({
             indices: Array.from(mesh.geometry.index.array),
@@ -1471,11 +1481,12 @@ def test_preview_matches_3mf(browser, base_url):
         }));
         const positions = (group) => group.children.flatMap((mesh) => Array.from(mesh.geometry.attributes.position.array));
 
-        const mismatches = [];
+        const mismatches = [], sizes = [];
         for (const [model, values] of [["plate", {}], ["spacer", { Width: 30 }], ["plate", { Holes: 0, Corners: "square" }]]) {
             const label = `${model} ${JSON.stringify(values)}`;
-            const built = await session.build(model, values);
-            const exported = await session.export(model, values);
+            const built = await session.build(model, keyed(catalog, model, values));
+            const exported = await session.export(model, keyed(catalog, model, values));
+            sizes.push(built.data?.length);
             if (!built.fileName?.endsWith(".cadovapreview")) mismatches.push(`${label}: built ${built.fileName}, not a preview`);
             if (!exported.fileName?.endsWith(".3mf")) mismatches.push(`${label}: exported ${exported.fileName}, not a 3MF file`);
             if (mismatches.length) continue;
@@ -1484,6 +1495,8 @@ def test_preview_matches_3mf(browser, base_url):
             const [a, b] = [positions(preview), positions(file)];
             if (a.length !== b.length || a.some((value, index) => Math.abs(value - b[index]) > 1e-4)) mismatches.push(`${label}: vertices`);
         }
+        // The values have to reach the model, or every build would be the default one
+        if (sizes[0] === sizes[2]) mismatches.push("changed values made the same plate as the defaults");
         return mismatches;
     }''')
     check(not mismatches, f"Previews differ from the 3MF files: {mismatches}")

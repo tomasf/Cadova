@@ -19,9 +19,9 @@ import Foundation
 /// }
 /// ```
 ///
-/// The label also identifies the parameter within its model, so parameters with the same label in
-/// one model are one parameter, with one control. Different models keep their own values, even for
-/// parameters with the same label.
+/// A parameter is identified by where it's declared, so every geometry that uses the same declaration
+/// shares its value, while separate declarations are separate parameters, even with the same label.
+/// Each model keeps its own values.
 ///
 /// Read parameters inside a model: in a geometry's `body`, a `Model { }` builder or another geometry
 /// callback. A parameter read outside any model has its default value.
@@ -30,8 +30,12 @@ import Foundation
 /// see ``ParameterValue`` for details.
 ///
 @propertyWrapper public struct Parameter<Value: ParameterValue>: Sendable {
-    /// What a customizer calls the parameter, which also identifies it within its model.
+    /// What a customizer calls the parameter.
     public let label: String
+
+    /// Identifies the parameter within its model: where it's declared, and its label, since a
+    /// declaration in a function can be given different labels. Customizers treat it as opaque.
+    internal let key: String
 
     /// The value the parameter has unless a customizer chooses another.
     public let defaultValue: Value
@@ -54,8 +58,19 @@ import Foundation
     ///   - wrappedValue: The default value.
     ///   - label: What a customizer calls the parameter.
     ///   - description: A short explanation of what the parameter controls, shown by customizers.
-    public init(wrappedValue: Value, _ label: String, description: String? = nil) {
-        self.init(label: label, defaultValue: wrappedValue, description: description, minimum: nil, maximum: nil, step: nil)
+    ///   - fileID: Where the parameter is declared, which identifies it. Leave this at its default.
+    ///   - line: Where the parameter is declared, which identifies it. Leave this at its default.
+    ///   - column: Where the parameter is declared, which identifies it. Leave this at its default.
+    public init(
+        wrappedValue: Value,
+        _ label: String,
+        description: String? = nil,
+        fileID: String = #fileID,
+        line: Int = #line,
+        column: Int = #column
+    ) {
+        self.init(label: label, defaultValue: wrappedValue, description: description, minimum: nil, maximum: nil, step: nil,
+                  key: ParameterDescriptor.key(label: label, fileID: fileID, line: line, column: column))
     }
 
     /// Creates a parameter with a label, a default value and a range for customizers to offer.
@@ -71,19 +86,27 @@ import Foundation
     ///   - range: The values a customizer offers.
     ///   - step: The increment a customizer steps the value by.
     ///   - description: A short explanation of what the parameter controls, shown by customizers.
+    ///   - fileID: Where the parameter is declared, which identifies it. Leave this at its default.
+    ///   - line: Where the parameter is declared, which identifies it. Leave this at its default.
+    ///   - column: Where the parameter is declared, which identifies it. Leave this at its default.
     public init(
         wrappedValue: Value,
         _ label: String,
         in range: ClosedRange<Value>,
         step: Value? = nil,
-        description: String? = nil
+        description: String? = nil,
+        fileID: String = #fileID,
+        line: Int = #line,
+        column: Int = #column
     ) where Value: Comparable {
         self.init(label: label, defaultValue: wrappedValue, description: description,
-                  minimum: range.lowerBound, maximum: range.upperBound, step: step)
+                  minimum: range.lowerBound, maximum: range.upperBound, step: step,
+                  key: ParameterDescriptor.key(label: label, fileID: fileID, line: line, column: column))
     }
 
-    private init(label: String, defaultValue: Value, description: String?, minimum: Value?, maximum: Value?, step: Value?) {
+    private init(label: String, defaultValue: Value, description: String?, minimum: Value?, maximum: Value?, step: Value?, key: String) {
         self.label = label
+        self.key = key
         self.defaultValue = defaultValue
         self.description = description
         self.minimum = minimum
@@ -94,11 +117,12 @@ import Foundation
 
     public var wrappedValue: Value {
         ParameterRecorder.current?.record(descriptor)
-        return EnvironmentValues.current.parameterValue(label) ?? defaultValue
+        return EnvironmentValues.current.parameterValue(key, label: label) ?? defaultValue
     }
 
     internal var descriptor: ParameterDescriptor {
         ParameterDescriptor(
+            key: key,
             label: label,
             kind: Value.parameterKind,
             defaultValue: defaultValue.parameterString,

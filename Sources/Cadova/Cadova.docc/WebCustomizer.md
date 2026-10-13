@@ -43,7 +43,7 @@ Each type of parameter gets its own kind of control:
 | A `CaseIterable` string enum | Buttons for up to four cases, a menu for more |
 | `String` | A text field |
 
-The page shows each parameter's label with its description below it. Within a model, the label also identifies the parameter, so parameters with the same label in one model are one parameter with one control. When you build a model yourself, its parameters simply have their default values.
+The page shows each parameter's label with its description below it. A parameter is identified by where it's declared, not by its label: every geometry that uses the same declaration shares one control and one value, and separate declarations get separate controls, even with the same label. That leaves you free to reword labels. When you build a model yourself, its parameters simply have their default values.
 
 The page's heading and introduction come from the model's ``Metadata``:
 
@@ -151,7 +151,7 @@ Upload the whole generated folder to any static web host, including its scripts,
 
 `model.wasm` is about 18 MB, but it compresses well: about 6.6 MB with gzip and 4.8 MB with Brotli. Most hosts compress files on the fly, but check that yours does so for `.wasm` files, or visitors download the full size. The page also loads three.js, which draws the preview, and a small WASI library from the jsDelivr CDN, so visitors need to be able to reach it.
 
-When a visitor changes a parameter or switches tabs, the page's address changes to match, after the `#`. A link copied from the address bar opens the customizer on the same tab with the same settings, which makes it easy to share a particular configuration.
+When a visitor switches tabs, the page's address changes to match, after the `#`, so a link can open the customizer on a particular model. Parameter values aren't part of the address, since a link would outlive the version of the model it was made for.
 
 Loading and model builds run in a worker. Visitors can cancel either operation, or retry after a failure, without reloading the page or losing their settings. Each loading or building request stops after two minutes. Retrying reuses the compiled model and downloaded resources when they are available. The last successful preview stays visible, but downloading is disabled until a build matches the current settings.
 

@@ -3,6 +3,7 @@ import Synchronization
 
 /// A description of one customizer parameter, as a customizer needs to present it.
 internal struct ParameterDescriptor: Sendable, Hashable {
+    let key: String
     let label: String
     let kind: ParameterKind
     let defaultValue: String
@@ -10,6 +11,27 @@ internal struct ParameterDescriptor: Sendable, Hashable {
     let maximum: String?
     let step: String?
     let description: String?
+}
+
+extension ParameterDescriptor {
+    /// A parameter's key: an opaque digest of where it's declared and its label. It only has to agree
+    /// between a customizer and the model built along with it, so it needn't survive edits to the
+    /// model, and doesn't reveal its source.
+    static func key(label: String, fileID: String, line: Int, column: Int) -> String {
+        var hasher = StableHasher()
+        for text in [fileID, label] {
+            let bytes = Array(text.utf8)
+            hasher.combine(bytes.count)
+            hasher.combine(bytes: bytes)
+        }
+        hasher.combine(line)
+        hasher.combine(column)
+        let digest = hasher.finalize()
+        return [digest.high, digest.low].map { word in
+            let hex = String(word, radix: 16)
+            return String(repeating: "0", count: 16 - hex.count) + hex
+        }.joined()
+    }
 }
 
 /// Collects the parameters a model declares or reads while it's built.
@@ -20,13 +42,13 @@ internal struct ParameterDescriptor: Sendable, Hashable {
 internal final class ParameterRecorder: Sendable {
     @TaskLocal static var current: ParameterRecorder? = nil
 
-    private let state = Mutex<(labels: Set<String>, parameters: [ParameterDescriptor])>(([], []))
+    private let state = Mutex<(keys: Set<String>, parameters: [ParameterDescriptor])>(([], []))
 
-    /// Records a parameter. Parameters with the same label are one parameter, described the first
-    /// way it's recorded.
+    /// Records a parameter. Every use of one declaration is one parameter, described the first way
+    /// it's recorded.
     func record(_ descriptor: ParameterDescriptor) {
         state.withLock { state in
-            guard state.labels.insert(descriptor.label).inserted else { return }
+            guard state.keys.insert(descriptor.key).inserted else { return }
             state.parameters.append(descriptor)
         }
     }
@@ -108,12 +130,13 @@ internal final class ParameterCatalog: Sendable {
 
 extension ParameterDescriptor: Encodable {
     private enum CodingKeys: String, CodingKey {
-        case label, type, options, description
+        case key, label, type, options, description
         case defaultValue = "default", minimum, maximum, step
     }
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(key, forKey: .key)
         try container.encode(label, forKey: .label)
         switch kind {
         case .integer: try container.encode("integer", forKey: .type)

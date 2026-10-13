@@ -13,8 +13,9 @@ import { setupLighting } from "./lighting.js";
 const $ = (id) => document.getElementById(id);
 
 // The models and their parameters come from the model itself, listed once it has loaded. A
-// parameter is identified by its label within its model, and each model keeps its own values. Only
-// changed values are kept, by model; everything else has its default.
+// parameter is identified by an opaque key, which only has to agree with the model built along with
+// this page, and each model keeps its own values. Only changed values are kept, by model; everything
+// else has its default. Values aren't kept in the address, since a link would outlive the keys.
 let catalog, models, model;
 const changed = new Map();
 
@@ -39,7 +40,7 @@ function setUp(listing) {
 
     const hash = new URLSearchParams(location.hash.slice(1));
     model = models.find((m) => m.name === hash.get("model")) ?? models[0];
-    Object.assign(changedValues(model), valuesFromHash(hash, model));
+    writeHash(); // anything else in the address, such as values from an older link, doesn't apply
 
     const single = models.length === 1;
     const title = single ? models[0].title ?? humanize(models[0].name.split("/").pop()) : catalog.title ?? "Customizer";
@@ -98,10 +99,9 @@ function select(next) {
 }
 
 // The value a parameter of a model gets: a changed value made to fit it (clamped to its range, or its
-// default if it's not a value this parameter can take, as can happen with a hand-edited address), or
-// else its default
+// default if it's not a value this parameter can take), or else its default
 function valueFor(parameter, m = model) {
-    const value = changed.get(m.name)?.[parameter.label];
+    const value = changed.get(m.name)?.[parameter.key];
     if (value === undefined) return parameter.default;
     switch (parameter.type) {
         case "boolean":
@@ -123,7 +123,7 @@ function valueFor(parameter, m = model) {
 }
 
 function valuesFor(m) {
-    return Object.fromEntries(m.parameters.map((parameter) => [parameter.label, valueFor(parameter, m)]));
+    return Object.fromEntries(m.parameters.map((parameter) => [parameter.key, valueFor(parameter, m)]));
 }
 
 function buildKey(m) {
@@ -158,7 +158,7 @@ function field(parameter, index) {
             const toggle = document.createElement("label");
             toggle.className = "toggle";
             const input = Object.assign(document.createElement("input"), { type: "checkbox", id });
-            input.addEventListener("change", () => update(parameter.label, input.checked));
+            input.addEventListener("change", () => update(parameter.key, input.checked));
             toggle.append(input, document.createElement("span"));
             head.append(toggle);
             element.removeChild(control);
@@ -177,7 +177,7 @@ function field(parameter, index) {
                     const button = Object.assign(document.createElement("button"), {
                         type: "button", textContent: humanize(option),
                     });
-                    button.addEventListener("click", () => { setValue(option); update(parameter.label, option); });
+                    button.addEventListener("click", () => { setValue(option); update(parameter.key, option); });
                     group.append(button);
                     return [option, button];
                 });
@@ -188,7 +188,7 @@ function field(parameter, index) {
             } else {
                 const select = Object.assign(document.createElement("select"), { id });
                 for (const option of parameter.options) select.append(new Option(humanize(option), option));
-                select.addEventListener("change", () => update(parameter.label, select.value));
+                select.addEventListener("change", () => update(parameter.key, select.value));
                 control.append(select);
                 setValue = (value) => { select.value = value; };
             }
@@ -209,7 +209,7 @@ function field(parameter, index) {
                 range.setAttribute("aria-label", parameter.label);
                 range.addEventListener("input", () => {
                     number.value = range.value;
-                    update(parameter.label, Number(range.value));
+                    update(parameter.key, Number(range.value));
                 });
                 control.append(range);
             }
@@ -219,7 +219,7 @@ function field(parameter, index) {
                     return;
                 }
                 if (range) range.value = number.value;
-                update(parameter.label, Number(number.value));
+                update(parameter.key, Number(number.value));
             });
             control.append(number);
             if (parameter.type === "angle") {
@@ -230,63 +230,34 @@ function field(parameter, index) {
         }
         default: {
             const input = Object.assign(document.createElement("input"), { type: "text", id });
-            input.addEventListener("change", () => update(parameter.label, input.value));
+            input.addEventListener("change", () => update(parameter.key, input.value));
             control.append(input);
             setValue = (value) => { input.value = value; };
         }
     }
     setValue(valueFor(parameter));
-    controls.set(parameter.label, setValue);
+    controls.set(parameter.key, setValue);
     return element;
 }
 
-function update(label, value) {
-    changedValues(model)[label] = value;
+function update(key, value) {
+    changedValues(model)[key] = value;
     requestBuild();
-    writeHash();
 }
 
 $("reset").addEventListener("click", () => {
     changed.delete(model.name);
-    for (const parameter of model.parameters) controls.get(parameter.label)(parameter.default);
-    writeHash();
+    for (const parameter of model.parameters) controls.get(parameter.key)(parameter.default);
     requestBuild();
 });
 
-// The model on screen and its changed values are kept in the address, so a configured model can be
-// shared
-function valuesFromHash(hash, m) {
-    const result = {};
-    for (const [label, raw] of hash) {
-        if (label === "model" && models.length > 1) continue;
-        const parameter = m.parameters.find((p) => p.label === label);
-        if (!parameter) continue;
-        result[label] = parameter.type === "boolean" ? raw === "true"
-            : ["integer", "number", "angle"].includes(parameter.type) ? Number(raw) : raw;
-    }
-    return result;
-}
-
-// Safari allows only 100 address changes per 10 seconds and throws past that, and a dragged slider
-// changes values far faster. So the address changes at most every 250 ms, ending with the latest
-// values, and a failure to change it is never allowed to stop anything else.
-const hashInterval = 250;
-let lastHashWrite = 0, hashTimer = null;
-
+// The model on screen is kept in the address, so a link can open the customizer on a given tab
 function writeHash() {
-    if (hashTimer) return;
-    const wait = Math.max(0, lastHashWrite + hashInterval - performance.now());
-    hashTimer = setTimeout(() => {
-        hashTimer = null;
-        lastHashWrite = performance.now();
-        const entries = Object.entries(changed.get(model.name) ?? {});
-        if (model !== models[0]) entries.unshift(["model", model.name]);
-        try {
-            history.replaceState(null, "", entries.length ? `#${new URLSearchParams(entries)}` : location.pathname);
-        } catch (error) {
-            console.warn("Couldn't update the address:", error);
-        }
-    }, wait);
+    try {
+        history.replaceState(null, "", model !== models[0] ? `#${new URLSearchParams({ model: model.name })}` : location.pathname);
+    } catch (error) {
+        console.warn("Couldn't update the address:", error);
+    }
 }
 
 function humanize(name) {

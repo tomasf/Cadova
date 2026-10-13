@@ -19,6 +19,8 @@ private final class CapturedValue<T>: @unchecked Sendable {
 private struct ParametricBox: Geometry3D {
     @Parameter("Size") var size = 1.0
 
+    static var sizeKey: String { Self()._size.key }
+
     var body: any Geometry3D {
         Box(size)
     }
@@ -51,13 +53,13 @@ struct ParameterTests {
     }
 
     @Test func `Chosen values are parsed as each parameter's type`() {
+        @Parameter("Count") var count = 3
+        @Parameter("Finish") var finish = Finish.matte
+        @Parameter("Invalid") var invalid = 4
         var environment = EnvironmentValues.defaultEnvironment
-        environment.parameterValues = ["Count": "7", "Finish": "glossy", "Invalid": "xyz"]
+        environment.parameterValues = [_count.key: "7", _finish.key: "glossy", _invalid.key: "xyz"]
 
         environment.whileCurrent {
-            @Parameter("Count") var count = 3
-            @Parameter("Finish") var finish = Finish.matte
-            @Parameter("Invalid") var invalid = 4
             #expect(count == 7)
             #expect(finish == .glossy)
             #expect(invalid == 4) // A value that doesn't parse leaves the default
@@ -77,6 +79,21 @@ struct ParameterTests {
         #expect(listing.values.isEmpty)
     }
 
+    @Test func `Parameters are identified by their declaration, not their label`() {
+        let first = ParameterDescriptor.key(label: "Width", fileID: "Model/main.swift", line: 12, column: 6)
+        #expect(first == ParameterDescriptor.key(label: "Width", fileID: "Model/main.swift", line: 12, column: 6))
+        #expect(first != ParameterDescriptor.key(label: "Width", fileID: "Model/main.swift", line: 13, column: 6))
+        #expect(first != ParameterDescriptor.key(label: "Width", fileID: "Model/main.swift", line: 12, column: 7))
+        // A declaration in a function can be given different labels
+        #expect(first != ParameterDescriptor.key(label: "Depth", fileID: "Model/main.swift", line: 12, column: 6))
+        // Keys are opaque, so a customizer's page doesn't reveal the model's source
+        #expect(first.count == 32 && first.allSatisfy(\.isHexDigit))
+
+        @Parameter("Size") var size = 1.0
+        #expect(_size.key != ParametricBox.sizeKey)
+        #expect(ParametricBox().size == 1 && ParametricBox.sizeKey == ParametricBox.sizeKey)
+    }
+
     @Test func `Chosen values reach standalone models`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -85,10 +102,13 @@ struct ParameterTests {
         let builderValue = CapturedValue<Double>()
         let bodyVolume = CapturedValue<Double>()
 
-        await CustomizerRequest.$overridden.withValue(CustomizerRequest(values: ["Size": "5"])) {
+        // A separate declaration with the same label is a separate parameter, with its own value
+        let size = Parameter(wrappedValue: 1.0, "Size")
+        let request = CustomizerRequest(values: [size.key: "2", ParametricBox.sizeKey: "5"])
+
+        await CustomizerRequest.$overridden.withValue(request) {
             await Model(tempDir.appending(path: "model").path) {
-                @Parameter("Size") var size = 1.0
-                let _ = builderValue.value = size
+                let _ = builderValue.value = size.wrappedValue
 
                 ParametricBox().measuring { geometry, measurements in
                     let _ = bodyVolume.value = await measurements.volume
@@ -97,7 +117,7 @@ struct ParameterTests {
             }
         }
 
-        #expect(builderValue.value == 5)
+        #expect(builderValue.value == 2)
         #expect(bodyVolume.value?.equals(125, within: 1e-6) == true)
     }
 
@@ -110,17 +130,19 @@ struct ParameterTests {
 
         let jarDiameter = CapturedValue<Double>()
         let lidDiameter = CapturedValue<Double>()
-        let request = CustomizerRequest(model: "lid", values: ["Diameter": "75"], outputDirectory: outputDir.path)
+        let jarParameter = Parameter(wrappedValue: 60.0, "Diameter")
+        let lidParameter = Parameter(wrappedValue: 60.0, "Diameter")
+        let request = CustomizerRequest(model: "lid", values: [lidParameter.key: "75"], outputDirectory: outputDir.path)
 
         await CustomizerRequest.$overridden.withValue(request) {
             await Project(root: projectDir) {
                 await Model("jar", options: .format3D(.stl)) {
-                    @Parameter("Diameter") var diameter = 60.0
+                    let diameter = jarParameter.wrappedValue
                     let _ = jarDiameter.value = diameter
                     Cylinder(diameter: diameter, height: 80)
                 }
                 await Model("lid", options: .format3D(.stl)) {
-                    @Parameter("Diameter") var diameter = 60.0
+                    let diameter = lidParameter.wrappedValue
                     let _ = lidDiameter.value = diameter
                     Cylinder(diameter: diameter, height: 5)
                 }
@@ -139,7 +161,7 @@ struct ParameterTests {
         @Parameter("Tilt") var tilt = 15°
 
         #expect(_height.descriptor == ParameterDescriptor(
-            label: "Height", kind: .number, defaultValue: "20.0",
+            key: _height.key, label: "Height", kind: .number, defaultValue: "20.0",
             minimum: "10.0", maximum: "50.0", step: "0.5", description: "Plate height"
         ))
         #expect(_finish.descriptor.kind == .choice(["matte", "glossy"]))
@@ -169,8 +191,10 @@ struct ParameterTests {
 
         let catalog = await ParameterCatalog.collect(options: []) {
             await Model(tempDir.appending(path: "plate").path) {
+                // Every use of one declaration is one parameter, but a separate declaration is a
+                // separate parameter, even with the same label
                 Plate()
-                // The same label in the same model is the same parameter
+                Plate().translated(x: 100)
                 @Parameter("Width") var width = 40.0
                 Box(width)
             }
@@ -190,7 +214,9 @@ struct ParameterTests {
             ($0["name"] as? String ?? "", ($0["parameters"] as? [[String: Any]] ?? []).compactMap { $0["label"] as? String })
         })
         #expect(parameters["parts/peg"] == ["Count", "Finish"])
-        #expect(parameters[tempDir.appending(path: "plate").path] == ["Width", "Rounded", "Radius"])
+        #expect(parameters[tempDir.appending(path: "plate").path] == ["Width", "Rounded", "Radius", "Width"])
+        let keys = models.flatMap { ($0["parameters"] as? [[String: Any]] ?? []).compactMap { $0["key"] as? String } }
+        #expect(keys.count == 6 && Set(keys).count == 6)
 
         let peg = try #require(models.first { $0["name"] as? String == "parts/peg" })
         #expect(peg["title"] as? String == "Peg")

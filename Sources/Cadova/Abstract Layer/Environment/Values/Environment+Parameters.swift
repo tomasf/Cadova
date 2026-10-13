@@ -3,8 +3,8 @@ import Foundation
 internal extension EnvironmentValues {
     private static let parametersKey = Key("Cadova.Parameters")
 
-    /// The parameter values a customizer chose, by label, as strings that each parameter parses as
-    /// its own type.
+    /// The parameter values a customizer chose, by parameter key, as strings that each parameter
+    /// parses as its own type.
     var parameterValues: [String: String] {
         get { self[Self.parametersKey] as? [String: String] ?? [:] }
         set { self[Self.parametersKey] = newValue }
@@ -12,8 +12,8 @@ internal extension EnvironmentValues {
 
     /// Reads a parameter's value, or nil if no value was chosen or it isn't a valid value of the
     /// parameter's type.
-    func parameterValue<V: ParameterValue>(_ label: String, as type: V.Type = V.self) -> V? {
-        guard let string = parameterValues[label] else { return nil }
+    func parameterValue<V: ParameterValue>(_ key: String, label: String, as type: V.Type = V.self) -> V? {
+        guard let string = parameterValues[key] else { return nil }
         guard let value = V(parameterString: string) else {
             logger.warning("The value \"\(string)\" for parameter \"\(label)\" could not be interpreted as \(V.self). Using the default value instead.")
             return nil
