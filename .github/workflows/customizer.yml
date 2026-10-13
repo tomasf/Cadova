@@ -1,7 +1,7 @@
 name: customizer
 
 # Builds the test fixture's web customizer with the generate-customizer plugin, then tests the page
-# in Chromium and WebKit, on macOS, Linux and Windows. See Tests/Customizer/test_customizer.py.
+# in Chromium and WebKit on macOS and Linux, and in Chromium on Windows. See Tests/Customizer/test_customizer.py.
 
 on:
   push:
@@ -76,10 +76,18 @@ jobs:
       with:
         python-version: '3.13'
 
+    # Playwright's WebKit for Windows, which no visitor uses, since there's no Safari there, crashes
+    # running the model, so Windows tests Chromium only
+    - name: Pick the browsers
+      shell: bash
+      run: echo "BROWSERS=chromium${{ runner.os != 'Windows' && ' webkit' || '' }}" >> "$GITHUB_ENV"
+
     - name: Install Playwright
+      shell: bash
       run: |
         pip install playwright==1.48.0
-        playwright install --with-deps chromium webkit
+        playwright install --with-deps $BROWSERS
 
     - name: Test the page
-      run: python Tests/Customizer/test_customizer.py chromium webkit
+      shell: bash
+      run: python Tests/Customizer/test_customizer.py $BROWSERS
