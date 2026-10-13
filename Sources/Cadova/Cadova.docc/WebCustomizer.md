@@ -13,10 +13,6 @@ The model runs entirely in the visitor's browser, compiled to WebAssembly. There
 A customizer offers whatever parameters your model declares with ``Parameter``. Give each one a label, which is what the page calls it, and a default value. A range, a step and a description, wherever they make sense, help the page offer the right controls:
 
 ```swift
-enum Quality: String, CaseIterable, ParameterValue {
-    case draft, standard, fine
-}
-
 struct Scoop: Geometry3D {
     @Parameter("Volume", in: 20...100, step: 1, description: "How much the scoop holds, in milliliters")
     var volume = 30.0
@@ -31,6 +27,10 @@ struct Scoop: Geometry3D {
         // ...
     }
 }
+
+enum Quality: String, CaseIterable, ParameterValue {
+    case draft, standard, fine
+}
 ```
 
 Each type of parameter gets its own kind of control:
@@ -43,16 +43,14 @@ Each type of parameter gets its own kind of control:
 | A `CaseIterable` string enum | Buttons for up to four cases, a menu for more |
 | `String` | A text field |
 
-The page shows each parameter's label with its description below it. A parameter is identified by where it's declared, not by its label: every geometry that uses the same declaration shares one control and one value, and separate declarations get separate controls, even with the same label. That leaves you free to reword labels. When you build a model yourself, its parameters simply have their default values.
+A parameter is identified by where it's declared, not by its label, so you're free to reword labels. When you build a model yourself, its parameters have their default values.
 
 The page's heading and introduction come from the model's ``Metadata``:
 
 ```swift
-await Project {
-    await Model("scoop") {
-        Metadata(title: "Coffee Scoop", description: "A scoop that holds an exact amount of coffee.")
-        Scoop()
-    }
+await Model("scoop") {
+    Metadata(title: "Coffee Scoop", description: "A scoop that holds an exact amount of coffee.")
+    Scoop()
 }
 ```
 
@@ -123,13 +121,13 @@ Run the command from your package's directory:
 $ swift package generate-customizer
 ```
 
-The command is a SwiftPM plugin that comes with Cadova, so any package that depends on Cadova has it. The first time, it asks for two permissions: to connect to the network, to download Swift's WebAssembly SDK and Binaryen, which shrinks the result; and to write the customizer into your package. When there's no terminal to ask in, such as in CI, grant them with options instead:
+The command comes with Cadova. It asks for permission to download Swift's WebAssembly SDK and Binaryen, and to write the customizer into your package. Where there's no terminal to ask in, such as in CI, grant them with options instead:
 
 ```
 $ swift package --allow-network-connections all:443 --allow-writing-to-package-directory generate-customizer
 ```
 
-The first run also compiles Cadova and its dependencies for WebAssembly, which takes a few minutes. Later runs only rebuild what changed. The downloads and build products are kept in your package's `.build` directory.
+The first run compiles Cadova and its dependencies for WebAssembly, which takes a few minutes. Later runs only rebuild what changed.
 
 The command takes these options:
 
@@ -149,17 +147,7 @@ Then open `http://localhost:8000`. If a build fails, the page's build details sh
 
 ## Publishing
 
-Upload the whole generated folder to any static web host, including its scripts, `model.wasm`, `resources.json` and any resource files.
-
-`model.wasm` is about 18 MB, but it compresses well: about 6.6 MB with gzip and 4.8 MB with Brotli. Most hosts compress files on the fly, but check that yours does so for `.wasm` files, or visitors download the full size. The page also loads three.js, which draws the preview, and a small WASI library from the jsDelivr CDN, so visitors need to be able to reach it.
-
-When a visitor switches tabs, the page's address changes to match, after the `#`, so a link can open the customizer on a particular model. Parameter values aren't part of the address, since a link would outlive the version of the model it was made for.
-
-Loading and model builds run in a worker. Visitors can cancel either operation, or retry after a failure, without reloading the page or losing their settings. Each loading or building request stops after two minutes. Retrying reuses the compiled model and downloaded resources when they are available. The last successful preview stays visible, but downloading is disabled until a build matches the current settings.
-
-The model keeps running between builds, so like a reused ``ModelFileGenerator``, it remembers the geometry it has already built. When a visitor changes a parameter, any part of the model that the change doesn't affect is reused instead of built again, which can make a rebuild many times faster. Cancelling a build, or a model that crashes, starts the model over, without what it had built.
-
-Builds send the preview the model's meshes directly, without making a 3MF file. The file is made when a visitor downloads it, from the geometry the model has already built for the preview.
+Upload the whole generated folder to any static web host. `model.wasm` is about 18 MB but compresses to around 5 MB, so check that your host compresses `.wasm` files. The page loads three.js and a small WASI library from the jsDelivr CDN.
 
 ## Limitations
 
@@ -168,7 +156,7 @@ A model runs differently in a browser than on your computer, so a few things don
 - ``Text`` can only use fonts included as resources. Text that relies on system fonts fails to build.
 - ICU's data, which formats dates and numbers for different locales, is left out to save 34 MB. Code that needs it, such as `DateFormatter` and `NumberFormatter`, stops the build.
 - Models build on a single thread, so complex models take longer than they do natively.
-- A model that exceeds the browser worker's stack limit fails with an error. It does not fall back to running on the page's main thread, because that would block cancellation and the rest of the page.
+- The browser gives a model less stack space, so a model that builds natively can still run out of it in the browser and fail.
 
 ## See Also
 
