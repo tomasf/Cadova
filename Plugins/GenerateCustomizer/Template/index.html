@@ -25,6 +25,7 @@
     --grid: #ffffff;
     --model: #ffffff;
     --danger: #b42318;
+    --warning: #b54708;
     --wordmark-braces: #12141a;
     --wordmark-letters: #12141a;
     --on-accent: #fff;
@@ -41,6 +42,7 @@
       --accent: #f08a4b;
       --accent-soft: #3a2519;
       --danger: #f97066;
+      --warning: #fdb022;
       --wordmark-braces: #ff6347;
       --wordmark-letters: #f6f3ec;
       --on-accent: #000;
@@ -49,7 +51,7 @@
   }
   :root[data-theme="dark"] {
     --bg: #161614; --panel: #1f1f1d; --text: #ecebe7; --muted: #9c9a94; --line: #33322f;
-    --accent: #f08a4b; --accent-soft: #3a2519; --danger: #f97066;
+    --accent: #f08a4b; --accent-soft: #3a2519; --danger: #f97066; --warning: #fdb022;
     --wordmark-braces: #ff6347; --wordmark-letters: #f6f3ec; --on-accent: #000;
     color-scheme: dark;
   }
@@ -144,13 +146,20 @@
   button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
   #status { font-size: 13px; color: var(--danger); }
   #status[hidden] { display: none; }
-  #build-time { margin-top: 6px; font-variant-numeric: tabular-nums; }
+  #build-time, #memory { margin-top: 6px; font-variant-numeric: tabular-nums; }
+  #memory[hidden] { display: none; }
   details { font-size: 12.5px; color: var(--muted); }
-  details pre {
-    white-space: pre-wrap; word-break: break-word; max-height: 160px; overflow: auto; margin: 6px 0 0;
-    background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px;
-    font: 11.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  #log {
+    max-height: 240px; overflow: auto; margin: 8px 0 0;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;
+    font: 11.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
   }
+  #log:empty { display: none; }
+  /* A message that wraps is indented, so that it doesn't read as the next one */
+  #log > div { white-space: pre-wrap; overflow-wrap: anywhere; padding-left: 2ch; text-indent: -2ch; }
+  #log > div + div { margin-top: 2px; }
+  #log .warning { color: var(--warning); }
+  #log .error { color: var(--danger); }
 
   /* Floats over the model view, so it gets a translucent panel of its own */
   .credit {
@@ -224,9 +233,10 @@
         <button type="button" class="secondary" id="retry" hidden>Retry loading</button>
       </div>
       <details>
-        <summary>Build details</summary>
+        <summary>Details</summary>
         <div id="build-time">Not built yet</div>
-        <pre id="log"></pre>
+        <div id="memory" hidden></div>
+        <div id="log" role="log"></div>
       </details>
     </footer>
   </aside>

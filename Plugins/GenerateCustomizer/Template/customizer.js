@@ -311,6 +311,10 @@ const builder = new ModelBuilder(import.meta.url, (data) => {
             ? `Loading model… ${megabytes(data.received)} of ${megabytes(data.total)} MB`
             : `Loading model… ${megabytes(data.received)} MB`;
         if (data.total) $("progress-bar").style.width = `${(100 * data.received) / data.total}%`;
+    } else if (data.type === "memory") {
+        const megabytes = (bytes) => Math.round(bytes / 1e6).toLocaleString();
+        $("memory").textContent = `Memory: ${megabytes(data.memoryBytes)} MB, of which cache about ${megabytes(data.cacheBytes)} MB`;
+        $("memory").hidden = false;
     } else if (data.type === "compiling") {
         $("overlay-text").textContent = "Preparing model…";
         $("progress-bar").style.width = "100%";
@@ -352,7 +356,7 @@ function failed(error) {
     $("retry").textContent = isReady ? "Retry build" : "Retry loading";
     $("retry").hidden = false;
     $("build-time").textContent = error instanceof CancelledError ? "Cancelled" : "Failed";
-    $("log").textContent = (error.log ?? [error.message]).join("\n");
+    buildLog.show(error.log ?? [error.message]);
     setStatus(error.message, true);
     if (!shownModel) {
         $("overlay-text").textContent = error.message;
@@ -447,7 +451,7 @@ $("retry").addEventListener("click", () => {
 queueMicrotask(initialize);
 
 function display({ fileName, data, log, exitCode, milliseconds, parameters }) {
-    $("log").textContent = log.map((line) => line.replace(/^\d{4}-\d{2}-\d{2}T\S+ /, "")).join("\n");
+    buildLog.show(log);
     if (data) {
         $("retry").hidden = true;
         downloadable = { model, parameters };
@@ -461,6 +465,28 @@ function display({ fileName, data, log, exitCode, milliseconds, parameters }) {
         setStatus(exitCode === 0 ? "The model built to nothing." : "The model failed to build. See the build details.", true);
     }
 }
+
+// What the model wrote while building, a message per line. Most messages are informational, so only
+// warnings and errors are labeled, and timestamps are left out.
+const buildLog = {
+    show(lines) {
+        $("log").replaceChildren(...lines.map((line) => {
+            const text = line.replace(/^\d{4}-\d{2}-\d{2}T\S+ /, "");
+            const [, level, message] = text.match(/^(?:\S+ )?\[(DEBUG|INFO|WARNING|ERROR)\] (.*)$/s) ?? [null, null, text];
+            const element = document.createElement("div");
+            if (level === "WARNING") {
+                element.className = "warning";
+                element.textContent = `Warning: ${message}`;
+            } else if (level === "ERROR" || text.startsWith("Crashed:")) {
+                element.className = "error";
+                element.textContent = level ? `Error: ${message}` : message;
+            } else {
+                element.textContent = message;
+            }
+            return element;
+        }));
+    },
+};
 
 // Errors show in the sidebar. How long a successful build took goes in the build details.
 function setStatus(text, isError = false) {
@@ -490,7 +516,7 @@ $("download").addEventListener("click", async () => {
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) {
-        $("log").textContent = (error.log ?? [error.message]).join("\n");
+        buildLog.show(error.log ?? [error.message]);
         setStatus(error.message, true);
     } finally {
         exporting = false;

@@ -65,6 +65,11 @@ function resourceDirectory(resources) {
 export class ModelSession {
     static suspendedStatus = 51920;
 
+    // About how much memory a model's cache may keep between builds. Browsers give WebAssembly a
+    // few gigabytes at most, and its memory never shrinks, so this caps how far a long session
+    // grows, while leaving room for what a build uses on top of it.
+    static cacheByteLimit = 512 * 1024 * 1024;
+
     constructor(compiledModule, resources) {
         this.compiledModule = compiledModule;
         this.resources = resources;
@@ -91,6 +96,30 @@ export class ModelSession {
     // building its preview, its geometry is already cached.
     async export(model, values) {
         return this.run({ model, values: ModelSession.stringValues(values), output: "/io" });
+    }
+
+    // Prunes the model's cache to about the given size, keeping what it used most recently. Done
+    // after a result has been handed on, so that it doesn't delay one. Pruned geometry is built
+    // again if a later build needs it.
+    pruneCache(byteCount = ModelSession.cacheByteLimit) {
+        const prune = this.instance?.exports.cadova_customizer_prune_cache;
+        if (!prune) return;
+        try {
+            prune(byteCount);
+        } catch {
+            this.instance = null; // the next request starts a new instance
+        }
+    }
+
+    // An estimate of how much memory the model's cache takes up, in bytes, or null without a session
+    cacheByteCount() {
+        const count = this.instance?.exports.cadova_customizer_cache_byte_count;
+        try {
+            return count ? count() : null;
+        } catch {
+            this.instance = null;
+            return null;
+        }
     }
 
     // Parameter values as strings, which each parameter parses as its own type

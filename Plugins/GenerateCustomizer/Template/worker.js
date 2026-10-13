@@ -24,6 +24,12 @@ self.onmessage = async ({ data }) => {
         } else if (data.type === "build" || data.type === "export") {
             const result = await session[data.type](data.model, data.parameters);
             self.postMessage({ type: "built", id: data.id, ...result }, result.data ? [result.data.buffer] : []);
+            session.pruneCache();
+            // For the build details: how much memory the model uses, once its cache is pruned
+            const cacheBytes = session.cacheByteCount();
+            if (cacheBytes !== null) {
+                self.postMessage({ type: "memory", memoryBytes: session.instance.exports.memory.buffer.byteLength, cacheBytes });
+            }
         }
     } catch (error) {
         self.postMessage({ type: "error", id: data.id, message: String(error?.message ?? error) });

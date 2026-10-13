@@ -65,24 +65,42 @@ internal final class CustomizerSession: @unchecked Sendable {
             logger.error("A customizer request arrived without a customizer session")
             return EXIT_FAILURE
         }
+        return runToCompletion { await session.handleRequest() } ?? EXIT_FAILURE
+    }
+
+    /// Prunes the session's cache to about the given size, removing what was used least recently. The
+    /// customizer does this once it has a request's output, so that pruning doesn't delay it.
+    static func pruneCache(toApproximateByteCount byteCount: Int) {
+        guard let session = current else { return }
+        runToCompletion { await session.context.pruneCache(toApproximateByteCount: byteCount) }
+    }
+
+    /// An estimate of how much memory the session's cache takes up, in bytes.
+    static var approximateCacheByteCount: Int {
+        guard let session = current else { return 0 }
+        return runToCompletion { await session.context.approximateCacheByteCount } ?? 0
+    }
+
+    // The exports are called from outside any task, so they run the executor until their work is done
+    @discardableResult
+    private static func runToCompletion<T: Sendable>(_ operation: @escaping @Sendable () async -> T) -> T? {
         isWaiting = false
         defer {
             isWaiting = true
             fflush(nil)
         }
 
-        // The export is called from outside any task, so run the executor here until the request is done
-        let outcome = Outcome()
+        let outcome = Outcome<T>()
         Task {
-            outcome.status = await session.handleRequest()
+            outcome.value = await operation()
         }
         do {
-            try MainActor.executor.runUntil { outcome.status != nil }
+            try MainActor.executor.runUntil { outcome.value != nil }
         } catch {
-            logger.error("Failed to run the customizer request: \(error.descriptiveString)")
-            return EXIT_FAILURE
+            logger.error("Failed to run a customizer session's work: \(error.descriptiveString)")
+            return nil
         }
-        return outcome.status ?? EXIT_FAILURE
+        return outcome.value
     }
 
     private func handleRequest() async -> Int32 {
@@ -93,8 +111,8 @@ internal final class CustomizerSession: @unchecked Sendable {
         return ProjectBuild.reportSuccess(failureCount: failures) ? EXIT_SUCCESS : EXIT_FAILURE
     }
 
-    private final class Outcome: @unchecked Sendable {
-        var status: Int32?
+    private final class Outcome<T>: @unchecked Sendable {
+        var value: T?
     }
 }
 
@@ -103,5 +121,17 @@ internal final class CustomizerSession: @unchecked Sendable {
 @_cdecl("cadova_customizer_request")
 func cadovaCustomizerRequest() -> Int32 {
     CustomizerSession.handleNextRequest()
+}
+
+@_expose(wasm, "cadova_customizer_prune_cache")
+@_cdecl("cadova_customizer_prune_cache")
+func cadovaCustomizerPruneCache(_ byteCount: Int) {
+    CustomizerSession.pruneCache(toApproximateByteCount: byteCount)
+}
+
+@_expose(wasm, "cadova_customizer_cache_byte_count")
+@_cdecl("cadova_customizer_cache_byte_count")
+func cadovaCustomizerCacheByteCount() -> Int {
+    CustomizerSession.approximateCacheByteCount
 }
 #endif

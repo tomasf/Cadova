@@ -98,6 +98,11 @@ export class ModelBuilder {
             if (this.worker === worker) this.fail(new Error("Couldn't read the model worker's response. Please retry."));
         };
         worker.onmessage = ({ data }) => {
+            // Reported after a request has finished, so it doesn't belong to one
+            if (data.type === "memory") {
+                if (this.worker === worker) this.onProgress(data);
+                return;
+            }
             // Messages already queued when a worker was stopped must not finish a newer request.
             if (this.worker !== worker || data.id !== this.pending?.id) return;
             switch (data.type) {

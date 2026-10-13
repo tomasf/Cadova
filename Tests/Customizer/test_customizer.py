@@ -69,7 +69,7 @@ class CustomizerPage:
         """, timeout=TIMEOUT)
         error = self.page.locator("#status").text_content()
         if error:
-            log = self.page.locator("#log").text_content()
+            log = self.page.locator("#log").inner_text()
             raise AssertionError(f"The build failed: {error}\n{log}")
 
     def rebuild(self, action):
@@ -1416,7 +1416,15 @@ def test_model_session(browser, base_url):
             builds.push({ model, exitCode: kept.exitCode, sameInstance: session.instance === instance,
                 kept: encode(kept.data), fresh: encode(fresh.data) });
         }
-        return { listed: listed.catalog !== null, suspended: instance !== null, builds };
+        // Pruning empties the cache down to its limit, and what's pruned is built again when needed
+        const cachedBytes = session.cacheByteCount();
+        session.pruneCache(0);
+        const prunedBytes = session.cacheByteCount();
+        const rebuilt = await session.build("plate", { Width: 55 });
+        const fresh = await new ModelSession(module, resources).build("plate", { Width: 55 });
+        const pruning = { cachedBytes, prunedBytes, rebuiltBytes: session.cacheByteCount(),
+            sameInstance: session.instance === instance, matches: encode(rebuilt.data) === encode(fresh.data) };
+        return { listed: listed.catalog !== null, suspended: instance !== null, builds, pruning };
     }''')
     check(result["listed"] and result["suspended"], "Listing the parameters didn't leave the model's instance running")
     for build in result["builds"]:
@@ -1427,6 +1435,11 @@ def test_model_session(browser, base_url):
             check(build["kept"] is None, f"The kept instance built {name}, but a new one didn't")
             continue
         check(build["kept"] == build["fresh"], f"The kept instance built {name} differently from a new instance")
+    pruning = result["pruning"]
+    check(pruning["cachedBytes"] > 0, f"The model's cache reported no size after building: {pruning}")
+    check(pruning["prunedBytes"] == 0, f"Pruning the cache to nothing left some of it: {pruning}")
+    check(pruning["rebuiltBytes"] > 0 and pruning["sameInstance"], f"Building after pruning didn't refill the same instance's cache: {pruning}")
+    check(pruning["matches"], "Building after pruning made a different preview from a new instance")
     check(not page.errors, f"The model session had page errors: {page.errors}")
     page.page.context.close()
 
