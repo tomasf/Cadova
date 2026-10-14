@@ -826,6 +826,7 @@ def test_navigation(browser, base_url):
             if (extra.legacyDeltaX !== undefined) Object.defineProperty(event,"wheelDeltaX",{value:extra.legacyDeltaX});
             canvas.dispatchEvent(event); return event.defaultPrevented;
         };
+        const touch = {pointerType:"touch"};
         reset();
         pointer("pointerdown",1,210,160,{shiftKey:true}); pointer("pointermove",1,240,170);
         const axisLock = controls.drag.axis === "x" && controls.drag.delta.y === 0;
@@ -848,6 +849,19 @@ def test_navigation(browser, base_url):
         await new Promise(resolve => setTimeout(resolve,80));
         pointer("pointerup",1,230,175);
         const pausedRelease = controls.inertia === null;
+        // A finger that stops before it lifts often sends no more moves. The pause still stops it.
+        reset();
+        const frame = () => new Promise(resolve => setTimeout(resolve,16));
+        pointer("pointerdown",1,210,160,touch);
+        for (let x=230;x<=290;x+=20) { await frame(); pointer("pointermove",1,x,160,touch); }
+        await new Promise(resolve => setTimeout(resolve,40));
+        pointer("pointerup",1,290,160,touch);
+        const stoppedRelease = controls.inertia === null;
+        reset();
+        pointer("pointerdown",1,210,160,touch);
+        for (let x=230;x<=290;x+=20) { await frame(); pointer("pointermove",1,x,160,touch); }
+        pointer("pointerup",1,290,160,touch);
+        const flingRelease = controls.inertia !== null;
         reset();
         pointer("pointerdown",1,210,160); pointer("pointermove",1,230,175);
         pointer("pointercancel",1,230,175);
@@ -876,7 +890,6 @@ def test_navigation(browser, base_url):
         const pinchAnchor = pixel(controls.pinch.state.pivot).distanceTo(offCenter);
         controls.finishPinch(false);
 
-        const touch = {pointerType:"touch"};
         function two() { reset(); pointer("pointerdown",11,190,160,touch); pointer("pointerdown",12,230,160,touch); }
         two();
         const touchPivot = controls.drag.state.pivot.clone();
@@ -891,13 +904,23 @@ def test_navigation(browser, base_url):
         const coastPivot = controls.inertia.state.pivot.clone();
         controls.update(0); controls.update(1000/60);
         const pinchCoastAnchor = pixel(coastPivot).distanceTo(center);
+        // Fingers rarely lift at once. The one left over from a pinch doesn't orbit, or fling, the view.
+        two(); const staggerQuaternion = camera.quaternion.clone();
+        pointer("pointermove",11,180,160,touch); pointer("pointermove",12,240,160,touch);
+        pointer("pointerup",11,180,160,touch);
+        pointer("pointermove",12,260,175,touch); pointer("pointermove",12,280,190,touch);
+        pointer("pointerup",12,280,190,touch);
+        for (let i=0;i<=30;i++) controls.update(i*1000/60);
+        const staggeredLift = Math.abs(camera.quaternion.dot(staggerQuaternion)) > 1-1e-10;
         two(); const twistDistance = camera.position.distanceTo(controls.drag.state.pivot);
         for (let i=1;i<=9;i++) {
             const a=i*Math.PI/18;
             pointer("pointermove",11,210-20*Math.cos(a),160-20*Math.sin(a),touch);
             pointer("pointermove",12,210+20*Math.cos(a),160+20*Math.sin(a),touch);
         }
-        const twist = controls.drag.gestureMode === "roll" && Math.abs(camera.quaternion.dot(quaternion)) < 0.8;
+        // Twisting doesn't roll the view. WebKit rounds the contacts to whole pixels, which can read as
+        // a slight pinch, so only the camera's orientation is checked.
+        const twistIgnored = Math.abs(camera.quaternion.dot(quaternion)) > 1-1e-10;
         const twistDistanceRatio = camera.position.distanceTo(controls.drag.state.pivot)/twistDistance;
         reset();
         const gesture = (type,scale,rotation,documentTarget=false) => {
@@ -905,12 +928,14 @@ def test_navigation(browser, base_url):
             Object.assign(event,{scale,rotation}); (documentTarget ? document : canvas).dispatchEvent(event);
         };
         pointer("pointermove",1,210,160);
+        const safariStart = camera.position.clone(), safariQuaternion = camera.quaternion.clone();
         gesture("gesturestart",1,0); gesture("gesturechange",1.01,15);
-        const safariRoll = controls.gesture.gestureMode === "roll";
+        const safariTwistIgnored = !controls.gesture.zooming && camera.position.distanceTo(safariStart) === 0
+            && Math.abs(camera.quaternion.dot(safariQuaternion)) > 1-1e-10;
         const safariPose = camera.position.clone(); wheel({deltaY:-10,ctrlKey:true});
         const noDuplicatePinch = camera.position.distanceTo(safariPose) === 0;
         gesture("gestureend",1.01,15);
-        const safariCoast = controls.inertia?.motion === "roll";
+        const safariNoCoast = controls.inertia === null;
         reset(); gesture("gesturestart",1,0,true);
         before = camera.position.distanceTo(controls.gesture.state.pivot);
         gesture("gesturechange",2,1,true);
@@ -923,9 +948,9 @@ def test_navigation(browser, base_url):
         canvas.remove(); mesh.geometry.dispose(); mesh.material.dispose();
         return {pivot:pivot.toArray(),orbitPosition,orbitAnchor,drift,overPole,panPixel,panOrientation,zoomRatio,zoomAnchor,
             minimum,maximum,keepsRoll,sixty,oneTwenty,noSlowGlide,axisLock,marker,markerHidden,quickGlide,coastMoved,grabStopsGlide,
-            altPan,pausedRelease,cancelStops,wheelPrevented,mouseZoom,pixelMouseZoom,nativeMouseZoom,trackpadPan,modifierMomentum,
-            pinchZoom,pinchAnchor,touchPan,touchPinch,touchAnchor,pinchRelease,pinchCoastAnchor,twist,twistDistanceRatio,
-            safariRoll,noDuplicatePinch,safariCoast,safariPinch,disposed};
+            altPan,pausedRelease,stoppedRelease,flingRelease,cancelStops,wheelPrevented,mouseZoom,pixelMouseZoom,nativeMouseZoom,trackpadPan,modifierMomentum,
+            pinchZoom,pinchAnchor,touchPan,touchPinch,touchAnchor,pinchRelease,pinchCoastAnchor,staggeredLift,twistIgnored,twistDistanceRatio,
+            safariTwistIgnored,noDuplicatePinch,safariNoCoast,safariPinch,disposed};
     }''')
     def close(actual, expected, tolerance=1e-6):
         return all(abs(a-b) < tolerance for a,b in zip(actual,expected))
@@ -942,8 +967,8 @@ def test_navigation(browser, base_url):
           and abs(result["sixty"]["speed"]-result["oneTwenty"]["speed"]) < 1e-6
           and result["sixty"]["stopped"] and result["oneTwenty"]["stopped"] and result["noSlowGlide"],
           f"Inertia decay/thresholds differ from native or frame rate: {result}")
-    for name in ["axisLock","marker","markerHidden","quickGlide","coastMoved","grabStopsGlide","altPan","pausedRelease","cancelStops","wheelPrevented",
-                 "pinchRelease","twist","safariRoll","noDuplicatePinch","safariCoast","disposed"]:
+    for name in ["axisLock","marker","markerHidden","quickGlide","coastMoved","grabStopsGlide","altPan","pausedRelease","stoppedRelease","flingRelease","cancelStops",
+                 "wheelPrevented","pinchRelease","staggeredLift","twistIgnored","safariTwistIgnored","noDuplicatePinch","safariNoCoast","disposed"]:
         check(result[name], f"Navigation input regression ({name}): {result}")
     check(result["nativeMouseZoom"] is not None, f"An accelerated mouse wheel panned instead of zooming: {result}")
     check(abs(result["mouseZoom"]-0.904837418) < 1e-6 and abs(result["pixelMouseZoom"]-0.904837418) < 1e-6 and abs(result["nativeMouseZoom"]-0.904837418) < 1e-6
@@ -952,7 +977,7 @@ def test_navigation(browser, base_url):
     check(abs(result["pinchZoom"]-0.904837418) < 1e-6 and result["pinchAnchor"] < 1e-6
           and close(result["touchPan"],[10,15]) and abs(result["touchPinch"]-0.5) < 1e-6 and result["touchAnchor"] < 1e-6 and result["pinchCoastAnchor"] < 1e-6
           and abs(result["twistDistanceRatio"]-1) < 1e-6 and abs(result["safariPinch"]-0.5) < 1e-6,
-          f"Multitouch pan, pinch or twist is incorrect: {result}")
+          f"Multitouch pan or pinch is incorrect, or twisting changed the view: {result}")
     check(not page.errors, f"Navigation errors: {page.errors}")
     page.page.context.close()
 
@@ -1143,8 +1168,12 @@ def test_axes(browser, base_url):
     check(abs(corner["x"] - viewer["x"] - 16) < 1 and
           abs(viewer["y"] + viewer["height"] - corner["y"] - corner["height"] - 16) < 1,
           "The indicator isn't anchored at the mobile viewer's bottom-left")
+    # On a phone, Download sits in a bar right below the model view, and the credit below the settings
     download = page.page.locator("#download").bounding_box()
-    check(corner["x"] + corner["width"] <= download["x"], "The mobile indicator overlaps Download")
+    check(download["y"] >= viewer["y"] + viewer["height"] - 1, "Download isn't below the mobile model view")
+    settings = page.page.locator("aside").bounding_box()
+    credit = page.page.locator(".credit").bounding_box()
+    check(credit["y"] >= settings["y"] + settings["height"] - 1, "The credit isn't below the mobile settings")
     page.page.emulate_media(color_scheme="dark")
     expect(indicator).to_be_visible()
 

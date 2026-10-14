@@ -2,25 +2,37 @@ import * as THREE from "three";
 
 const worldUp = new THREE.Vector3(0, 0, 1);
 
+// The speed of a drag when it's released. A finger that stops before it lifts often sends no more
+// moves, which would leave its last speed to fling the view, so the speed fades out over the time
+// since the last move: a release within a frame of it keeps it all, and one 40 ms later none.
 class VelocityTracker {
-    constructor() {
-        this.last = new THREE.Vector4(0,0,0,0);
+    static window = 50; // milliseconds of movement the speed is measured over
+    static fade = [16, 40]; // milliseconds since the last move over which the speed fades out
+
+    // A drag starts at rest, where it's begun
+    constructor(now = performance.now()) {
+        this.samples = [{ delta: new THREE.Vector4(0,0,0,0), time: now }];
         this.velocity = new THREE.Vector4(0,0,0,0);
-        this.time = performance.now();
     }
     record(delta, now = performance.now()) {
-        const dt = Math.max((now - this.time) / 1000, 1 / 60);
-        this.velocity.multiplyScalar(0.4).addScaledVector(delta.clone().sub(this.last), 0.6 / dt);
-        this.last.copy(delta);
-        this.time = now;
+        this.samples.push({ delta: delta.clone(), time: now });
+        while (this.samples.length > 2 && now - this.samples[1].time > VelocityTracker.window) this.samples.shift();
+        // The speed of the movement itself, ending at its last sample. It always reaches back at least
+        // one sample, so moves that arrive further apart than the window still have a speed.
+        const first = this.samples.find(sample => now - sample.time <= VelocityTracker.window && sample.time < now)
+            ?? this.samples.at(-2);
+        const seconds = Math.max(now - first.time, 1000 / 240) / 1000;
+        this.velocity = delta.clone().sub(first.delta).divideScalar(seconds);
     }
     release(now = performance.now()) {
-        return now - this.time <= 60 ? this.velocity.clone() : new THREE.Vector4(0,0,0,0);
+        const [start, end] = VelocityTracker.fade;
+        const since = now - this.samples.at(-1).time;
+        return this.velocity.clone().multiplyScalar(THREE.MathUtils.clamp(1 - (since - start) / (end - start), 0, 1));
     }
 }
 
 // Cadova Viewer's turntable and rigid drag-start transforms, in CSS pixels (y down).
-// Orbit has no pole clamp, and preserves an existing roll. Picking runs once per grab/zoom burst.
+// Orbit has no pole clamp, and keeps the view upright. Picking runs once per grab/zoom burst.
 export class CameraNavigator {
     constructor(camera, element) {
         this.camera = camera;
@@ -76,8 +88,6 @@ export class CameraNavigator {
             const yaw = new THREE.Quaternion().setFromAxisAngle(worldUp, -delta.x * speed);
             const pitch = new THREE.Quaternion().setFromAxisAngle(state.right.clone().applyQuaternion(yaw), -delta.y * speed);
             rotation.copy(pitch).multiply(yaw);
-        } else if (motion === "roll" || motion === "touch") {
-            rotation.setFromAxisAngle(state.forward, delta.w);
         }
         camera.quaternion.copy(rotation).multiply(state.quaternion);
         camera.position.copy(state.position).sub(state.pivot).applyQuaternion(rotation).add(state.pivot);
@@ -134,7 +144,6 @@ export class CameraNavigator {
             if (Math.hypot(velocity.x, velocity.y) >= 12) { speed.x = velocity.x; speed.y = velocity.y; }
         }
         if ((motion === "zoom" || motion === "touch") && Math.abs(velocity.z) >= 0.5) speed.z = velocity.z;
-        if ((motion === "roll" || motion === "touch") && Math.abs(velocity.w) >= 0.25) speed.w = velocity.w;
         if (speed.length()) this.inertia = { state, delta: delta.clone(), velocity: speed, motion, time: null };
     }
     update(time = performance.now()) {
@@ -146,14 +155,13 @@ export class CameraNavigator {
         glide.velocity.multiplyScalar(Math.pow(0.95, dt * 60));
         if (Math.hypot(glide.velocity.x, glide.velocity.y) < 4) glide.velocity.x = glide.velocity.y = 0;
         if (Math.abs(glide.velocity.z) < 0.05) glide.velocity.z = 0;
-        if (Math.abs(glide.velocity.w) < 0.08) glide.velocity.w = 0;
         this.apply(glide.state, glide.delta, glide.motion);
         if (!glide.velocity.length()) this.inertia = null;
     }
 }
 
 // Pointer Events cover mice, pens and touch screens. Trackpads arrive as precise wheel events,
-// Ctrl+wheel pinches, or Safari's scale/rotation gestures. OS scroll momentum already supplies pan
+// Ctrl+wheel pinches, or Safari's scale gestures. OS scroll momentum already supplies pan
 // inertia, so it must not get a second glide here.
 export class ViewportControls extends CameraNavigator {
     constructor(camera, element) {
@@ -271,9 +279,7 @@ export class ViewportControls extends CameraNavigator {
         this.drag = { state: this.begin(center), start: center, delta: new THREE.Vector4(0,0,0,0), tracker: new VelocityTracker(),
             motion: multi ? "touch" : pan ? "pan" : "orbit", touch, multi,
             lockAxis: !touch && !pan && event.shiftKey, axis: null,
-            distance: multi ? Math.max(points[0].distanceTo(points[1]), 1) : 0,
-            angle: multi ? Math.atan2(points[1].y - points[0].y, points[1].x - points[0].x) : 0,
-            rotation: 0, gestureMode: null };
+            distance: multi ? Math.max(points[0].distanceTo(points[1]), 1) : 0, zooming: false };
     }
     pointerMove(event) {
         const point = this.point(event);
@@ -294,11 +300,7 @@ export class ViewportControls extends CameraNavigator {
         if (drag.axis === "x") drag.delta.y = 0;
         if (drag.axis === "y") drag.delta.x = 0;
         if (drag.multi) {
-            const angle = Math.atan2(points[1].y - points[0].y, points[1].x - points[0].x);
-            drag.rotation += Math.atan2(Math.sin(angle - drag.angle), Math.cos(angle - drag.angle));
-            drag.angle = angle;
-            const logZoom = Math.log(Math.max(points[0].distanceTo(points[1]), 1) / drag.distance);
-            this.setGestureDelta(drag, logZoom, -drag.rotation);
+            this.setGestureZoom(drag, Math.log(Math.max(points[0].distanceTo(points[1]), 1) / drag.distance));
         }
         this.element.style.cursor = drag.touch ? "" : "grabbing";
         if (drag.motion === "orbit" && Math.hypot(drag.delta.x, drag.delta.y) > 0) this.showPivot(drag.state.pivot);
@@ -306,12 +308,11 @@ export class ViewportControls extends CameraNavigator {
         if (drag.multi) { drag.dirty = true; drag.sampleTime = performance.now(); }
         else drag.tracker.record(drag.delta);
     }
-    setGestureDelta(gesture, logZoom, rotation) {
-        if (!gesture.gestureMode && (Math.abs(logZoom) >= 0.02 || Math.abs(rotation) >= THREE.MathUtils.degToRad(3))) {
-            gesture.gestureMode = Math.abs(rotation) / THREE.MathUtils.degToRad(3) > Math.abs(logZoom) / 0.02 ? "roll" : "zoom";
-        }
-        gesture.delta.z = gesture.gestureMode === "zoom" ? logZoom : 0;
-        gesture.delta.w = gesture.gestureMode === "roll" ? rotation : 0;
+    // A pinch zooms once it has spread or closed enough to mean it, so that a two-finger pan doesn't
+    // zoom as well. Twisting does nothing: rolling the view was too easy to do by accident.
+    setGestureZoom(gesture, logZoom) {
+        if (Math.abs(logZoom) >= 0.02) gesture.zooming = true;
+        gesture.delta.z = gesture.zooming ? logZoom : 0;
     }
     pointerUp(event) {
         if (!this.pointers.has(event.pointerId)) return;
@@ -321,12 +322,18 @@ export class ViewportControls extends CameraNavigator {
         this.sampleTouchVelocity();
         this.pointers.delete(event.pointerId);
         if (this.element.hasPointerCapture(event.pointerId)) this.element.releasePointerCapture(event.pointerId);
-        if (this.pointers.size) {
-            if (drag.multi) this.pendingTouch = drag;
+        if (this.pointers.size >= 2) {
             this.startPointers(event);
+        } else if (this.pointers.size) {
+            // Fingers rarely lift at the same moment, so a finger left over from a pinch doesn't move
+            // the view: its own movement as it lifts would orbit, and fling, the model. The pinch
+            // glides on as it was moving when its first finger lifted, once the last one does.
+            if (drag?.multi) this.pendingTouch = { drag, velocity: drag.tracker.release() };
+            this.drag = null;
         } else {
-            const released = this.pendingTouch && !drag.delta.length() ? this.pendingTouch : drag;
-            this.startInertia(released.state, released.delta, released.tracker.release(), released.motion);
+            const pending = this.pendingTouch;
+            if (pending) this.startInertia(pending.drag.state, pending.drag.delta, pending.velocity, pending.drag.motion);
+            else if (drag) this.startInertia(drag.state, drag.delta, drag.tracker.release(), drag.motion);
             this.drag = this.pendingTouch = null;
             this.element.style.cursor = "";
         }
@@ -403,17 +410,16 @@ export class ViewportControls extends CameraNavigator {
             this.scroll = null;
             const point = this.cursor?.clone() ?? new THREE.Vector2(rect.left + rect.width / 2, rect.top + rect.height / 2);
             this.gesture = { state: this.begin(point), delta: new THREE.Vector4(0,0,0,0), tracker: new VelocityTracker(),
-                scale: event.scale || 1, rotation: event.rotation || 0, gestureMode: null };
+                scale: event.scale || 1, zooming: false };
         } else if (event.type === "gesturechange" && this.gesture) {
             const gesture = this.gesture;
-            this.setGestureDelta(gesture, Math.log(Math.max(event.scale, 0.01) / gesture.scale),
-                -THREE.MathUtils.degToRad(event.rotation - gesture.rotation));
-            this.apply(gesture.state, gesture.delta, gesture.gestureMode || "zoom");
+            this.setGestureZoom(gesture, Math.log(Math.max(event.scale, 0.01) / gesture.scale));
+            this.apply(gesture.state, gesture.delta, "zoom");
             gesture.tracker.record(gesture.delta, now);
         } else if (event.type === "gestureend") {
             if (this.gesture) {
                 const gesture = this.gesture;
-                this.startInertia(gesture.state, gesture.delta, gesture.tracker.release(now), gesture.gestureMode || "zoom");
+                this.startInertia(gesture.state, gesture.delta, gesture.tracker.release(now), "zoom");
             }
             this.gesture = null;
             this.safariEnded = now;
