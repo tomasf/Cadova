@@ -24,7 +24,9 @@ struct EdgeProfileSliverRegressionTests {
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
         let mesh = try await context.result(for: result.node).concrete.meshGL()
+        // Both are converted from the mesh on every access, so read them once
         let verts = mesh.vertices
+        let triangles = mesh.triangles
         func normal(_ t: MeshTriangle) -> Vector3D {
             let a = verts[t.a]
             let n = (verts[t.b] - a) × (verts[t.c] - a)
@@ -32,7 +34,7 @@ struct EdgeProfileSliverRegressionTests {
             return m > 0 ? n / m : .zero
         }
         var edgeMap: [Int64: [Int]] = [:]
-        for (ti, t) in mesh.triangles.enumerated() {
+        for (ti, t) in triangles.enumerated() {
             for (a, b) in [(t.a, t.b), (t.b, t.c), (t.c, t.a)] {
                 edgeMap[Int64(min(a, b)) << 32 | Int64(max(a, b)), default: []].append(ti)
             }
@@ -40,7 +42,7 @@ struct EdgeProfileSliverRegressionTests {
         let thresh = cos(thresholdDegrees * .pi / 180)
         var count = 0
         for (_, list) in edgeMap where list.count == 2 {
-            if normal(mesh.triangles[list[0]]) ⋅ normal(mesh.triangles[list[1]]) < thresh { count += 1 }
+            if normal(triangles[list[0]]) ⋅ normal(triangles[list[1]]) < thresh { count += 1 }
         }
         return count
     }
