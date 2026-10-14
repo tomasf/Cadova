@@ -169,7 +169,7 @@ def test(browser, base_url):
     expect(page.page.locator("#overlay")).to_be_hidden()  # the preview shows the model
     expect(page.page.locator("#title")).to_have_text("Test Parts")
     expect(page.page.locator("#subtitle")).to_have_text("Parts for testing the web customizer.")
-    expect(page.page.get_by_role("tab", name="Test Plate")).to_have_attribute("aria-selected", "true")
+    expect(page.page.get_by_role("tab", name="Test Plate", exact=True)).to_have_attribute("aria-selected", "true")
     expect(page.page.locator(".model-description")).to_have_text("A plate with holes.")
     for name in ["Width", "Holes"]:
         expect(page.number_field(name)).to_be_attached()
@@ -245,9 +245,13 @@ def test_tabs(browser, base_url):
     plate = page.download()
     check(abs(plate.extent(0) - 80) < 0.01, f"Plate width is {plate.extent(0)}, expected 80")
 
+    # Tabs don't show groups, so only a tab whose title clashes with another names its group
+    tabs = page.page.get_by_role("tab").all_text_contents()
+    check(tabs == ["Test Plate", "Spacer", "Washer", "Extras › Spacer"], f"The tabs are named {tabs}")
+
     # The spacer's Width is its own parameter, so it keeps its default
-    page.rebuild(lambda: page.page.get_by_role("tab", name="Spacer").click())
-    expect(page.page.get_by_role("tab", name="Spacer")).to_have_attribute("aria-selected", "true")
+    page.rebuild(lambda: page.page.get_by_role("tab", name="Spacer", exact=True).click())
+    expect(page.page.get_by_role("tab", name="Spacer", exact=True)).to_have_attribute("aria-selected", "true")
     expect(page.number_field("Width")).to_have_value("20")
     expect(page.number_field("Height")).to_be_attached()
     expect(page.page.locator(".model-description")).to_have_count(0)  # it has no description of its own
@@ -264,7 +268,7 @@ def test_tabs(browser, base_url):
     page.rebuild(lambda: page.set_number("Width", "30"))
     spacer = page.download()
     check(abs(spacer.extent(0) - 30) < 0.01, f"Spacer diameter is {spacer.extent(0)}, expected 30")
-    page.rebuild(lambda: page.page.get_by_role("tab", name="Test Plate").click())
+    page.rebuild(lambda: page.page.get_by_role("tab", name="Test Plate", exact=True).click())
     expect(page.number_field("Width")).to_have_value("80")
     expect(page.page).to_have_url(re.compile(r"/index\.html$"))
     plate = page.download()
@@ -272,10 +276,40 @@ def test_tabs(browser, base_url):
 
     # A link opens the same tab, with the default values
     page.open("#model=spacer")
-    expect(page.page.get_by_role("tab", name="Spacer")).to_have_attribute("aria-selected", "true")
+    expect(page.page.get_by_role("tab", name="Spacer", exact=True)).to_have_attribute("aria-selected", "true")
     spacer = page.download()
     check(abs(spacer.extent(0) - 20) < 0.01, f"Spacer diameter from a link is {spacer.extent(0)}, expected 20")
     check(not page.errors, f"The page had errors: {page.errors}")
+
+
+def test_model_menu(browser, base_url):
+    """With more models than fit as tabs, the page offers a menu, with a section for each group."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    # The fixture has only three models, so the limit is lowered to show the menu
+    page.page.add_init_script("window.cadovaTabLimit = 2")
+    page.open()
+    menu = page.page.locator("#model-menu")
+    expect(menu).to_be_visible()
+    expect(page.page.get_by_role("tab")).to_have_count(0)
+    entries = menu.evaluate("""menu => [...menu.children].map(child => child.tagName === "OPTGROUP"
+        ? {group: child.label, models: [...child.children].map(option => option.textContent)}
+        : child.textContent)""")
+    check(entries == ["Test Plate", "Spacer", {"group": "Extras", "models": ["Washer", "Spacer"]}],
+          f"The menu lists the models in the wrong order or sections: {entries}")
+    expect(menu).to_have_value("plate")
+
+    # Choosing a model builds it, and the address names it, as with a tab
+    page.rebuild(lambda: menu.select_option("extras/washer"))
+    expect(page.number_field("Diameter")).to_have_value("12")
+    expect(page.page).to_have_url(re.compile(r"#model=extras/washer$"))
+    washer = page.download()
+    check(abs(washer.extent(0) - 12) < 0.01, f"Washer diameter is {washer.extent(0)}, expected 12")
+
+    # A link opens the menu on its model
+    page.open("#model=spacer")
+    expect(menu).to_have_value("spacer")
+    check(not page.errors, f"The page had errors: {page.errors}")
+    page.page.context.close()
 
 
 def test_single_model(browser, base_url):
@@ -1652,7 +1686,7 @@ def main(arguments):
     cdn = CDNCache()
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
+            test, test_tabs, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
         ) if not only or run.__name__ in only]
         if "chromium" in engines and (not only or "test_without_webgl" in only):
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

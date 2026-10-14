@@ -96,6 +96,8 @@
   .tabs button[aria-selected="true"] {
     background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600;
   }
+  #model-menu { margin-top: 14px; font-weight: 600; }
+  #model-menu[hidden] { display: none; }
   .model-description { color: var(--muted); font-size: 13px; margin: 8px 0 4px; }
 
   form { flex: 1; overflow-y: auto; padding: 4px 20px 16px calc(20px + var(--safe-left)); }
@@ -292,6 +294,7 @@
       <h1 id="title">Customizer</h1>
       <div class="subtitle" id="subtitle">Adjust the parameters, then download the model.</div>
       <div class="tabs" id="models" role="tablist" aria-label="Models" hidden></div>
+      <select id="model-menu" aria-label="Model" hidden></select>
     </header>
     <form id="parameters" autocomplete="off"></form>
     <footer>

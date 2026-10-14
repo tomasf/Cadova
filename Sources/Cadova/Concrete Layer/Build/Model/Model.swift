@@ -133,7 +133,7 @@ public struct Model: Sendable, ModelBuildable {
         await ModelLogger.$current.withValue(ModelLogger(modelName: name)) {
             if let catalog = ParameterCatalog.current {
                 await recordParameters(into: catalog, environment: inheritedEnvironment, context: context,
-                                       options: inheritedOptions, name: filterName(in: filterPath))
+                                       options: inheritedOptions, name: filterName(in: filterPath), groups: filterPath)
                 return 0
             }
             return await generate(environment: inheritedEnvironment, context: context, options: inheritedOptions, URL: directory)
@@ -170,7 +170,8 @@ public struct Model: Sendable, ModelBuildable {
         environment inheritedEnvironment: EnvironmentValues,
         context: EvaluationContext,
         options inheritedOptions: ModelOptions?,
-        name: String
+        name: String,
+        groups: [String]
     ) async {
         let recorder = ParameterRecorder()
         let metadata = await ParameterRecorder.$current.withValue(recorder) {
@@ -178,7 +179,7 @@ public struct Model: Sendable, ModelBuildable {
             _ = try? await directives.build(with: options, in: environment, context: context)
             return options[Metadata.self]
         }
-        catalog.add(.init(name: name, title: metadata.title, description: metadata.description,
+        catalog.add(.init(name: name, title: metadata.title, description: metadata.description, groups: groups,
                           parameters: recorder.parameters, position: ParameterCatalog.position))
     }
 

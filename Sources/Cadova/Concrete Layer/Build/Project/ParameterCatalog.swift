@@ -80,11 +80,23 @@ internal final class ParameterCatalog: Sendable {
         let name: String
         let title: String?
         let description: String?
+        /// The names of the groups the model is in, outermost first, which a customizer can list
+        /// it under
+        let groups: [String]
         let parameters: [ParameterDescriptor]
         let position: [Int]
 
         private enum CodingKeys: String, CodingKey {
-            case name, title, description, parameters
+            case name, title, description, groups, parameters
+        }
+
+        func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(name, forKey: .name)
+            try container.encodeIfPresent(title, forKey: .title)
+            try container.encodeIfPresent(description, forKey: .description)
+            if !groups.isEmpty { try container.encode(groups, forKey: .groups) }
+            try container.encode(parameters, forKey: .parameters)
         }
     }
 

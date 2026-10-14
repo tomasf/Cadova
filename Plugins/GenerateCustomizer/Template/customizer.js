@@ -53,7 +53,9 @@ function setUp(listing) {
     const description = single ? models[0].description : catalog.description;
     if (description) $("subtitle").textContent = description;
 
-    if (!single) {
+    if (!single && models.length > tabLimit) {
+        setUpMenu();
+    } else if (!single) {
         for (const m of models) {
             const tab = Object.assign(document.createElement("button"), { type: "button", textContent: tabTitle(m) });
             tab.setAttribute("role", "tab");
@@ -66,16 +68,49 @@ function setUp(listing) {
     showForm();
 }
 
+// With more models than fit as tabs, the page offers a menu instead, with a section for each group.
+// Tests lower the limit to try the menu with fewer models.
+const tabLimit = window.cadovaTabLimit ?? 5;
+
+function setUpMenu() {
+    const menu = $("model-menu");
+    let section = null, sectionKey = null;
+    for (const m of models) {
+        const groups = m.groups ?? [];
+        const key = groups.join("/");
+        if (!groups.length) {
+            section = null;
+        } else if (key !== sectionKey) {
+            section = Object.assign(document.createElement("optgroup"), { label: groups.map(humanize).join(" › ") });
+            menu.append(section);
+        }
+        sectionKey = groups.length ? key : null;
+        // The menu's sections show the groups, so its entries don't need to
+        (section ?? menu).append(Object.assign(document.createElement("option"), { value: m.name, textContent: modelTitle(m) }));
+    }
+    menu.value = model.name;
+    menu.addEventListener("change", () => select(models.find((m) => m.name === menu.value)));
+    menu.hidden = false;
+}
+
 // A project's metadata applies to every model that doesn't override it, so a model whose title is the
 // project's is named after itself instead
-function tabTitle(m) {
+function modelTitle(m) {
     return m.title && m.title !== catalog.title ? m.title : humanize(m.name.split("/").pop());
+}
+
+// Tabs don't show groups, so a tab whose title another model shares names its groups too
+function tabTitle(m) {
+    const title = modelTitle(m);
+    const clashes = models.some((other) => other !== m && modelTitle(other) === title);
+    return clashes && m.groups?.length ? [...m.groups.map(humanize), title].join(" › ") : title;
 }
 
 function showForm() {
     form.replaceChildren();
     controls.clear();
     for (const [m, tab] of tabs) tab.setAttribute("aria-selected", m === model);
+    $("model-menu").value = model.name;
     if (tabs.size && model.description && model.description !== catalog.description) {
         form.append(Object.assign(document.createElement("p"), { className: "model-description", textContent: model.description }));
     }
@@ -258,7 +293,9 @@ $("reset").addEventListener("click", () => {
 // The model on screen is kept in the address, so a link can open the customizer on a given tab
 function writeHash() {
     try {
-        history.replaceState(null, "", model !== models[0] ? `#${new URLSearchParams({ model: model.name })}` : location.pathname);
+        // A model in a group is named with its path, whose slashes read better left as they are
+        const hash = `#${new URLSearchParams({ model: model.name })}`.replaceAll("%2F", "/");
+        history.replaceState(null, "", model !== models[0] ? hash : location.pathname);
     } catch (error) {
         console.warn("Couldn't update the address:", error);
     }

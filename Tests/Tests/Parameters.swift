@@ -329,6 +329,9 @@ struct ParameterTests {
         let json = try #require(try JSONSerialization.jsonObject(with: catalog.jsonData()) as? [String: Any])
         let names = (json["models"] as? [[String: Any]] ?? []).map { URL(fileURLWithPath: $0["name"] as? String ?? "").lastPathComponent }
         #expect(names == ["zebra", "yak", "aardvark", "beaver"])
+        // A model in a group lists the group, for a customizer's menu
+        let groups = (json["models"] as? [[String: Any]] ?? []).map { $0["groups"] as? [String] }
+        #expect(groups == [nil, ["middle"], ["middle"], nil])
         // The position is only for ordering, and stays out of the listing
         #expect((json["models"] as? [[String: Any]])?.allSatisfy { $0["position"] == nil } == true)
     }

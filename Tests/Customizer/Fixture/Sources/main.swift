@@ -22,6 +22,23 @@ await Project {
         Cylinder(diameter: width, height: height)
             .withMaterial(color: .init(red: 0.2, green: 0.4, blue: 0.8), metallicness: 0.5, roughness: 0.3)
     }
+
+    // In a group, which a customizer's menu lists it under
+    await Group("extras") {
+        await Model("washer") {
+            Metadata(title: "Washer")
+            @Parameter("Diameter", in: 5...30, step: 1, unit: "mm") var diameter = 12.0
+            Circle(diameter: diameter)
+                .subtracting { Circle(diameter: diameter / 2) }
+                .extruded(height: 1.5)
+        }
+
+        // Named like the spacer above, and without a title, so its tab has to name its group
+        await Model("spacer") {
+            @Parameter("Size", in: 5...30, step: 1, unit: "mm") var size = 10.0
+            Box(size)
+        }
+    }
 }
 
 enum Corners: String, CaseIterable, ParameterValue {
