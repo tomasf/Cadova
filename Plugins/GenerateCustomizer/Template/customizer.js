@@ -380,8 +380,7 @@ const builder = new ModelBuilder(import.meta.url, (data) => {
         if (data.total) $("progress-bar").style.width = `${(100 * data.received) / data.total}%`;
     } else if (data.type === "memory") {
         const megabytes = (bytes) => Math.round(bytes / 1e6).toLocaleString();
-        $("memory").textContent = `Memory: ${megabytes(data.memoryBytes)} MB, of which cache about ${megabytes(data.cacheBytes)} MB`;
-        $("memory").hidden = false;
+        console.info(`Memory: ${megabytes(data.memoryBytes)} MB, of which cache about ${megabytes(data.cacheBytes)} MB`);
     } else if (data.type === "compiling") {
         $("overlay-text").textContent = "Preparing model…";
         $("progress-bar").style.width = "100%";
@@ -432,14 +431,13 @@ function busy(active, text = "Building…") {
     }
     $("building").textContent = text;
     $("cancel").hidden = true;
-    $("retry").hidden = true;
     updateReset();
     form.setAttribute("aria-busy", active);
     if (active) {
         cancelTimer = setTimeout(() => { $("cancel").hidden = false; }, 3000);
         downloadable = null;
         holdDownload();
-        setStatus("");
+        hideError();
         $("build-time").textContent = text;
         if (!shownModel) {
             $("overlay").hidden = false;
@@ -456,15 +454,11 @@ function failed(error) {
     busy(false);
     downloadable = null;
     disableDownload();
-    $("retry").textContent = isReady ? "Retry build" : "Retry loading";
-    $("retry").hidden = false;
     $("build-time").textContent = error instanceof CancelledError ? "Cancelled" : "Failed";
-    buildLog.show(error.log ?? [error.message]);
-    setStatus(error.message, true);
-    if (!shownModel) {
-        $("overlay-text").textContent = error.message;
-        $("progress-bar").parentElement.hidden = true;
-    }
+    buildLog.report(error.log ?? []);
+    showError(error.message, error.log ?? []);
+    // The card takes the loading screen's place, until a retry brings it back
+    if (!shownModel) $("overlay").hidden = true;
 }
 
 async function initialize() {
@@ -523,7 +517,7 @@ function finishBuild(result, finished) {
             const error = new Error(result.stackOverflow
                 ? "The model exceeds this browser's worker stack limit. Try simpler settings or reduce its resolution."
                 : result.exitCode === 0 ? "The model built to nothing. Try different settings."
-                : "The model failed to build. See the build details.");
+                : "The model couldn't be built with these settings.");
             error.log = result.log;
             failed(error);
             return;
@@ -551,52 +545,63 @@ $("retry").addEventListener("click", () => {
     else initialize();
 });
 
+// Dismissing leaves the last preview, still without a download, until a setting changes
+$("dismiss").addEventListener("click", hideError);
+
 // Starts after the viewer has been initialized, so even an immediately answered request can display.
 queueMicrotask(initialize);
 
 function display({ fileName, data, log, exitCode, milliseconds, parameters }) {
-    buildLog.show(log);
+    buildLog.report(log);
     if (data) {
-        $("retry").hidden = true;
+        hideError();
+        console.info(`Built in ${Math.round(milliseconds)} ms`);
         downloadable = { model, parameters };
         $("download").disabled = false;
-        setStatus(`Built in ${Math.round(milliseconds)} ms`);
+        $("build-time").textContent = `Built in ${Math.round(milliseconds)} ms`;
         show(data, fileName, shownModel !== model);
         shownModel = model;
     } else {
         downloadable = null;
         disableDownload();
-        setStatus(exitCode === 0 ? "The model built to nothing." : "The model failed to build. See the build details.", true);
+        showError(exitCode === 0 ? "The model built to nothing." : "The model couldn't be built with these settings.", log);
     }
 }
 
-// What the model wrote while building, a message per line. Most messages are informational, so only
-// warnings and errors are labeled, and timestamps are left out.
+// What the model wrote while building, a message per line, its own prints included. Everything goes to
+// the browser's console after each build, for the model's author, and a failure shows it to the
+// visitor too. Timestamps are left out, and only warnings and errors are labeled.
 const buildLog = {
+    parse(line) {
+        const text = line.replace(/^\d{4}-\d{2}-\d{2}T\S+ /, "");
+        const [, level, message] = text.match(/^(?:\S+ )?\[(DEBUG|INFO|WARNING|ERROR)\] (.*)$/s) ?? [null, null, text];
+        if (level === "WARNING") return { level: "warning", text: `Warning: ${message}` };
+        if (level === "ERROR") return { level: "error", text: `Error: ${message}` };
+        if (text.startsWith("Crashed:")) return { level: "error", text };
+        return { level: "log", text: message };
+    },
+
+    report(lines) {
+        for (const { level, text } of lines.map((line) => this.parse(line))) console[level](text);
+    },
+
     show(lines) {
-        $("log").replaceChildren(...lines.map((line) => {
-            const text = line.replace(/^\d{4}-\d{2}-\d{2}T\S+ /, "");
-            const [, level, message] = text.match(/^(?:\S+ )?\[(DEBUG|INFO|WARNING|ERROR)\] (.*)$/s) ?? [null, null, text];
-            const element = document.createElement("div");
-            if (level === "WARNING") {
-                element.className = "warning";
-                element.textContent = `Warning: ${message}`;
-            } else if (level === "ERROR" || text.startsWith("Crashed:")) {
-                element.className = "error";
-                element.textContent = level ? `Error: ${message}` : message;
-            } else {
-                element.textContent = message;
-            }
-            return element;
-        }));
+        $("log").replaceChildren(...lines.map((line) =>
+            Object.assign(document.createElement("div"), { textContent: this.parse(line).text })));
     },
 };
 
-// Errors show in the sidebar. How long a successful build took goes in the build details.
-function setStatus(text, isError = false) {
-    $("status").textContent = isError ? text : "";
-    $("status").hidden = !isError;
-    if (!isError) $("build-time").textContent = text;
+// A failure shows over the model view, with what the model had to say about it
+function showError(message, lines = []) {
+    $("status").textContent = message;
+    buildLog.show(lines);
+    $("alert").hidden = false;
+}
+
+function hideError() {
+    $("alert").hidden = true;
+    $("status").textContent = "";
+    $("log").replaceChildren();
 }
 
 // The media type of a downloaded model file, from its extension
@@ -617,7 +622,7 @@ $("download").addEventListener("click", async () => {
     try {
         const result = await builder.export(target.name, parameters);
         if (!result.data) {
-            const error = new Error("The model file couldn't be made. See the build details.");
+            const error = new Error("The model file couldn't be made.");
             error.log = result.log;
             throw error;
         }
@@ -626,8 +631,8 @@ $("download").addEventListener("click", async () => {
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) {
-        buildLog.show(error.log ?? [error.message]);
-        setStatus(error.message, true);
+        buildLog.report(error.log ?? []);
+        showError(error.message, error.log ?? []);
     } finally {
         exporting = false;
         $("download").textContent = "Download Model";

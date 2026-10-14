@@ -217,7 +217,11 @@ internal struct ProjectBuild: Sendable {
         let modelFilter = cliArgs.modelFilter.union(request?.model.map { [$0] } ?? [])
         if !modelFilter.isEmpty {
             combinedOptions = [combinedOptions, ModelOptions(ModelFilter(names: modelFilter))]
-            logger.info("Model filter: \(modelFilter.sorted().joined(separator: ", "))")
+        }
+        // Worth mentioning when it was asked for on the command line, but a customizer's request names
+        // its model every time
+        if !cliArgs.modelFilter.isEmpty {
+            logger.info("Model filter: \(cliArgs.modelFilter.sorted().joined(separator: ", "))")
         }
 
         // Build models and groups
@@ -241,7 +245,10 @@ internal struct ProjectBuild: Sendable {
     /// - Returns: Whether the build succeeded.
     static func reportSuccess(failureCount: Int) -> Bool {
         guard failureCount > 0 else { return true }
-        logger.error("Build failed with \(failureCount) error\(failureCount == 1 ? "" : "s").")
+        // A customizer builds one model at a time and says so itself when it fails
+        if CustomizerRequest.current?.model == nil {
+            logger.error("Build failed with \(failureCount) error\(failureCount == 1 ? "" : "s").")
+        }
         return false
     }
 }

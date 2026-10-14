@@ -100,7 +100,7 @@
   #model-menu[hidden] { display: none; }
   .model-description { color: var(--muted); font-size: 13px; margin: 8px 0 4px; }
 
-  form { flex: 1; overflow-y: auto; padding: 4px 20px 16px calc(20px + var(--safe-left)); }
+  form { flex: 1; overflow-y: auto; padding: 4px 20px calc(16px + var(--safe-bottom)) calc(20px + var(--safe-left)); }
   .field { padding: 12px 0; border-bottom: 1px solid var(--line); }
   .field:last-child { border-bottom: none; }
   .field-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
@@ -147,9 +147,6 @@
   .toggle input:checked + span::after { transform: translateX(18px); }
   .toggle input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  footer { padding: 14px 20px calc(18px + var(--safe-bottom)) calc(20px + var(--safe-left)); border-top: 1px solid var(--line); display: grid; gap: 10px; }
-  #retry { justify-self: start; }
-  #retry[hidden] { display: none; }
   /* Only there once something has changed, and kept out of the way at the end of the settings */
   .reset {
     font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: none;
@@ -164,22 +161,29 @@
   /* Disabled, but not yet for long enough to look it, so that quick rebuilds don't make it flicker */
   #download.held:disabled { opacity: 1; }
   button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
-  #status { font-size: 13px; color: var(--danger); }
-  #status[hidden] { display: none; }
-  #build-time, #memory { margin-top: 6px; font-variant-numeric: tabular-nums; }
-  #memory[hidden] { display: none; }
-  details { font-size: 12.5px; color: var(--muted); }
+
+  /* A failure shows over the model view, which stays dimmed behind it: what happened, then what the
+     model had to say about it, in smaller, quieter text */
+  .alert {
+    position: absolute; inset: 0; display: grid; place-items: center; padding: 16px;
+    background: rgb(0 0 0 / .45); color: var(--text);
+  }
+  .alert[hidden] { display: none; }
+  .alert-card {
+    width: min(100%, 460px); max-height: 100%; overflow: auto; padding: 18px 20px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 8px 30px rgb(0 0 0 / .35);
+  }
+  #status { font-weight: 600; font-size: 15px; }
   #log {
-    max-height: 240px; overflow: auto; margin: 8px 0 0;
-    background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;
-    font: 11.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+    margin-top: 8px; color: var(--muted);
+    font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   #log:empty { display: none; }
   /* A message that wraps is indented, so that it doesn't read as the next one */
   #log > div { white-space: pre-wrap; overflow-wrap: anywhere; padding-left: 2ch; text-indent: -2ch; }
   #log > div + div { margin-top: 2px; }
-  #log .warning { color: var(--warning); }
-  #log .error { color: var(--danger); }
+  .alert-actions { display: flex; gap: 8px; margin-top: 16px; }
 
   /* Floats over the model view, so it gets a translucent panel of its own */
   .credit {
@@ -255,11 +259,10 @@
   }
 
   /* On a short screen, such as a phone on its side, the whole sidebar scrolls as one, rather than
-     leaving the settings a sliver between a fixed heading and footer */
+     leaving the settings a sliver under a fixed heading */
   @media (max-height: 500px) {
     aside { overflow-y: auto; }
     form { flex: none; overflow: visible; }
-    footer { padding-bottom: 18px; }
   }
 
   /* Download and the credit, when they're moved into the sidebar on a short screen: Download in a
@@ -287,11 +290,11 @@
     }
     .viewer-actions button.primary { flex: 1; box-shadow: none; }
     aside { grid-row: 2; border-right: none; border-top: 1px solid var(--line); }
-    header, form, footer {
+    header, form {
       padding-left: calc(16px + var(--safe-left)); padding-right: calc(16px + var(--safe-right));
     }
     header { padding-top: 20px; }
-    footer { padding-bottom: 18px; }
+    form { padding-bottom: 16px; }
     form { overflow: visible; }
     .credit { position: static; grid-row: 3; justify-self: center; margin: 4px 0 calc(24px + var(--safe-bottom)); }
   }
@@ -308,16 +311,8 @@
     <form id="parameters" autocomplete="off">
       <button type="button" class="reset" id="reset" hidden>Reset to defaults</button>
     </form>
-    <footer>
-      <div id="status" role="alert" hidden></div>
-      <button type="button" class="secondary" id="retry" hidden>Retry loading</button>
-      <details>
-        <summary>Details</summary>
-        <div id="build-time">Not built yet</div>
-        <div id="memory" hidden></div>
-        <div id="log" role="log"></div>
-      </details>
-    </footer>
+    <!-- What the page last did, such as "Built in 12 ms", for scripts that watch it -->
+    <span id="build-time" hidden>Not built yet</span>
   </aside>
   <main>
     <div class="stage">
@@ -332,6 +327,16 @@
         <button type="button" id="reset-view" aria-label="Reset view" title="Reset view">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z M4 7.5l8 4.5 8-4.5 M12 12v9"/></svg>
         </button>
+      </div>
+      <div class="alert" id="alert" hidden>
+        <div class="alert-card" role="alert">
+          <div id="status"></div>
+          <div id="log"></div>
+          <div class="alert-actions">
+            <button type="button" class="primary" id="retry">Try again</button>
+            <button type="button" class="secondary" id="dismiss">Dismiss</button>
+          </div>
+        </div>
       </div>
       <div id="overlay">
         <div id="overlay-text">Loading model…</div>
@@ -354,14 +359,12 @@
     // offer to reload, rather than staying on "Loading model…".
     function showLoadingFailure() {
       const $ = (id) => document.getElementById(id);
-      const message = "Couldn't load the page. Check your connection, then reload.";
-      $("overlay-text").textContent = message;
-      $("progress-bar").parentElement.hidden = true;
-      $("status").textContent = message;
-      $("status").hidden = false;
+      $("overlay").hidden = true;
+      $("status").textContent = "Couldn't load the page. Check your connection, then reload.";
       $("retry").textContent = "Reload";
-      $("retry").hidden = false;
       $("retry").onclick = () => location.reload();
+      $("dismiss").hidden = true;
+      $("alert").hidden = false;
     }
   </script>
   <script type="module" src="customizer.js" onerror="showLoadingFailure()"></script>

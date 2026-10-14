@@ -130,7 +130,9 @@ public struct Model: Sendable, ModelBuildable {
         URL directory: URL? = nil,
         filterPath: [String] = []
     ) async -> Int {
-        await ModelLogger.$current.withValue(ModelLogger(modelName: name)) {
+        // A customizer's request for one model builds only that one, so its lines needn't name it
+        let loggedName = CustomizerRequest.current?.model == nil ? name : nil
+        return await ModelLogger.$current.withValue(ModelLogger(modelName: loggedName)) {
             if let catalog = ParameterCatalog.current {
                 await recordParameters(into: catalog, environment: inheritedEnvironment, context: context,
                                        options: inheritedOptions, name: filterName(in: filterPath), groups: filterPath)

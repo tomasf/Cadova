@@ -66,6 +66,9 @@ struct Plate: Geometry3D {
 
     var body: any Geometry3D {
         let plate = Rectangle(x: width, y: Self.depth).aligned(at: .center)
+        // A model's own prints, which the page passes on to the browser's console
+        let _ = print("Building a plate \(Int(width)) mm wide")
+
         // The corner radius is only a parameter when the corners are rounded
         let outline: any Geometry2D
         switch corners {

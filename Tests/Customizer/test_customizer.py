@@ -63,7 +63,7 @@ class CustomizerPage:
         self.wait_for_build()
 
     def wait_for_build(self):
-        # A finished build puts its time in the build details; a failure shows an error in the sidebar
+        # A finished build notes its time; a failure shows an error over the model view
         self.page.wait_for_function("""() =>
             document.getElementById("build-time").textContent.startsWith("Built in")
                 || document.getElementById("status").textContent !== ""
@@ -179,6 +179,8 @@ def check(condition, message):
 
 def test(browser, base_url):
     page = CustomizerPage(browser.new_page(), base_url)
+    console = []
+    page.page.on("console", lambda message: console.append(message.text))
 
     # The form comes from the model's own parameter list
     page.open()
@@ -189,6 +191,10 @@ def test(browser, base_url):
     expect(page.page.locator(".model-description")).to_have_text("A plate with holes.")
     for name in ["Width", "Holes"]:
         expect(page.number_field(name)).to_be_attached()
+    # A build that goes well shows nothing more, and its time and the model's own prints go to the console
+    expect(page.page.locator("#alert")).to_be_hidden()
+    check(any(text.startswith("Built in") for text in console), f"The build time didn't reach the console: {console}")
+    check("Building a plate 40 mm wide" in console, f"The model's print didn't reach the console: {console}")
     # A number shows its unit after the field, and one without a unit shows none
     units = page.page.evaluate("""() => Object.fromEntries([...document.querySelectorAll(".field")].map(field =>
         [field.querySelector("label").textContent, field.querySelector(".unit")?.textContent ?? null]))""")
@@ -1540,7 +1546,7 @@ def test_worker_recovery(browser, base_url):
         elif name == "stack":
             expect_recovery(page, "worker stack limit")
         elif name == "trap":
-            expect_recovery(page, "failed to build")
+            expect_recovery(page, "couldn't be built")
             expect(page.page.locator("#log")).to_contain_text("A continuation keeps its first word")
         else:
             expect(page.page.locator("#retry")).to_be_visible(timeout=TIMEOUT)
@@ -1591,7 +1597,7 @@ def test_loading_recovery(browser, base_url):
         page.page.context.route(failing, lambda route: route.abort())
         page.page.goto(f"{base_url}/index.html")
         expect(page.page.locator("#status")).to_contain_text("Couldn't load the page")
-        expect(page.page.locator("#overlay-text")).to_contain_text("Couldn't load the page")
+        expect(page.page.locator("#alert")).to_be_visible()
         expect(page.page.locator("#retry")).to_have_text("Reload")
         page.page.context.unroute(failing)
         page.page.locator("#retry").click()

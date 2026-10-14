@@ -124,6 +124,30 @@ export class ModelSession {
         }
     }
 
+    // What the model wrote, as messages in the order it wrote them. Each line it prints is a message.
+    // Cadova writes its own messages to the error stream, each starting with a timestamp, and a
+    // message can run over several lines, which stay together.
+    static messages(output) {
+        const runs = [];
+        for (const { stream, bytes } of output) {
+            if (runs.at(-1)?.stream === stream) runs.at(-1).chunks.push(bytes);
+            else runs.push({ stream, chunks: [bytes] });
+        }
+        const messages = [];
+        for (const { stream, chunks } of runs) {
+            const text = new TextDecoder().decode(new Uint8Array(chunks.flatMap((bytes) => [...bytes])));
+            const lines = text.split("\n").filter((line, index, all) => line !== "" || index < all.length - 1);
+            let continuing = false;
+            for (const line of lines) {
+                const starts = stream === "out" || !continuing || /^\d{4}-\d{2}-\d{2}T/.test(line);
+                if (starts) messages.push(line);
+                else messages[messages.length - 1] += `\n${line}`;
+                continuing = stream === "error";
+            }
+        }
+        return messages;
+    }
+
     // Parameter values as strings, which each parameter parses as its own type
     static stringValues(values) {
         return Object.fromEntries(Object.entries(values).map(([label, value]) => [label, String(value)]));
@@ -162,8 +186,7 @@ export class ModelSession {
                 exitCode = -1;
             }
         }
-        const text = new TextDecoder().decode(new Uint8Array(this.output.flatMap((bytes) => [...bytes])));
-        const log = text.split("\n").filter((line, index, lines) => line !== "" || index < lines.length - 1);
+        const log = ModelSession.messages(this.output);
         if (crash) log.push(crash);
         const milliseconds = performance.now() - start;
 
@@ -187,14 +210,15 @@ export class ModelSession {
     // exits, and then every request starts a new instance.
     async instantiate() {
         this.files = new Map();
-        const write = (bytes) => this.output.push(bytes.slice());
+        const write = (stream) => (bytes) => this.output.push({ stream, bytes: bytes.slice() });
         const environment = [
-            "CADOVA_LOG_LEVEL=info", "CADOVA_CUSTOMIZER_REQUEST=/io/request.json", "CADOVA_CUSTOMIZER_SESSION=1",
+            // Only what a visitor might need: warnings and errors, and whatever the model prints itself
+            "CADOVA_LOG_LEVEL=warning", "CADOVA_CUSTOMIZER_REQUEST=/io/request.json", "CADOVA_CUSTOMIZER_SESSION=1",
         ];
         const wasi = new WASI(["model"], environment, [
             new OpenFile(new File([])),
-            new ConsoleStdout(write),
-            new ConsoleStdout(write),
+            new ConsoleStdout(write("out")),
+            new ConsoleStdout(write("error")),
             new PreopenDirectory("/io", this.files),
             new PreopenDirectory("/", resourceDirectory(this.resources)),
         ], { debug: false });
