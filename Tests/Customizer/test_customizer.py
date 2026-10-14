@@ -173,6 +173,11 @@ def test(browser, base_url):
     expect(page.page.locator(".model-description")).to_have_text("A plate with holes.")
     for name in ["Width", "Holes"]:
         expect(page.number_field(name)).to_be_attached()
+    # A number shows its unit after the field, and one without a unit shows none
+    units = page.page.evaluate("""() => Object.fromEntries([...document.querySelectorAll(".field")].map(field =>
+        [field.querySelector("label").textContent, field.querySelector(".unit")?.textContent ?? null]))""")
+    check(units.get("Width") == "mm" and units.get("Holes") == "pcs" and units.get("Thick") is None,
+          f"Units after the number fields are wrong: {units}")
     expect(page.page.get_by_role("checkbox", name="Thick")).to_be_attached()
     expect(page.page.get_by_role("button", name="Rounded")).to_have_attribute("aria-pressed", "true")
     default = page.download()

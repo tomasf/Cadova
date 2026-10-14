@@ -10,6 +10,7 @@ internal struct ParameterDescriptor: Sendable, Hashable {
     let minimum: String?
     let maximum: String?
     let step: String?
+    let unit: String?
     let description: String?
 }
 
@@ -130,7 +131,7 @@ internal final class ParameterCatalog: Sendable {
 
 extension ParameterDescriptor: Encodable {
     private enum CodingKeys: String, CodingKey {
-        case key, label, type, options, description
+        case key, label, type, options, unit, description
         case defaultValue = "default", minimum, maximum, step
     }
 
@@ -148,6 +149,7 @@ extension ParameterDescriptor: Encodable {
             try container.encode("choice", forKey: .type)
             try container.encode(options, forKey: .options)
         }
+        try container.encodeIfPresent(unit, forKey: .unit)
         try container.encodeIfPresent(description, forKey: .description)
         for (value, key) in [(defaultValue, CodingKeys.defaultValue), (minimum, .minimum), (maximum, .maximum), (step, .step)] {
             guard let value else { continue }

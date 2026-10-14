@@ -10,7 +10,7 @@ import Foundation
 /// ```swift
 /// struct GridPlate: Geometry3D {
 ///     @Parameter("Columns", in: 1...12) var columns = 4
-///     @Parameter("Height", in: 10...50, step: 0.5, description: "Height of the plate, in millimeters")
+///     @Parameter("Height", in: 10...50, step: 0.5, unit: "mm", description: "Height of the plate")
 ///     var height = 20.0
 ///
 ///     var body: any Geometry3D {
@@ -54,6 +54,9 @@ import Foundation
     /// The increment a customizer steps the value by, if any.
     public let step: Value?
 
+    /// What a customizer shows after a number, such as `"mm"` or `"pcs"`, if anything.
+    public let unit: String?
+
     /// Creates a parameter with a label and a default value.
     ///
     /// - Parameters:
@@ -72,7 +75,7 @@ import Foundation
         column: Int = #column
     ) {
         self.init(label: label, defaultValue: wrappedValue, description: description, minimum: nil, maximum: nil, step: nil,
-                  key: ParameterDescriptor.key(label: label, fileID: fileID, line: line, column: column))
+                  unit: nil, key: ParameterDescriptor.key(label: label, fileID: fileID, line: line, column: column))
     }
 
     /// Creates a parameter with a label, a default value and a range for customizers to offer.
@@ -102,11 +105,76 @@ import Foundation
         column: Int = #column
     ) where Value: Comparable {
         self.init(label: label, defaultValue: wrappedValue, description: description,
-                  minimum: range.lowerBound, maximum: range.upperBound, step: step,
+                  minimum: range.lowerBound, maximum: range.upperBound, step: step, unit: nil,
                   key: ParameterDescriptor.key(label: label, fileID: fileID, line: line, column: column))
     }
 
-    private init(label: String, defaultValue: Value, description: String?, minimum: Value?, maximum: Value?, step: Value?, key: String) {
+    /// Creates a number parameter with a label, a default value and a unit that customizers show
+    /// after it.
+    ///
+    /// ```swift
+    /// @Parameter("Count", unit: "pcs") var count = 4
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - wrappedValue: The default value.
+    ///   - label: What a customizer calls the parameter.
+    ///   - unit: What a customizer shows after the number, such as `"mm"` or `"pcs"`.
+    ///   - description: A short explanation of what the parameter controls, shown by customizers.
+    ///   - fileID: Where the parameter is declared, which identifies it. Leave this at its default.
+    ///   - line: Where the parameter is declared, which identifies it. Leave this at its default.
+    ///   - column: Where the parameter is declared, which identifies it. Leave this at its default.
+    public init(
+        wrappedValue: Value,
+        _ label: String,
+        unit: String,
+        description: String? = nil,
+        fileID: String = #fileID,
+        line: Int = #line,
+        column: Int = #column
+    ) where Value: NumericParameterValue {
+        self.init(label: label, defaultValue: wrappedValue, description: description, minimum: nil, maximum: nil, step: nil,
+                  unit: unit, key: ParameterDescriptor.key(label: label, fileID: fileID, line: line, column: column))
+    }
+
+    /// Creates a number parameter with a label, a default value, a range for customizers to offer
+    /// and a unit they show after it.
+    ///
+    /// ```swift
+    /// @Parameter("Height", in: 10...50, step: 0.5, unit: "mm", description: "Height of the plate")
+    /// var height = 20.0
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - wrappedValue: The default value.
+    ///   - label: What a customizer calls the parameter.
+    ///   - range: The values a customizer offers.
+    ///   - step: The increment a customizer steps the value by.
+    ///   - unit: What a customizer shows after the number, such as `"mm"` or `"pcs"`.
+    ///   - description: A short explanation of what the parameter controls, shown by customizers.
+    ///   - fileID: Where the parameter is declared, which identifies it. Leave this at its default.
+    ///   - line: Where the parameter is declared, which identifies it. Leave this at its default.
+    ///   - column: Where the parameter is declared, which identifies it. Leave this at its default.
+    public init(
+        wrappedValue: Value,
+        _ label: String,
+        in range: ClosedRange<Value>,
+        step: Value? = nil,
+        unit: String,
+        description: String? = nil,
+        fileID: String = #fileID,
+        line: Int = #line,
+        column: Int = #column
+    ) where Value: NumericParameterValue {
+        self.init(label: label, defaultValue: wrappedValue, description: description,
+                  minimum: range.lowerBound, maximum: range.upperBound, step: step, unit: unit,
+                  key: ParameterDescriptor.key(label: label, fileID: fileID, line: line, column: column))
+    }
+
+    private init(
+        label: String, defaultValue: Value, description: String?, minimum: Value?, maximum: Value?, step: Value?,
+        unit: String?, key: String
+    ) {
         self.label = label
         self.key = key
         self.defaultValue = defaultValue
@@ -114,6 +182,7 @@ import Foundation
         self.minimum = minimum
         self.maximum = maximum
         self.step = step
+        self.unit = unit
         ParameterRecorder.current?.record(descriptor)
     }
 
@@ -131,6 +200,7 @@ import Foundation
             minimum: minimum?.parameterString,
             maximum: maximum?.parameterString,
             step: step?.parameterString,
+            unit: unit,
             description: description
         )
     }

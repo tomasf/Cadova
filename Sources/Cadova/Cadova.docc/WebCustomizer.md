@@ -10,11 +10,11 @@ The model runs entirely in the visitor's browser, compiled to WebAssembly. There
 
 ## Preparing Your Model
 
-A customizer offers whatever parameters your model declares with ``Parameter``. Give each one a label, which is what the page calls it, and a default value. A range, a step and a description, wherever they make sense, help the page offer the right controls:
+A customizer offers whatever parameters your model declares with ``Parameter``. Give each one a label, which is what the page calls it, and a default value. A range, a step, a unit and a description, wherever they make sense, help the page offer the right controls:
 
 ```swift
 struct Scoop: Geometry3D {
-    @Parameter("Volume", in: 20...100, step: 1, description: "How much the scoop holds, in milliliters")
+    @Parameter("Volume", in: 20...100, step: 1, unit: "ml", description: "How much the scoop holds")
     var volume = 30.0
 
     @Parameter("Hanging hole", description: "Put a hole in the end of the handle for hanging it up")
@@ -37,7 +37,7 @@ Each type of parameter gets its own kind of control:
 
 | Parameter type | Control |
 |---|---|
-| `Double`, `Int` | A number field, plus a slider when the parameter has a range |
+| `Double`, `Int` | A number field, plus a slider when the parameter has a range, and the unit after it if the parameter has one |
 | `Angle` | A number field in degrees, plus a slider when the parameter has a range |
 | `Bool` | A switch |
 | A `CaseIterable` string enum | Buttons for up to four cases, a menu for more |

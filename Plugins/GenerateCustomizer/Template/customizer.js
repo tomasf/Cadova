@@ -226,9 +226,9 @@ function field(parameter, index) {
                 update(parameter.key, Number(number.value));
             });
             control.append(number);
-            if (parameter.type === "angle") {
-                control.append(Object.assign(document.createElement("span"), { className: "unit", textContent: "°" }));
-            }
+            // Angles are always in degrees. Numbers show the unit their parameter gives, if any.
+            const unit = parameter.type === "angle" ? "°" : parameter.unit;
+            if (unit) control.append(Object.assign(document.createElement("span"), { className: "unit", textContent: unit }));
             setValue = (value) => { number.value = value; if (range) range.value = value; };
             break;
         }

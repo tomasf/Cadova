@@ -50,7 +50,19 @@ public extension ParameterValue {
     static var parameterKind: ParameterKind { .text }
 }
 
-extension Int: ParameterValue {
+/// A parameter value that's a plain number, which a customizer can show with a unit.
+///
+/// `Int` and `Double` conform. Give a parameter of either type a unit with `unit:`, and a customizer
+/// shows it after the number:
+///
+/// ```swift
+/// @Parameter("Height", in: 10...50, step: 0.5, unit: "mm")
+/// var height = 20.0
+/// ```
+///
+public protocol NumericParameterValue: ParameterValue, Comparable {}
+
+extension Int: NumericParameterValue {
     public init?(parameterString: String) {
         self.init(parameterString)
     }
@@ -58,7 +70,7 @@ extension Int: ParameterValue {
     public static var parameterKind: ParameterKind { .integer }
 }
 
-extension Double: ParameterValue {
+extension Double: NumericParameterValue {
     public init?(parameterString: String) {
         self.init(parameterString)
     }

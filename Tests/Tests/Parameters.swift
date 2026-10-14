@@ -190,12 +190,29 @@ struct ParameterTests {
 
         #expect(_height.descriptor == ParameterDescriptor(
             key: _height.key, label: "Height", kind: .number, defaultValue: "20.0",
-            minimum: "10.0", maximum: "50.0", step: "0.5", description: "Plate height"
+            minimum: "10.0", maximum: "50.0", step: "0.5", unit: nil, description: "Plate height"
         ))
         #expect(_finish.descriptor.kind == .choice(["matte", "glossy"]))
         #expect(_finish.descriptor.defaultValue == "matte")
         #expect(_tilt.descriptor.kind == .angle)
         #expect(Angle(parameterString: _tilt.descriptor.defaultValue) == 15°)
+    }
+
+    @Test func `Number parameters can have a unit`() throws {
+        @Parameter("Depth", in: 1...10, step: 0.5, unit: "mm", description: "Groove depth") var depth = 2.0
+        @Parameter("Count", unit: "pcs") var count = 4
+        @Parameter("Holes", in: 0...4) var holes = 2
+
+        #expect(_depth.descriptor.unit == "mm")
+        #expect(_depth.descriptor.minimum == "1.0" && _depth.descriptor.step == "0.5")
+        #expect(_depth.descriptor.description == "Groove depth")
+        #expect(_count.descriptor.unit == "pcs" && _count.descriptor.kind == .integer)
+        #expect(_holes.descriptor.unit == nil)
+
+        // Customizers read it from the parameter list, which leaves it out when there's none
+        let encoded = try JSONSerialization.jsonObject(with: JSONEncoder().encode([_depth.descriptor, _holes.descriptor])) as? [[String: Any]]
+        #expect(encoded?[0]["unit"] as? String == "mm")
+        #expect(encoded?[1]["unit"] == nil)
     }
 
     @Test func `Catalog collects parameters from every model without writing files`() async throws {

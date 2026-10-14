@@ -29,10 +29,10 @@ enum Corners: String, CaseIterable, ParameterValue {
 }
 
 struct Plate: Geometry3D {
-    @Parameter("Width", in: 10...100, step: 1, description: "Width in millimeters")
+    @Parameter("Width", in: 10...100, step: 1, unit: "mm", description: "Width of the plate")
     var width = 40.0
 
-    @Parameter("Holes", in: 0...4, description: "Number of holes along the middle")
+    @Parameter("Holes", in: 0...4, unit: "pcs", description: "Number of holes along the middle")
     var holes = 2
 
     @Parameter("Thick", description: "Make the plate 6 mm thick instead of 3")
