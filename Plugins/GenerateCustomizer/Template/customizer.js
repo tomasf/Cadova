@@ -1,0 +1,722 @@
+import * as THREE from "three";
+import { ViewportControls } from "./navigation.js";
+import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
+import { ModelBuilder, CancelledError } from "./builder.js";
+import { read3MF } from "./threemf.js";
+import { readPreview } from "./preview.js";
+import { ViewportGrid } from "./grid.js";
+import { OriginAxes, AxisIndicator } from "./axes.js";
+import { frameIsometric } from "./camera.js";
+import { ViewportRenderer } from "./rendering.js";
+import { setupLighting } from "./lighting.js";
+
+const $ = (id) => document.getElementById(id);
+
+// The models and their parameters come from the model itself, listed once it has loaded. A
+// parameter is identified by an opaque key, which only has to agree with the model built along with
+// this page, and each model keeps its own values. Only changed values are kept, by model; everything
+// else has its default. Values aren't kept in the address, since a link would outlive the keys.
+//
+// Which parameters a model uses can depend on its values, such as a choice of shape that each has
+// parameters of its own, so every preview reports the ones it used, and the form follows. A model's
+// `parameters` are the ones it uses now, and `known` every one it has used, whose changed values are
+// kept while they're hidden.
+let catalog, models, model;
+const changed = new Map();
+
+function changedValues(m) {
+    if (!changed.has(m.name)) changed.set(m.name, {});
+    return changed.get(m.name);
+}
+
+// MARK: Form
+
+const form = $("parameters");
+const controls = new Map();
+const tabs = new Map();
+
+// Sets the page up for the model chosen by the page's cadova-model meta tag, or else every model that
+// has parameters, with a tab for each
+function setUp(listing) {
+    catalog = listing;
+    const chosen = document.querySelector('meta[name="cadova-model"]')?.content;
+    models = catalog.models.filter((m) => chosen ? m.name === chosen : m.parameters.length > 0);
+    if (!models.length) throw new Error(chosen ? `The model "${chosen}" wasn't found.` : "No model has parameters to customize.");
+    for (const m of models) m.known = new Map(m.parameters.map((parameter) => [parameter.key, parameter]));
+
+    const hash = new URLSearchParams(location.hash.slice(1));
+    model = models.find((m) => m.name === hash.get("model")) ?? models[0];
+    writeHash(); // anything else in the address, such as values from an older link, doesn't apply
+
+    const single = models.length === 1;
+    // Without a title from metadata, the page is named after the model, or for several, the product
+    const product = document.querySelector('meta[name="cadova-product"]')?.content;
+    const title = single
+        ? models[0].title ?? humanize(models[0].name.split("/").pop())
+        : catalog.title ?? (product ? humanize(product) : "Customizer");
+    document.title = `${title} customizer`;
+    $("title").textContent = title;
+    const description = single ? models[0].description : catalog.description;
+    if (description) $("subtitle").textContent = description;
+
+    if (!single && models.length > tabLimit) {
+        setUpMenu();
+    } else if (!single) {
+        for (const m of models) {
+            const tab = Object.assign(document.createElement("button"), { type: "button", textContent: tabTitle(m) });
+            tab.setAttribute("role", "tab");
+            tab.addEventListener("click", () => select(m));
+            $("models").append(tab);
+            tabs.set(m, tab);
+        }
+        $("models").hidden = false;
+    }
+    showForm();
+}
+
+// With more models than fit as tabs, the page offers a menu instead, with a section for each group.
+// Tests lower the limit to try the menu with fewer models.
+const tabLimit = window.cadovaTabLimit ?? 5;
+
+function setUpMenu() {
+    const menu = $("model-menu");
+    let section = null, sectionKey = null;
+    for (const m of models) {
+        const groups = m.groups ?? [];
+        const key = groups.join("/");
+        if (!groups.length) {
+            section = null;
+        } else if (key !== sectionKey) {
+            section = Object.assign(document.createElement("optgroup"), { label: groups.map(humanize).join(" › ") });
+            menu.append(section);
+        }
+        sectionKey = groups.length ? key : null;
+        // The menu's sections show the groups, so its entries don't need to
+        (section ?? menu).append(Object.assign(document.createElement("option"), { value: m.name, textContent: modelTitle(m) }));
+    }
+    menu.value = model.name;
+    menu.addEventListener("change", () => select(models.find((m) => m.name === menu.value)));
+    menu.hidden = false;
+}
+
+// A project's metadata applies to every model that doesn't override it, so a model whose title is the
+// project's is named after itself instead
+function modelTitle(m) {
+    return m.title && m.title !== catalog.title ? m.title : humanize(m.name.split("/").pop());
+}
+
+// Tabs don't show groups, so a tab whose title another model shares names its groups too
+function tabTitle(m) {
+    const title = modelTitle(m);
+    const clashes = models.some((other) => other !== m && modelTitle(other) === title);
+    return clashes && m.groups?.length ? [...m.groups.map(humanize), title].join(" › ") : title;
+}
+
+function showForm() {
+    form.replaceChildren();
+    controls.clear();
+    for (const [m, tab] of tabs) tab.setAttribute("aria-selected", m === model);
+    $("model-menu").value = model.name;
+    if (tabs.size && model.description && model.description !== catalog.description) {
+        form.append(Object.assign(document.createElement("p"), { className: "model-description", textContent: model.description }));
+    }
+    fields.clear();
+    for (const parameter of model.parameters) form.append(addField(parameter));
+}
+
+// The form's fields, by parameter key, kept while they're in use
+const fields = new Map();
+let fieldCount = 0;
+
+function addField(parameter) {
+    const element = field(parameter, fieldCount++);
+    fields.set(parameter.key, element);
+    return element;
+}
+
+// Takes the parameters a build used. If they differ from the ones on the form, the form changes to
+// match, leaving the fields that stay where they are, so the control in use isn't disturbed.
+function updateParameters(m, parameters) {
+    for (const parameter of parameters) m.known.set(parameter.key, parameter);
+    if (parameters.length === m.parameters.length && parameters.every((parameter, index) => parameter.key === m.parameters[index].key)) return;
+    m.parameters = parameters;
+    if (m !== model) return;
+
+    const keys = new Set(parameters.map((parameter) => parameter.key));
+    for (const [key, element] of fields) {
+        if (keys.has(key)) continue;
+        element.remove();
+        fields.delete(key);
+        controls.delete(key);
+    }
+    const description = form.querySelector(".model-description");
+    let cursor = description ? description.nextSibling : form.firstChild;
+    for (const parameter of parameters) {
+        const element = fields.get(parameter.key) ?? addField(parameter);
+        if (element === cursor) cursor = cursor.nextSibling;
+        else form.insertBefore(element, cursor);
+    }
+}
+
+function select(next) {
+    if (next === model) return;
+    model = next;
+    showForm();
+    writeHash();
+    const build = builds.get(model.name);
+    if (build?.data && build.key === buildKey(model)) {
+        try {
+            display(build);
+        } catch (error) {
+            builds.delete(model.name);
+            failed(error);
+        }
+    } else {
+        downloadable = null;
+        $("download").disabled = true;
+        requestBuild();
+    }
+}
+
+// The value a parameter of a model gets: a changed value made to fit it (clamped to its range, or its
+// default if it's not a value this parameter can take), or else its default
+function valueFor(parameter, m = model) {
+    const value = changed.get(m.name)?.[parameter.key];
+    if (value === undefined) return parameter.default;
+    switch (parameter.type) {
+        case "boolean":
+            return typeof value === "boolean" ? value : parameter.default;
+        case "choice":
+            return parameter.options.includes(value) ? value : parameter.default;
+        case "integer":
+        case "number":
+        case "angle": {
+            if (typeof value !== "number" || Number.isNaN(value)) return parameter.default;
+            let result = parameter.type === "integer" ? Math.round(value) : value;
+            if (parameter.minimum !== undefined) result = Math.max(result, parameter.minimum);
+            if (parameter.maximum !== undefined) result = Math.min(result, parameter.maximum);
+            return result;
+        }
+        default:
+            return String(value);
+    }
+}
+
+// Only changed values are sent; the model uses its defaults for the rest. So a parameter that starts
+// being used, with its default value, doesn't call for another build.
+function valuesFor(m) {
+    return Object.fromEntries(Object.keys(changed.get(m.name) ?? {}).filter((key) => m.known.has(key)).sort()
+        .map((key) => [key, valueFor(m.known.get(key), m)]));
+}
+
+function buildKey(m) {
+    return JSON.stringify(valuesFor(m));
+}
+
+function field(parameter, index) {
+    const element = document.createElement("div");
+    element.className = "field";
+    const id = `parameter-${index}`;
+    const head = document.createElement("div");
+    head.className = "field-head";
+    const label = document.createElement("label");
+    label.htmlFor = id;
+    label.textContent = parameter.label;
+    head.append(label);
+    element.append(head);
+    if (parameter.description) {
+        const help = document.createElement("div");
+        help.className = "help";
+        help.textContent = parameter.description;
+        element.append(help);
+    }
+    const control = document.createElement("div");
+    control.className = "control";
+    element.append(control);
+
+    let setValue;
+    switch (parameter.type) {
+        case "boolean": {
+            // A label around the checkbox, so a click anywhere on the switch toggles it
+            const toggle = document.createElement("label");
+            toggle.className = "toggle";
+            const input = Object.assign(document.createElement("input"), { type: "checkbox", id });
+            input.addEventListener("change", () => update(parameter.key, input.checked));
+            toggle.append(input, document.createElement("span"));
+            head.append(toggle);
+            element.removeChild(control);
+            setValue = (value) => { input.checked = value; };
+            break;
+        }
+        case "choice": {
+            if (parameter.options.length <= 4) {
+                const group = document.createElement("div");
+                group.className = "segmented";
+                group.setAttribute("role", "group");
+                group.setAttribute("aria-labelledby", `${id}-label`);
+                label.id = `${id}-label`;
+                label.removeAttribute("for");
+                const buttons = parameter.options.map((option) => {
+                    const button = Object.assign(document.createElement("button"), {
+                        type: "button", textContent: humanize(option),
+                    });
+                    button.addEventListener("click", () => { setValue(option); update(parameter.key, option); });
+                    group.append(button);
+                    return [option, button];
+                });
+                control.append(group);
+                setValue = (value) => {
+                    for (const [option, button] of buttons) button.setAttribute("aria-pressed", option === value);
+                };
+            } else {
+                const select = Object.assign(document.createElement("select"), { id });
+                for (const option of parameter.options) select.append(new Option(humanize(option), option));
+                select.addEventListener("change", () => update(parameter.key, select.value));
+                control.append(select);
+                setValue = (value) => { select.value = value; };
+            }
+            break;
+        }
+        case "integer":
+        case "number":
+        case "angle": {
+            const step = parameter.step ?? (parameter.type === "integer" ? 1 : "any");
+            const number = Object.assign(document.createElement("input"), { type: "number", id, step });
+            if (parameter.minimum !== undefined) number.min = parameter.minimum;
+            if (parameter.maximum !== undefined) number.max = parameter.maximum;
+            let range;
+            if (parameter.minimum !== undefined && parameter.maximum !== undefined) {
+                range = Object.assign(document.createElement("input"), {
+                    type: "range", min: parameter.minimum, max: parameter.maximum, step,
+                });
+                range.setAttribute("aria-label", parameter.label);
+                range.addEventListener("input", () => {
+                    number.value = range.value;
+                    update(parameter.key, Number(range.value));
+                });
+                control.append(range);
+            }
+            number.addEventListener("change", () => {
+                if (number.value === "" || !number.checkValidity()) {
+                    number.value = valueFor(parameter);
+                    return;
+                }
+                if (range) range.value = number.value;
+                update(parameter.key, Number(number.value));
+            });
+            control.append(number);
+            // Angles are always in degrees. Numbers show the unit their parameter gives, if any.
+            const unit = parameter.type === "angle" ? "°" : parameter.unit;
+            if (unit) control.append(Object.assign(document.createElement("span"), { className: "unit", textContent: unit }));
+            setValue = (value) => { number.value = value; if (range) range.value = value; };
+            break;
+        }
+        default: {
+            const input = Object.assign(document.createElement("input"), { type: "text", id });
+            input.addEventListener("change", () => update(parameter.key, input.value));
+            control.append(input);
+            setValue = (value) => { input.value = value; };
+        }
+    }
+    setValue(valueFor(parameter));
+    controls.set(parameter.key, setValue);
+    return element;
+}
+
+function update(key, value) {
+    changedValues(model)[key] = value;
+    requestBuild();
+}
+
+$("reset").addEventListener("click", () => {
+    changed.delete(model.name);
+    for (const parameter of model.parameters) controls.get(parameter.key)(parameter.default);
+    requestBuild();
+});
+
+// The model on screen is kept in the address, so a link can open the customizer on a given tab
+function writeHash() {
+    try {
+        // A model in a group is named with its path, whose slashes read better left as they are
+        const hash = `#${new URLSearchParams({ model: model.name })}`.replaceAll("%2F", "/");
+        history.replaceState(null, "", model !== models[0] ? hash : location.pathname);
+    } catch (error) {
+        console.warn("Couldn't update the address:", error);
+    }
+}
+
+function humanize(name) {
+    const words = name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[-_]+/g, " ").trim().toLowerCase();
+    return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+// MARK: Building
+
+let isReady = false, loading = false, loadAttempt = 0;
+let building = null; // the model and values of the build in progress
+const builds = new Map(); // the last build of each model, with the values it was built with
+// The model and values of the build on screen, while they match the controls, to download a file of
+let downloadable = null, shownModel = null;
+let exporting = false; // whether the file to download is being made
+let buildTimer;
+
+const builder = new ModelBuilder(import.meta.url, (data) => {
+    if (data.type === "progress") {
+        const megabytes = (bytes) => (bytes / 1e6).toFixed(0);
+        $("overlay-text").textContent = data.total
+            ? `Loading model… ${megabytes(data.received)} of ${megabytes(data.total)} MB`
+            : `Loading model… ${megabytes(data.received)} MB`;
+        if (data.total) $("progress-bar").style.width = `${(100 * data.received) / data.total}%`;
+    } else if (data.type === "memory") {
+        const megabytes = (bytes) => Math.round(bytes / 1e6).toLocaleString();
+        $("memory").textContent = `Memory: ${megabytes(data.memoryBytes)} MB, of which cache about ${megabytes(data.cacheBytes)} MB`;
+        $("memory").hidden = false;
+    } else if (data.type === "compiling") {
+        $("overlay-text").textContent = "Preparing model…";
+        $("progress-bar").style.width = "100%";
+    }
+});
+
+let cancelTimer;
+
+function busy(active, text = "Building…") {
+    clearTimeout(cancelTimer);
+    $("build-progress").hidden = !active;
+    $("building").hidden = !active;
+    $("building").textContent = text;
+    $("cancel").hidden = true;
+    $("retry").hidden = true;
+    $("reset").disabled = !isReady;
+    form.setAttribute("aria-busy", active);
+    if (active) {
+        cancelTimer = setTimeout(() => { $("cancel").hidden = false; }, 3000);
+        downloadable = null;
+        $("download").disabled = true;
+        setStatus("");
+        $("build-time").textContent = text;
+        if (!shownModel) {
+            $("overlay").hidden = false;
+            $("overlay-text").textContent = text;
+            $("progress-bar").parentElement.hidden = text !== "Loading model…";
+            $("progress-bar").style.width = "0%";
+        }
+    }
+}
+
+function failed(error) {
+    builder.cancel();
+    clearTimeout(buildTimer);
+    busy(false);
+    downloadable = null;
+    $("download").disabled = true;
+    $("retry").textContent = isReady ? "Retry build" : "Retry loading";
+    $("retry").hidden = false;
+    $("build-time").textContent = error instanceof CancelledError ? "Cancelled" : "Failed";
+    buildLog.show(error.log ?? [error.message]);
+    setStatus(error.message, true);
+    if (!shownModel) {
+        $("overlay-text").textContent = error.message;
+        $("progress-bar").parentElement.hidden = true;
+    }
+}
+
+async function initialize() {
+    const attempt = ++loadAttempt;
+    loading = true;
+    busy(true, "Loading model…");
+    try {
+        const result = await builder.load();
+        if (attempt !== loadAttempt) return;
+        setUp(result.catalog);
+        isReady = true;
+        loading = false;
+        startBuild();
+    } catch (error) {
+        if (attempt !== loadAttempt) return;
+        loading = false;
+        failed(error);
+    }
+}
+
+function requestBuild() {
+    clearTimeout(buildTimer);
+    // A download must match the current controls, including while a rebuild is debounced or queued.
+    downloadable = null;
+    $("download").disabled = true;
+    buildTimer = setTimeout(startBuild, 120);
+}
+
+async function startBuild() {
+    if (!isReady || loading || building || exporting) return;
+    clearTimeout(buildTimer);
+    const parameters = valuesFor(model);
+    const attempt = { model, parameters, key: JSON.stringify(parameters) };
+    building = attempt;
+    busy(true);
+    try {
+        const result = await builder.build(attempt.model.name, parameters);
+        if (building !== attempt) return;
+        finishBuild(result, attempt);
+    } catch (error) {
+        if (building !== attempt) return;
+        building = null;
+        failed(error);
+    }
+}
+
+function finishBuild(result, finished) {
+    building = null;
+    busy(false);
+    const build = { ...result, key: finished.key, parameters: finished.parameters };
+    builds.set(finished.model.name, build);
+    // Keep the last preview while the latest parameters build. Never enable a download for stale
+    // parameters, or report an obsolete build's error against the newly selected model.
+    if (finished.model === model && finished.key === buildKey(model)) {
+        if (!result.data) {
+            const error = new Error(result.stackOverflow
+                ? "The model exceeds this browser's worker stack limit. Try simpler settings or reduce its resolution."
+                : result.exitCode === 0 ? "The model built to nothing. Try different settings."
+                : "The model failed to build. See the build details.");
+            error.log = result.log;
+            failed(error);
+            return;
+        }
+        if (result.parameterList) updateParameters(finished.model, result.parameterList);
+        try {
+            display(build);
+        } catch (error) {
+            failed(error);
+            return;
+        }
+    }
+    if (builds.get(model.name)?.key !== buildKey(model)) startBuild();
+}
+
+$("cancel").addEventListener("click", () => {
+    ++loadAttempt;
+    loading = false;
+    building = null;
+    failed(new CancelledError(isReady ? "Build cancelled." : "Loading cancelled."));
+});
+
+$("retry").addEventListener("click", () => {
+    if (isReady) startBuild();
+    else initialize();
+});
+
+// Starts after the viewer has been initialized, so even an immediately answered request can display.
+queueMicrotask(initialize);
+
+function display({ fileName, data, log, exitCode, milliseconds, parameters }) {
+    buildLog.show(log);
+    if (data) {
+        $("retry").hidden = true;
+        downloadable = { model, parameters };
+        $("download").disabled = false;
+        setStatus(`Built in ${Math.round(milliseconds)} ms`);
+        show(data, fileName, shownModel !== model);
+        shownModel = model;
+    } else {
+        downloadable = null;
+        $("download").disabled = true;
+        setStatus(exitCode === 0 ? "The model built to nothing." : "The model failed to build. See the build details.", true);
+    }
+}
+
+// What the model wrote while building, a message per line. Most messages are informational, so only
+// warnings and errors are labeled, and timestamps are left out.
+const buildLog = {
+    show(lines) {
+        $("log").replaceChildren(...lines.map((line) => {
+            const text = line.replace(/^\d{4}-\d{2}-\d{2}T\S+ /, "");
+            const [, level, message] = text.match(/^(?:\S+ )?\[(DEBUG|INFO|WARNING|ERROR)\] (.*)$/s) ?? [null, null, text];
+            const element = document.createElement("div");
+            if (level === "WARNING") {
+                element.className = "warning";
+                element.textContent = `Warning: ${message}`;
+            } else if (level === "ERROR" || text.startsWith("Crashed:")) {
+                element.className = "error";
+                element.textContent = level ? `Error: ${message}` : message;
+            } else {
+                element.textContent = message;
+            }
+            return element;
+        }));
+    },
+};
+
+// Errors show in the sidebar. How long a successful build took goes in the build details.
+function setStatus(text, isError = false) {
+    $("status").textContent = isError ? text : "";
+    $("status").hidden = !isError;
+    if (!isError) $("build-time").textContent = text;
+}
+
+// The media type of a downloaded model file, from its extension
+function mediaType(fileName) {
+    const types = { "3mf": "model/3mf", "stl": "model/stl", "svg": "image/svg+xml" };
+    return types[fileName.split(".").pop().toLowerCase()] ?? "application/octet-stream";
+}
+
+// Builds show a preview, so the file itself is made when it's downloaded. The model is still running
+// from building that preview, so its geometry is cached, and making the file is mostly encoding it.
+// Builds wait until it's done.
+$("download").addEventListener("click", async () => {
+    if (!downloadable || exporting || building) return;
+    const { model: target, parameters } = downloadable;
+    exporting = true;
+    $("download").disabled = true;
+    $("download").textContent = "Preparing…";
+    try {
+        const result = await builder.export(target.name, parameters);
+        if (!result.data) {
+            const error = new Error("The model file couldn't be made. See the build details.");
+            error.log = result.log;
+            throw error;
+        }
+        const url = URL.createObjectURL(new Blob([result.data], { type: mediaType(result.fileName) }));
+        const link = Object.assign(document.createElement("a"), { href: url, download: result.fileName });
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+        buildLog.show(error.log ?? [error.message]);
+        setStatus(error.message, true);
+    } finally {
+        exporting = false;
+        $("download").textContent = "Download Model";
+        $("download").disabled = !downloadable;
+        if (isReady && builds.get(model.name)?.key !== buildKey(model)) startBuild();
+    }
+});
+
+// MARK: Layout
+
+// On a short screen with the settings beside the model view, such as a phone on its side, Download and
+// the credit move into the sidebar, so that the view keeps all its height. The query matches where the
+// stylesheet keeps the columns.
+const shortColumns = matchMedia("(max-height: 500px) and (min-width: 541px) and (orientation: landscape)");
+
+function placeActions() {
+    const actions = document.querySelector(".viewer-actions"), credit = document.querySelector(".credit");
+    const main = document.querySelector("main");
+    if (shortColumns.matches) {
+        document.querySelector("aside").append(credit, actions);
+    } else {
+        main.append(actions);
+        main.after(credit);
+    }
+}
+shortColumns.addEventListener("change", placeActions);
+placeActions();
+
+// MARK: Viewer
+
+// Without WebGL (turned off, or no usable GPU) there's no preview, but the form, builds and download
+// still work
+let show;
+try {
+    show = createViewer();
+} catch (error) {
+    console.warn("The 3D preview isn't available:", error);
+    show = () => {
+        $("overlay-text").textContent = "This browser can't show a 3D preview, but the model can still be downloaded.";
+        $("progress-bar").parentElement.hidden = true;
+    };
+}
+
+function createViewer() {
+    THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
+    const container = $("viewer");
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    const viewportRenderer = new ViewportRenderer(renderer);
+    container.append(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--viewer").trim());
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 10000);
+    const controlsView = new ViewportControls(camera, renderer.domElement);
+
+    setupLighting(scene, camera, renderer);
+
+    const root = document.documentElement;
+    const gridColor = getComputedStyle(root).getPropertyValue("--grid").trim();
+    const grid = new ViewportGrid(gridColor);
+    scene.add(grid);
+    const origin = new OriginAxes();
+    scene.add(origin);
+    const axisIndicator = new AxisIndicator(container);
+
+    function updateGridColor() {
+        grid.material.uniforms.color.value.set(getComputedStyle(root).getPropertyValue("--grid").trim());
+        scene.background.set(getComputedStyle(root).getPropertyValue("--viewer").trim());
+    }
+    // CSS updates the page automatically; the shader's color needs the same changes explicitly.
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", updateGridColor);
+    new MutationObserver(updateGridColor).observe(root, {
+        attributes: true, attributeFilter: ["data-theme", "style", "class"],
+    });
+
+    let current = null, currentBox = null, framed = false;
+
+    function frame(box) {
+        controlsView.reset();
+        frameIsometric(camera, box, new THREE.Vector3());
+    }
+
+    // The buttons over the view zoom toward its center, and put the view back where it started
+    const zoomStep = Math.log(1.5);
+    function viewCenter() {
+        const rect = renderer.domElement.getBoundingClientRect();
+        return new THREE.Vector2(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    }
+    $("zoom-in").addEventListener("click", () => controlsView.animateZoom(zoomStep, viewCenter()));
+    $("zoom-out").addEventListener("click", () => controlsView.animateZoom(-zoomStep, viewCenter()));
+    $("reset-view").addEventListener("click", () => { if (currentBox) frame(currentBox); });
+
+    function resize() {
+        const { clientWidth: width, clientHeight: height } = container;
+        viewportRenderer.setSize(width, height);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+    }
+    new ResizeObserver(resize).observe(container);
+    resize();
+
+    renderer.setAnimationLoop((time) => {
+        controlsView.update(time);
+        camera.updateMatrixWorld();
+        grid.updateScale(camera, container.clientWidth, container.clientHeight);
+        axisIndicator.update(camera);
+        viewportRenderer.render(scene, camera);
+    });
+
+    // Frames the model the first time, and again when a different model is shown
+    return (data, fileName, isNewModel) => {
+        const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+        // Parts without a color of their own get the page's model color
+        const color = getComputedStyle(document.documentElement).getPropertyValue("--model").trim();
+        const object = fileName.endsWith(".cadovapreview") ? readPreview(buffer, color) : read3MF(buffer, color);
+        object.traverse((child) => {
+            if (child.isMesh) child.geometry = toCreasedNormals(child.geometry, THREE.MathUtils.degToRad(30));
+        });
+        if (current) {
+            scene.remove(current);
+            current.traverse((child) => {
+                child.geometry?.dispose();
+                child.material?.dispose();
+            });
+        }
+        current = object;
+        scene.add(object);
+        const box = new THREE.Box3().setFromObject(object);
+        controlsView.setModel(object, box);
+        currentBox = box;
+        $("view-controls").hidden = false;
+        grid.updateBounds(box);
+        origin.visible = !box.isEmpty();
+        axisIndicator.show();
+        $("overlay").hidden = true;
+        if (!framed || isNewModel) { frame(box); framed = true; }
+    };
+}

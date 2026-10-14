@@ -16,6 +16,11 @@ public struct ModelOptions: Sendable, ExpressibleByArrayLiteral {
         items.compactMap { $0 as? T }.reduce(.defaultValue, { $0.combined(with: $1) })
     }
 
+    /// Whether the options set this item at all, rather than leaving it at its default value.
+    internal func specifies<T: ModelOptionItem>(_ type: T.Type) -> Bool {
+        items.contains { $0 is T }
+    }
+
     public init(arrayLiteral elements: Self...) {
         self.items = elements.flatMap(\.items)
     }

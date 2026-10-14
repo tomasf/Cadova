@@ -13,7 +13,9 @@ public extension Geometry {
     @GeometryBuilder<D> var body: any Geometry<D> {}
 
     func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
-        try await context.buildResult(for: body, in: environment)
+        try await ParameterRecorder.recordingBody {
+            try await context.buildResult(for: body, in: environment)
+        }
     }
 }
 

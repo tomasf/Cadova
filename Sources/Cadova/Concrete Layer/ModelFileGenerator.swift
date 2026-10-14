@@ -142,7 +142,7 @@ public struct ModelFileGenerator: Sendable {
             }
         }
 
-        let (dataProvider, warnings) = try await directives.build(with: options, in: environment, context: evaluationContext)
+        let (dataProvider, warnings, _) = try await directives.build(with: options, in: environment, context: evaluationContext)
         return ModelFile(dataProvider: dataProvider, evaluationContext: evaluationContext, modelName: name,
                          buildWarnings: warnings)
     }

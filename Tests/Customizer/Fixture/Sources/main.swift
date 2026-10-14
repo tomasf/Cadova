@@ -1,0 +1,87 @@
+import Cadova
+import Foundation
+
+await Project {
+    Metadata(title: "Test Parts", description: "Parts for testing the web customizer.")
+
+    await Model("plate") {
+        Metadata(title: "Test Plate", description: "A plate with holes.")
+        Plate()
+    }
+
+    // Has a parameter with the same label as one of the plate's, which is still its own, and no
+    // title of its own
+    await Model("spacer") {
+        @Parameter("Width", in: 10...60, step: 1, description: "Diameter in millimeters")
+        var width = 20.0
+
+        @Parameter("Height", in: 1...20, step: 1, description: "Height in millimeters")
+        var height = 5.0
+
+        // A material, to test that the viewer shows it
+        Cylinder(diameter: width, height: height)
+            .withMaterial(color: .init(red: 0.2, green: 0.4, blue: 0.8), metallicness: 0.5, roughness: 0.3)
+    }
+
+    // In a group, which a customizer's menu lists it under
+    await Group("extras") {
+        await Model("washer") {
+            Metadata(title: "Washer")
+            @Parameter("Diameter", in: 5...30, step: 1, unit: "mm") var diameter = 12.0
+            Circle(diameter: diameter)
+                .subtracting { Circle(diameter: diameter / 2) }
+                .extruded(height: 1.5)
+        }
+
+        // Named like the spacer above, and without a title, so its tab has to name its group
+        await Model("spacer") {
+            @Parameter("Size", in: 5...30, step: 1, unit: "mm") var size = 10.0
+            Box(size)
+        }
+    }
+}
+
+enum Corners: String, CaseIterable, ParameterValue {
+    case square, rounded
+}
+
+struct Plate: Geometry3D {
+    @Parameter("Width", in: 10...100, step: 1, unit: "mm", description: "Width of the plate")
+    var width = 40.0
+
+    @Parameter("Holes", in: 0...4, unit: "pcs", description: "Number of holes along the middle")
+    var holes = 2
+
+    @Parameter("Thick", description: "Make the plate 6 mm thick instead of 3")
+    var thick = false
+
+    @Parameter("Corners", description: "Corner style")
+    var corners = Corners.rounded
+
+    // Read from a resource, to test that a customizer has the package's resources
+    static let depth: Double = {
+        let url = Bundle.module.url(forResource: "plate-depth", withExtension: "txt")!
+        return Double(try! String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines))!
+    }()
+
+    var body: any Geometry3D {
+        let plate = Rectangle(x: width, y: Self.depth).aligned(at: .center)
+        // The corner radius is only a parameter when the corners are rounded
+        let outline: any Geometry2D
+        switch corners {
+        case .rounded:
+            @Parameter("Corner radius", in: 1...8, step: 0.5, unit: "mm") var radius = 3.0
+            outline = plate.rounded(radius: radius)
+        case .square:
+            outline = plate
+        }
+
+        outline
+            .subtracting {
+                (0..<holes).mapUnion { index in
+                    Circle(radius: 2).translated(x: (Double(index) - Double(holes - 1) / 2) * 8)
+                }
+            }
+            .extruded(height: thick ? 6 : 3)
+    }
+}

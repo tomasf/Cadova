@@ -10,3 +10,7 @@ xcuserdata/
 /.claude/settings.local.json
 
 __pycache__/
+
+/Tests/Customizer/Fixture/.build
+/Tests/Customizer/Fixture/Customizer
+/Tests/Customizer/Fixture/Package.resolved

@@ -154,58 +154,94 @@ public func Project(
     options: ModelOptions...,
     @ProjectContentBuilder content: @Sendable @escaping () async -> [BuildDirective]
 ) async {
-    func endBuild(failureCount: Int) {
-        guard failureCount > 0 else { return }
-        logger.error("Build failed with \(failureCount) error\(failureCount == 1 ? "" : "s").")
+    let build = ProjectBuild(root: url, options: options, content: content)
+    #if os(WASI)
+    if CustomizerSession.isRequested {
+        await CustomizerSession.start(build)
+    }
+    #endif
+
+    let failures = await build.run(request: CustomizerRequest.current, context: EvaluationContext())
+    if !ProjectBuild.reportSuccess(failureCount: failures) {
         exit(EXIT_FAILURE)
     }
+}
 
-    // Collect directives
-    let directives = await ModelContext(isCollectingModels: true).whileCurrent {
-        await content()
-    }
+/// What a `Project` builds, kept so that a customizer session can build it again for each request.
+internal struct ProjectBuild: Sendable {
+    let root: URL?
+    let options: [ModelOptions]
+    let content: @Sendable () async -> [BuildDirective]
 
-    var failures = 0
-
-    if let url {
-        // Reported once for the directory, rather than once per model that then cannot be saved
-        // into it. The models are still attempted, in case they name absolute paths of their own.
-        do {
-            try FileManager().createDirectory(at: url, withIntermediateDirectories: true)
-        } catch {
-            logger.error("Failed to create output directory \(url.path): \(error.descriptiveString)")
-            failures += 1
+    /// Builds the project, or does what a customizer's request asks instead, logging each error.
+    ///
+    /// - Returns: The number of errors.
+    func run(request: CustomizerRequest?, context: EvaluationContext) async -> Int {
+        // A customizer either asks for every model's parameters, or for one model, written where it says
+        if let path = request?.parameterListPath {
+            let catalog = await ParameterCatalog.collect(options: options, content: content)
+            do {
+                try catalog.jsonData().write(to: URL(expandingFilePath: path))
+            } catch {
+                logger.error("Failed to write parameters: \(error.descriptiveString)")
+                return 1
+            }
+            return 0
         }
+        let url = request?.outputDirectory.map { URL(expandingFilePath: $0) } ?? root
+
+        // Collect directives
+        let directives = await ModelContext(isCollectingModels: true).whileCurrent {
+            await content()
+        }
+
+        var failures = 0
+
+        if let url {
+            // Reported once for the directory, rather than once per model that then cannot be saved
+            // into it. The models are still attempted, in case they name absolute paths of their own.
+            do {
+                try FileManager().createDirectory(at: url, withIntermediateDirectories: true)
+            } catch {
+                logger.error("Failed to create output directory \(url.path): \(error.descriptiveString)")
+                failures += 1
+            }
+        }
+
+        var combinedOptions = ModelOptions(options + directives.compactMap(\.options))
+        let environment = EnvironmentValues.rootEnvironment.adding(directives: directives)
+
+        let models = directives.compactMap(\.model)
+
+        let cliArgs = CommandLineArguments.current
+        let modelFilter = cliArgs.modelFilter.union(request?.model.map { [$0] } ?? [])
+        if !modelFilter.isEmpty {
+            combinedOptions = [combinedOptions, ModelOptions(ModelFilter(names: modelFilter))]
+            logger.info("Model filter: \(modelFilter.sorted().joined(separator: ", "))")
+        }
+
+        // Build models and groups
+        let groups = directives.compactMap(\.group)
+        guard models.isEmpty == false || groups.isEmpty == false else {
+            return failures
+        }
+
+        let filterNames = combinedOptions[ModelFilter.self].names
+        let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: []) }
+        let buildables: [any ModelBuildable] = groups + filteredModels
+        let finalOptions = combinedOptions
+        failures += await buildables.asyncMap {
+            await $0.build(environment: environment, context: context, options: finalOptions, URL: url, filterPath: [])
+        }.reduce(0, +)
+        return failures
     }
 
-    var combinedOptions = ModelOptions(options + directives.compactMap(\.options))
-    let environment = EnvironmentValues.defaultEnvironment.adding(directives: directives)
-
-    let models = directives.compactMap(\.model)
-
-    let cliArgs = CommandLineArguments.current
-    if !cliArgs.modelFilter.isEmpty {
-        combinedOptions = [combinedOptions, ModelOptions(ModelFilter(names: cliArgs.modelFilter))]
-        logger.info("Model filter: \(cliArgs.modelFilter.sorted().joined(separator: ", "))")
+    /// Logs the outcome of a build that had the given number of errors.
+    ///
+    /// - Returns: Whether the build succeeded.
+    static func reportSuccess(failureCount: Int) -> Bool {
+        guard failureCount > 0 else { return true }
+        logger.error("Build failed with \(failureCount) error\(failureCount == 1 ? "" : "s").")
+        return false
     }
-
-    // Build models and groups
-    let groups = directives.compactMap(\.group)
-    guard models.isEmpty == false || groups.isEmpty == false else {
-        endBuild(failureCount: failures)
-        return
-    }
-    let context = EvaluationContext()
-
-    let constantEnvironment = environment
-
-    let filterNames = combinedOptions[ModelFilter.self].names
-    let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: []) }
-    let buildables: [any ModelBuildable] = groups + filteredModels
-    let finalOptions = combinedOptions
-    failures += await buildables.asyncMap {
-        await $0.build(environment: constantEnvironment, context: context, options: finalOptions, URL: url, filterPath: [])
-    }.reduce(0, +)
-
-    endBuild(failureCount: failures)
 }

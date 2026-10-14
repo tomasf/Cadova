@@ -96,3 +96,7 @@ await Project {
 ```
 
 You can add as many `Model` entries as you like inside the `Project`, and they'll all land in that same directory. Models in a project are also evaluated in parallel, and can share environment values and metadata. See <doc:ModelAndProject> for details.
+
+## Share a model on the web
+
+Declare some of your model's values as parameters, and Cadova can turn it into a web page where anyone can adjust them, preview the result and download the model, all in their browser. See <doc:WebCustomizer>.
