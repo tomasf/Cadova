@@ -76,11 +76,12 @@ jobs:
       with:
         python-version: '3.13'
 
-    # Playwright's WebKit for Windows, which no visitor uses, since there's no Safari there, crashes
-    # running the model, so Windows tests Chromium only
+    # Playwright's WebKit for Windows and Linux, which no visitor uses, since Safari only runs on
+    # Apple's platforms, crashes running the model, always on Windows and now and then on Linux. So
+    # WebKit is tested on macOS, where it's Safari's engine, and the others test Chromium only.
     - name: Pick the browsers
       shell: bash
-      run: echo "BROWSERS=chromium${{ runner.os != 'Windows' && ' webkit' || '' }}" >> "$GITHUB_ENV"
+      run: echo "BROWSERS=chromium${{ runner.os == 'macOS' && ' webkit' || '' }}" >> "$GITHUB_ENV"
 
     - name: Install Playwright
       shell: bash
