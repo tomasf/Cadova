@@ -1476,6 +1476,19 @@ def test_loading_recovery(browser, base_url):
         check(not page.errors, f"Loading recovery had page errors: {page.errors}")
         page.page.context.close()
 
+    # The page's own code failing to load, from the page's folder or the CDN, says so and offers a reload
+    for failing in ["**/axes.js", "https://cdn.jsdelivr.net/npm/three@*/build/three.module.js"]:
+        page = CustomizerPage(browser.new_page(), base_url)
+        page.page.context.route(failing, lambda route: route.abort())
+        page.page.goto(f"{base_url}/index.html")
+        expect(page.page.locator("#status")).to_contain_text("Couldn't load the page")
+        expect(page.page.locator("#overlay-text")).to_contain_text("Couldn't load the page")
+        expect(page.page.locator("#retry")).to_have_text("Reload")
+        page.page.context.unroute(failing)
+        page.page.locator("#retry").click()
+        page.wait_for_build()
+        page.page.context.close()
+
     page = CustomizerPage(browser.new_page(), base_url)
     workers = faulty_worker(page.page, 'if (data.type === "load") { while (true) {} }')
     page.page.goto(f"{base_url}/index.html")
