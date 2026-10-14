@@ -41,6 +41,7 @@ export class CameraNavigator {
         this.meshes = [];
         this.raycaster = new THREE.Raycaster();
         this.inertia = null;
+        this.zoomAnimation = null;
         this.zoomPivot = null;
     }
     setModel(object, box) {
@@ -50,7 +51,7 @@ export class CameraNavigator {
         this.meshes = [];
         object.traverse(child => { if (child.isMesh && !child.isLineSegments2) this.meshes.push(child); });
     }
-    stopMotion() { this.inertia = null; }
+    stopMotion() { this.inertia = this.zoomAnimation = null; }
     resetZoomPivot() { this.zoomPivot = null; }
     pivot(point) {
         const rect = this.element.getBoundingClientRect();
@@ -137,6 +138,14 @@ export class CameraNavigator {
             .addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(q), -dy * wpp);
         this.camera.updateMatrixWorld();
     }
+    // Zooms smoothly toward a point, as the zoom buttons do. Zooming again before it's done adds on to
+    // what's left of the zoom in progress.
+    animateZoom(logZoom, point) {
+        const previous = this.zoomAnimation;
+        const remaining = previous ? previous.logZoom * (1 - previous.progress) : 0;
+        const state = this.begin(point);
+        this.zoomAnimation = { state, logZoom: logZoom + remaining, start: null, progress: 0 };
+    }
     startInertia(state, delta, velocity, motion) {
         this.stopMotion();
         const speed = new THREE.Vector4(0,0,0,0);
@@ -147,6 +156,14 @@ export class CameraNavigator {
         if (speed.length()) this.inertia = { state, delta: delta.clone(), velocity: speed, motion, time: null };
     }
     update(time = performance.now()) {
+        const animation = this.zoomAnimation;
+        if (animation) {
+            animation.start ??= time;
+            const t = THREE.MathUtils.clamp((time - animation.start) / 200, 0, 1);
+            animation.progress = 1 - Math.pow(1 - t, 3);
+            this.apply(animation.state, new THREE.Vector4(0, 0, animation.logZoom * animation.progress, 0), "zoom");
+            if (t >= 1) this.zoomAnimation = null;
+        }
         const glide = this.inertia;
         if (!glide) return;
         const dt = glide.time === null ? 0 : THREE.MathUtils.clamp((time - glide.time) / 1000, 0, 0.1);

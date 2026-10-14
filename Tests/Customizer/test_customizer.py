@@ -941,6 +941,11 @@ def test_navigation(browser, base_url):
         gesture("gesturechange",2,1,true);
         const safariPinch = camera.position.distanceTo(controls.gesture.state.pivot)/before;
         gesture("gestureend",2,1,true);
+        // Zooming by button eases in over 200 ms, and a second press adds on to what's left
+        reset(); before = camera.position.distanceTo(controls.pivot(center));
+        controls.animateZoom(Math.log(2),center); controls.update(1000); controls.update(1100);
+        controls.animateZoom(Math.log(2),center); controls.update(2000); controls.update(2300);
+        const buttonZoom = camera.position.distanceTo(controls.pivot(center))/before;
         controls.dispose();
         const event = new WheelEvent("wheel",{bubbles:true,cancelable:true,deltaY:10});
         canvas.dispatchEvent(event);
@@ -950,7 +955,7 @@ def test_navigation(browser, base_url):
             minimum,maximum,keepsRoll,sixty,oneTwenty,noSlowGlide,axisLock,marker,markerHidden,quickGlide,coastMoved,grabStopsGlide,
             altPan,pausedRelease,stoppedRelease,flingRelease,cancelStops,wheelPrevented,mouseZoom,pixelMouseZoom,nativeMouseZoom,trackpadPan,modifierMomentum,
             pinchZoom,pinchAnchor,touchPan,touchPinch,touchAnchor,pinchRelease,pinchCoastAnchor,staggeredLift,twistIgnored,twistDistanceRatio,
-            safariTwistIgnored,noDuplicatePinch,safariNoCoast,safariPinch,disposed};
+            safariTwistIgnored,noDuplicatePinch,safariNoCoast,safariPinch,buttonZoom,disposed};
     }''')
     def close(actual, expected, tolerance=1e-6):
         return all(abs(a-b) < tolerance for a,b in zip(actual,expected))
@@ -978,6 +983,7 @@ def test_navigation(browser, base_url):
           and close(result["touchPan"],[10,15]) and abs(result["touchPinch"]-0.5) < 1e-6 and result["touchAnchor"] < 1e-6 and result["pinchCoastAnchor"] < 1e-6
           and abs(result["twistDistanceRatio"]-1) < 1e-6 and abs(result["safariPinch"]-0.5) < 1e-6,
           f"Multitouch pan or pinch is incorrect, or twisting changed the view: {result}")
+    check(abs(result["buttonZoom"]-0.25) < 1e-3, f"Zoom buttons zoomed by the wrong amount: {result['buttonZoom']}")
     check(not page.errors, f"Navigation errors: {page.errors}")
     page.page.context.close()
 
@@ -1098,6 +1104,24 @@ def test_touch_navigation(browser, base_url):
     check(max(abs(a-b) for a,b in zip(cancelled["position"],resting["position"])) < 1e-6, "Cancelled touch input kept moving")
     expect(page.page.locator("#download")).to_be_enabled()
     expect(page.page.locator("#axis-indicator")).to_be_visible()
+    # The zoom buttons zoom toward the view's center, and the reset button returns to the starting view
+    reset_pose()
+    page.page.locator("#zoom-in").click()
+    page.page.wait_for_timeout(400)
+    zoomed = page.page.evaluate("window.touchPose()")
+    check(sum((a-b)**2 for a,b in zip(zoomed["position"],start["position"])) > 1e-6
+          and abs(sum(a*b for a,b in zip(start["quaternion"],zoomed["quaternion"]))-1) < 1e-6,
+          "Zoom in didn't zoom, or turned the view")
+    contacts("touchStart",[(x,y)])
+    for i in range(1,9):
+        contacts("touchMove",[(x+i*6,y+i*3)])
+    contacts("touchEnd",[])
+    page.page.wait_for_timeout(100)
+    page.page.locator("#reset-view").click()
+    page.page.wait_for_timeout(100)
+    home = page.page.evaluate("window.touchPose()")
+    check(max(abs(a-b) for a,b in zip(home["position"]+home["quaternion"],start["position"]+start["quaternion"])) < 1e-6,
+          f"Reset view didn't return to the starting view: {home} vs {start}")
     check(not page.errors, f"Touch navigation errors: {page.errors}")
     if chromium:
         session.detach()
@@ -1174,6 +1198,21 @@ def test_axes(browser, base_url):
     settings = page.page.locator("aside").bounding_box()
     credit = page.page.locator(".credit").bounding_box()
     check(credit["y"] >= settings["y"] + settings["height"] - 1, "The credit isn't below the mobile settings")
+    # On its side, a phone keeps the columns, rather than a wide and thin model view
+    page.page.set_viewport_size({"width": 667, "height": 375})
+    settings = page.page.locator("aside").bounding_box()
+    viewer = page.page.locator("#viewer").bounding_box()
+    check(settings["x"] + settings["width"] <= viewer["x"] + 1 and abs(viewer["height"] - 375) < 1,
+          f"A phone on its side doesn't get columns: {settings}, {viewer}")
+    # There, Download and the credit move into the sidebar, so that the view keeps its height
+    # The page moves them when the layout changes, which can land a moment after the resize
+    page.page.wait_for_function("""() => ["#download", ".credit"].every(selector =>
+        document.querySelector(selector).closest("aside") !== null)""", timeout=5000)
+    download = page.page.locator("#download").bounding_box()
+    check(download["y"] + download["height"] <= 375 + 1 and download["x"] + download["width"] <= viewer["x"] + 1,
+          f"Download isn't in reach at the bottom of the sidebar: {download}")
+    page.page.set_viewport_size({"width": 390, "height": 844})
+    page.page.wait_for_function("""() => document.querySelector("#download").closest("main") !== null""", timeout=5000)
     page.page.emulate_media(color_scheme="dark")
     expect(indicator).to_be_visible()
 
@@ -1540,7 +1579,10 @@ def test_preview_matches_3mf(browser, base_url):
 CHROMIUM_ARGUMENTS = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
 
 
-def main(engines):
+def main(arguments):
+    # Arguments are browser engines, and optionally the names of tests to run, such as test_navigation
+    engines = [argument for argument in arguments if not argument.startswith("test")] or ["chromium"]
+    only = {argument for argument in arguments if argument.startswith("test")}
     check(CUSTOMIZER.joinpath("model.wasm").exists(), f"No customizer in {CUSTOMIZER}; generate it first")
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(QuietHandler, directory=CUSTOMIZER))
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -1550,8 +1592,8 @@ def main(engines):
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
             test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
-        )]
-        if "chromium" in engines:
+        ) if not only or run.__name__ in only]
+        if "chromium" in engines and (not only or "test_without_webgl" in only):
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))
         for engine, run, arguments in runs:
             name = f"{engine} ({run.__name__})"
@@ -1570,4 +1612,4 @@ def main(engines):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["chromium"])
+    main(sys.argv[1:])

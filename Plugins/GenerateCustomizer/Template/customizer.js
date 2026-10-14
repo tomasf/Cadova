@@ -507,6 +507,26 @@ $("download").addEventListener("click", async () => {
     }
 });
 
+// MARK: Layout
+
+// On a short screen with the settings beside the model view, such as a phone on its side, Download and
+// the credit move into the sidebar, so that the view keeps all its height. The query matches where the
+// stylesheet keeps the columns.
+const shortColumns = matchMedia("(max-height: 500px) and (min-width: 541px) and (orientation: landscape)");
+
+function placeActions() {
+    const actions = document.querySelector(".viewer-actions"), credit = document.querySelector(".credit");
+    const main = document.querySelector("main");
+    if (shortColumns.matches) {
+        document.querySelector("aside").append(credit, actions);
+    } else {
+        main.append(actions);
+        main.after(credit);
+    }
+}
+shortColumns.addEventListener("change", placeActions);
+placeActions();
+
 // MARK: Viewer
 
 // Without WebGL (turned off, or no usable GPU) there's no preview, but the form, builds and download
@@ -555,12 +575,22 @@ function createViewer() {
         attributes: true, attributeFilter: ["data-theme", "style", "class"],
     });
 
-    let current = null, framed = false;
+    let current = null, currentBox = null, framed = false;
 
     function frame(box) {
         controlsView.reset();
         frameIsometric(camera, box, new THREE.Vector3());
     }
+
+    // The buttons over the view zoom toward its center, and put the view back where it started
+    const zoomStep = Math.log(1.5);
+    function viewCenter() {
+        const rect = renderer.domElement.getBoundingClientRect();
+        return new THREE.Vector2(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    }
+    $("zoom-in").addEventListener("click", () => controlsView.animateZoom(zoomStep, viewCenter()));
+    $("zoom-out").addEventListener("click", () => controlsView.animateZoom(-zoomStep, viewCenter()));
+    $("reset-view").addEventListener("click", () => { if (currentBox) frame(currentBox); });
 
     function resize() {
         const { clientWidth: width, clientHeight: height } = container;
@@ -599,6 +629,8 @@ function createViewer() {
         scene.add(object);
         const box = new THREE.Box3().setFromObject(object);
         controlsView.setModel(object, box);
+        currentBox = box;
+        $("view-controls").hidden = false;
         grid.updateBounds(box);
         origin.visible = !box.isEmpty();
         axisIndicator.show();
