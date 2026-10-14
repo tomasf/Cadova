@@ -18,6 +18,7 @@ import json
 import re
 import sys
 import threading
+import time
 import zipfile
 from io import BytesIO
 from pathlib import Path
@@ -101,6 +102,47 @@ class CustomizerPage:
         with self.page.expect_download(timeout=TIMEOUT) as download:
             self.page.locator("#download").click()
         return Mesh(Path(download.value.path()).read_bytes())
+
+
+class CDNCache:
+    """Serves the page's files from the CDN, three.js and the WASI library, to every test from one
+    download each. Each test starts a new browser with an empty cache, and the CDN now and then stalls
+    a download for 10 to 15 seconds, which was enough to time out whichever test it landed in."""
+
+    def __init__(self):
+        self.files = {}
+
+    def route(self, route):
+        url = route.request.url
+        if url not in self.files:
+            response = route.fetch(timeout=60_000)
+            if response.status != 200:
+                route.fulfill(response=response)
+                return
+            # Only what the browser needs: the body is already decoded, so the CDN's encoding no longer applies
+            headers = {name: value for name, value in response.headers.items()
+                       if name.lower() in ("content-type", "access-control-allow-origin")}
+            self.files[url] = (headers, response.body())
+        headers, body = self.files[url]
+        route.fulfill(status=200, headers=headers, body=body)
+
+    def browser(self, browser):
+        """Routes the CDN through the cache in every page the browser opens."""
+        new_page = browser.new_page
+
+        def routed_page(**options):
+            page = new_page(**options)
+            page.context.route("https://cdn.jsdelivr.net/**", self.route)
+            return page
+        browser.new_page = routed_page
+        return browser
+
+
+class TestServer(http.server.ThreadingHTTPServer):
+    # The browser asks for a page's modules all at once. With the default queue of 5 connections
+    # waiting to be accepted, the rest were reset, and a module that failed to load left the page
+    # stuck on loading until the test timed out.
+    request_queue_size = 128
 
 
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
@@ -1584,11 +1626,12 @@ def main(arguments):
     engines = [argument for argument in arguments if not argument.startswith("test")] or ["chromium"]
     only = {argument for argument in arguments if argument.startswith("test")}
     check(CUSTOMIZER.joinpath("model.wasm").exists(), f"No customizer in {CUSTOMIZER}; generate it first")
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(QuietHandler, directory=CUSTOMIZER))
+    server = TestServer(("127.0.0.1", 0), functools.partial(QuietHandler, directory=CUSTOMIZER))
     threading.Thread(target=server.serve_forever, daemon=True).start()
     base_url = f"http://127.0.0.1:{server.server_address[1]}"
 
     failed = False
+    cdn = CDNCache()
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
             test, test_tabs, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
@@ -1598,12 +1641,13 @@ def main(arguments):
         for engine, run, arguments in runs:
             name = f"{engine} ({run.__name__})"
             launcher = getattr(playwright, engine)
-            browser = launcher.launch(args=(CHROMIUM_ARGUMENTS if engine == "chromium" else []) + arguments)
+            browser = cdn.browser(launcher.launch(args=(CHROMIUM_ARGUMENTS if engine == "chromium" else []) + arguments))
+            start = time.monotonic()
             try:
                 run(browser, base_url)
-                print(f"{name}: passed")
+                print(f"{name}: passed in {time.monotonic() - start:.1f} s")
             except (AssertionError, PlaywrightError) as error:
-                print(f"{name}: FAILED: {error}")
+                print(f"{name}: FAILED after {time.monotonic() - start:.1f} s: {error}")
                 failed = True
             finally:
                 browser.close()
