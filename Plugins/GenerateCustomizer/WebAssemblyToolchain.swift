@@ -288,19 +288,21 @@ struct WebAssemblyToolchain {
     /// found through PATH, and the toolchain's swift quietly fails with another version's runtime,
     /// such as the one running this plugin, so its own version's comes first.
     private var swiftEnvironment: [String: String?] {
+        // On macOS, a package that depends on Cadova gets its prebuilt XCFramework once one is
+        // published, which only has macOS in it, so Cadova builds from source for WebAssembly
+        var environment: [String: String?] = ["CADOVA_BUILD_FROM_SOURCE": "1"]
         #if os(Windows)
         // binaries is <root>/Toolchains/<version>/usr/bin, and the runtime is in <root>/Runtimes
         let root = binaries.appending(path: "../../../..").standardizedFileURL
         let runtime = root.appending(path: "Runtimes/\(Self.swiftVersion)/usr/bin")
-        guard FileManager.default.fileExists(atPath: runtime.path) else { return [:] }
+        guard FileManager.default.fileExists(atPath: runtime.path) else { return environment }
         // Windows' variable names ignore case, but the environment Foundation hands over doesn't
-        let environment = ProcessInfo.processInfo.environment
-        let name = environment.keys.first { $0.uppercased() == "PATH" } ?? "Path"
-        let path = [runtime.fileSystemPath, binaries.fileSystemPath] + [environment[name]].compactMap { $0 }
-        return [name: path.joined(separator: ";")]
-        #else
-        return [:]
+        let inherited = ProcessInfo.processInfo.environment
+        let name = inherited.keys.first { $0.uppercased() == "PATH" } ?? "Path"
+        let path = [runtime.fileSystemPath, binaries.fileSystemPath] + [inherited[name]].compactMap { $0 }
+        environment[name] = path.joined(separator: ";")
         #endif
+        return environment
     }
 
     /// Builds an executable product of a package for WebAssembly and returns the linked module.
