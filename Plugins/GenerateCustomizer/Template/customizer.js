@@ -676,6 +676,14 @@ try {
     };
 }
 
+// The model's size, such as "112 × 84 × 40 mm", in the model's units, which are millimeters by
+// convention. A 2D model, built as a very thin solid, only has its width and depth.
+function sizeText(box) {
+    const size = box.getSize(new THREE.Vector3());
+    const dimensions = size.z < 0.01 ? [size.x, size.y] : [size.x, size.y, size.z];
+    return `${dimensions.map((value) => String(Math.round(value * 10) / 10)).join(" × ")} mm`;
+}
+
 function createViewer() {
     THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
     const container = $("viewer");
@@ -762,6 +770,8 @@ function createViewer() {
         current = object;
         scene.add(object);
         const box = new THREE.Box3().setFromObject(object);
+        $("model-size").textContent = sizeText(box);
+        $("model-size").hidden = box.isEmpty();
         controlsView.setModel(object, box);
         currentBox = box;
         $("view-controls").hidden = false;

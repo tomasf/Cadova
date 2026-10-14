@@ -224,8 +224,14 @@
     .view-controls svg { width: 20px; height: 20px; }
   }
 
+  /* The model's size, as a caption under the axes, which sit a line higher to make room */
+  .model-size {
+    position: absolute; left: 16px; bottom: calc(14px + var(--safe-bottom)); pointer-events: none;
+    font-size: 12px; color: #9c9a94; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .model-size[hidden] { display: none; }
   #axis-indicator {
-    position: absolute; left: 16px; bottom: calc(16px + var(--safe-bottom)); width: 110px; height: 110px;
+    position: absolute; left: 16px; bottom: calc(34px + var(--safe-bottom)); width: 110px; height: 110px;
     pointer-events: none; filter: drop-shadow(0 0 2px black);
   }
   #axis-indicator line { stroke-width: 1; }
@@ -282,7 +288,8 @@
     body { grid-template-columns: 100%; grid-template-rows: auto auto auto; height: auto; min-height: 100%; }
     main { grid-row: 1; display: flex; flex-direction: column; }
     .stage { position: relative; inset: auto; height: 62vh; height: 62svh; }
-    #axis-indicator { bottom: 16px; }
+    #axis-indicator { bottom: 34px; }
+    .model-size { bottom: 14px; }
     .viewer-actions {
       position: static; max-width: none; flex-wrap: nowrap;
       padding: 10px calc(16px + var(--safe-right)) 10px calc(16px + var(--safe-left));
@@ -317,6 +324,7 @@
   <main>
     <div class="stage">
       <div id="viewer"></div>
+      <div class="model-size" id="model-size" hidden></div>
       <div class="view-controls" id="view-controls" role="toolbar" aria-label="View" hidden>
         <button type="button" id="zoom-in" aria-label="Zoom in" title="Zoom in">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>

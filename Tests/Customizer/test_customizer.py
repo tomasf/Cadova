@@ -191,6 +191,9 @@ def test(browser, base_url):
     expect(page.page.locator(".model-description")).to_have_text("A plate with holes.")
     for name in ["Width", "Holes"]:
         expect(page.number_field(name)).to_be_attached()
+    # The view notes the model's size
+    expect(page.page.locator("#model-size")).to_have_text("40 × 32 × 3 mm")
+
     # A build that goes well shows nothing more, and its time and the model's own prints go to the console
     expect(page.page.locator("#alert")).to_be_hidden()
     check(any(text.startswith("Built in") for text in console), f"The build time didn't reach the console: {console}")
@@ -1329,7 +1332,7 @@ def test_axes(browser, base_url):
     viewer = page.page.locator("#viewer").bounding_box()
     corner = indicator.bounding_box()
     check(abs(corner["x"] - viewer["x"] - 16) < 1 and
-          abs(viewer["y"] + viewer["height"] - corner["y"] - corner["height"] - 16) < 1,
+          abs(viewer["y"] + viewer["height"] - corner["y"] - corner["height"] - 34) < 1,
           "The indicator isn't anchored at the mobile viewer's bottom-left")
     # On a phone, Download sits in a bar right below the model view, and the credit below the settings
     download = page.page.locator("#download").bounding_box()
