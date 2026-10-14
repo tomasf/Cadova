@@ -16,6 +16,13 @@
 # module made private. What a client can see, and therefore collide with, is exactly the set of
 # modules the XCFramework exports.
 #
+# Hiding symbols does not hide classes, though. Every Swift class is registered with the
+# Objective-C runtime under a name derived from its module, so a client with its own copy of
+# Nodal would get a "Class _TtC5Nodal8Document is implemented in both" warning at launch, and the
+# Swift runtime would see two sets of types under identical mangled names. The bundled modules
+# are therefore compiled with a different ABI name (Nodal becomes CadovaBundledNodal). Source
+# still says `import Nodal`; only the mangled names change.
+#
 # Usage: Scripts/build-xcframework.sh [--output <dir>] [--scratch-path <dir>]
 #
 # Writes <output>/Cadova.xcframework and <output>/Cadova.xcframework.zip, and prints the
@@ -28,6 +35,11 @@ output_dir="$package_root/.build/xcframework"
 scratch_path="$package_root/.build/xcframework-scratch"
 triples=(arm64-apple-macosx x86_64-apple-macosx)
 deployment_target=15.0
+
+# The modules a client imports from the XCFramework, which keep their real ABI names. Every other
+# Swift module is renamed. The set is computed again from the built interfaces below, and the
+# build fails if the two disagree.
+expected_modules="Cadova Manifold3D"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -97,10 +109,48 @@ stage_module_files() {
 # The native build system is pinned because everything below reads its output layout. From Swift
 # 6.4 `swift build` defaults to Swift Build, which writes elsewhere, so this script would silently
 # package whatever an earlier native build left behind.
+#
+# The bundled modules get their ABI names from a wrapper around the Swift frontend, because SwiftPM
+# can only pass flags to every target at once. The driver calls the wrapper for each frontend job,
+# and the wrapper adds -module-abi-name to those that compile a module outside the exported set.
+# Modules that import a renamed one read its ABI name from the .swiftmodule, so they agree. The
+# wrapper is invisible to SwiftPM's change tracking, so the -D below exists only to put what it
+# does in the command line: without it, a scratch path built with a different set of renamed
+# modules would be reused as is.
+real_frontend=$(cd "$scratch_path" && touch probe.swift && swiftc -### -c probe.swift 2>/dev/null \
+    | head -1 | awk '{print $1}')
+[[ -x $real_frontend ]] || { echo "error: could not locate swift-frontend" >&2; exit 1; }
+# The driver looks for its dependency scanning library relative to the frontend, so the wrapper
+# sits in a directory laid out like the toolchain's, with lib linked to the real one.
+wrapper_toolchain="$scratch_path/renaming-toolchain"
+frontend_wrapper="$wrapper_toolchain/bin/swift-frontend"
+mkdir -p "$wrapper_toolchain/bin"
+ln -sfn "$(dirname "$(dirname "$real_frontend")")/lib" "$wrapper_toolchain/lib"
+cat > "$frontend_wrapper" <<'WRAPPER'
+#!/bin/bash
+args=("$@")
+for ((i = 0; i < ${#args[@]} - 1; i++)); do
+    if [[ ${args[i]} == -module-name ]]; then
+        module=${args[i + 1]}
+        case " $CADOVA_EXPORTED_MODULES " in
+            *" $module "*) ;;
+            *) exec "$CADOVA_REAL_FRONTEND" "$@" -module-abi-name "CadovaBundled$module" ;;
+        esac
+        break
+    fi
+done
+exec "$CADOVA_REAL_FRONTEND" "$@"
+WRAPPER
+chmod +x "$frontend_wrapper"
+
 for triple in "${triples[@]}"; do
     echo "==> Building Cadova for $triple"
     # Cadova's own manifest must not pull in the binary it is about to produce.
-    CADOVA_BUILD_FROM_SOURCE=1 swift build \
+    CADOVA_BUILD_FROM_SOURCE=1 \
+    CADOVA_EXPORTED_MODULES="$expected_modules" \
+    CADOVA_REAL_FRONTEND="$real_frontend" \
+    SWIFT_DRIVER_SWIFT_FRONTEND_EXEC="$frontend_wrapper" \
+    swift build \
         --build-system native \
         --package-path "$package_root" \
         --scratch-path "$scratch_path" \
@@ -109,7 +159,8 @@ for triple in "${triples[@]}"; do
         --triple "$triple" \
         -Xswiftc -enable-library-evolution \
         -Xswiftc -emit-module-interface \
-        -Xswiftc -no-verify-emitted-module-interface
+        -Xswiftc -no-verify-emitted-module-interface \
+        -Xswiftc "-DCADOVA_KEEPS_ABI_NAMES_${expected_modules// /_}"
 done
 
 rm -rf "$staging_dir" "$xcframework" "$xcframework.zip"
@@ -117,6 +168,11 @@ mkdir -p "$staging_dir/Headers"
 
 modules=$(exposed_modules "$(build_dir "${triples[0]}")")
 echo "==> Exporting modules: $modules"
+if [[ $(tr ' ' '\n' <<<"$modules" | sort) != $(tr ' ' '\n' <<<"$expected_modules" | sort) ]]; then
+    echo "error: Cadova's interfaces export '$modules', but expected_modules is" \
+         "'$expected_modules'. Update expected_modules and rebuild." >&2
+    exit 1
+fi
 
 # Record what this artifact is and where it came from. A binary that cannot say which source it
 # was built from is hard to support, because a bug report names a Cadova version but the version
