@@ -155,7 +155,9 @@ The page doesn't work when opened directly from disk, because browsers block the
 $ python3 -m http.server --directory Customizer 8000
 ```
 
-Then open `http://localhost:8000`. If a build fails, the page's build details show the model's output.
+Then open `http://localhost:8000`.
+
+Anything your model prints with `print()` goes to the browser's console, along with each build's time and Cadova's warnings, so you can debug a model in the customizer much as you would natively. If a build fails, the page also shows the error over the model view.
 
 ## Publishing
 
