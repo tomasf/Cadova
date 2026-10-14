@@ -183,6 +183,28 @@ struct ParameterTests {
         #expect(try await outputFiles(preview: false) == ["block.stl", "flat.3mf", "outline.svg"])
     }
 
+    @Test func `A request writes a model in a group straight into its directory`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let outputDir = tempDir.appending(path: "output")
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // The customizer looks for the file where it asked for it, so groups add no directories
+        for model in ["plate", "extras/washer"] {
+            try? FileManager.default.removeItem(at: outputDir)
+            await CustomizerRequest.$overridden.withValue(CustomizerRequest(model: model, outputDirectory: outputDir.path)) {
+                await Project(root: tempDir.appending(path: "project")) {
+                    await Model("plate", options: .format3D(.stl)) { Box(10) }
+                    await Group("extras") {
+                        await Model("washer", options: .format3D(.stl)) { Cylinder(diameter: 12, height: 1.5) }
+                    }
+                }
+            }
+            let expected = URL(fileURLWithPath: model).lastPathComponent + ".stl"
+            #expect(try FileManager.default.contentsOfDirectory(atPath: outputDir.path) == [expected])
+        }
+    }
+
     @Test func `Parameters describe their kind and metadata`() {
         @Parameter("Height", in: 10...50, step: 0.5, description: "Plate height") var height = 20.0
         @Parameter("Finish") var finish = Finish.matte

@@ -166,7 +166,7 @@ export class ModelSession {
         const milliseconds = performance.now() - start;
 
         const [fileName, file] = [...this.files]
-            .find(([name]) => outputSuffix ? name.endsWith(outputSuffix) : name !== "request.json") ?? [];
+            .find(([name, entry]) => entry instanceof File && (outputSuffix ? name.endsWith(outputSuffix) : name !== "request.json")) ?? [];
         const data = exitCode === 0 && file ? file.data : null;
         return { fileName, data, log, exitCode, stackOverflow, milliseconds };
     }

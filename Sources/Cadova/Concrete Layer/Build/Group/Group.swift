@@ -96,9 +96,9 @@ public struct Group: Sendable, ModelBuildable {
 
         // Determine output directory
         let outputDirectory: URL?
-        let currentFilterPath: [String]
-        if let name {
-            currentFilterPath = filterPath + [name]
+        let currentFilterPath = name.map { filterPath + [$0] } ?? filterPath
+        // A customizer gets each model's file in the directory it names, whatever group it's in
+        if let name, CustomizerRequest.current?.outputDirectory == nil {
             let groupDirectory = if let parent = directory {
                 parent.appendingPathComponent(name, isDirectory: true)
             } else {
@@ -121,7 +121,6 @@ public struct Group: Sendable, ModelBuildable {
             }
             outputDirectory = groupDirectory
         } else {
-            currentFilterPath = filterPath
             outputDirectory = directory
         }
 
