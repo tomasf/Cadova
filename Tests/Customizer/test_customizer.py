@@ -1497,13 +1497,31 @@ def test_worker_recovery(browser, base_url):
             window.workers = [];
             window.Worker = class extends NativeWorker {
                 constructor(...args) { super(...args); window.workers.push(this); }
-                postMessage(data, ...args) { this.lastRequest = data; super.postMessage(data, ...args); }
+                postMessage(data, ...args) { this.lastRequest = data; this.lastPost = performance.now(); super.postMessage(data, ...args); }
             };
         ''')
         page.open()
-        page.set_number("Width", "65")
+        if name == "cancel":
+            # A rebuild only shows that it's building once it has taken a moment, so quick ones don't flicker
+            page.page.evaluate("""() => new MutationObserver(() => {
+                if (!document.getElementById("build-progress").hidden) window.progressShownAt ??= performance.now();
+            }).observe(document.getElementById("build-progress"), { attributes: true })""")
+            # Changing a value disables Download at once, but it only looks disabled once the
+            # rebuild has taken a moment, so quick rebuilds don't make it flicker
+            state = page.number_field("Width").evaluate("""field => {
+                field.value = "65";
+                field.dispatchEvent(new Event("change", { bubbles: true }));
+                const download = document.getElementById("download");
+                return { disabled: download.disabled, opacity: getComputedStyle(download).opacity };
+            }""")
+            check(state == {"disabled": True, "opacity": "1"}, f"Download changed its look at once: {state}")
+            page.page.wait_for_function("getComputedStyle(document.getElementById('download')).opacity === '0.5'")
+        else:
+            page.set_number("Width", "65")
         if name == "cancel":
             expect(page.page.locator("#cancel")).to_be_visible()
+            delay = page.page.evaluate("window.progressShownAt - window.workers[0].lastPost")
+            check(delay >= 350, f"The building indicator showed {delay:.0f} ms into a rebuild, before its delay")
             page.page.wait_for_function('Object.values(window.workers[0].lastRequest.parameters ?? {}).includes(65)')
             # A worker stuck in a synchronous loop must leave the page and controls responsive.
             check(page.page.evaluate('() => new Promise(resolve => setTimeout(() => resolve(true), 20))'), "The page froze")

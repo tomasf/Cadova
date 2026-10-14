@@ -154,6 +154,8 @@
   }
   button.primary { background: var(--accent); color: var(--on-accent); border: 1px solid var(--accent); }
   button:disabled { opacity: .5; cursor: default; }
+  /* Disabled, but not yet for long enough to look it, so that quick rebuilds don't make it flicker */
+  #download.held:disabled { opacity: 1; }
   button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
   #status { font-size: 13px; color: var(--danger); }
   #status[hidden] { display: none; }

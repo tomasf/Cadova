@@ -173,7 +173,7 @@ function select(next) {
         }
     } else {
         downloadable = null;
-        $("download").disabled = true;
+        holdDownload();
         requestBuild();
     }
 }
@@ -379,10 +379,46 @@ const builder = new ModelBuilder(import.meta.url, (data) => {
 
 let cancelTimer;
 
+// A rebuild shows that it's building only once it has taken long enough to notice, so that quick
+// rebuilds, such as while dragging a slider, don't make the indicator flicker. Loading, and the
+// first build, which have nothing on screen yet, show it straight away.
+const progressDelay = 400;
+let progressTimer;
+
+// Download is disabled as soon as its file would no longer match the controls, but while a rebuild
+// or the download itself hasn't yet taken long enough to notice, it keeps its usual look, like the
+// building indicator. A failure disables it visibly at once.
+let downloadTimer;
+
+function holdDownload() {
+    const button = $("download");
+    if (!button.disabled) {
+        button.classList.add("held");
+        clearTimeout(downloadTimer);
+        downloadTimer = setTimeout(() => button.classList.remove("held"), progressDelay);
+    }
+    button.disabled = true;
+}
+
+function disableDownload() {
+    clearTimeout(downloadTimer);
+    $("download").classList.remove("held");
+    $("download").disabled = true;
+}
+
 function busy(active, text = "Building…") {
     clearTimeout(cancelTimer);
-    $("build-progress").hidden = !active;
-    $("building").hidden = !active;
+    clearTimeout(progressTimer);
+    const showProgress = () => {
+        $("build-progress").hidden = false;
+        $("building").hidden = false;
+    };
+    $("build-progress").hidden = true;
+    $("building").hidden = true;
+    if (active) {
+        if (shownModel) progressTimer = setTimeout(showProgress, progressDelay);
+        else showProgress();
+    }
     $("building").textContent = text;
     $("cancel").hidden = true;
     $("retry").hidden = true;
@@ -391,7 +427,7 @@ function busy(active, text = "Building…") {
     if (active) {
         cancelTimer = setTimeout(() => { $("cancel").hidden = false; }, 3000);
         downloadable = null;
-        $("download").disabled = true;
+        holdDownload();
         setStatus("");
         $("build-time").textContent = text;
         if (!shownModel) {
@@ -408,7 +444,7 @@ function failed(error) {
     clearTimeout(buildTimer);
     busy(false);
     downloadable = null;
-    $("download").disabled = true;
+    disableDownload();
     $("retry").textContent = isReady ? "Retry build" : "Retry loading";
     $("retry").hidden = false;
     $("build-time").textContent = error instanceof CancelledError ? "Cancelled" : "Failed";
@@ -442,7 +478,7 @@ function requestBuild() {
     clearTimeout(buildTimer);
     // A download must match the current controls, including while a rebuild is debounced or queued.
     downloadable = null;
-    $("download").disabled = true;
+    holdDownload();
     buildTimer = setTimeout(startBuild, 120);
 }
 
@@ -518,7 +554,7 @@ function display({ fileName, data, log, exitCode, milliseconds, parameters }) {
         shownModel = model;
     } else {
         downloadable = null;
-        $("download").disabled = true;
+        disableDownload();
         setStatus(exitCode === 0 ? "The model built to nothing." : "The model failed to build. See the build details.", true);
     }
 }
@@ -565,7 +601,7 @@ $("download").addEventListener("click", async () => {
     if (!downloadable || exporting || building) return;
     const { model: target, parameters } = downloadable;
     exporting = true;
-    $("download").disabled = true;
+    holdDownload();
     $("download").textContent = "Preparing…";
     try {
         const result = await builder.export(target.name, parameters);
