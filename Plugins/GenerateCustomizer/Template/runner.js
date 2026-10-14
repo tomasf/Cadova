@@ -30,11 +30,13 @@ export async function fetchModel(url, onProgress = () => {}) {
 // Fetches the model's resources: the files SwiftPM copies for `.copy` and `.process` resources,
 // listed in resources.json. WASI file reads are synchronous, so they're all fetched up front.
 export async function fetchResources(baseURL) {
-    const response = await fetch(new URL("resources.json", baseURL));
+    // With the customizer's version, as the model's own address has it
+    const address = (path) => Object.assign(new URL(path, baseURL), { search: new URL(baseURL).search });
+    const response = await fetch(address("resources.json"));
     if (!response.ok) throw new Error(`Couldn't load the list of resources (${response.status})`);
     const paths = await response.json();
     return Promise.all(paths.map(async (path) => {
-        const url = new URL(`resources/${path.split("/").map(encodeURIComponent).join("/")}`, baseURL);
+        const url = address(`resources/${path.split("/").map(encodeURIComponent).join("/")}`);
         const file = await fetch(url);
         if (!file.ok) throw new Error(`Couldn't load the resource ${path} (${file.status})`);
         return [path, new Uint8Array(await file.arrayBuffer())];

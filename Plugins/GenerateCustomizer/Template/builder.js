@@ -15,11 +15,19 @@ export class ModelBuilder {
         this.nextID = 0;
     }
 
+    // The address of one of the customizer's files. The plugin marks a customizer's addresses with
+    // its version, so that a browser never mixes files from two versions, and this one has it too.
+    address(path) {
+        const url = new URL(path, this.url);
+        url.search = new URL(this.url).search;
+        return url;
+    }
+
     async load() {
         if (this.ready) return this.catalog;
         const result = await this.request(this.prepared
             ? { type: "initialize", ...this.prepared, catalog: this.catalog }
-            : { type: "load", url: new URL("model.wasm", this.url).href });
+            : { type: "load", url: this.address("model.wasm").href });
         if (!result.catalog) {
             this.cancel();
             const error = new Error(result.stackOverflow
@@ -87,7 +95,7 @@ export class ModelBuilder {
     }
 
     startWorker() {
-        const worker = new Worker(new URL("worker.js", this.url), { type: "module" });
+        const worker = new Worker(this.address("worker.js"), { type: "module" });
         this.worker = worker;
         worker.onerror = (event) => {
             if (this.worker !== worker) return;

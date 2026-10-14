@@ -1460,7 +1460,7 @@ def faulty_worker(page, code):
             script = script.replace("    try {", f"    try {{\n{code}", 1)
         route.fulfill(response=response, body=script)
 
-    page.context.route("**/worker.js", serve)
+    page.context.route("**/worker.js*", serve)  # the plugin adds a version to the address
     return requests
 
 
@@ -1571,7 +1571,7 @@ def test_loading_recovery(browser, base_url):
             else:
                 route.continue_()
 
-        page.page.context.route(f"**/{resource}", fail_first)
+        page.page.context.route(f"**/{resource}*", fail_first)
         page.page.goto(f"{base_url}/index.html#model=plate")
         expect_recovery(page, "worker stopped unexpectedly" if resource == "worker.js" else "Couldn't load")
         expect(page.page.locator("#reset")).to_be_disabled()
@@ -1582,7 +1582,7 @@ def test_loading_recovery(browser, base_url):
         page.page.context.close()
 
     # The page's own code failing to load, from the page's folder or the CDN, says so and offers a reload
-    for failing in ["**/axes.js", "https://cdn.jsdelivr.net/npm/three@*/build/three.module.js"]:
+    for failing in ["**/axes.js*", "https://cdn.jsdelivr.net/npm/three@*/build/three.module.js"]:
         page = CustomizerPage(browser.new_page(), base_url)
         page.page.context.route(failing, lambda route: route.abort())
         page.page.goto(f"{base_url}/index.html")

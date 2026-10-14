@@ -45,6 +45,7 @@ struct GenerateCustomizer: CommandPlugin {
         print("Optimizing for size")
         let optimized = output.appending(path: "model.wasm")
         try toolchain.optimize(module, to: optimized)
+        try Self.stampVersion(in: output, workDirectory: workDirectory)
 
         let size = (try? optimized.resourceValues(forKeys: [.fileSizeKey]).fileSize).map {
             ByteCountFormatter.string(fromByteCount: Int64($0), countStyle: .file)
@@ -108,6 +109,40 @@ struct GenerateCustomizer: CommandPlugin {
         try list.write(to: output.appending(path: "resources.json"))
         if !files.isEmpty {
             print("Included \(files.count) resource file\(files.count == 1 ? "" : "s") from \(bundles.joined(separator: ", "))")
+        }
+    }
+
+    /// Marks the addresses the page uses for its own files with a version made from their contents.
+    /// Browsers cache the files, and once a customizer is published again, a page put together from
+    /// files of both versions doesn't work, so each version's files get addresses of their own. The
+    /// page carries the version on to the files it loads while it runs.
+    static func stampVersion(in output: URL, workDirectory: URL) throws {
+        let fileManager = FileManager.default
+        let root = output.resolvingSymlinksInPath().path
+        let files = (fileManager.enumerator(at: output, includingPropertiesForKeys: [.isRegularFileKey])?.allObjects ?? [])
+            .compactMap { $0 as? URL }
+            .filter { (try? $0.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true }
+            .map { (path: String($0.resolvingSymlinksInPath().path.dropFirst(root.count)), url: $0) }
+            .sorted { $0.path < $1.path }
+        let manifest = try files.map { "\(try Command.sha256(of: $0.url)) \($0.path)" }.joined(separator: "\n")
+        let manifestFile = workDirectory.appending(path: "customizer-files.txt")
+        try Data(manifest.utf8).write(to: manifestFile)
+        let version = String(try Command.sha256(of: manifestFile).prefix(12))
+
+        let page = output.appending(path: "index.html")
+        let html = try String(contentsOf: page, encoding: .utf8)
+        try html.replacingOccurrences(of: #"src="customizer.js""#, with: #"src="customizer.js?v=\#(version)""#)
+            .write(to: page, atomically: true, encoding: .utf8)
+
+        // The page's own scripts, which import each other by relative address
+        let imports = try NSRegularExpression(pattern: #"((?:from\s+|import\()"\./[A-Za-z0-9_-]+\.js)""#)
+        for name in try fileManager.contentsOfDirectory(atPath: output.path) where name.hasSuffix(".js") {
+            let file = output.appending(path: name)
+            let script = try String(contentsOf: file, encoding: .utf8)
+            let stamped = imports.stringByReplacingMatches(
+                in: script, range: NSRange(script.startIndex..., in: script), withTemplate: "$1?v=\(version)\""
+            )
+            try stamped.write(to: file, atomically: true, encoding: .utf8)
         }
     }
 
