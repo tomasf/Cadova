@@ -302,6 +302,7 @@ def test_dynamic_parameters(browser, base_url):
     """The form follows the parameters each build uses, keeping the values of the ones it hides."""
     page = CustomizerPage(browser.new_page(), base_url)
     page.open()
+    expect(page.page.locator("#reset")).to_be_hidden()  # nothing to reset yet
     radius = page.number_field("Corner radius")
     expect(radius).to_have_value("3")
     page.rebuild(lambda: page.set_number("Corner radius", "5"))
@@ -320,10 +321,13 @@ def test_dynamic_parameters(browser, base_url):
     rounded = page.download()
     check(abs(rounded.extent(0) - 40) < 0.01, f"Width with a corner radius of 5 is {rounded.extent(0)}, expected 40")
 
-    # Reset brings back the defaults, including for the hidden value
+    # Reset brings back the defaults, including for the hidden value, and goes away until
+    # something changes again
     page.rebuild(lambda: page.page.get_by_role("button", name="Square").click())
+    expect(page.page.locator("#reset")).to_be_visible()
     page.rebuild(lambda: page.page.locator("#reset").click())
     expect(radius).to_have_value("3")
+    expect(page.page.locator("#reset")).to_be_hidden()
     check(not page.errors, f"The page had errors: {page.errors}")
     page.page.context.close()
 
@@ -1574,7 +1578,7 @@ def test_loading_recovery(browser, base_url):
         page.page.context.route(f"**/{resource}*", fail_first)
         page.page.goto(f"{base_url}/index.html#model=plate")
         expect_recovery(page, "worker stopped unexpectedly" if resource == "worker.js" else "Couldn't load")
-        expect(page.page.locator("#reset")).to_be_disabled()
+        expect(page.page.locator("#reset")).to_be_hidden()
         page.rebuild(lambda: page.page.locator("#retry").click())
         expect(page.number_field("Width")).to_have_value("40")
         check(abs(page.download().extent(0) - 40) < 0.01, f"Retry after loading {resource} didn't build the model")

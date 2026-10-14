@@ -148,7 +148,14 @@
   .toggle input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   footer { padding: 14px 20px calc(18px + var(--safe-bottom)) calc(20px + var(--safe-left)); border-top: 1px solid var(--line); display: grid; gap: 10px; }
-  .actions { display: flex; gap: 8px; }
+  #retry { justify-self: start; }
+  #retry[hidden] { display: none; }
+  /* Only there once something has changed, and kept out of the way at the end of the settings */
+  .reset {
+    font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: none;
+    padding: 12px 0 0; cursor: pointer;
+  }
+  .reset:hover { color: var(--text); text-decoration: underline; }
   button.primary, button.secondary {
     font: inherit; font-weight: 600; font-size: 14px; border-radius: 8px; padding: 9px 14px; cursor: pointer;
   }
@@ -298,13 +305,12 @@
       <div class="tabs" id="models" role="tablist" aria-label="Models" hidden></div>
       <select id="model-menu" aria-label="Model" hidden></select>
     </header>
-    <form id="parameters" autocomplete="off"></form>
+    <form id="parameters" autocomplete="off">
+      <button type="button" class="reset" id="reset" hidden>Reset to defaults</button>
+    </form>
     <footer>
       <div id="status" role="alert" hidden></div>
-      <div class="actions">
-        <button type="button" class="secondary" id="reset" disabled>Reset</button>
-        <button type="button" class="secondary" id="retry" hidden>Retry loading</button>
-      </div>
+      <button type="button" class="secondary" id="retry" hidden>Retry loading</button>
       <details>
         <summary>Details</summary>
         <div id="build-time">Not built yet</div>

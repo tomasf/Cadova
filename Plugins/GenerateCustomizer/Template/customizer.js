@@ -122,6 +122,8 @@ function showForm() {
     }
     fields.clear();
     for (const parameter of model.parameters) form.append(addField(parameter));
+    form.append(resetButton);
+    updateReset();
 }
 
 // The form's fields, by parameter key, kept while they're in use
@@ -325,12 +327,21 @@ function field(parameter, index) {
 
 function update(key, value) {
     changedValues(model)[key] = value;
+    updateReset();
     requestBuild();
 }
 
-$("reset").addEventListener("click", () => {
+// Resetting is only offered once the model has values to reset, hidden ones included
+const resetButton = $("reset");
+
+function updateReset() {
+    resetButton.hidden = !isReady || Object.keys(changed.get(model?.name) ?? {}).length === 0;
+}
+
+resetButton.addEventListener("click", () => {
     changed.delete(model.name);
     for (const parameter of model.parameters) controls.get(parameter.key)(parameter.default);
+    updateReset();
     requestBuild();
 });
 
@@ -422,7 +433,7 @@ function busy(active, text = "Building…") {
     $("building").textContent = text;
     $("cancel").hidden = true;
     $("retry").hidden = true;
-    $("reset").disabled = !isReady;
+    updateReset();
     form.setAttribute("aria-busy", active);
     if (active) {
         cancelTimer = setTimeout(() => { $("cancel").hidden = false; }, 3000);
