@@ -289,6 +289,15 @@ def test_tabs(browser, base_url):
     check(page.viewer_materials(spacer) == expected,
           f"The viewer reads the spacer's materials as {page.viewer_materials(spacer)}, expected {expected}")
 
+    # A color parameter offers a color picker, and the model builds with the color chosen
+    page.rebuild(lambda: page.page.locator("input[type=color]").evaluate("""swatch => {
+        swatch.value = "#ff8800";
+        swatch.dispatchEvent(new Event("input", { bubbles: true }));
+    }"""))
+    recolored = page.download()
+    materials = page.viewer_materials(recolored)
+    check(materials[0]["color"] == "ff8800", f"The spacer didn't take the color chosen: {materials}")
+
     # Changing the spacer's width leaves the plate's alone
     page.rebuild(lambda: page.set_number("Width", "30"))
     spacer = page.download()

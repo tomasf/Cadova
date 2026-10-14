@@ -40,6 +40,7 @@ Each type of parameter gets its own kind of control:
 | `Double`, `Int` | A number field, plus a slider when the parameter has a range, and the unit after it if the parameter has one |
 | `Angle` | A number field in degrees, plus a slider when the parameter has a range |
 | `Bool` | A switch |
+| ``Color`` | A color picker |
 | A `CaseIterable` string enum | Buttons for up to four cases, a menu for more |
 | `String` | A text field |
 

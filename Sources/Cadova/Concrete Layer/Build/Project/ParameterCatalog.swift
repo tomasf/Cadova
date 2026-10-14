@@ -228,6 +228,7 @@ extension ParameterDescriptor: Encodable {
         case .integer: try container.encode("integer", forKey: .type)
         case .number: try container.encode("number", forKey: .type)
         case .angle: try container.encode("angle", forKey: .type)
+        case .color: try container.encode("color", forKey: .type)
         case .boolean: try container.encode("boolean", forKey: .type)
         case .text: try container.encode("text", forKey: .type)
         case .choice(let options):
@@ -251,7 +252,7 @@ extension ParameterDescriptor: Encodable {
             if let value = Double(string) { return try container.encode(value, forKey: key) }
         case .boolean:
             if let value = Bool(parameterString: string) { return try container.encode(value, forKey: key) }
-        case .text, .choice:
+        case .text, .choice, .color:
             break
         }
         try container.encode(string, forKey: key)

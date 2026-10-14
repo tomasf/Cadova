@@ -321,6 +321,18 @@ struct ParameterTests {
         }
     }
 
+    @Test func `Colors are written and read in hexadecimal`() {
+        let color = Color(red: 1, green: 0.4, blue: 0)
+        #expect(color.parameterString == "#ff6600")
+        #expect(Color(parameterString: "#ff6600") == color)
+        #expect(Color(parameterString: "FF6600") == color)
+        #expect(Color(red: 1, green: 0.4, blue: 0, alpha: 0.5).parameterString == "#ff660080")
+        #expect(Color(parameterString: "#ff6600")?.alpha == 1)
+        #expect(Color(parameterString: "#ff66") == nil)
+        #expect(Color(parameterString: "#gg6600") == nil)
+        #expect(Color.parameterKind == .color)
+    }
+
     @Test func `Parameters describe their kind and metadata`() {
         @Parameter("Height", in: 10...50, step: 0.5, description: "Plate height") var height = 20.0
         @Parameter("Finish") var finish = Finish.matte

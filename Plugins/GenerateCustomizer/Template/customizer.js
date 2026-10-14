@@ -190,6 +190,8 @@ function valueFor(parameter, m = model) {
             return typeof value === "boolean" ? value : parameter.default;
         case "choice":
             return parameter.options.includes(value) ? value : parameter.default;
+        case "color":
+            return typeof value === "string" && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value) ? value : parameter.default;
         case "integer":
         case "number":
         case "angle": {
@@ -213,6 +215,20 @@ function valuesFor(m) {
 
 function buildKey(m) {
     return JSON.stringify(valuesFor(m));
+}
+
+// A color input's value in the hexadecimal the model reads: "#rrggbb", or "#rrggbbaa" if it isn't
+// opaque. Browsers with alpha in their color picker report CSS instead, such as
+// "color(srgb 1 0.4 0 / 0.5)". Returns null for anything else.
+function colorHex(value) {
+    if (/^#[0-9a-f]{6}$/i.test(value)) return value.toLowerCase();
+    const match = value.match(/^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+)(%?))?\s*\)$/);
+    if (!match) return null;
+    const [, red, green, blue, alpha, percent] = match;
+    const opacity = alpha === undefined ? 1 : Number(alpha) / (percent ? 100 : 1);
+    const components = [red, green, blue].map(Number).concat(opacity < 0.998 ? [opacity] : []);
+    return "#" + components.map((component) =>
+        Math.round(Math.min(Math.max(component, 0), 1) * 255).toString(16).padStart(2, "0")).join("");
 }
 
 function field(parameter, index) {
@@ -248,6 +264,21 @@ function field(parameter, index) {
             head.append(toggle);
             element.removeChild(control);
             setValue = (value) => { input.checked = value; };
+            break;
+        }
+        case "color": {
+            // A swatch by the label, which opens the browser's own color picker, with an alpha
+            // component in browsers that offer one. In the others, a color chosen with it is opaque.
+            const input = Object.assign(document.createElement("input"), { type: "color", id, className: "swatch" });
+            input.setAttribute("alpha", "");
+            const hasAlpha = "alpha" in input;
+            input.addEventListener("input", () => {
+                const value = colorHex(input.value);
+                if (value) update(parameter.key, value);
+            });
+            head.append(input);
+            element.removeChild(control);
+            setValue = (value) => { input.value = hasAlpha ? value : value.slice(0, 7); };
             break;
         }
         case "choice": {

@@ -128,6 +128,15 @@
   .segmented button:last-child { border-right: none; }
   .segmented button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 
+  /* A color parameter's swatch, by its label */
+  input.swatch {
+    width: 44px; height: 26px; flex: none; padding: 2px; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
+  }
+  input.swatch::-webkit-color-swatch-wrapper { padding: 0; }
+  input.swatch::-webkit-color-swatch { border: none; border-radius: 4px; }
+  input.swatch::-moz-color-swatch { border: none; border-radius: 4px; }
+
   .toggle { position: relative; width: 40px; height: 22px; flex: none; cursor: pointer; }
   /* The checkbox covers the switch it draws. WebKit keeps a positioned checkbox at its own small
      size unless it's sized explicitly, which left most of the switch unclickable in Safari. */

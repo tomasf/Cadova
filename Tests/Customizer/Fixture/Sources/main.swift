@@ -18,9 +18,12 @@ await Project {
         @Parameter("Height", in: 1...20, step: 1, description: "Height in millimeters")
         var height = 5.0
 
+        // A color to choose, to test the color picker
+        @Parameter("Color") var color = Color(red: 0.2, green: 0.4, blue: 0.8)
+
         // A material, to test that the viewer shows it
         Cylinder(diameter: width, height: height)
-            .withMaterial(color: .init(red: 0.2, green: 0.4, blue: 0.8), metallicness: 0.5, roughness: 0.3)
+            .withMaterial(color: color, metallicness: 0.5, roughness: 0.3)
     }
 
     // In a group, which a customizer's menu lists it under

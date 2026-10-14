@@ -5,7 +5,7 @@ import Foundation
 /// A customizer passes the values its visitor chooses as strings, which are parsed with
 /// ``init(parameterString:)``.
 ///
-/// Cadova provides conformances for `Int`, `Double`, `Bool`, `String` and `Angle`. String-backed
+/// Cadova provides conformances for `Int`, `Double`, `Bool`, `String`, `Angle` and ``Color``. String-backed
 /// enums get a conformance for free by declaring it. Make the enum `CaseIterable` too, and a
 /// customizer can offer its cases as a list to pick from:
 ///
@@ -37,6 +37,8 @@ public enum ParameterKind: Sendable, Hashable {
     case number
     /// An angle, written in degrees.
     case angle
+    /// A color, written in hexadecimal.
+    case color
     /// A true or false value.
     case boolean
     /// Free text.
@@ -112,6 +114,27 @@ extension Angle: ParameterValue {
 
     public var parameterString: String { String(degrees) }
     public static var parameterKind: ParameterKind { .angle }
+}
+
+extension Color: ParameterValue {
+    /// Parses a color from hexadecimal, as a customizer writes it: `"#rrggbb"`, or `"#rrggbbaa"` with
+    /// an alpha component. The `#` is optional.
+    public init?(parameterString: String) {
+        let digits = parameterString.trimmingCharacters(in: .whitespaces).drop { $0 == "#" }
+        guard digits.count == 6 || digits.count == 8, digits.allSatisfy(\.isHexDigit) else { return nil }
+        self.init(hex: String(digits))
+    }
+
+    /// The color in hexadecimal, `"#rrggbb"`, with an alpha component only if it isn't opaque.
+    public var parameterString: String {
+        let components = alpha < 1 ? [red, green, blue, alpha] : [red, green, blue]
+        return "#" + components.map { component in
+            let hex = String(Int((component * 255).rounded()), radix: 16)
+            return hex.count == 1 ? "0" + hex : hex
+        }.joined()
+    }
+
+    public static var parameterKind: ParameterKind { .color }
 }
 
 public extension ParameterValue where Self: RawRepresentable, RawValue == String {
