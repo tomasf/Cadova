@@ -74,7 +74,18 @@ await Project {
 
 Each model keeps its own values. If the jar and the lid both have a "Diameter" parameter, changing it on one tab leaves the other alone.
 
-To find a model's parameters, Cadova builds it with the default values and records every parameter that's created or read along the way. A parameter that only exists in a branch the defaults don't take won't be found, so declare parameters as stored properties of your geometry types, where they're always created.
+To find a model's parameters, Cadova records every parameter that's created or read while the model builds, and it does so for every build. So a parameter that only matters for some choices appears on the page when it does, and goes away when it doesn't, keeping its value in case it comes back:
+
+```swift
+switch shape {
+case .cylinder:
+    @Parameter("Diameter", in: 20...150, unit: "mm") var diameter = 60.0
+    Cylinder(diameter: diameter, height: height)
+case .box:
+    @Parameter("Width", in: 20...150, unit: "mm") var width = 80.0
+    Box(x: width, y: width, z: height)
+}
+```
 
 ### Resources
 

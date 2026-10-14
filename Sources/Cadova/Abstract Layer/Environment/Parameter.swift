@@ -191,6 +191,11 @@ import Foundation
         return EnvironmentValues.current.parameterValue(key, label: label) ?? defaultValue
     }
 
+    /// The parameter's value in an environment: the one a customizer chose, or the default.
+    internal func value(in environment: EnvironmentValues) -> Value {
+        environment.parameterValues[key].flatMap(Value.init(parameterString:)) ?? defaultValue
+    }
+
     internal var descriptor: ParameterDescriptor {
         ParameterDescriptor(
             key: key,
@@ -203,5 +208,13 @@ import Foundation
             unit: unit,
             description: description
         )
+    }
+}
+
+// A `CachedGeometry` with a parameter is cached by the parameter's current value, so that choosing
+// another value builds it again
+extension Parameter: _EnvironmentCacheKeyReadable {
+    func cacheKeyValue(in environment: EnvironmentValues) -> AnyCacheKey {
+        AnyCacheKey(value(in: environment).parameterString)
     }
 }

@@ -43,8 +43,11 @@ public typealias CachedGeometry3D = CachedGeometry<D3>
 public extension CachedGeometry {
     func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
         let key = try await ReflectedCacheKey(reflecting: self, in: environment, context: context)
+        // The body only runs on a cache miss, so the parameters it uses travel in its cached result
         return try await context.cachedBodyResult(key: key) {
-            try await context.buildResult(for: body, in: environment)
+            try await ParameterRecorder.recordingBody {
+                try await context.buildResult(for: body, in: environment)
+            }
         }
     }
 }

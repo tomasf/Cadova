@@ -40,14 +40,39 @@ extension ParameterDescriptor {
 /// A parameter records itself both when it's created and when it's read, so parameters stored in
 /// a geometry are found even if the model never reads them with its default values, and
 /// parameters declared as local variables in a `body` are found when it runs.
+///
+/// Each geometry's `body` records into a recorder of its own, whose parameters go into the
+/// geometry's result as a ``ParameterList``, which keeps them in the order of the code rather than
+/// the order the build happens to run in. Everything recorded below the recorder a build started
+/// with also goes to that one, so a parameter whose result an operation drops is still found.
 internal final class ParameterRecorder: Sendable {
     @TaskLocal static var current: ParameterRecorder? = nil
 
+    /// The recorder the build started with, or nil if this is the one
+    private let root: ParameterRecorder?
     private let state = Mutex<(keys: Set<String>, parameters: [ParameterDescriptor])>(([], []))
+
+    init() {
+        root = nil
+    }
+
+    private init(root: ParameterRecorder) {
+        self.root = root
+    }
+
+    /// A recorder for part of the build, whose parameters also go to the one the build started with
+    func nested() -> ParameterRecorder {
+        ParameterRecorder(root: root ?? self)
+    }
 
     /// Records a parameter. Every use of one declaration is one parameter, described the first way
     /// it's recorded.
     func record(_ descriptor: ParameterDescriptor) {
+        add(descriptor)
+        root?.add(descriptor)
+    }
+
+    private func add(_ descriptor: ParameterDescriptor) {
         state.withLock { state in
             guard state.keys.insert(descriptor.key).inserted else { return }
             state.parameters.append(descriptor)
@@ -56,6 +81,42 @@ internal final class ParameterRecorder: Sendable {
 
     var parameters: [ParameterDescriptor] {
         state.withLock { $0.parameters }
+    }
+
+    /// Builds a geometry's body, putting the parameters it uses into the result, ahead of the ones
+    /// of the geometry it contains. Nothing is recorded unless a build is recording.
+    static func recordingBody<D: Dimensionality>(_ build: () async throws -> BuildResult<D>) async rethrows -> BuildResult<D> {
+        guard let current else { return try await build() }
+        let recorder = current.nested()
+        let result = try await $current.withValue(recorder) { try await build() }
+        let parameters = recorder.parameters
+        guard !parameters.isEmpty else { return result }
+        return result.mergingElements([ObjectIdentifier(ParameterList.self): ParameterList(parameters)])
+    }
+}
+
+/// The parameters a geometry and everything in it uses, in the order of the code: each geometry's
+/// own, then the ones of the geometry it contains, in order. Every use of one declaration is one
+/// parameter, described the first way it appears.
+internal struct ParameterList: ResultElement {
+    let parameters: [ParameterDescriptor]
+
+    init() {
+        parameters = []
+    }
+
+    init(_ parameters: [ParameterDescriptor]) {
+        self.parameters = parameters
+    }
+
+    init(combining lists: [ParameterList]) {
+        var keys = Set<String>()
+        parameters = lists.flatMap(\.parameters).filter { keys.insert($0.key).inserted }
+    }
+
+    /// Lists, combined in order
+    static func merging(_ lists: [ParameterDescriptor]...) -> [ParameterDescriptor] {
+        ParameterList(combining: lists.map(ParameterList.init)).parameters
     }
 }
 

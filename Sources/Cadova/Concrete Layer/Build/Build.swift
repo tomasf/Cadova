@@ -5,18 +5,18 @@ extension [BuildDirective] {
         with options: ModelOptions,
         in environment: EnvironmentValues,
         context: EvaluationContext
-    ) async throws -> (OutputDataProvider, [BuildWarning]) {
+    ) async throws -> (provider: OutputDataProvider, warnings: [BuildWarning], parameters: [ParameterDescriptor]) {
         let geometries3D = compactMap(\.geometry3D)
         let geometries2D = compactMap(\.geometry2D)
 
         if geometries3D.count > 0 {
             let promotedFrom2D = geometries2D.map { $0.promotedTo3D() }
             let result = try await context.buildModelResult(for: Union(geometries3D + promotedFrom2D), in: environment)
-            return (options.dataProvider(for: result, in: environment), result.buildWarnings)
+            return (options.dataProvider(for: result, in: environment), result.buildWarnings, result.elements[ParameterList.self].parameters)
 
         } else if geometries2D.count > 0 {
             let result = try await context.buildModelResult(for: Union(geometries2D), in: environment)
-            return (options.dataProvider(for: result, in: environment), result.buildWarnings)
+            return (options.dataProvider(for: result, in: environment), result.buildWarnings, result.elements[ParameterList.self].parameters)
 
         } else {
             throw BuildError.noGeometry

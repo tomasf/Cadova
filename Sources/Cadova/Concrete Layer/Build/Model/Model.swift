@@ -136,7 +136,13 @@ public struct Model: Sendable, ModelBuildable {
                                        options: inheritedOptions, name: filterName(in: filterPath), groups: filterPath)
                 return 0
             }
-            return await generate(environment: inheritedEnvironment, context: context, options: inheritedOptions, URL: directory)
+            // A customizer's preview records the parameters the model uses with the values it was
+            // given, which can differ from the ones it uses with its defaults, so the page can show those
+            let recorder = CustomizerRequest.current?.preview == true ? ParameterRecorder() : nil
+            return await ParameterRecorder.$current.withValue(recorder) {
+                await generate(environment: inheritedEnvironment, context: context, options: inheritedOptions,
+                               URL: directory, recorder: recorder)
+            }
         }
     }
 
@@ -174,25 +180,36 @@ public struct Model: Sendable, ModelBuildable {
         groups: [String]
     ) async {
         let recorder = ParameterRecorder()
-        let metadata = await ParameterRecorder.$current.withValue(recorder) {
-            let (directives, options, environment) = resolveContent(environment: inheritedEnvironment, options: inheritedOptions)
-            _ = try? await directives.build(with: options, in: environment, context: context)
-            return options[Metadata.self]
+        let (metadata, parameters) = await ParameterRecorder.$current.withValue(recorder) {
+            // The model's own content comes first, then its geometry, then anything only recorded
+            // along the way
+            let content = recorder.nested()
+            let (directives, options, environment) = ParameterRecorder.$current.withValue(content) {
+                resolveContent(environment: inheritedEnvironment, options: inheritedOptions)
+            }
+            let built = try? await directives.build(with: options, in: environment, context: context)
+            return (options[Metadata.self], ParameterList.merging(content.parameters, built?.parameters ?? [], recorder.parameters))
         }
         catalog.add(.init(name: name, title: metadata.title, description: metadata.description, groups: groups,
-                          parameters: recorder.parameters, position: ParameterCatalog.position))
+                          parameters: parameters, position: ParameterCatalog.position))
     }
 
     private func generate(
         environment inheritedEnvironment: EnvironmentValues,
         context: EvaluationContext,
         options inheritedOptions: ModelOptions?,
-        URL directory: URL?
+        URL directory: URL?,
+        recorder: ParameterRecorder?
     ) async -> Int {
         let logger = ModelLogger.current
         logger.generating()
 
-        let (directives, options, environment) = resolveContent(environment: inheritedEnvironment, options: inheritedOptions)
+        // The model's own content records its parameters apart from its geometry's, to come first
+        let contentRecorder = recorder?.nested()
+        let (directives, options, environment) = ParameterRecorder.$current.withValue(contentRecorder) {
+            resolveContent(environment: inheritedEnvironment, options: inheritedOptions)
+        }
+        var builtParameters: [ParameterDescriptor] = []
 
         let baseURL: URL
         if let parent = directory, !(name as NSString).isAbsolutePath {
@@ -208,7 +225,7 @@ public struct Model: Sendable, ModelBuildable {
             // on the model and says little on its own
             let start = ContinuousClock.now
             let warnings: [BuildWarning]
-            (provider, warnings) = try await directives.build(with: options, in: environment, context: context)
+            (provider, warnings, builtParameters) = try await directives.build(with: options, in: environment, context: context)
 
             for warning in warnings {
                 logger.buildWarning(warning)
@@ -235,6 +252,12 @@ public struct Model: Sendable, ModelBuildable {
         // Returns the number of failures, so every caller can hand it straight up.
         func write() async -> Int {
             do {
+                if let recorder {
+                    let parameters = try JSONEncoder().encode(ParameterList.merging(
+                        contentRecorder?.parameters ?? [], builtParameters, recorder.parameters
+                    ))
+                    try parameters.write(to: baseURL.appendingPathExtension(CustomizerRequest.parameterFileExtension))
+                }
                 // A customizer's preview reads the meshes directly. It asks for the model file itself
                 // only when its visitor downloads it.
                 if CustomizerRequest.current?.preview == true, let preview = try await provider.customizerPreview(context: context) {

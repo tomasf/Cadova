@@ -16,6 +16,11 @@ const $ = (id) => document.getElementById(id);
 // parameter is identified by an opaque key, which only has to agree with the model built along with
 // this page, and each model keeps its own values. Only changed values are kept, by model; everything
 // else has its default. Values aren't kept in the address, since a link would outlive the keys.
+//
+// Which parameters a model uses can depend on its values, such as a choice of shape that each has
+// parameters of its own, so every preview reports the ones it used, and the form follows. A model's
+// `parameters` are the ones it uses now, and `known` every one it has used, whose changed values are
+// kept while they're hidden.
 let catalog, models, model;
 const changed = new Map();
 
@@ -37,6 +42,7 @@ function setUp(listing) {
     const chosen = document.querySelector('meta[name="cadova-model"]')?.content;
     models = catalog.models.filter((m) => chosen ? m.name === chosen : m.parameters.length > 0);
     if (!models.length) throw new Error(chosen ? `The model "${chosen}" wasn't found.` : "No model has parameters to customize.");
+    for (const m of models) m.known = new Map(m.parameters.map((parameter) => [parameter.key, parameter]));
 
     const hash = new URLSearchParams(location.hash.slice(1));
     model = models.find((m) => m.name === hash.get("model")) ?? models[0];
@@ -114,7 +120,42 @@ function showForm() {
     if (tabs.size && model.description && model.description !== catalog.description) {
         form.append(Object.assign(document.createElement("p"), { className: "model-description", textContent: model.description }));
     }
-    model.parameters.forEach((parameter, index) => form.append(field(parameter, index)));
+    fields.clear();
+    for (const parameter of model.parameters) form.append(addField(parameter));
+}
+
+// The form's fields, by parameter key, kept while they're in use
+const fields = new Map();
+let fieldCount = 0;
+
+function addField(parameter) {
+    const element = field(parameter, fieldCount++);
+    fields.set(parameter.key, element);
+    return element;
+}
+
+// Takes the parameters a build used. If they differ from the ones on the form, the form changes to
+// match, leaving the fields that stay where they are, so the control in use isn't disturbed.
+function updateParameters(m, parameters) {
+    for (const parameter of parameters) m.known.set(parameter.key, parameter);
+    if (parameters.length === m.parameters.length && parameters.every((parameter, index) => parameter.key === m.parameters[index].key)) return;
+    m.parameters = parameters;
+    if (m !== model) return;
+
+    const keys = new Set(parameters.map((parameter) => parameter.key));
+    for (const [key, element] of fields) {
+        if (keys.has(key)) continue;
+        element.remove();
+        fields.delete(key);
+        controls.delete(key);
+    }
+    const description = form.querySelector(".model-description");
+    let cursor = description ? description.nextSibling : form.firstChild;
+    for (const parameter of parameters) {
+        const element = fields.get(parameter.key) ?? addField(parameter);
+        if (element === cursor) cursor = cursor.nextSibling;
+        else form.insertBefore(element, cursor);
+    }
 }
 
 function select(next) {
@@ -161,8 +202,11 @@ function valueFor(parameter, m = model) {
     }
 }
 
+// Only changed values are sent; the model uses its defaults for the rest. So a parameter that starts
+// being used, with its default value, doesn't call for another build.
 function valuesFor(m) {
-    return Object.fromEntries(m.parameters.map((parameter) => [parameter.key, valueFor(parameter, m)]));
+    return Object.fromEntries(Object.keys(changed.get(m.name) ?? {}).filter((key) => m.known.has(key)).sort()
+        .map((key) => [key, valueFor(m.known.get(key), m)]));
 }
 
 function buildKey(m) {
@@ -437,6 +481,7 @@ function finishBuild(result, finished) {
             failed(error);
             return;
         }
+        if (result.parameterList) updateParameters(finished.model, result.parameterList);
         try {
             display(build);
         } catch (error) {

@@ -26,6 +26,51 @@ private struct ParametricBox: Geometry3D {
     }
 }
 
+// Which parameters it uses depends on the shape chosen
+private struct ShapeChoice: Geometry3D {
+    enum Shape: String, CaseIterable, ParameterValue { case box, cylinder }
+    @Parameter("Shape") var shape = Shape.box
+
+    static var shapeKey: String { Self()._shape.key }
+
+    var body: any Geometry3D {
+        switch shape {
+        case .box:
+            @Parameter("Width") var width = 10.0
+            Box(width)
+        case .cylinder:
+            @Parameter("Diameter") var diameter = 10.0
+            Cylinder(diameter: diameter, height: 5)
+        }
+    }
+}
+
+// Cached, with a stored parameter and one read only in its body
+private struct CachedPlate: CachedGeometry3D {
+    @Parameter("Plate width") var width = 10.0
+
+    static var widthKey: String { Self()._width.key }
+
+    var body: any Geometry3D {
+        @Parameter("Plate height") var height = 2.0
+        Box(x: width, y: 5, z: height)
+    }
+}
+
+// Branches with parameters of their own, built side by side
+private struct Branch: Geometry3D {
+    let index: Int
+
+    var body: any Geometry3D {
+        // A little work first, so the branches finish in no particular order
+        @Parameter("Size \(index)") var size = 1.0
+        Sphere(diameter: size).withSegmentation(count: 8 * (5 - index))
+            .adding { Box(size) }
+        @Parameter("Offset \(index)") var offset = 0.0
+        Box(1).translated(x: offset)
+    }
+}
+
 struct ParameterTests {
     @Test func `Parameter values parse from strings`() {
         #expect(Int(parameterString: "42") == 42)
@@ -178,7 +223,11 @@ struct ParameterTests {
             return try FileManager.default.contentsOfDirectory(atPath: outputDir.path).sorted()
         }
 
-        #expect(try await outputFiles(preview: true) == ["block.cadovapreview", "flat.cadovapreview", "outline.cadovapreview"])
+        // A preview comes with the parameters the model used for it
+        #expect(try await outputFiles(preview: true) == [
+            "block.cadovapreview", "block.parameters.json", "flat.cadovapreview", "flat.parameters.json",
+            "outline.cadovapreview", "outline.parameters.json",
+        ])
         // A 2D model is SVG unless it asks for another format
         #expect(try await outputFiles(preview: false) == ["block.stl", "flat.3mf", "outline.svg"])
     }
@@ -202,6 +251,73 @@ struct ParameterTests {
             }
             let expected = URL(fileURLWithPath: model).lastPathComponent + ".stl"
             #expect(try FileManager.default.contentsOfDirectory(atPath: outputDir.path) == [expected])
+        }
+    }
+
+    @Test func `A customizer's build writes the parameters it used with the values it was given`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let outputDir = tempDir.appending(path: "output")
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        func labels(shape: String?) async throws -> [String] {
+            try? FileManager.default.removeItem(at: outputDir)
+            let values = shape.map { [ShapeChoice.shapeKey: $0] } ?? [:]
+            await CustomizerRequest.$overridden.withValue(CustomizerRequest(values: values, outputDirectory: outputDir.path, preview: true)) {
+                await Project(root: tempDir.appending(path: "project")) {
+                    await Model("shape") { ShapeChoice() }
+                }
+            }
+            let data = try Data(contentsOf: outputDir.appending(path: "shape.parameters.json"))
+            let parameters = try JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+            return parameters?.compactMap { $0["label"] as? String } ?? []
+        }
+
+        #expect(try await labels(shape: nil) == ["Shape", "Width"])
+        #expect(try await labels(shape: "cylinder") == ["Shape", "Diameter"])
+    }
+
+    @Test func `Parameters are listed in the order of the code, however the build runs`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        for _ in 0..<20 {
+            let catalog = await ParameterCatalog.collect(options: []) {
+                await Model(tempDir.appending(path: "branches").path) {
+                    @Parameter("First") var first = 1.0
+                    Box(first)
+                    for index in 0..<4 { Branch(index: index) }
+                }
+            }
+            let json = try JSONSerialization.jsonObject(with: catalog.jsonData()) as? [String: Any]
+            let labels = ((json?["models"] as? [[String: Any]])?.first?["parameters"] as? [[String: Any]])?.compactMap { $0["label"] as? String }
+            #expect(labels == ["First"] + (0..<4).flatMap { ["Size \($0)", "Offset \($0)"] })
+        }
+    }
+
+    @Test func `A cached geometry with a parameter is cached by its value`() async throws {
+        let context = EvaluationContext()
+        func width(_ value: String?) async throws -> Double? {
+            var environment = EnvironmentValues.defaultEnvironment
+            if let value { environment.parameterValues = [CachedPlate.widthKey: value] }
+            let result = try await context.result(for: CachedPlate(), in: environment)
+            let xs = result.concrete.meshGL().vertices.map(\.x)
+            return xs.max().flatMap { max in xs.min().map { max - $0 } }
+        }
+        #expect(try await width(nil) == 10)
+        #expect(try await width("25") == 25)
+        #expect(try await width(nil) == 10)
+    }
+
+    @Test func `A cached geometry's parameters are recorded when its result is reused`() async throws {
+        let context = EvaluationContext()
+        for _ in 0..<2 {
+            let result = try await ParameterRecorder.$current.withValue(ParameterRecorder()) {
+                try await context.buildResult(for: CachedPlate(), in: .defaultEnvironment)
+            }
+            // The body only runs the first time, but its parameters travel in the cached result, in
+            // the order the body uses them
+            #expect(result.elements[ParameterList.self].parameters.map(\.label) == ["Plate height", "Plate width"])
         }
     }
 

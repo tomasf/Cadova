@@ -298,6 +298,36 @@ def test_tabs(browser, base_url):
     check(not page.errors, f"The page had errors: {page.errors}")
 
 
+def test_dynamic_parameters(browser, base_url):
+    """The form follows the parameters each build uses, keeping the values of the ones it hides."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.open()
+    radius = page.number_field("Corner radius")
+    expect(radius).to_have_value("3")
+    page.rebuild(lambda: page.set_number("Corner radius", "5"))
+
+    # Square corners have no radius, so the field goes, and the fields around it stay
+    page.number_field("Width").evaluate("field => field.dataset.marked = 'yes'")
+    page.rebuild(lambda: page.page.get_by_role("button", name="Square").click())
+    expect(page.page.locator(".field label", has_text="Corner radius")).to_have_count(0)
+    check(page.number_field("Width").get_attribute("data-marked") == "yes", "The form was rebuilt instead of updated")
+
+    # Rounding them again brings it back, with the value it had, in the same place
+    page.rebuild(lambda: page.page.get_by_role("button", name="Rounded").click())
+    expect(radius).to_have_value("5")
+    labels = page.page.locator(".field label").all_text_contents()
+    check(labels.index("Corner radius") == labels.index("Corners") + 1, f"The corner radius came back out of place: {labels}")
+    rounded = page.download()
+    check(abs(rounded.extent(0) - 40) < 0.01, f"Width with a corner radius of 5 is {rounded.extent(0)}, expected 40")
+
+    # Reset brings back the defaults, including for the hidden value
+    page.rebuild(lambda: page.page.get_by_role("button", name="Square").click())
+    page.rebuild(lambda: page.page.locator("#reset").click())
+    expect(radius).to_have_value("3")
+    check(not page.errors, f"The page had errors: {page.errors}")
+    page.page.context.close()
+
+
 def test_model_menu(browser, base_url):
     """With more models than fit as tabs, the page offers a menu, with a section for each group."""
     page = CustomizerPage(browser.new_page(), base_url)
@@ -1702,7 +1732,7 @@ def main(arguments):
     cdn = CDNCache()
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
+            test, test_tabs, test_dynamic_parameters, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
         ) if not only or run.__name__ in only]
         if "chromium" in engines and (not only or "test_without_webgl" in only):
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

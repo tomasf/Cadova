@@ -66,7 +66,15 @@ struct Plate: Geometry3D {
 
     var body: any Geometry3D {
         let plate = Rectangle(x: width, y: Self.depth).aligned(at: .center)
-        let outline: any Geometry2D = corners == .rounded ? plate.rounded(radius: 3) : plate
+        // The corner radius is only a parameter when the corners are rounded
+        let outline: any Geometry2D
+        switch corners {
+        case .rounded:
+            @Parameter("Corner radius", in: 1...8, step: 0.5, unit: "mm") var radius = 3.0
+            outline = plate.rounded(radius: radius)
+        case .square:
+            outline = plate
+        }
 
         outline
             .subtracting {
