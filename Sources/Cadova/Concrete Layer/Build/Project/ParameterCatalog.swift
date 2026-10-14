@@ -66,6 +66,11 @@ internal final class ParameterRecorder: Sendable {
 internal final class ParameterCatalog: Sendable {
     @TaskLocal static var current: ParameterCatalog? = nil
 
+    /// Where the model being built is declared: its index in the project's content, followed by its
+    /// index in each group it's in. Models are built concurrently, so a customizer lists them in
+    /// this order rather than the order they finish in.
+    @TaskLocal static var position: [Int] = []
+
     private let models = Mutex<[Model]>([])
     private let projectMetadata = Mutex<Metadata?>(nil)
 
@@ -76,6 +81,11 @@ internal final class ParameterCatalog: Sendable {
         let title: String?
         let description: String?
         let parameters: [ParameterDescriptor]
+        let position: [Int]
+
+        private enum CodingKeys: String, CodingKey {
+            case name, title, description, parameters
+        }
     }
 
     /// Collects the parameters of every model in a project, for a customizer.
@@ -94,10 +104,12 @@ internal final class ParameterCatalog: Sendable {
             let options = ModelOptions(options + directives.compactMap(\.options))
             catalog.projectMetadata.withLock { $0 = options[Metadata.self] }
             let environment = EnvironmentValues.rootEnvironment.adding(directives: directives)
-            let buildables: [any ModelBuildable] = directives.compactMap(\.group) + directives.compactMap(\.model)
+            let buildables: [any ModelBuildable] = directives.compactMap { $0.group ?? $0.model }
             let context = EvaluationContext()
-            _ = await buildables.asyncMap {
-                await $0.build(environment: environment, context: context, options: options, URL: nil, filterPath: [])
+            _ = await buildables.enumerated().asyncMap { index, buildable in
+                await $position.withValue([index]) {
+                    await buildable.build(environment: environment, context: context, options: options, URL: nil, filterPath: [])
+                }
             }
         }
         return catalog
@@ -124,7 +136,7 @@ internal final class ParameterCatalog: Sendable {
         return try encoder.encode(Listing(
             title: metadata?.title,
             description: metadata?.description,
-            models: models.withLock { $0 }.sorted { $0.name < $1.name }
+            models: models.withLock { $0 }.sorted { $0.position.lexicographicallyPrecedes($1.position) }
         ))
     }
 }

@@ -278,6 +278,39 @@ struct ParameterTests {
         #expect(FileManager.default.fileExists(atPath: "parts") == false)
     }
 
+    @Test func `Catalog lists models in the order they're declared`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // Neither alphabetical nor the order they happen to finish building in
+        let catalog = await ParameterCatalog.collect(options: []) {
+            await Model(tempDir.appending(path: "zebra").path) {
+                @Parameter("Stripes") var stripes = 3
+                Box(Double(stripes))
+            }
+            await Group("middle") {
+                await Model("yak") {
+                    @Parameter("Horns") var horns = 2
+                    Box(Double(horns))
+                }
+                await Model("aardvark") {
+                    @Parameter("Ears") var ears = 2
+                    Box(Double(ears))
+                }
+            }
+            await Model(tempDir.appending(path: "beaver").path) {
+                @Parameter("Teeth") var teeth = 4
+                Box(Double(teeth))
+            }
+        }
+
+        let json = try #require(try JSONSerialization.jsonObject(with: catalog.jsonData()) as? [String: Any])
+        let names = (json["models"] as? [[String: Any]] ?? []).map { URL(fileURLWithPath: $0["name"] as? String ?? "").lastPathComponent }
+        #expect(names == ["zebra", "yak", "aardvark", "beaver"])
+        // The position is only for ordering, and stays out of the listing
+        #expect((json["models"] as? [[String: Any]])?.allSatisfy { $0["position"] == nil } == true)
+    }
+
     @Test func `Catalog reports the project's own title and description`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: tempDir) }

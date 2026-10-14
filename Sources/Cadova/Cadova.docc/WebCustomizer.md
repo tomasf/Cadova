@@ -56,7 +56,7 @@ await Model("scoop") {
 
 ### Several Models
 
-When a project has more than one model with parameters, the page gets a tab for each, so visitors can switch between them. The project's own ``Metadata`` provides the page's heading and introduction, or without a title, the page is named after your executable product. Each model's title names its tab. A model without a title of its own is named after the model instead:
+When a project has more than one model with parameters, the page gets a tab for each, in the order they're declared, so visitors can switch between them. The project's own ``Metadata`` provides the page's heading and introduction, or without a title, the page is named after your executable product. Each model's title names its tab. A model without a title of its own is named after the model instead:
 
 ```swift
 await Project {

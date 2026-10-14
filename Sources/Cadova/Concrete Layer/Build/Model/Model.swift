@@ -178,7 +178,8 @@ public struct Model: Sendable, ModelBuildable {
             _ = try? await directives.build(with: options, in: environment, context: context)
             return options[Metadata.self]
         }
-        catalog.add(.init(name: name, title: metadata.title, description: metadata.description, parameters: recorder.parameters))
+        catalog.add(.init(name: name, title: metadata.title, description: metadata.description,
+                          parameters: recorder.parameters, position: ParameterCatalog.position))
     }
 
     private func generate(
