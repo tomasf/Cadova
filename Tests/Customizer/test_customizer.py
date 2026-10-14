@@ -424,7 +424,8 @@ def test_grid(browser, base_url):
                 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
             return [...pixel];
         }
-        const result = { inner: sample(0, 50), rim: sample(0, 110),
+        // The rim sample is where the fade is partway, so it's fainter than inside but still there
+        const result = { inner: sample(0, 50), rim: sample(0, 100),
             corner: sample(100, 100), outside: sample(150, 150) };
         grid.updateBounds(new THREE.Box3(new THREE.Vector3(200, -80, 0), new THREE.Vector3(500, 20, 30)));
         result.center = grid.position.toArray();
@@ -610,7 +611,8 @@ def test_grid_navigation(browser, base_url):
 
 
 def test_line_rendering(browser, base_url):
-    """Keep the faint grid and antialiased origin consistent with SceneKit's rendered pixels."""
+    """Keep the faint grid and antialiased origin as they're meant to look: a little dimmer than
+    SceneKit renders Cadova Viewer's, which are 47 and 74 at their brightest."""
     page = CustomizerPage(browser.new_page(), base_url)
     page.open()
     result = page.page.evaluate('''async () => {
@@ -646,15 +648,15 @@ def test_line_rendering(browser, base_url):
                 gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, color);
                 return color[0];
             }
-            // x = 20 is a grid line; y = 25 avoids a crossing. Half a pixel of white at 5%
-            // alpha over 5% sRGB gray gives about 47/255 after linear-light blending.
+            // x = 20 is a grid line; y = 25 avoids a crossing. Half a pixel of white at 3.6%
+            // alpha over 5% sRGB gray gives about 41/255 after linear-light blending.
             const gridProfile = [238, 239, 240, 241].map(x => pixel(x, 250));
             grid.visible = false;
             const origin = new OriginAxes();
             origin.visible = true;
             scene.add(origin);
             viewport.render(scene, camera);
-            // The native renderer produces [13, 74, 74, 13] for the centered gray origin line.
+            // The centered #575757 origin line comes out as [13, 63, 63, 13].
             const originProfile = [198, 199, 200, 201].map(x => pixel(x, 250));
             origin.geometry.dispose();
             origin.material.dispose();
@@ -668,10 +670,10 @@ def test_line_rendering(browser, base_url):
     }''')
     for mode, pixels in result.items():
         check(pixels["gridProfile"][0] == 13 and pixels["gridProfile"][3] == 13
-              and all(43 <= value <= 51 for value in pixels["gridProfile"][1:3]),
-              f"The {mode} grid no longer matches native contrast: {pixels}")
-        check(all(abs(actual - expected) <= 3 for actual, expected in zip(pixels["originProfile"], [13, 74, 74, 13])),
-              f"The {mode} origin no longer matches native antialiasing: {pixels}")
+              and all(37 <= value <= 45 for value in pixels["gridProfile"][1:3]),
+              f"The {mode} grid's contrast has changed: {pixels}")
+        check(all(abs(actual - expected) <= 3 for actual, expected in zip(pixels["originProfile"], [13, 63, 63, 13])),
+              f"The {mode} origin's antialiasing has changed: {pixels}")
     check(not page.errors, f"Line rendering errors: {page.errors}")
     page.page.context.close()
 

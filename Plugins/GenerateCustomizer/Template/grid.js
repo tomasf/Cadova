@@ -50,8 +50,8 @@ export class ViewportGrid extends THREE.Mesh {
                     float radialDistance = length((gridPosition - center) / radius);
                     if (radialDistance >= 1.0) discard;
                     float fade = 1.0 - smoothstep(0.6, 1.0, radialDistance);
-                    float coarse = gridAlpha(spacing, 0.05);
-                    float fine = gridAlpha(spacing / 10.0, 0.05 * fineOpacity);
+                    float coarse = gridAlpha(spacing, 0.036);
+                    float fine = gridAlpha(spacing / 10.0, 0.036 * fineOpacity);
                     gl_FragColor = vec4(color, (1.0 - (1.0 - coarse) * (1.0 - fine)) * fade);
                     #include <colorspace_fragment>
                 }

@@ -15,7 +15,7 @@ export class OriginAxes extends LineSegments2 {
             0, 0, -extent, 0, 0, 0, 0, 0, 0, 0, 0, extent,
         ]);
         super(geometry, new LineMaterial({
-            color: 0x666666, linewidth: 1, toneMapped: false,
+            color: 0x575757, linewidth: 1, toneMapped: false,
             transparent: true, depthWrite: false,
         }));
         this.name = "Origin";
