@@ -115,7 +115,20 @@ class CDNCache:
     def route(self, route):
         url = route.request.url
         if url not in self.files:
-            response = route.fetch(timeout=60_000)
+            # A stalled download is retried, rather than left to hold up the test that asked for it
+            for attempt in range(3):
+                try:
+                    response = route.fetch(timeout=10_000)
+                    break
+                except PlaywrightError as error:
+                    if "closed" in str(error):
+                        return  # the test is already done with the page
+            else:
+                try:
+                    route.abort()
+                except PlaywrightError:
+                    pass
+                return
             if response.status != 200:
                 route.fulfill(response=response)
                 return
@@ -124,7 +137,10 @@ class CDNCache:
                        if name.lower() in ("content-type", "access-control-allow-origin")}
             self.files[url] = (headers, response.body())
         headers, body = self.files[url]
-        route.fulfill(status=200, headers=headers, body=body)
+        try:
+            route.fulfill(status=200, headers=headers, body=body)
+        except PlaywrightError:
+            pass  # the page closed while it waited
 
     def browser(self, browser):
         """Routes the CDN through the cache in every page the browser opens."""
