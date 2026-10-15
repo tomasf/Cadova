@@ -232,6 +232,32 @@ struct ParameterTests {
         #expect(try await outputFiles(preview: false) == ["block.stl", "flat.3mf", "outline.svg"])
     }
 
+    @Test func `Models know where their build is going`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        func destination(for request: CustomizerRequest?) async -> BuildDestination? {
+            let destination = CapturedValue<BuildDestination>()
+            await CustomizerRequest.$overridden.withValue(request) {
+                await Project(root: tempDir.appending(path: "project")) {
+                    await Model("block") {
+                        @Environment(\.buildDestination) var buildDestination
+                        let _ = destination.value = buildDestination
+                        Box(10)
+                    }
+                }
+            }
+            return destination.value
+        }
+
+        let output = tempDir.appending(path: "output").path
+        #expect(await destination(for: nil) == .file)
+        #expect(await destination(for: CustomizerRequest(outputDirectory: output, preview: true)) == .customizerPreview)
+        #expect(await destination(for: CustomizerRequest(outputDirectory: output, preview: false)) == .customizerDownload)
+        #expect(await destination(for: CustomizerRequest(parameterListPath: tempDir.appending(path: "list.json").path)) == .customizerPreview)
+    }
+
     @Test func `A request writes a model in a group straight into its directory`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let outputDir = tempDir.appending(path: "output")

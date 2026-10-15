@@ -111,6 +111,10 @@ Text("Hello").withFont("Inter", style: "Bold", from: font)
 
 Publishing a customizer distributes its resources, so only include fonts whose license allows that, such as fonts under the SIL Open Font License.
 
+### Previews and Downloads
+
+A model is normally oriented for printing, which isn't always the best way to look at it. A sign that prints face down shows the preview its back. Read ``EnvironmentValues/buildDestination`` to tell the customizer's preview from the file it downloads, and from a model file you build yourself.
+
 ## Installing the Toolchain
 
 Building for WebAssembly needs the Swift 6.4.0 toolchain from swift.org. The Swift that comes with Xcode can't be used for this, even when it's the same version. Install it with [swiftly](https://www.swift.org/install):

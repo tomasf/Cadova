@@ -21,11 +21,13 @@ internal extension EnvironmentValues {
         return value
     }
 
-    /// The default environment plus the parameter values a customizer asked for, if one started the
-    /// executable. Models start from this environment.
+    /// The default environment plus the parameter values a customizer asked for, and where the build
+    /// is going, if one started the executable. Models start from this environment.
     static var rootEnvironment: EnvironmentValues {
         var environment = defaultEnvironment
-        environment.parameterValues = CustomizerRequest.current?.values ?? [:]
+        let request = CustomizerRequest.current
+        environment.parameterValues = request?.values ?? [:]
+        environment.setBuildDestination(BuildDestination(request: request))
         return environment
     }
 }
