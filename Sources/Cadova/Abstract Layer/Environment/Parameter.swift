@@ -33,29 +33,29 @@ import Foundation
 ///
 @propertyWrapper public struct Parameter<Value: ParameterValue>: Sendable {
     /// What a customizer calls the parameter.
-    public let label: String
+    let label: String
 
     /// Identifies the parameter within its model: where it's declared, and its label, since a
     /// declaration in a function can be given different labels. Customizers treat it as opaque.
     internal let key: String
 
     /// The value the parameter has unless a customizer chooses another.
-    public let defaultValue: Value
+    let defaultValue: Value
 
     /// A short explanation of what the parameter controls, shown by customizers.
-    public let description: String?
+    let description: String?
 
     /// The smallest value a customizer offers, if the parameter has a range.
-    public let minimum: Value?
+    let minimum: Value?
 
     /// The largest value a customizer offers, if the parameter has a range.
-    public let maximum: Value?
+    let maximum: Value?
 
     /// The increment a customizer steps the value by, if any.
-    public let step: Value?
+    let step: Value?
 
     /// What a customizer shows after a number, such as `"mm"` or `"pcs"`, if anything.
-    public let unit: String?
+    let unit: String?
 
     /// Creates a parameter with a label and a default value.
     ///
