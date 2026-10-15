@@ -75,7 +75,13 @@ runs:
       curl -fsSL -o swiftly.tar.gz "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz"
       tar xzf swiftly.tar.gz
       ./swiftly init --assume-yes --quiet-shell-followup --skip-install --no-modify-profile
-      "$SWIFTLY_BIN_DIR/swiftly" install "$CADOVA_SWIFT_VERSION" --assume-yes
+      # swiftly writes a script for any system packages the toolchain needs, rather than failing
+      "$SWIFTLY_BIN_DIR/swiftly" install "$CADOVA_SWIFT_VERSION" --assume-yes --post-install-file post-install.sh
+      if [ -s post-install.sh ]; then
+        cat post-install.sh
+        sudo apt-get update -q
+        sudo bash post-install.sh
+      fi
       "$CADOVA_WASM_TOOLCHAIN/usr/bin/swift" --version
 
   # The first build compiles Cadova and its dependencies for WebAssembly, which takes a few minutes.
