@@ -233,6 +233,36 @@ struct EdgeShapingTests {
         #expect(partCount == 1)
     }
 
+    @Test func `concave fillets deeper than the walls stay inside the corner`() async throws {
+        // An L with 1 mm walls, filleted far deeper than the walls are thick
+        let radius = 3.0
+        let body = Polygon([[0, 0], [20, 0], [20, 1], [1, 1], [1, 20], [0, 20]]).extruded(height: 10)
+        let result = body.shapingEdges(.fillet(radius: radius), matching: .concave)
+
+        // Only the cove is added; nothing comes out behind the walls
+        let expected = 390 + (radius * radius - .pi * radius * radius / 4) * 10
+        let measurements = try await result.measurements
+        #expect(await measurements.volume.equals(expected, within: 0.1))
+        #expect(measurements.boundingBox?.size ≈ Vector3D(20, 20, 10))
+    }
+
+    @Test func `concave corner patches stay inside thin walls`() async throws {
+        // A cup with 1 mm walls: eight concave edges inside, meeting three at a time at the floor
+        let radius = 3.0
+        let body = Box(20).subtracting { Box(x: 18, y: 18, z: 20).translated(x: 1, y: 1, z: 1) }
+        let result = body.shapingEdges(.fillet(radius: radius), matching: .concave)
+
+        // Vertical coves are retracted at the floor corner, floor coves at both ends, and each
+        // of the four corners gains a spherical cove patch
+        let coveArea = radius * radius - Double.pi * radius * radius / 4
+        let coves = coveArea * (4 * (19 - radius) + 4 * (18 - 2 * radius))
+        let cornerFill = pow(radius, 3) - Double.pi * pow(radius, 3) / 6
+        let expected = (8000 - 18 * 18 * 19) + coves + 4 * cornerFill
+        let measurements = try await result.measurements
+        #expect(await measurements.volume.equals(expected, within: 1.0))
+        #expect(measurements.boundingBox?.size ≈ Vector3D(20, 20, 20))
+    }
+
     @Test func `concave corners are patched with a spherical cove`() async throws {
         let radius = 2.0
         // A box with a corner pocket: three concave edges meet at the inner corner
