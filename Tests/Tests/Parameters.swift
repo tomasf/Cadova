@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Cadova
 
-private enum Finish: String, CaseIterable, ParameterValue {
+private enum Finish: String, ParameterChoice {
     case matte, glossy
 }
 
@@ -28,7 +28,7 @@ private struct ParametricBox: Geometry3D {
 
 // Which parameters it uses depends on the shape chosen
 private struct ShapeChoice: Geometry3D {
-    enum Shape: String, CaseIterable, ParameterValue { case box, cylinder }
+    enum Shape: String, ParameterChoice { case box, cylinder }
     @Parameter("Shape") var shape = Shape.box
 
     static var shapeKey: String { Self()._shape.key }
@@ -342,10 +342,33 @@ struct ParameterTests {
             key: _height.key, label: "Height", kind: .number, defaultValue: "20.0",
             minimum: "10.0", maximum: "50.0", step: "0.5", unit: nil, description: "Plate height"
         ))
-        #expect(_finish.descriptor.kind == .choice(["matte", "glossy"]))
+        #expect(_finish.descriptor.kind == .choice([.init(value: "matte", label: "Matte"), .init(value: "glossy", label: "Glossy")]))
         #expect(_finish.descriptor.defaultValue == "matte")
         #expect(_tilt.descriptor.kind == .angle)
         #expect(Angle(parameterString: _tilt.descriptor.defaultValue) == 15°)
+    }
+
+    @Test func `Choices can have any raw type and name their cases`() {
+        enum Infill: Int, ParameterChoice { case sparse = 10, solid = 100 }
+        enum Material: String, ParameterChoice {
+            case pla, petgCF = "petg-cf", extraFine_layers
+
+            var displayName: String {
+                self == .pla ? "PLA" : Self.petgCF.rawValue
+            }
+        }
+        enum Plain: String, ParameterChoice { case extraFine, PLA, petgCF = "x", extra_fine }
+
+        @Parameter("Infill") var infill = Infill.solid
+        #expect(_infill.descriptor.kind == .choice([.init(value: "10", label: "Sparse"), .init(value: "100", label: "Solid")]))
+        #expect(_infill.descriptor.defaultValue == "100")
+        #expect(Infill(parameterString: "10") == .sparse)
+        #expect(Infill(parameterString: "11") == nil)
+        #expect(Infill(parameterString: "sparse") == nil)
+
+        #expect(Material.pla.displayName == "PLA")
+        #expect(Material(parameterString: "petg-cf") == .petgCF)
+        #expect(Plain.allCases.map(\.displayName) == ["Extra fine", "PLA", "Petg CF", "Extra fine"])
     }
 
     @Test func `Number parameters can have a unit`() throws {

@@ -26,7 +26,7 @@ import Foundation
 /// Read parameters inside a model: in a geometry's `body`, a `Model { }` builder or another geometry
 /// callback. A parameter read outside any model has its default value.
 ///
-/// Supported types include `Int`, `Double`, `Bool`, `String`, `Angle`, and string-backed enums;
+/// Supported types include `Int`, `Double`, `Bool`, `String`, `Angle`, ``Color``, and ``ParameterChoice`` enums;
 /// see ``ParameterValue`` for details.
 ///
 /// To make and publish a customizer, see <doc:WebCustomizer>.

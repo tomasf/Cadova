@@ -28,7 +28,7 @@ struct Scoop: Geometry3D {
     }
 }
 
-enum Quality: String, CaseIterable, ParameterValue {
+enum Quality: String, ParameterChoice {
     case draft, standard, fine
 }
 ```
@@ -41,7 +41,7 @@ Each type of parameter gets its own kind of control:
 | `Angle` | A number field in degrees, plus a slider when the parameter has a range |
 | `Bool` | A switch |
 | ``Color`` | A color picker |
-| A `CaseIterable` string enum | Buttons for up to four cases, a menu for more |
+| A ``ParameterChoice`` enum | Buttons for up to four cases, a menu for more |
 | `String` | A text field |
 
 A parameter is identified by where it's declared, not by its label, so you're free to reword labels. When you build a model yourself, its parameters have their default values.

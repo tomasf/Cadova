@@ -233,7 +233,7 @@ extension ParameterDescriptor: Encodable {
         case .text: try container.encode("text", forKey: .type)
         case .choice(let options):
             try container.encode("choice", forKey: .type)
-            try container.encode(options, forKey: .options)
+            try container.encode(options.map { ["value": $0.value, "label": $0.label] }, forKey: .options)
         }
         try container.encodeIfPresent(unit, forKey: .unit)
         try container.encodeIfPresent(description, forKey: .description)

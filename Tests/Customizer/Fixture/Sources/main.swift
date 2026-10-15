@@ -44,7 +44,7 @@ await Project {
     }
 }
 
-enum Corners: String, CaseIterable, ParameterValue {
+enum Corners: String, ParameterChoice {
     case square, rounded
 }
 

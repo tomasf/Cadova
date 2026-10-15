@@ -189,7 +189,7 @@ function valueFor(parameter, m = model) {
         case "boolean":
             return typeof value === "boolean" ? value : parameter.default;
         case "choice":
-            return parameter.options.includes(value) ? value : parameter.default;
+            return parameter.options.some((option) => option.value === value) ? value : parameter.default;
         case "color":
             return typeof value === "string" && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value) ? value : parameter.default;
         case "integer":
@@ -289,13 +289,11 @@ function field(parameter, index) {
                 group.setAttribute("aria-labelledby", `${id}-label`);
                 label.id = `${id}-label`;
                 label.removeAttribute("for");
-                const buttons = parameter.options.map((option) => {
-                    const button = Object.assign(document.createElement("button"), {
-                        type: "button", textContent: humanize(option),
-                    });
-                    button.addEventListener("click", () => { setValue(option); update(parameter.key, option); });
+                const buttons = parameter.options.map(({ value, label }) => {
+                    const button = Object.assign(document.createElement("button"), { type: "button", textContent: label });
+                    button.addEventListener("click", () => { setValue(value); update(parameter.key, value); });
                     group.append(button);
-                    return [option, button];
+                    return [value, button];
                 });
                 control.append(group);
                 setValue = (value) => {
@@ -303,7 +301,7 @@ function field(parameter, index) {
                 };
             } else {
                 const select = Object.assign(document.createElement("select"), { id });
-                for (const option of parameter.options) select.append(new Option(humanize(option), option));
+                for (const { value, label } of parameter.options) select.append(new Option(label, value));
                 select.addEventListener("change", () => update(parameter.key, select.value));
                 control.append(select);
                 setValue = (value) => { select.value = value; };

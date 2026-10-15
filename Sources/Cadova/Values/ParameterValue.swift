@@ -5,15 +5,8 @@ import Foundation
 /// A customizer passes the values its visitor chooses as strings, which are parsed with
 /// ``init(parameterString:)``.
 ///
-/// Cadova provides conformances for `Int`, `Double`, `Bool`, `String`, `Angle` and ``Color``. String-backed
-/// enums get a conformance for free by declaring it. Make the enum `CaseIterable` too, and a
-/// customizer can offer its cases as a list to pick from:
-///
-/// ```swift
-/// enum Style: String, CaseIterable, ParameterValue {
-///     case plain, fancy
-/// }
-/// ```
+/// Cadova provides conformances for `Int`, `Double`, `Bool`, `String`, `Angle` and ``Color``. For
+/// an enum whose cases a customizer offers to pick from, use ``ParameterChoice``.
 ///
 public protocol ParameterValue: Sendable {
     /// Creates a value by parsing a string representation, as a customizer provides it.
@@ -43,8 +36,27 @@ public enum ParameterKind: Sendable, Hashable {
     case boolean
     /// Free text.
     case text
-    /// One of a fixed set of values, given as the strings that identify them.
-    case choice ([String])
+    /// One of a fixed set of options.
+    case choice ([Option])
+
+    /// One of the values a ``ParameterKind/choice(_:)`` parameter offers.
+    public struct Option: Sendable, Hashable {
+        /// The string that identifies the value, as ``ParameterValue/parameterString`` writes it.
+        public let value: String
+
+        /// What a customizer calls the option.
+        public let label: String
+
+        /// Creates an option.
+        ///
+        /// - Parameters:
+        ///   - value: The string that identifies the value, as ``ParameterValue/parameterString`` writes it.
+        ///   - label: What a customizer calls the option.
+        public init(value: String, label: String) {
+            self.value = value
+            self.label = label
+        }
+    }
 }
 
 public extension ParameterValue {
@@ -137,14 +149,80 @@ extension Color: ParameterValue {
     public static var parameterKind: ParameterKind { .color }
 }
 
-public extension ParameterValue where Self: RawRepresentable, RawValue == String {
-    init?(parameterString: String) {
-        self.init(rawValue: parameterString)
-    }
-
-    var parameterString: String { rawValue }
+/// An enum whose cases a customizer offers to pick from, as buttons or a menu.
+///
+/// Give the enum a raw type, such as `String` or `Int`, and declare the conformance. Each case's
+/// raw value identifies it, and a customizer names it after the case, so `extraFine` reads
+/// "Extra fine":
+///
+/// ```swift
+/// enum Quality: String, ParameterChoice {
+///     case draft, standard, extraFine
+/// }
+/// ```
+///
+/// To name a case differently, implement ``displayName``:
+///
+/// ```swift
+/// enum Material: String, ParameterChoice {
+///     case pla, petg
+///
+///     var displayName: String {
+///         switch self {
+///         case .pla: "PLA"
+///         case .petg: "PETG"
+///         }
+///     }
+/// }
+/// ```
+///
+public protocol ParameterChoice: ParameterValue, CaseIterable, RawRepresentable
+where RawValue: LosslessStringConvertible {
+    /// What a customizer calls this case. By default, the case's name, written as words.
+    var displayName: String { get }
 }
 
-public extension ParameterValue where Self: RawRepresentable & CaseIterable, RawValue == String {
-    static var parameterKind: ParameterKind { .choice(allCases.map(\.rawValue)) }
+public extension ParameterChoice {
+    init?(parameterString: String) {
+        guard let rawValue = RawValue(parameterString) else { return nil }
+        self.init(rawValue: rawValue)
+    }
+
+    var parameterString: String { String(rawValue) }
+
+    static var parameterKind: ParameterKind {
+        .choice(allCases.map { .init(value: $0.parameterString, label: $0.displayName) })
+    }
+
+    var displayName: String {
+        Self.words(in: String(describing: self))
+    }
+
+    /// A name written as words, with only the first capitalized: `extraFine` and `extra_fine` read
+    /// "Extra fine". Words in capitals, such as `PLA`, keep them.
+    private static func words(in name: String) -> String {
+        var words: [String] = []
+        var word = ""
+        var previous: Character?
+        for character in name {
+            if character == "_" || character == "-" || character == " " {
+                if !word.isEmpty { words.append(word) }
+                word = ""
+            } else if character.isUppercase, let previous, previous.isLowercase || previous.isNumber {
+                words.append(word)
+                word = String(character)
+            } else {
+                word.append(character)
+            }
+            previous = character
+        }
+        if !word.isEmpty { words.append(word) }
+
+        let written = words.enumerated().map { index, word in
+            if word.count > 1, word.allSatisfy({ !$0.isLetter || $0.isUppercase }) { return word }
+            let lowercased = word.lowercased()
+            return index == 0 ? lowercased.prefix(1).uppercased() + lowercased.dropFirst() : lowercased
+        }
+        return written.joined(separator: " ")
+    }
 }
