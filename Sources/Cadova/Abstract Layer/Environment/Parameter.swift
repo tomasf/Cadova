@@ -200,7 +200,7 @@ import Foundation
         ParameterDescriptor(
             key: key,
             label: label,
-            kind: Value.parameterKind,
+            kind: ParameterKind(Value.self),
             defaultValue: defaultValue.parameterString,
             minimum: minimum?.parameterString,
             maximum: maximum?.parameterString,

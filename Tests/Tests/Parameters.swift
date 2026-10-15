@@ -330,7 +330,8 @@ struct ParameterTests {
         #expect(Color(parameterString: "#ff6600")?.alpha == 1)
         #expect(Color(parameterString: "#ff66") == nil)
         #expect(Color(parameterString: "#gg6600") == nil)
-        #expect(Color.parameterKind == .color)
+        #expect(ParameterKind(Color.self) == .color)
+        #expect(ParameterKind(String.self) == .text)
     }
 
     @Test func `Parameters describe their kind and metadata`() {

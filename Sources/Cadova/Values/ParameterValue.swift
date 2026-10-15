@@ -17,13 +17,11 @@ public protocol ParameterValue: Sendable {
 
     /// A string representation that ``init(parameterString:)`` parses back into this value.
     var parameterString: String { get }
-
-    /// The kind of value, which tells a customizer what kind of control to offer for it.
-    static var parameterKind: ParameterKind { get }
 }
 
-/// The kind of value a customizer parameter holds, used to describe it to a customizer.
-public enum ParameterKind: Sendable, Hashable {
+/// The kind of value a customizer parameter holds, which tells a customizer what kind of control to
+/// offer for it.
+internal enum ParameterKind: Sendable, Hashable {
     /// A whole number.
     case integer
     /// A decimal number.
@@ -39,29 +37,30 @@ public enum ParameterKind: Sendable, Hashable {
     /// One of a fixed set of options.
     case choice ([Option])
 
-    /// One of the values a ``ParameterKind/choice(_:)`` parameter offers.
-    public struct Option: Sendable, Hashable {
-        /// The string that identifies the value, as ``ParameterValue/parameterString`` writes it.
-        public let value: String
+    /// One of the values a choice offers: the string that identifies it, as `parameterString` writes
+    /// it, and what a customizer calls it
+    struct Option: Sendable, Hashable {
+        let value: String
+        let label: String
+    }
 
-        /// What a customizer calls the option.
-        public let label: String
-
-        /// Creates an option.
-        ///
-        /// - Parameters:
-        ///   - value: The string that identifies the value, as ``ParameterValue/parameterString`` writes it.
-        ///   - label: What a customizer calls the option.
-        public init(value: String, label: String) {
-            self.value = value
-            self.label = label
+    /// The kind of a type of value. Types that Cadova knows of have their own, and any other is text.
+    init<Value: ParameterValue>(_ type: Value.Type) {
+        if let choice = type as? any ParameterChoice.Type {
+            self = choice.parameterKind
+        } else {
+            self = (type as? any KnownParameterValue.Type)?.parameterKind ?? .text
         }
     }
 }
 
+/// A type of parameter value with its own kind of control
+internal protocol KnownParameterValue: ParameterValue {
+    static var parameterKind: ParameterKind { get }
+}
+
 public extension ParameterValue {
     var parameterString: String { String(describing: self) }
-    static var parameterKind: ParameterKind { .text }
 }
 
 /// A parameter value that's a plain number, which a customizer can show with a unit.
@@ -80,16 +79,20 @@ extension Int: NumericParameterValue {
     public init?(parameterString: String) {
         self.init(parameterString)
     }
+}
 
-    public static var parameterKind: ParameterKind { .integer }
+extension Int: KnownParameterValue {
+    static var parameterKind: ParameterKind { .integer }
 }
 
 extension Double: NumericParameterValue {
     public init?(parameterString: String) {
         self.init(parameterString)
     }
+}
 
-    public static var parameterKind: ParameterKind { .number }
+extension Double: KnownParameterValue {
+    static var parameterKind: ParameterKind { .number }
 }
 
 extension String: ParameterValue {
@@ -106,8 +109,10 @@ extension Bool: ParameterValue {
         default: return nil
         }
     }
+}
 
-    public static var parameterKind: ParameterKind { .boolean }
+extension Bool: KnownParameterValue {
+    static var parameterKind: ParameterKind { .boolean }
 }
 
 extension Angle: ParameterValue {
@@ -125,7 +130,10 @@ extension Angle: ParameterValue {
     }
 
     public var parameterString: String { String(degrees) }
-    public static var parameterKind: ParameterKind { .angle }
+}
+
+extension Angle: KnownParameterValue {
+    static var parameterKind: ParameterKind { .angle }
 }
 
 extension Color: ParameterValue {
@@ -145,8 +153,10 @@ extension Color: ParameterValue {
             return hex.count == 1 ? "0" + hex : hex
         }.joined()
     }
+}
 
-    public static var parameterKind: ParameterKind { .color }
+extension Color: KnownParameterValue {
+    static var parameterKind: ParameterKind { .color }
 }
 
 /// An enum whose cases a customizer offers to pick from, as buttons or a menu.
@@ -190,10 +200,6 @@ public extension ParameterChoice {
 
     var parameterString: String { String(rawValue) }
 
-    static var parameterKind: ParameterKind {
-        .choice(allCases.map { .init(value: $0.parameterString, label: $0.displayName) })
-    }
-
     var displayName: String {
         Self.words(in: String(describing: self))
     }
@@ -224,5 +230,11 @@ public extension ParameterChoice {
             return index == 0 ? lowercased.prefix(1).uppercased() + lowercased.dropFirst() : lowercased
         }
         return written.joined(separator: " ")
+    }
+}
+
+internal extension ParameterChoice {
+    static var parameterKind: ParameterKind {
+        .choice(allCases.map { .init(value: $0.parameterString, label: $0.displayName) })
     }
 }
