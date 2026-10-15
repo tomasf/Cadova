@@ -121,6 +121,8 @@ let part2 = try await generator.build(named: "model2") { ... }
 
 ``ModelFileGenerator`` accepts the same options and directives as ``Model``, including `Metadata` and `Environment`.
 
+To read values from geometry instead of producing a file, such as in a test or a script that checks a design, use ``ModelFileGenerator/evaluate(environment:_:)``. The closure receives a ``GeometryEvaluator`` and can return any value.
+
 ## Cadova Viewer
 
 [Cadova Viewer](https://github.com/tomasf/CadovaViewer) is a macOS-native application designed to preview models created in Cadova. It watches your files and reloads automatically as they are regenerated. This makes it ideal for iterative modeling.

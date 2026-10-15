@@ -36,12 +36,15 @@ struct OffsetRedundantCollinearPointsRegressionTests {
             return Polygon(points)
         }
 
-        let context = _EvaluationContext()
-        let clean = try await context.concrete(for: trapezoid(subdivisions: 1).rounded(radius: 2))
-        let subdivided = try await context.concrete(for: trapezoid(subdivisions: 60).rounded(radius: 2))
+        let clean = trapezoid(subdivisions: 1).rounded(radius: 2)
+        let subdivided = trapezoid(subdivisions: 60).rounded(radius: 2)
+        let cleanMeasurements = try await clean.measurements
+        let subdividedMeasurements = try await subdivided.measurements
+        let cleanBounds = try #require(cleanMeasurements.boundingBox)
+        let subdividedBounds = try #require(subdividedMeasurements.boundingBox)
 
-        #expect(subdivided.area.equals(clean.area, within: 1e-6))
-        #expect(subdivided.bounds.min.distance(to: clean.bounds.min) < 1e-6)
-        #expect(subdivided.bounds.max.distance(to: clean.bounds.max) < 1e-6)
+        #expect(await subdividedMeasurements.area.equals(cleanMeasurements.area, within: 1e-6))
+        #expect(subdividedBounds.minimum.distance(to: cleanBounds.minimum) < 1e-6)
+        #expect(subdividedBounds.maximum.distance(to: cleanBounds.maximum) < 1e-6)
     }
 }

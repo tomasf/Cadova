@@ -35,34 +35,28 @@ struct SmoothingTests {
     @Test
     func `zero smoothing strength leaves geometry unchanged`() async throws {
         let source = Box([10, 10, 10])
-        let context = _EvaluationContext()
 
-        let original = try await context.concrete(for: source)
-        let unchanged = try await context.concrete(
-            for: source.withSegmentation(count: 8).smoothed(strength: 0)
-        )
+        let original = try await source.measurements
+        let unchanged = try await source.withSegmentation(count: 8).smoothed(strength: 0).measurements
 
-        #expect(unchanged.vertexCount == original.vertexCount)
+        #expect(unchanged.pointCount == original.pointCount)
         #expect(unchanged.triangleCount == original.triangleCount)
-        #expect(unchanged.volume ≈ original.volume)
-        #expect(unchanged.surfaceArea ≈ original.surfaceArea)
+        #expect(await unchanged.volume ≈ original.volume)
+        #expect(await unchanged.surfaceArea ≈ original.surfaceArea)
     }
 
     @Test
     func `smoothing strength changes cube result`() async throws {
         let source = Box(10)
-        let context = _EvaluationContext()
-        var environment = EnvironmentValues.defaultEnvironment
-        environment.segmentation = .fixed(10)
 
-        let weak = try await context.concrete(
-            for: source.smoothed(strength: 0.1),
-            in: environment
-        )
-        let strong = try await context.concrete(
-            for: source.smoothed(strength: 1),
-            in: environment
-        )
+        let (weak, strong) = try await ModelFileGenerator.evaluate(environment: { $0.segmentation = .fixed(10) }) { evaluator in
+            let weak = await evaluator.measurements(of: source.smoothed(strength: 0.1))
+            let strong = await evaluator.measurements(of: source.smoothed(strength: 1))
+            return (
+                (volume: await weak.volume, surfaceArea: await weak.surfaceArea),
+                (volume: await strong.volume, surfaceArea: await strong.surfaceArea)
+            )
+        }
 
         #expect(strong.surfaceArea > weak.surfaceArea)
         #expect(strong.volume > weak.volume)

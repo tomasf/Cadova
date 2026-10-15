@@ -148,6 +148,67 @@ public struct ModelFileGenerator: Sendable {
     }
 }
 
+public extension ModelFileGenerator {
+    /// Reads values from one-shot geometry, without producing a model file.
+    ///
+    /// For more details, see the documentation for the
+    /// ``evaluate(environment:_:)`` instance method.
+    ///
+    /// - Note: If you intend to evaluate more than once, create an instance of
+    ///         ``ModelFileGenerator`` and re-use ``evaluate(environment:_:)`` on that instance instead.
+    ///         Instances maintain a cache for improved performance over multiple evaluations.
+    static func evaluate<T: Sendable>(
+        environment: @Sendable (inout EnvironmentValues) -> Void = { _ in },
+        _ action: @Sendable (GeometryEvaluator) async throws -> T
+    ) async throws -> T {
+        try await ModelFileGenerator().evaluate(environment: environment, action)
+    }
+
+    /// Reads values from geometry, such as measurements, bounds, or components, and returns them.
+    ///
+    /// Use this when code outside a geometry tree needs answers about geometry rather than a model
+    /// file: a test, a script that checks a design, or an app that shows a part's size. The closure
+    /// receives a ``GeometryEvaluator`` that can read any geometry, and returns whatever value
+    /// you need.
+    ///
+    /// Evaluations share the generator's cache with each other and with ``build(named:options:content:)``,
+    /// so geometry that appears in several calls is only built once.
+    ///
+    /// - Parameters:
+    ///   - environment: Customizes the environment the geometry is evaluated in, starting from the
+    ///     default environment. Geometry reading `@Environment` sees these values, as it would with
+    ///     an `Environment { … }` directive in a model.
+    ///   - action: An asynchronous closure that reads from geometry through the evaluator and
+    ///     returns a value.
+    ///
+    /// - Returns: The value returned by `action`.
+    /// - Throws: Any error thrown by `action`, or the first error encountered while building geometry
+    ///   that was read through the evaluator.
+    ///
+    /// ```swift
+    /// let generator = ModelFileGenerator()
+    /// let volume = try await generator.evaluate(environment: { $0.tolerance = 0.2 }) { evaluator in
+    ///     await evaluator.measurements(of: Bracket()).volume
+    /// }
+    /// ```
+    func evaluate<T: Sendable>(
+        environment: @Sendable (inout EnvironmentValues) -> Void = { _ in },
+        _ action: @Sendable (GeometryEvaluator) async throws -> T
+    ) async throws -> T {
+        var environmentValues = EnvironmentValues.defaultEnvironment
+        environment(&environmentValues)
+
+        return try await environmentValues.whileCurrent {
+            let evaluator = GeometryEvaluator(context: evaluationContext, environment: environmentValues)
+            let value = try await action(evaluator)
+            if let error = await evaluator.firstError {
+                throw error
+            }
+            return value
+        }
+    }
+}
+
 /// A representation of a model in the form of a standard file format (3MF, STL, SVG, etc).
 public struct ModelFile {
     private let dataProvider: OutputDataProvider

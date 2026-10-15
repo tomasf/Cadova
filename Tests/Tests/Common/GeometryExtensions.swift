@@ -62,9 +62,9 @@ extension Geometry {
     }
 
     func measurements(for scope: MeasurementScope) async throws -> D.Measurements {
-        let context = _EvaluationContext()
-        let buildResult = try await context.buildResult(for: self.withDefaultSegmentation(), in: .defaultEnvironment)
-        return try await D.Measurements(buildResult: buildResult, scope: scope, context: context)
+        try await ModelFileGenerator.evaluate { evaluator in
+            await evaluator.measurements(of: self, scope: scope)
+        }
     }
 
     var measurements: D.Measurements {
