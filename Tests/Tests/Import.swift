@@ -396,4 +396,20 @@ struct ImportTests {
         #expect(importedMeasurements.contourCount == originalMeasurements.contourCount)
         #expect(importedMeasurements.boundingBox!.size ≈ originalMeasurements.boundingBox!.size)
     }
+
+    @Test func `SVG export of empty geometry writes an empty drawing`() async throws {
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cadova-test-\(UUID().uuidString).svg")
+        defer { try? FileManager.default.removeItem(at: tempURL) }
+
+        let context = _EvaluationContext()
+        let result = try await context.buildResult(for: Empty() as any Geometry2D, in: .defaultEnvironment)
+        let provider = SVGDataProvider(result: result, options: [])
+        try await provider.writeOutput(to: tempURL, context: context)
+
+        let svgSource = try String(contentsOf: tempURL, encoding: .utf8)
+        #expect(svgSource.contains(#"width="0mm""#))
+        #expect(svgSource.contains(#"height="0mm""#))
+        #expect(svgSource.contains(#"d="""#))
+    }
 }

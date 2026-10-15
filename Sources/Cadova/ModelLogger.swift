@@ -74,6 +74,10 @@ internal struct ModelLogger: Sendable {
     func exportingEmpty3MF() {
         warning("Model contains no objects. Exporting an empty 3MF file.")
     }
+
+    func exportingEmptySVG() {
+        warning("Model contains no shapes. Exporting an empty SVG file.")
+    }
 }
 
 internal extension Duration {
