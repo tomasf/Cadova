@@ -136,13 +136,23 @@ function addField(parameter) {
     return element;
 }
 
+// A parameter's description as a string to compare, with its keys in a fixed order, since the
+// model's JSON doesn't keep one
+function parameterSignature(parameter) {
+    return JSON.stringify(parameter, (key, value) => value && typeof value === "object" && !Array.isArray(value)
+        ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
+        : value);
+}
+
 // Takes the parameters a build used. If they differ from the ones on the form, the form changes to
 // match, leaving the fields that stay where they are, so the control in use isn't disturbed.
 function updateParameters(m, parameters) {
     for (const parameter of parameters) m.known.set(parameter.key, parameter);
-    if (parameters.length === m.parameters.length && parameters.every((parameter, index) => parameter.key === m.parameters[index].key)) return;
+    const sameOrder = parameters.length === m.parameters.length
+        && parameters.every((parameter, index) => parameter.key === m.parameters[index].key);
     m.parameters = parameters;
     if (m !== model) return;
+    if (sameOrder && parameters.every((parameter) => fields.get(parameter.key)?.dataset.parameter === parameterSignature(parameter))) return;
 
     const keys = new Set(parameters.map((parameter) => parameter.key));
     for (const [key, element] of fields) {
@@ -154,7 +164,17 @@ function updateParameters(m, parameters) {
     const description = form.querySelector(".model-description");
     let cursor = description ? description.nextSibling : form.firstChild;
     for (const parameter of parameters) {
-        const element = fields.get(parameter.key) ?? addField(parameter);
+        let element = fields.get(parameter.key);
+        // A parameter can describe itself differently from one build to the next, such as with a range
+        // that depends on another parameter's value. Its control is made again to match, unless it's in
+        // use, in which case a later build updates it.
+        if (element && element.dataset.parameter !== parameterSignature(parameter) && !element.contains(document.activeElement)) {
+            const replacement = addField(parameter);
+            element.replaceWith(replacement);
+            if (element === cursor) cursor = replacement;
+            element = replacement;
+        }
+        element ??= addField(parameter);
         if (element === cursor) cursor = cursor.nextSibling;
         else form.insertBefore(element, cursor);
     }
@@ -234,6 +254,7 @@ function colorHex(value) {
 function field(parameter, index) {
     const element = document.createElement("div");
     element.className = "field";
+    element.dataset.parameter = parameterSignature(parameter);
     const id = `parameter-${index}`;
     const head = document.createElement("div");
     head.className = "field-head";
@@ -316,7 +337,8 @@ function field(parameter, index) {
             if (parameter.minimum !== undefined) number.min = parameter.minimum;
             if (parameter.maximum !== undefined) number.max = parameter.maximum;
             let range;
-            if (parameter.minimum !== undefined && parameter.maximum !== undefined) {
+            // A slider for a range, unless the range is a single value
+            if (parameter.minimum !== undefined && parameter.maximum !== undefined && parameter.minimum < parameter.maximum) {
                 range = Object.assign(document.createElement("input"), {
                     type: "range", min: parameter.minimum, max: parameter.maximum, step,
                 });
