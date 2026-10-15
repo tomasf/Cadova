@@ -344,7 +344,8 @@ function field(parameter, index) {
         }
         default: {
             const input = Object.assign(document.createElement("input"), { type: "text", id });
-            input.addEventListener("change", () => update(parameter.key, input.value));
+            // Rebuild while typing, like a slider while it's dragged; requestBuild waits for a pause
+            input.addEventListener("input", () => update(parameter.key, input.value));
             control.append(input);
             setValue = (value) => { input.value = value; };
         }
