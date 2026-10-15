@@ -70,6 +70,7 @@ runs:
     env:
       SWIFTLY_HOME_DIR: ${{ env.CADOVA_SWIFTLY_HOME }}
       SWIFTLY_BIN_DIR: ${{ env.CADOVA_SWIFTLY_HOME }}/bin
+      SWIFTLY_TOOLCHAINS_DIR: ${{ env.CADOVA_SWIFTLY_HOME }}/toolchains
     run: |
       cd "$RUNNER_TEMP"
       curl -fsSL -o swiftly.tar.gz "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz"
@@ -81,6 +82,11 @@ runs:
         cat post-install.sh
         sudo apt-get update -q
         sudo bash post-install.sh
+      fi
+      if [ ! -x "$CADOVA_WASM_TOOLCHAIN/usr/bin/swift" ]; then
+        echo "::error::swiftly didn't install Swift in $CADOVA_WASM_TOOLCHAIN"
+        ls -l "$SWIFTLY_TOOLCHAINS_DIR" || true
+        exit 1
       fi
       "$CADOVA_WASM_TOOLCHAIN/usr/bin/swift" --version
 
