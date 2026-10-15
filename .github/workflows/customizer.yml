@@ -2,6 +2,7 @@ name: customizer
 
 # Builds the test fixture's web customizer with the generate-customizer plugin, then tests the page
 # in Chromium and WebKit on macOS and Linux, and in Chromium on Windows. See Tests/Customizer/test_customizer.py.
+# Also builds it with the GitHub action in Actions/BuildCustomizer.
 
 on:
   push:
@@ -10,6 +11,33 @@ on:
     branches: [ "dev", "main" ]
 
 jobs:
+  action:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # The action installs its own Swift, which has to be the version the plugin builds with
+    - name: Check the action's Swift version
+      run: |
+        plugin=$(sed -n 's/.*static let swiftVersion = "\(.*\)"/\1/p' Plugins/GenerateCustomizer/WebAssemblyToolchain.swift)
+        action=$(sed -n 's/.*swift_version=\(.*\)/\1/p' Actions/BuildCustomizer/action.yml)
+        echo "Plugin: $plugin, action: $action"
+        [ -n "$plugin" ] && [ "$plugin" = "$action" ]
+
+    - name: Generate the customizer
+      id: customizer
+      uses: ./Actions/BuildCustomizer
+      with:
+        package-path: Tests/Customizer/Fixture
+        upload-pages-artifact: 'false'
+
+    - name: Check the output
+      run: |
+        ls -l "${{ steps.customizer.outputs.path }}"
+        test -s "${{ steps.customizer.outputs.path }}/index.html"
+        test -s "${{ steps.customizer.outputs.path }}/model.wasm"
+
   customizer:
     strategy:
       fail-fast: false

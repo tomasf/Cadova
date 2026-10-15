@@ -163,6 +163,48 @@ Anything your model prints with `print()` goes to the browser's console, along w
 
 Upload the whole generated folder to any static web host. `model.wasm` is about 18 MB but compresses to around 5 MB, so check that your host compresses `.wasm` files. The page loads three.js and a small WASI library from the jsDelivr CDN.
 
+### Publishing on GitHub Pages
+
+If your package is on GitHub, Cadova's GitHub action can build the customizer and publish it on GitHub Pages every time you push. In your repository's settings, under Pages, set the source to GitHub Actions. Then add a workflow such as `.github/workflows/customizer.yml`:
+
+```yaml
+name: Customizer
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: tomasf/Cadova/Actions/BuildCustomizer@1.1.0
+    - id: deployment
+      uses: actions/deploy-pages@v4
+```
+
+Use the action at the same version as the Cadova your package depends on, since that decides which Swift toolchain it installs. The action runs on Linux and takes these optional inputs:
+
+- `package-path` is your package's directory, if it isn't the root of the repository.
+- `product`, `model` and `output` work like the command's options of the same names.
+- `upload-pages-artifact: false` builds the customizer without uploading it, for publishing it elsewhere. The `path` output says where it is.
+- `cache: false` turns off caching. The action normally caches the toolchain and the build, so after the first run, which takes several minutes, it only rebuilds your own code.
+
 ## Limitations
 
 A model runs differently in a browser than on your computer, so a few things don't work yet:

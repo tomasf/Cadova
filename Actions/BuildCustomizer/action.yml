@@ -1,0 +1,114 @@
+name: Build a Cadova customizer
+description: Builds a web customizer for a Cadova model package and uploads it for GitHub Pages
+author: Tomas Franzén
+
+# Use this at the same tag as the Cadova version your package depends on, because each version of
+# Cadova's generate-customizer command needs a particular Swift toolchain, which this installs.
+# It runs on Linux runners.
+
+inputs:
+  package-path:
+    description: The directory of the model package, relative to the workspace
+    default: .
+  product:
+    description: The executable product to build, if the package has more than one
+    default: ''
+  model:
+    description: Limit the page to this one model, without tabs
+    default: ''
+  output:
+    description: Where to put the customizer, relative to the package. Defaults to Customizer.
+    default: Customizer
+  upload-pages-artifact:
+    description: Upload the customizer as an artifact for actions/deploy-pages
+    default: 'true'
+  cache:
+    description: Cache the toolchain and the build between runs, which makes later builds much faster
+    default: 'true'
+
+outputs:
+  path:
+    description: The directory the customizer was written to
+    value: ${{ steps.generate.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+  - name: Check the runner
+    if: runner.os != 'Linux'
+    shell: bash
+    run: |
+      echo "::error::The Cadova customizer action runs on Linux runners, such as ubuntu-latest."
+      exit 1
+
+  # This has to be the Swift version WebAssemblyToolchain.swift names, the one Swift's WebAssembly
+  # SDK was built for
+  - name: Set up
+    shell: bash
+    run: |
+      swift_version=6.4.0
+      swiftly_home="$RUNNER_TEMP/cadova-swiftly"
+      {
+        echo "CADOVA_SWIFT_VERSION=$swift_version"
+        echo "CADOVA_SWIFTLY_HOME=$swiftly_home"
+        echo "CADOVA_WASM_TOOLCHAIN=$swiftly_home/toolchains/$swift_version"
+      } >> "$GITHUB_ENV"
+
+  - name: Restore the toolchain
+    id: toolchain-cache
+    if: inputs.cache == 'true'
+    uses: actions/cache@v4
+    with:
+      path: ${{ env.CADOVA_WASM_TOOLCHAIN }}
+      key: cadova-customizer-swift-${{ env.CADOVA_SWIFT_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
+  # swiftly checks the toolchain's signature. The toolchain only needs to be installed, not made the
+  # default, since the command finds it through CADOVA_WASM_TOOLCHAIN.
+  - name: Install Swift ${{ env.CADOVA_SWIFT_VERSION }}
+    if: steps.toolchain-cache.outputs.cache-hit != 'true'
+    shell: bash
+    env:
+      SWIFTLY_HOME_DIR: ${{ env.CADOVA_SWIFTLY_HOME }}
+      SWIFTLY_BIN_DIR: ${{ env.CADOVA_SWIFTLY_HOME }}/bin
+    run: |
+      cd "$RUNNER_TEMP"
+      curl -fsSL -o swiftly.tar.gz "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz"
+      tar xzf swiftly.tar.gz
+      ./swiftly init --assume-yes --quiet-shell-followup --skip-install --no-modify-profile
+      "$SWIFTLY_BIN_DIR/swiftly" install "$CADOVA_SWIFT_VERSION" --assume-yes
+      "$CADOVA_WASM_TOOLCHAIN/usr/bin/swift" --version
+
+  # The first build compiles Cadova and its dependencies for WebAssembly, which takes a few minutes.
+  # The cache is saved once for each set of dependency versions, so later runs only rebuild the
+  # package's own code.
+  - name: Restore the build
+    if: inputs.cache == 'true'
+    uses: actions/cache@v4
+    with:
+      path: ${{ inputs.package-path }}/.build
+      key: cadova-customizer-build-${{ env.CADOVA_SWIFT_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles(format('{0}/Package.resolved', inputs.package-path)) }}
+      restore-keys: |
+        cadova-customizer-build-${{ env.CADOVA_SWIFT_VERSION }}-${{ runner.os }}-${{ runner.arch }}-
+
+  - name: Generate the customizer
+    id: generate
+    shell: bash
+    working-directory: ${{ inputs.package-path }}
+    env:
+      PRODUCT: ${{ inputs.product }}
+      MODEL: ${{ inputs.model }}
+      OUTPUT: ${{ inputs.output }}
+    run: |
+      options=(--output "$OUTPUT")
+      [ -n "$PRODUCT" ] && options+=(--product "$PRODUCT")
+      [ -n "$MODEL" ] && options+=(--model "$MODEL")
+      "$CADOVA_WASM_TOOLCHAIN/usr/bin/swift" package \
+        --allow-network-connections all:443 --allow-writing-to-package-directory \
+        generate-customizer "${options[@]}"
+      echo "path=$(cd "$OUTPUT" && pwd)" >> "$GITHUB_OUTPUT"
+
+  - name: Upload the customizer for GitHub Pages
+    if: inputs.upload-pages-artifact == 'true'
+    uses: actions/upload-pages-artifact@v3
+    with:
+      path: ${{ steps.generate.outputs.path }}
