@@ -5,6 +5,7 @@ import Foundation
 /// The plugin keeps its own copy of the SDK in its work directory and patches it, so the patches
 /// never touch an SDK installed for other projects.
 struct WebAssemblyToolchain {
+    // When changing the version, check the SDK's licenses in LicenseNotices.bundled too
     static let swiftVersion = "6.4.0"
     static let sdkName = "swift-\(swiftVersion)-RELEASE_wasm"
     static let sdkURL = URL(string: "https://download.swift.org/swift-\(swiftVersion)-release/wasm-sdk/swift-\(swiftVersion)-RELEASE/\(sdkName).artifactbundle.tar.gz")!

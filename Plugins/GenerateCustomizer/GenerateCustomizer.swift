@@ -42,6 +42,8 @@ struct GenerateCustomizer: CommandPlugin {
         print("Assembling the customizer in \(output.fileSystemPath)")
         try Self.writePage(to: output, product: product.name, model: model, sourceURL: sourceURL)
         try Self.copyResources(from: module.deletingLastPathComponent(), to: output)
+        try LicenseNotices.collect(for: product, in: package, support: Self.pluginDirectory.appending(path: "Support"))
+            .write(to: output.appending(path: "licenses.html"))
 
         print("Optimizing for size")
         let optimized = output.appending(path: "model.wasm")

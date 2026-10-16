@@ -1,13 +1,13 @@
 {
-  "originHash" : "0ef0be005f08b1728e1db631845d5438140b7576422b9b7e8c29a8000d5f82f8",
+  "originHash" : "8f39a2e6520f64c9fa87e7fb214fe2b6e6682ed915009ec025c258b36b503c64",
   "pins" : [
     {
       "identity" : "apus",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasf/Apus.git",
       "state" : {
-        "revision" : "d2de751a258001e32823e6dd70ec9a6f52ee72e4",
-        "version" : "0.2.0"
+        "revision" : "e1d195ff1ecbfd038b58bf76c3eb770c91bcab90",
+        "version" : "0.2.1"
       }
     },
     {

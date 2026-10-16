@@ -422,6 +422,25 @@ def test_metadata(browser, base_url):
     page.page.context.close()
 
 
+def test_licenses(browser, base_url):
+    """The end of the settings links to the licenses of what the customizer is built with: the
+    packages the model is built from, with the libraries they include, and the SDK's and page's own."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.open()
+    link = page.page.locator("#parameters").get_by_role("link", name="Third-party licenses")
+    expect(link).to_have_attribute("href", re.compile(r"/licenses\.html\?v=[0-9a-f]+$"))
+    response = page.page.request.get(link.get_attribute("href"))
+    check(response.ok, f"The licenses page failed to load ({response.status})")
+    text = response.text()
+    for expected in ["Cadova", "External/manifold/LICENSE", "External/clipper2/LICENSE", "pugixml", "Miniz",
+                     "The FreeType Project", "Old MIT", "UNICODE LICENSE V3", "wasi-libc", "three.js", "browser_wasi_shim"]:
+        check(expected in text, f"The licenses page doesn't mention {expected}")
+    # The model's own package is the model's, whose license its metadata gives
+    check("CustomizerFixture" not in text, "The licenses page lists the model's own package")
+    check(not page.errors, f"The page had errors: {page.errors}")
+    page.page.context.close()
+
+
 def test_model_menu(browser, base_url):
     """With more models than fit as tabs, the page offers a menu, with a section for each group."""
     page = CustomizerPage(browser.new_page(), base_url)
@@ -1846,7 +1865,7 @@ def main(arguments):
     cdn = CDNCache()
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_dynamic_parameters, test_dependent_ranges, test_metadata, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
+            test, test_tabs, test_dynamic_parameters, test_dependent_ranges, test_metadata, test_licenses, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
         ) if not only or run.__name__ in only]
         if "chromium" in engines and (not only or "test_without_webgl" in only):
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

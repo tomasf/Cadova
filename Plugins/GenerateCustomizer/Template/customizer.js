@@ -195,7 +195,7 @@ function showForm() {
     showByline();
     fields.clear();
     for (const parameter of model.parameters) form.append(addField(parameter));
-    form.append(resetButton);
+    form.append(settingsEnd);
     updateReset();
 }
 
@@ -458,6 +458,11 @@ function update(key, value) {
 
 // Resetting is only offered once the model has values to reset, hidden ones included
 const resetButton = $("reset");
+
+// The end of the settings, with Reset and the licenses of what the customizer is built with, which
+// the plugin writes next to the page. Their address has the customizer's version, like its other files.
+const settingsEnd = $("settings-end");
+$("licenses").search = new URL(import.meta.url).search;
 
 function updateReset() {
     resetButton.hidden = !isReady || Object.keys(changed.get(model?.name) ?? {}).length === 0;
