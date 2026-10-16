@@ -5,8 +5,16 @@ import Foundation
 /// The plugin keeps its own copy of the SDK in its work directory and patches it, so the patches
 /// never touch an SDK installed for other projects.
 struct WebAssemblyToolchain {
-    // When changing the version, check the SDK's licenses in LicenseNotices.bundled too
-    static let swiftVersion = "6.4.0"
+    /// The Swift version customizers are built with, from Support/swift-version, where Cadova's GitHub
+    /// action reads it too. When changing it, update `sdkChecksum`, and check the SDK's licenses in
+    /// `LicenseNotices.bundled`.
+    static let swiftVersion: String = {
+        let file = GenerateCustomizer.pluginDirectory.appending(path: "Support/swift-version")
+        guard let text = try? String(contentsOf: file, encoding: .utf8) else {
+            preconditionFailure("The plugin's Swift version file is missing: \(file.fileSystemPath)")
+        }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }()
     static let sdkName = "swift-\(swiftVersion)-RELEASE_wasm"
     static let sdkURL = URL(string: "https://download.swift.org/swift-\(swiftVersion)-release/wasm-sdk/swift-\(swiftVersion)-RELEASE/\(sdkName).artifactbundle.tar.gz")!
     static let sdkChecksum = "f07b7be3c586d92d7a07051fc6d303b87ebea67eadc40640ba59d5a8b79aa86d"
@@ -54,6 +62,7 @@ struct WebAssemblyToolchain {
         #if os(Windows)
         try toolchain.checkForOtherVersions()
         #endif
+        try toolchain.checkVersion()
         try toolchain.installSDK()
         try toolchain.installBinaryen(in: workDirectory)
         try toolchain.patchModuleMap()
@@ -63,6 +72,41 @@ struct WebAssemblyToolchain {
         toolchain.linkerTools = try toolchain.installQuotingClang(in: workDirectory, support: support)
         #endif
         return toolchain
+    }
+
+    /// The SDK only works with the exact Swift version it was built for, and another one fails deep in
+    /// the build with errors that don't say why, so a toolchain of the wrong version stops here. The
+    /// standard locations are named after the version, so this mostly catches CADOVA_WASM_TOOLCHAIN
+    /// pointing at another one, such as one installed by a GitHub action of another version.
+    private func checkVersion() throws {
+        let swift = binaries.appending(path: Self.executableName("swift"))
+        let output = (try? Command(swift, ["--version"], environment: swiftEnvironment).output()) ?? ""
+        // "Swift version 6.4 (swift-6.4-RELEASE)", with "Apple " in front on macOS
+        guard let start = output.range(of: "(swift-")?.upperBound,
+              let end = output[start...].range(of: "-RELEASE)")?.lowerBound else {
+            print("warning: Couldn't tell which version of Swift \(swift.fileSystemPath) is; building with it anyway.")
+            return
+        }
+        let found = String(output[start..<end])
+        guard Self.components(of: found) != Self.components(of: Self.swiftVersion) else { return }
+
+        let isExplicit = ProcessInfo.processInfo.environment["CADOVA_WASM_TOOLCHAIN"] != nil
+        let location = isExplicit ? "CADOVA_WASM_TOOLCHAIN points at Swift \(found)" : "the toolchain found is Swift \(found)"
+        let toolchain = binaries.deletingLastPathComponent().deletingLastPathComponent()
+        let advice = isExplicit
+            ? " If Cadova's GitHub action installed it, commit Package.resolved, which the action reads to install the right one."
+            : ""
+        throw CustomizerError("""
+            This version of Cadova builds customizers with Swift \(Self.swiftVersion), but \(location), \
+            in \(toolchain.fileSystemPath). Swift's WebAssembly SDK only works with the exact version it \
+            was built for.\(advice)
+            """)
+    }
+
+    /// A version's numbers, with missing ones as zeros, so that "6.4" and "6.4.0" are the same
+    private static func components(of version: String) -> [Int] {
+        let numbers = version.split(separator: ".").map { Int($0) ?? -1 }
+        return numbers + Array(repeating: 0, count: max(0, 3 - numbers.count))
     }
 
     private static func locateToolchain() throws -> URL {

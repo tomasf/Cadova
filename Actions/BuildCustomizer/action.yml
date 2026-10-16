@@ -2,9 +2,8 @@ name: Build a Cadova customizer
 description: Builds a web customizer for a Cadova model package and uploads it for GitHub Pages
 author: Tomas Franzén
 
-# Use this at the same tag as the Cadova version your package depends on, because each version of
-# Cadova's generate-customizer command needs a particular Swift toolchain, which this installs.
-# It runs on Linux runners.
+# Installs the Swift toolchain that the package's version of Cadova builds customizers with, which
+# it finds through Package.resolved, so the package should commit that file. It runs on Linux runners.
 
 inputs:
   package-path:
@@ -44,12 +43,36 @@ runs:
       echo "::error::The Cadova customizer action runs on Linux runners, such as ubuntu-latest."
       exit 1
 
-  # This has to be the Swift version WebAssemblyToolchain.swift names, the one Swift's WebAssembly
-  # SDK was built for
+  # The toolchain has to be the Swift version that the generate-customizer command of the package's
+  # own Cadova builds with, which its Plugins/GenerateCustomizer/Support/swift-version names. That's
+  # read from GitHub at the revision Package.resolved pins, so that this needs no Swift yet. Without
+  # one, the action's own Cadova's version is used, and the command says so if that's the wrong one.
   - name: Set up
     shell: bash
+    env:
+      PACKAGE_PATH: ${{ inputs.package-path }}
     run: |
-      swift_version=6.4.0
+      version_path=Plugins/GenerateCustomizer/Support/swift-version
+      is_version() { [[ "$1" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; }
+      swift_version=""
+      resolved="$PACKAGE_PATH/Package.resolved"
+      if [ -f "$resolved" ]; then
+        pin=$(jq -r '.pins[]? | select(.identity == "cadova") | "\(.location) \(.state.revision)"' "$resolved" 2>/dev/null || true)
+        read -r location revision <<< "$pin"
+        repository=$(sed -nE 's#^https://github\.com/([^/]+/[^/]+)/?$#\1#p' <<< "$location")
+        repository=${repository%.git}
+        if [ -n "$repository" ] && [ -n "$revision" ]; then
+          candidate=$(curl -fsSL --retry 3 "https://raw.githubusercontent.com/$repository/$revision/$version_path" 2>/dev/null | tr -d '[:space:]' || true)
+          if is_version "$candidate"; then
+            swift_version=$candidate
+            echo "Cadova $revision in Package.resolved builds customizers with Swift $swift_version"
+          fi
+        fi
+      fi
+      if [ -z "$swift_version" ]; then
+        swift_version=$(tr -d '[:space:]' < "$GITHUB_ACTION_PATH/../../$version_path")
+        echo "::notice::Couldn't tell which Swift the package's Cadova needs from Package.resolved, so using Swift $swift_version, the one this action's version of Cadova needs. Commit Package.resolved to have the action follow your Cadova version."
+      fi
       swiftly_home="$RUNNER_TEMP/cadova-swiftly"
       {
         echo "CADOVA_SWIFT_VERSION=$swift_version"

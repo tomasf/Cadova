@@ -216,7 +216,7 @@ jobs:
       uses: actions/deploy-pages@v4
 ```
 
-Use the action at the same version as the Cadova your package depends on, since that decides which Swift toolchain it installs. The action runs on Linux and takes these optional inputs:
+The action installs the Swift toolchain that your package's version of Cadova builds customizers with, which it finds through `Package.resolved`, so commit that file. The action runs on Linux and takes these optional inputs:
 
 - `package-path` is your package's directory, if it isn't the root of the repository.
 - `product`, `model` and `output` work like the command's options of the same names.
