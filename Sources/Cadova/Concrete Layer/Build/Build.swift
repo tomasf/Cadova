@@ -38,7 +38,11 @@ internal extension EnvironmentValues {
     func adding(directives: [BuildDirective], modelOptions: ModelOptions? = nil) -> Self {
         var mutatingEnvironment = self
         for builder in directives.compactMap(\.environment) {
-            builder(&mutatingEnvironment)
+            // Current while the directive runs, so what it reads from the environment, such as a
+            // customizer's parameter values, comes from the model it's in
+            mutatingEnvironment.whileCurrent {
+                builder(&mutatingEnvironment)
+            }
         }
         if let modelOptions {
             mutatingEnvironment.modelOptions = modelOptions

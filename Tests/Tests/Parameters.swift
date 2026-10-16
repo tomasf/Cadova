@@ -166,6 +166,29 @@ struct ParameterTests {
         #expect(bodyVolume.value?.equals(125, within: 1e-6) == true)
     }
 
+    @Test func `Chosen values reach environment directives`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let tolerance = Parameter(wrappedValue: 0.3, "Tolerance")
+        let request = CustomizerRequest(values: [tolerance.key: "0.6"])
+        let toleranceRead = CapturedValue<Double>()
+
+        await CustomizerRequest.$overridden.withValue(request) {
+            await Model(tempDir.appending(path: "model").path) {
+                Environment {
+                    $0.tolerance = tolerance.wrappedValue
+                }
+                @Environment(\.tolerance) var environmentTolerance
+                let _ = toleranceRead.value = environmentTolerance
+                Box(10)
+            }
+        }
+
+        #expect(toleranceRead.value == 0.6)
+    }
+
     @Test func `A request builds only its model, with its values, where it says`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let projectDir = tempDir.appending(path: "project")
