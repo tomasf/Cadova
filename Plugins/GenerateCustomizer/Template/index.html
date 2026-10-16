@@ -86,6 +86,12 @@
   header { padding: calc(20px + var(--safe-top)) 20px 12px calc(20px + var(--safe-left)); }
   h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
   .subtitle { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  /* Long addresses in descriptions wrap */
+  .subtitle, .model-description { overflow-wrap: anywhere; }
+  .subtitle a, .model-description a, .byline a { color: inherit; }
+  .byline { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+  .byline a { white-space: nowrap; }
+  .byline[hidden] { display: none; }
 
   .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
   .tabs[hidden] { display: none; }
@@ -321,6 +327,7 @@
     <header>
       <h1 id="title">Customizer</h1>
       <div class="subtitle" id="subtitle">Adjust the parameters, then download the model.</div>
+      <div class="byline" id="byline" hidden></div>
       <div class="tabs" id="models" role="tablist" aria-label="Models" hidden></div>
       <select id="model-menu" aria-label="Model" hidden></select>
     </header>

@@ -303,27 +303,38 @@ struct ParameterTests {
         }
     }
 
-    @Test func `A customizer's build writes the parameters it used with the values it was given`() async throws {
+    @Test func `A customizer's build writes the parameters and metadata it used with the values it was given`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let outputDir = tempDir.appending(path: "output")
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        func labels(shape: String?) async throws -> [String] {
+        func build(shape: String?) async throws -> (labels: [String], description: String?, author: String?) {
             try? FileManager.default.removeItem(at: outputDir)
             let values = shape.map { [ShapeChoice.shapeKey: $0] } ?? [:]
             await CustomizerRequest.$overridden.withValue(CustomizerRequest(values: values, outputDirectory: outputDir.path, preview: true)) {
                 await Project(root: tempDir.appending(path: "project")) {
-                    await Model("shape") { ShapeChoice() }
+                    Metadata(author: "Ada")
+                    await Model("shape") {
+                        // Metadata can depend on parameters, like geometry
+                        Metadata(description: "A \(ShapeChoice().shape.rawValue)")
+                        ShapeChoice()
+                    }
                 }
             }
             let data = try Data(contentsOf: outputDir.appending(path: "shape.parameters.json"))
-            let parameters = try JSONSerialization.jsonObject(with: data) as? [[String: Any]]
-            return parameters?.compactMap { $0["label"] as? String } ?? []
+            let info = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+            let parameters = info["parameters"] as? [[String: Any]] ?? []
+            return (parameters.compactMap { $0["label"] as? String }, info["description"] as? String, info["author"] as? String)
         }
 
-        #expect(try await labels(shape: nil) == ["Shape", "Width"])
-        #expect(try await labels(shape: "cylinder") == ["Shape", "Diameter"])
+        let box = try await build(shape: nil)
+        #expect(box.labels == ["Shape", "Width"])
+        #expect(box.description == "A box")
+        #expect(box.author == "Ada") // from the project
+        let cylinder = try await build(shape: "cylinder")
+        #expect(cylinder.labels == ["Shape", "Diameter"])
+        #expect(cylinder.description == "A cylinder")
     }
 
     @Test func `Parameters are listed in the order of the code, however the build runs`() async throws {
@@ -537,14 +548,14 @@ struct ParameterTests {
         #expect((json["models"] as? [[String: Any]])?.allSatisfy { $0["position"] == nil } == true)
     }
 
-    @Test func `Catalog reports the project's own title and description`() async throws {
+    @Test func `Catalog reports the project's own title, description, author and license`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let catalog = await ParameterCatalog.collect(options: []) {
-            Metadata(title: "Kitchen Set", description: "Containers that fit together")
+            Metadata(title: "Kitchen Set", description: "Containers that fit together", author: "Ada", license: "MIT")
             await Model(tempDir.appending(path: "jar").path) {
-                Metadata(title: "Jar")
+                Metadata(title: "Jar", license: "CC0")
                 @Parameter("Diameter") var diameter = 60.0
                 Cylinder(diameter: diameter, height: 80)
             }
@@ -557,6 +568,8 @@ struct ParameterTests {
         let json = try #require(try JSONSerialization.jsonObject(with: catalog.jsonData()) as? [String: Any])
         #expect(json["title"] as? String == "Kitchen Set")
         #expect(json["description"] as? String == "Containers that fit together")
+        #expect(json["author"] as? String == "Ada")
+        #expect(json["license"] as? String == "MIT")
 
         // The project's metadata still applies to models that don't override it
         let models = try #require(json["models"] as? [[String: Any]])
@@ -565,6 +578,9 @@ struct ParameterTests {
         })
         #expect(titles["jar"] == "Jar")
         #expect(titles["lid"] == "Kitchen Set")
+        let jar = try #require(models.first { ($0["name"] as? String)?.hasSuffix("jar") == true })
+        #expect(jar["author"] as? String == "Ada")
+        #expect(jar["license"] as? String == "CC0")
     }
 
     @Test func `Listing parameters writes JSON and builds nothing`() async throws {

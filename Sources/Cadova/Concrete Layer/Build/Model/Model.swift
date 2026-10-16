@@ -192,7 +192,8 @@ public struct Model: Sendable, ModelBuildable {
             let built = try? await directives.build(with: options, in: environment, context: context)
             return (options[Metadata.self], ParameterList.merging(content.parameters, built?.parameters ?? [], recorder.parameters))
         }
-        catalog.add(.init(name: name, title: metadata.title, description: metadata.description, groups: groups,
+        catalog.add(.init(name: name, title: metadata.title, description: metadata.description,
+                          author: metadata.author, license: metadata.license, groups: groups,
                           parameters: parameters, position: ParameterCatalog.position))
     }
 
@@ -255,10 +256,11 @@ public struct Model: Sendable, ModelBuildable {
         func write() async -> Int {
             do {
                 if let recorder {
-                    let parameters = try JSONEncoder().encode(ParameterList.merging(
-                        contentRecorder?.parameters ?? [], builtParameters, recorder.parameters
+                    let info = try JSONEncoder().encode(CustomizerBuildInfo(
+                        parameters: ParameterList.merging(contentRecorder?.parameters ?? [], builtParameters, recorder.parameters),
+                        metadata: options[Metadata.self]
                     ))
-                    try parameters.write(to: baseURL.appendingPathExtension(CustomizerRequest.parameterFileExtension))
+                    try info.write(to: baseURL.appendingPathExtension(CustomizerRequest.parameterFileExtension))
                 }
                 // A customizer's preview reads the meshes directly. It asks for the model file itself
                 // only when its visitor downloads it.

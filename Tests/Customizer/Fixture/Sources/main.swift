@@ -2,7 +2,7 @@ import Cadova
 import Foundation
 
 await Project {
-    Metadata(title: "Test Parts", description: "Parts for testing the web customizer.")
+    Metadata(title: "Test Parts", description: "Parts for testing the web customizer.", author: "Test Author", license: "MIT")
 
     await Model("plate") {
         Metadata(title: "Test Plate", description: "A plate with holes.")
@@ -29,8 +29,14 @@ await Project {
     // In a group, which a customizer's menu lists it under
     await Group("extras") {
         await Model("washer") {
-            Metadata(title: "Washer")
             @Parameter("Diameter", in: 5...30, step: 1, unit: "mm") var diameter = 12.0
+            // A description of several lines with a link, which depends on a parameter, and a
+            // license of its own
+            Metadata(
+                title: "Washer",
+                description: "A washer \(Int(diameter)) mm across.\nMore at https://example.com/washers.",
+                license: "CC0"
+            )
             Circle(diameter: diameter)
                 .subtracting { Circle(diameter: diameter / 2) }
                 .extruded(height: 1.5)

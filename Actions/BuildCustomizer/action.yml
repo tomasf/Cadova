@@ -19,6 +19,9 @@ inputs:
   output:
     description: Where to put the customizer, relative to the package. Defaults to Customizer.
     default: Customizer
+  source-url:
+    description: Where the page links to the model's source code. Defaults to this repository; empty for no link.
+    default: ${{ github.server_url }}/${{ github.repository }}
   upload-pages-artifact:
     description: Upload the customizer as an artifact for actions/deploy-pages
     default: 'true'
@@ -110,10 +113,12 @@ runs:
       PRODUCT: ${{ inputs.product }}
       MODEL: ${{ inputs.model }}
       OUTPUT: ${{ inputs.output }}
+      SOURCE_URL: ${{ inputs.source-url }}
     run: |
       options=(--output "$OUTPUT")
       [ -n "$PRODUCT" ] && options+=(--product "$PRODUCT")
       [ -n "$MODEL" ] && options+=(--model "$MODEL")
+      [ -n "$SOURCE_URL" ] && options+=(--source-url "$SOURCE_URL")
       "$CADOVA_WASM_TOOLCHAIN/usr/bin/swift" package \
         --allow-network-connections all:443 --allow-writing-to-package-directory \
         generate-customizer "${options[@]}"

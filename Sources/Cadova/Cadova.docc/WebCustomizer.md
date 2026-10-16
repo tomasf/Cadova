@@ -46,13 +46,26 @@ Each type of parameter gets its own kind of control:
 
 A parameter is identified by where it's declared, not by its label, so you're free to reword labels. When you build a model yourself, its parameters have their default values.
 
-The page's heading and introduction come from the model's ``Metadata``:
+The page's heading and introduction come from the model's ``Metadata``, and a line below them names its author and license:
 
 ```swift
 await Model("scoop") {
-    Metadata(title: "Coffee Scoop", description: "A scoop that holds an exact amount of coffee.")
+    Metadata(
+        title: "Coffee Scoop",
+        description: "A scoop that holds an exact amount of coffee.",
+        author: "Ada Lovelace",
+        license: "MIT"
+    )
     Scoop()
 }
+```
+
+A description keeps its line breaks, and web addresses in it become links. Metadata can depend on parameters like geometry can, and the page updates it with every build, so a description can report something the model works out:
+
+```swift
+@Parameter("Spacing", in: 18...40, unit: "mm") var spacing = 18.0
+let panel = PatchPanel(spacing: spacing)
+Metadata(description: "A rack panel for keystone modules.\n\nNumber of slots: \(panel.slotCount)")
 ```
 
 ### Several Models
@@ -150,6 +163,7 @@ The command takes these options:
 - `--product NAME` picks the executable product to build, if your package has more than one.
 - `--model NAME` limits the page to a single model, without tabs. Without it, the page offers every model that has parameters.
 - `--output DIR` picks where the customizer goes. The default is `Customizer` in your package.
+- `--source-url URL` links the page to your model's source code, next to its author and license.
 
 ## Previewing Locally
 
@@ -206,6 +220,7 @@ Use the action at the same version as the Cadova your package depends on, since 
 
 - `package-path` is your package's directory, if it isn't the root of the repository.
 - `product`, `model` and `output` work like the command's options of the same names.
+- `source-url` is where the page links to your source code. It's your repository unless you say otherwise, and an empty value leaves the link out.
 - `upload-pages-artifact: false` builds the customizer without uploading it, for publishing it elsewhere. The `path` output says where it is.
 - `cache: false` turns off caching. The action normally caches the toolchain and the build, so after the first run, which takes several minutes, it only rebuilds your own code.
 

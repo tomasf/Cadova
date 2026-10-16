@@ -194,15 +194,20 @@ export class ModelSession {
         const [fileName, file] = [...this.files].find(([name, entry]) => entry instanceof File
             && !name.endsWith(parameterSuffix) && (outputSuffix ? name.endsWith(outputSuffix) : name !== "request.json")) ?? [];
         const data = exitCode === 0 && file ? file.data : null;
-        // A preview comes with the parameters the model used for it
+        // A preview comes with the parameters the model used for it, and its metadata, which can
+        // depend on them
         const [, parameterFile] = [...this.files].find(([name, entry]) => entry instanceof File && name.endsWith(parameterSuffix)) ?? [];
-        let parameterList = null;
+        let parameterList = null, metadata = null;
         try {
-            if (data && parameterFile) parameterList = JSON.parse(new TextDecoder().decode(parameterFile.data));
+            if (data && parameterFile) {
+                const info = JSON.parse(new TextDecoder().decode(parameterFile.data));
+                parameterList = info.parameters;
+                metadata = { title: info.title, description: info.description, author: info.author, license: info.license };
+            }
         } catch {
-            parameterList = null; // the page keeps the parameters it has
+            parameterList = metadata = null; // the page keeps what it has
         }
-        return { fileName, data, log, exitCode, stackOverflow, milliseconds, parameterList };
+        return { fileName, data, log, exitCode, stackOverflow, milliseconds, parameterList, metadata };
     }
 
     // A new instance, with a new /io directory, that hasn't started yet. CADOVA_CUSTOMIZER_SESSION

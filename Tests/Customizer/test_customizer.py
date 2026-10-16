@@ -385,6 +385,43 @@ def test_dependent_ranges(browser, base_url):
     page.page.context.close()
 
 
+def test_metadata(browser, base_url):
+    """The page shows each model's metadata as its builds report it: its description, with its line
+    breaks and links, and a byline with the author, license and the source code."""
+    page = CustomizerPage(browser.new_page(), base_url)
+
+    def add_source(route):
+        response = route.fetch()
+        tag = '<meta name="cadova-source" content="https://example.com/source">\n<meta name="viewport"'
+        route.fulfill(response=response, body=response.text().replace('<meta name="viewport"', tag, 1))
+
+    page.page.route("**/index.html*", add_source)
+    page.open()
+    byline = page.page.locator("#byline")
+    expect(byline).to_have_text("By Test Author · MIT License · Source code")
+    expect(byline.get_by_role("link", name="Source code")).to_have_attribute("href", "https://example.com/source")
+
+    # The washer has a license of its own, and a description of two lines whose link leaves out the
+    # full stop after it
+    page.rebuild(lambda: page.page.get_by_role("tab", name="Washer", exact=True).click())
+    expect(byline).to_have_text("By Test Author · CC0 License · Source code")
+    description = page.page.locator(".model-description")
+    check(description.inner_text() == "A washer 12 mm across.\nMore at https://example.com/washers.",
+          f"The description is {description.inner_text()!r}")
+    expect(description.get_by_role("link")).to_have_attribute("href", "https://example.com/washers")
+
+    # Its description follows its diameter, like its parameters would
+    page.rebuild(lambda: page.set_number("Diameter", "20"))
+    expect(description).to_contain_text("A washer 20 mm across.")
+
+    # Without a source to link to, the byline leaves it out
+    page.page.unroute("**/index.html*")
+    page.open()
+    expect(byline).to_have_text("By Test Author · MIT License")
+    check(not page.errors, f"The page had errors: {page.errors}")
+    page.page.context.close()
+
+
 def test_model_menu(browser, base_url):
     """With more models than fit as tabs, the page offers a menu, with a section for each group."""
     page = CustomizerPage(browser.new_page(), base_url)
@@ -1809,7 +1846,7 @@ def main(arguments):
     cdn = CDNCache()
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_dynamic_parameters, test_dependent_ranges, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
+            test, test_tabs, test_dynamic_parameters, test_dependent_ranges, test_metadata, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
         ) if not only or run.__name__ in only]
         if "chromium" in engines and (not only or "test_without_webgl" in only):
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

@@ -27,7 +27,8 @@ internal struct CustomizerRequest: Decodable, Sendable {
     /// The file extension of a model's preview.
     static let previewFileExtension = "cadovapreview"
 
-    /// The file extension of the parameters a model used in a build, written next to its file.
+    /// The file extension of what a build reports next to its file: the parameters it used and the
+    /// model's metadata, as `CustomizerBuildInfo`.
     static let parameterFileExtension = "parameters.json"
 
     private enum CodingKeys: String, CodingKey {

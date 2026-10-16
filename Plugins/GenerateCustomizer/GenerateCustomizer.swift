@@ -5,20 +5,21 @@ import PackagePlugin
 /// model as WebAssembly, that can be published on any web server. Visitors set the model's
 /// `@Parameter` values, see a live 3D preview and download a 3MF file.
 ///
-///     swift package generate-customizer [--product NAME] [--model NAME] [--output DIR]
+///     swift package generate-customizer [--product NAME] [--model NAME] [--output DIR] [--source-url URL]
 ///
 /// The page offers every model that has parameters, with a tab for each, unless `--model` limits it
-/// to one.
+/// to one. With `--source-url`, it links to the model's source code.
 /// The output goes to `Customizer` in the package unless `--output` says otherwise.
 @main
 struct GenerateCustomizer: CommandPlugin {
-    static let usage = "usage: swift package generate-customizer [--product NAME] [--model NAME] [--output DIR]"
+    static let usage = "usage: swift package generate-customizer [--product NAME] [--model NAME] [--output DIR] [--source-url URL]"
 
     func performCommand(context: PluginContext, arguments: [String]) async throws {
         var extractor = ArgumentExtractor(arguments)
         let productName = extractor.extractOption(named: "product").last
         let model = extractor.extractOption(named: "model").last
         let outputPath = extractor.extractOption(named: "output").last
+        let sourceURL = extractor.extractOption(named: "source-url").last.flatMap { $0.isEmpty ? nil : $0 }
         guard extractor.remainingArguments.isEmpty else {
             throw CustomizerError("Unexpected arguments: \(extractor.remainingArguments.joined(separator: " "))\n\(Self.usage)")
         }
@@ -39,7 +40,7 @@ struct GenerateCustomizer: CommandPlugin {
         )
 
         print("Assembling the customizer in \(output.fileSystemPath)")
-        try Self.writePage(to: output, product: product.name, model: model)
+        try Self.writePage(to: output, product: product.name, model: model, sourceURL: sourceURL)
         try Self.copyResources(from: module.deletingLastPathComponent(), to: output)
 
         print("Optimizing for size")
@@ -147,9 +148,10 @@ struct GenerateCustomizer: CommandPlugin {
     }
 
     /// Copies the page into the output directory. The page reads the product's name, which it's
-    /// titled after when the project has no title, from a `cadova-product` meta tag, and a model it's
-    /// limited to from a `cadova-model` meta tag.
-    static func writePage(to output: URL, product: String, model: String?) throws {
+    /// titled after when the project has no title, from a `cadova-product` meta tag, a model it's
+    /// limited to from a `cadova-model` meta tag, and where to link to the source from a
+    /// `cadova-source` meta tag.
+    static func writePage(to output: URL, product: String, model: String?, sourceURL: String?) throws {
         let fileManager = FileManager.default
         try fileManager.createDirectory(at: output, withIntermediateDirectories: true)
 
@@ -160,7 +162,7 @@ struct GenerateCustomizer: CommandPlugin {
             try fileManager.copyItem(at: template.appending(path: name), to: destination)
         }
 
-        let tags = [("cadova-product", product), ("cadova-model", model)].compactMap { name, content in
+        let tags = [("cadova-product", product), ("cadova-model", model), ("cadova-source", sourceURL)].compactMap { name, content in
             content.map { content in
                 let escaped = content
                     .replacingOccurrences(of: "&", with: "&amp;")

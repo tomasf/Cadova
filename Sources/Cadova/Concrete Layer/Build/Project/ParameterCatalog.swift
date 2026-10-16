@@ -120,6 +120,24 @@ internal struct ParameterList: ResultElement {
     }
 }
 
+/// What a customizer's build of one model reports besides the model: the parameters it used, and
+/// its title, description, author and license, which can depend on them like its geometry does.
+internal struct CustomizerBuildInfo: Encodable {
+    let parameters: [ParameterDescriptor]
+    let title: String?
+    let description: String?
+    let author: String?
+    let license: String?
+
+    init(parameters: [ParameterDescriptor], metadata: Metadata) {
+        self.parameters = parameters
+        title = metadata.title
+        description = metadata.description
+        author = metadata.author
+        license = metadata.license
+    }
+}
+
 /// The parameters of every model in a project, collected for a customizer.
 ///
 /// While a catalog is current, models record their parameters into it instead of being evaluated
@@ -135,12 +153,14 @@ internal final class ParameterCatalog: Sendable {
     private let models = Mutex<[Model]>([])
     private let projectMetadata = Mutex<Metadata?>(nil)
 
-    /// A model's parameters, with the title and description from its metadata for a customizer
-    /// to show.
+    /// A model's parameters, with the title, description, author and license from its metadata for
+    /// a customizer to show.
     struct Model: Sendable, Encodable {
         let name: String
         let title: String?
         let description: String?
+        let author: String?
+        let license: String?
         /// The names of the groups the model is in, outermost first, which a customizer can list
         /// it under
         let groups: [String]
@@ -148,7 +168,7 @@ internal final class ParameterCatalog: Sendable {
         let position: [Int]
 
         private enum CodingKeys: String, CodingKey {
-            case name, title, description, groups, parameters
+            case name, title, description, author, license, groups, parameters
         }
 
         func encode(to encoder: any Encoder) throws {
@@ -156,6 +176,8 @@ internal final class ParameterCatalog: Sendable {
             try container.encode(name, forKey: .name)
             try container.encodeIfPresent(title, forKey: .title)
             try container.encodeIfPresent(description, forKey: .description)
+            try container.encodeIfPresent(author, forKey: .author)
+            try container.encodeIfPresent(license, forKey: .license)
             if !groups.isEmpty { try container.encode(groups, forKey: .groups) }
             try container.encode(parameters, forKey: .parameters)
         }
@@ -192,12 +214,14 @@ internal final class ParameterCatalog: Sendable {
         models.withLock { $0.append(model) }
     }
 
-    /// What a customizer gets: the project's own title and description, and its models.
+    /// What a customizer gets: the project's own title, description, author and license, and its models.
     /// A project's metadata also applies to every model that doesn't override it, so a customizer
     /// can tell a model's own title from the project's.
     private struct Listing: Encodable {
         let title: String?
         let description: String?
+        let author: String?
+        let license: String?
         let models: [Model]
     }
 
@@ -209,6 +233,8 @@ internal final class ParameterCatalog: Sendable {
         return try encoder.encode(Listing(
             title: metadata?.title,
             description: metadata?.description,
+            author: metadata?.author,
+            license: metadata?.license,
             models: models.withLock { $0 }.sorted { $0.position.lexicographicallyPrecedes($1.position) }
         ))
     }

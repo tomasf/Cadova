@@ -49,15 +49,7 @@ function setUp(listing) {
     writeHash(); // anything else in the address, such as values from an older link, doesn't apply
 
     const single = models.length === 1;
-    // Without a title from metadata, the page is named after the model, or for several, the product
-    const product = document.querySelector('meta[name="cadova-product"]')?.content;
-    const title = single
-        ? models[0].title ?? humanize(models[0].name.split("/").pop())
-        : catalog.title ?? (product ? humanize(product) : "Customizer");
-    document.title = `${title} customizer`;
-    $("title").textContent = title;
-    const description = single ? models[0].description : catalog.description;
-    if (description) $("subtitle").textContent = description;
+    showHeader();
 
     if (!single && models.length > tabLimit) {
         setUpMenu();
@@ -72,6 +64,88 @@ function setUp(listing) {
         $("models").hidden = false;
     }
     showForm();
+}
+
+// The page's text when nothing describes the model
+const defaultSubtitle = $("subtitle").textContent;
+
+// The heading and introduction, a single model's own, or with several, the project's, and the byline
+// of the model on show. Without a title from metadata, the page is named after the model, or for
+// several, the product.
+function showHeader() {
+    const single = models.length === 1;
+    const product = document.querySelector('meta[name="cadova-product"]')?.content;
+    const title = single
+        ? model.title ?? humanize(model.name.split("/").pop())
+        : catalog.title ?? (product ? humanize(product) : "Customizer");
+    document.title = `${title} customizer`;
+    $("title").textContent = title;
+    setRichText($("subtitle"), (single ? model.description : catalog.description) ?? defaultSubtitle);
+    showByline();
+}
+
+// Who made the model on show, its license, and where its source is, if the page was given that
+function showByline() {
+    const byline = $("byline");
+    byline.replaceChildren();
+    const parts = [];
+    const author = model.author ?? catalog.author;
+    if (author) parts.push(`By ${author}`);
+    const license = model.license ?? catalog.license;
+    if (license) parts.push(/licen[cs]e/i.test(license) ? license : `${license} License`);
+    const source = document.querySelector('meta[name="cadova-source"]')?.content;
+    if (source) parts.push(Object.assign(document.createElement("a"), { href: source, textContent: "Source code", target: "_blank", rel: "noopener" }));
+    parts.forEach((part, index) => byline.append(...(index ? [" · ", part] : [part])));
+    byline.hidden = parts.length === 0;
+}
+
+// Fills an element with text, keeping its line breaks and making web addresses into links. The text
+// comes from the model, so it's added as text, never as markup.
+function setRichText(element, text) {
+    element.replaceChildren();
+    text.split("\n").forEach((line, index) => {
+        if (index) element.append(document.createElement("br"));
+        let end = 0;
+        for (const match of line.matchAll(/https?:\/\/[^\s<>"]+/g)) {
+            // Punctuation after an address usually ends the sentence, and a closing parenthesis
+            // belongs to the address only if it opens one
+            let url = match[0];
+            while (/[.,;:!?'"\]]$/.test(url) || (url.endsWith(")") && !url.includes("("))) url = url.slice(0, -1);
+            element.append(line.slice(end, match.index));
+            element.append(Object.assign(document.createElement("a"), { href: url, textContent: url, target: "_blank", rel: "noopener" }));
+            end = match.index + url.length;
+        }
+        element.append(line.slice(end));
+    });
+}
+
+// A model's metadata as a build reported it, which can depend on its parameters
+function updateMetadata(m, metadata) {
+    const changed = ["title", "description", "author", "license"].filter((key) => m[key] !== metadata[key]);
+    if (!changed.length) return;
+    for (const key of changed) m[key] = metadata[key];
+    // Tab titles depend on each other, since a clash names the groups too
+    for (const [other, tab] of tabs) tab.textContent = tabTitle(other);
+    const option = [...$("model-menu").options].find((option) => option.value === m.name);
+    if (option) option.textContent = modelTitle(m);
+    if (m !== model) return;
+    showHeader();
+    showModelDescription();
+}
+
+// A model's own description above its settings, when there are several models with different ones
+function showModelDescription() {
+    let element = form.querySelector(".model-description");
+    const description = models.length > 1 ? model.description : null;
+    if (!description || description === catalog.description) {
+        element?.remove();
+        return;
+    }
+    if (!element) {
+        element = Object.assign(document.createElement("p"), { className: "model-description" });
+        form.prepend(element);
+    }
+    setRichText(element, description);
 }
 
 // With more models than fit as tabs, the page offers a menu instead, with a section for each group.
@@ -117,9 +191,8 @@ function showForm() {
     controls.clear();
     for (const [m, tab] of tabs) tab.setAttribute("aria-selected", m === model);
     $("model-menu").value = model.name;
-    if (tabs.size && model.description && model.description !== catalog.description) {
-        form.append(Object.assign(document.createElement("p"), { className: "model-description", textContent: model.description }));
-    }
+    showModelDescription();
+    showByline();
     fields.clear();
     for (const parameter of model.parameters) form.append(addField(parameter));
     form.append(resetButton);
@@ -575,6 +648,7 @@ function finishBuild(result, finished) {
             return;
         }
         if (result.parameterList) updateParameters(finished.model, result.parameterList);
+        if (result.metadata) updateMetadata(finished.model, result.metadata);
         try {
             display(build);
         } catch (error) {
