@@ -5,7 +5,7 @@
 
 import {
     WASI, WASIProcExit, File, Directory, OpenFile, ConsoleStdout, PreopenDirectory,
-} from "https://cdn.jsdelivr.net/npm/@bjorn3/browser_wasi_shim@0.4.2/dist/index.js";
+} from "./vendor/browser_wasi_shim-0.4.2/dist/index.js";
 
 export async function fetchModel(url, onProgress = () => {}) {
     const response = await fetch(url);

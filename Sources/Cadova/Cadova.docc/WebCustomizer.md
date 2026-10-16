@@ -179,7 +179,7 @@ Anything your model prints with `print()` goes to the browser's console, along w
 
 ## Publishing
 
-Upload the whole generated folder to any static web host. It includes `licenses.html`, which the page links to, with the licenses of everything the customizer is built with: Cadova, the other packages your model depends on, and the libraries they include. `model.wasm` is about 18 MB but compresses to around 5 MB, so check that your host compresses `.wasm` files. The page loads three.js and a small WASI library from the jsDelivr CDN.
+Upload the whole generated folder to any static web host. It includes `licenses.html`, which the page links to, with the licenses of everything the customizer is built with: Cadova, the other packages your model depends on, and the libraries they include. `model.wasm` is about 18 MB but compresses to around 5 MB, so check that your host compresses `.wasm` files. Everything the page needs is in the folder, so it loads nothing from other sites.
 
 ### Publishing on GitHub Pages
 

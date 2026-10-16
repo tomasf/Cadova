@@ -104,51 +104,29 @@ class CustomizerPage:
         return Mesh(Path(download.value.path()).read_bytes())
 
 
-class CDNCache:
-    """Serves the page's files from the CDN, three.js and the WASI library, to every test from one
-    download each. Each test starts a new browser with an empty cache, and the CDN now and then stalls
-    a download for 10 to 15 seconds, which was enough to time out whichever test it landed in."""
+class LocalOnly:
+    """Keeps every page to the test server, so that a test fails if the customizer asks anything of
+    another host. A published customizer has to work from its own folder alone."""
 
-    def __init__(self):
-        self.files = {}
+    def __init__(self, base_url):
+        self.base_url = base_url
+        self.requests = []
 
     def route(self, route):
         url = route.request.url
-        if url not in self.files:
-            # A stalled download is retried, rather than left to hold up the test that asked for it
-            for attempt in range(3):
-                try:
-                    response = route.fetch(timeout=10_000)
-                    break
-                except PlaywrightError as error:
-                    if "closed" in str(error):
-                        return  # the test is already done with the page
-            else:
-                try:
-                    route.abort()
-                except PlaywrightError:
-                    pass
-                return
-            if response.status != 200:
-                route.fulfill(response=response)
-                return
-            # Only what the browser needs: the body is already decoded, so the CDN's encoding no longer applies
-            headers = {name: value for name, value in response.headers.items()
-                       if name.lower() in ("content-type", "access-control-allow-origin")}
-            self.files[url] = (headers, response.body())
-        headers, body = self.files[url]
-        try:
-            route.fulfill(status=200, headers=headers, body=body)
-        except PlaywrightError:
-            pass  # the page closed while it waited
+        if url.startswith(self.base_url) or url.startswith(("data:", "blob:")):
+            route.fallback()
+        else:
+            self.requests.append(url)
+            route.abort()
 
     def browser(self, browser):
-        """Routes the CDN through the cache in every page the browser opens."""
+        """Routes every page the browser opens through the check."""
         new_page = browser.new_page
 
         def routed_page(**options):
             page = new_page(**options)
-            page.context.route("https://cdn.jsdelivr.net/**", self.route)
+            page.context.route("**/*", self.route)
             return page
         browser.new_page = routed_page
         return browser
@@ -1694,8 +1672,8 @@ def test_loading_recovery(browser, base_url):
         check(not page.errors, f"Loading recovery had page errors: {page.errors}")
         page.page.context.close()
 
-    # The page's own code failing to load, from the page's folder or the CDN, says so and offers a reload
-    for failing in ["**/axes.js*", "https://cdn.jsdelivr.net/npm/three@*/build/three.module.js"]:
+    # The page's own code or a library it bundles failing to load says so and offers a reload
+    for failing in ["**/axes.js*", "**/vendor/three-*/build/three.module.min.js*"]:
         page = CustomizerPage(browser.new_page(), base_url)
         page.page.context.route(failing, lambda route: route.abort())
         page.page.goto(f"{base_url}/index.html")
@@ -1862,7 +1840,7 @@ def main(arguments):
     base_url = f"http://127.0.0.1:{server.server_address[1]}"
 
     failed = False
-    cdn = CDNCache()
+    local = LocalOnly(base_url)
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
             test, test_tabs, test_dynamic_parameters, test_dependent_ranges, test_metadata, test_licenses, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
@@ -1872,10 +1850,12 @@ def main(arguments):
         for engine, run, arguments in runs:
             name = f"{engine} ({run.__name__})"
             launcher = getattr(playwright, engine)
-            browser = cdn.browser(launcher.launch(args=(CHROMIUM_ARGUMENTS if engine == "chromium" else []) + arguments))
+            browser = local.browser(launcher.launch(args=(CHROMIUM_ARGUMENTS if engine == "chromium" else []) + arguments))
             start = time.monotonic()
+            local.requests.clear()
             try:
                 run(browser, base_url)
+                check(not local.requests, f"The page asked for files from elsewhere: {sorted(set(local.requests))}")
                 print(f"{name}: passed in {time.monotonic() - start:.1f} s")
             except (AssertionError, PlaywrightError) as error:
                 print(f"{name}: FAILED after {time.monotonic() - start:.1f} s: {error}")
