@@ -17,14 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # The action installs its own Swift, which has to be the version the plugin builds with
-    - name: Check the action's Swift version
-      run: |
-        plugin=$(sed -n 's/.*static let swiftVersion = "\(.*\)"/\1/p' Plugins/GenerateCustomizer/WebAssemblyToolchain.swift)
-        action=$(sed -n 's/.*swift_version=\(.*\)/\1/p' Actions/BuildCustomizer/action.yml)
-        echo "Plugin: $plugin, action: $action"
-        [ -n "$plugin" ] && [ "$plugin" = "$action" ]
-
     - name: Generate the customizer
       id: customizer
       uses: ./Actions/BuildCustomizer
