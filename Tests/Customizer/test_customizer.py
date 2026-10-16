@@ -350,6 +350,41 @@ def test_dynamic_parameters(browser, base_url):
     page.page.context.close()
 
 
+def test_dependent_ranges(browser, base_url):
+    """A range that depends on another parameter follows it, and so does a value chosen within it."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.open()
+
+    def holes():
+        return page.page.evaluate("""() => {
+            const field = [...document.querySelectorAll(".field")].find(field => field.querySelector("label").textContent === "Holes");
+            const slider = field.querySelector("input[type=range]");
+            const number = field.querySelector("input[type=number]");
+            return { slider: slider?.max ?? null, maximum: number.max, value: number.value };
+        }""")
+
+    check(holes() == {"slider": "4", "maximum": "4", "value": "2"}, f"Holes at the default width: {holes()}")
+    page.rebuild(lambda: page.set_number("Holes", "4"))
+
+    # A narrower plate has room for fewer holes, so the range shrinks and the value with it
+    page.number_field("Width").evaluate("field => field.dataset.marked = 'yes'")
+    page.rebuild(lambda: page.set_number("Width", "20"))
+    check(holes() == {"slider": "1", "maximum": "1", "value": "1"}, f"Holes on a 20 mm plate: {holes()}")
+    check(page.number_field("Width").get_attribute("data-marked") == "yes", "The width's field was made again")
+    narrow = page.download()
+    check(abs(narrow.extent(0) - 20) < 0.01, f"The narrow plate is {narrow.extent(0)} wide, expected 20")
+
+    # A range of a single value has nothing to slide
+    page.rebuild(lambda: page.set_number("Width", "12"))
+    check(holes() == {"slider": None, "maximum": "0", "value": "0"}, f"Holes on a 12 mm plate: {holes()}")
+
+    # Widening the plate again brings back the value that was chosen
+    page.rebuild(lambda: page.set_number("Width", "40"))
+    check(holes() == {"slider": "4", "maximum": "4", "value": "4"}, f"Holes back at 40 mm: {holes()}")
+    check(not page.errors, f"The page had errors: {page.errors}")
+    page.page.context.close()
+
+
 def test_model_menu(browser, base_url):
     """With more models than fit as tabs, the page offers a menu, with a section for each group."""
     page = CustomizerPage(browser.new_page(), base_url)
@@ -1774,7 +1809,7 @@ def main(arguments):
     cdn = CDNCache()
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_dynamic_parameters, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
+            test, test_tabs, test_dynamic_parameters, test_dependent_ranges, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
         ) if not only or run.__name__ in only]
         if "chromium" in engines and (not only or "test_without_webgl" in only):
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

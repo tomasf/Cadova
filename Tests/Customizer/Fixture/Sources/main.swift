@@ -52,9 +52,6 @@ struct Plate: Geometry3D {
     @Parameter("Width", in: 10...100, step: 1, unit: "mm", description: "Width of the plate")
     var width = 40.0
 
-    @Parameter("Holes", in: 0...4, unit: "pcs", description: "Number of holes along the middle")
-    var holes = 2
-
     @Parameter("Thick", description: "Make the plate 6 mm thick instead of 3")
     var thick = false
 
@@ -81,6 +78,11 @@ struct Plate: Geometry3D {
         case .square:
             outline = plate
         }
+
+        // Holes are 8 mm apart and keep clear of the ends, so how many fit follows the width: four at
+        // the default width, and none on the narrowest plates, a range of a single value
+        @Parameter("Holes", in: 0...Int((width - 8) / 8), unit: "pcs", description: "Number of holes along the middle")
+        var holes = 2
 
         outline
             .subtracting {
