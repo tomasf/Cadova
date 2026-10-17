@@ -7,21 +7,26 @@ import Foundation
 /// labelled with the label, and builds the model with the values its visitor chooses. Everywhere
 /// else, such as when you build the model yourself, a parameter has its default value.
 ///
+/// We recommend declaring parameters in the model, and passing their values to your geometry:
+///
 /// ```swift
-/// struct GridPlate: Geometry3D {
+/// await Model("plate") {
 ///     @Parameter("Columns", in: 1...12) var columns = 4
 ///     @Parameter("Height", in: 10...50, step: 0.5, unit: "mm", description: "Height of the plate")
 ///     var height = 20.0
 ///
-///     var body: any Geometry3D {
-///         ...
-///     }
+///     GridPlate(columns: columns, height: height)
 /// }
 /// ```
 ///
-/// A parameter is identified by where it's declared, so every geometry that uses the same declaration
-/// shares its value, while separate declarations are separate parameters, even with the same label.
-/// Each model keeps its own values.
+/// A parameter is identified by where it's declared, so every use of the same declaration shares its
+/// value, while separate declarations are separate parameters, even with the same label. Each model
+/// keeps its own values.
+///
+/// Parameters can be declared anywhere in a model's code, such as in a geometry's `body` or as a
+/// property of a geometry type. A property is one parameter however many instances there are, so
+/// `GridPlate(columns: 3)` and `GridPlate(columns: 6)` share a single control. Cadova logs a warning
+/// when uses of one parameter have different defaults or settings.
 ///
 /// Read parameters inside a model: in a geometry's `body`, a `Model { }` builder or another geometry
 /// callback. A parameter read outside any model has its default value.

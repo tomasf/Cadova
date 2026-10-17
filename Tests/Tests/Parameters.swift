@@ -71,7 +71,37 @@ private struct Branch: Geometry3D {
     }
 }
 
+// A component with a parameter of its own, which models can give different defaults
+private struct ColumnPlate: Geometry3D {
+    @Parameter("Columns", in: 1...12) var columns = 4
+
+    static var columnsKey: String { Self()._columns.key }
+
+    var body: any Geometry3D {
+        Box(x: Double(columns) * 10, y: 10, z: 2)
+    }
+}
+
 struct ParameterTests {
+    @Test func `Uses of one declaration that describe it differently are reported`() async throws {
+        // The geometry is made while recording, as a model's is, so its parameters record in order
+        func record(_ geometry: @Sendable () -> any Geometry3D) async throws -> ParameterRecorder {
+            let recorder = ParameterRecorder()
+            _ = try await ParameterRecorder.$current.withValue(recorder) {
+                try await EvaluationContext().buildResult(for: geometry(), in: .defaultEnvironment)
+            }
+            return recorder
+        }
+
+        let differing = try await record { ColumnPlate(columns: 3).adding { ColumnPlate(columns: 6).translated(x: 100) } }
+        #expect(differing.conflictingKeys == [ColumnPlate.columnsKey])
+        #expect(differing.parameters.map(\.defaultValue) == ["3"])
+
+        let alike = try await record { ColumnPlate(columns: 3).adding { ColumnPlate(columns: 3).translated(x: 100) } }
+        #expect(alike.conflictingKeys.isEmpty)
+        #expect(alike.parameters.map(\.defaultValue) == ["3"])
+    }
+
     @Test func `Parameter values parse from strings`() {
         #expect(Int(parameterString: "42") == 42)
         #expect(Int(parameterString: "4.5") == nil)

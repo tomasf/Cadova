@@ -39,6 +39,16 @@ internal struct ModelLogger: Sendable {
         warning("\(buildWarning)")
     }
 
+    func parameterUsedDifferently(_ first: ParameterDescriptor, _ other: ParameterDescriptor) {
+        let difference = first.defaultValue != other.defaultValue
+            ? "the defaults \(first.defaultValue) and \(other.defaultValue)" : "different settings"
+        warning("""
+            Parameter "\(first.label)" is used with \(difference). Every use of one declaration shares \
+            its value, so a customizer offers one control, with the settings of the first use. To give each \
+            use a control of its own, declare the parameters in the model and pass their values on.
+            """)
+    }
+
     func builtAndEvaluated(in duration: Duration) {
         debug("Built and evaluated geometry in \(duration.logDescription)")
     }

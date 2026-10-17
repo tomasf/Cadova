@@ -50,7 +50,13 @@ internal final class ParameterRecorder: Sendable {
 
     /// The recorder the build started with, or nil if this is the one
     private let root: ParameterRecorder?
-    private let state = Mutex<(keys: Set<String>, parameters: [ParameterDescriptor])>(([], []))
+    private let state = Mutex<State>(State())
+
+    private struct State {
+        var descriptors: [String: ParameterDescriptor] = [:]
+        var parameters: [ParameterDescriptor] = []
+        var conflictingKeys: Set<String> = []
+    }
 
     init() {
         root = nil
@@ -66,21 +72,38 @@ internal final class ParameterRecorder: Sendable {
     }
 
     /// Records a parameter. Every use of one declaration is one parameter, described the first way
-    /// it's recorded.
+    /// it's recorded. Uses that describe it differently, such as instances of one geometry given
+    /// different defaults, are logged as a warning, since a customizer can only offer one control.
     func record(_ descriptor: ParameterDescriptor) {
         add(descriptor)
         root?.add(descriptor)
     }
 
     private func add(_ descriptor: ParameterDescriptor) {
-        state.withLock { state in
-            guard state.keys.insert(descriptor.key).inserted else { return }
-            state.parameters.append(descriptor)
+        let conflict: ParameterDescriptor? = state.withLock { state in
+            guard let first = state.descriptors[descriptor.key] else {
+                state.descriptors[descriptor.key] = descriptor
+                state.parameters.append(descriptor)
+                return nil
+            }
+            // Only the recorder the build started with reports, so each conflict is reported once
+            guard root == nil, first != descriptor, state.conflictingKeys.insert(descriptor.key).inserted else {
+                return nil
+            }
+            return first
+        }
+        if let conflict {
+            ModelLogger.current.parameterUsedDifferently(conflict, descriptor)
         }
     }
 
     var parameters: [ParameterDescriptor] {
         state.withLock { $0.parameters }
+    }
+
+    /// The keys of parameters whose uses describe them differently
+    var conflictingKeys: Set<String> {
+        state.withLock { $0.conflictingKeys }
     }
 
     /// Builds a geometry's body, putting the parameters it uses into the result, ahead of the ones

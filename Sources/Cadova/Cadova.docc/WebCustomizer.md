@@ -10,10 +10,10 @@ The model runs entirely in the visitor's browser, compiled to WebAssembly. There
 
 ## Preparing Your Model
 
-A customizer offers whatever parameters your model declares with ``Parameter``. Give each one a label, which is what the page calls it, and a default value. A range, a step, a unit and a description, wherever they make sense, help the page offer the right controls:
+A customizer offers whatever parameters your model declares with ``Parameter``. Give each one a label, which is what the page calls it, and a default value. A range, a step, a unit and a description, wherever they make sense, help the page offer the right controls. We recommend declaring parameters in the model and passing their values to your geometry:
 
 ```swift
-struct Scoop: Geometry3D {
+await Model("scoop") {
     @Parameter("Volume", in: 20...100, step: 1, unit: "ml", description: "How much the scoop holds")
     var volume = 30.0
 
@@ -23,9 +23,7 @@ struct Scoop: Geometry3D {
     @Parameter("Quality", description: "Smoothness of the curved surfaces. Draft builds fastest.")
     var quality = Quality.standard
 
-    var body: any Geometry3D {
-        // ...
-    }
+    Scoop(volume: volume, hangingHole: hangingHole, quality: quality)
 }
 
 enum Quality: String, ParameterChoice {
@@ -46,6 +44,8 @@ Each type of parameter gets its own kind of control:
 
 A parameter is identified by where it's declared, not by its label, so you're free to reword labels. When you build a model yourself, its parameters have their default values.
 
+Parameters can also be declared elsewhere in a model's code, such as in a geometry's `body` or as properties of your own geometry types. A parameter declared as a property is one parameter however many times the geometry is used, so `Plate(columns: 3)` and `Plate(columns: 6)` in the same model share a single control. Declared in the model instead, each gets a control of its own. Cadova warns in the browser's console when uses of one parameter have different defaults or settings.
+
 The page's heading and introduction come from the model's ``Metadata``, and a line below them names its author and license:
 
 ```swift
@@ -56,7 +56,7 @@ await Model("scoop") {
         author: "Ada Lovelace",
         license: "MIT"
     )
-    Scoop()
+    // Parameters and geometry, as above
 }
 ```
 
