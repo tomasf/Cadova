@@ -2,9 +2,6 @@ import Foundation
 
 /// A type that can be used as a customizer parameter value.
 ///
-/// A customizer passes the values its visitor chooses as strings, which are parsed with
-/// ``init(parameterString:)``.
-///
 /// Cadova provides conformances for `Int`, `Double`, `Bool`, `String`, `Angle` and ``Color``. For
 /// an enum whose cases a customizer offers to pick from, use ``ParameterChoice``.
 ///
@@ -13,10 +10,10 @@ public protocol ParameterValue: Sendable {
     ///
     /// - Parameter parameterString: The string to parse.
     /// - Returns: The parsed value, or `nil` if the string is not a valid representation.
-    init?(parameterString: String)
+    @_spi(ParameterInternals) init?(parameterString: String)
 
     /// A string representation that ``init(parameterString:)`` parses back into this value.
-    var parameterString: String { get }
+    @_spi(ParameterInternals) var parameterString: String { get }
 }
 
 /// The kind of value a customizer parameter holds, which tells a customizer what kind of control to
@@ -60,7 +57,7 @@ internal protocol KnownParameterValue: ParameterValue {
 }
 
 public extension ParameterValue {
-    var parameterString: String { String(describing: self) }
+    @_spi(ParameterInternals) var parameterString: String { String(describing: self) }
 }
 
 /// A parameter value that's a plain number, which a customizer can show with a unit.
@@ -76,7 +73,7 @@ public extension ParameterValue {
 public protocol NumericParameterValue: ParameterValue, Comparable {}
 
 extension Int: NumericParameterValue {
-    public init?(parameterString: String) {
+    @_spi(ParameterInternals) public init?(parameterString: String) {
         self.init(parameterString)
     }
 }
@@ -86,7 +83,7 @@ extension Int: KnownParameterValue {
 }
 
 extension Double: NumericParameterValue {
-    public init?(parameterString: String) {
+    @_spi(ParameterInternals) public init?(parameterString: String) {
         self.init(parameterString)
     }
 }
@@ -96,13 +93,13 @@ extension Double: KnownParameterValue {
 }
 
 extension String: ParameterValue {
-    public init?(parameterString: String) {
+    @_spi(ParameterInternals) public init?(parameterString: String) {
         self.init(parameterString)
     }
 }
 
 extension Bool: ParameterValue {
-    public init?(parameterString: String) {
+    @_spi(ParameterInternals) public init?(parameterString: String) {
         switch parameterString.lowercased() {
         case "true", "yes", "1": self = true
         case "false", "no", "0": self = false
@@ -118,7 +115,7 @@ extension Bool: KnownParameterValue {
 extension Angle: ParameterValue {
     /// Parses an angle from a string. A plain number is interpreted as degrees; the suffixes
     /// `°`, `deg` and `rad` are also accepted (e.g. `"45"`, `"45°"`, `"45deg"`, `"0.79rad"`).
-    public init?(parameterString: String) {
+    @_spi(ParameterInternals) public init?(parameterString: String) {
         let string = parameterString.trimmingCharacters(in: .whitespaces)
         for (suffix, isRadians) in [("rad", true), ("deg", false), ("°", false), ("", false)] {
             if string.hasSuffix(suffix), let value = Double(string.dropLast(suffix.count)) {
@@ -129,7 +126,7 @@ extension Angle: ParameterValue {
         return nil
     }
 
-    public var parameterString: String { String(degrees) }
+    @_spi(ParameterInternals) public var parameterString: String { String(degrees) }
 }
 
 extension Angle: KnownParameterValue {
@@ -139,14 +136,14 @@ extension Angle: KnownParameterValue {
 extension Color: ParameterValue {
     /// Parses a color from hexadecimal, as a customizer writes it: `"#rrggbb"`, or `"#rrggbbaa"` with
     /// an alpha component. The `#` is optional.
-    public init?(parameterString: String) {
+    @_spi(ParameterInternals) public init?(parameterString: String) {
         let digits = parameterString.trimmingCharacters(in: .whitespaces).drop { $0 == "#" }
         guard digits.count == 6 || digits.count == 8, digits.allSatisfy(\.isHexDigit) else { return nil }
         self.init(hex: String(digits))
     }
 
     /// The color in hexadecimal, `"#rrggbb"`, with an alpha component only if it isn't opaque.
-    public var parameterString: String {
+    @_spi(ParameterInternals) public var parameterString: String {
         let components = alpha < 1 ? [red, green, blue, alpha] : [red, green, blue]
         return "#" + components.map { component in
             let hex = String(Int((component * 255).rounded()), radix: 16)

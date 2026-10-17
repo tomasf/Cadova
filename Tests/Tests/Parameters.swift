@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Cadova
+@_spi(ParameterInternals) @testable import Cadova
 
 private enum Finish: String, ParameterChoice {
     case matte, glossy
