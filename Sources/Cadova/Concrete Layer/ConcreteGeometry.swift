@@ -6,18 +6,18 @@ public protocol ConcreteGeometry {
     associatedtype Vector
     associatedtype D: Dimensionality where D.Vector == Vector
 
-    @_spi(ConcreteInternals) func refine(edgeLength: Double) -> Self
-    @_spi(ConcreteInternals) func allVertices() -> [Vector]
+    func refine(edgeLength: Double) -> Self
+    func allVertices() -> [Vector]
 }
 
 extension Manifold3D.CrossSection<Vector2D>: ConcreteGeometry {
     public typealias D = D2
 
-    @_spi(ConcreteInternals) public func allVertices() -> [Vector] {
+    public func allVertices() -> [Vector] {
         polygons().flatMap(\.vertices)
     }
 
-    @_spi(ConcreteInternals) public func refine(edgeLength: Double) -> Self {
+    public func refine(edgeLength: Double) -> Self {
         Self(polygonList().refined(maxEdgeLength: edgeLength))
     }
 }
@@ -25,7 +25,7 @@ extension Manifold3D.CrossSection<Vector2D>: ConcreteGeometry {
 extension Manifold3D.Manifold<Vector3D>: ConcreteGeometry {
     public typealias D = D3
 
-    @_spi(ConcreteInternals) public func allVertices() -> [Vector] {
+    public func allVertices() -> [Vector] {
         meshGL().vertices
     }
 }

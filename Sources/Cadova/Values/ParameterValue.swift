@@ -57,6 +57,10 @@ internal protocol KnownParameterValue: ParameterValue {
 }
 
 public extension ParameterValue {
+    // Library evolution needs a default for an SPI requirement. Every type Cadova supports parses
+    // strings itself, so this only leaves a type that doesn't at its default value.
+    @_spi(ParameterInternals) init?(parameterString: String) { nil }
+
     @_spi(ParameterInternals) var parameterString: String { String(describing: self) }
 }
 
