@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Cadova
+@_spi(ConcreteInternals) @testable import Cadova
 
 struct Offset3DTests {
     // Coarser than the default, to keep the tests quick: rounded parts are then accurate to 0.04
