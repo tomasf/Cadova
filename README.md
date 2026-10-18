@@ -2,7 +2,7 @@
   <img alt="Cadova" src=".github/assets/cadova-lockup-light.svg#gh-light-mode-only" width="260">
   <img alt="Cadova" src=".github/assets/cadova-lockup-dark.svg#gh-dark-mode-only" width="260">
 </h1>
-<img src="https://github.com/user-attachments/assets/99d15163-d168-419c-9fc3-406e4f657074" width="40%" align="right">
+<img src=".github/assets/arm-link.png" alt="A robot arm link modeled in Cadova" width="40%" align="right">
 
 Cadova is a Swift library for creating 3D models through code, with a focus on 3D printing. It offers a programmable alternative to traditional CAD tools, combining precise geometry with the expressiveness and elegance of Swift.
 
@@ -16,24 +16,37 @@ Full documentation, including [What is Cadova?](https://tomasf.github.io/Cadova/
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows_|_Web-2a7de1?logo=swift&logoColor=white)
 
 ## Example
-<img src="https://github.com/user-attachments/assets/c8ae2128-621a-4d26-8f9a-1c277e525633" width="23%" align="right">
+<img src=".github/assets/hex-key-holder.png" alt="A hex key holder with its keys" width="30%" align="right">
 
 ```swift
 await Model("Hex key holder") {
-    let height = 20.0
-    let spacing = 8.0
-    Stack(.x, spacing: spacing) {
-        for size in stride(from: 1.5, through: 5.0, by: 0.5) {
-            RegularPolygon(sideCount: 6, widthAcrossFlats: size)
-        }
-    }.measuringBounds { holes, bounds in
-        Stadium(bounds.size + spacing * 2)
-            .extruded(height: height)
-            .subtracting {
-                holes.aligned(at: .centerX)
-                    .extruded(height: height)
-                    .translated(z: 2)
+    // A row of L-shaped hex keys, spaced by their own widths
+    let keys = Stack(.x, spacing: 6, alignment: .centerY) {
+        for size in [1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0] {
+            let path = BezierPath3D(mode: .relative) {
+                line(z: 25 + size * 6)
+                curve(controlX: 0, controlY: 0, controlZ: size,
+                      endX: 0, endY: size, endZ: size)
+                line(y: 10 + size * 2.5)
             }
+
+            RegularPolygon(sideCount: 6, widthAcrossFlats: size)
+                .swept(along: path, pointing: .up,
+                       toward: .direction(.positiveX))
+        }
+    }
+    .translated(z: 3)
+
+    // Wrap a body around the keys and cut them out of it
+    keys.sliced(atZ: 5) { keys, slice in
+        slice.offset(amount: 6, style: .round)
+            .convexHull()
+            .extruded(height: 16, topEdge: .fillet(radius: 2))
+            .subtracting { keys }
+            .withMaterial(.glossyPlastic(.darkOrange))
+
+        keys.inPart(Part("Keys", semantic: .visual,
+                         color: .gray.with(alpha: 0.4)))
     }
 }
 ```
