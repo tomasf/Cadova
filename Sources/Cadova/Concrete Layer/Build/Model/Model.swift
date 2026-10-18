@@ -117,6 +117,9 @@ public struct Model: Sendable, ModelBuildable {
                 return
             }
 
+            // Each standalone model builds as its own line runs, so it checks `--model` itself
+            guard isIncluded(by: CommandLineArguments.current.modelFilter, in: []) else { return }
+
             // A standalone model has no `Project` above it to end the process, so its failures
             // are still only logged.
             _ = await build(URL: directory)
