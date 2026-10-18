@@ -284,15 +284,16 @@ let bit = Stack(.z) {
 }
 
 // Bits are shown in the model, but in a visual part so they don't print
-let bits = Part("Bits", semantic: .visual, material: Material(
+sockets.enumerated().mapUnion { index, socket in
+    if ![3, 8, 13].contains(index) {
+        bit.translated(socket)
+    }
+}
+.withMaterial(Material(
     name: "Clear Steel",
     baseColor: Color(0.8, 0.82, 0.85, 0.8),
     metallicness: 1,
     roughness: 0.25
 ))
-
-for (index, socket) in sockets.enumerated() where ![3, 8, 13].contains(index) {
-    bit.translated(socket)
-        .inPart(bits)
-}
+.inPart(name: "Bits", semantic: .visual)
 ```
