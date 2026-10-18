@@ -1,5 +1,6 @@
 import Foundation
 
+@_documentation(visibility: internal)
 @resultBuilder public struct ArrayBuilder<Element> {
     public static func buildExpression(_ expression: Element?) -> [Element] {
         [expression].compactMap { $0 }

@@ -2,6 +2,9 @@ import Manifold3D
 import Foundation
 
 /// The geometry library type that 2D or 3D geometry evaluates to, which Cadova uses internally.
+///
+/// It's public only because ``Dimensionality`` names it, so it's left out of the documentation.
+@_documentation(visibility: internal)
 public protocol ConcreteGeometry {
     associatedtype Vector
     associatedtype D: Dimensionality where D.Vector == Vector
@@ -11,20 +14,25 @@ public protocol ConcreteGeometry {
 }
 
 extension Manifold3D.CrossSection<Vector2D>: ConcreteGeometry {
+    @_documentation(visibility: internal)
     public typealias D = D2
 
+    @_documentation(visibility: internal)
     public func allVertices() -> [Vector] {
         polygons().flatMap(\.vertices)
     }
 
+    @_documentation(visibility: internal)
     public func refine(edgeLength: Double) -> Self {
         Self(polygonList().refined(maxEdgeLength: edgeLength))
     }
 }
 
 extension Manifold3D.Manifold<Vector3D>: ConcreteGeometry {
+    @_documentation(visibility: internal)
     public typealias D = D3
 
+    @_documentation(visibility: internal)
     public func allVertices() -> [Vector] {
         meshGL().vertices
     }

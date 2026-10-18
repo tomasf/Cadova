@@ -1,7 +1,7 @@
 import Foundation
 import Manifold3D
 
-public struct EvaluationResult<D: Dimensionality>: Sendable {
+internal struct EvaluationResult<D: Dimensionality>: Sendable {
     internal let parts: [D.Concrete]
     internal let materialMapping: [Manifold.OriginalID: Material]
 

@@ -1,5 +1,6 @@
 import Foundation
 
+@_documentation(visibility: internal)
 @resultBuilder public struct ModelContentBuilder {
     public static func buildExpression(_ geometry: any Geometry2D) -> [BuildDirective] {
         [BuildDirective(payload: .geometry2D(geometry))]

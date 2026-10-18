@@ -1,5 +1,6 @@
 import Foundation
 
+@_documentation(visibility: internal)
 public struct BuildDirective: Sendable {
     internal let payload: Payload
 
