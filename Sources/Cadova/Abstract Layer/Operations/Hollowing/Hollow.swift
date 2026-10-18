@@ -19,7 +19,7 @@ public extension Geometry3D {
     ///   - style: How the cavity is shaped across from inside corners. Defaults to `.miter`.
     /// - Returns: The hollowed geometry.
     ///
-    /// - SeeAlso: ``offset(amount:style:)``
+    /// - SeeAlso: ``offset(amount:style:)->Geometry3D``
     ///
     func hollowed(wallThickness: Double, style: LineJoinStyle = .miter) -> any Geometry3D {
         subtracting {

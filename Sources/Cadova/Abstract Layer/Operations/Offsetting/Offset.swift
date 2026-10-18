@@ -72,11 +72,11 @@ public extension Geometry2D {
     /// - Parameters:
     ///   - amount: The distance by which to offset the geometry. Positive values expand outward, negative values contract inward.
     ///   - style: The line join style to use for the offset (e.g., `.round`, `.miter`, `.bevel`, or `.square`).
-    ///     Defaults to `.miter`, as for ``offset(amount:style:)``.
+    ///     Defaults to `.miter`, as for ``offset(amount:style:)->Geometry2D``.
     ///   - reader: A closure that receives both the original geometry and the offset geometry, and returns a new composed geometry.
     /// - Returns: The result of the builder closure, which can combine or further process the original and offset geometries.
     ///
-    /// - SeeAlso: ``offset(amount:style:)``
+    /// - SeeAlso: ``offset(amount:style:)->Geometry2D``
     ///
     func offset<Output: Dimensionality>(
         amount: Double,
