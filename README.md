@@ -16,7 +16,7 @@ Full documentation, including [What is Cadova?](https://tomasf.github.io/Cadova/
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows_|_Web-2a7de1?logo=swift&logoColor=white)
 
 ## Example
-<img src=".github/assets/hex-key-holder.png" alt="A hex key holder with its keys" width="30%" align="right">
+<img src=".github/assets/hex-key-holder.png" alt="A hex key holder with its keys" width="24%" align="right">
 
 ```swift
 await Model("Hex key holder") {
@@ -43,7 +43,7 @@ await Model("Hex key holder") {
             .convexHull()
             .extruded(height: 16, topEdge: .fillet(radius: 2))
             .subtracting { keys }
-            .withMaterial(.glossyPlastic(.darkOrange))
+            .withMaterial(.glossyPlastic(.royalBlue))
 
         keys.inPart(
             name: "Keys",
