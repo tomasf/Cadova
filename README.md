@@ -45,8 +45,11 @@ await Model("Hex key holder") {
             .subtracting { keys }
             .withMaterial(.glossyPlastic(.darkOrange))
 
-        keys.inPart(Part("Keys", semantic: .visual,
-                         color: .gray.with(alpha: 0.4)))
+        keys.inPart(
+            name: "Keys",
+            semantic: .visual,
+            color: .gray.with(alpha: 0.4)
+        )
     }
 }
 ```
