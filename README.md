@@ -16,40 +16,24 @@ Full documentation, including [What is Cadova?](https://tomasf.github.io/Cadova/
 ![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows_|_Web-2a7de1?logo=swift&logoColor=white)
 
 ## Example
-<img src=".github/assets/hex-key-holder.png" alt="A hex key holder with its keys" width="24%" align="right">
+<img src=".github/assets/hex-key-holder.png" alt="A hex key holder" width="24%" align="right">
 
 ```swift
 await Model("Hex key holder") {
-    // A row of L-shaped hex keys, spaced by their own widths
-    let keys = Stack(.x, spacing: 6, alignment: .centerY) {
+    // Hex holes for a set of keys, spaced by their own widths
+    Stack(.x, spacing: 6, alignment: .centerY) {
         for size in [1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0] {
-            let path = BezierPath3D(mode: .relative) {
-                line(z: 25 + size * 6)
-                curve(controlX: 0, controlY: 0, controlZ: size,
-                      endX: 0, endY: size, endZ: size)
-                line(y: 10 + size * 2.5)
-            }
-
-            RegularPolygon(sideCount: 6, widthAcrossFlats: size)
-                .swept(along: path, pointing: .up,
-                       toward: .direction(.positiveX))
+            RegularPolygon(sideCount: 6, widthAcrossFlats: size + 0.2)
         }
     }
-    .translated(z: 3)
-
-    // Wrap a body around the keys and cut them out of it
-    keys.sliced(atZ: 5) { keys, slice in
-        slice.offset(amount: 6, style: .round)
-            .convexHull()
+    .offset(amount: 6, style: .round) { holes, outline in
+        outline.convexHull()
             .extruded(height: 16, topEdge: .fillet(radius: 2))
-            .subtracting { keys }
+            .subtracting {
+                holes.extruded(height: 13)
+                    .translated(z: 3)
+            }
             .withMaterial(.glossyPlastic(.royalBlue))
-
-        keys.inPart(
-            name: "Keys",
-            semantic: .visual,
-            color: .gray.with(alpha: 0.4)
-        )
     }
 }
 ```
