@@ -87,7 +87,7 @@ export class ModelSession {
         return { catalog, log: result.log, stackOverflow: result.stackOverflow };
     }
 
-    // Builds one model with the given parameter values, by label, for the preview. Cadova writes its
+    // Builds one model with the given parameter values, by key, for the preview. Cadova writes its
     // meshes in a form the page reads directly, skipping the work of making a model file, unless the
     // model's output isn't one it can preview.
     async build(model, values) {
