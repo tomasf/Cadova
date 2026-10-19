@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 /// Builds a set of models and saves them to the `Models` directory of your Swift package.
 ///
@@ -255,5 +256,30 @@ internal struct ProjectBuild: Sendable {
             logger.error("Build failed with \(failureCount) error\(failureCount == 1 ? "" : "s").")
         }
         return false
+    }
+}
+
+extension ProjectBuild {
+    /// The models declared on their own, outside a `Project`, so far, by the customizer request they
+    /// answer, with the context they build in. A customizer treats them as one project, so that it
+    /// can offer every one of them.
+    private static let standaloneModels = Mutex<[CustomizerRequest: (models: [Model], context: EvaluationContext)]>([:])
+
+    /// Adds a standalone model that answers a customizer's request, and returns the project of every
+    /// one declared so far, with the context they share. The project lists the models when it runs,
+    /// so it includes ones declared after this.
+    static func addingStandaloneModel(
+        _ model: Model,
+        answering request: CustomizerRequest,
+        root: URL
+    ) -> (project: ProjectBuild, context: EvaluationContext) {
+        let context = standaloneModels.withLock { models in
+            models[request, default: ([], EvaluationContext())].models.append(model)
+            return models[request]!.context
+        }
+        let project = ProjectBuild(root: root, options: [], content: {
+            standaloneModels.withLock { $0[request]?.models ?? [] }.map { BuildDirective(payload: .model($0)) }
+        })
+        return (project, context)
     }
 }

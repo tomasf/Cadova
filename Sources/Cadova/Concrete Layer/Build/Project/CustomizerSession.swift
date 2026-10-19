@@ -44,19 +44,39 @@ internal final class CustomizerSession: @unchecked Sendable {
         let status = await session.handleRequest()
         guard status == EXIT_SUCCESS else { exit(status) }
         current = session
+        suspendOnExit()
+        await withUnsafeContinuation { (_: UnsafeContinuation<Void, Never>) in }
+        fatalError("A customizer session's main task is never resumed")
+    }
 
-        // Once nothing is left to run, the executor exits the process, and that's when control can
-        // return to the customizer. This handler is registered after every C++ destructor, so it
-        // runs first, and _Exit then skips them, keeping the session's state intact. An exit while
-        // a request is being handled is a real one, so it goes ahead normally.
+    /// Suspends the executable to wait for more requests once it ends, rather than right away, so
+    /// that every standalone model in it gets to handle the request it was started with. Each
+    /// standalone model calls this once it has. If the request failed in any of them, the
+    /// executable exits instead.
+    static func suspendAtExit(_ build: ProjectBuild, failed: Bool) {
+        startFailed = startFailed || failed
+        if current == nil {
+            current = CustomizerSession(build: build)
+        }
+        // Again for each model, since the latest registration is the one that has to come after
+        // the C++ destructors of whatever the models before it set up
+        suspendOnExit()
+    }
+
+    // Whether the request the executable was started with failed in a standalone model
+    nonisolated(unsafe) private static var startFailed = false
+
+    // Once nothing is left to run, the executor exits the process, and that's when control can
+    // return to the customizer. This handler is registered after every C++ destructor, so it runs
+    // first, and _Exit then skips them, keeping the session's state intact. An exit while a request
+    // is being handled is a real one, so it goes ahead normally.
+    private static func suspendOnExit() {
         atexit {
             guard CustomizerSession.isWaiting else { return }
             fflush(nil)
-            _Exit(CustomizerSession.suspendedStatus)
+            _Exit(CustomizerSession.startFailed ? EXIT_FAILURE : CustomizerSession.suspendedStatus)
         }
         isWaiting = true
-        await withUnsafeContinuation { (_: UnsafeContinuation<Void, Never>) in }
-        fatalError("A customizer session's main task is never resumed")
     }
 
     /// Handles a request written after the executable suspended, and returns its exit status.

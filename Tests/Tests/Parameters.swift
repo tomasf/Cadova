@@ -678,6 +678,41 @@ struct ParameterTests {
         #expect(try FileManager.default.contentsOfDirectory(atPath: tempDir.path) == ["parameters.json"])
     }
 
+    @Test func `Several standalone models are one project to a customizer`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let listURL = tempDir.appending(path: "parameters.json")
+
+        // Each standalone model runs as its line is reached, as in a program's top-level code. Plain
+        // names, so that a build goes to the request's output directory
+        let suffix = UUID().uuidString
+        func models() async {
+            await Model("first-\(suffix)") {
+                @Parameter("First size") var size = 1.0
+                Box(size)
+            }
+            await Model("second-\(suffix)") {
+                @Parameter("Second size") var size = 2.0
+                Box(size)
+            }
+        }
+
+        await CustomizerRequest.$overridden.withValue(CustomizerRequest(parameterListPath: listURL.path)) {
+            await models()
+        }
+        let json = try JSONSerialization.jsonObject(with: Data(contentsOf: listURL)) as? [String: Any]
+        let listed = (json?["models"] as? [[String: Any]])?.compactMap { $0["name"] as? String }
+        #expect(listed == ["first-\(suffix)", "second-\(suffix)"])
+
+        // A build is answered by the model it names alone
+        let output = tempDir.appending(path: "output")
+        await CustomizerRequest.$overridden.withValue(CustomizerRequest(model: "second-\(suffix)", outputDirectory: output.path)) {
+            await models()
+        }
+        #expect(try FileManager.default.contentsOfDirectory(atPath: output.path) == ["second-\(suffix).3mf"])
+    }
+
     @Test func `A standalone model lists its parameters like a project`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)

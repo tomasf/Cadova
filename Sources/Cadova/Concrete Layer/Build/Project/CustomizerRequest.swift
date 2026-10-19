@@ -6,7 +6,7 @@ import Foundation
 /// executable with `CADOVA_CUSTOMIZER_REQUEST` set to the path of a JSON file describing what it
 /// wants: either every model's parameters, or one model built with the values its visitor chose.
 /// This is a contract between Cadova and its customizer page, not a public interface.
-internal struct CustomizerRequest: Decodable, Sendable {
+internal struct CustomizerRequest: Decodable, Hashable, Sendable {
     /// Where to write every model's parameters as JSON, instead of building any models.
     let parameterListPath: String?
 
