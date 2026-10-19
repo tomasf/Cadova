@@ -57,6 +57,13 @@ private struct CachedPlate: CachedGeometry3D {
     }
 }
 
+// Cached, with no parameters of its own, around a geometry that has one
+private struct CachedWrapper: CachedGeometry3D {
+    var body: any Geometry3D {
+        ParametricBox()
+    }
+}
+
 // Branches with parameters of their own, built side by side
 private struct Branch: Geometry3D {
     let index: Int
@@ -397,6 +404,41 @@ struct ParameterTests {
         #expect(try await width(nil) == 10)
         #expect(try await width("25") == 25)
         #expect(try await width(nil) == 10)
+    }
+
+    @Test func `A cached geometry is rebuilt when a parameter it reads in its body changes`() async throws {
+        let recorder = ParameterRecorder()
+        _ = try await ParameterRecorder.$current.withValue(recorder) {
+            try await EvaluationContext().buildResult(for: CachedPlate(), in: .defaultEnvironment)
+        }
+        let heightKey = try #require(recorder.parameters.first { $0.label == "Plate height" }?.key)
+
+        // A customizer reuses its context as its values change
+        let context = EvaluationContext()
+        func height(_ value: String?) async throws -> Double? {
+            var environment = EnvironmentValues.defaultEnvironment
+            if let value { environment.parameterValues = [heightKey: value] }
+            let result = try await context.result(for: CachedPlate(), in: environment)
+            let zs = result.concrete.meshGL().vertices.map(\.z)
+            return zs.max().flatMap { max in zs.min().map { max - $0 } }
+        }
+        #expect(try await height(nil) == 2)
+        #expect(try await height("7") == 7)
+        #expect(try await height(nil) == 2)
+    }
+
+    @Test func `A cached geometry is rebuilt when a parameter of geometry in its body changes`() async throws {
+        let context = EvaluationContext()
+        func size(_ value: String?) async throws -> Double? {
+            var environment = EnvironmentValues.defaultEnvironment
+            if let value { environment.parameterValues = [ParametricBox.sizeKey: value] }
+            let result = try await context.result(for: CachedWrapper(), in: environment)
+            let xs = result.concrete.meshGL().vertices.map(\.x)
+            return xs.max().flatMap { max in xs.min().map { max - $0 } }
+        }
+        #expect(try await size(nil) == 1)
+        #expect(try await size("4") == 4)
+        #expect(try await size(nil) == 1)
     }
 
     @Test func `A cached geometry's parameters are recorded when its result is reused`() async throws {

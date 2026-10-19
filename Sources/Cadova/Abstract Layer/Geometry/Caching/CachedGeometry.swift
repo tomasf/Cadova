@@ -31,6 +31,8 @@ import Foundation
 /// a different environment will instead reuse a stale cached result. The same goes for anything
 /// else `body` depends on: if it isn't a stored property on your type, it isn't part of the key.
 ///
+/// ``Parameter`` values are the exception: they're part of the key wherever `body` reads them,
+/// including in geometry it builds.
 ///
 public protocol CachedGeometry<D>: Geometry {}
 

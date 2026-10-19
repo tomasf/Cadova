@@ -6,8 +6,14 @@ internal struct ReflectedCacheKey: CacheKey {
     let typeName: String
     let fields: [AnyCacheKey]
 
+    /// The values a customizer chose for its parameters. A parameter read in `body`, or in geometry
+    /// built there, isn't a stored property, so reflection can't see it, and a customizer reuses
+    /// its cache from one choice of values to the next. Outside a customizer, this is empty.
+    let parameterValues: [String: String]
+
     init<G: CachedGeometry>(reflecting geometry: G, in environment: EnvironmentValues, context: EvaluationContext) async throws {
         typeName = String(reflecting: G.self)
+        parameterValues = environment.parameterValues
 
         var fields: [AnyCacheKey] = []
         // Sequential on purpose: Mirror.Child (a tuple containing `Any`) isn't Sendable, so this
