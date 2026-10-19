@@ -86,9 +86,12 @@ public struct Group: Sendable, ModelBuildable {
         URL directory: URL?,
         filterPath: [String]
     ) async -> Int {
-        let directives = await ModelContext(isCollectingModels: true).whileCurrent {
-            await inheritedEnvironment.whileCurrent {
-                await self.directives()
+        // The parameters the group's own content reads belong to every model in it
+        let (directives, groupParameters) = await ParameterRecorder.recordingEnclosing {
+            await ModelContext(isCollectingModels: true).whileCurrent {
+                await inheritedEnvironment.whileCurrent {
+                    await self.directives()
+                }
             }
         }
         let options = self.options.adding(defaults: inheritedOptions, directives: directives)
@@ -133,10 +136,12 @@ public struct Group: Sendable, ModelBuildable {
         }
 
         // Each one's position within the group extends the group's own, for a customizer's listing
-        return await buildables.enumerated().asyncMap { index, buildable in
-            await ParameterCatalog.$position.withValue(ParameterCatalog.position + [index]) {
-                await buildable.build(environment: environment, context: context, options: options,
-                                      URL: outputDirectory, filterPath: currentFilterPath)
+        return await ParameterRecorder.$enclosing.withValue(groupParameters) {
+            await buildables.enumerated().asyncMap { index, buildable in
+                await ParameterCatalog.$position.withValue(ParameterCatalog.position + [index]) {
+                    await buildable.build(environment: environment, context: context, options: options,
+                                          URL: outputDirectory, filterPath: currentFilterPath)
+                }
             }
         }.reduce(0, +)
     }

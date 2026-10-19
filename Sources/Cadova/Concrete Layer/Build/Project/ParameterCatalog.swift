@@ -50,6 +50,10 @@ internal final class ParameterRecorder: Sendable {
 
     /// The recorder the build started with, or nil if this is the one
     private let root: ParameterRecorder?
+
+    /// Whether parameters are recorded as they're declared, or only when they're read
+    private let recordsDeclarations: Bool
+
     private let state = Mutex<State>(State())
 
     private struct State {
@@ -58,12 +62,14 @@ internal final class ParameterRecorder: Sendable {
         var conflictingKeys: Set<String> = []
     }
 
-    init() {
+    init(recordsDeclarations: Bool = true) {
         root = nil
+        self.recordsDeclarations = recordsDeclarations
     }
 
     private init(root: ParameterRecorder) {
         self.root = root
+        recordsDeclarations = root.recordsDeclarations
     }
 
     /// A recorder for part of the build, whose parameters also go to the one the build started with
@@ -77,6 +83,12 @@ internal final class ParameterRecorder: Sendable {
     func record(_ descriptor: ParameterDescriptor) {
         add(descriptor)
         root?.add(descriptor)
+    }
+
+    /// Records a parameter as it's declared, unless this recorder only takes the ones that are read
+    func recordDeclaration(_ descriptor: ParameterDescriptor) {
+        guard recordsDeclarations else { return }
+        record(descriptor)
     }
 
     private func add(_ descriptor: ParameterDescriptor) {
@@ -115,6 +127,20 @@ internal final class ParameterRecorder: Sendable {
         let parameters = recorder.parameters
         guard !parameters.isEmpty else { return result }
         return result.mergingElements([ObjectIdentifier(ParameterList.self): ParameterList(parameters)])
+    }
+
+    /// The parameters that the project and groups around the model being built read in their own
+    /// content. Nothing tells which of their models use a value worked out from one, so they belong
+    /// to every model in them, ahead of the model's own.
+    @TaskLocal static var enclosing: [ParameterDescriptor] = []
+
+    /// Runs a project's or group's content, and returns what it made along with the parameters that
+    /// models in it get: the enclosing ones, followed by the ones the content read. A parameter the
+    /// content only declares goes to the models that read it, like any other.
+    static func recordingEnclosing<T>(_ content: () async -> T) async -> (T, parameters: [ParameterDescriptor]) {
+        let recorder = ParameterRecorder(recordsDeclarations: false)
+        let result = await $current.withValue(recorder) { await content() }
+        return (result, ParameterList.merging(enclosing, recorder.parameters))
     }
 }
 
@@ -216,17 +242,21 @@ internal final class ParameterCatalog: Sendable {
     ) async -> ParameterCatalog {
         let catalog = ParameterCatalog()
         await $current.withValue(catalog) {
-            let directives = await ModelContext(isCollectingModels: true).whileCurrent {
-                await content()
+            let (directives, projectParameters) = await ParameterRecorder.recordingEnclosing {
+                await ModelContext(isCollectingModels: true).whileCurrent {
+                    await EnvironmentValues.rootEnvironment.whileCurrent { await content() }
+                }
             }
             let options = ModelOptions(options + directives.compactMap(\.options))
             catalog.projectMetadata.withLock { $0 = options[Metadata.self] }
             let environment = EnvironmentValues.rootEnvironment.adding(directives: directives)
             let buildables: [any ModelBuildable] = directives.compactMap { $0.group ?? $0.model }
             let context = EvaluationContext()
-            _ = await buildables.enumerated().asyncMap { index, buildable in
-                await $position.withValue([index]) {
-                    await buildable.build(environment: environment, context: context, options: options, URL: nil, filterPath: [])
+            _ = await ParameterRecorder.$enclosing.withValue(projectParameters) {
+                await buildables.enumerated().asyncMap { index, buildable in
+                    await $position.withValue([index]) {
+                        await buildable.build(environment: environment, context: context, options: options, URL: nil, filterPath: [])
+                    }
                 }
             }
         }

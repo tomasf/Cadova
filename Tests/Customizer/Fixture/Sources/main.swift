@@ -28,6 +28,9 @@ await Project {
 
     // In a group, which a customizer's menu lists it under
     await Group("extras") {
+        // Declared for the whole group, so both its models have it and share its value
+        @Parameter("Thickness", in: 1...5, step: 0.5, unit: "mm") var thickness = 1.5
+
         await Model("washer") {
             @Parameter("Diameter", in: 5...30, step: 1, unit: "mm") var diameter = 12.0
             // A description of several lines with a link, which depends on a parameter, and a
@@ -39,13 +42,13 @@ await Project {
             )
             Circle(diameter: diameter)
                 .subtracting { Circle(diameter: diameter / 2) }
-                .extruded(height: 1.5)
+                .extruded(height: thickness)
         }
 
         // Named like the spacer above, and without a title, so its tab has to name its group
         await Model("spacer") {
             @Parameter("Size", in: 5...30, step: 1, unit: "mm") var size = 10.0
-            Box(size)
+            Box(x: size, y: size, z: thickness)
         }
     }
 }

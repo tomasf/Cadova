@@ -190,9 +190,12 @@ internal struct ProjectBuild: Sendable {
         }
         let url = request?.outputDirectory.map { URL(expandingFilePath: $0) } ?? root
 
-        // Collect directives
-        let directives = await ModelContext(isCollectingModels: true).whileCurrent {
-            await content()
+        // Collect directives. The project's own content reads the values a customizer chose, like its
+        // models do, and the parameters it reads belong to every model in it.
+        let (directives, projectParameters) = await ParameterRecorder.recordingEnclosing {
+            await ModelContext(isCollectingModels: true).whileCurrent {
+                await EnvironmentValues.rootEnvironment.whileCurrent { await content() }
+            }
         }
 
         var failures = 0
@@ -234,8 +237,10 @@ internal struct ProjectBuild: Sendable {
         let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: []) }
         let buildables: [any ModelBuildable] = groups + filteredModels
         let finalOptions = combinedOptions
-        failures += await buildables.asyncMap {
-            await $0.build(environment: environment, context: context, options: finalOptions, URL: url, filterPath: [])
+        failures += await ParameterRecorder.$enclosing.withValue(projectParameters) {
+            await buildables.asyncMap {
+                await $0.build(environment: environment, context: context, options: finalOptions, URL: url, filterPath: [])
+            }
         }.reduce(0, +)
         return failures
     }

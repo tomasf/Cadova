@@ -7,8 +7,9 @@ Generate the fixture's customizer first, then run this with the browser engines 
     python3 ../test_customizer.py chromium webkit
 
 It serves the customizer locally, loads the page, and checks that the form matches the models'
-parameters, that changing them through the URL and through the form rebuilds the model, that each model's
-tab keeps its own values, and that the downloaded 3MF reflects each change.
+parameters, that changing them through the URL and through the form rebuilds the model, that models
+share the values of parameters they have in common and no others, and that the downloaded 3MF reflects
+each change.
 """
 
 import base64
@@ -240,7 +241,7 @@ def test(browser, base_url):
 
 
 def test_tabs(browser, base_url):
-    """Each model with parameters gets a tab, and each keeps its own values, even for parameters with
+    """Each model with parameters gets a tab, and separate parameters keep separate values, even with
     the same label."""
     page = CustomizerPage(browser.new_page(), base_url)
     page.open()
@@ -291,6 +292,36 @@ def test_tabs(browser, base_url):
     expect(page.page.get_by_role("tab", name="Spacer", exact=True)).to_have_attribute("aria-selected", "true")
     spacer = page.download()
     check(abs(spacer.extent(0) - 20) < 0.01, f"Spacer diameter from a link is {spacer.extent(0)}, expected 20")
+    check(not page.errors, f"The page had errors: {page.errors}")
+
+
+def test_shared_parameters(browser, base_url):
+    """A parameter declared for a group is shared by the models in it that read it, and
+    resetting one model resets it for the others too."""
+    page = CustomizerPage(browser.new_page(), base_url)
+    page.open()
+    expect(page.number_field("Thickness")).to_have_count(0)  # the plate isn't in the group
+
+    page.rebuild(lambda: page.page.get_by_role("tab", name="Washer", exact=True).click())
+    expect(page.number_field("Thickness")).to_have_value("1.5")
+    page.rebuild(lambda: page.set_number("Thickness", "3"))
+    washer = page.download()
+    check(abs(washer.extent(2) - 3) < 0.01, f"Washer thickness is {washer.extent(2)}, expected 3")
+
+    # The group's other model has the same value
+    page.rebuild(lambda: page.page.get_by_role("tab", name="Extras › Spacer", exact=True).click())
+    expect(page.number_field("Thickness")).to_have_value("3")
+    spacer = page.download()
+    check(abs(spacer.extent(2) - 3) < 0.01, f"Spacer thickness is {spacer.extent(2)}, expected 3")
+
+    # Resetting the spacer resets the washer's thickness as well
+    page.rebuild(lambda: page.page.locator("#reset").click())
+    expect(page.number_field("Thickness")).to_have_value("1.5")
+    page.rebuild(lambda: page.page.get_by_role("tab", name="Washer", exact=True).click())
+    expect(page.number_field("Thickness")).to_have_value("1.5")
+    expect(page.page.locator("#reset")).to_be_hidden()
+    washer = page.download()
+    check(abs(washer.extent(2) - 1.5) < 0.01, f"Washer thickness after resetting is {washer.extent(2)}, expected 1.5")
     check(not page.errors, f"The page had errors: {page.errors}")
 
 
@@ -1843,7 +1874,7 @@ def main(arguments):
     local = LocalOnly(base_url)
     with sync_playwright() as playwright:
         runs = [(engine, run, []) for engine in engines for run in (
-            test, test_tabs, test_dynamic_parameters, test_dependent_ranges, test_metadata, test_licenses, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
+            test, test_tabs, test_shared_parameters, test_dynamic_parameters, test_dependent_ranges, test_metadata, test_licenses, test_model_menu, test_single_model, test_grid, test_grid_theme, test_viewer_defaults, test_grid_navigation, test_line_rendering, test_sharp_edges, test_lighting, test_navigation, test_touch_navigation, test_axes, test_worker_recovery, test_loading_recovery, test_worker_timeouts, test_model_session, test_preview_matches_3mf,
         ) if not only or run.__name__ in only]
         if "chromium" in engines and (not only or "test_without_webgl" in only):
             runs.append(("chromium", test_without_webgl, ["--disable-webgl", "--disable-3d-apis"]))

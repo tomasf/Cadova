@@ -86,7 +86,22 @@ await Project {
 }
 ```
 
-Each model keeps its own values. If the jar and the lid both have a "Diameter" parameter, changing it on one tab leaves the other alone.
+Models share a parameter's value when they use the same declaration of it. If the jar and the lid each declare a "Diameter" parameter, changing it on one tab leaves the other alone. To give them one value, declare the parameter in the project, or in a ``Group``:
+
+```swift
+await Project {
+    @Parameter("Diameter", in: 40...120, unit: "mm") var diameter = 60.0
+
+    await Model("jar") {
+        Jar(diameter: diameter)
+    }
+    await Model("lid") {
+        Lid(diameter: diameter + 2)
+    }
+}
+```
+
+Changing the diameter on either tab changes it for both. Like any parameter, it only appears on the tabs of models that read it. If the project or group reads it in its own content, such as to work out another value from it, it appears on every model's tab, since any of them could use that value.
 
 To find a model's parameters, Cadova records every parameter that's created or read while the model builds, and it does so for every build. So a parameter that only matters for some choices appears on the page when it does, and goes away when it doesn't, keeping its value in case it comes back:
 

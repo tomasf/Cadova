@@ -186,14 +186,16 @@ public struct Model: Sendable, ModelBuildable {
     ) async {
         let recorder = ParameterRecorder()
         let (metadata, parameters) = await ParameterRecorder.$current.withValue(recorder) {
-            // The model's own content comes first, then its geometry, then anything only recorded
-            // along the way
+            // The project's and groups' content comes first, then the model's own content, then its
+            // geometry, then anything only recorded along the way
             let content = recorder.nested()
             let (directives, options, environment) = ParameterRecorder.$current.withValue(content) {
                 resolveContent(environment: inheritedEnvironment, options: inheritedOptions)
             }
             let built = try? await directives.build(with: options, in: environment, context: context)
-            return (options[Metadata.self], ParameterList.merging(content.parameters, built?.parameters ?? [], recorder.parameters))
+            return (options[Metadata.self], ParameterList.merging(
+                ParameterRecorder.enclosing, content.parameters, built?.parameters ?? [], recorder.parameters
+            ))
         }
         catalog.add(.init(name: name, title: metadata.title, description: metadata.description,
                           author: metadata.author, license: metadata.license, groups: groups,
@@ -260,7 +262,9 @@ public struct Model: Sendable, ModelBuildable {
             do {
                 if let recorder {
                     let info = try JSONEncoder().encode(CustomizerBuildInfo(
-                        parameters: ParameterList.merging(contentRecorder?.parameters ?? [], builtParameters, recorder.parameters),
+                        parameters: ParameterList.merging(
+                            ParameterRecorder.enclosing, contentRecorder?.parameters ?? [], builtParameters, recorder.parameters
+                        ),
                         metadata: options[Metadata.self]
                     ))
                     try info.write(to: baseURL.appendingPathExtension(CustomizerRequest.parameterFileExtension))

@@ -655,4 +655,78 @@ struct ParameterTests {
         #expect((model["parameters"] as? [[String: Any]])?.first?["label"] as? String == "Size")
         #expect(try FileManager.default.contentsOfDirectory(atPath: tempDir.path) == ["parameters.json"])
     }
+
+    @Test func `Parameters a project or group reads in its own content belong to every model in it`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let catalog = await ParameterCatalog.collect(options: []) {
+            // Read here, so every model gets it, since any of them could use the value worked out from it
+            @Parameter("Size") var size = 10.0
+            let doubled = size * 2
+            // Only declared here, so it goes to the models that read it
+            @Parameter("Count") var count = 3
+
+            await Model(tempDir.appending(path: "derived").path) {
+                @Parameter("Height") var height = 5.0
+                Box(x: doubled, y: doubled, z: height)
+            }
+            await Model(tempDir.appending(path: "counted").path) {
+                Box(Double(count))
+            }
+            await Group("parts") {
+                @Parameter("Thickness") var thickness = 2.0
+                await Model("plain") {
+                    Box(thickness)
+                }
+                // Reads none of the parameters
+                await Model("bare") {
+                    Box(1)
+                }
+            }
+        }
+
+        let json = try #require(try JSONSerialization.jsonObject(with: catalog.jsonData()) as? [String: Any])
+        let models = try #require(json["models"] as? [[String: Any]])
+        let parameters = Dictionary(uniqueKeysWithValues: models.map {
+            (URL(fileURLWithPath: $0["name"] as? String ?? "").lastPathComponent,
+             ($0["parameters"] as? [[String: Any]] ?? []).compactMap { $0["label"] as? String })
+        })
+        #expect(parameters["derived"] == ["Size", "Height"])
+        #expect(parameters["counted"] == ["Size", "Count"])
+        #expect(parameters["plain"] == ["Size", "Thickness"])
+        #expect(parameters["bare"] == ["Size"])
+        // One declaration is one parameter, wherever a model gets it from
+        let sizeKeys = models.compactMap { ($0["parameters"] as? [[String: Any]])?.first?["key"] as? String }
+        #expect(sizeKeys.count == 4 && Set(sizeKeys).count == 1)
+    }
+
+    @Test func `A project's content reads the values a customizer chose`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let outputDir = tempDir.appending(path: "output")
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let lidDiameter = CapturedValue<Double>()
+        let diameter = Parameter(wrappedValue: 60.0, "Diameter")
+        let request = CustomizerRequest(model: "lid", values: [diameter.key: "75"], outputDirectory: outputDir.path, preview: true)
+
+        await CustomizerRequest.$overridden.withValue(request) {
+            await Project(root: tempDir.appending(path: "project")) {
+                let lidSize = diameter.wrappedValue + 2
+                await Model("lid") {
+                    let _ = lidDiameter.value = lidSize
+                    Cylinder(diameter: lidSize, height: 5)
+                }
+            }
+        }
+
+        #expect(lidDiameter.value == 77)
+        // The preview reports the project's parameter, which the lid only uses through a value
+        // worked out from it
+        let data = try Data(contentsOf: outputDir.appending(path: "lid.parameters.json"))
+        let info = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let keys = (info["parameters"] as? [[String: Any]] ?? []).compactMap { $0["key"] as? String }
+        #expect(keys == [diameter.key])
+    }
 }

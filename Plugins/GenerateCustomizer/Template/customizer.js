@@ -14,20 +14,17 @@ const $ = (id) => document.getElementById(id);
 
 // The models and their parameters come from the model itself, listed once it has loaded. A
 // parameter is identified by an opaque key, which only has to agree with the model built along with
-// this page, and each model keeps its own values. Only changed values are kept, by model; everything
-// else has its default. Values aren't kept in the address, since a link would outlive the keys.
+// this page. The key stands for where the parameter is declared, so models that use the same
+// declaration share its value, such as one declared for a whole project. Only changed values are
+// kept, by key; everything else has its default. Values aren't kept in the address, since a link
+// would outlive the keys.
 //
 // Which parameters a model uses can depend on its values, such as a choice of shape that each has
 // parameters of its own, so every preview reports the ones it used, and the form follows. A model's
 // `parameters` are the ones it uses now, and `known` every one it has used, whose changed values are
 // kept while they're hidden.
 let catalog, models, model;
-const changed = new Map();
-
-function changedValues(m) {
-    if (!changed.has(m.name)) changed.set(m.name, {});
-    return changed.get(m.name);
-}
+const changed = {};
 
 // MARK: Form
 
@@ -273,10 +270,10 @@ function select(next) {
     }
 }
 
-// The value a parameter of a model gets: a changed value made to fit it (clamped to its range, or its
-// default if it's not a value this parameter can take), or else its default
-function valueFor(parameter, m = model) {
-    const value = changed.get(m.name)?.[parameter.key];
+// The value a parameter gets: a changed value made to fit it (clamped to its range, or its default if
+// it's not a value this parameter can take), or else its default
+function valueFor(parameter) {
+    const value = changed[parameter.key];
     if (value === undefined) return parameter.default;
     switch (parameter.type) {
         case "boolean":
@@ -302,8 +299,8 @@ function valueFor(parameter, m = model) {
 // Only changed values are sent; the model uses its defaults for the rest. So a parameter that starts
 // being used, with its default value, doesn't call for another build.
 function valuesFor(m) {
-    return Object.fromEntries(Object.keys(changed.get(m.name) ?? {}).filter((key) => m.known.has(key)).sort()
-        .map((key) => [key, valueFor(m.known.get(key), m)]));
+    return Object.fromEntries(Object.keys(changed).filter((key) => m.known.has(key)).sort()
+        .map((key) => [key, valueFor(m.known.get(key))]));
 }
 
 function buildKey(m) {
@@ -451,7 +448,7 @@ function field(parameter, index) {
 }
 
 function update(key, value) {
-    changedValues(model)[key] = value;
+    changed[key] = value;
     updateReset();
     requestBuild();
 }
@@ -465,11 +462,12 @@ const settingsEnd = $("settings-end");
 $("licenses").search = new URL(import.meta.url).search;
 
 function updateReset() {
-    resetButton.hidden = !isReady || Object.keys(changed.get(model?.name) ?? {}).length === 0;
+    resetButton.hidden = !isReady || !Object.keys(changed).some((key) => model?.known.has(key));
 }
 
+// Resets every parameter the model has used, including ones it shares with other models
 resetButton.addEventListener("click", () => {
-    changed.delete(model.name);
+    for (const key of model.known.keys()) delete changed[key];
     for (const parameter of model.parameters) controls.get(parameter.key)(parameter.default);
     updateReset();
     requestBuild();

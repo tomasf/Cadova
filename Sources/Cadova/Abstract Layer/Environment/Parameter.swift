@@ -20,16 +20,17 @@ import Foundation
 /// ```
 ///
 /// A parameter is identified by where it's declared, so every use of the same declaration shares its
-/// value, while separate declarations are separate parameters, even with the same label. Each model
-/// keeps its own values.
+/// value, across models too, while separate declarations are separate parameters, even with the
+/// same label.
 ///
 /// Parameters can be declared anywhere in a model's code, such as in a geometry's `body` or as a
 /// property of a geometry type. A property is one parameter however many instances there are, so
 /// `GridPlate(columns: 3)` and `GridPlate(columns: 6)` share a single control. Cadova logs a warning
 /// when uses of one parameter have different defaults or settings.
 ///
-/// Read parameters inside a model: in a geometry's `body`, a `Model { }` builder or another geometry
-/// callback. A parameter read outside any model has its default value.
+/// A parameter declared in a `Project` or `Group` is shared by the models in it that read it. If the
+/// project or group reads it in its own content, it belongs to every model in it. A parameter read
+/// anywhere else outside a model, such as before a `Project`, has its default value.
 ///
 /// Supported types include `Int`, `Double`, `Bool`, `String`, `Angle`, ``Color``, and ``ParameterChoice`` enums;
 /// see ``ParameterValue`` for details.
@@ -188,7 +189,7 @@ import Foundation
         self.maximum = maximum
         self.step = step
         self.unit = unit
-        ParameterRecorder.current?.record(descriptor)
+        ParameterRecorder.current?.recordDeclaration(descriptor)
     }
 
     public var wrappedValue: Value {
