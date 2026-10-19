@@ -40,6 +40,10 @@ public extension ModelOptions {
 
 extension ModelOptions {
     func dataProvider(for result: BuildResult<D3>, in environment: EnvironmentValues) -> OutputDataProvider {
+        // A customizer previews every model from its meshes, whatever format it downloads in
+        if CustomizerRequest.current?.preview == true {
+            return ThreeMFDataProvider(result: result, options: self, environment: environment)
+        }
         switch self[FileFormat3D.self] {
         case .threeMF: return ThreeMFDataProvider(result: result, options: self, environment: environment)
         case .stl: return BinarySTLDataProvider(result: result, options: self)
@@ -47,11 +51,23 @@ extension ModelOptions {
     }
 
     func dataProvider(for result: BuildResult<D2>, in environment: EnvironmentValues) -> OutputDataProvider {
-        switch self[FileFormat2D.self] {
+        if CustomizerRequest.current?.preview == true {
+            return ThreeMFDataProvider(result: result.promotedTo3D(), options: self, environment: environment)
+        }
+        switch format2D {
         case .threeMF:
             return ThreeMFDataProvider(result: result.promotedTo3D(), options: self, environment: environment)
         case .svg:
             return SVGDataProvider(result: result, options: self)
         }
+    }
+
+    /// The 2D format to write. A customizer's visitor has no use for a flat 3MF file, so it
+    /// downloads SVG unless the model asks for a format itself.
+    private var format2D: FileFormat2D {
+        if CustomizerRequest.current != nil, !specifies(FileFormat2D.self) {
+            return .svg
+        }
+        return self[FileFormat2D.self]
     }
 }

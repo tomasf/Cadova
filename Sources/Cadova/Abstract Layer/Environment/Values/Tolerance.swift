@@ -34,6 +34,10 @@ public extension EnvironmentValues {
     /// creation in Cadova, it can be utilized by your own models to adjust generation of geometries according to the
     /// specified tolerance.
     ///
+    /// By convention, the tolerance is the total clearance in a fit, the difference in size between two parts that fit
+    /// together: add it to a hole's diameter or a slot's width, or subtract it from the part that goes in. An offset
+    /// moves every side of a shape, so offset by half the tolerance to change its size by the whole of it.
+    ///
     /// Like segmentation, the tolerance is a length, and is expressed in the coordinate system it is set in. Reading it
     /// from a coordinate system that has been scaled since then returns the equivalent clearance for that system, so
     /// the fit it describes is the same either way. Setting it and immediately reading it back always gives you the

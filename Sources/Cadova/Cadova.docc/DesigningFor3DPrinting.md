@@ -66,7 +66,9 @@ This is a drop-in replacement for `.fillet(radius:)` anywhere the resulting edge
 
 ## Fit and tolerance
 
-`tolerance` is a plain `Double` in the environment. Cadova doesn't apply it to geometry automatically, but it's a conventional place to store a print-fit clearance so it can be read consistently across a model instead of being hardcoded in multiple places:
+`tolerance` is a plain `Double` in the environment. Cadova doesn't apply it to geometry automatically, but it's a conventional place to store a print-fit clearance so it can be read consistently across a model instead of being hardcoded in multiple places.
+
+By convention, the tolerance is the total clearance in a fit: the difference in size between a hole and the part that goes into it. Add it to a hole's diameter or a slot's width, or subtract it from the part that fits inside:
 
 ```swift
 Box(x: 20, y: 20, z: 4)
@@ -78,7 +80,7 @@ Box(x: 20, y: 20, z: 4)
     .withTolerance(0.2)
 ```
 
-Growing a diameter only works for round parts. For a part of any shape, `offset(amount:)` grows it by the clearance on every side, and the grown part cuts a socket it fits into:
+Growing a diameter only works for round parts. For a part of any shape, `offset(amount:)` grows it on every side, and the grown part cuts a socket it fits into. An offset moves each side, so offset by half the tolerance to grow the part's size by the whole of it:
 
 ```swift
 let peg = RegularPolygon(sideCount: 6, circumradius: 5)
@@ -88,7 +90,7 @@ Box(x: 20, y: 20, z: 8)
     .aligned(at: .centerXY)
     .subtracting {
         @Environment(\.tolerance) var tolerance
-        peg.offset(amount: tolerance)
+        peg.offset(amount: tolerance / 2)
     }
     .withTolerance(0.2)
 ```

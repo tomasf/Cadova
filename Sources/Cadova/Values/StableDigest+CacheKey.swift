@@ -77,5 +77,7 @@ extension ReflectedCacheKey: StableHashable {
     func stableHash(into hasher: inout StableHasher) {
         hasher.combine(typeName)
         hasher.combine(fields)
+        // Sorted by parameter key, since a dictionary's order isn't stable
+        hasher.combine(parameterValues.sorted { $0.key < $1.key }.flatMap { [$0.key, $0.value] })
     }
 }

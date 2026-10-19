@@ -18,7 +18,12 @@ struct SVGDataProvider: OutputDataProvider {
     func generateOutput(context: EvaluationContext) async throws -> Data {
         let nodeResult = try await context.result(for: outputNode)
 
-        let bounds = BoundingBox2D(nodeResult.concrete.bounds)
+        // An empty model has no bounds, so it becomes an empty drawing of no size
+        let isEmpty = nodeResult.concrete.isEmpty
+        if isEmpty {
+            ModelLogger.current.exportingEmptySVG()
+        }
+        let bounds = isEmpty ? BoundingBox2D(minimum: .zero, maximum: .zero) : BoundingBox2D(nodeResult.concrete.bounds)
         let shapePoints = nodeResult.concrete.polygons()
 
         let document = Document()

@@ -1,8 +1,23 @@
 import Foundation
 internal import Apus
 
-internal enum TextError: Error {
+internal enum TextError: Error, CustomStringConvertible {
     case fontNotFound (family: String, style: String?)
+    case fontFileRequired (family: String)
+
+    var description: String {
+        switch self {
+        case .fontNotFound(let family, let style):
+            "No font was found for \(family)\(style.map { " " + $0 } ?? "")."
+        case .fontFileRequired(let family):
+            """
+            Text needs a font file in a web customizer, because there are no system fonts to look up \
+            \(family) in. Include a font file as a resource in your package and name it with \
+            withFont(_:style:size:from:), for example:
+            Text("Hello").withFont("Inter", style: "Bold", from: Bundle.module.url(forResource: "Inter-Bold", withExtension: "ttf"))
+            """
+        }
+    }
 }
 
 /// Generic fallback families tried, in order, when no requested family is available.
@@ -29,7 +44,7 @@ private func resolveFont(family: String, style: String?, variations: [Apus.FontV
             return font
         }
     }
-    throw Font.FontError.fontNotFound(family: family, style: style)
+    throw Font.Error.fontNotFound(family: family, style: style)
 }
 
 private extension String {
@@ -64,11 +79,16 @@ extension TextAttributes {
             let fontData = try Data(contentsOf: fontFile)
             font = try Font(data: fontData, family: family, style: fontFace?.style, variations: apusVariations)
         } else {
+            #if os(WASI)
+            // There's no system font lookup in WebAssembly
+            throw TextError.fontFileRequired(family: family)
+            #else
             do {
                 font = try resolveFont(family: family, style: fontFace?.style, variations: apusVariations)
-            } catch Font.FontError.fontNotFound {
+            } catch Font.Error.fontNotFound {
                 throw TextError.fontNotFound(family: family, style: fontFace?.style)
             }
+            #endif
         }
 
         // Apus uses 1000pt internally, scale to requested size

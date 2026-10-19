@@ -20,7 +20,9 @@ struct EdgeProfileTightCurvatureTests {
         let context = _EvaluationContext()
         let result = try await context.buildResult(for: geometry.withDefaultSegmentation(), in: .defaultEnvironment)
         let mesh = try await context.result(for: result.node).concrete.meshGL()
+        // Both are converted from the mesh on every access, so read them once
         let verts = mesh.vertices
+        let triangles = mesh.triangles
         func normal(_ t: MeshTriangle) -> Vector3D {
             let a = verts[t.a]
             let n = (verts[t.b] - a) × (verts[t.c] - a)
@@ -28,14 +30,14 @@ struct EdgeProfileTightCurvatureTests {
             return m > 0 ? n / m : .zero
         }
         var edgeMap: [Int64: [Int]] = [:]
-        for (index, triangle) in mesh.triangles.enumerated() {
+        for (index, triangle) in triangles.enumerated() {
             for (a, b) in [(triangle.a, triangle.b), (triangle.b, triangle.c), (triangle.c, triangle.a)] {
                 edgeMap[Int64(min(a, b)) << 32 | Int64(max(a, b)), default: []].append(index)
             }
         }
         let threshold = cos(179 * Double.pi / 180)
         return edgeMap.values
-            .filter { $0.count == 2 && normal(mesh.triangles[$0[0]]) ⋅ normal(mesh.triangles[$0[1]]) < threshold }
+            .filter { $0.count == 2 && normal(triangles[$0[0]]) ⋅ normal(triangles[$0[1]]) < threshold }
             .count
     }
 

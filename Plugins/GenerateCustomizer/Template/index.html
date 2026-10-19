@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Customizer</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three-0.170.0/build/three.module.min.js",
+    "three/addons/": "./vendor/three-0.170.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --panel: #ffffff;
+    --text: #1d1d1b;
+    --muted: #6b6a66;
+    --line: #e3e1db;
+    --accent: #c2410c;
+    --accent-soft: #fbe9df;
+    --viewer: #0d0d0d;
+    --grid: #ffffff;
+    --model: #ffffff;
+    --danger: #b42318;
+    --warning: #b54708;
+    --wordmark-braces: #12141a;
+    --wordmark-letters: #12141a;
+    --on-accent: #fff;
+    --axis-x: #ff453a; --axis-y: #30d158; --axis-z: #0a84ff;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614;
+      --panel: #1f1f1d;
+      --text: #ecebe7;
+      --muted: #9c9a94;
+      --line: #33322f;
+      --accent: #f08a4b;
+      --accent-soft: #3a2519;
+      --danger: #f97066;
+      --warning: #fdb022;
+      --wordmark-braces: #ff6347;
+      --wordmark-letters: #f6f3ec;
+      --on-accent: #000;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614; --panel: #1f1f1d; --text: #ecebe7; --muted: #9c9a94; --line: #33322f;
+    --accent: #f08a4b; --accent-soft: #3a2519; --danger: #f97066; --warning: #fdb022;
+    --wordmark-braces: #ff6347; --wordmark-letters: #f6f3ec; --on-accent: #000;
+    color-scheme: dark;
+  }
+
+  /* The page fills the whole screen, under a phone's camera housing and home indicator too, and keeps
+     its content within the safe area that leaves clear */
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px); --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-left: env(safe-area-inset-left, 0px);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: grid;
+    grid-template-columns: minmax(calc(300px + var(--safe-left)), calc(360px + var(--safe-left))) 1fr;
+    grid-template-rows: 100%;
+  }
+
+  aside {
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  header { padding: calc(20px + var(--safe-top)) 20px 12px calc(20px + var(--safe-left)); }
+  h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  /* Long addresses in descriptions wrap */
+  .subtitle, .model-description { overflow-wrap: anywhere; }
+  .subtitle a, .model-description a, .byline a { color: inherit; }
+  .byline { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+  .byline a { white-space: nowrap; }
+  .byline[hidden] { display: none; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .tabs[hidden] { display: none; }
+  .tabs button {
+    font: inherit; font-size: 13.5px; padding: 5px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: transparent; color: var(--text);
+  }
+  .tabs button[aria-selected="true"] {
+    background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600;
+  }
+  #model-menu { margin-top: 14px; font-weight: 600; }
+  #model-menu[hidden] { display: none; }
+  .model-description { color: var(--muted); font-size: 13px; margin: 8px 0 4px; }
+
+  form { flex: 1; overflow-y: auto; padding: 4px 20px calc(16px + var(--safe-bottom)) calc(20px + var(--safe-left)); }
+  .field { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .field:last-child { border-bottom: none; }
+  .field-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .field label { font-weight: 600; font-size: 14px; }
+  .field .help { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .field .control { margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+
+  input[type="range"] { flex: 1; accent-color: var(--accent); min-width: 0; }
+  input[type="number"], input[type="text"], select {
+    font: inherit; font-size: 14px; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px;
+  }
+  input[type="number"] { width: 84px; text-align: right; font-variant-numeric: tabular-nums; }
+  input[type="text"], select { width: 100%; }
+  input:focus-visible, select:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+  .unit { color: var(--muted); font-size: 13px; margin-left: -6px; }
+
+  .segmented { display: flex; width: 100%; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .segmented button {
+    flex: 1; font: inherit; font-size: 13.5px; padding: 5px 6px; border: none; background: transparent;
+    color: var(--text); cursor: pointer; border-right: 1px solid var(--line);
+  }
+  .segmented button:last-child { border-right: none; }
+  .segmented button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+  /* A color parameter's swatch, by its label */
+  input.swatch {
+    width: 44px; height: 26px; flex: none; padding: 2px; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
+  }
+  input.swatch::-webkit-color-swatch-wrapper { padding: 0; }
+  input.swatch::-webkit-color-swatch { border: none; border-radius: 4px; }
+  input.swatch::-moz-color-swatch { border: none; border-radius: 4px; }
+
+  .toggle { position: relative; width: 40px; height: 22px; flex: none; cursor: pointer; }
+  /* The checkbox covers the switch it draws. WebKit keeps a positioned checkbox at its own small
+     size unless it's sized explicitly, which left most of the switch unclickable in Safari. */
+  .toggle input {
+    position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+  }
+  .toggle span {
+    position: absolute; inset: 0; border-radius: 11px; background: var(--line); transition: background .15s;
+    pointer-events: none;
+  }
+  .toggle span::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--panel); transition: transform .15s; box-shadow: 0 1px 2px rgb(0 0 0 / .25);
+  }
+  .toggle input:checked + span { background: var(--accent); }
+  .toggle input:checked + span::after { transform: translateX(18px); }
+  .toggle input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Kept out of the way at the end of the settings: Reset, only there once something has changed, and
+     the licenses, at the other end so they stay put when Reset comes and goes */
+  .settings-end { display: flex; align-items: baseline; gap: 12px; padding-top: 12px; }
+  .reset {
+    font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: none;
+    padding: 0; cursor: pointer;
+  }
+  .reset:hover { color: var(--text); text-decoration: underline; }
+  .licenses { margin-left: auto; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+  .licenses:hover { color: var(--text); }
+  button.primary, button.secondary {
+    font: inherit; font-weight: 600; font-size: 14px; border-radius: 8px; padding: 9px 14px; cursor: pointer;
+  }
+  button.primary { background: var(--accent); color: var(--on-accent); border: 1px solid var(--accent); }
+  button:disabled { opacity: .5; cursor: default; }
+  /* Disabled, but not yet for long enough to look it, so that quick rebuilds don't make it flicker */
+  #download.held:disabled { opacity: 1; }
+  button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
+
+  /* A failure shows over the model view, which stays dimmed behind it: what happened, then what the
+     model had to say about it, in smaller, quieter text */
+  .alert {
+    position: absolute; inset: 0; display: grid; place-items: center; padding: 16px;
+    background: rgb(0 0 0 / .45); color: var(--text);
+  }
+  .alert[hidden] { display: none; }
+  .alert-card {
+    width: min(100%, 460px); max-height: 100%; overflow: auto; padding: 18px 20px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 8px 30px rgb(0 0 0 / .35);
+  }
+  #status { font-weight: 600; font-size: 15px; }
+  #log {
+    margin-top: 8px; color: var(--muted);
+    font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  #log:empty { display: none; }
+  /* A message that wraps is indented, so that it doesn't read as the next one */
+  #log > div { white-space: pre-wrap; overflow-wrap: anywhere; padding-left: 2ch; text-indent: -2ch; }
+  #log > div + div { margin-top: 2px; }
+  .alert-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+  /* Floats over the model view, so it gets a translucent panel of its own */
+  .credit {
+    position: fixed; top: calc(14px + var(--safe-top)); right: calc(14px + var(--safe-right)); display: inline-flex; align-items: center; gap: 6px;
+    color: var(--muted); font-size: 13px; text-decoration: none;
+    background: color-mix(in srgb, var(--panel) 82%, transparent); backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px;
+  }
+  .credit:hover { color: var(--text); }
+  .credit svg { height: 31px; width: auto; display: block; margin: -5px 0; }
+  .cadova-braces { stroke: var(--wordmark-braces); }
+  .cadova-letters { fill: var(--wordmark-letters); }
+
+  main { position: relative; background: var(--viewer); color: #ffffff; min-width: 0; min-height: 0; }
+  .stage { position: absolute; inset: 0; }
+  #viewer { position: absolute; inset: 0; overflow: hidden; }
+  #viewer canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  /* Zoom and reset buttons, floating over the model view's top-left corner */
+  .view-controls {
+    position: absolute; top: calc(14px + var(--safe-top)); left: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .view-controls[hidden] { display: none; }
+  .view-controls button {
+    width: 36px; height: 36px; padding: 0; border-radius: 50%; cursor: pointer; touch-action: manipulation;
+    display: grid; place-items: center; color: var(--text);
+    background: color-mix(in srgb, var(--panel) 82%, transparent); backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px); border: 1px solid var(--line);
+  }
+  .view-controls button:hover { background: var(--panel); }
+  .view-controls svg {
+    width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  /* Bigger on a touch screen, where they're tapped with a finger */
+  @media (pointer: coarse) {
+    .view-controls button { width: 42px; height: 42px; }
+    .view-controls svg { width: 20px; height: 20px; }
+  }
+
+  /* The model's size, as a caption under the axes, which sit a line higher to make room */
+  .model-size {
+    position: absolute; left: 16px; bottom: calc(14px + var(--safe-bottom)); pointer-events: none;
+    font-size: 12px; color: #9c9a94; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .model-size[hidden] { display: none; }
+  #axis-indicator {
+    position: absolute; left: 16px; bottom: calc(34px + var(--safe-bottom)); width: 110px; height: 110px;
+    pointer-events: none; filter: drop-shadow(0 0 2px black);
+  }
+  #axis-indicator line { stroke-width: 1; }
+  #axis-indicator line[data-axis="x"] { stroke: var(--axis-x); }
+  #axis-indicator line[data-axis="y"] { stroke: var(--axis-y); }
+  #axis-indicator line[data-axis="z"] { stroke: var(--axis-z); }
+  #axis-indicator text { fill: currentColor; font-size: 10px; text-anchor: middle; dominant-baseline: central; }
+  #overlay {
+    position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 10px;
+    color: #9c9a94; pointer-events: none;
+  }
+  #overlay[hidden] { display: none; }
+  .progress { width: 220px; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .progress div { height: 100%; width: 0; background: var(--accent); transition: width .1s; }
+  .viewer-actions {
+    position: absolute; right: calc(16px + var(--safe-right)); bottom: calc(16px + var(--safe-bottom));
+    max-width: calc(100% - 32px - var(--safe-right));
+    display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px;
+  }
+  .viewer-actions button.primary {
+    font-size: 16px; padding: 12px 22px; border-radius: 10px; box-shadow: 0 2px 10px rgb(0 0 0 / .18);
+  }
+  #build-progress {
+    display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--muted);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px;
+  }
+  #build-progress[hidden] { display: none; }
+  #cancel {
+    font: inherit; color: var(--accent); cursor: pointer; background: transparent;
+    border: none; border-left: 1px solid var(--line); padding: 2px 0 2px 10px;
+  }
+
+  /* On a short screen, such as a phone on its side, the whole sidebar scrolls as one, rather than
+     leaving the settings a sliver under a fixed heading */
+  @media (max-height: 500px) {
+    aside { overflow-y: auto; }
+    form { flex: none; overflow: visible; }
+  }
+
+  /* Download and the credit, when they're moved into the sidebar on a short screen: Download in a
+     bar along its bottom, always in reach, and the credit at the end of its settings */
+  aside .viewer-actions {
+    position: sticky; bottom: 0; right: auto; max-width: none; flex-wrap: nowrap;
+    padding: 10px 20px calc(10px + var(--safe-bottom)) calc(20px + var(--safe-left));
+    background: var(--panel); border-top: 1px solid var(--line);
+  }
+  aside .viewer-actions button.primary { flex: 1; box-shadow: none; font-size: 15px; padding: 10px 14px; }
+  aside .credit { position: static; align-self: center; margin: 4px 0 16px var(--safe-left); }
+
+  /* On a phone held upright, the model view goes above the settings, with Download in a bar right
+     below it, and the credit moves to the end of the page, out of the view's way. A phone on its
+     side keeps the columns, since stacking would leave the view wide and thin. */
+  @media (max-width: 760px) and (orientation: portrait), (max-width: 540px) {
+    body { grid-template-columns: 100%; grid-template-rows: auto auto auto; height: auto; min-height: 100%; }
+    main { grid-row: 1; display: flex; flex-direction: column; }
+    .stage { position: relative; inset: auto; height: 62vh; height: 62svh; }
+    #axis-indicator { bottom: 34px; }
+    .model-size { bottom: 14px; }
+    .viewer-actions {
+      position: static; max-width: none; flex-wrap: nowrap;
+      padding: 10px calc(16px + var(--safe-right)) 10px calc(16px + var(--safe-left));
+      background: var(--panel); color: var(--text);
+    }
+    .viewer-actions button.primary { flex: 1; box-shadow: none; }
+    aside { grid-row: 2; border-right: none; border-top: 1px solid var(--line); }
+    header, form {
+      padding-left: calc(16px + var(--safe-left)); padding-right: calc(16px + var(--safe-right));
+    }
+    header { padding-top: 20px; }
+    form { padding-bottom: 16px; }
+    form { overflow: visible; }
+    .credit { position: static; grid-row: 3; justify-self: center; margin: 4px 0 calc(24px + var(--safe-bottom)); }
+  }
+</style>
+</head>
+<body>
+  <aside>
+    <header>
+      <h1 id="title">Customizer</h1>
+      <div class="subtitle" id="subtitle">Adjust the parameters, then download the model.</div>
+      <div class="byline" id="byline" hidden></div>
+      <div class="tabs" id="models" role="tablist" aria-label="Models" hidden></div>
+      <select id="model-menu" aria-label="Model" hidden></select>
+    </header>
+    <form id="parameters" autocomplete="off">
+      <div class="settings-end" id="settings-end">
+        <button type="button" class="reset" id="reset" hidden>Reset to defaults</button>
+        <a class="licenses" id="licenses" href="licenses.html" target="_blank" rel="noopener">Third-party licenses</a>
+      </div>
+    </form>
+    <!-- What the page last did, such as "Built in 12 ms", for scripts that watch it -->
+    <span id="build-time" hidden>Not built yet</span>
+  </aside>
+  <main>
+    <div class="stage">
+      <div id="viewer"></div>
+      <div class="model-size" id="model-size" hidden></div>
+      <div class="view-controls" id="view-controls" role="toolbar" aria-label="View" hidden>
+        <button type="button" id="zoom-in" aria-label="Zoom in" title="Zoom in">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <button type="button" id="zoom-out" aria-label="Zoom out" title="Zoom out">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+        </button>
+        <button type="button" id="reset-view" aria-label="Reset view" title="Reset view">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z M4 7.5l8 4.5 8-4.5 M12 12v9"/></svg>
+        </button>
+      </div>
+      <div class="alert" id="alert" hidden>
+        <div class="alert-card" role="alert">
+          <div id="status"></div>
+          <div id="log"></div>
+          <div class="alert-actions">
+            <button type="button" class="primary" id="retry">Try again</button>
+            <button type="button" class="secondary" id="dismiss">Dismiss</button>
+          </div>
+        </div>
+      </div>
+      <div id="overlay">
+        <div id="overlay-text">Loading model…</div>
+        <div class="progress"><div id="progress-bar"></div></div>
+      </div>
+    </div>
+    <div class="viewer-actions">
+      <div id="build-progress" hidden>
+        <span id="building" role="status" hidden>Building…</span>
+        <button type="button" id="cancel" hidden>Cancel</button>
+      </div>
+      <button type="button" class="primary" id="download" disabled>Download Model</button>
+    </div>
+  </main>
+  <a class="credit" href="https://cadova.org" target="_blank" rel="noopener" aria-label="Made with Cadova">
+    Made with <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1056.0 400" aria-hidden="true"><g transform="translate(-26.56,16.79) scale(3.6641)"><g fill="none" class="cadova-braces" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-5.0,0)" d="M28,20 C21,20 22,27 22,36 L22,43 C22,47 20,50 15,50 C20,50 22,53 22,57 L22,64 C22,73 21,80 28,80"/><path transform="translate(5.0,0)" d="M72,20 C79,20 78,27 78,36 L78,43 C78,47 80,50 85,50 C80,50 78,53 78,57 L78,64 C78,73 79,80 72,80"/></g><polygon points="50.0,29.4 68.706,40.2 50.0,51.0 31.294,40.2" fill="#FF9A80"/><polygon points="31.294,40.2 50.0,51.0 50.0,72.6 31.294,61.8" fill="#FF6347"/><polygon points="50.0,51.0 68.706,40.2 68.706,61.8 50.0,72.6" fill="#C8412A"/></g><path d="M419.6 273.7Q392.8 273.7 379.9 255.2Q367.1 236.8 367.1 202.9Q367.1 169.2 379.9 150.7Q392.8 132.1 419.6 132.1Q429.8 132.1 437.5 134.9Q445.3 137.6 451 142.4Q456.7 147.2 460.4 154Q464.1 160.8 466.3 168.8L442.7 175.5Q441.4 170.8 439.6 166.6Q437.8 162.5 435.2 159.5Q432.5 156.5 428.6 154.8Q424.7 153.1 419.2 153.1Q405.9 153.1 400.1 163.3Q394.3 173.5 394.3 191.1V214.7Q394.3 232.3 400.1 242.5Q405.9 252.7 419.2 252.7Q424.7 252.7 428.6 251Q432.5 249.4 435.2 246.3Q437.8 243.3 439.6 239.2Q441.4 235 442.7 230.3L466.3 237Q464.1 245 460.4 251.8Q456.7 258.6 451 263.4Q445.3 268.2 437.5 270.9Q429.8 273.7 419.6 273.7Z M570.9 271.3Q561.7 271.3 556.7 266.7Q551.7 262.1 550.7 253.9H549.8Q547 263.3 539 268.5Q530.9 273.7 519.2 273.7Q503.9 273.7 494.9 265.6Q485.9 257.6 485.9 243.3Q485.9 212.7 530.7 212.7H548.6V206Q548.6 196.4 543.9 191.5Q539.2 186.6 528.6 186.6Q519 186.6 513.1 190.4Q507.2 194.1 503.1 200L488.8 187.8Q493.5 179.4 504 173.6Q514.5 167.8 531.1 167.8Q551.1 167.8 562.4 177.1Q573.7 186.4 573.7 204.9V252.5H585.6V271.3ZM527.6 256.4Q536.6 256.4 542.6 252.2Q548.6 248 548.6 240.7V227.2H531.3Q510.8 227.2 510.8 240.1V244.1Q510.8 250.1 515.3 253.3Q519.8 256.4 527.6 256.4Z M671.5 253.5H670.1Q666 262.7 658.8 268.2Q651.7 273.7 639.9 273.7Q631.3 273.7 624.1 270.4Q617 267.2 611.9 260.6Q606.8 254.1 604 244.1Q601.3 234.1 601.3 220.7Q601.3 194.1 611.9 181Q622.5 167.8 639.9 167.8Q651.7 167.8 658.8 173.3Q666 178.8 670.1 188H671.5V126.3H696.6V271.3H671.5ZM650.5 253.7Q654.8 253.7 658.6 252.6Q662.5 251.5 665.3 249.5Q668.1 247.4 669.8 244.2Q671.5 240.9 671.5 236.6V204.9Q671.5 200.6 669.8 197.3Q668.1 194.1 665.3 192Q662.5 190 658.6 188.9Q654.8 187.8 650.5 187.8Q639.5 187.8 633.5 194.5Q627.6 201.1 627.6 212.7V228.8Q627.6 240.3 633.5 247Q639.5 253.7 650.5 253.7Z M768.9 273.7Q757.3 273.7 748.2 269.9Q739.1 266.2 732.7 259.4Q726.4 252.5 722.9 242.7Q719.5 232.9 719.5 220.7Q719.5 208.6 722.9 198.8Q726.4 189 732.7 182.1Q739.1 175.3 748.2 171.5Q757.3 167.8 768.9 167.8Q780.3 167.8 789.5 171.5Q798.7 175.3 805 182.1Q811.4 189 814.8 198.8Q818.3 208.6 818.3 220.7Q818.3 232.9 814.8 242.7Q811.4 252.5 805 259.4Q798.7 266.2 789.5 269.9Q780.3 273.7 768.9 273.7ZM768.9 254.5Q779.7 254.5 785.9 247.9Q792.2 241.3 792.2 228.6V212.9Q792.2 200.2 785.9 193.6Q779.7 187 768.9 187Q758.1 187 751.8 193.6Q745.6 200.2 745.6 212.9V228.6Q745.6 241.3 751.8 247.9Q758.1 254.5 768.9 254.5Z M871.4 271.3 835.1 170.2H861.4L874.9 213.1L886.3 250.3H887.7L899 213.1L912.6 170.2H937.8L901.6 271.3Z M1041.3 271.3Q1032.1 271.3 1027.1 266.7Q1022.1 262.1 1021.1 253.9H1020.2Q1017.4 263.3 1009.4 268.5Q1001.3 273.7 989.6 273.7Q974.3 273.7 965.3 265.6Q956.3 257.6 956.3 243.3Q956.3 212.7 1001.1 212.7H1019V206Q1019 196.4 1014.3 191.5Q1009.6 186.6 999 186.6Q989.4 186.6 983.5 190.4Q977.6 194.1 973.5 200L959.2 187.8Q963.9 179.4 974.4 173.6Q984.9 167.8 1001.5 167.8Q1021.5 167.8 1032.8 177.1Q1044.1 186.4 1044.1 204.9V252.5H1056V271.3ZM998 256.4Q1007 256.4 1013 252.2Q1019 248 1019 240.7V227.2H1001.7Q981.2 227.2 981.2 240.1V244.1Q981.2 250.1 985.7 253.3Q990.2 256.4 998 256.4Z" class="cadova-letters"/></svg>
+  </a>
+  <script>
+    // When any of the page's code fails to load, from here or the CDN, none of it runs. Say so and
+    // offer to reload, rather than staying on "Loading model…".
+    function showLoadingFailure() {
+      const $ = (id) => document.getElementById(id);
+      $("overlay").hidden = true;
+      $("status").textContent = "Couldn't load the page. Check your connection, then reload.";
+      $("retry").textContent = "Reload";
+      $("retry").onclick = () => location.reload();
+      $("dismiss").hidden = true;
+      $("alert").hidden = false;
+    }
+  </script>
+  <script type="module" src="customizer.js" onerror="showLoadingFailure()"></script>
+</body>
+</html>

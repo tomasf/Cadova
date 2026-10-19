@@ -83,9 +83,9 @@ let useBinary: Bool = {
 // MARK: - Targets
 
 let sourceDependencies: [Package.Dependency] = [
-    .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "1.1.2")),
-    .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.3.2")),
-    .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.1.4")),
+    .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "1.1.3")),
+    .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.3.3")),
+    .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.2.1")),
     .package(url: "https://github.com/tomasf/Pelagos.git", .upToNextMinor(from: "0.1.4")),
     .package(url: "https://github.com/tomasf/CadovaLiveLink.git", .upToNextMinor(from: "0.2.1")),
     .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0"),
@@ -120,15 +120,34 @@ let testTarget: Target = .testTarget(
     swiftSettings: [ .interoperabilityMode(.Cxx) ]
 )
 
+// `swift package generate-customizer` in a model package builds a web customizer for it
+let customizerPlugin: Target = .plugin(
+    name: "GenerateCustomizer",
+    capability: .command(
+        intent: .custom(verb: "generate-customizer", description: "Builds a web customizer for a model"),
+        permissions: [
+            .allowNetworkConnections(
+                scope: .all(ports: [443]),
+                reason: "Downloads Swift's WebAssembly SDK and Binaryen the first time"
+            ),
+            .writeToPackageDirectory(reason: "Writes the customizer's files"),
+        ]
+    ),
+    exclude: ["Template", "Support"]
+)
+
 let package = Package(
     name: "Cadova",
     platforms: [.macOS(.v15)],
-    products: [.library(name: "Cadova", targets: ["Cadova"])] + (useBinary ? [] : [
+    products: [
+        .library(name: "Cadova", targets: ["Cadova"]),
+        .plugin(name: "GenerateCustomizer", targets: ["GenerateCustomizer"]),
+    ] + (useBinary ? [] : [
         // Cadova and all of its dependencies as a single static archive. This is what
         // Scripts/build-xcframework.sh packages; it is not meant to be depended on directly.
         .library(name: "CadovaStatic", type: .static, targets: ["Cadova"]),
     ]),
     dependencies: useBinary ? [] : sourceDependencies,
-    targets: useBinary ? [cadovaTarget] : [cadovaTarget, testTarget],
+    targets: (useBinary ? [cadovaTarget] : [cadovaTarget, testTarget]) + [customizerPlugin],
     cxxLanguageStandard: .cxx17
 )

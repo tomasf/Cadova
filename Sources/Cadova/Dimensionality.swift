@@ -37,7 +37,7 @@ internal extension Dimensionality {
 /// like ``Circle``, ``Rectangle``, or ``Polygon``.
 ///
 public struct D2: Dimensionality {
-    public typealias Concrete = CrossSection
+    public typealias Concrete = Manifold3D.CrossSection<Vector2D>
 
     public typealias Vector = Vector2D
     public typealias Transform = Transform2D
@@ -53,7 +53,7 @@ public struct D2: Dimensionality {
 /// like ``Box``, ``Sphere``, or ``Cylinder``.
 ///
 public struct D3: Dimensionality {
-    public typealias Concrete = Manifold
+    public typealias Concrete = Manifold3D.Manifold<Vector3D>
 
     public typealias Vector = Vector3D
     public typealias Transform = Transform3D

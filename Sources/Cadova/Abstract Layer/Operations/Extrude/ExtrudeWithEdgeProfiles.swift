@@ -11,14 +11,10 @@ public extension Geometry2D {
     /// - Returns: The extruded 3D geometry.
     ///
     func extruded(height: Double, topEdge: EdgeProfile?, bottomEdge: EdgeProfile?) -> any Geometry3D {
-        var geometry = extruded(height: height)
-        if let topEdge {
-            geometry = geometry.cuttingEdgeProfile(topEdge, on: .top)
+        guard topEdge != nil || bottomEdge != nil else {
+            return extruded(height: height)
         }
-        if let bottomEdge {
-            geometry = geometry.cuttingEdgeProfile(bottomEdge, on: .bottom)
-        }
-        return geometry
+        return ProfiledExtrusion(shape: self, height: height, topEdge: topEdge, bottomEdge: bottomEdge)
     }
 
     /// See ``extruded(height:topEdge:bottomEdge:)``

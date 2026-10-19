@@ -63,7 +63,13 @@ internal struct Logger: Sendable {
         case .warning: prefix = "⚠️ [WARNING]"
         case .error: prefix = "🛑 [ERROR]"
         }
-        print("\(timestamp) \(prefix) \(message.value)")
+        let line = "\(timestamp) \(prefix) \(message.value)"
+        #if os(WASI)
+        // A customizer's page tells Cadova's messages from the model's own prints by the stream
+        FileHandle.standardError.write(Data((line + "\n").utf8))
+        #else
+        print(line)
+        #endif
     }
 }
 

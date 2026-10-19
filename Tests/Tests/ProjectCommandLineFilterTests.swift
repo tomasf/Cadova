@@ -24,6 +24,27 @@ struct ProjectCommandLineFilterTests {
         #expect(!FileManager.default.fileExists(atPath: tempDir.appending(path: "Other.3mf").path))
     }
 
+    @Test func `Standalone models apply model filter from --model command line argument`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let sourceFile = tempDir.appending(path: "main.swift").path
+
+        await CommandLineArguments.$overriddenArguments.withValue(["CadovaTests", "--model", "Differential"]) {
+            await Model("Differential", sourceFile: sourceFile) {
+                Box(10)
+            }
+
+            await Model("Other", sourceFile: sourceFile) {
+                Sphere(diameter: 10)
+            }
+        }
+
+        let models = tempDir.appending(path: "Models")
+        #expect(FileManager.default.fileExists(atPath: models.appending(path: "Differential.3mf").path))
+        #expect(!FileManager.default.fileExists(atPath: models.appending(path: "Other.3mf").path))
+    }
+
     @Test func `Project applies repeated --model=value command line arguments`() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)

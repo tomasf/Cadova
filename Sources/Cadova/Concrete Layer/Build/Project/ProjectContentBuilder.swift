@@ -1,5 +1,6 @@
 import Foundation
 
+@_documentation(visibility: internal)
 @resultBuilder public struct ProjectContentBuilder {
     public static func buildExpression(_ model: Model) -> [BuildDirective] {
         [BuildDirective(payload: .model(model))]

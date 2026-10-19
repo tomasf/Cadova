@@ -79,7 +79,7 @@ extension MeshDistanceField {
             var built = [[Node]](repeating: [], count: ranges.count)
             built.withUnsafeMutableBufferPointer { buffer in
                 nonisolated(unsafe) let built = buffer
-                DispatchQueue.concurrentPerform(iterations: ranges.count) { n in
+                ConcurrentLoop.perform(ranges.count) { n in
                     var local: [Node] = []
                     local.reserveCapacity(2 * ranges[n].count / 3 + 1)
                     _ = builder.build(first: ranges[n].first, count: ranges[n].count, into: &local)

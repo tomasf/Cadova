@@ -2,7 +2,7 @@
 
 Learn about Cadova's design philosophy, who it's for, and how it compares to existing tools.
 
-## Overview
+![A small underwater drone modeled in Cadova](what-is-cadova-submarine)
 
 **Cadova** is a Swift library for constructing 3D models programmatically — with a focus on 3D printing. It combines the precision and parametric nature of code-based modeling with the power and elegance of Swift as a modern programming language. Cadova is cross-platform and runs on macOS, Linux, and Windows.
 
@@ -11,8 +11,6 @@ Traditional CAD tools rely on complex UIs and disconnected parametric workflows.
 If you've used tools like OpenSCAD, you'll recognize the core idea, but Cadova takes it further.
 
 ## Why Cadova?
-
-![A model showcasing Cadova's capabilities](what-is-cadova-openscad)
 
 OpenSCAD introduced the concept of code-driven modeling, which many developers and tinkerers love, but it comes with significant limitations:
 

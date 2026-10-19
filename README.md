@@ -2,7 +2,7 @@
   <img alt="Cadova" src=".github/assets/cadova-lockup-light.svg#gh-light-mode-only" width="260">
   <img alt="Cadova" src=".github/assets/cadova-lockup-dark.svg#gh-dark-mode-only" width="260">
 </h1>
-<img src="https://github.com/user-attachments/assets/99d15163-d168-419c-9fc3-406e4f657074" width="40%" align="right">
+<img src=".github/assets/arm-link.png" alt="A robot arm link modeled in Cadova" width="40%" align="right">
 
 Cadova is a Swift library for creating 3D models through code, with a focus on 3D printing. It offers a programmable alternative to traditional CAD tools, combining precise geometry with the expressiveness and elegance of Swift.
 
@@ -13,27 +13,27 @@ Cadova runs on macOS, Windows, and Linux. To get started, read the [Getting Star
 Full documentation, including [What is Cadova?](https://tomasf.github.io/Cadova/documentation/cadova/whatiscadova), is available at [cadova.org/docs](https://cadova.org/docs). See the [wiki](https://github.com/tomasf/Cadova/wiki) for related projects: the viewer app, libraries, and example models built with Cadova.
 
 [![Swift](https://github.com/tomasf/Cadova/actions/workflows/main.yml/badge.svg)](https://github.com/tomasf/Cadova/actions/workflows/main.yml)
-![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows-cc9529?logo=swift&logoColor=white)
+![Platforms](https://img.shields.io/badge/Platforms-macOS_|_Linux_|_Windows_|_Web-2a7de1?logo=swift&logoColor=white)
 
 ## Example
-<img src="https://github.com/user-attachments/assets/c8ae2128-621a-4d26-8f9a-1c277e525633" width="23%" align="right">
+<img src=".github/assets/hex-key-holder.png" alt="A hex key holder" width="24%" align="right">
 
 ```swift
 await Model("Hex key holder") {
-    let height = 20.0
-    let spacing = 8.0
-    Stack(.x, spacing: spacing) {
-        for size in stride(from: 1.5, through: 5.0, by: 0.5) {
-            RegularPolygon(sideCount: 6, widthAcrossFlats: size)
+    // Hex holes for a set of keys, spaced by their own widths
+    Stack(.x, spacing: 6, alignment: .centerY) {
+        for size in [1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0] {
+            RegularPolygon(sideCount: 6, widthAcrossFlats: size + 0.2)
         }
-    }.measuringBounds { holes, bounds in
-        Stadium(bounds.size + spacing * 2)
-            .extruded(height: height)
+    }
+    .offset(amount: 6, style: .round) { holes, outline in
+        outline.convexHull()
+            .extruded(height: 16, topEdge: .fillet(radius: 2))
             .subtracting {
-                holes.aligned(at: .centerX)
-                    .extruded(height: height)
-                    .translated(z: 2)
+                holes.extruded(height: 13)
+                    .translated(z: 3)
             }
+            .withMaterial(.glossyPlastic(.royalBlue))
     }
 }
 ```

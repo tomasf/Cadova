@@ -87,9 +87,10 @@ public extension Geometry3D {
     /// the parameters is specified, rounding is applied only on that side. Flat faces and the remaining sharp edges
     /// stay exact.
     ///
-    /// Each side takes two offsets (see ``offset(amount:style:)``), so this is slower than most operations on large
-    /// models. Rounded parts follow the environment's segmentation, and edges sharper than the environment's miter
-    /// limit are squared off before rounding. To round only chosen edges, use edge shaping instead.
+    /// Each side takes two offsets (see ``offset(amount:style:)->Geometry3D``), so this is slower than most
+    /// operations on large models. Rounded parts follow the environment's segmentation, and edges sharper than the
+    /// environment's miter limit are squared off before rounding. To round only chosen edges, use edge shaping
+    /// instead.
     ///
     /// - Parameters:
     ///   - insideRadius: The radius of rounding applied to concave edges and corners.
@@ -127,10 +128,10 @@ public extension Geometry3D {
 
     /// Chamfers the geometry's edges and corners with separate control over inside and outside sizes.
     ///
-    /// Like ``rounded(insideRadius:outsideRadius:)``, but edges and corners are cut flat instead of rounded, with the
-    /// cuts shaped by the square join style of ``offset(amount:style:)``. Outside chamfering applies to convex edges
-    /// and corners, inside chamfering to concave ones. If only one of the parameters is specified, chamfering is
-    /// applied only on that side.
+    /// Like ``rounded(insideRadius:outsideRadius:)->Geometry3D``, but edges and corners are cut flat instead of
+    /// rounded, with the cuts shaped by the square join style of ``offset(amount:style:)->Geometry3D``. Outside
+    /// chamfering applies to convex edges and corners, inside chamfering to concave ones. If only one of the
+    /// parameters is specified, chamfering is applied only on that side.
     ///
     /// - Parameters:
     ///   - insideDepth: The depth of chamfering applied to concave edges and corners.

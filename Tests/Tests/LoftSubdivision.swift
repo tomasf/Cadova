@@ -71,8 +71,12 @@ struct LoftSubdivisionTests {
     /// there reads the whole thing as flat.
     static func ripple(waves: Double, phase: Double = 0, amplitude: Double = 0.15) -> ShapingFunction {
         .custom(name: "ripple", parameters: waves, phase, amplitude) { t in
-            t + amplitude * sin((waves * t + phase) * 2 * .pi)
+            rippleValue(at: t, waves: waves, phase: phase, amplitude: amplitude)
         }
+    }
+
+    static func rippleValue(at t: Double, waves: Double, phase: Double = 0, amplitude: Double = 0.15) -> Double {
+        t + amplitude * sin((waves * t + phase) * 2 * .pi)
     }
 
     static func rippleRings(waves: Double, phase: Double = 0) -> Int {
@@ -468,8 +472,24 @@ struct LoftSubdivisionTests {
             "rippled mesh had \(rippledMeasurements.triangleCount) triangles against the cone's \(straightMeasurements.triangleCount)"
         )
 
-        // Measured at 6.9e-5 and 9.3e-5, so this is pinned close rather than merely loosely bracketed.
-        try await Self.expectMatchesFineReference(rippled, volumeTolerance: 1e-3, areaTolerance: 1e-3)
+        // Matching the exact solid pins the mesh to the ripple itself. Its radius at height z is
+        // 25 + (8 - 25) * f(z / 100) for the shaping function f, so volume and surface area integrate
+        // directly, with no over-refined mesh to build. Measured at 2.5e-4 and 1.4e-4, most of which
+        // is the circles being polygons, so this is pinned close rather than merely loosely bracketed.
+        let radius = { (z: Double) in 25 + (8 - 25) * Self.rippleValue(at: z / 100, waves: 4) }
+        let slices = 100_000
+        var exactVolume = 0.0
+        var exactSurfaceArea = Double.pi * (25 * 25 + 8 * 8)
+        for slice in 0..<slices {
+            let z0 = 100 * Double(slice) / Double(slices), z1 = 100 * Double(slice + 1) / Double(slices)
+            let r0 = radius(z0), r1 = radius(z1)
+            exactVolume += .pi * (r0 * r0 + r0 * r1 + r1 * r1) / 3 * (z1 - z0)
+            exactSurfaceArea += .pi * (r0 + r1) * ((r1 - r0) * (r1 - r0) + (z1 - z0) * (z1 - z0)).squareRoot()
+        }
+        let volumeError = abs(await rippledMeasurements.volume - exactVolume) / exactVolume
+        let areaError = abs(rippledSurfaceArea - exactSurfaceArea) / exactSurfaceArea
+        #expect(volumeError < 1e-3, "relative volume error \(volumeError)")
+        #expect(areaError < 1e-3, "relative surface area error \(areaError)")
     }
 
     @Test func `a mitered sharp corner keeps its shape`() async throws {

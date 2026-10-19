@@ -1,0 +1,114 @@
+name: customizer
+
+# Builds the test fixture's web customizer with the generate-customizer plugin, then tests the page
+# in Chromium and WebKit on macOS and Linux, and in Chromium on Windows. See Tests/Customizer/test_customizer.py.
+# Also builds it with the GitHub action in Actions/BuildCustomizer.
+
+on:
+  push:
+    branches: [ "dev", "main", "web-customizer" ]
+  pull_request:
+    branches: [ "dev", "main" ]
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Generate the customizer
+      id: customizer
+      uses: ./Actions/BuildCustomizer
+      with:
+        package-path: Tests/Customizer/Fixture
+        upload-pages-artifact: 'false'
+
+    - name: Check the output
+      run: |
+        ls -l "${{ steps.customizer.outputs.path }}"
+        test -s "${{ steps.customizer.outputs.path }}/index.html"
+        test -s "${{ steps.customizer.outputs.path }}/model.wasm"
+
+  customizer:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    # Keep the fixture's files byte for byte as committed on Windows too
+    - run: git config --global core.autocrlf false
+
+    - uses: actions/checkout@v4
+
+    # The plugin needs this exact swift.org release, because Swift's WebAssembly SDK only works with
+    # the compiler it was built for
+    - uses: SwiftyLab/setup-swift@latest
+      if: runner.os != 'Windows'
+      with:
+        swift-version: '6.4.0'
+
+    # On macOS, setup-swift uses Xcode's own Swift when its version matches, so the plugin gets the
+    # swift.org release installed where it looks for it
+    - name: Install the swift.org toolchain
+      if: runner.os == 'macOS'
+      run: |
+        curl -fsSL -o "$RUNNER_TEMP/swift.pkg" https://download.swift.org/swift-6.4.0-release/xcode/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-osx.pkg
+        installer -pkg "$RUNNER_TEMP/swift.pkg" -target CurrentUserHomeDirectory
+        ~/Library/Developer/Toolchains/swift-6.4.0-RELEASE.xctoolchain/usr/bin/swift --version
+
+    # On Linux the plugin only knows swiftly's location, and setup-swift installs elsewhere
+    - name: Point the plugin at the toolchain
+      if: runner.os == 'Linux'
+      run: |
+        swift --version
+        echo "CADOVA_WASM_TOOLCHAIN=$(cd "$(dirname "$(realpath "$(which swift)")")/../.." && pwd)" >> "$GITHUB_ENV"
+
+    # On Windows, swift.org's installer, which puts the toolchain where the plugin looks for it
+    - name: Install the swift.org toolchain
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $installer = "$env:RUNNER_TEMP\swift.exe"
+        curl.exe -fsSL -o $installer https://download.swift.org/swift-6.4.0-release/windows10/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-windows10.exe
+        $process = Start-Process -Wait -PassThru -FilePath $installer -ArgumentList '/quiet', '/norestart'
+        if ($process.ExitCode -ne 0) { throw "The installer failed with exit code $($process.ExitCode)" }
+        $root = @("$env:LOCALAPPDATA\Programs\Swift", "$env:ProgramFiles\Swift") |
+          Where-Object { Test-Path "$_\Toolchains\6.4.0+Asserts\usr\bin\swift.exe" } | Select-Object -First 1
+        if (-not $root) { throw "Swift 6.4.0 isn't where the installer usually puts it" }
+        Get-ChildItem "$root\Toolchains"
+        "$root\Toolchains\6.4.0+Asserts\usr\bin" >> $env:GITHUB_PATH
+        "$root\Runtimes\6.4.0\usr\bin" >> $env:GITHUB_PATH
+        # The installer sets SDKROOT for later sessions, which this job's steps aren't
+        $sdk = "$root\Platforms\6.4.0\Windows.platform\Developer\SDKs\Windows.sdk"
+        if (-not (Test-Path $sdk)) { throw "The Windows SDK isn't at $sdk" }
+        "SDKROOT=$sdk\" >> $env:GITHUB_ENV
+        & "$root\Toolchains\6.4.0+Asserts\usr\bin\swift.exe" --version
+
+    - name: Generate the customizer
+      working-directory: Tests/Customizer/Fixture
+      run: swift package --allow-network-connections all:443 --allow-writing-to-package-directory generate-customizer
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    # Playwright's WebKit for Windows and Linux, which no visitor uses, since Safari only runs on
+    # Apple's platforms, crashes running the model, always on Windows and now and then on Linux. So
+    # WebKit is tested on macOS, where it's Safari's engine, and the others test Chromium only.
+    - name: Pick the browsers
+      shell: bash
+      run: echo "BROWSERS=chromium${{ runner.os == 'macOS' && ' webkit' || '' }}" >> "$GITHUB_ENV"
+
+    - name: Install Playwright
+      shell: bash
+      run: |
+        pip install playwright==1.48.0
+        playwright install --with-deps $BROWSERS
+
+    - name: Test the page
+      shell: bash
+      run: python Tests/Customizer/test_customizer.py $BROWSERS

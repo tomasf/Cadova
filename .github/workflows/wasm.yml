@@ -1,0 +1,42 @@
+name: wasm
+
+# Builds Cadova for WebAssembly (wasm32-unknown-wasip1), so changes that break it, such as using
+# Dispatch or assuming a 64-bit Int, show up
+
+on:
+  push:
+    branches: [ "dev", "main" ]
+  pull_request:
+    branches: [ "dev", "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # Swift's WebAssembly SDK only works with the swift.org release it was built for
+    - uses: SwiftyLab/setup-swift@latest
+      with:
+        swift-version: '6.4.0'
+
+    - name: Install Swift's WebAssembly SDK
+      run: |
+        swift sdk install \
+          https://download.swift.org/swift-6.4.0-release/wasm-sdk/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE_wasm.artifactbundle.tar.gz \
+          --checksum f07b7be3c586d92d7a07051fc6d303b87ebea67eadc40640ba59d5a8b79aa86d \
+          --swift-sdks-path "$RUNNER_TEMP/swift-sdks"
+
+    # With C++ interop, the SDK's libc module and libc++'s header modules both claim inttypes.h and
+    # complex.h, which makes a module cycle. Making those two textual in the libc module breaks it.
+    - name: Patch the SDK's libc module map
+      run: |
+        modulemap=$(find "$RUNNER_TEMP/swift-sdks" -path '*swift_static/wasi/wasm32/wasi-libc.modulemap')
+        sed -i 's/^  header "inttypes.h"/  textual header "inttypes.h"/; s/^  header "complex.h"/  textual header "complex.h"/' "$modulemap"
+
+    - name: Build
+      run: |
+        swift build --swift-sdks-path "$RUNNER_TEMP/swift-sdks" --swift-sdk swift-6.4.0-RELEASE_wasm \
+          --product Cadova \
+          -Xcc -D_WASI_EMULATED_SIGNAL -Xcc -D_WASI_EMULATED_MMAN -Xcc -D_WASI_EMULATED_PROCESS_CLOCKS

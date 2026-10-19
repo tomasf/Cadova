@@ -139,7 +139,14 @@ build_and_run() {
 
     output="$dir/output-$configuration"
     echo "==> Running $label ($configuration)"
-    swift run --package-path "$dir" -c "$configuration" --skip-build SmokeTest "$output"
+    swift run --package-path "$dir" -c "$configuration" --skip-build SmokeTest "$output" 2>&1 \
+        | tee "$dir/run.log"
+
+    # The Objective-C runtime reports a class registered twice, which is what a bundled module
+    # that kept its real ABI name looks like to a client with its own copy.
+    if grep -q "is implemented in both" "$dir/run.log"; then
+        fail "$label ($configuration) registers a class twice; a bundled module was not renamed"
+    fi
 
     [[ -s "$output.3mf" ]] || fail "$label ($configuration) produced no $output.3mf"
     listing=$(unzip -l "$output.3mf")
@@ -167,15 +174,19 @@ echo "    compiling against $remaining interfaces alone"
 cp "$workdir/model.swift" "$workdir/Interfaces/Sources/SmokeTest/main.swift"
 build_and_run "$workdir/Interfaces" debug "the interface-only test"
 
-# Cadova bundles ThreeMF. A client that also depends on ThreeMF must still link, which only
-# holds while the bundled copy's symbols stay private to the artifact.
+# Cadova bundles ThreeMF and Nodal. A client that also depends on them must still link, which
+# only holds while the bundled copies' symbols stay private to the artifact, and must not see their
+# classes registered twice, which only holds while the bundled copies are renamed.
 echo "==> Checking that a client can depend on a bundled dependency directly"
 write_package "$workdir/Coexist" \
-    '.package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.3.0"))' \
-    ', .product(name: "ThreeMF", package: "ThreeMF")'
+    '.package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.3.0")),
+        .package(url: "https://github.com/tomasf/Nodal.git", from: "1.0.3")' \
+    ', .product(name: "ThreeMF", package: "ThreeMF"), .product(name: "Nodal", package: "Nodal")'
 {
     echo "import ThreeMF"
+    echo "import Nodal"
     echo "_ = ThreeMFError.self"
+    echo "_ = Nodal.Document()"
     cat "$workdir/model.swift"
 } > "$workdir/Coexist/Sources/SmokeTest/main.swift"
 build_and_run "$workdir/Coexist" debug "the coexistence test"

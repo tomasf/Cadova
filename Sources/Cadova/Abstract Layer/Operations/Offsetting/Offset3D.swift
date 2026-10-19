@@ -42,7 +42,7 @@ public extension Geometry3D {
     ///     composed geometry.
     /// - Returns: The result of the builder closure.
     ///
-    /// - SeeAlso: ``offset(amount:style:)``
+    /// - SeeAlso: ``offset(amount:style:)->Geometry3D``
     ///
     func offset<Output: Dimensionality>(
         amount: Double,

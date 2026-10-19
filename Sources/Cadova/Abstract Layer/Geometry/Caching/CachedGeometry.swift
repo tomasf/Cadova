@@ -31,6 +31,8 @@ import Foundation
 /// a different environment will instead reuse a stale cached result. The same goes for anything
 /// else `body` depends on: if it isn't a stored property on your type, it isn't part of the key.
 ///
+/// ``Parameter`` values are the exception: they're part of the key wherever `body` reads them,
+/// including in geometry it builds.
 ///
 public protocol CachedGeometry<D>: Geometry {}
 
@@ -43,8 +45,11 @@ public typealias CachedGeometry3D = CachedGeometry<D3>
 public extension CachedGeometry {
     func _build(in environment: EnvironmentValues, context: _EvaluationContext) async throws -> _BuildResult<D> {
         let key = try await ReflectedCacheKey(reflecting: self, in: environment, context: context)
+        // The body only runs on a cache miss, so the parameters it uses travel in its cached result
         return try await context.cachedBodyResult(key: key) {
-            try await context.buildResult(for: body, in: environment)
+            try await ParameterRecorder.recordingBody {
+                try await context.buildResult(for: body, in: environment)
+            }
         }
     }
 }

@@ -86,9 +86,12 @@ public struct Group: Sendable, ModelBuildable {
         URL directory: URL?,
         filterPath: [String]
     ) async -> Int {
-        let directives = await ModelContext(isCollectingModels: true).whileCurrent {
-            await inheritedEnvironment.whileCurrent {
-                await self.directives()
+        // The parameters the group's own content reads belong to every model in it
+        let (directives, groupParameters) = await ParameterRecorder.recordingEnclosing {
+            await ModelContext(isCollectingModels: true).whileCurrent {
+                await inheritedEnvironment.whileCurrent {
+                    await self.directives()
+                }
             }
         }
         let options = self.options.adding(defaults: inheritedOptions, directives: directives)
@@ -96,9 +99,9 @@ public struct Group: Sendable, ModelBuildable {
 
         // Determine output directory
         let outputDirectory: URL?
-        let currentFilterPath: [String]
-        if let name {
-            currentFilterPath = filterPath + [name]
+        let currentFilterPath = name.map { filterPath + [$0] } ?? filterPath
+        // A customizer gets each model's file in the directory it names, whatever group it's in
+        if let name, CustomizerRequest.current?.outputDirectory == nil {
             let groupDirectory = if let parent = directory {
                 parent.appendingPathComponent(name, isDirectory: true)
             } else {
@@ -108,8 +111,11 @@ public struct Group: Sendable, ModelBuildable {
             // Without this directory there is nowhere for the models below it to go, so the
             // failure belongs to the directory and is reported once, rather than once per model
             // that then cannot be saved into it.
+            // Listing parameters writes nothing, so it needs no directory either.
             do {
-                try FileManager().createDirectory(at: groupDirectory, withIntermediateDirectories: true)
+                if ParameterCatalog.current == nil {
+                    try FileManager().createDirectory(at: groupDirectory, withIntermediateDirectories: true)
+                }
             } catch {
                 logger.error(
                     "Failed to create output directory \(groupDirectory.path): \(error.descriptiveString)"
@@ -118,19 +124,25 @@ public struct Group: Sendable, ModelBuildable {
             }
             outputDirectory = groupDirectory
         } else {
-            currentFilterPath = filterPath
             outputDirectory = directory
         }
 
         // Build nested content
-        let models = directives.compactMap(\.model)
-        let groups = directives.compactMap(\.group)
         let filterNames = options[ModelFilter.self].names
-        let filteredModels = models.filter { $0.isIncluded(by: filterNames, in: currentFilterPath) }
-        let buildables: [any ModelBuildable] = groups + filteredModels
+        let buildables: [any ModelBuildable] = directives.compactMap { directive in
+            if let group = directive.group { return group }
+            guard let model = directive.model, model.isIncluded(by: filterNames, in: currentFilterPath) else { return nil }
+            return model
+        }
 
-        return await buildables.asyncMap {
-            await $0.build(environment: environment, context: context, options: options, URL: outputDirectory, filterPath: currentFilterPath)
+        // Each one's position within the group extends the group's own, for a customizer's listing
+        return await ParameterRecorder.$enclosing.withValue(groupParameters) {
+            await buildables.enumerated().asyncMap { index, buildable in
+                await ParameterCatalog.$position.withValue(ParameterCatalog.position + [index]) {
+                    await buildable.build(environment: environment, context: context, options: options,
+                                          URL: outputDirectory, filterPath: currentFilterPath)
+                }
+            }
         }.reduce(0, +)
     }
 }

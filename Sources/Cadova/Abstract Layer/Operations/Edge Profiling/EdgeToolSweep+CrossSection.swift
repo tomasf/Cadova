@@ -30,11 +30,21 @@ internal extension EdgeToolSweep {
         let firstExtended = first + Vector2D(-sin(halfAngle), cos(halfAngle)) * faceOvershoot
         let lastExtended = last + Vector2D(-sin(halfAngle), -cos(halfAngle)) * faceOvershoot
 
-        let section = [firstExtended] + curve + [
-            lastExtended,
-            Vector2D(-apexDepth, lastExtended.y),
-            Vector2D(-apexDepth, firstExtended.y),
-        ]
+        let behindApex: [Vector2D]
+        if isConvex {
+            // Behind a convex edge is empty space, so the section can close well clear of it
+            behindApex = [Vector2D(-apexDepth, lastExtended.y), Vector2D(-apexDepth, firstExtended.y)]
+        } else {
+            // Behind a concave edge is the body itself, which can be thinner than the shape is
+            // deep, so the section stays as close behind the faces as its endpoints do. Lines
+            // offset from both faces by that much meet at this point on the bisector; the two
+            // corners straddle it, each still behind both faces.
+            let offsetApex = Vector2D(-faceOvershoot / sin(halfAngle), 0)
+            let spread = Vector2D(0, faceOvershoot / 2)
+            behindApex = [offsetApex - spread, offsetApex + spread]
+        }
+
+        let section = [firstExtended] + curve + [lastExtended] + behindApex
 
         // The construction above runs clockwise; reverse for counterclockwise winding
         return section.reversed()
