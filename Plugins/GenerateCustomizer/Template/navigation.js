@@ -213,7 +213,13 @@ export class ViewportControls extends CameraNavigator {
         listen(element, "pointerenter", event => { this.cursor = this.point(event); this.resetZoomPivot(); });
         listen(element, "pointerleave", event => { if (!this.pointers.has(event.pointerId)) { this.cursor = null; this.resetZoomPivot(); } });
         listen(element, "pointercancel", () => this.reset());
-        listen(element, "lostpointercapture", event => { if (this.pointers.has(event.pointerId)) this.reset(); });
+        // Some embedded browsers, such as VS Code's webviews, release the capture before sending the
+        // pointerup. With no buttons held it's that release, which must not cancel the drag's glide.
+        listen(element, "lostpointercapture", event => {
+            if (!this.pointers.has(event.pointerId)) return;
+            if (event.buttons === 0) this.pointerUp(event);
+            else this.reset();
+        });
         listen(element, "wheel", event => this.wheel(event), { passive: false });
         listen(element, "contextmenu", event => event.preventDefault());
         for (const type of ["gesturestart", "gesturechange", "gestureend"]) {
