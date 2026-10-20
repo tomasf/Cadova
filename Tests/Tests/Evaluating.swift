@@ -45,20 +45,17 @@ struct EvaluatingTests {
             Box([7, 4, 2]),
         ]
 
-        let capture = SizeCapture()
-        let result = Box([1, 1, 1]).evaluating { _, eval in
+        let sizes = try await ModelFileGenerator.evaluate { eval in
             var sizes: [Vector3D] = []
             for item in items {
                 if let b = await eval.bounds(of: item) {
                     sizes.append(b.size)
                 }
             }
-            capture.sizes = sizes
-            return Box([1, 1, 1])
+            return sizes
         }
-        _ = try await result.node
 
-        #expect(capture.sizes == [Vector3D(5, 5, 5), Vector3D(3, 3, 9), Vector3D(7, 4, 2)])
+        #expect(sizes == [Vector3D(5, 5, 5), Vector3D(3, 3, 9), Vector3D(7, 4, 2)])
     }
 
     @Test func `outlines via evaluator match underlying outlines`() async throws {
@@ -66,19 +63,17 @@ struct EvaluatingTests {
 
         let capture = OutlineCapture()
         let reader = shape.readingOutlines { g, paths in
-            capture.fromReader = paths
+            capture.paths = paths
             return g
         }
         _ = try await reader.node
 
-        let evaluator = shape.evaluating { g, eval in
-            capture.fromEvaluator = await eval.outlines(of: g)
-            return g
+        let fromEvaluator = try await ModelFileGenerator.evaluate { eval in
+            await eval.outlines(of: shape)
         }
-        _ = try await evaluator.node
 
-        #expect(capture.fromReader.count == 1)
-        #expect(capture.fromReader ≈ capture.fromEvaluator)
+        #expect(capture.paths.count == 1)
+        #expect(capture.paths ≈ fromEvaluator)
     }
 
     @Test func `components via evaluator match separated reader`() async throws {
@@ -107,48 +102,38 @@ struct EvaluatingTests {
         let nonEmpty = Box([1, 1, 1])
         let empty: any Geometry3D = Empty()
 
-        let capture = EmptyCapture()
-        let probe = Box([1, 1, 1]).evaluating { _, eval in
-            capture.nonEmpty = await eval.isEmpty(nonEmpty)
-            capture.empty = await eval.isEmpty(empty)
-            return Box([1, 1, 1])
+        let (nonEmptyIsEmpty, emptyIsEmpty) = try await ModelFileGenerator.evaluate { eval in
+            (await eval.isEmpty(nonEmpty), await eval.isEmpty(empty))
         }
-        _ = try await probe.node
 
-        #expect(capture.nonEmpty == false)
-        #expect(capture.empty == true)
+        #expect(nonEmptyIsEmpty == false)
+        #expect(emptyIsEmpty == true)
     }
 
     @Test func `surfaces along a segment match the existing reader`() async throws {
         let box = Box(1)
         let segment = LineSegment3D(from: [-1, 0.5, 0.5], to: [2, 0.5, 0.5])
 
-        let capture = SurfaceCapture()
-        let probe = box.evaluating { g, eval in
-            capture.crossings = await eval.surfaces(of: g, along: segment)
-            return g
+        let crossings = try await ModelFileGenerator.evaluate { eval in
+            await eval.surfaces(of: box, along: segment)
         }
-        _ = try await probe.node
 
         // Box of side 1 with the segment passing through the middle along x:
         // entry at x≈0 and exit at x≈1.
-        #expect(capture.crossings.count == 2)
-        #expect(capture.crossings.first!.position.x ≈ 0)
-        #expect(capture.crossings.last!.position.x ≈ 1)
+        #expect(crossings.count == 2)
+        #expect(crossings.first!.position.x ≈ 0)
+        #expect(crossings.last!.position.x ≈ 1)
     }
 
     @Test func `first surface from ray finds the top face`() async throws {
         let box = Box(1)
 
-        let capture = FirstSurfaceCapture()
-        let probe = box.evaluating { g, eval in
-            capture.hit = await eval.firstSurface(of: g, from: [0.5, 0.5, 10], in: .down)
-            return g
+        let hit = try await ModelFileGenerator.evaluate { eval in
+            await eval.firstSurface(of: box, from: [0.5, 0.5, 10], in: .down)
         }
-        _ = try await probe.node
 
-        #expect(capture.hit != nil)
-        #expect(capture.hit!.position.z ≈ 1)
+        #expect(hit != nil)
+        #expect(hit!.position.z ≈ 1)
     }
 
     @Test func `first surface with a transition skips the nearer crossing`() async throws {
@@ -160,24 +145,20 @@ struct EvaluatingTests {
             }
         let segment = LineSegment3D(from: [-10, 0, 0], to: [10, 0, 0])
 
-        let ray = FirstSurfaceCapture()
-        let along = FirstSurfaceCapture()
-        let unfiltered = FirstSurfaceCapture()
-        let unmatched = FirstSurfaceCapture()
-        let probe = shell.evaluating { g, eval in
-            ray.hit = await eval.firstSurface(of: g, from: [-10, 0, 0], in: .right, transition: .exiting)
-            along.hit = await eval.firstSurface(of: g, along: segment, transition: .exiting)
-            unfiltered.hit = await eval.firstSurface(of: g, from: [-10, 0, 0], in: .right)
-            // A ray starting inside the far wall only ever exits, so .entering matches nothing.
-            unmatched.hit = await eval.firstSurface(of: g, from: [4, 0, 0], in: .right, transition: .entering)
-            return g
+        let (ray, along, unfiltered, unmatched) = try await ModelFileGenerator.evaluate { eval in
+            (
+                await eval.firstSurface(of: shell, from: [-10, 0, 0], in: .right, transition: .exiting),
+                await eval.firstSurface(of: shell, along: segment, transition: .exiting),
+                await eval.firstSurface(of: shell, from: [-10, 0, 0], in: .right),
+                // A ray starting inside the far wall only ever exits, so .entering matches nothing.
+                await eval.firstSurface(of: shell, from: [4, 0, 0], in: .right, transition: .entering)
+            )
         }
-        _ = try await probe.node
 
-        #expect(ray.hit?.position.x ≈ -3)
-        #expect(along.hit?.position.x ≈ -3)
-        #expect(unfiltered.hit?.position.x ≈ -5)
-        #expect(unmatched.hit == nil)
+        #expect(ray?.position.x ≈ -3)
+        #expect(along?.position.x ≈ -3)
+        #expect(unfiltered?.position.x ≈ -5)
+        #expect(unmatched == nil)
     }
 
     @Test func `parts ofType and single part lookup find the named part`() async throws {
@@ -187,17 +168,13 @@ struct EvaluatingTests {
                 .inPart(knob)
         }
 
-        let capture = PartsCapture()
-        let probe = geometry.evaluating { g, eval in
-            capture.solid = await eval.parts(of: g, ofType: .solid)
-            capture.single = await eval.part(knob, of: g)
-            return g
+        let (solid, single) = try await ModelFileGenerator.evaluate { eval in
+            (await eval.parts(of: geometry, ofType: .solid), await eval.part(knob, of: geometry))
         }
-        _ = try await probe.node
 
-        #expect(capture.solid.count == 1)
-        #expect(capture.solid[knob] != nil)
-        #expect(capture.single != nil)
+        #expect(solid.count == 1)
+        #expect(solid[knob] != nil)
+        #expect(single != nil)
     }
 
     @Test func `standalone Evaluate reads geometry captured from outer scope`() async throws {
@@ -221,46 +198,16 @@ struct EvaluatingTests {
     @Test func `result element via evaluator matches readingResult`() async throws {
         let shape = Box(1).withResult(EvalTestElement(value: 5))
 
-        let capture = ResultCapture()
-        let probe = shape.evaluating { g, eval in
-            capture.value = await eval.result(EvalTestElement.self, of: g).value
-            return g
+        let value = try await ModelFileGenerator.evaluate { eval in
+            await eval.result(EvalTestElement.self, of: shape).value
         }
-        _ = try await probe.node
 
-        #expect(capture.value == 5)
+        #expect(value == 5)
     }
 }
 
 private final class OutlineCapture: @unchecked Sendable {
-    var fromReader: [BezierPath2D] = []
-    var fromEvaluator: [BezierPath2D] = []
-}
-
-private final class EmptyCapture: @unchecked Sendable {
-    var nonEmpty = true
-    var empty = false
-}
-
-private final class SizeCapture: @unchecked Sendable {
-    var sizes: [Vector3D] = []
-}
-
-private final class SurfaceCapture: @unchecked Sendable {
-    var crossings: [SurfaceCrossing] = []
-}
-
-private final class FirstSurfaceCapture: @unchecked Sendable {
-    var hit: SurfaceCrossing?
-}
-
-private final class PartsCapture: @unchecked Sendable {
-    var solid: [Part: any Geometry3D] = [:]
-    var single: (any Geometry3D)?
-}
-
-private final class ResultCapture: @unchecked Sendable {
-    var value: Int = 0
+    var paths: [BezierPath2D] = []
 }
 
 private struct EvalTestElement: ResultElement {

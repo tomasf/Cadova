@@ -375,9 +375,9 @@ struct SurfaceTests {
             to: BezierPath3D(linesBetween: [[0, 30, 5], [40, 30, -5]])
         )
         let draped = Box([40, 30, 2]).draped(over: unremapped).withSegmentation(count: 32)
-        let context = _EvaluationContext()
-        let result = try await context.buildResult(for: draped, in: .defaultEnvironment)
-        let triangleCount = try await context.result(for: result.node).concrete.meshGL().triangles.count
+        let triangleCount = try await ModelFileGenerator.evaluate { evaluator in
+            await evaluator.measurements(of: draped).triangleCount
+        }
         #expect(triangleCount < 2_000)
     }
 
