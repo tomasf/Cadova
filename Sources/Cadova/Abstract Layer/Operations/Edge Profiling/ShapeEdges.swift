@@ -135,27 +135,42 @@ private func shapedEdgesNode(
     }
 
     func patchGeometry(for patch: EdgeJunctionPlanner.Patch) -> (any Geometry3D)? {
-        let hullPoints = patch.ends.flatMap { end -> [Vector3D] in
-            guard let tool = tools[end.edgeIndex] else { return [] }
+        let terminals = patch.ends.compactMap { end -> (ring: [Vector3D], intoChain: Vector3D)? in
+            guard let tool = tools[end.edgeIndex] else { return nil }
             let ring = end.atStart ? tool.startSectionPoints : tool.endSectionPoints
-
-            // Also hull a copy of the ring nudged into the tool, so the patch overlaps it
-            // volumetrically; exact face-on-face contact with the tool's end cap can leave
-            // degenerate zero-volume shells behind in the boolean operation.
             let edge = plan.edges[end.edgeIndex]
-            guard let segment = end.atStart ? edge.segments.first : edge.segments.last else { return ring }
+            guard let segment = end.atStart ? edge.segments.first : edge.segments.last else { return nil }
             let intoChain = end.atStart ? segment.direction.unitVector : -segment.direction.unitVector
-            return ring + ring.map { $0 + intoChain * EdgeToolSweep.faceOvershoot }
+            return (ring, intoChain)
+        }
+
+        // Also hull a copy of each ring nudged into its tool, so the patch overlaps it
+        // volumetrically; exact face-on-face contact with the tool's end cap can leave
+        // degenerate zero-volume shells behind in the boolean operation.
+        let hullPoints = terminals.flatMap { terminal in
+            terminal.ring + terminal.ring.map { $0 + terminal.intoChain * EdgeToolSweep.faceOvershoot }
         } + [patch.apexPoint]
         guard hullPoints.count >= 4 else { return nil }
 
         let hull = hullPoints.convexHull()
-        if let sphere = patch.sphere {
-            return hull.subtracting {
-                Sphere(radius: sphere.radius).translated(sphere.center)
-            }
+        guard let sphere = patch.sphere else { return hull }
+
+        // The ring's curve sits between the behind-apex corners and extended endpoints
+        // (see `EdgeToolSweep.crossSection`)
+        let core = SphericalCornerCore(
+            center: sphere.center,
+            radius: sphere.radius,
+            terminals: terminals.map { terminal in
+                .init(arc: Array(terminal.ring[3..<(terminal.ring.count - 1)]), intoChain: terminal.intoChain)
+            },
+            overshoot: EdgeToolSweep.faceOvershoot
+        )
+        if terminals.count == patch.ends.count, let coreGeometry = core.geometry {
+            return hull.subtracting { coreGeometry }
         }
-        return hull
+        return hull.subtracting {
+            Sphere(radius: sphere.radius).translated(sphere.center)
+        }
     }
 
     func nodes(convex: Bool) async throws -> [D3.Node] {

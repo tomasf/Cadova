@@ -202,6 +202,34 @@ struct EdgeShapingTests {
         #expect(partCount == 1)
     }
 
+    @Test(arguments: [Vector3D(0, 0, 0), Vector3D(0, 0, 30), Vector3D(20, 35, 10)])
+    func `rounded box corners continue their fillets without creases`(rotation: Vector3D) async throws {
+        // A fully filleted box is smooth everywhere, so any sharp crease between neighboring
+        // triangles is a step or sliver where a corner patch fails to meet an edge's fillet.
+        // The sphere's own tessellation used to leave a ring of these around every corner.
+        let rotated = Box(10).rotated(x: Angle(degrees: rotation.x), y: Angle(degrees: rotation.y), z: Angle(degrees: rotation.z))
+        let result = rotated.shapingEdges(.fillet(radius: 1), matching: .convex)
+
+        let context = _EvaluationContext()
+        let buildResult = try await context.buildResult(for: result.withDefaultSegmentation(), in: .defaultEnvironment)
+        let mesh = try await context.result(for: buildResult.node).concrete.meshGL()
+        let vertices = mesh.vertices
+
+        struct EdgeKey: Hashable { let low, high: Int }
+        var facesByEdge: [EdgeKey: [Vector3D]] = [:]
+        for triangle in mesh.triangles {
+            let (a, b, c) = (triangle.a, triangle.b, triangle.c)
+            let normal = ((vertices[b] - vertices[a]) × (vertices[c] - vertices[a])).normalized
+            for (from, to) in [(a, b), (b, c), (c, a)] {
+                facesByEdge[EdgeKey(low: min(from, to), high: max(from, to)), default: []].append(normal)
+            }
+        }
+        let creases = facesByEdge.values.filter { normals in
+            normals.count == 2 && (normals[0] ⋅ normals[1]) < cos(60°)
+        }
+        #expect(creases.isEmpty)
+    }
+
     @Test func `chains continuing through a shared corner are merged`() async throws {
         // The top ring: at each corner, exactly two selected edges meet and merge into one loop
         let result = Box(10).shapingEdges(.chamfer(depth: 1), matching: .within(.z, 9.9...))
