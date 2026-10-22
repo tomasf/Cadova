@@ -368,7 +368,12 @@ export class ViewportControls extends CameraNavigator {
             if (event.isTrusted && this.element.requestPointerLock) {
                 drag.lockPending = true;
                 try {
-                    const request = this.element.requestPointerLock();
+                    // Windows works out a locked pointer's movement from where the cursor is, which a
+                    // mouse that reports absolute positions, as in a virtual machine, throws off: each
+                    // move then counts the distance back to where the pointer was locked. Raw movement
+                    // doesn't. Elsewhere it would bypass the system's pointer acceleration.
+                    const raw = /^Win/.test(navigator.userAgentData?.platform ?? navigator.platform);
+                    const request = this.element.requestPointerLock(raw ? { unadjustedMovement: true } : undefined);
                     request?.catch(() => this.pointerLockFailed());
                 } catch { this.pointerLockFailed(); }
             }
