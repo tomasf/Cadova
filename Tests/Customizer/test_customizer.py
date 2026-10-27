@@ -93,7 +93,9 @@ class CustomizerPage:
         return self.page.evaluate("""async (encoded) => {
             const { read3MF } = await import("./threemf.js");
             const bytes = Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0));
-            return read3MF(bytes.buffer, getComputedStyle(document.documentElement).getPropertyValue("--model").trim()).children.map(({ material }) => ({
+            // Each part is a group of its own, holding a mesh for each of its materials
+            return read3MF(bytes.buffer, getComputedStyle(document.documentElement).getPropertyValue("--model").trim()).children
+                .flatMap((part) => part.children).map(({ material }) => ({
                 color: material.color.getHexString("srgb"), metalness: material.metalness,
                 roughness: material.roughness, opacity: material.opacity,
             }));
@@ -875,13 +877,13 @@ def test_sharp_edges(browser, base_url):
         for (const object of [model, surface, edge]) object.traverse(child => {
             child.geometry?.dispose(); child.material?.dispose();
         });
-        return {parts: model.children.length, outlines: lines(model).length,
+        return {parts: model.children[0].children.length, outlines: lines(model).length,
             segments: outline.geometry.attributes.position.count/2, bounds: [bounds.min.toArray(),bounds.max.toArray()],
             black: [...outline.geometry.attributes.color.array].every(value => value === 0),
             gray: Math.max(...darkColors), expectedGray: new THREE.Color("#8c8c8c").r,
             context: lines(cube("context")).length, visual: lines(cube("visual")).length,
             // A part looks as its materials say, whatever its semantic, as in Cadova Viewer
-            opaqueContext: cube("context").children.every(mesh => mesh.material.opacity === 1 && !mesh.material.transparent),
+            opaqueContext: cube("context").children[0].children.every(mesh => mesh.material.opacity === 1 && !mesh.material.transparent),
             smooth: crease(20) === null, sharp: crease(40)?.geometry.attributes.position.count/2,
             nonManifold: crease(90,true) === null, open: open === null, degenerate: degenerate === null, hidden, visible};
     }''')
@@ -1826,13 +1828,15 @@ def test_preview_matches_3mf(browser, base_url):
         const keyed = (catalog, model, values) => Object.fromEntries(Object.entries(values).map(([label, value]) =>
             [catalog.models.find((m) => m.name === model)?.parameters.find((p) => p.label === label)?.key ?? label, value]));
         const buffer = (data) => data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-        const describe = (group) => group.children.map((mesh) => ({
+        // A 3MF file's meshes are grouped by part, a preview's aren't
+        const meshes = (group) => group.children.flatMap((child) => child.isGroup ? child.children : [child]);
+        const describe = (group) => meshes(group).map((mesh) => ({
             indices: Array.from(mesh.geometry.index.array),
             color: mesh.material.color.getHexString(), opacity: mesh.material.opacity,
             metalness: mesh.material.metalness, roughness: mesh.material.roughness,
             edges: mesh.children.map((edges) => edges.geometry.attributes.position.count),
         }));
-        const positions = (group) => group.children.flatMap((mesh) => Array.from(mesh.geometry.attributes.position.array));
+        const positions = (group) => meshes(group).flatMap((mesh) => Array.from(mesh.geometry.attributes.position.array));
 
         const mismatches = [], sizes = [];
         for (const [model, values] of [["plate", {}], ["spacer", { Width: 30 }], ["plate", { Holes: 0, Corners: "square" }]]) {
