@@ -39,7 +39,7 @@ await Model("Hex key holder") {
 ```
 For more code examples, see [Examples](https://tomasf.github.io/Cadova/documentation/cadova/examples).
 
-To preview your models, check out [Cadova Viewer](https://github.com/tomasf/CadovaViewer), a native macOS 3MF viewer that reloads automatically as your model regenerates.
+To preview your models, use [Cadova Viewer](https://github.com/tomasf/CadovaViewer), a native macOS app, or [Cadova for VS Code](https://github.com/tomasf/cadova-vscode), which works on every platform VS Code runs on. Both reload automatically as your model regenerates.
 
 Cadova uses [Manifold-Swift](https://github.com/tomasf/manifold-swift), [Apus](https://github.com/tomasf/Apus), [Pelagos](https://github.com/tomasf/Pelagos), [Nodal](https://github.com/tomasf/Nodal) and [ThreeMF](https://github.com/tomasf/ThreeMF).
 

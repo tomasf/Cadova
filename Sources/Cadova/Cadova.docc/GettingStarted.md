@@ -72,7 +72,7 @@ await Model("gizmo") {
 
 Run it in your IDE or on the command line using `swift run`. This will generate a `Models/gizmo.3mf` file, relative to your package root. In Xcode, the generated model appears right in the project navigator sidebar, making it easy to find and open. You can open the file in your slicer or viewer.
 
-On macOS, using [Cadova Viewer](https://github.com/tomasf/CadovaViewer) is recommended for the best experience. It automatically reloads the model when the file changes on disk, and offers split views, cross-sections, and measurements for inspecting your geometry in detail.
+For the best experience, preview your models with [Cadova Viewer](https://github.com/tomasf/CadovaViewer), a native macOS app, or [Cadova for VS Code](https://github.com/tomasf/cadova-vscode), an extension that works on macOS, Linux and Windows. Both reload the model automatically when the file changes on disk, and offer parts, cross-sections and measurements for inspecting your geometry in detail. In VS Code, Generate and Preview actions also appear above each model in your code.
 
 ## Organize multiple models with `Project`
 

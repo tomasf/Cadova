@@ -123,6 +123,9 @@ let part2 = try await generator.build(named: "model2") { ... }
 
 To read values from geometry instead of producing a file, such as in a test or a script that checks a design, use ``ModelFileGenerator/evaluate(environment:_:)``. The closure receives a ``GeometryEvaluator`` and can return any value.
 
-## Cadova Viewer
+## Previewing Models
 
-[Cadova Viewer](https://github.com/tomasf/CadovaViewer) is a macOS-native application designed to preview models created in Cadova. It watches your files and reloads automatically as they are regenerated. This makes it ideal for iterative modeling.
+Two previewers are designed for models created in Cadova. Both watch your files and reload automatically as they are regenerated, which makes them ideal for iterative modeling.
+
+- [Cadova Viewer](https://github.com/tomasf/CadovaViewer) is a macOS-native application.
+- [Cadova for VS Code](https://github.com/tomasf/cadova-vscode) is an extension that works on every platform VS Code runs on. It adds Generate and Preview actions above each `Model`, `Group` and `Project` in your code, and shows the preview beside it.
