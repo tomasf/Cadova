@@ -46,14 +46,25 @@ export function read3MF(buffer, defaultColor) {
         // No relationships file; use the usual name
     }
 
+    // A group for each build item, which is a part of the model, named like its object as in Cadova
+    // Viewer, with the item's part number, if any, and semantic in its user data
     const group = new THREE.Group();
     const root = model(rootPath);
     const build = root.document.getElementsByTagNameNS(CORE, "build")[0];
-    for (const item of build?.getElementsByTagNameNS(CORE, "item") ?? []) {
+    for (const [index, item] of [...build?.getElementsByTagNameNS(CORE, "item") ?? []].entries()) {
         const path = item.getAttributeNS(PRODUCTION, "path") || rootPath;
         const semantic = item.getAttributeNS(CADOVA, "semantic") || "solid";
-        addObject(group, path, item.getAttribute("objectid"), readTransform(item.getAttribute("transform")), semantic);
+        const objectID = item.getAttribute("objectid");
+        const part = new THREE.Group();
+        part.name = model(path).resources.objects.get(objectID)?.getAttribute("name") || `Object ${index + 1}`;
+        part.userData = { partNumber: item.getAttribute("partnumber"), semantic };
+        addObject(part, path, objectID, readTransform(item.getAttribute("transform")), semantic);
+        group.add(part);
     }
+    // The model's metadata, such as its title and the application that made it, in document order
+    group.userData.metadata = [...root.document.getElementsByTagNameNS(CORE, "metadata")]
+        .filter((node) => node.parentNode === root.document.documentElement)
+        .map((node) => ({ name: node.getAttribute("name"), value: node.textContent }));
     return group;
 
     function addObject(parent, path, id, transform, semantic) {

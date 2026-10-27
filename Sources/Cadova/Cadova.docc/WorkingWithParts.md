@@ -6,7 +6,7 @@ Split a model into named parts for separate viewing and print settings.
 
 Cadova supports splitting a model into *named parts*, which appear as separate objects in the exported 3MF file. This is useful in several contexts:
 
-- In *Cadova Viewer*, individual parts can be shown or hidden for focused inspection.
+- In *Cadova Viewer* and *Cadova for VS Code*, individual parts can be shown or hidden for focused inspection.
 - In slicers like *PrusaSlicer* or *Bambu Studio*, different print settings (such as infill, speed, or supports) can be applied to each part independently.
 
 ## Defining Parts

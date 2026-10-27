@@ -24,18 +24,21 @@ struct EdgeProfileOverhangFilletTests {
     // the overhang-critical part of the curve.
     @Test func `overhang fillet profile has more area than a plain fillet profile`() async throws {
         let radius = 3.0
-        let context = _EvaluationContext()
 
-        let plain = try await context.concrete(for: EdgeProfile.fillet(radius: radius).profile)
-        let overhangSafe = try await context.concrete(for: EdgeProfile.overhangFillet(radius: radius).profile)
+        let (plainArea, overhangSafeArea) = try await ModelFileGenerator.evaluate { evaluator in
+            (
+                await evaluator.measurements(of: EdgeProfile.fillet(radius: radius).profile).area,
+                await evaluator.measurements(of: EdgeProfile.overhangFillet(radius: radius).profile).area
+            )
+        }
 
         // Sanity: both are still bounded by the profile's own radius × radius square.
-        #expect(plain.area <= radius * radius)
-        #expect(overhangSafe.area <= radius * radius)
+        #expect(plainArea <= radius * radius)
+        #expect(overhangSafeArea <= radius * radius)
 
         // The overhang-safe variant must keep strictly more material (a support shoulder) than a
         // plain fillet of the same radius — if it doesn't, the relief silently isn't being applied.
-        #expect(overhangSafe.area > plain.area)
+        #expect(overhangSafeArea > plainArea)
     }
 
     // A self-referential check (comparing the profile against itself under two environments,
@@ -43,18 +46,17 @@ struct EdgeProfileOverhangFilletTests {
     // disabled, changing `overhangAngle` has no effect at all, so this fails exactly the way the
     // bug did — both areas coming out identical — without depending on any other profile type.
     @Test func `overhang fillet respects a tighter overhang angle`() async throws {
-        let box = { Box(x: 20, y: 20, z: 10) }
         let radius = 3.0
-        let context = _EvaluationContext()
+        let profiled = Box(x: 20, y: 20, z: 10).cuttingEdgeProfile(.overhangFillet(radius: radius), on: .bottom)
 
-        let permissive = try await context.concrete(
-            for: box().cuttingEdgeProfile(.overhangFillet(radius: radius), on: .bottom).withOverhangAngle(70°)
-        )
-        let strict = try await context.concrete(
-            for: box().cuttingEdgeProfile(.overhangFillet(radius: radius), on: .bottom).withOverhangAngle(20°)
-        )
+        let (permissiveVolume, strictVolume) = try await ModelFileGenerator.evaluate { evaluator in
+            (
+                await evaluator.measurements(of: profiled.withOverhangAngle(70°)).volume,
+                await evaluator.measurements(of: profiled.withOverhangAngle(20°)).volume
+            )
+        }
 
         // A stricter (smaller) overhang angle demands a bigger support shoulder, keeping more material.
-        #expect(strict.volume > permissive.volume)
+        #expect(strictVolume > permissiveVolume)
     }
 }

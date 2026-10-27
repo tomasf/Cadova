@@ -62,7 +62,7 @@ Cadova also supports splitting models into named <doc:WorkingWithParts>, which a
 
 Cadova is not an IDE or development environment. It doesn't come with a custom editor. Instead, you use your preferred tools: Xcode, VS Code, the command line, or anything else that builds and runs Swift. Cadova is also not a viewer or slicer. You write code and get 3MF files out, ready for viewing or slicing in any compatible tool. The focus is on modeling, not viewing or printing.
 
-We do recommend [Cadova Viewer](https://github.com/tomasf/CadovaViewer), a native macOS app for viewing 3MF models. It automatically reloads the view when the underlying file changes, making it fast and seamless to iterate on designs.
+We do recommend [Cadova Viewer](https://github.com/tomasf/CadovaViewer), a native macOS app for viewing 3MF models, or [Cadova for VS Code](https://github.com/tomasf/cadova-vscode), which generates and previews models right in the editor on macOS, Linux and Windows. Both reload the view automatically when the underlying file changes, making it fast and seamless to iterate on designs.
 
 ## What's next?
 

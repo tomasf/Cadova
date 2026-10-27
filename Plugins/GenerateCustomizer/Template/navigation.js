@@ -180,9 +180,14 @@ export class CameraNavigator {
 // Pointer Events cover mice, pens and touch screens. Trackpads arrive as precise wheel events,
 // Ctrl+wheel pinches, or Safari's scale gestures. OS scroll momentum already supplies pan
 // inertia, so it must not get a second glide here.
+// With `lockPointer`, a mouse drag locks the pointer once it moves, so it can go on past the edge of
+// the screen, as in Cadova Viewer. Browsers announce every lock with a banner, so the customizer
+// leaves it off; embedders without one, such as VS Code's webviews, can turn it on.
 export class ViewportControls extends CameraNavigator {
-    constructor(camera, element) {
+    constructor(camera, element, { lockPointer = false } = {}) {
         super(camera, element);
+        this.lockPointer = lockPointer;
+        this.locked = false;
         this.pointers = new Map();
         this.drag = null;
         this.pendingTouch = null;
@@ -213,11 +218,32 @@ export class ViewportControls extends CameraNavigator {
         listen(element, "pointerenter", event => { this.cursor = this.point(event); this.resetZoomPivot(); });
         listen(element, "pointerleave", event => { if (!this.pointers.has(event.pointerId)) { this.cursor = null; this.resetZoomPivot(); } });
         listen(element, "pointercancel", () => this.reset());
-        listen(element, "lostpointercapture", event => { if (this.pointers.has(event.pointerId)) this.reset(); });
+        // Some embedded browsers, such as VS Code's webviews, release the capture before sending the
+        // pointerup, and lose it when a fast drag leaves the page, as a flick often does. Either way
+        // the page hears no more of the drag, so it ends there, gliding on as it was moving rather
+        // than stopping dead.
+        listen(element, "lostpointercapture", event => {
+            // Chrome releases pointer capture when pointer lock engages. A locked pointer still
+            // delivers its events here, so only a capture lost for another reason ends the drag.
+            if (!this.pointers.has(event.pointerId) || this.drag?.lockPending || document.pointerLockElement === element) return;
+            this.pointerUp(event);
+        });
         listen(element, "wheel", event => this.wheel(event), { passive: false });
         listen(element, "contextmenu", event => event.preventDefault());
         for (const type of ["gesturestart", "gesturechange", "gestureend"]) {
             listen(document, type, event => this.safariGesture(event), { passive: false });
+        }
+        if (lockPointer) {
+            listen(document, "pointerlockchange", () => {
+                const locked = document.pointerLockElement === element;
+                if (this.drag) this.drag.lockPending = false;
+                // Losing the lock mid-drag (Escape, or the browser revoking it) ends the drag. Exiting it
+                // after the button is released must not, or that drag's inertia would stop at once.
+                if (this.locked && !locked && this.drag) this.reset();
+                this.locked = locked;
+                if (locked && !this.drag) document.exitPointerLock();
+            });
+            listen(document, "pointerlockerror", () => this.pointerLockFailed());
         }
         listen(window, "blur", () => this.reset());
         listen(window, "keydown", event => { if (event.key === "Escape") this.reset(); });
@@ -233,8 +259,20 @@ export class ViewportControls extends CameraNavigator {
         const pointers = [...this.pointers.keys()];
         this.pointers.clear();
         for (const id of pointers) if (this.element.hasPointerCapture(id)) this.element.releasePointerCapture(id);
+        if (document.pointerLockElement === this.element) document.exitPointerLock();
         this.element.style.cursor = "";
         this.hidePivot(true);
+    }
+    pointerLockFailed() {
+        if (!this.drag?.lockPending) return;
+        this.drag.lockPending = false;
+        this.element.style.cursor = "grabbing";
+        // A refused lock normally leaves capture in place. If it was released anyway, take it back
+        // so the drag still ends with its pointerup, or end the drag if the pointer is already up.
+        for (const id of this.pointers.keys()) {
+            if (this.element.hasPointerCapture(id)) continue;
+            try { this.element.setPointerCapture(id); } catch { this.reset(); return; }
+        }
     }
     dispose() { this.reset(); this.listeners.forEach(remove => remove()); this.marker.remove(); }
     update(time = performance.now()) {
@@ -293,10 +331,11 @@ export class ViewportControls extends CameraNavigator {
         const center = multi ? points[0].clone().add(points[1]).multiplyScalar(0.5) : points[0].clone();
         const touch = [...this.pointers.values()][0].type === "touch";
         const pan = !touch && (event.button === 1 || event.button === 2 || event.altKey);
-        this.drag = { state: this.begin(center), start: center, delta: new THREE.Vector4(0,0,0,0), tracker: new VelocityTracker(),
+        this.drag = { state: this.begin(center), start: center, delta: new THREE.Vector4(0,0,0,0), tracker: new VelocityTracker(event.timeStamp),
             motion: multi ? "touch" : pan ? "pan" : "orbit", touch, multi,
             lockAxis: !touch && !pan && event.shiftKey, axis: null,
-            distance: multi ? Math.max(points[0].distanceTo(points[1]), 1) : 0, zooming: false };
+            distance: multi ? Math.max(points[0].distanceTo(points[1]), 1) : 0, zooming: false,
+            lockCursor: this.lockPointer && !touch && (!pan || event.button === 2), lockRequested: false, lockPending: false };
     }
     pointerMove(event) {
         const point = this.point(event);
@@ -306,7 +345,8 @@ export class ViewportControls extends CameraNavigator {
         if (!pointer || !drag) return;
         event.preventDefault();
         this.pendingTouch = null;
-        pointer.point.copy(point);
+        if (document.pointerLockElement === this.element) pointer.point.add(new THREE.Vector2(event.movementX, event.movementY));
+        else pointer.point.copy(point);
         const points = [...this.pointers.values()].map(pointer => pointer.point);
         const center = drag.multi ? points[0].clone().add(points[1]).multiplyScalar(0.5) : points[0];
         drag.delta.x = center.x - drag.start.x;
@@ -319,11 +359,33 @@ export class ViewportControls extends CameraNavigator {
         if (drag.multi) {
             this.setGestureZoom(drag, Math.log(Math.max(points[0].distanceTo(points[1]), 1) / drag.distance));
         }
-        this.element.style.cursor = drag.touch ? "" : "grabbing";
+        // Locked only once the drag has gone further than a click can wander, since a locked pointer
+        // stays where it was and is released there
+        if (drag.lockCursor && !drag.lockRequested && Math.hypot(drag.delta.x, drag.delta.y) > 6) {
+            drag.lockRequested = true;
+            // Trusted mouse input can use native-style unlimited drags. Capture remains the fallback
+            // when pointer lock isn't available or the browser declines it.
+            if (event.isTrusted && this.element.requestPointerLock) {
+                drag.lockPending = true;
+                try {
+                    // Windows works out a locked pointer's movement from where the cursor is, which a
+                    // mouse that reports absolute positions, as in a virtual machine, throws off: each
+                    // move then counts the distance back to where the pointer was locked. Raw movement
+                    // doesn't. Elsewhere it would bypass the system's pointer acceleration.
+                    const raw = /^Win/.test(navigator.userAgentData?.platform ?? navigator.platform);
+                    const request = this.element.requestPointerLock(raw ? { unadjustedMovement: true } : undefined);
+                    request?.catch(() => this.pointerLockFailed());
+                } catch { this.pointerLockFailed(); }
+            }
+        }
+        // A drag that locks the pointer hides it, so showing the grabbing hand first would only flicker
+        if (!drag.touch && !drag.lockCursor) this.element.style.cursor = "grabbing";
         if (drag.motion === "orbit" && Math.hypot(drag.delta.x, drag.delta.y) > 0) this.showPivot(drag.state.pivot);
         this.apply(drag.state, drag.delta, drag.motion);
-        if (drag.multi) { drag.dirty = true; drag.sampleTime = performance.now(); }
-        else drag.tracker.record(drag.delta);
+        // Timed by when the movement happened rather than when it's handled: moves arrive a frame at
+        // a time, so a slow frame would otherwise look like a pause before letting go, and no glide
+        if (drag.multi) { drag.dirty = true; drag.sampleTime = event.timeStamp; }
+        else drag.tracker.record(drag.delta, event.timeStamp);
     }
     // A pinch zooms once it has spread or closed enough to mean it, so that a two-finger pan doesn't
     // zoom as well. Twisting does nothing: rolling the view was too easy to do by accident.
@@ -345,14 +407,15 @@ export class ViewportControls extends CameraNavigator {
             // Fingers rarely lift at the same moment, so a finger left over from a pinch doesn't move
             // the view: its own movement as it lifts would orbit, and fling, the model. The pinch
             // glides on as it was moving when its first finger lifted, once the last one does.
-            if (drag?.multi) this.pendingTouch = { drag, velocity: drag.tracker.release() };
+            if (drag?.multi) this.pendingTouch = { drag, velocity: drag.tracker.release(event.timeStamp) };
             this.drag = null;
         } else {
             const pending = this.pendingTouch;
             if (pending) this.startInertia(pending.drag.state, pending.drag.delta, pending.velocity, pending.drag.motion);
-            else if (drag) this.startInertia(drag.state, drag.delta, drag.tracker.release(), drag.motion);
+            else if (drag) this.startInertia(drag.state, drag.delta, drag.tracker.release(event.timeStamp), drag.motion);
             this.drag = this.pendingTouch = null;
             this.element.style.cursor = "";
+            if (document.pointerLockElement === this.element) document.exitPointerLock();
         }
     }
     wheel(event) {
@@ -364,11 +427,11 @@ export class ViewportControls extends CameraNavigator {
             // Chromium/Firefox represent a trackpad pinch as Ctrl+wheel, with 100*log(scale) deltas.
             if (!this.pinch || this.pinch.point.distanceTo(point) >= 0.5) {
                 this.finishPinch(false);
-                this.pinch = { state: this.begin(point), point, delta: new THREE.Vector4(0,0,0,0), tracker: new VelocityTracker() };
+                this.pinch = { state: this.begin(point), point, delta: new THREE.Vector4(0,0,0,0), tracker: new VelocityTracker(event.timeStamp) };
             }
             this.pinch.delta.z -= event.deltaY * (event.deltaMode === 1 ? 16 : 1) * 0.01;
             this.apply(this.pinch.state, this.pinch.delta, "zoom");
-            this.pinch.tracker.record(this.pinch.delta);
+            this.pinch.tracker.record(this.pinch.delta, event.timeStamp);
             clearTimeout(this.pinchTimer);
             // Wheel events have no gesture-ended phase. A short quiet interval detects lift-off.
             this.pinchTimer = setTimeout(() => this.finishPinch(true), 70);

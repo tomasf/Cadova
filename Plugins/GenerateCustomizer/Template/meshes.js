@@ -16,6 +16,11 @@ export function createMaterial({ color, opacity, roughness, metalness }) {
     });
 }
 
+// Edges don't write depth, and neither do see-through faces, so the order they're drawn in decides
+// what shows through what: opaque parts' edges first (order 1, from edges.js), then see-through
+// faces, which dim the edges behind them, then the edges of see-through parts, which stay crisp.
+export const seeThroughRenderOrder = { faces: 2, edges: 3 };
+
 // A mesh for each material a part's triangles use, sharing the part's vertices. Parts that are
 // printed also get outlines along their sharp edges.
 export function createPartMeshes(positions, indices, faceMaterials, semantic) {
@@ -31,11 +36,16 @@ export function createPartMeshes(positions, indices, faceMaterials, semantic) {
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute("position", position);
         geometry.setIndex(materialIndices);
-        return new THREE.Mesh(geometry, material);
+        const mesh = new THREE.Mesh(geometry, material);
+        if (material.transparent) mesh.renderOrder = seeThroughRenderOrder.faces;
+        return mesh;
     });
     if (meshes.length && semantic !== "context" && semantic !== "visual") {
         const edges = createSharpEdges(positions, indices, faceMaterials);
-        if (edges) meshes[0].add(edges);
+        if (edges) {
+            if (meshes.some((mesh) => mesh.material.transparent)) edges.renderOrder = seeThroughRenderOrder.edges;
+            meshes[0].add(edges);
+        }
     }
     return meshes;
 }
