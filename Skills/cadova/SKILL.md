@@ -33,9 +33,12 @@ Before the first build, or outside a package, run `git clone --depth 1 https://g
 - Builder closures (`body`, `.adding {}`, `.subtracting {}`, …) union everything they contain. `if` works inside them, so you don't need `Empty()` in an `else`.
 - Booleans handle coincident faces. Make cutters exactly as large as the material they remove. Don't add the epsilon overshoot that's common in OpenSCAD.
 - Model profiles in 2D (`rounded`, `offset`, booleans), then `extruded`/`revolved`. This is usually far easier than shaping 3D primitives.
+- Prefer `repeated` for regular patterns, `distributed` for explicit positions, and `symmetry` for mirrored copies. Use loops when the geometry varies, not just its position.
 - `.inPart(_:)` takes geometry out of the main shape, so later booleans don't affect it. `.highlighted()` keeps the geometry and also shows it as a translucent red "Highlighted" part, which is useful for checking where a subtracted cutter sits.
 - Print clearances come from the environment: `@Environment(\.tolerance) var tolerance`, set with `.withTolerance(_:)` or in `Project { Environment { $0.tolerance = 0.2 } }`.
-- Threads, screws and nuts come from the separate [Helical](https://github.com/tomasf/Helical) package. Don't model helices by hand.
+- Use [Helical](https://github.com/tomasf/Helical) for threads and fastener fits: `Bolt`, `Nut`, `ThreadedHole`, `bolt.clearanceHole(entry: .recessedHead)`, and `nut.nutTrap()`. Derive cutters from the fastener definitions instead of recreating their profiles.
+- Helical clearance holes already call `overhangSafe`; enable relief with `circularOverhangMethod` (`.bridge` or `.teardrop`; default `.none`). Check holes and nut traps in the actual print orientation.
+- For mating parts, check the load path, matching corner radii, hole alignment, and remaining material around recesses. Measure intersection volume in the assembled position to catch unintended overlaps.
 
 ## Verify with cadova-viewer (macOS)
 
