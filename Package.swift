@@ -83,7 +83,7 @@ let useBinary: Bool = {
 // MARK: - Targets
 
 let sourceDependencies: [Package.Dependency] = [
-    .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "1.1.3")),
+    .package(url: "https://github.com/tomasf/manifold-swift.git", .upToNextMinor(from: "1.2.0")),
     .package(url: "https://github.com/tomasf/ThreeMF.git", .upToNextMinor(from: "0.3.3")),
     .package(url: "https://github.com/tomasf/Apus.git", .upToNextMinor(from: "0.2.1")),
     .package(url: "https://github.com/tomasf/Pelagos.git", .upToNextMinor(from: "0.1.4")),
