@@ -192,3 +192,42 @@ extension SimplePolygon: StableHashable {
         hasher.combine(vertices)
     }
 }
+
+extension Segmentation: StableHashable {
+    func stableHash(into hasher: inout StableHasher) {
+        switch self {
+        case .fixed(let count):
+            hasher.combine(case: "fixed")
+            hasher.combine(count)
+        case .adaptive(let minAngle, let minSize):
+            hasher.combine(case: "adaptive")
+            hasher.combine(minAngle)
+            hasher.combine(minSize)
+        }
+    }
+}
+
+extension PolygonPoints: StableHashable {
+    func stableHash(into hasher: inout StableHasher) {
+        switch self {
+        case .literal(let points):
+            hasher.combine(case: "literal")
+            hasher.combine(word: UInt64(points.count))
+            for point in points { hasher.combine(point) }
+        case .curve(let curve):
+            // Curves are open-ended, so they go in through their Codable representation
+            hasher.combine(case: "curve")
+            hasher.combine(StableDigest(cacheKeyContent: curve))
+        case .transformed(let inner, let transform):
+            hasher.combine(case: "transformed")
+            hasher.combine(inner)
+            hasher.combine(transform)
+        case .concatenated(let members):
+            hasher.combine(case: "concatenated")
+            hasher.combine(members)
+        case .reversed(let inner):
+            hasher.combine(case: "reversed")
+            hasher.combine(inner)
+        }
+    }
+}
