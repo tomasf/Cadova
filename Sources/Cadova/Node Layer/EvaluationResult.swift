@@ -13,13 +13,19 @@ internal struct EvaluationResult<D: Dimensionality>: Sendable {
         return parts[0]
     }
 
-    private init(parts: [D.Concrete], materialMapping: [Manifold.OriginalID: Material]) throws {
-        if let manifold = parts as? [Manifold], let error = manifold.compactMap(\.status).first {
-            throw error
-        }
-
+    // Results are validated as they're made, which means evaluating them. Manifold defers
+    // transforms until something needs the mesh, and validating a transformed result would make a
+    // transformed copy of every mesh up front, so those results aren't validated. A transform
+    // can't introduce an error, and its input was validated when it was made, but validated()
+    // still checks every result before output.
+    internal init(unvalidatedParts parts: [D.Concrete], materialMapping: [Manifold.OriginalID: Material]) {
         self.parts = parts
         self.materialMapping = materialMapping
+    }
+
+    private init(parts: [D.Concrete], materialMapping: [Manifold.OriginalID: Material]) throws {
+        self.init(unvalidatedParts: parts, materialMapping: materialMapping)
+        _ = try validated()
     }
 
     internal init(concrete: D.Concrete, materialMapping: [Manifold.OriginalID: Material]) throws {
@@ -53,6 +59,19 @@ internal struct EvaluationResult<D: Dimensionality>: Sendable {
         try self.init(concrete: product, materialMapping: merged)
     }
 
+    /// Throws the error of any part that has one. This evaluates every part.
+    func validated() throws -> Self {
+        if let manifolds = parts as? [Manifold], let error = manifolds.compactMap(\.status).first {
+            throw error
+        }
+        return self
+    }
+
+    /// This result, transformed. It isn't validated.
+    func transformed(_ transform: D.Concrete.Transform) -> Self {
+        .init(unvalidatedParts: [concrete.transform(transform)], materialMapping: materialMapping)
+    }
+
     func modified(_ action: (D.Concrete) throws -> D.Concrete) throws -> Self {
         try .init(concrete: try action(concrete), materialMapping: materialMapping)
     }
@@ -70,7 +89,7 @@ internal struct EvaluationResult<D: Dimensionality>: Sendable {
     }
 
     func clearingMaterials() -> Self where D == D3 {
-        try! .init(parts: parts, materialMapping: [:])
+        .init(unvalidatedParts: parts, materialMapping: [:])
     }
 
     internal static var empty: Self { try! .init(concrete: .empty, materialMapping: [:]) }

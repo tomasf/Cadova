@@ -98,7 +98,7 @@ extension GeometryNode {
             return try Result(product: .boolean(booleanOperation.manifoldRepresentation, with: results.map(\.concrete)), results: results)
 
         case .transform (let node, let transform):
-            return try await context.result(for: node).modified { $0.transform(transform as! D.Concrete.Transform) }
+            return try await context.result(for: node).transformed(transform as! D.Concrete.Transform)
 
         case .convexHull (let node):
             return try await context.result(for: node).modified { $0.isEmpty ? .empty : $0.hull() }

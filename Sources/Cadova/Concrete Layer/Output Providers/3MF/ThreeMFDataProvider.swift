@@ -55,7 +55,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
         outputs = outputs.filter { acceptedSemantics.contains($0.key.semantic) && $0.value.node.isEmpty == false }
 
         return try await outputs.asyncCompactMap { part, result -> ResolvedPart? in
-            let nodeResult = try await context.result(for: result.node)
+            let nodeResult = try await context.result(for: result.node).validated()
             guard nodeResult.concrete.isEmpty == false else { return nil }
             return ResolvedPart(part: part, manifold: nodeResult.concrete, materials: nodeResult.materialMapping)
         }
