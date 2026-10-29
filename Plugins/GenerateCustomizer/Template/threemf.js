@@ -89,7 +89,8 @@ export function read3MF(buffer, defaultColor) {
     // A mesh for each material the object's triangles use, sharing the object's vertices
     function readMesh(mesh, object, resources, path, semantic) {
         const vertexNodes = mesh.getElementsByTagNameNS(CORE, "vertex");
-        const positions = new Float32Array(vertexNodes.length * 3);
+        // Match the native viewer: classify edges before rounding coordinates for WebGL.
+        const positions = new Float64Array(vertexNodes.length * 3);
         for (let i = 0; i < vertexNodes.length; i++) {
             positions[i * 3] = Number(vertexNodes[i].getAttribute("x"));
             positions[i * 3 + 1] = Number(vertexNodes[i].getAttribute("y"));

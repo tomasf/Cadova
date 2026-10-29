@@ -31,7 +31,9 @@ export function createPartMeshes(positions, indices, faceMaterials, semantic) {
         indicesByMaterial.get(material).push(indices[face * 3], indices[face * 3 + 1], indices[face * 3 + 2]);
     }
 
-    const position = new THREE.BufferAttribute(positions, 3);
+    // createSharpEdges uses the full-precision positions; WebGL gets f32.
+    const gpuPositions = positions instanceof Float32Array ? positions : new Float32Array(positions);
+    const position = new THREE.BufferAttribute(gpuPositions, 3);
     const meshes = [...indicesByMaterial].map(([material, materialIndices]) => {
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute("position", position);

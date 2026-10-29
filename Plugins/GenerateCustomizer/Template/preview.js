@@ -25,18 +25,16 @@ export function readPreview(buffer, defaultColor) {
         return result;
     };
 
-    if (new TextDecoder().decode(new Uint8Array(buffer, 0, 4)) !== "CDVP") throw new Error("The model's preview isn't readable");
-    offset = 4;
-    const version = uint32();
-    if (version !== 1) throw new Error(`The model's preview has an unknown version, ${version}`);
-
     const group = new THREE.Group();
     const partCount = uint32();
     for (let part = 0; part < partCount; part++) {
         string(); // id
         string(); // name
         const semantic = string();
-        const positions = array(Float32Array, uint32() * 3);
+        const vertexCount = uint32();
+        offset = Math.ceil(offset / 8) * 8;
+        // Full precision, for finding sharp edges along nearly degenerate triangles
+        const positions = array(Float64Array, vertexCount * 3);
         const triangleCount = uint32();
         const indices = array(Uint32Array, triangleCount * 3);
         const materialIndices = array(Int32Array, triangleCount);

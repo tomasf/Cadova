@@ -2,16 +2,17 @@ import Foundation
 
 extension ThreeMFDataProvider {
     /// The model's parts in the web customizer's preview format, which its page reads straight into
-    /// typed arrays: the meshes LiveLink sends, without the XML and compression of a 3MF file.
+    /// typed arrays: the meshes LiveLink sends, without the XML and compression of a 3MF file. The page
+    /// and the model are always built together, so the format has no header or version of its own.
     ///
-    /// Everything is little-endian, and every array starts at a multiple of four bytes, so that the
-    /// page can view it in place:
+    /// Everything is little-endian, and arrays start at multiples of four bytes (eight for vertex
+    /// coordinates), so that the page can view it in place:
     ///
     /// ```
-    /// "CDVP", version: u32 (1), part count: u32
+    /// part count: u32
     /// For each part:
     ///   id, name, semantic: string (u32 byte count, UTF-8, zero-padded to a multiple of four)
-    ///   vertex count: u32, positions: f32 × 3 × vertex count
+    ///   vertex count: u32, zero padding to 8-byte alignment, positions: f64 × 3 × vertex count
     ///   triangle count: u32, vertex indices: u32 × 3 × triangle count,
     ///     material indices: i32 × triangle count (-1 for none)
     ///   default material index: i32 (-1 for none)
@@ -20,9 +21,6 @@ extension ThreeMFDataProvider {
     /// ```
     func customizerPreview(context: EvaluationContext) async throws -> Data? {
         var writer = PreviewWriter()
-        writer.append(contentsOf: Array("CDVP".utf8))
-        writer.append(UInt32(1))
-
         let parts = try await meshParts(context: context)
         writer.append(UInt32(parts.count))
         for part in parts {
@@ -31,7 +29,10 @@ extension ThreeMFDataProvider {
             writer.append(part.part.semantic.rawValue)
 
             writer.append(UInt32(part.vertices.count))
-            writer.append(part.vertices.flatMap { [Float($0.x), Float($0.y), Float($0.z)] })
+            // Keep the original precision until the browser has classified edges.
+            // Rounding thin triangles to Float first can turn smooth faces into creases.
+            writer.align(to: 8)
+            writer.append(part.vertices.flatMap { [$0.x, $0.y, $0.z] })
 
             writer.append(UInt32(part.triangleMaterialIndices.count))
             writer.append(part.triangles)
@@ -70,8 +71,14 @@ private struct PreviewWriter {
         values.map(\.littleEndian).withUnsafeBytes { bytes.append(contentsOf: $0) }
     }
 
-    mutating func append(_ values: [Float]) {
+    mutating func append(_ values: [Double]) {
         append(values.map(\.bitPattern))
+    }
+
+    mutating func align(to alignment: Int) {
+        while bytes.count % alignment != 0 {
+            bytes.append(0)
+        }
     }
 
     /// A string, zero-padded so that whatever follows it stays aligned to four bytes.
