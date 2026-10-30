@@ -673,6 +673,64 @@ struct ArchiveContentsTests {
         #expect(readBack.value == true)
     }
 
+    @Test func `the main geometry's part is identified and resolves to an object id`() async throws {
+        let seen = Captured<Part>()
+        let objectID = Captured<Int>()
+        _ = try await ModelFileGenerator.build(named: "widget") {
+            Box(10)
+                .withArchiveFinalizer { archive in
+                    seen.value = archive.mainPart
+                    objectID.value = archive.mainPart.flatMap(archive.objectID(for:))
+                }
+        }.data()
+
+        let mainPart = try #require(seen.value)
+        #expect(mainPart.name == "widget")
+        #expect(mainPart.semantic == .solid)
+        #expect(objectID.value != nil)
+    }
+
+    @Test func `the main geometry's part is distinct from the model's own parts`() async throws {
+        let declaredPart = Part("insert", semantic: .solid)
+        let seen = Captured<Part>()
+        let parts = Captured<Set<Part>>()
+        _ = try await ModelFileGenerator.build(named: "widget") {
+            Box(10)
+                .adding {
+                    Sphere(diameter: 5)
+                        .translated(x: 20)
+                        .inPart(declaredPart)
+                }
+                .withArchiveFinalizer { archive in
+                    seen.value = archive.mainPart
+                    parts.value = archive.parts
+                }
+        }.data()
+
+        let mainPart = try #require(seen.value)
+        #expect(mainPart != declaredPart)
+        #expect(parts.value == [mainPart, declaredPart])
+    }
+
+    @Test func `there is no main part when all geometry sits in parts`() async throws {
+        // Nothing is left outside a part, so the main object is dropped before writing and a
+        // finalizer must see that rather than a part matching no object in the file.
+        let declaredPart = Part("insert", semantic: .solid)
+        let seen = Captured<Bool>()
+        let parts = Captured<Set<Part>>()
+        _ = try await ModelFileGenerator.build(named: "widget") {
+            Box(10)
+                .inPart(declaredPart)
+                .withArchiveFinalizer { archive in
+                    seen.value = archive.mainPart == nil
+                    parts.value = archive.parts
+                }
+        }.data()
+
+        #expect(seen.value == true)
+        #expect(parts.value == [declaredPart])
+    }
+
     @Test func `reading a path nothing was written to gives nothing`() async throws {
         let seen = Captured<Bool>()
         _ = try await ModelFileGenerator.build {

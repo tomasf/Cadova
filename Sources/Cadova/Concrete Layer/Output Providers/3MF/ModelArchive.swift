@@ -31,6 +31,17 @@ import Foundation
     /// ```
     public let evaluator: GeometryEvaluator
 
+    /// The part the main geometry was written as, meaning everything that isn't inside a part of its
+    /// own.
+    ///
+    /// Cadova writes one object per part, plus one more for the main geometry; this is the part value
+    /// that last object was written with, so ``objectID(for:)`` resolves it like any other. Its name
+    /// is the model's name.
+    ///
+    /// `nil` when the model's geometry all sits in parts, leaving nothing for a main object, so none
+    /// was written.
+    public let mainPart: Part?
+
     private let objectIDsByPart: [Part: Int]
     private let resultElements: ResultElements
     private let addFileHandler: @Sendable (String, String?, String?, Bool, Data) throws -> Void
@@ -41,6 +52,7 @@ import Foundation
         rootGeometry: any Geometry3D,
         evaluator: GeometryEvaluator,
         objectIDsByPart: [Part: Int],
+        mainPart: Part?,
         resultElements: ResultElements,
         addFileHandler: @escaping @Sendable (String, String?, String?, Bool, Data) throws -> Void,
         fileExistsHandler: @escaping @Sendable (String) -> Bool,
@@ -49,6 +61,7 @@ import Foundation
         self.rootGeometry = rootGeometry
         self.evaluator = evaluator
         self.objectIDsByPart = objectIDsByPart
+        self.mainPart = mainPart
         self.resultElements = resultElements
         self.addFileHandler = addFileHandler
         self.fileExistsHandler = fileExistsHandler
