@@ -34,11 +34,21 @@ Before the first build, or outside a package, run `git clone --depth 1 https://g
 - Booleans handle coincident faces. Make cutters exactly as large as the material they remove. Don't add the epsilon overshoot that's common in OpenSCAD.
 - Model profiles in 2D (`rounded`, `offset`, booleans), then `extruded`/`revolved`. This is usually far easier than shaping 3D primitives.
 - Prefer `repeated` for regular patterns, `distributed` for explicit positions, and `symmetry` for mirrored copies. Use loops when the geometry varies, not just its position.
-- `.inPart(_:)` takes geometry out of the main shape, so later booleans don't affect it. `.highlighted()` keeps the geometry and also shows it as a translucent red "Highlighted" part, which is useful for checking where a subtracted cutter sits.
 - Print clearances come from the environment: `@Environment(\.tolerance) var tolerance`, set with `.withTolerance(_:)` or in `Project { Environment { $0.tolerance = 0.2 } }`.
 - Use [Helical](https://github.com/tomasf/Helical) for threads and fastener fits: `Bolt`, `Nut`, `ThreadedHole`, `bolt.clearanceHole(entry: .recessedHead)`, and `nut.nutTrap()`. Derive cutters from the fastener definitions instead of recreating their profiles.
 - Helical clearance holes already call `overhangSafe`; enable relief with `circularOverhangMethod` (`.bridge` or `.teardrop`; default `.none`). Check holes and nut traps in the actual print orientation.
 - For mating parts, check the load path, matching corner radii, hole alignment, and remaining material around recesses. Measure intersection volume in the assembled position to catch unintended overlaps.
+
+## Divide models into parts
+
+A 3MF file holds one object per part. Everything not assigned to a part ends up in a main part named after the model. Splitting a model into parts is worth doing whenever it has distinct pieces: the user can show and hide each one in the viewer, give each its own colour, filament or slicer settings, and `info` reports dimensions and volume per part, so you can check each piece separately.
+
+- `let lid = Part("Lid", color: .blue)`, then `geometry.inPart(lid)`. Parts are identified by instance, not name, so reuse the same `Part` value to put several shapes in one part. `.inPart(name: "Lid")` is shorthand for a one-off part.
+- `.inPart` takes the geometry out of the main shape and returns empty geometry in its place. Later booleans don't touch the part, but transforms applied afterwards still move it. Finish shaping a piece before assigning it.
+- A part's `semantic` says what it's for: `.solid` (printable, the default), `.context` (reference geometry such as the device an enclosure fits around; `.inBackground()` is shorthand) or `.visual` (display only). Measurements cover the main shape plus solid parts by default.
+- `.highlighted()` keeps the geometry in the main shape and also shows a translucent red copy as a visual "Highlighted" part. Use it to see where a subtracted cutter sits.
+- Overlapping solid parts confuse slicers. `.subtractingParts()` cuts the solid parts out of the main shape, for example to leave room for an inlay in a second colour.
+- To rearrange or change parts after the fact, see `readingParts`, `detachingPart`, `modifyingPart` and `removingPart` in `WorkingWithParts` and the source.
 
 ## Verify with cadova-viewer (macOS)
 
