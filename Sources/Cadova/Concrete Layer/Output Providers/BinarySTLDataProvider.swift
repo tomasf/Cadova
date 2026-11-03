@@ -21,11 +21,11 @@ struct BinarySTLDataProvider: OutputDataProvider {
     }
 
     func evaluate(context: EvaluationContext) async throws {
-        _ = try await context.result(for: outputNode)
+        _ = try await context.result(for: outputNode).validated()
     }
 
     func generateOutput(context: EvaluationContext) async throws -> Data {
-        let concrete = try await context.result(for: outputNode).concrete
+        let concrete = try await context.result(for: outputNode).validated().concrete
         let meshGL = concrete.meshGL()
 
         let metadata = options[Metadata.self]

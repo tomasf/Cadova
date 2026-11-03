@@ -21,10 +21,19 @@ struct ThreeMFDataProvider: OutputDataProvider {
     /// moments later, so a LiveLink consumer can recognize the two as the same save.
     let buildUUID = UUID()
 
+    /// The part the main geometry is written as: everything that isn't inside a part of its own,
+    /// written as one more object alongside the model's own parts.
+    ///
+    /// Built once per provider instance and shared by everything that refers to that object, since
+    /// `Part`'s identity is a per-instance UUID. A fresh value built at each use would be a
+    /// different part, matching nothing the archive was written with.
+    let mainPart: Part
+
     init(result: BuildResult<D3>, options: ModelOptions, environment: EnvironmentValues) {
         self.result = result
         self.options = options
         self.environment = environment
+        self.mainPart = Part(options[ModelName.self].name ?? "Model", semantic: .solid)
     }
 
     let fileExtension = "3mf"
@@ -48,14 +57,12 @@ struct ThreeMFDataProvider: OutputDataProvider {
         var outputs = result.elements[PartCatalog.self].mergedOutputs
         let acceptedSemantics = options.includedPartSemantics(for: .threeMF)
 
-        let name = options[ModelName.self].name ?? "Model"
-        let mainPart = Part(name, semantic: .solid)
         outputs[mainPart] = result
 
         outputs = outputs.filter { acceptedSemantics.contains($0.key.semantic) && $0.value.node.isEmpty == false }
 
         return try await outputs.asyncCompactMap { part, result -> ResolvedPart? in
-            let nodeResult = try await context.result(for: result.node)
+            let nodeResult = try await context.result(for: result.node).validated()
             guard nodeResult.concrete.isEmpty == false else { return nil }
             return ResolvedPart(part: part, manifold: nodeResult.concrete, materials: nodeResult.materialMapping)
         }
@@ -287,6 +294,10 @@ struct ThreeMFDataProvider: OutputDataProvider {
         guard !finalizers.isEmpty else { return }
 
         let objectIDsByPart = Dictionary(uniqueKeysWithValues: modelsAndItems.map { ($0.part, $0.item.objectID) })
+        // The main part is dropped before writing when the main geometry is empty (everything sits
+        // in parts of its own), so take it from what was actually written rather than assuming it
+        // survived.
+        let writtenMainPart = modelsAndItems.contains { $0.part == mainPart } ? mainPart : nil
         // Finalizers can be registered redundantly from several places in a tree (see
         // `withArchiveFinalizer`'s doc comment), so track which paths have already been written
         // this export — added paths never disappear, so a plain set is enough even though finalizers
@@ -326,6 +337,7 @@ struct ThreeMFDataProvider: OutputDataProvider {
                 rootGeometry: result,
                 evaluator: evaluator,
                 objectIDsByPart: objectIDsByPart,
+                mainPart: writtenMainPart,
                 resultElements: result.elements,
                 addFileHandler: addFileHandler,
                 fileExistsHandler: { path in addedPaths.contains(path) },
