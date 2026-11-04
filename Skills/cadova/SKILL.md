@@ -96,6 +96,16 @@ A 3MF file holds one object per part. Everything not assigned to a part ends up 
 - Overlapping solid parts confuse slicers. `.subtractingParts()` cuts the solid parts out of the main shape, for example to leave room for an inlay in a second colour.
 - To rearrange or change parts after the fact, see `readingParts`, `detachingPart`, `modifyingPart` and `removingPart` in `WorkingWithParts` and the source.
 
+## Prepare for printing with Prepress
+
+[Prepress](https://github.com/tomasf/Prepress) handles what happens between the model and the slicer. Use it when the user wants per-object slicer settings, or printable pieces oriented and laid out on a bed. Find the latest release with `git ls-remote --tags --refs --sort=-v:refname https://github.com/tomasf/Prepress | head -1`, then add `.package(url: "https://github.com/tomasf/Prepress.git", .upToNextMinor(from: "<version>"))` and `import Prepress`. Prepress is pre-1.0, so a new minor release can change the API; pin the minor version. Its README is the documentation; read it and the source in `.build/checkouts/Prepress/` before using anything not shown here.
+
+- `.withSlicerSettings(.infill(.gyroid, density: 20), .wallCount(4))` writes per-object settings into the 3MF for Bambu Studio and its forks (OrcaSlicer, Creality Print) and PrusaSlicer. Apply it **before** `.inPart(…)`, inside the part it configures. Chained after `.inPart`, it configures the enclosing part or the main shape instead. Options a slicer lacks are left out of its file, and unspecified parameters keep the user's profile values.
+- Build the model assembled, mark each printable piece with `.inComponent(name:upDirection:)` where it sits, and call `.onPlatter()` on the assembly. Each component becomes its own part, rotated so `upDirection` (in the geometry's own frame) points up, and nested flat on the bed. Geometry outside components, including plain `inPart` parts, is left off the platter. `upDirection` also sets `naturalUpDirection`, so overhang compensation inside the component follows the print orientation.
+- Disconnected solids in one component are split into separate pieces; pass `platterOptions: .init(separateSolids: false)` to keep a print-in-place assembly together. `.init(quantity: 4)` prints several copies of a piece the model has once. `.withComponentSpacing(_:)` sets the gap (default 2 mm). Prepress doesn't know the bed size.
+- For several plates, tag components (`tags: [.wheels]`, with `ComponentTag` statics in an extension) and make one `Model` per plate with `onPlatter(only:)` and `onPlatter(excluding:)`. End with an `excluding:` plate listing every tag, so new components aren't silently left out.
+- Keep a separate assembled `Model` alongside the platter models, so you can verify the fit between pieces with the viewer and evaluator, then check the platter's per-part orientation with `info` and renders.
+
 ## Verify with cadova-viewer (macOS)
 
 The headless viewer ships inside Cadova Viewer 1.3.2 and later:
