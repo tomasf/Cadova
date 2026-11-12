@@ -64,6 +64,78 @@ public func curve<V: Vector>(_ controlPoints: V...) -> BezierPath<V>.Component {
     .init(controlPoints.map(PathBuilderVector<V>.init))
 }
 
+/// Creates a Bezier curve to `end`, with its control points given as handles relative to the points they belong to.
+///
+/// The `leaving` handle is an offset from the current point, and sets the direction the curve leaves in. The
+/// `arriving` handle is an offset from `end`, and sets the direction the curve arrives from. Handles are always
+/// relative to their own point; only `end` follows the path's positioning mode (absolute or relative).
+///
+/// - Parameters:
+///   - end: The end point of the curve.
+///   - leaving: The first control point, as an offset from the current point.
+///   - arriving: The last control point, as an offset from `end`. Leave it out for a quadratic curve that only
+///     has a leaving handle.
+/// - Returns: A path component representing a Bezier curve.
+///
+/// - Example:
+///   ```swift
+///   let arm = BezierPath3D(from: armRoot) {
+///       curve(to: armBend, leaving: [0, 20, 0], arriving: [0, 0, 8])
+///       curve(to: ballCenter, leaving: [0, 0, -10], arriving: [0, -2, -12])
+///   }
+///   ```
+///
+public func curve<V: Vector>(to end: V, leaving: V, arriving: V? = nil) -> BezierPath<V>.Component {
+    .init { path, mode in
+        path.addingCurve(to: PathBuilderVector(end).value(relativeTo: path.endPoint, defaultMode: mode), leaving: leaving, arriving: arriving)
+    }
+}
+
+/// Creates a Bezier curve to `end` that continues smoothly in the direction the path currently ends in.
+///
+/// The leaving handle points the same way as the end of the previous segment, with the given length, so the two
+/// segments meet without a corner. The `arriving` handle is an offset from `end`. Only `end` follows the path's
+/// positioning mode (absolute or relative).
+///
+/// - Parameters:
+///   - end: The end point of the curve.
+///   - leaving: The length of the leaving handle, along the direction the path currently ends in.
+///   - arriving: The last control point, as an offset from `end`. Leave it out for a quadratic curve that only
+///     has a leaving handle.
+/// - Returns: A path component representing a smooth continuation curve.
+///
+/// - Example:
+///   ```swift
+///   let arm = BezierPath3D(from: armRoot) {
+///       curve(to: armBend, leaving: [0, 20, 0], arriving: [0, 0, 8])
+///       curve(to: ballCenter, leaving: 10, arriving: [0, -2, -12])
+///   }
+///   ```
+///
+/// - Precondition: The path must have at least one existing segment to determine the direction.
+///
+public func curve<V: Vector>(to end: V, leaving: Double, arriving: V? = nil) -> BezierPath<V>.Component {
+    .init { path, mode in
+        path.addingCurve(to: PathBuilderVector(end).value(relativeTo: path.endPoint, defaultMode: mode), leaving: leaving, arriving: arriving)
+    }
+}
+
+/// Creates a quadratic Bezier curve to `end`, with its control point given as a handle relative to `end`.
+///
+/// The `arriving` handle is an offset from `end`, and sets the direction the curve arrives from. Only `end`
+/// follows the path's positioning mode (absolute or relative).
+///
+/// - Parameters:
+///   - end: The end point of the curve.
+///   - arriving: The control point, as an offset from `end`.
+/// - Returns: A path component representing a quadratic Bezier curve.
+///
+public func curve<V: Vector>(to end: V, arriving: V) -> BezierPath<V>.Component {
+    .init { path, mode in
+        path.addingCurve(to: PathBuilderVector(end).value(relativeTo: path.endPoint, defaultMode: mode), arriving: arriving)
+    }
+}
+
 /// Creates a Bezier curve that continues smoothly from the previous segment.
 ///
 /// This function creates a curve whose initial direction matches the end tangent of the

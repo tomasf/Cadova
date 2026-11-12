@@ -69,9 +69,10 @@ let armDiameter = 10.0
 let armRoot = Vector3D(0, 0, 44)
 let armBend = Vector3D(0, 30, 32)
 let ballCenter = Vector3D(0, 46, 34)
-let arm = BezierPath3D(startPoint: armRoot)
-    .addingCurve(armRoot + [0, 20, 0], armBend + [0, 0, 8], armBend)
-    .addingCurve(armBend - [0, 0, 10], ballCenter - [0, 2, 12], ballCenter)
+let arm = BezierPath3D(from: armRoot) {
+    curve(to: armBend, leaving: [0, 20, 0], arriving: [0, 0, 8])
+    curve(to: ballCenter, leaving: 10, arriving: [0, -2, -12])
+}
 
 // The plate is drawn flat, front face down, then stood up against the wall
 Rectangle(x: 28, y: plateHeight)
