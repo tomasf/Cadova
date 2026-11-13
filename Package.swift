@@ -28,8 +28,8 @@ let useLocalXCFramework = false
 // Scripts/build-xcframework.sh prints the checksum, and the xcframework workflow writes both of
 // these lines when it publishes a release. Until a release records a real checksum here, the
 // placeholder makes this manifest fall back to a source build rather than fail to resolve.
-let binaryRelease = "1.2.1"
-let binaryChecksum = "c5ec4d0ac968deff653d10b137dbde0ae958625f6737d42038874dd55fadc473"
+let binaryRelease = "1.3.0"
+let binaryChecksum = "10fd1c4ec37c8071ab38b2ebcea745024aa1d485f033149637a56efd4c3a78b1"
 let binaryURL = "https://github.com/tomasf/Cadova/releases/download/\(binaryRelease)/Cadova.xcframework.zip"
 let hasPublishedBinary = !binaryChecksum.allSatisfy { $0 == "0" }
 
