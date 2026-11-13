@@ -116,4 +116,67 @@ struct BezierPathBuilderTests {
         #expect(builderPath ≈ manualPath)
         #expect(builderPath.point(at: builderPath.domain.upperBound) ≈ [-5, 5])
     }
+
+    @Test func `curve handles are offsets from their own anchors`() {
+        let armRoot = Vector3D(0, 0, 44)
+        let armBend = Vector3D(0, 30, 32)
+        let ballCenter = Vector3D(0, 46, 34)
+
+        let handlePath = BezierPath3D(startPoint: armRoot)
+            .addingCurve(to: armBend, leaving: [0, 20, 0], arriving: [0, 0, 8])
+            .addingCurve(to: ballCenter, leaving: [0, 0, -10], arriving: [0, -2, -12])
+
+        let builderPath = BezierPath3D(from: armRoot) {
+            curve(to: armBend, leaving: [0, 20, 0], arriving: [0, 0, 8])
+            curve(to: ballCenter, leaving: [0, 0, -10], arriving: [0, -2, -12])
+        }
+
+        let manualPath = BezierPath3D(startPoint: armRoot)
+            .addingCurve(armRoot + [0, 20, 0], armBend + [0, 0, 8], armBend)
+            .addingCurve(armBend - [0, 0, 10], ballCenter - [0, 2, 12], ballCenter)
+
+        #expect(handlePath ≈ manualPath)
+        #expect(builderPath ≈ manualPath)
+    }
+
+    @Test func `curve with a leaving length continues the current direction`() {
+        let builderPath = BezierPath3D(from: [0, 0, 44]) {
+            curve(to: [0, 30, 32], leaving: [0, 20, 0], arriving: [0, 0, 8])
+            curve(to: [0, 46, 34], leaving: 10, arriving: [0, -2, -12])
+        }
+
+        let manualPath = BezierPath3D(startPoint: [0, 0, 44])
+            .addingCubicCurve(controlPoint1: [0, 20, 44], controlPoint2: [0, 30, 40], end: [0, 30, 32])
+            .addingCubicCurve(controlPoint1: [0, 30, 22], controlPoint2: [0, 44, 22], end: [0, 46, 34])
+
+        #expect(builderPath ≈ manualPath)
+    }
+
+    @Test func `curve with one handle is quadratic`() {
+        let builderPath = BezierPath2D(from: [0, 0]) {
+            curve(to: [10, 10], leaving: [5, 0])
+            curve(to: [20, 0], arriving: [0, 5])
+            curve(to: [30, 0], leaving: 4)
+        }
+
+        let manualPath = BezierPath2D(startPoint: [0, 0])
+            .addingQuadraticCurve(controlPoint: [5, 0], end: [10, 10])
+            .addingQuadraticCurve(controlPoint: [20, 5], end: [20, 0])
+            .addingQuadraticCurve(controlPoint: [20, -4], end: [30, 0])
+
+        #expect(builderPath ≈ manualPath)
+    }
+
+    @Test func `relative mode moves the end point but not the handles`() {
+        let builderPath = BezierPath2D(from: [10, 10], mode: .relative) {
+            curve(to: [20, 0], leaving: [0, 5], arriving: [0, 5])
+            curve(to: [5, 5], leaving: [3, 0]).absolute
+        }
+
+        let manualPath = BezierPath2D(startPoint: [10, 10])
+            .addingCubicCurve(controlPoint1: [10, 15], controlPoint2: [30, 15], end: [30, 10])
+            .addingQuadraticCurve(controlPoint: [33, 10], end: [5, 5])
+
+        #expect(builderPath ≈ manualPath)
+    }
 }

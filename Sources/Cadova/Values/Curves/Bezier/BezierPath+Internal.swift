@@ -22,6 +22,14 @@ internal extension BezierPath {
         return endPoint + previousCurve.tangent(at: 1).unitVector * distance
     }
 
+    func addingCurve(to end: V, leavingPoint: V, arriving: V?) -> BezierPath {
+        if let arriving {
+            addingCurve([leavingPoint, end + arriving, end])
+        } else {
+            addingCurve([leavingPoint, end])
+        }
+    }
+
     func subpath(in range: ClosedRange<Double>) -> BezierPath {
         guard !isEmpty else { return self }
 

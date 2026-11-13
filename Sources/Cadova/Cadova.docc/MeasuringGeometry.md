@@ -111,6 +111,22 @@ solid.readingFirstSurface(from: [0, 0, 100], in: .down) { solid, crossing in
 }
 ```
 
+## Checking an assembly for interference
+
+When an assembly is built from parts in their assembled positions, `GeometryEvaluator.interferences(among:including:ignoring:minimumVolume:)` checks every pair of parts and reports the ones that overlap, largest overlap first. Each result names the two parts and carries the overlap's volume and the overlapping region itself. This is most useful in a test, through ``ModelFileGenerator/evaluate(environment:_:)``:
+
+```swift
+let overlaps = try await ModelFileGenerator.evaluate { evaluator in
+    await evaluator.interferences(
+        among: Assembly(),
+        ignoring: [(.oRings, .frontCap)]
+    )
+}
+#expect(overlaps.isEmpty)
+```
+
+Some parts overlap on purpose, such as an O-ring modelled uncompressed or a screw in a threaded hole. List those pairs of ``Part`` values in `ignoring`, in either order. Parts that only touch aren't reported, and neither are overlaps smaller than `minimumVolume`, which defaults to 0.01 mm³. Only parts are checked, so put the main geometry in a part of its own if it should be included. By default, `.solid` and `.context` parts are checked and `.visual` parts are left out; pass `including:` to choose differently.
+
 ## Related Reading
 
 - [Tutorial 7: Measuring and arranging](https://cadova.org/tutorials/#07), a short video that sizes a stand from a bracket's bounding box and marks its center of mass

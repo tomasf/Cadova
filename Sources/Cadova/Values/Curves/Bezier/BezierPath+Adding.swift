@@ -98,6 +98,61 @@ public extension BezierPath {
         return adding(curve: Curve(controlPoints: [endPoint, matchingControlPoint, controlPoint2, end]))
     }
 
+    /// Adds a Bezier curve to `end`, with its control points given as handles relative to the points they belong to.
+    ///
+    /// The `leaving` handle is an offset from the path's current end point, and sets the direction the curve leaves
+    /// in. The `arriving` handle is an offset from `end`, and sets the direction the curve arrives from. Moving an
+    /// end point carries its handle along with it, so the shape of the curve near that point is kept.
+    ///
+    /// ```swift
+    /// let arm = BezierPath3D(startPoint: armRoot)
+    ///     .addingCurve(to: armBend, leaving: [0, 20, 0], arriving: [0, 0, 8])
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - end: The end point of the curve.
+    ///   - leaving: The first control point, as an offset from the current end point of the path.
+    ///   - arriving: The last control point, as an offset from `end`. Leave it out for a quadratic curve that
+    ///     only has a leaving handle.
+    /// - Returns: A new `BezierPath` instance with the added curve.
+    func addingCurve(to end: V, leaving: V, arriving: V? = nil) -> BezierPath {
+        addingCurve(to: end, leavingPoint: endPoint + leaving, arriving: arriving)
+    }
+
+    /// Adds a Bezier curve to `end` that continues smoothly in the direction the path currently ends in.
+    ///
+    /// The leaving handle points the same way as the end of the previous segment, with the given length, so the
+    /// two segments meet without a corner. The `arriving` handle is an offset from `end`.
+    ///
+    /// ```swift
+    /// let arm = BezierPath3D(startPoint: armRoot)
+    ///     .addingCurve(to: armBend, leaving: [0, 20, 0], arriving: [0, 0, 8])
+    ///     .addingCurve(to: ballCenter, leaving: 10, arriving: [0, -2, -12])
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - end: The end point of the curve.
+    ///   - leaving: The length of the leaving handle, along the direction the path currently ends in.
+    ///   - arriving: The last control point, as an offset from `end`. Leave it out for a quadratic curve that
+    ///     only has a leaving handle.
+    /// - Returns: A new `BezierPath` instance with the added curve.
+    /// - Precondition: The path must have at least one segment to continue from.
+    func addingCurve(to end: V, leaving: Double, arriving: V? = nil) -> BezierPath {
+        addingCurve(to: end, leavingPoint: continuousControlPoint(distance: leaving), arriving: arriving)
+    }
+
+    /// Adds a quadratic Bezier curve to `end`, with its control point given as a handle relative to `end`.
+    ///
+    /// The `arriving` handle is an offset from `end`, and sets the direction the curve arrives from.
+    ///
+    /// - Parameters:
+    ///   - end: The end point of the curve.
+    ///   - arriving: The control point, as an offset from `end`.
+    /// - Returns: A new `BezierPath` instance with the added curve.
+    func addingCurve(to end: V, arriving: V) -> BezierPath {
+        addingCurve([end + arriving, end])
+    }
+
     /// Closes the path by adding a line segment from the last point back to the starting point.
     /// This method is useful for creating closed shapes, where the start and end points are the same.
     /// - Returns: A new `BezierPath` instance representing the closed path.

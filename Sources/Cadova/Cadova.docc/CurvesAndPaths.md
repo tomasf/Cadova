@@ -50,6 +50,21 @@ let path = BezierPath3D(from: [0, 0, 0]) {
 }
 ```
 
+### Curves with handles
+
+Control points are often easiest to think of as handles: an offset from the point they belong to, saying which way the curve leaves or arrives. `curve(to:leaving:arriving:)` takes them that way. The `leaving` handle is an offset from the current point, and the `arriving` handle is an offset from the curve's end point:
+
+```swift
+let arm = BezierPath3D(from: [0, 0, 44]) {
+    curve(to: [0, 30, 32], leaving: [0, 20, 0], arriving: [0, 0, 8])
+    curve(to: [0, 46, 34], leaving: 10, arriving: [0, -2, -12])
+}
+```
+
+The first curve leaves straight along +Y and arrives at the bend from above. Moving a point carries its handle along with it, so the curve keeps its shape around that point.
+
+Passing a number as `leaving` continues in the direction the previous segment ended in, with a handle of that length, so the two segments meet without a corner. Leaving out one of the handles gives a quadratic curve. Handles are always relative to their own point, even with `mode: .relative`; only the end point follows the path's mode. The same curves can be added outside the builder with `addingCurve(to:leaving:arriving:)`.
+
 ## Other curve types
 
 ``BezierPath`` is defined by control points that pull the curve toward them without the curve necessarily passing through them, the usual way to think about Bezier curves. Cadova also provides two alternatives with different tradeoffs:
