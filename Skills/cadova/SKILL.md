@@ -38,7 +38,7 @@ Before the first build, or outside a package, run `git clone --depth 1 https://g
 - Print clearances come from the environment: `@Environment(\.tolerance) var tolerance`, set with `.withTolerance(_:)` or in `Project { Environment { $0.tolerance = 0.2 } }`.
 - Use [Helical](https://github.com/tomasf/Helical) for anything involving screws, bolts or nuts, **even if it's just a clearance hole**. Don't model a screw hole as a `Cylinder` with a guessed diameter; add `.package(url: "https://github.com/tomasf/Helical.git", from: "1.1.0")` and write `Bolt.hexSocketHeadCap(.m3, length: 12).clearanceHole(entry: .recessedHead)`. That gives standard clearance diameters and head recesses for free. It also covers threads and fits: `Bolt`, `Nut`, `ThreadedHole` and `nut.nutTrap()`. Derive cutters from the fastener definitions instead of recreating their profiles.
 - Helical clearance holes already call `overhangSafe`; enable relief with `circularOverhangMethod` (`.bridge` or `.teardrop`; default `.none`). Check holes and nut traps in the actual print orientation.
-- For mating parts, check the load path, matching corner radii, hole alignment, and remaining material around recesses. Measure intersection volume in the assembled position to catch unintended overlaps.
+- For mating parts, check the load path, matching corner radii, hole alignment, and remaining material around recesses. Catch unintended overlaps in the assembled position with `evaluator.interferences(among:)` (Cadova 1.3+; see below).
 
 ## Write idiomatic Cadova
 
@@ -158,7 +158,7 @@ Run `"$V" render --help` for everything else.
 }
 ```
 
-The evaluator also offers `components(of:)` (count disconnected pieces to catch floating bits), `surfaces(of:from:in:)` (ray-cast to check wall thickness or where a hole is), `parts(of:)`, `isEmpty(_:)` and `split(_:along:)`. Grep `GeometryEvaluator+*.swift` for the full set. Work out expected values independently of the model code, and make sure a test fails when the feature is missing.
+The evaluator also offers `components(of:)` (count disconnected pieces to catch floating bits), `surfaces(of:from:in:)` (ray-cast to check wall thickness or where a hole is), `parts(of:)`, `isEmpty(_:)` and `split(_:along:)`. In 1.3+, `interferences(among: assembly, ignoring: [(oRing, cap)])` returns every pair of overlapping solid and context parts with the overlap volume; expect it to be empty, listing intended overlaps by `Part` value. Grep `GeometryEvaluator+*.swift` for the full set. Work out expected values independently of the model code, and make sure a test fails when the feature is missing.
 
 ## Suggested loop
 
